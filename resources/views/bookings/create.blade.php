@@ -8,7 +8,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
         </a>
         <div>
-            <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">Register Property Sale</h1>
+            <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">Register Property Sales</h1>
             <p class="text-xs text-slate-500 mt-0.5">Register a property sales contract and assign it to a customer.</p>
         </div>
     </div>
