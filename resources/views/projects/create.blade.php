@@ -1,6 +1,6 @@
 <x-erp-layout>
     <x-slot:title>Create Project</x-slot:title>
-    <x-slot:headerTitle>Reals Estate Projects / Create</x-slot:headerTitle>
+    <x-slot:headerTitle>Real Estate Projects / Create</x-slot:headerTitle>
 
     <div class="max-w-2xl mx-auto space-y-6">
         <div class="flex items-center justify-between">
