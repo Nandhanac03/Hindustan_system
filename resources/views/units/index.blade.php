@@ -99,18 +99,14 @@
                 </div>
 
                 @if($project->description)
-                    <p class="text-xs text-slate-550 leading-relaxed max-w-2xl font-medium pt-1">{{ $project->description }}</p>
-                @else
-                    <p class="text-xs text-slate-400 italic pt-1">No description provided for this project.</p>
+                    <div class="mt-3 text-[11px] leading-relaxed text-slate-500 bg-slate-50/50 p-2.5 rounded-lg border border-slate-100">
+                        {{ $project->description }}
+                    </div>
                 @endif
             </div>
-
             {{-- Summary of Statistics / RERA --}}
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100 pt-4 mt-4 text-xs font-semibold text-slate-500">
-                <div>
-                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">RERA Certificate</span>
-                    <strong class="text-slate-800 font-bold text-[11px]">{{ $project->rera_number ?? 'Exempt/Pending' }}</strong>
-                </div>
+               
                 <div>
                     <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Floors</span>
                     <strong class="text-slate-800 font-bold text-[11px]">{{ $project->total_floors }} Floors</strong>
@@ -171,7 +167,7 @@
 
         <button
     @click="resetFilters()"
-    class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-primary hover:bg-primary-50 hover:text-primary-705 hover:shadow-md"
+    class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-primary hover:bg-primary-50 hover:text-primary-705 hover:shadow-md"
 >
     <x-heroicon-o-arrow-path class="h-4 w-4" />
     Reset Filters
@@ -208,12 +204,12 @@
                             <td class="px-3 py-3 border text-slate-600" x-text="unit.unit_type.name"></td>
                             <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.door_no"></td>
                             <td class="px-3 py-3 border" x-text="Number(unit.built_up_area).toLocaleString() + ' Sq Ft'"></td>
-                            <td class="px-3 py-3 border" x-text="unit.carpet_area ? Number(unit.carpet_area).toLocaleString() + ' Sq Ft' : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.expected_rate_per_sqft ? '₹' + Number(unit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-emerald-700" x-text="unit.expected_sale_amount ? '₹' + Number(unit.expected_sale_amount).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.sale_rate_per_sqft ? '₹' + Number(unit.sale_rate_per_sqft).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-emerald-850" x-text="unit.sale_amount ? '₹' + Number(unit.sale_amount).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-rose-750" x-text="unit.difference ? '₹' + Number(unit.difference).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border" x-text="unit.carpet_area != null ? Number(unit.carpet_area).toLocaleString() + ' Sq Ft' : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.expected_rate_per_sqft != null ? '₹' + Number(unit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-emerald-700" x-text="unit.expected_sale_amount != null ? '₹' + Number(unit.expected_sale_amount).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.sale_rate_per_sqft != null ? '₹' + Number(unit.sale_rate_per_sqft).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-emerald-850" x-text="unit.sale_amount != null ? '₹' + Number(unit.sale_amount).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-rose-750" x-text="unit.difference != null ? '₹' + Number(unit.difference).toLocaleString() : 'N/A'"></td>
                             <td class="px-3 py-3 border">
                                 <span class="badge-pill" :class="getStatusBadgeClass(unit.status)" x-text="unit.status"></span>
                             </td>
@@ -242,20 +238,43 @@
     {{-- ═══════════════════════════════════════════
          MODAL 1: ADD UNIT MODAL
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Unit</h3>
-                <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+    <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+        {{-- Backdrop --}}
+        <div x-show="modals.add.open"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="closeAddModal()"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+        {{-- Modal Panel --}}
+        <div x-show="modals.add.open"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Single Unit Setup</p>
+                        <h2 class="text-lg font-extrabold text-white">Add New Unit</h2>
+                    </div>
+                    <button @click="closeAddModal()" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
-            <form @submit.prevent="submitAddUnit()">
-                <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+
+            <form @submit.prevent="submitAddUnit()" class="flex flex-col overflow-hidden max-h-[calc(90vh-100px)]">
+                <div class="p-6 space-y-4 overflow-y-auto">
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Floor</label>
-                            <select x-model="forms.add.floor_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor</label>
+                            <select x-model="forms.add.floor_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                 <option value="">Select Floor...</option>
                                 @foreach($floors as $floor)
                                     <option value="{{ $floor->id }}">{{ $floor->name }}</option>
@@ -265,8 +284,8 @@
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Type</label>
-                            <select x-model="forms.add.unit_type_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type</label>
+                            <select x-model="forms.add.unit_type_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                 <option value="">Select Type...</option>
                                 @foreach($unitTypes as $type)
                                     <option value="{{ $type->id }}">{{ $type->name }}</option>
@@ -277,33 +296,33 @@
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Door No (e.g. A-404)</label>
-                        <input type="text" x-model="forms.add.door_no" placeholder="Enter door number..." class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No (e.g. A-404)</label>
+                        <input type="text" x-model="forms.add.door_no" placeholder="Enter door number..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
-                            <input type="number" step="0.01" x-model="forms.add.built_up_area" placeholder="e.g. 1200" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
+                            <input type="number" step="0.01" x-model="forms.add.built_up_area" placeholder="e.g. 1200" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area (Sq Ft)</label>
-                            <input type="number" step="0.01" x-model="forms.add.carpet_area" placeholder="e.g. 1000" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
+                            <input type="number" step="0.01" x-model="forms.add.carpet_area" placeholder="e.g. 1000" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate per Sq Ft (₹)</label>
-                        <input type="number" step="0.01" x-model="forms.add.expected_rate_per_sqft" placeholder="e.g. 4500" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Rate per Sq Ft (₹)</label>
+                        <input type="number" step="0.01" x-model="forms.add.expected_rate_per_sqft" placeholder="e.g. 4500" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_rate_per_sqft[0]"></p></template>
                     </div>
                 </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-sm shadow-primary/5">Add Unit</button>
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
+                    <button type="button" @click="closeAddModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide">Add Unit</button>
                 </div>
             </form>
         </div>
@@ -358,7 +377,7 @@
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="space-y-1.5">
                                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor</label>
-                                        <select x-model="forms.edit.floor_id" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                                        <select x-model="forms.edit.floor_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                             @foreach($floors as $floor)
                                                 <option value="{{ $floor->id }}">{{ $floor->name }}</option>
                                             @endforeach
@@ -367,7 +386,7 @@
                                     </div>
                                     <div class="space-y-1.5">
                                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type</label>
-                                        <select x-model="forms.edit.unit_type_id" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                                        <select x-model="forms.edit.unit_type_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                             @foreach($unitTypes as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
                                             @endforeach
@@ -379,7 +398,7 @@
                                 <div class="space-y-1.5">
                                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No</label>
                                     <input type="text" x-model="forms.edit.door_no"
-                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                        class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                     <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
                                 </div>
 
@@ -387,13 +406,13 @@
                                     <div class="space-y-1.5">
                                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
                                         <input type="number" step="0.01" x-model="forms.edit.built_up_area"
-                                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
                                     </div>
                                     <div class="space-y-1.5">
                                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
                                         <input type="number" step="0.01" x-model="forms.edit.carpet_area"
-                                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
                                     </div>
                                 </div>
@@ -404,26 +423,26 @@
                                     <div class="grid grid-cols-2 gap-3 text-xs">
                                         <div>
                                             <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Expected Rate</span>
-                                            <strong class="text-slate-800 text-sm" x-text="activeUnit.expected_rate_per_sqft ? '₹' + Number(activeUnit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></strong>
+                                            <strong class="text-slate-800 text-xs" x-text="activeUnit.expected_rate_per_sqft ? '₹' + Number(activeUnit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></strong>
                                         </div>
                                         <div>
                                             <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Expected Sale</span>
-                                            <strong class="text-emerald-700 text-sm" x-text="activeUnit.expected_sale_amount ? '₹' + Number(activeUnit.expected_sale_amount).toLocaleString() : 'N/A'"></strong>
+                                            <strong class="text-emerald-700 text-xs" x-text="activeUnit.expected_sale_amount ? '₹' + Number(activeUnit.expected_sale_amount).toLocaleString() : 'N/A'"></strong>
                                         </div>
                                     </div>
                                     <template x-if="activeUnit.sale_rate_per_sqft">
                                         <div class="grid grid-cols-2 gap-3 text-xs border-t border-slate-200 pt-3">
                                             <div>
                                                 <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Sale Rate</span>
-                                                <strong class="text-slate-900 text-sm" x-text="'₹' + Number(activeUnit.sale_rate_per_sqft).toLocaleString()"></strong>
+                                                <strong class="text-slate-900 text-xs" x-text="'₹' + Number(activeUnit.sale_rate_per_sqft).toLocaleString()"></strong>
                                             </div>
                                             <div>
                                                 <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Sale Amount</span>
-                                                <strong class="text-emerald-700 text-sm" x-text="'₹' + Number(activeUnit.sale_amount).toLocaleString()"></strong>
+                                                <strong class="text-emerald-700 text-xs" x-text="'₹' + Number(activeUnit.sale_amount).toLocaleString()"></strong>
                                             </div>
                                             <div class="col-span-2 border-t border-slate-200 pt-2">
                                                 <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Difference</span>
-                                                <strong class="text-rose-600 text-sm" x-text="'₹' + Number(activeUnit.difference).toLocaleString()"></strong>
+                                                <strong class="text-rose-600 text-xs" x-text="'₹' + Number(activeUnit.difference).toLocaleString()"></strong>
                                             </div>
                                         </div>
                                     </template>
@@ -482,7 +501,7 @@
                         </div>
                         <div x-show="allowedTransitions.length > 0">
                             <input type="text" x-model="forms.status.reason" placeholder="Reason for transition (optional)..."
-                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         </div>
                     </div>
 
@@ -496,16 +515,16 @@
                                         <div class="space-y-1.5">
                                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">New Rate (₹)</label>
                                             <input type="number" step="0.01" x-model="forms.rate.rate" placeholder="e.g. 5000"
-                                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                                class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Effective From</label>
                                             <input type="date" x-model="forms.rate.effective_from"
-                                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                                class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         </div>
                                     </div>
                                     <input type="text" x-model="forms.rate.reason" placeholder="Reason for rate change..."
-                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                        class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                     <button type="submit"
                                         class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition uppercase tracking-wide">
                                         Update Rate
@@ -550,20 +569,43 @@
     {{-- ═══════════════════════════════════════════
          MODAL 3: BULK ADD UNITS
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.bulk.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeBulkModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Bulk Setup Floor Units</h3>
-                <button @click="closeBulkModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+    <div x-show="modals.bulk.open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+        {{-- Backdrop --}}
+        <div x-show="modals.bulk.open"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="closeBulkModal()"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+        {{-- Modal Panel --}}
+        <div x-show="modals.bulk.open"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bulk Generation</p>
+                        <h2 class="text-lg font-extrabold text-white">Bulk Add Units</h2>
+                    </div>
+                    <button @click="closeBulkModal()" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
-            <form @submit.prevent="submitBulkAdd()">
-                <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+
+            <form @submit.prevent="submitBulkAdd()" class="flex flex-col overflow-hidden max-h-[calc(90vh-100px)]">
+                <div class="p-6 space-y-4 overflow-y-auto">
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Floor</label>
-                            <select x-model="forms.bulk.floor_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target Floor</label>
+                            <select x-model="forms.bulk.floor_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                 <option value="">Select Floor...</option>
                                 @foreach($floors as $floor)
                                     <option value="{{ $floor->id }}">{{ $floor->name }}</option>
@@ -573,8 +615,8 @@
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Type</label>
-                            <select x-model="forms.bulk.unit_type_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type</label>
+                            <select x-model="forms.bulk.unit_type_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                 <option value="">Select Type...</option>
                                 @foreach($unitTypes as $type)
                                     <option value="{{ $type->id }}">{{ $type->name }}</option>
@@ -586,44 +628,44 @@
 
                     <div class="grid grid-cols-3 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Prefix (e.g. A-)</label>
-                            <input type="text" x-model="forms.bulk.unit_prefix" placeholder="A-" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Prefix (e.g. A-)</label>
+                            <input type="text" x-model="forms.bulk.unit_prefix" placeholder="A-" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.unit_prefix"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_prefix[0]"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Starting Num</label>
-                            <input type="number" x-model="forms.bulk.start_number" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Starting Num</label>
+                            <input type="number" x-model="forms.bulk.start_number" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.start_number"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.start_number[0]"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Count</label>
-                            <input type="number" x-model="forms.bulk.count" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Count</label>
+                            <input type="number" x-model="forms.bulk.count" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.count"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.count[0]"></p></template>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
-                            <input type="number" step="0.01" x-model="forms.bulk.built_up_area" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
+                            <input type="number" step="0.01" x-model="forms.bulk.built_up_area" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area (Sq Ft)</label>
-                            <input type="number" step="0.01" x-model="forms.bulk.carpet_area" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
+                            <input type="number" step="0.01" x-model="forms.bulk.carpet_area" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate per Sq Ft (₹)</label>
-                        <input type="number" step="0.01" x-model="forms.bulk.expected_rate_per_sqft" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Rate per Sq Ft (₹)</label>
+                        <input type="number" step="0.01" x-model="forms.bulk.expected_rate_per_sqft" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_rate_per_sqft[0]"></p></template>
                     </div>
                 </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="closeBulkModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Generate Units</button>
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
+                    <button type="button" @click="closeBulkModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide">Generate Units</button>
                 </div>
             </form>
         </div>
@@ -632,160 +674,149 @@
 
 
 {{-- ═══════════════════════ EDIT PROJECT MODAL ═══════════════════════ --}}
-<div
-    x-show="editProjectModal"
-    x-cloak
-    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-    style="display: none;"
->
+<div x-show="editProjectModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
     {{-- Backdrop --}}
-    <div
-        x-show="editProjectModal"
-        x-transition:enter="ease-out duration-200"
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave="ease-in duration-150"
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-        @click="editProjectModal = false"
-        class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-    ></div>
+    <div x-show="editProjectModal"
+         x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+         @click="editProjectModal = false"
+         class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
 
     {{-- Modal panel --}}
-    <div
-        x-show="editProjectModal"
-        x-transition:enter="ease-out duration-200"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="ease-in duration-150"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
-        class="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-        @click.stop
-    >
+    <div x-show="editProjectModal"
+         x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+         class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col"
+         @click.stop>
+        
         {{-- Header --}}
-        <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-900 px-6 py-5">
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 flex-shrink-0">
+            <div class="absolute -top-10 -right-10 w-36 h-36 bg-[#a38c29]/20 rounded-full blur-2xl pointer-events-none"></div>
             <div class="relative z-10 flex items-center justify-between">
                 <div>
-                    <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Edit Project</p>
-                    <h2 class="text-lg font-extrabold text-white">{{ $project->name }}</h2>
-                    <p class="text-slate-400 text-xs mt-0.5">{{ $project->code }}</p>
+                    <p class="text-[#a38c29] text-[9px] font-bold uppercase tracking-widest mb-0.5">Edit Project</p>
+                    <h2 class="text-xs font-extrabold text-white">{{ $project->name }}</h2>
+                    <p class="text-slate-400 text-[10px] mt-0.5 font-mono">{{ $project->code }}</p>
                 </div>
-                <button @click="editProjectModal = false" class="text-slate-400 hover:text-white transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                <button @click="editProjectModal = false" class="text-slate-400 hover:text-white transition-colors duration-150 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
         </div>
 
-        {{-- Form --}}
-        <form action="{{ route('projects.update', $project->id) }}" method="POST" enctype="multipart/form-data" class="p-6 space-y-5">
+        <form action="{{ route('projects.update', $project->id) }}" method="POST" enctype="multipart/form-data" class="flex-1 flex flex-col min-h-0">
             @csrf
             @method('PUT')
 
-            {{-- Project Image Upload --}}
-            <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Project Image</label>
-                <div class="flex items-center gap-4">
-                    <div class="w-20 h-20 rounded-xl overflow-hidden border-2 border-[#a38c29]/30 bg-slate-100 flex-shrink-0">
-                        <img
-                            x-show="!imagePreview"
-                            src="{{ $project->image_url ?? asset('images/no-image.png') }}"
-                            class="w-full h-full object-cover"
-                            alt="Project image"
-                        >
-                        <img x-show="imagePreview" :src="imagePreview" class="w-full h-full object-cover" x-cloak>
-                    </div>
-                    <div class="flex-1">
-                        <label class="cursor-pointer inline-flex items-center gap-2 px-3 py-2 bg-[#a38c29] hover:bg-[#a38c29]/80 text-white text-xs font-bold rounded-lg transition">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                            Choose Image
-                            <input type="file" name="image" accept="image/*" class="hidden" @change="
-                                const file = $event.target.files[0];
-                                if (file) imagePreview = URL.createObjectURL(file);
-                            ">
-                        </label>
-                        <p class="text-[10px] text-slate-400 mt-1">JPG, PNG up to 2MB</p>
+            {{-- Single-pane body --}}
+            <div class="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                {{-- Media & Image --}}
+                <div class="bg-slate-50/50 p-3 rounded-xl border border-slate-100 space-y-3">
+                    <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Media & Image</p>
+                    <div class="flex items-center gap-3">
+                        <div class="w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 relative">
+                            <img x-show="!imagePreview" src="{{ $project->image_url ?: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80' }}" class="w-full h-full object-cover" alt="Project image">
+                            <img x-show="imagePreview" :src="imagePreview" class="w-full h-full object-cover" x-cloak>
+                        </div>
+                        <div class="flex-1">
+                            <label class="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-bold rounded-lg transition shadow-sm uppercase tracking-wide">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                Upload
+                                <input type="file" name="image" accept="image/*" class="hidden" @change="const file = $event.target.files[0]; if (file) imagePreview = URL.createObjectURL(file);">
+                            </label>
+                            <p class="text-[9px] text-slate-400 mt-1">JPG, PNG up to 2MB</p>
+                        </div>
                     </div>
                 </div>
+
+                {{-- Project Details Section --}}
+                <div class="space-y-3">
+                    <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest border-b border-slate-100 pb-1">Project Details</p>
+                    
+                   
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Name</label>
+                            <input type="text" name="name" value="{{ old('name', $project->name) }}"
+                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                       
+                    
+
+                    <div class="space-y-1">
+                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Location / Address</label>
+                        <input type="text" name="location" value="{{ old('location', $project->location) }}"
+                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">City</label>
+                            <input type="text" name="city" value="{{ old('city', $project->city) }}"
+                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">State</label>
+                            <input type="text" name="state_or_emirate" value="{{ old('state_or_emirate', $project->state_or_emirate) }}"
+                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Country</label>
+                            <input type="text" name="country" value="{{ old('country', $project->country) }}"
+                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Status & Scope Section --}}
+                <div class="space-y-3">
+                    <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest border-b border-slate-100 pb-1">Status & Scope</p>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Status</label>
+                            <select name="status" class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                                @foreach(['planning' => 'Planning', 'ongoing' => 'Ongoing', 'completed' => 'Completed', 'on_hold' => 'On Hold'] as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('status', $project->status) == $value)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Total Floors</label>
+                            <input type="number" name="total_floors" value="{{ old('total_floors', $project->total_floors) }}"
+                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Start Date</label>
+                            <input type="date" name="start_date" value="{{ old('start_date', $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : '') }}"
+                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Target Completion</label>
+                            <input type="date" name="expected_completion_date" value="{{ old('expected_completion_date', $project->expected_completion_date ? \Carbon\Carbon::parse($project->expected_completion_date)->format('Y-m-d') : '') }}"
+                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                    </div>
+
+                    <div class="space-y-1 mt-3">
+                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Description</label>
+                        <textarea name="description" rows="3"
+                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none">{{ old('description', $project->description) }}</textarea>
+                    </div>
+                </div>
             </div>
 
-            {{-- Project Name & Code --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Project Name</label>
-                    <input type="text" name="name" value="{{ old('name', $project->name) }}"
-                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Project Code</label>
-                    <input type="text" name="code" value="{{ old('code', $project->code) }}"
-                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                </div>
-            </div>
-
-            {{-- Location --}}
-            <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Location</label>
-                <input type="text" name="location" value="{{ old('location', $project->location) }}"
-                    placeholder="e.g. Sector 62, Noida, Uttar Pradesh, India"
-                    class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-            </div>
-
-            {{-- Status & RERA --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Status</label>
-                    <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        @foreach(['planning' => 'Planning', 'ongoing' => 'Ongoing', 'completed' => 'Completed', 'on_hold' => 'On Hold'] as $value => $label)
-                            <option value="{{ $value }}" @selected(old('status', $project->status) == $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">RERA Status</label>
-                    <select name="rera_status" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        @foreach(['exempt' => 'Exempt', 'pending' => 'Pending', 'approved' => 'Approved'] as $value => $label)
-                            <option value="{{ $value }}" @selected(old('rera_status', $project->rera_status) == $value)>{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            {{-- Floors & Dates --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Total Floors</label>
-                    <input type="number" name="total_floors" value="{{ old('total_floors', $project->total_floors) }}"
-                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Start Date</label>
-                    <input type="date" name="start_date" value="{{ old('start_date', $project->start_date?->format('Y-m-d')) }}"
-                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Target Completion</label>
-                    <input type="date" name="expected_completion_date" value="{{ old('expected_completion_date', $project->expected_completion_date?->format('Y-m-d')) }}"
-                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                </div>
-            </div>
-
-            {{-- Description --}}
-            <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Description</label>
-                <textarea name="description" rows="3" placeholder="No description provided for this project."
-                    class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none">{{ old('description', $project->description) }}</textarea>
-            </div>
-
-            {{-- Footer Actions --}}
-            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+            {{-- Footer --}}
+            <div class="px-5 py-3.5 border-t border-slate-150 flex items-center justify-end gap-2.5 bg-slate-50 flex-shrink-0">
                 <button type="button" @click="editProjectModal = false"
-                    class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-lg transition">
+                    class="px-3.5 py-1.5 border border-slate-250 hover:bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
                     Cancel
                 </button>
                 <button type="submit"
-                    class="px-5 py-2 bg-[#a38c29] hover:bg-[#a38c29]/80 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30">
+                    class="px-4 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-bold rounded-lg transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
                     Save Changes
                 </button>
             </div>

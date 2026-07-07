@@ -113,37 +113,38 @@ class ProjectController extends Controller
         return view('projects.edit', compact('project'));
     }
 
-    public function update(Request $request, Project $project): RedirectResponse
-    {
-        $user = Auth::user();
-        if (!$user->hasPermissionTo('projects.manage')) {
-            abort(403);
-        }
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'location' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:100'],
-            'state_or_emirate' => ['required', 'string', 'max:100'],
-            'country' => ['required', 'string', 'max:100'],
-            'rera_number' => ['nullable', 'string', 'max:100'],
-            'total_floors' => ['required', 'integer', 'min:1'],
-            'start_date' => ['nullable', 'date'],
-            'expected_completion_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
-            'description' => ['nullable', 'string'],
-        ]);
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('projects', 'public');
-            $validated['image_url'] = asset('storage/' . $path);
-        }
-
-        $project->update($validated);
-
-        return redirect()->route('units.index', ['project' => $project->id])
-            ->with('status', 'Project details updated successfully.');
+ public function update(Request $request, Project $project): RedirectResponse
+{
+    $user = Auth::user();
+    if (!$user->hasPermissionTo('projects.manage')) {
+        abort(403);
     }
+
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'location' => ['required', 'string', 'max:255'],
+        'city' => ['required', 'string', 'max:100'],
+        'state_or_emirate' => ['required', 'string', 'max:100'],
+        'country' => ['required', 'string', 'max:100'],
+        'total_floors' => ['required', 'integer', 'min:1'],
+        'start_date' => ['nullable', 'date'],
+        'expected_completion_date' => ['nullable', 'date'],
+        'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
+        'description' => ['nullable', 'string'],
+    ]);
+
+    // Checks and uploads the image to public storage
+    if ($request->hasFile('image')) {
+        $path = $request->file('image')->store('projects', 'public');
+        $validated['image_url'] = asset('storage/' . $path);
+    }
+
+    // Saves all changes to the MySQL database
+    $project->update($validated);
+
+    return redirect()->route('units.index', ['project' => $project->id])
+        ->with('status', 'Project details updated successfully.');
+}
 
     /**
      * Show bulk generate form
