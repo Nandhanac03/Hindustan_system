@@ -22,15 +22,12 @@ class ProjectController extends Controller
     public function index(): View
     {
         // SystemScope auto-scopes by logged-in user unless Owner
-        $projects = Project::withCount(['units' => function ($q) {
-            $q->where('is_active', true);
-        }])->paginate(12);
+        $projects = Project::withCount('units')->paginate(12);
 
         // Fetch counts of available units per project
         foreach ($projects as $project) {
             $project->available_units_count = Unit::where('project_id', $project->id)
                 ->where('status', 'available')
-                ->where('is_active', true)
                 ->count();
         }
 
@@ -137,9 +134,14 @@ class ProjectController extends Controller
             'description' => ['nullable', 'string'],
         ]);
 
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('projects', 'public');
+            $validated['image_url'] = asset('storage/' . $path);
+        }
+
         $project->update($validated);
 
-        return redirect()->route('projects.index')
+        return redirect()->route('units.index', ['project' => $project->id])
             ->with('status', 'Project details updated successfully.');
     }
 
@@ -212,25 +214,25 @@ class ProjectController extends Controller
 
                     // Check unique constraint to avoid duplicates
                     $exists = Unit::where('project_id', $project->id)
-                        ->where('unit_number', $unitNumber)
+                        ->where('door_no', $unitNumber)
                         ->exists();
 
                     if ($exists) {
                         continue;
                     }
 
+                    $expectedSaleAmount = (float)$request->bua_area * (float)$request->base_rate;
+
                     $unit = Unit::create([
                         'project_id' => $project->id,
                         'floor_id' => $floor->id,
                         'unit_type_id' => $request->unit_type_id,
-                        'unit_number' => $unitNumber,
-                        'bua_area' => $request->bua_area,
+                        'door_no' => $unitNumber,
+                        'built_up_area' => $request->bua_area,
                         'carpet_area' => $request->carpet_area,
-                        'area_unit' => $request->input('area_unit', 'sqft'),
-                        'facing' => $request->facing,
+                        'expected_rate_per_sqft' => $request->base_rate,
+                        'expected_sale_amount' => $expectedSaleAmount,
                         'status' => 'available',
-                        'base_rate' => $request->base_rate,
-                        'is_active' => true,
                     ]);
 
                     // Append initial rate log

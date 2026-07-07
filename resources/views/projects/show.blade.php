@@ -139,11 +139,11 @@
                                 @endphp
                                 <button type="button" 
                                         @click="fetchUnit({{ $ut->id }})"
-                                        x-show="(searchQuery === '' || '{{ strtolower($ut->unit_number) }}'.includes(searchQuery.toLowerCase())) && (statusFilter === '' || '{{ $ut->status }}' === statusFilter) && (typeFilter === '' || '{{ $ut->unit_type_id }}' === typeFilter)"
+                                        x-show="(searchQuery === '' || '{{ strtolower($ut->door_no) }}'.includes(searchQuery.toLowerCase())) && (statusFilter === '' || '{{ $ut->status }}' === statusFilter) && (typeFilter === '' || '{{ $ut->unit_type_id }}' === typeFilter)"
                                         class="flex flex-col items-start p-2.5 min-w-[84px] text-left border rounded-xl font-bold cursor-pointer transition select-none flex-shrink-0 {{ $class }}">
-                                    <span class="text-xs">{{ $ut->unit_number }}</span>
+                                    <span class="text-xs">{{ $ut->door_no }}</span>
                                     <span class="text-[9px] uppercase font-bold tracking-wide mt-1 block opacity-70">{{ $ut->unitType->name }}</span>
-                                    <span class="text-[8px] mt-0.5 opacity-60">{{ $project->system->currency_code }} {{ number_format($ut->base_rate) }}</span>
+                                    <span class="text-[8px] mt-0.5 opacity-60">{{ $project->system->currency_code }} {{ number_format($ut->expected_rate_per_sqft) }}</span>
                                 </button>
                             @empty
                                 <span class="text-[10px] text-slate-400 italic">No units registered on this floor.</span>
@@ -193,7 +193,7 @@
                                     <div class="flex items-center gap-2">
                                         <span class="text-[9px] font-bold text-indigo-300 bg-indigo-950 px-2 py-0.5 rounded uppercase" 
                                               x-text="unit ? unit.unit_type.name : ''"></span>
-                                        <h2 class="text-sm font-bold tracking-tight uppercase" x-text="unit ? 'Unit ' + unit.unit_number : ''"></h2>
+                                        <h2 class="text-sm font-bold tracking-tight uppercase" x-text="unit ? 'Unit ' + unit.door_no : ''"></h2>
                                     </div>
                                     <button @click="panelOpen = false" class="text-slate-400 hover:text-white rounded-lg transition-colors p-1.5">
                                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -250,20 +250,38 @@
                                             <div class="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <span class="text-slate-450 font-medium block">BUA Area</span>
-                                                    <strong class="text-slate-850" x-text="unit ? unit.bua_area + ' ' + unit.area_unit : ''"></strong>
+                                                    <strong class="text-slate-850" x-text="unit ? unit.built_up_area + ' Sq Ft' : ''"></strong>
                                                 </div>
                                                 <div>
                                                     <span class="text-slate-455 font-medium block">Carpet Area</span>
-                                                    <strong class="text-slate-850" x-text="unit && unit.carpet_area ? unit.carpet_area + ' ' + unit.area_unit : 'N/A'"></strong>
+                                                    <strong class="text-slate-850" x-text="unit && unit.carpet_area ? unit.carpet_area + ' Sq Ft' : 'N/A'"></strong>
                                                 </div>
-                                                <div>
-                                                    <span class="text-slate-455 font-medium block">Facing</span>
-                                                    <strong class="text-slate-850" x-text="unit && unit.facing ? unit.facing : 'N/A'"></strong>
+                                                <div class="col-span-2 border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <span class="text-slate-455 font-medium block">Expected Rate</span>
+                                                        <strong class="text-slate-850" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.expected_rate_per_sqft).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-455 font-medium block">Expected Sale</span>
+                                                        <strong class="text-emerald-700" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.expected_sale_amount).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <span class="text-slate-455 font-medium block">Base Price / Rate</span>
-                                                    <strong class="text-slate-850" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.base_rate).toLocaleString('en-US') : ''"></strong>
-                                                </div>
+                                                <template x-if="unit && unit.sale_rate_per_sqft">
+                                                    <div class="col-span-2 border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <span class="text-slate-455 font-medium block">Sale Rate</span>
+                                                            <strong class="text-slate-850" x-text="'{{ $project->system->currency_code }} ' + Number(unit.sale_rate_per_sqft).toLocaleString('en-US')"></strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="text-slate-455 font-medium block">Sale Amount</span>
+                                                            <strong class="text-emerald-800" x-text="'{{ $project->system->currency_code }} ' + Number(unit.sale_amount).toLocaleString('en-US')"></strong>
+                                                        </div>
+                                                        <div class="col-span-2 border-t border-slate-200/60 pt-2 text-left">
+                                                            <span class="text-slate-455 font-medium block">Difference</span>
+                                                            <strong class="text-rose-750" x-text="'{{ $project->system->currency_code }} ' + Number(unit.difference).toLocaleString('en-US')"></strong>
+                                                        </div>
+                                                    </div>
+                                                </template>
                                             </div>
                                         </div>
 
@@ -319,8 +337,8 @@
                                                     
                                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                         <div class="space-y-1.5">
-                                                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">New Rate (per area unit)</label>
-                                                            <input type="number" step="0.01" name="rate" :value="unit.base_rate" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-2.5 focus:outline-none" />
+                                                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">New Rate (per Sq Ft)</label>
+                                                            <input type="number" step="0.01" name="rate" :value="unit.expected_rate_per_sqft" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-2.5 focus:outline-none" />
                                                         </div>
 
                                                         <div class="space-y-1.5">

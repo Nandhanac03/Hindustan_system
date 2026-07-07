@@ -10,32 +10,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (! Schema::hasTable('projects')) {
-            Schema::create('projects', function (Blueprint $table) {
-                $table->id();
-                $table->string('name');
-                $table->string('image_url')->nullable();
-                $table->integer('total_units');
-                $table->integer('sold_units')->default(0);
-                $table->decimal('revenue', 15, 2)->default(0.00);
-                $table->decimal('completion_percentage', 5, 2)->default(0.00);
-                $table->string('status');
-                $table->timestamps();
-            });
-        }
-
-        if (! Schema::hasTable('units')) {
-            Schema::create('units', function (Blueprint $table) {
-                $table->id();
-                $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
-                $table->string('name');
-                $table->string('floor');
-                $table->string('status'); // available, booked, reserved, sold, cancelled
-                $table->decimal('price', 15, 2);
-                $table->timestamps();
-            });
-        }
-
         if (! Schema::hasTable('customers')) {
             Schema::create('customers', function (Blueprint $table) {
                 $table->id();
@@ -62,8 +36,6 @@ return new class extends Migration
                 $table->id();
                 $table->string('booking_number')->unique();
                 $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-                $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
-                $table->foreignId('unit_id')->constrained('units')->cascadeOnDelete();
                 $table->foreignId('sales_executive_id')->constrained('sales_executives')->cascadeOnDelete();
                 $table->decimal('amount', 15, 2);
                 $table->string('status'); // pending_approval, approved, rejected
@@ -76,7 +48,6 @@ return new class extends Migration
                 $table->id();
                 $table->string('receipt_number')->unique();
                 $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
-                $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
                 $table->foreignId('booking_id')->constrained('bookings')->cascadeOnDelete();
                 $table->decimal('amount', 15, 2);
                 $table->string('payment_mode'); // Cash, Bank Transfer, Credit Card, UPI
@@ -131,7 +102,5 @@ return new class extends Migration
         Schema::dropIfExists('bookings');
         Schema::dropIfExists('sales_executives');
         Schema::dropIfExists('customers');
-        Schema::dropIfExists('units');
-        Schema::dropIfExists('projects');
     }
 };

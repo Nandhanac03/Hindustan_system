@@ -190,18 +190,33 @@ class DatabaseSeeder extends Seeder
             foreach ($floorsList as $floor) {
                 for ($i = 1; $i <= 4; $i++) {
                     $status = ($i === 1) ? 'sold' : (($i === 2) ? 'booked' : 'available');
+                    $expectedRate = 4500.00;
+                    $bua = 1200.00;
+                    $expectedSale = $bua * $expectedRate;
+
+                    $saleRate = null;
+                    $saleAmount = null;
+                    $difference = null;
+
+                    if ($status === 'booked' || $status === 'sold') {
+                        $saleRate = 4500.00;
+                        $saleAmount = $bua * $saleRate;
+                        $difference = $expectedSale - $saleAmount;
+                    }
+
                     $unit = Unit::create([
                         'project_id' => $proj->id,
                         'floor_id' => $floor->id,
                         'unit_type_id' => $flatType->id,
-                        'unit_number' => 'U-' . $floor->floor_number . sprintf('%02d', $i),
-                        'bua_area' => 1200.00,
+                        'door_no' => 'U-' . $floor->floor_number . sprintf('%02d', $i),
+                        'built_up_area' => $bua,
                         'carpet_area' => 1000.00,
-                        'area_unit' => 'sqft',
-                        'facing' => 'East',
+                        'expected_rate_per_sqft' => $expectedRate,
+                        'expected_sale_amount' => $expectedSale,
+                        'sale_rate_per_sqft' => $saleRate,
+                        'sale_amount' => $saleAmount,
+                        'difference' => $difference,
                         'status' => $status,
-                        'base_rate' => 4500.00,
-                        'is_active' => true,
                     ]);
 
                     // Append initial rate log

@@ -1,48 +1,54 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Unit extends Model
 {
+    use HasFactory;
+
+    protected $table = 'hindustan_units';
+
     protected $fillable = [
         'project_id',
         'floor_id',
         'unit_type_id',
-        'unit_number',
-        'bua_area',
+        'door_no',
+        'built_up_area',
         'carpet_area',
-        'area_unit',
-        'facing',
+        'expected_rate_per_sqft',
+        'expected_sale_amount',
+        'sale_rate_per_sqft',
+        'sale_amount',
+        'difference',
         'status',
-        'base_rate',
-        'is_active',
     ];
 
     protected $casts = [
-        'bua_area' => 'float',
-        'carpet_area' => 'float',
-        'base_rate' => 'float',
-        'is_active' => 'boolean',
+        'built_up_area'          => 'decimal:2',
+        'carpet_area'            => 'decimal:2',
+        'expected_rate_per_sqft' => 'decimal:2',
+        'expected_sale_amount'   => 'decimal:2',
+        'sale_rate_per_sqft'     => 'decimal:2',
+        'sale_amount'            => 'decimal:2',
+        'difference'             => 'decimal:2',
     ];
 
-    public function project(): BelongsTo
+    public function project()
     {
         return $this->belongsTo(Project::class);
     }
 
-    public function floor(): BelongsTo
+    public function floor()
     {
         return $this->belongsTo(Floor::class);
     }
 
-    public function unitType(): BelongsTo
+    public function unitType()
     {
         return $this->belongsTo(UnitType::class);
     }

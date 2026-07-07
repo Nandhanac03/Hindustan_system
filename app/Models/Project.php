@@ -27,6 +27,7 @@ class Project extends Model
         'expected_completion_date',
         'status',
         'description',
+        'image_url',
         'is_active',
     ];
 

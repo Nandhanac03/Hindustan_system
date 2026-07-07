@@ -186,38 +186,38 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100">
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px]">Unit Number</th>
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px]">Floor</th>
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px]">Type / Category</th>
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px]">Area (BUA / Carpet)</th>
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px]">Facing</th>
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px]">Base Rate</th>
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px]">Status</th>
-                        <th class="px-6 py-3 font-bold text-slate-550 uppercase tracking-widest text-[10px] text-right">Actions</th>
+                    <tr class="bg-slate-50/80 border-b border-slate-100 text-center font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                        <th class="px-3 py-3 border">FLOOR</th>
+                        <th class="px-3 py-3 border">TYPE</th>
+                        <th class="px-3 py-3 border">DOOR NO</th>
+                        <th class="px-3 py-3 border">BUILT UP AREA (In Sq Ft)</th>
+                        <th class="px-3 py-3 border">CARPET AREA (In Sq Ft)</th>
+                        <th class="px-3 py-3 border">₹ EXPECTED / SQ.FT</th>
+                        <th class="px-3 py-3 border">₹ EXPECTED SALE</th>
+                        <th class="px-3 py-3 border">₹ SALE PER SQ.FT</th>
+                        <th class="px-3 py-3 border">₹ SALE AMOUNT</th>
+                        <th class="px-3 py-3 border">DIFFERENCE</th>
+                        <th class="px-3 py-3 border">STATUS</th>
+                        <th class="px-3 py-3 border text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     <template x-for="unit in units" :key="unit.id">
-                        <tr class="table-row transition-colors cursor-pointer" @click="openEditModal(unit.id)">
-                            <td class="px-6 py-3.5 font-bold text-slate-900" x-text="unit.unit_number"></td>
-                            <td class="px-6 py-3.5 text-slate-600 font-semibold" x-text="unit.floor.name"></td>
-                            <td class="px-6 py-3.5 text-slate-500 font-semibold">
-                                <span x-text="unit.unit_type.name"></span>
-                                <span class="text-[9px] text-slate-400 capitalize" x-text="'(' + unit.unit_type.category + ')'"></span>
-                            </td>
-                            <td class="px-6 py-3.5 text-slate-550">
-                                <span x-text="unit.bua_area + ' ' + unit.area_unit + ' BUA'"></span>
-                                <template x-if="unit.carpet_area">
-                                    <span class="text-slate-400 text-[10px]" x-text="'/ ' + unit.carpet_area + ' ' + unit.area_unit + ' Carpet'"></span>
-                                </template>
-                            </td>
-                            <td class="px-6 py-3.5 text-slate-500 font-medium" x-text="unit.facing || 'N/A'"></td>
-                            <td class="px-6 py-3.5 font-bold text-slate-900" x-text="'₹' + Number(unit.base_rate).toLocaleString()"></td>
-                            <td class="px-6 py-3.5">
+                        <tr class="table-row transition-colors cursor-pointer text-center text-xs font-semibold text-slate-700" @click="openEditModal(unit.id)">
+                            <td class="px-3 py-3 border text-slate-600 font-bold" x-text="unit.floor.name"></td>
+                            <td class="px-3 py-3 border text-slate-600" x-text="unit.unit_type.name"></td>
+                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.door_no"></td>
+                            <td class="px-3 py-3 border" x-text="Number(unit.built_up_area).toLocaleString() + ' Sq Ft'"></td>
+                            <td class="px-3 py-3 border" x-text="unit.carpet_area ? Number(unit.carpet_area).toLocaleString() + ' Sq Ft' : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.expected_rate_per_sqft ? '₹' + Number(unit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-emerald-700" x-text="unit.expected_sale_amount ? '₹' + Number(unit.expected_sale_amount).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.sale_rate_per_sqft ? '₹' + Number(unit.sale_rate_per_sqft).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-emerald-850" x-text="unit.sale_amount ? '₹' + Number(unit.sale_amount).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border font-bold text-rose-750" x-text="unit.difference ? '₹' + Number(unit.difference).toLocaleString() : 'N/A'"></td>
+                            <td class="px-3 py-3 border">
                                 <span class="badge-pill" :class="getStatusBadgeClass(unit.status)" x-text="unit.status"></span>
                             </td>
-                            <td class="px-6 py-3.5 text-right flex items-center justify-end gap-2" @click.stop>
+                            <td class="px-3 py-3 border text-right flex items-center justify-end gap-2" @click.stop>
                                 <template x-if="permissions.manage">
                                     <div class="flex items-center gap-2">
                                         <button @click="openEditModal(unit.id)" class="p-1.5 hover:bg-primary-50 text-slate-400 hover:text-primary-600 rounded transition-colors" title="Edit Unit">
@@ -232,7 +232,7 @@
                         </tr>
                     </template>
                     <tr x-show="units.length === 0">
-                        <td colspan="8" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td>
+                        <td colspan="12" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td>
                     </tr>
                 </tbody>
             </table>
@@ -277,44 +277,28 @@
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Number (e.g. A-404)</label>
-                        <input type="text" x-model="forms.add.unit_number" placeholder="Enter number..." class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                        <template x-if="errors.unit_number"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_number[0]"></p></template>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Door No (e.g. A-404)</label>
+                        <input type="text" x-model="forms.add.door_no" placeholder="Enter door number..." class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                        <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">BUA Area</label>
-                            <input type="number" step="0.01" x-model="forms.add.bua_area" placeholder="e.g. 1200" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.bua_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.bua_area[0]"></p></template>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
+                            <input type="number" step="0.01" x-model="forms.add.built_up_area" placeholder="e.g. 1200" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area</label>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area (Sq Ft)</label>
                             <input type="number" step="0.01" x-model="forms.add.carpet_area" placeholder="e.g. 1000" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                             <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area Unit</label>
-                            <select x-model="forms.add.area_unit" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                <option value="sqft">Sqft</option>
-                                <option value="sqm">Sqm</option>
-                            </select>
-                            <template x-if="errors.area_unit"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.area_unit[0]"></p></template>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Facing</label>
-                            <input type="text" x-model="forms.add.facing" placeholder="e.g. East" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.facing"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.facing[0]"></p></template>
-                        </div>
-                    </div>
-
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Base Rate (Rate per Area Unit)</label>
-                        <input type="number" step="0.01" x-model="forms.add.base_rate" placeholder="e.g. 4500" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                        <template x-if="errors.base_rate"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.base_rate[0]"></p></template>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate per Sq Ft (₹)</label>
+                        <input type="number" step="0.01" x-model="forms.add.expected_rate_per_sqft" placeholder="e.g. 4500" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                        <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_rate_per_sqft[0]"></p></template>
                     </div>
                 </div>
                 <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
@@ -328,36 +312,62 @@
     {{-- ═══════════════════════════════════════════
          MODAL 2: EDIT UNIT & ACTIONS MODAL
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit Unit: <span class="text-primary-700" x-text="activeUnit.unit_number"></span></h3>
-                    <span class="badge-pill" :class="getStatusBadgeClass(activeUnit.status)" x-text="activeUnit.status"></span>
+    <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+        {{-- Backdrop --}}
+        <div x-show="modals.edit.open"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="closeEditModal()"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+        {{-- Modal Panel --}}
+        <div x-show="modals.edit.open"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh]"
+             @click.stop>
+
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Unit Management</p>
+                        <h2 class="text-lg font-extrabold text-white" x-text="'Unit: ' + (activeUnit.door_no || '—')"></h2>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="badge-pill text-[9px]" :class="getStatusBadgeClass(activeUnit.status)" x-text="activeUnit.status"></span>
+                            <span class="text-slate-400 text-[10px]" x-text="activeUnit.floor ? activeUnit.floor.name : ''"></span>
+                            <span class="text-slate-600 text-[10px]">•</span>
+                            <span class="text-slate-400 text-[10px]" x-text="activeUnit.unit_type ? activeUnit.unit_type.name : ''"></span>
+                        </div>
+                    </div>
+                    <button @click="closeEditModal()" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button @click="closeEditModal()" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
-            
-            <div class="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-150">
-                {{-- Left Pane: Edit Form --}}
-                <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+
+            {{-- Body: Two Panes --}}
+            <div class="grid lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-100 overflow-y-auto max-h-[calc(90vh-130px)]">
+
+                {{-- LEFT PANE: Edit Form --}}
+                <div class="p-6 space-y-4 overflow-y-auto">
                     <template x-if="permissions.manage">
                         <form @submit.prevent="submitEditUnit()">
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="space-y-1.5">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Floor</label>
-                                        <select x-model="forms.edit.floor_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor</label>
+                                        <select x-model="forms.edit.floor_id" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                             @foreach($floors as $floor)
                                                 <option value="{{ $floor->id }}">{{ $floor->name }}</option>
                                             @endforeach
                                         </select>
                                         <template x-if="errors.floor_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.floor_id[0]"></p></template>
                                     </div>
-
                                     <div class="space-y-1.5">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Type</label>
-                                        <select x-model="forms.edit.unit_type_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type</label>
+                                        <select x-model="forms.edit.unit_type_id" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                             @foreach($unitTypes as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
                                             @endforeach
@@ -367,44 +377,62 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Number</label>
-                                    <input type="text" x-model="forms.edit.unit_number" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                    <template x-if="errors.unit_number"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_number[0]"></p></template>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No</label>
+                                    <input type="text" x-model="forms.edit.door_no"
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="space-y-1.5">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">BUA Area</label>
-                                        <input type="number" step="0.01" x-model="forms.edit.bua_area" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                        <template x-if="errors.bua_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.bua_area[0]"></p></template>
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
+                                        <input type="number" step="0.01" x-model="forms.edit.built_up_area"
+                                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                        <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
                                     </div>
                                     <div class="space-y-1.5">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area</label>
-                                        <input type="number" step="0.01" x-model="forms.edit.carpet_area" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
+                                        <input type="number" step="0.01" x-model="forms.edit.carpet_area"
+                                            class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="space-y-1.5">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area Unit</label>
-                                        <select x-model="forms.edit.area_unit" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                            <option value="sqft">Sqft</option>
-                                            <option value="sqm">Sqm</option>
-                                        </select>
-                                        <template x-if="errors.area_unit"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.area_unit[0]"></p></template>
+                                {{-- Pricing Summary Card --}}
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                                    <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Pricing Summary</p>
+                                    <div class="grid grid-cols-2 gap-3 text-xs">
+                                        <div>
+                                            <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Expected Rate</span>
+                                            <strong class="text-slate-800 text-sm" x-text="activeUnit.expected_rate_per_sqft ? '₹' + Number(activeUnit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></strong>
+                                        </div>
+                                        <div>
+                                            <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Expected Sale</span>
+                                            <strong class="text-emerald-700 text-sm" x-text="activeUnit.expected_sale_amount ? '₹' + Number(activeUnit.expected_sale_amount).toLocaleString() : 'N/A'"></strong>
+                                        </div>
                                     </div>
-                                    <div class="space-y-1.5">
-                                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Facing</label>
-                                        <input type="text" x-model="forms.edit.facing" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                        <template x-if="errors.facing"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.facing[0]"></p></template>
-                                    </div>
+                                    <template x-if="activeUnit.sale_rate_per_sqft">
+                                        <div class="grid grid-cols-2 gap-3 text-xs border-t border-slate-200 pt-3">
+                                            <div>
+                                                <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Sale Rate</span>
+                                                <strong class="text-slate-900 text-sm" x-text="'₹' + Number(activeUnit.sale_rate_per_sqft).toLocaleString()"></strong>
+                                            </div>
+                                            <div>
+                                                <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Sale Amount</span>
+                                                <strong class="text-emerald-700 text-sm" x-text="'₹' + Number(activeUnit.sale_amount).toLocaleString()"></strong>
+                                            </div>
+                                            <div class="col-span-2 border-t border-slate-200 pt-2">
+                                                <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Difference</span>
+                                                <strong class="text-rose-600 text-sm" x-text="'₹' + Number(activeUnit.difference).toLocaleString()"></strong>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
-                                <div class="pt-2">
-                                    <button type="submit" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition uppercase tracking-wide">
-                                        Save Details
-                                    </button>
-                                </div>
+
+                                <button type="submit"
+                                    class="w-full py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-lg text-xs font-bold transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide">
+                                    Save Details
+                                </button>
                             </div>
                         </form>
                     </template>
@@ -414,68 +442,72 @@
                             <div class="grid grid-cols-2 gap-4 text-xs font-medium">
                                 <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Floor</p><p class="text-slate-900" x-text="activeUnit.floor ? activeUnit.floor.name : ''"></p></div>
                                 <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Type</p><p class="text-slate-900" x-text="activeUnit.unit_type ? activeUnit.unit_type.name : ''"></p></div>
-                                <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">BUA</p><p class="text-slate-900" x-text="activeUnit.bua_area + ' ' + activeUnit.area_unit"></p></div>
-                                <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Carpet</p><p class="text-slate-900" x-text="(activeUnit.carpet_area || 'N/A') + ' ' + activeUnit.area_unit"></p></div>
-                                <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Facing</p><p class="text-slate-900" x-text="activeUnit.facing || 'N/A'"></p></div>
+                                <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Built Up Area</p><p class="text-slate-900" x-text="activeUnit.built_up_area + ' Sq Ft'"></p></div>
+                                <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Carpet Area</p><p class="text-slate-900" x-text="activeUnit.carpet_area ? activeUnit.carpet_area + ' Sq Ft' : 'N/A'"></p></div>
+                                <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Expected Rate</p><p class="text-slate-900" x-text="'₹' + Number(activeUnit.expected_rate_per_sqft).toLocaleString()"></p></div>
+                                <div><p class="text-slate-450 font-bold uppercase text-[9px] tracking-wider">Expected Sale</p><p class="text-slate-900" x-text="'₹' + Number(activeUnit.expected_sale_amount).toLocaleString()"></p></div>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                {{-- Right Pane: Status Transitions & Rate Updates --}}
-                <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+                {{-- RIGHT PANE: Status Transitions & Rate Updates --}}
+                <div class="p-6 space-y-5 overflow-y-auto">
                     {{-- Status Transitions --}}
                     <div class="space-y-3">
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status Transitions</h4>
+                        <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Status Transitions</p>
                         <div class="flex flex-wrap gap-2">
                             <template x-if="['available', 'blocked'].includes(activeUnit.status)">
-                                <a :href="'{{ route('bookings.create') }}?unit_id=' + activeUnit.id" 
-                                   class="btn-ripple inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-550 border border-emerald-500 text-white font-bold rounded-lg text-xs transition uppercase tracking-wider shadow-sm shadow-emerald-650/10">
+                                <a :href="'{{ route('bookings.create') }}?unit_id=' + activeUnit.id"
+                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition uppercase tracking-wider shadow-sm">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
                                     Book Unit
                                 </a>
                             </template>
                             <template x-for="state in allowedTransitions" :key="state">
                                 <button type="button" @click="transitionStatus(state)"
-                                        class="btn-ripple px-3 py-1.5 bg-primary-50 border border-primary-200 text-primary-700 font-semibold rounded-lg text-xs hover:bg-primary-100 transition">
-                                    Move to <span class="capitalize" x-text="state"></span>
+                                        class="px-3 py-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition">
+                                    Move to <span class="capitalize font-bold" x-text="state"></span>
                                 </button>
                             </template>
                             <template x-if="activeUnit.status === 'sold' && allowedTransitions.includes('available')">
                                 <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 ml-1 cursor-pointer">
-                                    <input type="checkbox" x-model="forms.status.is_resale" class="rounded text-primary focus:ring-primary/10">
+                                    <input type="checkbox" x-model="forms.status.is_resale" class="rounded text-[#a38c29] focus:ring-[#a38c29]/20">
                                     <span class="font-bold">Resale Flag</span>
                                 </label>
                             </template>
                             <template x-if="allowedTransitions.length === 0">
-                                <p class="text-xs text-slate-400 italic">No transitions available for this status.</p>
+                                <p class="text-xs text-slate-400 italic">No transitions available.</p>
                             </template>
                         </div>
-                        <div class="space-y-1.5" x-show="allowedTransitions.length > 0">
-                            <input type="text" x-model="forms.status.reason" placeholder="Reason for transition (optional)..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-[10px] focus:outline-none transition">
+                        <div x-show="allowedTransitions.length > 0">
+                            <input type="text" x-model="forms.status.reason" placeholder="Reason for transition (optional)..."
+                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         </div>
                     </div>
 
-                    {{-- Rate Update Form (Only visible to rateManage) --}}
+                    {{-- Rate Update Form --}}
                     <template x-if="permissions.rateManage">
                         <div class="space-y-3 border-t border-slate-100 pt-4">
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Update Base Rate</h4>
+                            <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Update Base Rate</p>
                             <form @submit.prevent="submitUpdateRate()">
-                                <div class="space-y-2">
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <div class="space-y-1">
-                                            <label class="text-[9px] font-bold text-slate-450 uppercase tracking-wider block">New Rate (₹)</label>
-                                            <input type="number" step="0.01" x-model="forms.rate.rate" placeholder="e.g. 5000" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white rounded-lg text-xs focus:outline-none transition">
+                                <div class="space-y-3">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">New Rate (₹)</label>
+                                            <input type="number" step="0.01" x-model="forms.rate.rate" placeholder="e.g. 5000"
+                                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         </div>
-                                        <div class="space-y-1">
-                                            <label class="text-[9px] font-bold text-slate-450 uppercase tracking-wider block">Effective From</label>
-                                            <input type="date" x-model="forms.rate.effective_from" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white rounded-lg text-xs focus:outline-none transition">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Effective From</label>
+                                            <input type="date" x-model="forms.rate.effective_from"
+                                                class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         </div>
                                     </div>
-                                    <div class="space-y-1">
-                                        <input type="text" x-model="forms.rate.reason" placeholder="Reason for rate change..." class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white rounded-lg text-xs focus:outline-none transition">
-                                    </div>
-                                    <button type="submit" class="w-full py-1.5 bg-slate-950 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition uppercase tracking-wide">
+                                    <input type="text" x-model="forms.rate.reason" placeholder="Reason for rate change..."
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    <button type="submit"
+                                        class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition uppercase tracking-wide">
                                         Update Rate
                                     </button>
                                 </div>
@@ -485,15 +517,15 @@
 
                     {{-- Pricing History Logs --}}
                     <div class="space-y-3 border-t border-slate-100 pt-4">
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pricing Log History</h4>
-                        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Pricing Log History</p>
+                        <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
                             <template x-for="log in activeUnit.rate_logs" :key="log.id">
-                                <div class="p-2.5 bg-slate-50 rounded-xl space-y-1 border border-slate-100 text-[10px]">
+                                <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-[10px] space-y-1">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-bold text-slate-900" x-text="'₹' + Number(log.rate).toLocaleString()"></span>
-                                        <span class="text-slate-450 font-medium" x-text="log.effective_from"></span>
+                                        <span class="font-bold text-slate-900 text-xs" x-text="'₹' + Number(log.rate).toLocaleString()"></span>
+                                        <span class="text-slate-400 font-medium" x-text="log.effective_from"></span>
                                     </div>
-                                    <p class="text-slate-500 leading-tight" x-text="log.reason || 'No reason provided'"></p>
+                                    <p class="text-slate-500" x-text="log.reason || 'No reason provided'"></p>
                                     <p class="text-[9px] text-slate-400 font-semibold" x-text="'By: ' + (log.user ? log.user.name : 'System')"></p>
                                 </div>
                             </template>
@@ -504,9 +536,13 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="px-6 py-4 border-t border-slate-100 flex justify-end bg-slate-50">
-                <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
+                <button type="button" @click="closeEditModal()"
+                    class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -568,37 +604,21 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">BUA Area</label>
-                            <input type="number" step="0.01" x-model="forms.bulk.bua_area" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.bua_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.bua_area[0]"></p></template>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
+                            <input type="number" step="0.01" x-model="forms.bulk.built_up_area" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                            <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area</label>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area (Sq Ft)</label>
                             <input type="number" step="0.01" x-model="forms.bulk.carpet_area" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
                             <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area Unit</label>
-                            <select x-model="forms.bulk.area_unit" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
-                                <option value="sqft">Sqft</option>
-                                <option value="sqm">Sqm</option>
-                            </select>
-                            <template x-if="errors.area_unit"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.area_unit[0]"></p></template>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Facing</label>
-                            <input type="text" x-model="forms.bulk.facing" placeholder="e.g. East" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.facing"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.facing[0]"></p></template>
-                        </div>
-                    </div>
-
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Base Rate</label>
-                        <input type="number" step="0.01" x-model="forms.bulk.base_rate" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
-                        <template x-if="errors.base_rate"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.base_rate[0]"></p></template>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate per Sq Ft (₹)</label>
+                        <input type="number" step="0.01" x-model="forms.bulk.expected_rate_per_sqft" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 rounded-xl text-xs focus:outline-none transition-all">
+                        <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_rate_per_sqft[0]"></p></template>
                     </div>
                 </div>
                 <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
@@ -717,7 +737,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Status</label>
                     <select name="status" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        @foreach(['ongoing' => 'Ongoing', 'completed' => 'Completed', 'upcoming' => 'Upcoming', 'on_hold' => 'On Hold'] as $value => $label)
+                        @foreach(['planning' => 'Planning', 'ongoing' => 'Ongoing', 'completed' => 'Completed', 'on_hold' => 'On Hold'] as $value => $label)
                             <option value="{{ $value }}" @selected(old('status', $project->status) == $value)>{{ $label }}</option>
                         @endforeach
                     </select>
@@ -746,7 +766,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Target Completion</label>
-                    <input type="date" name="target_completion" value="{{ old('target_completion', $project->target_completion?->format('Y-m-d')) }}"
+                    <input type="date" name="expected_completion_date" value="{{ old('expected_completion_date', $project->expected_completion_date?->format('Y-m-d')) }}"
                         class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                 </div>
             </div>
@@ -798,7 +818,7 @@
             </div>
             <div class="p-6 space-y-3">
                 <p class="text-xs text-slate-600 font-medium">
-                    Are you sure you want to delete unit <strong class="text-slate-900" x-text="activeUnit.unit_number"></strong>?
+                    Are you sure you want to delete unit <strong class="text-slate-900" x-text="activeUnit.door_no"></strong>?
                 </p>
                 <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">This action cannot be undone.</p>
             </div>
@@ -819,6 +839,8 @@ function unitsApp() {
     return {
         // App states
         projectId: {{ $project->id }},
+        editProjectModal: false,
+        imagePreview: null,
         units: [],
         filters: {
             search: '',
@@ -840,21 +862,17 @@ function unitsApp() {
             add: {
                 floor_id: '',
                 unit_type_id: '',
-                unit_number: '',
-                bua_area: '',
+                door_no: '',
+                built_up_area: '',
                 carpet_area: '',
-                area_unit: 'sqft',
-                facing: '',
-                base_rate: ''
+                expected_rate_per_sqft: ''
             },
             edit: {
                 floor_id: '',
                 unit_type_id: '',
-                unit_number: '',
-                bua_area: '',
-                carpet_area: '',
-                area_unit: 'sqft',
-                facing: ''
+                door_no: '',
+                built_up_area: '',
+                carpet_area: ''
             },
             bulk: {
                 floor_id: '',
@@ -862,11 +880,9 @@ function unitsApp() {
                 unit_prefix: '',
                 start_number: 1,
                 count: 10,
-                bua_area: '',
+                built_up_area: '',
                 carpet_area: '',
-                area_unit: 'sqft',
-                facing: '',
-                base_rate: ''
+                expected_rate_per_sqft: ''
             },
             status: {
                 status: '',
@@ -951,12 +967,10 @@ function unitsApp() {
             this.forms.add = {
                 floor_id: '',
                 unit_type_id: '',
-                unit_number: '',
-                bua_area: '',
+                door_no: '',
+                built_up_area: '',
                 carpet_area: '',
-                area_unit: 'sqft',
-                facing: '',
-                base_rate: ''
+                expected_rate_per_sqft: ''
             };
             this.modals.add.open = true;
         },
@@ -988,11 +1002,9 @@ function unitsApp() {
                 this.forms.edit = {
                     floor_id: this.activeUnit.floor_id,
                     unit_type_id: this.activeUnit.unit_type_id,
-                    unit_number: this.activeUnit.unit_number,
-                    bua_area: this.activeUnit.bua_area,
-                    carpet_area: this.activeUnit.carpet_area,
-                    area_unit: this.activeUnit.area_unit,
-                    facing: this.activeUnit.facing
+                    door_no: this.activeUnit.door_no,
+                    built_up_area: this.activeUnit.built_up_area,
+                    carpet_area: this.activeUnit.carpet_area
                 };
 
                 this.modals.edit.open = true;
@@ -1014,11 +1026,9 @@ function unitsApp() {
                 unit_prefix: '',
                 start_number: 1,
                 count: 10,
-                bua_area: '',
+                built_up_area: '',
                 carpet_area: '',
-                area_unit: 'sqft',
-                facing: '',
-                base_rate: ''
+                expected_rate_per_sqft: ''
             };
             this.modals.bulk.open = true;
         },

@@ -78,14 +78,14 @@ class ModuleTwoTest extends TestCase
         $this->assertEquals(20, Unit::where('project_id', $project->id)->count());
 
         // Assert unique unit number: e.g. E-101, E-504
-        $this->assertDatabaseHas('units', [
+        $this->assertDatabaseHas('hindustan_units', [
             'project_id' => $project->id,
-            'unit_number' => 'E-101',
+            'door_no' => 'E-101',
             'status' => 'available',
         ]);
-        $this->assertDatabaseHas('units', [
+        $this->assertDatabaseHas('hindustan_units', [
             'project_id' => $project->id,
-            'unit_number' => 'E-504',
+            'door_no' => 'E-504',
             'status' => 'available',
         ]);
     }
@@ -115,10 +115,11 @@ class ModuleTwoTest extends TestCase
             'project_id' => $project->id,
             'floor_id' => $floor->id,
             'unit_type_id' => UnitType::first()->id,
-            'unit_number' => 'A-101',
-            'bua_area' => 1000,
+            'door_no' => 'A-101',
+            'built_up_area' => 1000,
             'status' => 'available',
-            'base_rate' => 4500,
+            'expected_rate_per_sqft' => 4500,
+            'expected_sale_amount' => 4500000,
         ]);
 
         // Attempt invalid status transition: available directly to sold
@@ -151,10 +152,11 @@ class ModuleTwoTest extends TestCase
             'project_id' => $project->id,
             'floor_id' => $floor->id,
             'unit_type_id' => UnitType::first()->id,
-            'unit_number' => 'A-101',
-            'bua_area' => 1000,
+            'door_no' => 'A-101',
+            'built_up_area' => 1000,
             'status' => 'available',
-            'base_rate' => 4500,
+            'expected_rate_per_sqft' => 4500,
+            'expected_sale_amount' => 4500000,
         ]);
 
         // Create two model instances representing concurrent memory states
@@ -247,10 +249,11 @@ class ModuleTwoTest extends TestCase
             'project_id' => $project->id,
             'floor_id' => $floor->id,
             'unit_type_id' => UnitType::first()->id,
-            'unit_number' => 'A-101',
-            'bua_area' => 1000,
+            'door_no' => 'A-101',
+            'built_up_area' => 1000,
             'status' => 'blocked',
-            'base_rate' => 4500,
+            'expected_rate_per_sqft' => 4500,
+            'expected_sale_amount' => 4500000,
         ]);
 
         // Attempt delete on 'blocked' unit
@@ -258,14 +261,14 @@ class ModuleTwoTest extends TestCase
         $response->assertStatus(422);
         $response->assertJsonFragment(['error' => 'Only units with available status can be deleted.']);
 
-        $this->assertDatabaseHas('units', ['id' => $unit->id]);
+        $this->assertDatabaseHas('hindustan_units', ['id' => $unit->id]);
 
         // Move to available, delete succeeds
         $unit->update(['status' => 'available']);
         $response2 = $this->deleteJson(route('units.destroy', $unit->id));
         $response2->assertStatus(200);
 
-        $this->assertDatabaseMissing('units', ['id' => $unit->id]);
+        $this->assertDatabaseMissing('hindustan_units', ['id' => $unit->id]);
     }
 
     /** @test */
@@ -301,17 +304,16 @@ class ModuleTwoTest extends TestCase
             'unit_prefix' => 'B-',
             'start_number' => 10,
             'count' => 3,
-            'bua_area' => 1250,
-            'area_unit' => 'sqft',
-            'base_rate' => 4800,
+            'built_up_area' => 1250,
+            'expected_rate_per_sqft' => 4800,
         ]);
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true, 'count' => 3]);
 
         $this->assertEquals(3, Unit::where('project_id', $project->id)->count());
-        $this->assertDatabaseHas('units', ['unit_number' => 'B-10']);
-        $this->assertDatabaseHas('units', ['unit_number' => 'B-11']);
-        $this->assertDatabaseHas('units', ['unit_number' => 'B-12']);
+        $this->assertDatabaseHas('hindustan_units', ['door_no' => 'B-10']);
+        $this->assertDatabaseHas('hindustan_units', ['door_no' => 'B-11']);
+        $this->assertDatabaseHas('hindustan_units', ['door_no' => 'B-12']);
     }
 }
