@@ -99,40 +99,33 @@
             </a>
             
             <!-- Approvals Inbox -->
-            <a href="{{ route('approvals.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('approvals.*') ? 'active text-white' : 'text-slate-300' }}">
+            <!-- <a href="{{ route('approvals.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('approvals.*') ? 'active text-white' : 'text-slate-300' }}">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                 </svg>
                 Approvals Inbox
-            </a>
+            </a> -->
             
-            <!-- User Management (Visible to authorized roles) -->
-            <a href="{{ route('admin.users.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('admin.users.*') ? 'active text-white' : 'text-slate-300' }}">
-                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-                User Management
-            </a>
 
             <!-- Project Master -->
-            @if(auth()->user()->hasAnyPermission(['projects.manage', 'projects.view']))
+            <!-- @if(auth()->user()->hasAnyPermission(['projects.manage', 'projects.view']))
             <a href="{{ route('projects.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('projects.*') ? 'active text-white' : 'text-slate-300' }}">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                 </svg>
                 Project Master
             </a>
-            @endif
+            @endif -->
 
           
 
             <!-- Sales Register Link -->
-            <a href="{{ route('bookings.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('bookings.*') ? 'active text-white' : 'text-slate-300' }}">
+            <!-- <a href="{{ route('bookings.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('bookings.*') ? 'active text-white' : 'text-slate-300' }}">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 Sales Register
-            </a>
+            </a> -->
 
             <!-- Project Units Link -->
             <a href="{{ route('units.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('units.*') ? 'active text-white' : 'text-slate-300' }}">
@@ -158,14 +151,27 @@
                 Partner Management
             </a>
 
+                
+
+
             <!-- Reports -->
-            <!-- <a href="{{ route('reports.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('reports.index') ? 'active text-white' : 'text-slate-300' }}">
+             <!-- <a href="{{ route('reports.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('reports.index') ? 'active text-white' : 'text-slate-300' }}">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.293-7.707a1 1 0 111.414 1.414L9 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4z"/>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5a2 2 0 110-4 2 2 0 010 4z"/>
                 </svg>
                 Reports
-            </a> -->
+            </a>  -->
+
+
+
+                    <!-- User Management (Visible to authorized roles) -->
+            <a href="{{ route('admin.users.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('admin.users.*') ? 'active text-white' : 'text-slate-300' }}">
+                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                User Management
+            </a>
         </nav>
         
         <!-- Workspace Footer Status -->
