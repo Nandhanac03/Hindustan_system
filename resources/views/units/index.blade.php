@@ -11,19 +11,29 @@
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">
                     Project: <span class="text-primary-700">{{ $project->name }}</span>
                 </h1>
-                <span class="text-[10px] font-bold px-2 py-0.5 bg-primary-50 text-primary-800 rounded-lg border border-primary-200">{{ $project->code }}</span>
+                <!-- <span class="text-[10px] font-bold px-2 py-0.5 bg-primary-50 text-primary-800 rounded-lg border border-primary-200">{{ $project->code }}</span> -->
             </div>
             <p class="text-xs text-slate-500 mt-1">Manage single unit listings, pricing matrices, and floor allocations.</p>
         </div>
 
         <div class="flex items-center gap-2.5">
+            <select x-model="filters.status" @change="fetchUnits()"
+                    class="px-3 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm">
+                <option value="">All Units</option>
+                <option value="recently_added">Recently Added</option>
+                <option value="available">Available</option>
+                <option value="blocked">Blocked</option>
+                <option value="booked">Booked</option>
+                <option value="sold">Sold</option>
+            </select>
+
             <template x-if="permissions.manage">
                 <div class="flex items-center gap-2">
-                    <button @click="openBulkModal()" class="btn-ripple inline-flex items-center gap-2 px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wide">
+                    <!-- <button @click="openBulkModal()" class="btn-ripple inline-flex items-center gap-2 px-3 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wide">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Bulk Add
-                    </button>
-                    <button @click="openAddModal()" class="btn-ripple inline-flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-primary-600/10 uppercase tracking-wide">
+                    </button> -->
+                    <button @click="openAddModal()" class="btn-ripple inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Add Unit
                     </button>
@@ -56,9 +66,9 @@
         <div class="w-full md:w-[240px] h-[160px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150">
             <img src="{{ $projectImage }}" alt="{{ $project->name }}" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-            <div class="absolute bottom-3 left-3">
+            <!-- <div class="absolute bottom-3 left-3">
                 <span class="text-[9px] font-bold px-2 py-0.5 bg-primary text-white rounded-md uppercase font-mono tracking-wider">{{ $project->code }}</span>
-            </div>
+            </div> -->
         </div>
 
         {{-- Project Information --}}
@@ -154,8 +164,9 @@
 
             {{-- Status Filter --}}
             <select x-model="filters.status" @change="fetchUnits()"
-                    class="w-full px-3 py-2 bg-slate-50 border-0 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
-                <option value="">All Statuses</option>
+                    class="w-full px-3 py-2 bg-slate-50 border-0 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all font-bold">
+                <option value="">All Units</option>
+                <option value="recently_added">Recently Added</option>
                 <option value="available">Available</option>
                 <option value="blocked">Blocked</option>
                 <option value="booked">Booked</option>
@@ -232,6 +243,28 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        {{-- Pagination Controls --}}
+        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between" x-show="pagination.total > 0">
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                Showing <span class="text-slate-900" x-text="(pagination.current_page - 1) * 10 + 1"></span> to 
+                <span class="text-slate-900" x-text="Math.min(pagination.current_page * 10, pagination.total)"></span> of 
+                <span class="text-slate-900" x-text="pagination.total"></span> entries
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button @click="if(pagination.current_page > 1) fetchUnits(pagination.current_page - 1)" 
+                        :disabled="pagination.current_page <= 1"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Prev
+                </button>
+                <span class="px-2 py-1 text-[10px] font-bold text-slate-700" x-text="pagination.current_page + ' / ' + pagination.last_page"></span>
+                <button @click="if(pagination.current_page < pagination.last_page) fetchUnits(pagination.current_page + 1)" 
+                        :disabled="pagination.current_page >= pagination.last_page"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    Next
+                </button>
+            </div>
         </div>
     </div>
 
@@ -696,7 +729,7 @@
                 <div>
                     <p class="text-[#a38c29] text-[9px] font-bold uppercase tracking-widest mb-0.5">Edit Project</p>
                     <h2 class="text-xs font-extrabold text-white">{{ $project->name }}</h2>
-                    <p class="text-slate-400 text-[10px] mt-0.5 font-mono">{{ $project->code }}</p>
+                    <!-- <p class="text-slate-400 text-[10px] mt-0.5 font-mono">{{ $project->code }}</p> -->
                 </div>
                 <button @click="editProjectModal = false" class="text-slate-400 hover:text-white transition-colors duration-150 p-1">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -873,6 +906,11 @@ function unitsApp() {
         editProjectModal: false,
         imagePreview: null,
         units: [],
+        pagination: {
+            current_page: 1,
+            last_page: 1,
+            total: 0
+        },
         filters: {
             search: '',
             floor_id: '',
@@ -940,8 +978,9 @@ function unitsApp() {
         },
 
         // Fetch Listings
-        fetchUnits() {
+        fetchUnits(page = 1) {
             let params = new URLSearchParams();
+            params.append('page', page);
             if (this.filters.search) params.append('search', this.filters.search);
             if (this.filters.floor_id) params.append('floor_id', this.filters.floor_id);
             if (this.filters.unit_type_id) params.append('unit_type_id', this.filters.unit_type_id);
@@ -956,6 +995,9 @@ function unitsApp() {
             .then(res => res.json())
             .then(data => {
                 this.units = data.units;
+                if(data.pagination) {
+                    this.pagination = data.pagination;
+                }
             })
             .catch(err => {
                 console.error('Error fetching units:', err);

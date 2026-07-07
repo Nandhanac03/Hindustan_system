@@ -34,8 +34,8 @@ class DashboardController extends Controller
         // Outstanding = Sales - Collections
         $outstanding = max(0, $totalSales - $totalCollections);
 
-        // ── Recent Projects ───────────────────────────────────────────────────
-        $recentProjects = Project::latest()
+        // ── Recent Units ───────────────────────────────────────────────────
+        $recentUnits = Unit::with(['project', 'floor', 'unitType'])->latest()
             ->take(5)
             ->get();
 
@@ -49,15 +49,14 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // ── Pending Approvals (latest 5) ──────────────────────────────────────
-        $approvalRequests = ApprovalRequest::where('status', 'pending')
-            ->orderByRaw("FIELD(priority, 'critical', 'high', 'medium', 'low')")
+        // ── Recent Bookings (replaces Approvals) ──────────────────────────────
+        $recentBookings = Booking::with(['unit', 'customer'])
             ->latest()
             ->take(5)
             ->get();
 
-        // ── Recent Activity ───────────────────────────────────────────────────
-        $activityLogs = ActivityLog::latest()->take(6)->get();
+        // ── Inventory Activity (replaces ActivityLog) ─────────────────────────
+        $inventoryActivity = Unit::with('floor')->latest('updated_at')->take(6)->get();
 
         // ── Revenue Chart (monthly bookings + payments for current year) ──────
         $currentYear = Carbon::now()->year;
@@ -119,10 +118,10 @@ class DashboardController extends Controller
             'totalCollections',
             'outstanding',
             'pendingApprovals',
-            'recentProjects',
+            'recentUnits',
             'topCustomers',
-            'approvalRequests',
-            'activityLogs',
+            'recentBookings',
+            'inventoryActivity',
             'revenueData',
             'collectionsData',
             'donutAvailable',

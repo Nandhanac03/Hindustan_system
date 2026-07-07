@@ -134,10 +134,15 @@ class ProjectController extends Controller
     ]);
 
     // Checks and uploads the image to public storage
-    if ($request->hasFile('image')) {
-        $path = $request->file('image')->store('projects', 'public');
-        $validated['image_url'] = asset('storage/' . $path);
-    }
+   if ($request->hasFile('image')) {
+
+    $filename = time() . '_' . $request->file('image')->getClientOriginalName();
+
+    $request->file('image')->storeAs('projects', $filename, 'public');
+
+    // Store only: filename.jpg
+    $validated['image_url'] = $filename;
+}
 
     // Saves all changes to the MySQL database
     $project->update($validated);
