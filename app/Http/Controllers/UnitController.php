@@ -44,7 +44,7 @@ class UnitController extends Controller
             $query = Unit::with(['floor', 'unitType'])->where('project_id', $project->id);
 
             if ($request->filled('search')) {
-                $query->where('unit_number', 'like', '%' . $request->search . '%');
+                $query->where('door_no', 'like', '%' . $request->search . '%');
             }
 
             if ($request->filled('floor_id')) {
@@ -59,7 +59,7 @@ class UnitController extends Controller
                 $query->where('unit_type_id', $request->unit_type_id);
             }
 
-            $units = $query->orderBy('unit_number')->get();
+            $units = $query->orderBy('door_no')->get();
 
             return response()->json([
                 'units' => $units,
@@ -80,34 +80,30 @@ class UnitController extends Controller
             'project_id' => ['required', 'exists:projects,id'],
             'floor_id' => ['required', 'exists:floors,id'],
             'unit_type_id' => ['required', 'exists:unit_types,id'],
-            'unit_number' => ['required', 'string', 'max:255'],
-            'bua_area' => ['required', 'numeric', 'min:0.01'],
+            'door_no' => ['required', 'string', 'max:255'],
+            'built_up_area' => ['required', 'numeric', 'min:0.01'],
             'carpet_area' => ['nullable', 'numeric', 'min:0'],
-            'area_unit' => ['required', 'in:sqft,sqm'],
-            'facing' => ['nullable', 'string', 'max:255'],
-            'base_rate' => ['required', 'numeric', 'min:0'],
+            'expected_rate_per_sqft' => ['required', 'numeric', 'min:0'],
         ]);
 
-        // Check unique unit_number in project
+        // Check unique door_no in project
         $exists = Unit::where('project_id', $validated['project_id'])
-            ->where('unit_number', $validated['unit_number'])
+            ->where('door_no', $validated['door_no'])
             ->exists();
         if ($exists) {
-            return response()->json(['errors' => ['unit_number' => ['The unit number has already been taken in this project.']]], 422);
+            return response()->json(['errors' => ['door_no' => ['The door number has already been taken in this project.']]], 422);
         }
 
         $unit = null;
         DB::transaction(function () use ($validated, &$unit) {
-            $baseRate = (float)$validated['base_rate'];
-            unset($validated['base_rate']);
-
+            $expectedRate = (float)$validated['expected_rate_per_sqft'];
+            $validated['expected_sale_amount'] = (float)$validated['built_up_area'] * $expectedRate;
             $validated['status'] = 'available';
-            $validated['is_active'] = true;
 
             $unit = Unit::create($validated);
 
             // Record initial rate
-            $this->rateService->updateRate($unit, $baseRate, now()->toDateString(), 'Initial Rate');
+            $this->rateService->updateRate($unit, $expectedRate, now()->toDateString(), 'Initial Rate');
 
             // Record initial status log
             \App\Models\UnitStatusLog::create([
@@ -162,20 +158,25 @@ class UnitController extends Controller
         $validated = $request->validate([
             'floor_id' => ['required', 'exists:floors,id'],
             'unit_type_id' => ['required', 'exists:unit_types,id'],
-            'unit_number' => ['required', 'string', 'max:255'],
-            'bua_area' => ['required', 'numeric', 'min:0.01'],
+            'door_no' => ['required', 'string', 'max:255'],
+            'built_up_area' => ['required', 'numeric', 'min:0.01'],
             'carpet_area' => ['nullable', 'numeric', 'min:0'],
-            'area_unit' => ['required', 'in:sqft,sqm'],
-            'facing' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Check unique unit_number excluding current unit
+        // Check unique door_no excluding current unit
         $exists = Unit::where('project_id', $unit->project_id)
-            ->where('unit_number', $validated['unit_number'])
+            ->where('door_no', $validated['door_no'])
             ->where('id', '!=', $unit->id)
             ->exists();
         if ($exists) {
-            return response()->json(['errors' => ['unit_number' => ['The unit number has already been taken in this project.']]], 422);
+            return response()->json(['errors' => ['door_no' => ['The door number has already been taken in this project.']]], 422);
+        }
+
+        // recalculate expected sale amount
+        $validated['expected_sale_amount'] = (float)$validated['built_up_area'] * (float)($unit->expected_rate_per_sqft ?? 0.0);
+        if ($unit->sale_rate_per_sqft) {
+            $validated['sale_amount'] = (float)$validated['built_up_area'] * (float)$unit->sale_rate_per_sqft;
+            $validated['difference'] = $validated['expected_sale_amount'] - $validated['sale_amount'];
         }
 
         $unit->update($validated);
@@ -214,11 +215,9 @@ class UnitController extends Controller
             'unit_prefix' => ['nullable', 'string', 'max:10'],
             'start_number' => ['required', 'integer', 'min:1'],
             'count' => ['required', 'integer', 'min:1', 'max:100'],
-            'bua_area' => ['required', 'numeric', 'min:0.01'],
+            'built_up_area' => ['required', 'numeric', 'min:0.01'],
             'carpet_area' => ['nullable', 'numeric', 'min:0'],
-            'area_unit' => ['required', 'in:sqft,sqm'],
-            'facing' => ['nullable', 'string', 'max:50'],
-            'base_rate' => ['required', 'numeric', 'min:0'],
+            'expected_rate_per_sqft' => ['required', 'numeric', 'min:0'],
         ]);
 
         $project_id = (int)$request->project_id;
@@ -227,44 +226,42 @@ class UnitController extends Controller
         $prefix = $request->unit_prefix ?? '';
         $start = (int)$request->start_number;
         $count = (int)$request->count;
-        $bua = (float)$request->bua_area;
+        $built_up_area = (float)$request->built_up_area;
         $carpet = $request->carpet_area ? (float)$request->carpet_area : null;
-        $area_unit = $request->area_unit;
-        $facing = $request->facing;
-        $base_rate = (float)$request->base_rate;
+        $expected_rate_per_sqft = (float)$request->expected_rate_per_sqft;
 
         $created = [];
 
-        DB::transaction(function () use ($project_id, $floor_id, $unit_type_id, $prefix, $start, $count, $bua, $carpet, $area_unit, $facing, $base_rate, &$created) {
+        DB::transaction(function () use ($project_id, $floor_id, $unit_type_id, $prefix, $start, $count, $built_up_area, $carpet, $expected_rate_per_sqft, &$created) {
             for ($i = 0; $i < $count; $i++) {
                 $num = $start + $i;
                 $unitNumber = $prefix . $num;
 
                 // check uniqueness
                 $exists = Unit::where('project_id', $project_id)
-                    ->where('unit_number', $unitNumber)
+                    ->where('door_no', $unitNumber)
                     ->exists();
 
                 if ($exists) {
                     continue;
                 }
 
+                $expectedSaleAmount = $built_up_area * $expected_rate_per_sqft;
+
                 $unit = Unit::create([
                     'project_id' => $project_id,
                     'floor_id' => $floor_id,
                     'unit_type_id' => $unit_type_id,
-                    'unit_number' => $unitNumber,
-                    'bua_area' => $bua,
+                    'door_no' => $unitNumber,
+                    'built_up_area' => $built_up_area,
                     'carpet_area' => $carpet,
-                    'area_unit' => $area_unit,
-                    'facing' => $facing,
+                    'expected_rate_per_sqft' => $expected_rate_per_sqft,
+                    'expected_sale_amount' => $expectedSaleAmount,
                     'status' => 'available',
-                    'base_rate' => $base_rate,
-                    'is_active' => true,
                 ]);
 
                 // Initial rate log
-                $this->rateService->updateRate($unit, $base_rate, now()->toDateString(), 'Bulk creation');
+                $this->rateService->updateRate($unit, $expected_rate_per_sqft, now()->toDateString(), 'Bulk creation');
 
                 // Initial status log
                 \App\Models\UnitStatusLog::create([

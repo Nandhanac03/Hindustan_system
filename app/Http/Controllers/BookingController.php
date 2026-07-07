@@ -48,7 +48,7 @@ class BookingController extends Controller
 
         if ($request->filled('unit_number')) {
             $query->whereHas('unit', function ($q) use ($request) {
-                $q->where('unit_number', 'like', '%' . $request->unit_number . '%');
+                $q->where('door_no', 'like', '%' . $request->unit_number . '%');
             });
         }
 
@@ -66,13 +66,13 @@ class BookingController extends Controller
 
         if ($request->filled('min_sqft')) {
             $query->whereHas('unit', function ($q) use ($request) {
-                $q->where('bua_area', '>=', $request->min_sqft);
+                $q->where('built_up_area', '>=', $request->min_sqft);
             });
         }
 
         if ($request->filled('max_sqft')) {
             $query->whereHas('unit', function ($q) use ($request) {
-                $q->where('bua_area', '<=', $request->max_sqft);
+                $q->where('built_up_area', '<=', $request->max_sqft);
             });
         }
 
@@ -187,9 +187,20 @@ class BookingController extends Controller
             }
             $statusService->transitionTo($unit, 'booked', "Booked under Booking #{$booking->booking_number}");
 
+            // Update Unit with booking sales pricing details
+            $saleAmount = (float)$booking->amount;
+            $saleRate = (float)$booking->sale_rate_per_sqft;
+            $unitDifference = (float)$unit->expected_sale_amount - $saleAmount;
+
+            $unit->update([
+                'sale_rate_per_sqft' => $saleRate,
+                'sale_amount' => $saleAmount,
+                'difference' => $unitDifference,
+            ]);
+
             ActivityLog::record(
                 'booking.created',
-                "Created Booking #{$booking->booking_number} for customer {$booking->customer->name} on Unit {$unit->unit_number} (₹" . number_format((float)$validated['amount'], 2) . ").",
+                "Created Booking #{$booking->booking_number} for customer {$booking->customer->name} on Unit {$unit->door_no} (₹" . number_format((float)$validated['amount'], 2) . ").",
                 $booking
             );
 
@@ -212,9 +223,16 @@ class BookingController extends Controller
             // Release the unit back to available
             $statusService->transitionTo($booking->unit, 'available', "Released due to Booking #{$booking->booking_number} cancellation");
 
+            // Clear booking sales pricing details on unit release
+            $booking->unit->update([
+                'sale_rate_per_sqft' => null,
+                'sale_amount' => null,
+                'difference' => null,
+            ]);
+
             ActivityLog::record(
                 'booking.cancelled',
-                "Cancelled Booking #{$booking->booking_number} for customer {$booking->customer->name}. Released Unit {$booking->unit->unit_number}.",
+                "Cancelled Booking #{$booking->booking_number} for customer {$booking->customer->name}. Released Unit {$booking->unit->door_no}.",
                 $booking
             );
         });
@@ -238,14 +256,21 @@ class BookingController extends Controller
             // Transition sold unit to available with resale flag
             $statusService->transitionTo($unit, 'available', "Placed for resale from old Booking #{$booking->booking_number}", true);
 
+            // Clear booking sales pricing details on unit resale
+            $unit->update([
+                'sale_rate_per_sqft' => null,
+                'sale_amount' => null,
+                'difference' => null,
+            ]);
+
             ActivityLog::record(
                 'booking.resale',
-                "Released sold Unit {$unit->unit_number} for resale. Cancelled old Booking #{$booking->booking_number}.",
+                "Released sold Unit {$unit->door_no} for resale. Cancelled old Booking #{$booking->booking_number}.",
                 $booking
             );
         });
 
         return redirect()->route('bookings.index')
-            ->with('status', "Unit {$unit->unit_number} has been released for resale.");
+            ->with('status', "Unit {$unit->door_no} has been released for resale.");
     }
 }

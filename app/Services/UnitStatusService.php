@@ -57,7 +57,7 @@ class UnitStatusService
 
             // Verify status has not been changed concurrently by another request
             if ($lockedUnit->status !== $fromStatus) {
-                throw new \Exception("Concurrency conflict: The status of unit '{$unit->unit_number}' has already been changed.");
+                throw new \Exception("Concurrency conflict: The status of unit '{$unit->door_no}' has already been changed.");
             }
 
             // Update status
@@ -76,7 +76,7 @@ class UnitStatusService
             // Record action in ActivityLog
             ActivityLog::record(
                 'unit.status_changed',
-                "Unit {$unit->unit_number} transitioned from '{$fromStatus}' to '{$toStatus}'. Reason: " . ($reason ?? 'N/A'),
+                "Unit {$unit->door_no} transitioned from '{$fromStatus}' to '{$toStatus}'. Reason: " . ($reason ?? 'N/A'),
                 $lockedUnit
             );
         });

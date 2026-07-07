@@ -108,7 +108,7 @@
                 {{-- Unit Number Filter --}}
                 <div class="space-y-1">
                     <label class="text-[9px] font-bold text-slate-450 uppercase tracking-wide block">Unit Number</label>
-                    <input type="text" name="unit_number" value="{{ request('unit_number') }}" placeholder="e.g. 102"
+                    <input type="text" name="unit_number" value="{{ request('unit_number') }}" placeholder="e.g. A-102"
                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs focus:outline-none transition-all">
                 </div>
 
@@ -219,7 +219,7 @@
                                 <div class="font-bold text-slate-900">{{ $booking->project->name }}</div>
                                 <div class="flex flex-wrap gap-1 items-center">
                                     <span class="text-[9px] bg-slate-100 border text-slate-500 font-bold px-1.5 py-0.5 rounded uppercase">{{ $booking->unit->unitType->name }}</span>
-                                    <span class="text-[9px] bg-amber-50 border border-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded font-mono">Unit {{ $booking->unit->unit_number }}</span>
+                                    <span class="text-[9px] bg-amber-50 border border-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded font-mono">Unit {{ $booking->unit->door_no }}</span>
                                     <span class="text-[9px] bg-slate-100 border text-slate-500 font-semibold px-1.5 py-0.5 rounded uppercase">{{ $booking->unit->floor->name }}</span>
                                 </div>
                             </td>
@@ -227,16 +227,16 @@
                             {{-- Area & Rates --}}
                             <td class="px-4 py-4 space-y-1">
                                 <div>
-                                    <span class="text-slate-400 font-medium">BUA:</span> <span class="font-bold text-slate-700">{{ $booking->unit->bua_area }} {{ $booking->unit->area_unit }}</span>
+                                    <span class="text-slate-400 font-medium">BUA:</span> <span class="font-bold text-slate-700">{{ $booking->unit->built_up_area }} Sq Ft</span>
                                 </div>
                                 <div>
-                                    <span class="text-slate-400 font-medium">Carpet:</span> <span class="font-semibold text-slate-600">{{ $booking->unit->carpet_area ?? 'N/A' }} {{ $booking->unit->area_unit }}</span>
+                                    <span class="text-slate-400 font-medium">Carpet:</span> <span class="font-semibold text-slate-600">{{ $booking->unit->carpet_area ?? 'N/A' }} Sq Ft</span>
                                 </div>
                                 <div class="text-[10px] pt-1">
-                                    <span class="text-slate-400">Exp. Rate:</span> <span class="font-semibold text-slate-600">₹{{ number_format($booking->unit->base_rate, 2) }}</span>
+                                    <span class="text-slate-400">Exp. Rate:</span> <span class="font-semibold text-slate-600">₹{{ number_format($booking->unit->expected_rate_per_sqft, 2) }}</span>
                                 </div>
                                 <div class="text-[10px]">
-                                    <span class="text-slate-400">Sale Rate:</span> <span class="font-bold text-slate-800">₹{{ number_format($booking->sale_rate_per_sqft ?? $booking->unit->base_rate, 2) }}</span>
+                                    <span class="text-slate-400">Sale Rate:</span> <span class="font-bold text-slate-800">₹{{ number_format($booking->sale_rate_per_sqft ?? $booking->unit->expected_rate_per_sqft, 2) }}</span>
                                 </div>
                             </td>
 

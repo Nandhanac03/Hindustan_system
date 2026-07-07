@@ -31,8 +31,8 @@
                             <span class="font-bold text-slate-800">{{ $selectedUnit->project->name }}</span>
                         </div>
                         <div class="space-y-1">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Unit Number</span>
-                            <span class="font-bold text-indigo-700 uppercase font-mono">{{ $selectedUnit->unit_number }}</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Door No</span>
+                            <span class="font-bold text-indigo-700 uppercase font-mono">{{ $selectedUnit->door_no }}</span>
                         </div>
                         <div class="space-y-1">
                             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Floor</span>
@@ -43,20 +43,20 @@
                             <span class="font-bold text-slate-800">{{ $selectedUnit->unitType->name }}</span>
                         </div>
                         <div class="space-y-1 pt-2">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">BUA Area</span>
-                            <span class="font-bold text-slate-700">{{ $selectedUnit->bua_area }} {{ $selectedUnit->area_unit }}</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Built Up Area</span>
+                            <span class="font-bold text-slate-700">{{ $selectedUnit->built_up_area }} Sq Ft</span>
                         </div>
                         <div class="space-y-1 pt-2">
                             <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Carpet Area</span>
-                            <span class="font-bold text-slate-700">{{ $selectedUnit->carpet_area ?? 'N/A' }} {{ $selectedUnit->area_unit }}</span>
+                            <span class="font-bold text-slate-700">{{ $selectedUnit->carpet_area ?? 'N/A' }} Sq Ft</span>
                         </div>
                         <div class="space-y-1 pt-2">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Base Rate</span>
-                            <span class="font-bold text-slate-700">₹{{ number_format($selectedUnit->base_rate, 2) }}</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Expected Rate</span>
+                            <span class="font-bold text-slate-700">₹{{ number_format($selectedUnit->expected_rate_per_sqft, 2) }}</span>
                         </div>
                         <div class="space-y-1 pt-2">
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Base Inventory Value</span>
-                            <span class="font-bold text-emerald-700">₹{{ number_format($selectedUnit->bua_area * $selectedUnit->base_rate, 2) }}</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Expected Sale Value</span>
+                            <span class="font-bold text-emerald-700">₹{{ number_format($selectedUnit->built_up_area * $selectedUnit->expected_rate_per_sqft, 2) }}</span>
                         </div>
                     </div>
                 </div>
@@ -70,8 +70,8 @@
                         @foreach($projects as $p)
                             <optgroup label="{{ $p->name }}">
                                 @foreach($p->units()->whereIn('status', ['available', 'blocked'])->get() as $u)
-                                    <option value="{{ $u->id }}" data-rate="{{ $u->base_rate }}" data-bua="{{ $u->bua_area }}">
-                                        {{ $u->unit_number }} (Floor: {{ $u->floor->name }} · {{ $u->unitType->name }} · BUA: {{ $u->bua_area }} {{ $u->area_unit }})
+                                    <option value="{{ $u->id }}" data-rate="{{ $u->expected_rate_per_sqft }}" data-bua="{{ $u->built_up_area }}">
+                                        {{ $u->door_no }} (Floor: {{ $u->floor->name }} · {{ $u->unitType->name }} · BUA: {{ $u->built_up_area }} Sq Ft)
                                     </option>
                                 @endforeach
                             </optgroup>
@@ -224,11 +224,11 @@ function bookingFormApp() {
     return {
         form: {
             unit_id: '{{ $selectedUnit ? $selectedUnit->id : "" }}',
-            bua: {{ $selectedUnit ? $selectedUnit->bua_area : 0 }},
-            sale_rate: {{ $selectedUnit ? $selectedUnit->base_rate : 0 }},
+            bua: {{ $selectedUnit ? $selectedUnit->built_up_area : 0 }},
+            sale_rate: {{ $selectedUnit ? $selectedUnit->expected_rate_per_sqft : 0 }},
             gst_behavior: 'none',
             gst_amount: 0,
-            amount: {{ $selectedUnit ? ($selectedUnit->bua_area * $selectedUnit->base_rate) : 0 }}
+            amount: {{ $selectedUnit ? ($selectedUnit->built_up_area * $selectedUnit->expected_rate_per_sqft) : 0 }}
         },
 
         init() {
