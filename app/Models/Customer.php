@@ -12,7 +12,7 @@ class Customer extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'email', 'phone', 'avatar_url'];
+    protected $fillable = ['name', 'email', 'phone', 'address', 'is_active'];
 
     public function bookings(): HasMany
     {
