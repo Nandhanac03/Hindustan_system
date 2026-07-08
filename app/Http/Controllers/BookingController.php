@@ -170,14 +170,25 @@ class BookingController extends Controller
             // If a broker is attached, let's create a deal record automatically
             if ($booking->broker_id) {
                 $broker = \App\Models\Broker::find($booking->broker_id);
-                \App\Models\Deal::create([
+                $saleVal = (float)$booking->amount - ($booking->gst_behavior === 'exclusive' ? 0 : (float)$booking->gst_amount);
+                $deal = \App\Models\Deal::create([
                     'system_id' => $booking->project->system_id,
                     'broker_id' => $booking->broker_id,
                     'project_id' => $booking->project_id,
                     'booking_id' => $booking->id,
-                    'sale_value' => $booking->amount - ($booking->gst_behavior === 'exclusive' ? 0 : $booking->gst_amount),
+                    'sale_value' => $saleVal,
                     'commission_pct_override' => $broker->default_commission_pct,
                     'trigger_condition' => 'full_collection',
+                ]);
+
+                $commAmount = round(($saleVal * ((float)$broker->default_commission_pct / 100)), 2);
+                $isPaid = $booking->outstanding <= 0;
+                \App\Models\CommissionEntry::create([
+                    'system_id' => $booking->project->system_id,
+                    'deal_id' => $deal->id,
+                    'amount' => $commAmount,
+                    'status' => $isPaid ? 'Payable' : 'Accrued',
+                    'triggered_at' => $isPaid ? now() : null,
                 ]);
             }
 

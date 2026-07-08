@@ -46,4 +46,9 @@ class Deal extends Model
     {
         return $this->belongsTo(Booking::class);
     }
+
+    public function commissionEntries(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CommissionEntry::class);
+    }
 }

@@ -85,6 +85,19 @@ class EmiCollectionController extends Controller
                 );
             }
 
+            // Unlock broker commission when full payment/EMI is completed
+            if ($outstanding <= 0) {
+                $deals = \App\Models\Deal::where('booking_id', $booking->id)->get();
+                foreach ($deals as $deal) {
+                    \App\Models\CommissionEntry::where('deal_id', $deal->id)
+                        ->where('status', 'Accrued')
+                        ->update([
+                            'status' => 'Payable',
+                            'triggered_at' => now(),
+                        ]);
+                }
+            }
+
             ActivityLog::record(
                 'payment.collected',
                 "Collected payment ₹" . number_format((float)$validated['amount'], 2) . " via {$validated['payment_mode']} for Booking {$booking->booking_number}.",

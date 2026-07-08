@@ -38,4 +38,9 @@ class Broker extends Model
     {
         return $this->hasMany(Deal::class);
     }
+
+    public function commissionEntries(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(CommissionEntry::class, Deal::class);
+    }
 }
