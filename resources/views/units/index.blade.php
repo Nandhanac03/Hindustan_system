@@ -58,9 +58,11 @@
     </div>
 
     {{-- Project Overview Banner Card --}}
-    @php
-        $projectImage = $project->image_url ?: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
-    @endphp
+   @php
+    $projectImage = $project->image_url
+        ? asset('storage/' . $project->image_url)
+        : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
+@endphp
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row gap-6 p-5">
         {{-- Project Image --}}
         <div class="w-full md:w-[240px] h-[160px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150">

@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
+use Illuminate\Support\Facades\Storage;
+
 class ProjectController extends Controller
 {
     public function index(): View
@@ -113,9 +115,10 @@ class ProjectController extends Controller
         return view('projects.edit', compact('project'));
     }
 
- public function update(Request $request, Project $project): RedirectResponse
+public function update(Request $request, Project $project): RedirectResponse
 {
     $user = Auth::user();
+
     if (!$user->hasPermissionTo('projects.manage')) {
         abort(403);
     }
@@ -131,23 +134,26 @@ class ProjectController extends Controller
         'expected_completion_date' => ['nullable', 'date'],
         'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
         'description' => ['nullable', 'string'],
+        'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
     ]);
 
-    // Checks and uploads the image to public storage
-   if ($request->hasFile('image')) {
+    // Upload new image
+    if ($request->hasFile('image')) {
 
-    $filename = time() . '_' . $request->file('image')->getClientOriginalName();
+        // Delete old image
+        if (!empty($project->image_url) && Storage::disk('public')->exists($project->image_url)) {
+            Storage::disk('public')->delete($project->image_url);
+        }
 
-    $request->file('image')->storeAs('projects', $filename, 'public');
+        // Store new image
+        $validated['image_url'] = $request->file('image')->store('projects', 'public');
+    }
 
-    // Store only: filename.jpg
-    $validated['image_url'] = $filename;
-}
-
-    // Saves all changes to the MySQL database
+    // Update project
     $project->update($validated);
 
-    return redirect()->route('units.index', ['project' => $project->id])
+    return redirect()
+        ->route('units.index', ['project' => $project->id])
         ->with('status', 'Project details updated successfully.');
 }
 
