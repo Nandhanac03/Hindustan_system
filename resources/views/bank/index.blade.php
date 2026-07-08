@@ -1,6 +1,6 @@
 <x-erp-layout title="Bank Master" headerTitle="Bank Master Directory">
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="bankApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="bankApp()">
     {{-- Top Action Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -61,13 +61,18 @@
                                       :class="bank.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200'"
                                       x-text="bank.status"></span>
                             </td>
-                            <td class="px-4 py-3.5 border text-right flex items-center justify-end gap-2">
-                                <button @click="openEditModal(bank)" class="p-1.5 hover:bg-primary-50 text-slate-400 hover:text-primary-600 rounded transition-colors" title="Edit Bank">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                </button>
-                                <button @click="deleteBank(bank.id)" class="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded transition-colors" title="Delete Bank">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                </button>
+                            <td class="px-4 py-3.5 border text-right">
+                                <div class="inline-flex items-center justify-end gap-1.5">
+                                    <button @click="openViewModal(bank)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Details">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                    <button @click="openEditModal(bank)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Edit Bank">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
+                                    <button @click="deleteBank(bank.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Delete Bank">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </template>
@@ -179,11 +184,46 @@
                         </select>
                     </div>
                 </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="editModalOpen = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-sm shadow-[#a38c29]/5">Save Changes</button>
+                    <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
+                        <button type="button" @click="editModalOpen = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-sm shadow-[#a38c29]/5">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- View Modal --}}
+    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity text-left" style="display: none;">
+        <div @click.away="viewModalOpen = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Bank Account Details</h3>
                 </div>
-            </form>
+                <button @click="viewModalOpen = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Name</span>
+                        <span class="text-base font-extrabold text-slate-900" x-text="viewForm.bank_name"></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold font-mono uppercase inline-block mt-0.5"
+                              :class="viewForm.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'"
+                              x-text="viewForm.status"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 flex justify-end items-center border-t border-slate-100">
+                <button type="button" @click="viewModalOpen = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+            </div>
         </div>
     </div>
 </div>
@@ -198,21 +238,19 @@ function bankApp() {
         ],
         addModalOpen: false,
         editModalOpen: false,
+        viewModalOpen: false,
         addForm: {
             bank_name: '',
-            // account_no: '',
-            // ifsc_code: '',
-            // branch: '',
-            // account_type: 'current',
             status: 'active'
         },
         editForm: {
             id: null,
             bank_name: '',
-            // account_no: '',
-            // ifsc_code: '',
-            // branch: '',
-            // account_type: 'current',
+            status: 'active'
+        },
+        viewForm: {
+            id: null,
+            bank_name: '',
             status: 'active'
         },
         toast: {
@@ -231,10 +269,6 @@ function bankApp() {
         openAddModal() {
             this.addForm = {
                 bank_name: '',
-                // account_no: '',
-                // ifsc_code: '',
-                // branch: '',
-                // account_type: 'current',
                 status: 'active'
             };
             this.addModalOpen = true;
@@ -245,14 +279,15 @@ function bankApp() {
             this.banks.push({
                 id: newId,
                 bank_name: this.addForm.bank_name,
-                // account_no: this.addForm.account_no,
-                // ifsc_code: this.addForm.ifsc_code.toUpperCase(),
-                // branch: this.addForm.branch,
-                // account_type: this.addForm.account_type,
                 status: this.addForm.status
             });
             this.addModalOpen = false;
             this.showToast('Bank account added successfully.');
+        },
+
+        openViewModal(bank) {
+            this.viewForm = { ...bank };
+            this.viewModalOpen = true;
         },
 
         openEditModal(bank) {
@@ -263,7 +298,7 @@ function bankApp() {
         submitEditForm() {
             const idx = this.banks.findIndex(b => b.id === this.editForm.id);
             if (idx !== -1) {
-                this.banks[idx] = { ...this.editForm, ifsc_code: this.editForm.ifsc_code.toUpperCase() };
+                this.banks[idx] = { ...this.editForm };
             }
             this.editModalOpen = false;
             this.showToast('Bank account updated successfully.');

@@ -85,14 +85,14 @@
                         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                             rera: {{ $proj->rera_number ?? 'Exempt/Pending' }}
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="inline-flex items-center justify-end gap-1.5">
                             @can('projects.manage')
-                                <a href="{{ route('projects.edit', $proj->id) }}" class="px-2.5 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-650 hover:text-slate-900 font-bold rounded-lg transition text-[10px] uppercase tracking-wide">
-                                    Edit Details
+                                <a href="{{ route('projects.edit', $proj->id) }}" title="Edit Project Details" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </a>
                             @endcan
-                            <a href="{{ route('projects.show', $proj->id) }}" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition text-[10px] uppercase tracking-wide shadow-sm shadow-indigo-600/5">
-                                Unit Grid
+                            <a href="{{ route('projects.show', $proj->id) }}" title="View Project Unit Grid" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2v-2z"/></svg>
                             </a>
                         </div>
                     </div>

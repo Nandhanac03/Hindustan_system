@@ -62,4 +62,9 @@ class Project extends Model
     {
         return $this->hasMany(PartnerAllocation::class);
     }
+
+    public function unitTypes(): HasMany
+    {
+        return $this->hasMany(UnitType::class);
+    }
 }

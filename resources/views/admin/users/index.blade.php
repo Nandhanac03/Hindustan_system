@@ -34,7 +34,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
                         @forelse($users as $user)
-                            <tr class="table-row-hover hover:bg-slate-50/50 transition">
+                            <tr class="table-row-hover hover:bg-slate-50/50 transition" x-data="{ openView: false }">
                                 <!-- Employee & Name -->
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
@@ -91,25 +91,89 @@
 
                                 <!-- Actions -->
                                 <td class="px-6 py-4 text-right whitespace-nowrap">
-                                    <div class="inline-flex items-center gap-2">
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <!-- View -->
+                                        <button @click="openView = true" title="View User Details" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+
                                         <!-- Edit -->
-                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg transition text-[10px]" title="Edit Details">
-                                            Edit
+                                        <a href="{{ route('admin.users.edit', $user->id) }}" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Edit User">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </a>
 
                                         <!-- Toggle Status -->
-                                        <form method="POST" action="{{ route('admin.users.toggle-status', $user->id) }}" class="inline">
+                                        <form method="POST" action="{{ route('admin.users.toggle-status', $user->id) }}" class="inline" onsubmit="return confirm('Change status for {{ addslashes($user->name) }}?');">
                                             @csrf
                                             @if($user->status === 'active')
-                                                <button type="submit" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg transition text-[10px]" title="Suspend Account">
-                                                    Suspend
+                                                <button type="submit" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Suspend Account">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                                                 </button>
                                             @else
-                                                <button type="submit" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg transition text-[10px]" title="Activate Account">
-                                                    Activate
+                                                <button type="submit" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Activate Account">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                                 </button>
                                             @endif
                                         </form>
+                                    </div>
+
+                                    {{-- View Modal --}}
+                                    <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left" style="display: none;">
+                                        <div @click.away="openView = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5 whitespace-normal">
+                                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    </div>
+                                                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">User Profile Details</h3>
+                                                </div>
+                                                <button @click="openView = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                            </div>
+
+                                            <div class="space-y-4">
+                                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                                                    <div>
+                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Employee / Name</span>
+                                                        <span class="text-base font-extrabold text-slate-900">{{ $user->name }}</span>
+                                                        <span class="text-xs text-slate-500 block mt-0.5">{{ $user->email }}</span>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Employee Code</span>
+                                                        <span class="px-2 py-1 rounded bg-[#a38c29]/10 text-[#a38c29] font-mono font-bold text-xs inline-block mt-0.5">{{ $user->employee_code ?? 'N/A' }}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-2 gap-3">
+                                                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">System Node</span>
+                                                        <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $user->system ? $user->system->name : 'Global Admin' }}</span>
+                                                    </div>
+                                                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Account Status</span>
+                                                        <span class="text-xs font-bold uppercase mt-0.5 block {{ $user->status === 'active' ? 'text-emerald-600' : 'text-rose-600' }}">{{ ucfirst($user->status) }}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Assigned Roles</span>
+                                                    <div class="flex flex-wrap gap-1 mt-1.5">
+                                                        @forelse($user->roles as $role)
+                                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $role->name }}</span>
+                                                        @empty
+                                                            <span class="text-xs text-slate-400 italic">No roles assigned</span>
+                                                        @endforelse
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-3 flex justify-between items-center border-t border-slate-100">
+                                                <button type="button" @click="openView = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+                                                <a href="{{ route('admin.users.edit', $user->id) }}" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
+                                                    <span>Edit User Profile</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                </a>
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

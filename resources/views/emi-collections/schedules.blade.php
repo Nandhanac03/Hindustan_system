@@ -1,6 +1,6 @@
 <x-erp-layout title="Payment Schedules" headerTitle="Payment Schedules Manager">
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="scheduleApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="scheduleApp()">
     
     {{-- Header Options --}}
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">

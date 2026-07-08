@@ -1,6 +1,6 @@
 <x-erp-layout title="Partner Management" headerTitle="Partner Management & Accounts">
 
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -79,7 +79,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($partners as $partner)
-                            <tr class="hover:bg-slate-50/50 transition-all">
+                            <tr class="hover:bg-slate-50/50 transition-all" x-data="{ openView: false }">
                                 <td class="px-5 py-4">
                                     <div class="font-bold text-slate-900">{{ $partner->name }}</div>
                                     <div class="text-[9px] text-slate-400 font-mono mt-0.5">A/C: {{ $partner->linkedAccount->code ?? 'N/A' }}</div>
@@ -96,10 +96,60 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-right">
-                                    <a href="{{ route('partners.statement', $partner->id) }}" 
-                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 border border-slate-200 hover:bg-slate-50 text-[10px] text-slate-650 font-bold rounded-lg transition uppercase tracking-wide">
-                                        View Statement
-                                    </a>
+                                    <button @click="openView = true" title="View Partner Profile" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+
+                                    {{-- View Modal --}}
+                                    <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left" style="display: none;">
+                                        <div @click.away="openView = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5 whitespace-normal">
+                                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                    </div>
+                                                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Partner Ledger Profile</h3>
+                                                </div>
+                                                <button @click="openView = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                            </div>
+
+                                            <div class="space-y-4">
+                                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                                                    <div>
+                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Partner / Firm Name</span>
+                                                        <span class="text-base font-extrabold text-slate-900">{{ $partner->name }}</span>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Linked Ledger</span>
+                                                        <span class="px-2 py-1 rounded bg-[#a38c29]/10 text-[#a38c29] font-mono font-bold text-xs inline-block mt-0.5">{{ $partner->linkedAccount->code ?? 'N/A' }}</span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-3 gap-3">
+                                                    <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/60 text-center">
+                                                        <span class="text-[9px] font-bold text-emerald-800 uppercase block">Share Allocated</span>
+                                                        <span class="text-xs font-bold font-mono text-emerald-900 mt-1 block">₹{{ number_format($partner->total_allocated, 2) }}</span>
+                                                    </div>
+                                                    <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200/60 text-center">
+                                                        <span class="text-[9px] font-bold text-rose-800 uppercase block">Total Payouts</span>
+                                                        <span class="text-xs font-bold font-mono text-rose-900 mt-1 block">₹{{ number_format($partner->total_paid, 2) }}</span>
+                                                    </div>
+                                                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                                                        <span class="text-[9px] font-bold text-slate-700 uppercase block">Current Balance</span>
+                                                        <span class="text-xs font-bold font-mono mt-1 block {{ $partner->balance >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">₹{{ number_format($partner->balance, 2) }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="pt-3 flex justify-between items-center border-t border-slate-100">
+                                                <button type="button" @click="openView = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+                                                <a href="{{ route('partners.statement', $partner->id) }}" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
+                                                    <span>View Statement Ledger</span>
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -134,9 +184,8 @@
                             </div>
                         </div>
                         
-                        <a href="{{ route('partners.shares', $project->id) }}" 
-                           class="text-[10px] font-bold text-[#a38c29] hover:text-[#8d7923] uppercase tracking-wider">
-                            Configure
+                        <a href="{{ route('partners.shares', $project->id) }}" title="Configure Project Shares" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                         </a>
                     </div>
                 @empty

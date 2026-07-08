@@ -1,6 +1,6 @@
 <x-erp-layout title="Outstanding & Due Tracking" headerTitle="Customer Outstanding Directory">
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="outstandingApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="outstandingApp()">
 
     {{-- Summary KPIs & Aging Brackets --}}
     <div class="space-y-3">

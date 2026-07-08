@@ -2,29 +2,42 @@
 
 
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="unitsApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="unitsApp()">
 
     {{-- Top Action Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">
-                    Project: <span class="text-primary-700">{{ $project->name }}</span>
+                    Project:
                 </h1>
-                <!-- <span class="text-[10px] font-bold px-2 py-0.5 bg-primary-50 text-primary-800 rounded-lg border border-primary-200">{{ $project->code }}</span> -->
+                @if(isset($projects) && $projects->count() > 1)
+                    <form method="GET" action="{{ route('units.index') }}" class="inline">
+                        <select name="project_id" onchange="this.form.submit()" class="px-3 py-1 text-xs font-extrabold uppercase tracking-wide rounded-xl border border-slate-300 bg-white text-primary-700 focus:ring-2 focus:ring-[#a38c29]/50 shadow-sm cursor-pointer">
+                            @foreach($projects as $p)
+                                <option value="{{ $p->id }}" {{ $project->id == $p->id ? 'selected' : '' }}>
+                                    {{ $p->name }} {{ $p->is_active ? '(Active)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                @else
+                    <span class="text-primary-700 text-lg font-extrabold uppercase">{{ $project->name }}</span>
+                @endif
             </div>
-            <p class="text-xs text-slate-500 mt-1">Manage single unit listings, pricing matrices, and floor allocations.</p>
+            <p class="text-xs text-slate-500 mt-1">Manage single unit listings, pricing matrices, and floor allocations for <span class="font-bold text-slate-700">{{ $project->name }}</span>.</p>
         </div>
 
         <div class="flex items-center gap-2.5">
             <select x-model="filters.status" @change="fetchUnits()"
-                    class="px-3 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm">
-                <option value="">All Units</option>
+                    class="px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                <option value="">All Statuses</option>
                 <option value="recently_added">Recently Added</option>
                 <option value="available">Available</option>
                 <option value="blocked">Blocked</option>
                 <option value="booked">Booked</option>
                 <option value="sold">Sold</option>
+                <option value="on_hold">On Hold</option>
             </select>
 
             <template x-if="permissions.manage">
@@ -136,19 +149,21 @@
     </div>
 
     {{-- Filter Bar --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 flex-1">
-            {{-- Search --}}
+    <div class=" rounded-2xl border-0 shadow-sm p-4.5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 flex-1">
+            {{-- Search Door No --}}
             <div class="relative">
-                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" placeholder="Search Unit Number..." 
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input type="text" placeholder="Search Door No..." 
                        x-model="filters.search" @input.debounce.300ms="fetchUnits()"
-                       class="w-full pl-9 pr-4 py-2 bg-slate-50 border-0 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs placeholder-slate-450 focus:outline-none transition-all">
+                       class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
             </div>
 
             {{-- Floor Filter --}}
             <select x-model="filters.floor_id" @change="fetchUnits()"
-                    class="w-full px-3 py-2 bg-slate-50 border-0 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                    class="w-full px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                 <option value="">All Floors</option>
                 @foreach($floors as $floor)
                     <option value="{{ $floor->id }}">{{ $floor->name }}</option>
@@ -157,7 +172,7 @@
 
             {{-- Unit Type Filter --}}
             <select x-model="filters.unit_type_id" @change="fetchUnits()"
-                    class="w-full px-3 py-2 bg-slate-50 border-0 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                    class="w-full px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                 <option value="">All Types</option>
                 @foreach($unitTypes as $type)
                     <option value="{{ $type->id }}">{{ $type->name }} ({{ ucfirst($type->category) }})</option>
@@ -166,8 +181,8 @@
 
             {{-- Status Filter --}}
             <select x-model="filters.status" @change="fetchUnits()"
-                    class="w-full px-3 py-2 bg-slate-50 border-0 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all font-bold">
-                <option value="">All Units</option>
+                    class="w-full px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                <option value="">All Statuses</option>
                 <option value="recently_added">Recently Added</option>
                 <option value="available">Available</option>
                 <option value="blocked">Blocked</option>
@@ -177,17 +192,11 @@
             </select>
         </div>
 
-
-        <button
-    @click="resetFilters()"
-    class="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-primary hover:bg-primary-50 hover:text-primary-705 hover:shadow-md"
->
-    <x-heroicon-o-arrow-path class="h-4 w-4" />
-    Reset Filters
-</button>
-        <!-- <button @click="resetFilters()" class="text-xs font-bold text-slate-450 hover:text-indigo-650 uppercase tracking-widest transition-colors flex-shrink-0">
+        <button @click="resetFilters()"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border-0 bg-[#a38c29] hover:bg-[#8a7522] px-4.5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wide">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             Reset Filters
-        </button> -->
+        </button>
     </div>
 
     {{-- Units Table Card --}}
@@ -226,13 +235,19 @@
                             <td class="px-3 py-3 border">
                                 <span class="badge-pill" :class="getStatusBadgeClass(unit.status)" x-text="unit.status"></span>
                             </td>
-                            <td class="px-3 py-3 border text-right flex items-center justify-end gap-2" @click.stop>
+                            <td class="px-3 py-3 border text-right" @click.stop>
                                 <template x-if="permissions.manage">
-                                    <div class="flex items-center gap-2">
-                                        <button @click="openEditModal(unit.id)" class="p-1.5 hover:bg-primary-50 text-slate-400 hover:text-primary-600 rounded transition-colors" title="Edit Unit">
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <button @click="openViewModal(unit)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Unit Details">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                        <button @click="openRateHistoryModal(unit)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Rate Change History">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+                                        </button>
+                                        <button @click="openEditModal(unit.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
-                                        <button @click="confirmDelete(unit)" class="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded transition-colors" :disabled="unit.status !== 'available'" :class="unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : ''" title="Delete Unit">
+                                        <button @click="confirmDelete(unit)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" :disabled="unit.status !== 'available'" :class="unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : ''" title="Delete Unit">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     </div>
@@ -750,7 +765,7 @@
                     <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Media & Image</p>
                     <div class="flex items-center gap-3">
                         <div class="w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 relative">
-                            <img x-show="!imagePreview" src="{{ $project->image_url ?: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80' }}" class="w-full h-full object-cover" alt="Project image">
+                            <img x-show="!imagePreview" src="{{ $projectImage }}" class="w-full h-full object-cover" alt="Project image">
                             <img x-show="imagePreview" :src="imagePreview" class="w-full h-full object-cover" x-cloak>
                         </div>
                         <div class="flex-1">
@@ -895,6 +910,284 @@
         </div>
     </div>
 
+    {{-- ═══════════════════════════════════════════
+         VIEW UNIT MODAL
+    ═══════════════════════════════════════════ --}}
+    <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Unit Details & Specifications</h3>
+                </div>
+                <button @click="modals.view.open = false" class="text-slate-400 hover:text-slate-600 text-base">✕</button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Door / Unit No</span>
+                        <span class="text-base font-extrabold text-slate-900" x-text="viewTarget?.door_no"></span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold font-mono uppercase inline-block mt-0.5"
+                              :class="getStatusBadgeClass(viewTarget?.status)"
+                              x-text="viewTarget?.status"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Floor</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewTarget?.floor?.name"></span>
+                    </div>
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Type</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewTarget?.unit_type?.name"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built-up Area (BUA)</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block font-mono" x-text="viewTarget?.built_up_area != null ? Number(viewTarget.built_up_area).toLocaleString() + ' Sq Ft' : 'N/A'"></span>
+                    </div>
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Carpet Area</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block font-mono" x-text="viewTarget?.carpet_area != null ? Number(viewTarget.carpet_area).toLocaleString() + ' Sq Ft' : 'N/A'"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate / Sq Ft</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block font-mono" x-text="viewTarget?.expected_rate_per_sqft != null ? '₹' + Number(viewTarget.expected_rate_per_sqft).toLocaleString() : 'N/A'"></span>
+                    </div>
+                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Sale Amount</span>
+                        <span class="text-xs font-bold text-emerald-700 mt-0.5 block font-mono" x-text="viewTarget?.expected_sale_amount != null ? '₹' + Number(viewTarget.expected_sale_amount).toLocaleString() : 'N/A'"></span>
+                    </div>
+                </div>
+
+                <template x-if="viewTarget?.sale_amount || (viewTarget?.gst_behavior && viewTarget?.gst_behavior !== 'none') || viewTarget?.booking">
+                    <div class="p-3.5 rounded-xl border border-amber-200/80 bg-amber-50/50 shadow-2xs space-y-2.5 mt-2">
+                        <div class="flex items-center justify-between border-b border-amber-200/60 pb-1.5">
+                            <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Active Sale & GST Handling</span>
+                            <span class="text-[9px] font-mono px-2 py-0.5 rounded-full font-bold uppercase"
+                                  :class="viewTarget?.gst_behavior === 'inclusive' ? 'bg-amber-100 text-amber-800' : (viewTarget?.gst_behavior === 'exclusive' ? 'bg-purple-100 text-purple-800' : 'bg-slate-200 text-slate-700')"
+                                  x-text="viewTarget?.gst_behavior === 'inclusive' ? 'GST Included (18%)' : (viewTarget?.gst_behavior === 'exclusive' ? 'GST Additional (+18%)' : 'No GST')"></span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">Sale Rate / Sq Ft</span>
+                                <strong class="text-slate-800 font-mono" x-text="viewTarget?.sale_rate_per_sqft ? '₹' + Number(viewTarget.sale_rate_per_sqft).toLocaleString() : 'N/A'"></strong>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">Total Sale Value</span>
+                                <strong class="text-emerald-700 font-mono" x-text="viewTarget?.sale_amount ? '₹' + Number(viewTarget.sale_amount).toLocaleString() : 'N/A'"></strong>
+                            </div>
+                            <div class="col-span-2 pt-1 border-t border-amber-200/50 flex justify-between items-center">
+                                <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">GST Amount Payable (18%)</span>
+                                <strong class="text-indigo-700 font-mono text-xs" x-text="viewTarget?.gst_amount ? '₹' + Number(viewTarget.gst_amount).toLocaleString() : '₹0.00'"></strong>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end bg-slate-50">
+                <button type="button" @click="modals.view.open = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════
+         RATE HISTORY MODAL
+    ═══════════════════════════════════════════ --}}
+    <div x-show="modals.rateHistory.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="modals.rateHistory.open = false">
+            {{-- Modal Header --}}
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/70">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <span>Home</span>
+                        <span>/</span>
+                        <span>All Units</span>
+                        <span>/</span>
+                        <span class="text-[#a38c29]">Rate History</span>
+                    </div>
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <h3 class="text-base font-extrabold text-slate-950 tracking-tight">Rate Change History Register</h3>
+                    </div>
+                </div>
+                <button @click="modals.rateHistory.open = false" class="text-slate-400 hover:text-slate-600 text-lg p-1 transition">✕</button>
+            </div>
+
+            {{-- Modal Body (Scrollable) --}}
+            <div class="p-6 overflow-y-auto flex-grow space-y-5">
+                {{-- Top Summary Theme Card --}}
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/40 border border-[#a38c29]/30 p-5 shadow-md text-slate-900">
+                    {{-- Decorative Background Glows --}}
+                    <div class="absolute -top-14 -right-14 w-48 h-48 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="absolute -bottom-14 -left-14 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#a38c29]/15 relative z-10">
+                        <div class="flex items-center gap-3.5">
+                            <div class="min-w-[3rem] min-h-[3rem] px-3.5 py-2 rounded-xl bg-gradient-to-br from-[#a38c29] to-[#8a7522] flex items-center justify-center text-white font-black text-sm md:text-base tracking-tight shadow-md shadow-[#a38c29]/20 border border-[#a38c29]/20 max-w-[220px] break-words text-center leading-tight flex-shrink-0" x-text="rateHistoryTarget?.door_no || 'U'">
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[9px] font-extrabold uppercase tracking-widest text-[#a38c29] bg-[#a38c29]/10 px-2.5 py-0.5 rounded-full border border-[#a38c29]/30">Unit Profile</span>
+                                    <span class="text-xs font-bold text-slate-600" x-show="rateHistoryTarget?.unit_type?.name" x-text="rateHistoryTarget?.unit_type?.name"></span>
+                                </div>
+                                <h4 class="text-lg font-black tracking-tight text-slate-900 mt-0.5" x-text="'Unit ' + (rateHistoryTarget?.door_no || 'N/A')"></h4>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                            <div class="px-3 py-1.5 rounded-xl bg-white border border-[#a38c29]/20 shadow-2xs">
+                                <span class="text-slate-500 font-medium">Floor:</span>
+                                <strong class="text-slate-900 ml-1 font-bold" x-text="rateHistoryTarget?.floor?.name || 'N/A'"></strong>
+                            </div>
+                            <div class="px-3 py-1.5 rounded-xl bg-white border border-[#a38c29]/20 shadow-2xs">
+                                <span class="text-slate-500 font-medium">Built-up Area:</span>
+                                <strong class="text-slate-900 ml-1 font-mono font-bold" x-text="rateHistoryTarget?.built_up_area != null ? Number(rateHistoryTarget.built_up_area).toLocaleString('en-IN', {minimumFractionDigits: 1, maximumFractionDigits: 2}) + ' Sq.Ft' : 'N/A'"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Bottom Row: Financial / Pricing Metrics --}}
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-4 relative z-10">
+                        <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Unit Type</span>
+                            <span class="text-xs font-bold text-slate-800 mt-1 block" x-text="rateHistoryTarget?.unit_type?.name || 'Flat'"></span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Floor Level</span>
+                            <span class="text-xs font-bold text-slate-800 mt-1 block" x-text="rateHistoryTarget?.floor?.name || 'N/A'"></span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-[#a38c29]/15 via-amber-500/10 to-white border border-[#a38c29]/40 shadow-sm">
+                            <span class="text-[9px] font-extrabold text-[#a38c29] uppercase tracking-widest block flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29] animate-pulse"></span>
+                                Current Rate
+                            </span>
+                            <span class="text-sm font-black text-slate-950 mt-1 block font-mono" x-text="rateHistoryTarget?.expected_rate_per_sqft != null ? '₹' + Number(rateHistoryTarget.expected_rate_per_sqft).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '/Sq.Ft' : '₹0.00/Sq.Ft'"></span>
+                        </div>
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-white border border-emerald-500/40 shadow-sm">
+                            <span class="text-[9px] font-extrabold text-emerald-700 uppercase tracking-widest block flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Expected Sale Value
+                            </span>
+                            <span class="text-sm font-black text-slate-950 mt-1 block font-mono tracking-tight" x-text="rateHistoryTarget?.expected_sale_amount != null ? '₹' + Number(rateHistoryTarget.expected_sale_amount).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '₹0.00'"></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Loading State --}}
+                <div x-show="loadingRateHistory" class="py-12 text-center space-y-3">
+                    <div class="inline-block w-8 h-8 border-3 border-[#a38c29] border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-xs font-bold text-slate-500">Fetching latest rate logs and audit trails...</p>
+                </div>
+
+                {{-- Empty State --}}
+                <div x-show="!loadingRateHistory && (!rateHistoryLogs || rateHistoryLogs.length === 0)" class="py-12 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-700">No Rate Modifications Logged</h4>
+                    <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">The rate for this unit has not been modified since its initial setup.</p>
+                </div>
+
+                {{-- Table of Rate Changes --}}
+                <div x-show="!loadingRateHistory && rateHistoryLogs && rateHistoryLogs.length > 0" class="space-y-2">
+                    <div class="flex items-center justify-between px-1">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                            <span>Rate Change History</span>
+                            <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-[10px] text-slate-600" x-text="rateHistoryLogs.length + ' records'"></span>
+                        </h4>
+                        <div class="flex items-center gap-3 text-[10px] font-medium text-slate-500">
+                            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> IST (UTC+5:30)</span>
+                            <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> UAE (UTC+4:00)</span>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-2xs">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="px-3.5 py-3 w-12 text-center">#</th>
+                                    <th class="px-4 py-3">Changed At</th>
+                                    <th class="px-4 py-3 text-right">Old Rate (₹/Sq.Ft)</th>
+                                    <th class="px-4 py-3 text-right">New Rate (₹/Sq.Ft)</th>
+                                    <th class="px-4 py-3 text-right">Change</th>
+                                    <th class="px-4 py-3">Changed By</th>
+                                    <th class="px-4 py-3">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-xs">
+                                <template x-for="(log, index) in rateHistoryLogs" :key="log.id || index">
+                                    <tr class="hover:bg-slate-50/60 transition-colors">
+                                        <td class="px-3.5 py-3 text-center font-bold text-slate-400 font-mono" x-text="index + 1"></td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                                                <span x-text="formatDateIST(log)"></span>
+                                            </div>
+                                            <div class="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>
+                                                <span x-text="formatDateUAE(log)"></span>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono font-medium text-slate-500 whitespace-nowrap"
+                                            x-text="log.previous_rate !== undefined && log.previous_rate !== null ? '₹' + Number(log.previous_rate).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '₹0.00'">
+                                        </td>
+                                        <td class="px-4 py-3 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
+                                            <div class="inline-flex items-center gap-1.5">
+                                                <span x-text="'₹' + Number(log.rate).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
+                                                <template x-if="index === 0">
+                                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase bg-emerald-100 text-emerald-800">Current</span>
+                                                </template>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-right whitespace-nowrap font-mono font-extrabold">
+                                            <span class="px-2 py-0.5 rounded-md text-[11px]"
+                                                  :class="(Number(log.rate) - Number(log.previous_rate || 0)) >= 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'"
+                                                  x-text="((Number(log.rate) - Number(log.previous_rate || 0)) >= 0 ? '+₹' : '-₹') + Math.abs(Number(log.rate) - Number(log.previous_rate || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})">
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3 whitespace-nowrap">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-6 h-6 rounded-full bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center font-bold text-[10px] flex-shrink-0"
+                                                     x-text="log.user ? log.user.name.charAt(0).toUpperCase() : 'S'"></div>
+                                                <div>
+                                                    <div class="font-bold text-slate-800 text-xs" x-text="log.user ? log.user.name : (log.changed_by ? 'User #' + log.changed_by : 'User')"></div>
+                                                    <div class="text-[10px] text-slate-400" x-text="log.user ? (log.user.email || 'Authorized Role') : 'System / Admin'"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-700">
+                                            <span class="inline-block px-2.5 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-medium max-w-xs break-words" x-text="log.reason || 'Initial rate set'"></span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end bg-slate-50 flex-shrink-0">
+                <button type="button" @click="modals.rateHistory.open = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 {{-- ═══════════════════════════════════════════
@@ -927,8 +1220,14 @@ function unitsApp() {
             add: { open: false },
             edit: { open: false },
             bulk: { open: false },
-            delete: { open: false }
+            delete: { open: false },
+            view: { open: false },
+            rateHistory: { open: false }
         },
+        viewTarget: null,
+        rateHistoryTarget: null,
+        rateHistoryLogs: [],
+        loadingRateHistory: false,
         forms: {
             add: {
                 floor_id: '',
@@ -1051,6 +1350,84 @@ function unitsApp() {
         },
         closeAddModal() {
             this.modals.add.open = false;
+        },
+
+        openViewModal(unit) {
+            this.viewTarget = unit;
+            this.modals.view.open = true;
+        },
+
+        openRateHistoryModal(unit) {
+            this.rateHistoryTarget = unit;
+            this.rateHistoryLogs = unit.rate_logs || [];
+            this.modals.rateHistory.open = true;
+            this.loadingRateHistory = true;
+
+            fetch(`{{ url('units') }}/${unit.id}/json`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.unit && data.unit.rate_logs) {
+                    this.rateHistoryLogs = data.unit.rate_logs;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            })
+            .finally(() => {
+                this.loadingRateHistory = false;
+            });
+        },
+
+        parseLogDate(log) {
+            const raw = log.created_at || log.effective_from;
+            if (!raw) return new Date();
+            let dt = new Date(raw);
+            if (isNaN(dt.getTime()) && typeof raw === 'string') {
+                dt = new Date(raw.replace(' ', 'T') + (raw.includes('Z') || raw.includes('+') ? '' : 'Z'));
+            }
+            if (isNaN(dt.getTime()) && typeof raw === 'string') {
+                dt = new Date(raw.replace(' ', 'T'));
+            }
+            return isNaN(dt.getTime()) ? new Date() : dt;
+        },
+
+        formatDateIST(log) {
+            try {
+                const dt = this.parseLogDate(log);
+                return new Intl.DateTimeFormat('en-IN', {
+                    timeZone: 'Asia/Kolkata',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }).format(dt) + ' (IST)';
+            } catch (e) {
+                return (log.created_at || log.effective_from || '') + ' (IST)';
+            }
+        },
+
+        formatDateUAE(log) {
+            try {
+                const dt = this.parseLogDate(log);
+                return new Intl.DateTimeFormat('en-IN', {
+                    timeZone: 'Asia/Dubai',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }).format(dt) + ' (UAE)';
+            } catch (e) {
+                return (log.created_at || log.effective_from || '') + ' (UAE)';
+            }
         },
 
         openEditModal(unitId) {

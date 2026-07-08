@@ -1,6 +1,6 @@
 <x-erp-layout title="Executive Reports" headerTitle="Executive Reports Dashboard">
 
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6">
 
     {{-- Header Options --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

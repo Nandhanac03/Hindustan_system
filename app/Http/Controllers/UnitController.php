@@ -30,18 +30,24 @@ class UnitController extends Controller
 
     public function index(Request $request)
     {
-        // Fetch first active project matching logged-in user's system_id (enforced by SystemScope)
-        $project = Project::where('is_active', true)->first();
+        $projects = Project::orderBy('name')->get();
+        $selectedProjectId = $request->input('project', $request->input('project_id', Project::where('is_active', true)->value('id') ?? ($projects->first()?->id)));
+
+        $project = Project::find($selectedProjectId) ?? $projects->first();
 
         if (!$project) {
             abort(404, 'No active project found for this system.');
         }
 
         $floors = Floor::where('project_id', $project->id)->orderBy('floor_number')->get();
-        $unitTypes = UnitType::where('is_active', true)->get();
+        $unitTypes = UnitType::where('is_active', true)
+            ->where(function ($q) use ($project) {
+                $q->whereNull('project_id')->orWhere('project_id', $project->id);
+            })
+            ->get();
 
         if ($request->wantsJson() || $request->ajax()) {
-            $query = Unit::with(['floor', 'unitType'])->where('project_id', $project->id);
+            $query = Unit::with(['floor', 'unitType', 'rateLogs.user', 'booking'])->where('project_id', $project->id);
 
             if ($request->filled('search')) {
                 $query->where('door_no', 'like', '%' . $request->search . '%');
@@ -81,7 +87,7 @@ class UnitController extends Controller
             ]);
         }
 
-        return view('units.index', compact('project', 'floors', 'unitTypes'));
+        return view('units.index', compact('project', 'floors', 'unitTypes', 'projects'));
     }
 
     public function store(Request $request): JsonResponse
@@ -139,7 +145,7 @@ class UnitController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $unit->load(['unitType', 'floor', 'rateLogs.user', 'statusLogs.user']);
+        $unit->load(['unitType', 'floor', 'rateLogs.user', 'statusLogs.user', 'booking']);
 
         // Determine allowed transitions
         $allowed = [];

@@ -169,12 +169,12 @@
 
                     {{-- GST Behavior --}}
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">GST Behavior</label>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">GST Behavior (18% Tax Slab)</label>
                         <select name="gst_behavior" x-model="form.gst_behavior" @change="recalculateTotal()" required
-                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all font-semibold">
                             <option value="none">No GST (None)</option>
-                            <option value="inclusive">GST Included (18%)</option>
-                            <option value="exclusive">GST Excluded (18% Extra)</option>
+                            <option value="inclusive">GST Included (18% Inclusive)</option>
+                            <option value="exclusive">GST Additional (+18% Exclusive / Extra)</option>
                         </select>
                         @error('gst_behavior')
                             <span class="text-[10px] text-rose-500 font-bold block mt-1">{{ $message }}</span>

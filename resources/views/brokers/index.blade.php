@@ -1,6 +1,6 @@
 <x-erp-layout title="Brokerage Management" headerTitle="Brokerage & Commission Management">
 
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6">
 
     {{-- Top Header & Actions --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -179,7 +179,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($brokers as $broker)
-                        <tr class="hover:bg-slate-50/70 transition-colors" x-data="{ openEdit: false }">
+                        <tr class="hover:bg-slate-50/70 transition-colors" x-data="{ openEdit: false, openView: false }">
                             <td class="px-5 py-4">
                                 <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
                                     <span>{{ $broker->name }}</span>
@@ -214,15 +214,86 @@
                             <td class="px-5 py-4 font-mono font-semibold text-indigo-700">
                                 ₹{{ number_format($broker->paid_commission, 2) }}
                             </td>
-                            <td class="px-5 py-4 text-right space-x-1.5">
-                                <button @click="openEdit = true" 
-                                        class="inline-flex items-center gap-1 px-3 py-1.5 border border-slate-200 hover:bg-slate-100 text-[10px] text-slate-700 font-bold rounded-lg transition uppercase tracking-wide">
-                                    Edit Rate
-                                </button>
-                                <a href="{{ route('brokers.payable-report', ['broker_id' => $broker->id]) }}" 
-                                   class="inline-flex items-center gap-1 px-3 py-1.5 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[10px] font-bold rounded-lg transition uppercase tracking-wide shadow-2xs">
-                                    View Report
-                                </a>
+                            <td class="px-5 py-4 text-right">
+                                <div class="inline-flex items-center justify-end gap-1.5">
+                                    <button @click="openView = true" title="View Broker Details" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                    <button @click="openEdit = true" title="Edit Broker Rate" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
+                                </div>
+
+                                {{-- View Modal --}}
+                                <div x-show="openView" 
+                                     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
+                                     style="display: none;">
+                                     <div @click.away="openView = false" 
+                                          class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-lg space-y-5">
+                                          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                              <div class="flex items-center gap-2">
+                                                  <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                  </div>
+                                                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Broker Profile & Ledger Details</h3>
+                                              </div>
+                                              <button @click="openView = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                          </div>
+
+                                          <div class="space-y-4">
+                                              <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                                                  <div>
+                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker / Agency Name</span>
+                                                      <span class="text-base font-extrabold text-slate-900">{{ $broker->name }}</span>
+                                                  </div>
+                                                  <div class="text-right">
+                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Commission Structure</span>
+                                                      <span class="px-2.5 py-1 rounded-lg bg-[#a38c29]/10 text-[#a38c29] font-mono font-bold text-xs inline-block mt-0.5">{{ number_format($broker->default_commission_pct, 2) }}% Default</span>
+                                                  </div>
+                                              </div>
+
+                                              <div class="grid grid-cols-2 gap-3">
+                                                  <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Linked Ledger Account</span>
+                                                      <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $broker->linkedAccount->name ?? 'Unlinked' }}</span>
+                                                      <span class="text-[10px] font-mono text-slate-500 block">Code: {{ $broker->linkedAccount->code ?? 'N/A' }}</span>
+                                                  </div>
+                                                  <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Deals & Sales</span>
+                                                      <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $broker->total_deals }} Closed Deal(s)</span>
+                                                      <span class="text-[10px] font-mono text-slate-500 block">Value: ₹{{ number_format($broker->total_sale_value, 2) }}</span>
+                                                  </div>
+                                              </div>
+
+                                              <div class="grid grid-cols-3 gap-3 pt-2">
+                                                  <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/60 text-center">
+                                                      <span class="text-[9px] font-bold text-amber-800 uppercase block">Accrued (Locked)</span>
+                                                      <span class="text-xs font-bold font-mono text-amber-900 mt-1 block">₹{{ number_format($broker->accrued_commission, 2) }}</span>
+                                                  </div>
+                                                  <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/60 text-center">
+                                                      <span class="text-[9px] font-bold text-emerald-800 uppercase block">Payable (Ready)</span>
+                                                      <span class="text-xs font-bold font-mono text-emerald-900 mt-1 block">₹{{ number_format($broker->payable_commission, 2) }}</span>
+                                                  </div>
+                                                  <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200/60 text-center">
+                                                      <span class="text-[9px] font-bold text-indigo-800 uppercase block">Total Paid Out</span>
+                                                      <span class="text-xs font-bold font-mono text-indigo-900 mt-1 block">₹{{ number_format($broker->paid_commission, 2) }}</span>
+                                                  </div>
+                                              </div>
+                                          </div>
+
+                                          <div class="pt-3 flex justify-between items-center border-t border-slate-100">
+                                              <button type="button" @click="openView = false" 
+                                                      class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                                                  Close
+                                              </button>
+                                              <a href="{{ route('brokers.payable-report', ['broker_id' => $broker->id]) }}" 
+                                                 class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
+                                                  <span>Full Ledger Statement</span>
+                                                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                              </a>
+                                          </div>
+                                     </div>
+                                </div>
 
                                 {{-- Edit Modal --}}
                                 <div x-show="openEdit" 

@@ -11,9 +11,22 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+// Fallback routes to serve storage files directly if public/storage symlink is not created or accessible
+Route::get('/storage/{path}', function ($path) {
+    $file = storage_path('app/public/' . $path);
+    if (!file_exists($file)) {
+        abort(404);
+    }
+    return response()->file($file);
+})->where('path', '.*')->name('storage.local');
+
+Route::get('/{any}/storage/{path}', function ($any, $path) {
+    $file = storage_path('app/public/' . $path);
+    if (!file_exists($file)) {
+        abort(404);
+    }
+    return response()->file($file);
+})->where('any', '.*')->where('path', '.*')->name('storage.local.any');
 
 // Authenticated and active system routes
 Route::middleware(['auth', 'system.active'])->group(function () {
@@ -74,6 +87,15 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/bank', function() {
         return view('bank.index');
     })->name('bank.index');
+
+    // GST Master
+    Route::get('/gst', function() {
+        return view('gst.index');
+    })->name('gst.index');
+
+    // Floor & Unit Type Master
+    Route::resource('floors', \App\Http\Controllers\FloorController::class)->except(['create', 'show', 'edit']);
+    Route::resource('unit-types', \App\Http\Controllers\UnitTypeController::class)->except(['create', 'show', 'edit']);
 
     // Partner Management
     Route::get('/partners', [\App\Http\Controllers\PartnerController::class, 'index'])->name('partners.index');

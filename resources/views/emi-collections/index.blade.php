@@ -1,6 +1,6 @@
 <x-erp-layout title="EMI Collections" headerTitle="EMI Collections Directory">
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="emiApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="emiApp()">
 
     {{-- Top Stats Card --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">

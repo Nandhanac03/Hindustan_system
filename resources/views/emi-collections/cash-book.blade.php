@@ -1,6 +1,6 @@
 <x-erp-layout title="Cash Book Register" headerTitle="Cash Book & Flow Register">
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="cashBookApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="cashBookApp()">
     
     {{-- Top Metrics Row --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">

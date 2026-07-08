@@ -1,6 +1,6 @@
 <x-erp-layout title="Sales Register" headerTitle="Sales Register & Bookings">
 
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6">
 
     {{-- Top Action Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -195,7 +195,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($bookings as $booking)
-                        <tr class="hover:bg-slate-50 transition-colors">
+                        <tr class="hover:bg-slate-50 transition-colors" x-data="{ openView: false }">
                             {{-- Sale / Dates --}}
                             <td class="px-4 py-4 space-y-1">
                                 <div class="font-bold text-[#a38c29] font-mono text-[11px]">{{ $booking->booking_number }}</div>
@@ -309,24 +309,104 @@
 
                             {{-- Actions --}}
                             <td class="px-4 py-4 text-right">
-                                <div class="flex items-center justify-end gap-1.5">
+                                <div class="inline-flex items-center justify-end gap-1.5">
+                                    <button @click="openView = true" title="View Booking Summary" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+
                                     @if($booking->status !== 'cancelled')
-                                        <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to cancel this booking and release the unit?')">
+                                        <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to cancel this booking and release the unit?')">
                                             @csrf
-                                            <button type="submit" class="px-2 py-1 border border-rose-200 hover:bg-rose-50 text-rose-600 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
-                                                Cancel Sale
+                                            <button type="submit" title="Cancel Sale & Release Unit" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             </button>
                                         </form>
                                     @endif
 
                                     @if($booking->unit->status === 'sold' && $booking->status !== 'cancelled')
-                                        <form action="{{ route('bookings.resale', $booking->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to release this sold unit for resale?')">
+                                        <form action="{{ route('bookings.resale', $booking->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to release this sold unit for resale?')">
                                             @csrf
-                                            <button type="submit" class="px-2 py-1 border border-amber-250 hover:bg-amber-50 text-amber-750 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
-                                                Release Resale
+                                            <button type="submit" title="Release Unit for Resale" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                                             </button>
                                         </form>
                                     @endif
+                                </div>
+
+                                {{-- View Modal --}}
+                                <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left" style="display: none;">
+                                    <div @click.away="openView = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-lg space-y-5 whitespace-normal">
+                                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                                </div>
+                                                <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Booking & Sale Summary (#{{ $booking->booking_number }})</h3>
+                                            </div>
+                                            <button @click="openView = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                        </div>
+
+                                        <div class="space-y-4">
+                                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                                                <div>
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Name</span>
+                                                    <span class="text-base font-extrabold text-slate-900">{{ $booking->customer->name }}</span>
+                                                    <span class="text-xs text-slate-500 block mt-0.5">Project: {{ $booking->project->name }}</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Number</span>
+                                                    <span class="px-2.5 py-1 rounded bg-[#a38c29]/10 text-[#a38c29] font-mono font-bold text-xs inline-block mt-0.5">Door {{ $booking->unit->door_no }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Actual Sale Amount</span>
+                                                    <span class="text-sm font-extrabold text-emerald-700 mt-0.5 block font-mono">₹{{ number_format($booking->amount, 2) }}</span>
+                                                </div>
+                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Sale Value</span>
+                                                    <span class="text-xs font-bold text-slate-700 mt-0.5 block font-mono">₹{{ number_format($booking->expected_sale_value, 2) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Behavior (18% Slab)</span>
+                                                    @if($booking->gst_behavior === 'inclusive')
+                                                        <span class="text-xs font-bold text-amber-600 mt-0.5 block">Included (18% GST)</span>
+                                                    @elseif($booking->gst_behavior === 'exclusive')
+                                                        <span class="text-xs font-bold text-purple-600 mt-0.5 block">Additional (+18% Extra)</span>
+                                                    @else
+                                                        <span class="text-xs font-bold text-slate-500 mt-0.5 block">No GST (None)</span>
+                                                    @endif
+                                                </div>
+                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Amount Payable</span>
+                                                    <span class="text-xs font-bold text-slate-800 mt-0.5 block font-mono">₹{{ number_format($booking->gst_amount, 2) }}</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="grid grid-cols-2 gap-3">
+                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker / Agent</span>
+                                                    <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $booking->broker ? $booking->broker->name : 'Direct Sale (No Broker)' }}</span>
+                                                </div>
+                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
+                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Booking Status</span>
+                                                    <span class="text-xs font-bold uppercase mt-0.5 block {{ $booking->status === 'approved' ? 'text-emerald-600' : 'text-amber-600' }}">{{ ucfirst($booking->status) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-3 flex justify-between items-center border-t border-slate-100">
+                                            <button type="button" @click="openView = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+                                            <a href="{{ route('units.index', ['search' => $booking->unit->door_no, 'project_id' => $booking->project_id]) }}" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
+                                                <span>Unit Details & Payouts</span>
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
                             </td>
                         </tr>

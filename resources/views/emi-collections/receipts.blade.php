@@ -1,6 +1,6 @@
 <x-erp-layout title="Receipts Entry" headerTitle="Collection Receipts Register">
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="receiptsApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="receiptsApp()">
     
     {{-- Summary KPIs --}}
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -213,15 +213,13 @@
                                           :class="getStatusClasses(r.status)" x-text="r.status"></span>
                                 </td>
                                 <td class="px-6 py-4 text-right space-y-1">
-                                    <div class="flex justify-end gap-1.5">
-                                        <button @click="viewVoucher(r)" 
-                                                class="px-2 py-1 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-[9px] font-bold rounded-lg uppercase tracking-wide transition">
-                                            Voucher
+                                    <div class="inline-flex items-center justify-end gap-1.5">
+                                        <button @click="viewVoucher(r)" title="View Receipt Voucher" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
                                         <template x-if="r.status === 'PENDING CLEARING'">
-                                            <button @click="markCleared(r)" 
-                                                    class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 text-[9px] font-bold rounded-lg uppercase tracking-wide transition">
-                                                Clear
+                                            <button @click="markCleared(r)" title="Mark as Cleared" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                             </button>
                                         </template>
                                     </div>

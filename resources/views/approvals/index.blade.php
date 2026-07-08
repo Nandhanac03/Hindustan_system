@@ -2,13 +2,13 @@
     <x-slot:title>Pending Approvals</x-slot:title>
     <x-slot:headerTitle>Approvals Inbox</x-slot:headerTitle>
 
-    <div class="space-y-6">
+    <div class="max-w-[1800px] mx-auto space-y-6">
         <div>
             <h2 class="text-base font-bold text-slate-900 uppercase tracking-wide">Pending Authorization Queue</h2>
             <p class="text-xs text-slate-500 mt-0.5">Review, approve, or reject transactions and discounts requiring owner/accountant signatures.</p>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 max-w-4xl">
+        <div class="grid grid-cols-1 gap-4">
             @forelse($approvals as $req)
                 <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm space-y-4 hover:border-slate-350 transition duration-150 animate-fade-in-up">
                     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">

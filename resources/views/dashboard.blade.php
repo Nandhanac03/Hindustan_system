@@ -3,89 +3,116 @@
     $currencySymbol = (auth()->user()->system->currency_code ?? 'INR') === 'AED' ? 'AED ' : '&#8377;';
 @endphp
 
-<div class="max-w-[1400px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6">
 
-  {{-- WELCOME HERO BANNER --}}
-<div class="relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
-    <!-- Decorative Background -->
-    <div class="absolute -top-24 -right-24 w-96 h-96 bg-[#a38c29]/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-24 -left-12 w-72 h-72 bg-slate-100 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a38c29]/50 to-transparent"></div>
+  {{-- ACTIVE PROJECT OVERVIEW BANNER (Replaces Welcome Box) --}}
+@if($activeProject)
+    @php
+        $projectImage = $activeProject->image_url
+            ? asset('storage/' . $activeProject->image_url)
+            : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
+        $statusColors = [
+            'planning' => 'bg-slate-50 text-slate-700 border-slate-200',
+            'ongoing' => 'bg-primary-50 text-primary-800 border-primary-200',
+            'completed' => 'bg-emerald-50 text-emerald-700 border-emerald-150',
+            'on_hold' => 'bg-amber-50 text-amber-700 border-amber-150'
+        ];
+        $colorClass = $statusColors[$activeProject->status] ?? $statusColors['planning'];
+    @endphp
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row gap-6 p-6 relative">
+        <!-- Accent Top Bar -->
+        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#a38c29] via-amber-400 to-[#a38c29]"></div>
 
-    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-        
-        <!-- Left Content -->
-        <div class="flex-1">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="h-8 w-8 rounded-full bg-[#a38c29]/10 flex items-center justify-center border border-[#a38c29]/20">
-                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                </div>
-                <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900">
-                    Welcome back, {{ auth()->user()->name }}
-                </h1>
-            </div>
-
-            <p class="max-w-2xl text-sm leading-relaxed text-slate-600 font-medium">
-                Here is your real estate portfolio overview for <span class="text-slate-900 font-semibold">{{ now()->format('l, d M Y') }}</span>.
-                @if($pendingApprovals > 0)
-                    You have <span class="font-bold text-[#a38c29]">{{ $pendingApprovals }} pending approval{{ $pendingApprovals > 1 ? 's' : '' }}</span> awaiting review.
-                @else
-                    <span class="text-emerald-600 font-semibold">All approvals are up to date.</span> Great work!
-                @endif
-            </p>
-
-            <div class="mt-6 flex flex-wrap gap-3">
-                <a href="{{ route('approvals.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-[#a38c29] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition-all duration-300 hover:bg-[#8d7923] shadow-md shadow-[#a38c29]/20">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
-                    </svg>
-                    Approvals Inbox
-                </a>
+        {{-- Project Image --}}
+        <div class="w-full md:w-[260px] h-[170px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150 shadow-inner">
+            <img src="{{ $projectImage }}" alt="{{ $activeProject->name }}" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent"></div>
+            <div class="absolute top-3 left-3">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-extrabold text-[10px] uppercase tracking-wider shadow-md">
+                    <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+                    Active Project
+                </span>
             </div>
         </div>
 
-        <!-- Right Content / Badges -->
-        <div class="flex flex-col items-start lg:items-end gap-3 border-t lg:border-t-0 lg:border-l border-slate-200 pt-5 lg:pt-0 lg:pl-8">
-            <div class="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 shadow-sm">
-                <span class="relative flex h-2.5 w-2.5">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span class="text-xs font-semibold text-slate-700">
-                    {{ auth()->user()->system->name ?? 'All Regions' }}
-                </span>
-                <span class="text-slate-400">•</span>
-                <span class="text-xs font-bold text-[#a38c29] uppercase tracking-wider">
-                    {{ auth()->user()->roles->first()->name ?? 'User' }}
-                </span>
+        {{-- Project Information --}}
+        <div class="flex-1 flex flex-col justify-between py-1">
+            <div class="space-y-2.5">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                          
+                          
+                        </div>
+                        <h2 class="text-xl lg:text-2xl font-extrabold text-slate-900 tracking-tight leading-snug">{{ $activeProject->name }}</h2>
+                        <p class="text-xs text-slate-500 font-semibold flex items-center gap-1.5 mt-1">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            {{ $activeProject->location }}, {{ $activeProject->city }}, {{ $activeProject->state_or_emirate }}, {{ $activeProject->country }}
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <span class="badge border font-extrabold uppercase {{ $colorClass }} text-[11px] px-3 py-1.5 rounded-xl shadow-2xs">
+                            {{ str_replace('_', ' ', $activeProject->status) }}
+                        </span>
+                        <a href="{{ route('units.index') }}" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white font-bold rounded-xl transition text-xs uppercase tracking-wide flex items-center gap-2 shadow-md shadow-[#a38c29]/20">
+                            <span>Manage Project Units</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                @if($activeProject->description)
+                    <div class="mt-3 text-xs leading-relaxed text-slate-600 bg-slate-50/80 p-3 rounded-xl border border-slate-100 font-medium">
+                        {{ $activeProject->description }}
+                    </div>
+                @endif
             </div>
 
-            <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold px-2 mt-1">
-                Last Login: {{ auth()->user()->last_login_at?->diffForHumans() ?? 'Just now' }}
+            {{-- Summary of Statistics --}}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-100 pt-3.5 mt-3.5 text-xs font-semibold text-slate-500">
+                <div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Floors</span>
+                    <strong class="text-slate-800 font-bold text-xs sm:text-sm">{{ $activeProject->total_floors }} Floors</strong>
+                </div>
+                <div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Start Date</span>
+                    <strong class="text-slate-800 font-bold text-xs sm:text-sm">{{ $activeProject->start_date ? \Carbon\Carbon::parse($activeProject->start_date)->format('d M Y') : 'N/A' }}</strong>
+                </div>
+                <div>
+                    <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Target Completion</span>
+                    <strong class="text-slate-800 font-bold text-xs sm:text-sm">{{ $activeProject->expected_completion_date ? \Carbon\Carbon::parse($activeProject->expected_completion_date)->format('d M Y') : 'N/A' }}</strong>
+                </div>
+              
             </div>
         </div>
     </div>
-</div>
+@else
+    {{-- FALLBACK WHEN NO ACTIVE PROJECT --}}
+    <div class="relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-[#a38c29]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 font-bold text-[10px] uppercase tracking-wider mb-2">
+                    No Active Project
+                </span>
+                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Select an Active Project</h2>
+                <p class="text-sm text-slate-600 font-medium mt-1">
+                    To start managing units, bookings, and operations, please activate a project from your portfolio.
+                </p>
+            </div>
+            <a href="{{ route('projects.index') }}" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white font-bold rounded-xl transition text-xs uppercase tracking-wide flex items-center gap-2 shadow-md shadow-[#a38c29]/20 flex-shrink-0">
+                <span>Go to Projects List</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+        </div>
+    </div>
+@endif
 
     {{-- KPI Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
-        {{-- Projects --}}
-        <div class="kpi-card anim-1 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:border-primary-300">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
-                    <svg class="w-4.5 h-4.5 text-primary-600" style="width:18px;height:18px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                </div>
-                <svg viewBox="0 0 60 30" class="w-16 h-8 text-primary-400">
-                    <polyline class="sparkline-path" points="0,25 10,20 20,22 30,12 40,16 50,8 60,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </div>
-            <div class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ $totalProjects }}</div>
-            <div class="text-xs text-slate-500 font-medium mt-0.5">Total Projects</div>
-            <div class="mt-2 text-[10px] font-bold text-primary-600 uppercase tracking-wider">Live Portfolio</div>
-        </div>
+       
 
         {{-- Units (Ash / Slate Theme) --}}
         <div class="kpi-card anim-2 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
@@ -236,19 +263,33 @@
             <div class="text-xs text-white/70 mt-1">Registered property buyers</div>
         </div>
 
-        {{-- ERP System Health --}}
-        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/10">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                    <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{-- Sold Units Details (Replaces System Health) --}}
+        <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-xl shadow-emerald-500/10 flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                        <svg style="width:16px;height:16px" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-bold uppercase tracking-widest opacity-80">Sold Units</span>
                 </div>
-                <span class="text-xs font-bold uppercase tracking-widest opacity-80">System</span>
+                <a href="{{ route('units.index', ['status' => 'sold']) }}" class="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg uppercase transition-colors flex items-center gap-1">
+                    <span>View Sold</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
-            <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></span>
-                <div class="text-xl font-extrabold tracking-tight">All Systems Online</div>
+            @php 
+                $soldCount = $soldUnitsCount ?? ($donutSold ?? 0);
+                $soldVal = $soldUnitsValue ?? 0;
+                $soldValFmt = $soldVal >= 10000000 ? $currencySymbol.number_format($soldVal/10000000,2).'Cr' : ($soldVal >= 100000 ? $currencySymbol.number_format($soldVal/100000,2).'L' : $currencySymbol.number_format($soldVal)); 
+            @endphp
+            <div>
+                <div class="text-3xl font-extrabold tracking-tight">{{ number_format($soldCount) }} <span class="text-base font-semibold text-white/80">Units</span></div>
+                <div class="text-xs text-white/80 font-medium mt-1.5 flex items-center gap-1.5">
+                    <span>Est. Sale Value: <strong class="text-white font-extrabold">{!! $soldValFmt !!}</strong></span>
+                </div>
             </div>
-            <div class="text-xs text-white/70 mt-1">Database &bull; Server &bull; Queue</div>
         </div>
     </div>
 

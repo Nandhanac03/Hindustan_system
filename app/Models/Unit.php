@@ -26,6 +26,8 @@ class Unit extends Model
         'sale_rate_per_sqft',
         'sale_amount',
         'difference',
+        'gst_behavior',
+        'gst_amount',
         'status',
         'is_active',
     ];
@@ -38,6 +40,7 @@ class Unit extends Model
         'sale_rate_per_sqft'     => 'decimal:2',
         'sale_amount'            => 'decimal:2',
         'difference'             => 'decimal:2',
+        'gst_amount'             => 'decimal:2',
         'is_active'              => 'boolean',
     ];
 
@@ -72,7 +75,7 @@ class Unit extends Model
 
     public function rateLogs(): HasMany
     {
-        return $this->hasMany(UnitRateLog::class);
+        return $this->hasMany(UnitRateLog::class)->orderBy('id', 'desc');
     }
 
     public function statusLogs(): HasMany
@@ -88,5 +91,10 @@ class Unit extends Model
     public function latestStatusLog(): HasOne
     {
         return $this->hasOne(UnitStatusLog::class)->latestOfMany();
+    }
+
+    public function booking(): HasOne
+    {
+        return $this->hasOne(Booking::class)->latestOfMany();
     }
 }

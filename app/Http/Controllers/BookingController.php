@@ -23,8 +23,12 @@ class BookingController extends Controller
     public function index(Request $request): View
     {
         $projects = Project::where('is_active', true)->get();
-        $floors = \App\Models\Floor::orderBy('floor_number')->get();
-        $unitTypes = \App\Models\UnitType::where('is_active', true)->get();
+        $selectedProject = $request->project_id ? Project::find($request->project_id) : null;
+
+        $floors = \App\Models\Floor::when($selectedProject, fn($q) => $q->where('project_id', $selectedProject->id))->orderBy('floor_number')->get();
+        $unitTypes = \App\Models\UnitType::where('is_active', true)
+            ->when($selectedProject, fn($q) => $q->where(fn($sub) => $sub->whereNull('project_id')->orWhere('project_id', $selectedProject->id)))
+            ->get();
         $brokers = \App\Models\Broker::orderBy('name')->get();
         $customers = Customer::orderBy('name')->get();
         
@@ -207,6 +211,8 @@ class BookingController extends Controller
                 'sale_rate_per_sqft' => $saleRate,
                 'sale_amount' => $saleAmount,
                 'difference' => $unitDifference,
+                'gst_behavior' => $booking->gst_behavior,
+                'gst_amount' => $booking->gst_amount,
             ]);
 
             ActivityLog::record(
@@ -239,6 +245,8 @@ class BookingController extends Controller
                 'sale_rate_per_sqft' => null,
                 'sale_amount' => null,
                 'difference' => null,
+                'gst_behavior' => 'none',
+                'gst_amount' => 0.00,
             ]);
 
             ActivityLog::record(
@@ -272,6 +280,8 @@ class BookingController extends Controller
                 'sale_rate_per_sqft' => null,
                 'sale_amount' => null,
                 'difference' => null,
+                'gst_behavior' => 'none',
+                'gst_amount' => 0.00,
             ]);
 
             ActivityLog::record(
