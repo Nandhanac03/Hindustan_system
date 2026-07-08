@@ -93,14 +93,14 @@ return new class extends Migration
         }
     }
 
-    public function down(): void
-    {
-        Schema::dropIfExists('user_dashboard_layouts');
-        Schema::dropIfExists('activity_logs');
-        Schema::dropIfExists('approval_requests');
-        Schema::dropIfExists('payments');
-        Schema::dropIfExists('bookings');
-        Schema::dropIfExists('sales_executives');
-        Schema::dropIfExists('customers');
-    }
+  public function down(): void
+{
+    Schema::disableForeignKeyConstraints();
+
+    Schema::dropIfExists('hindustansystem_partner_allocations');
+    Schema::dropIfExists('hindustansystem_payments');
+    // ...any other tables in this migration, in any order
+
+    Schema::enableForeignKeyConstraints();
+}
 };

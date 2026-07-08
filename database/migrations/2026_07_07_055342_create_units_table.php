@@ -44,7 +44,9 @@ return new class extends Migration
             $table->decimal('difference', 14, 2)->nullable();
 
             // STATUS
-            $table->enum('status', ['available', 'booked', 'sold', 'blocked', 'hold'])->default('available');
+            $table->enum('status', ['available', 'booked', 'sold', 'blocked', 'hold', 'reserved'])->default('available');
+
+            $table->boolean('is_active')->default(true);
 
             $table->timestamps();
         });

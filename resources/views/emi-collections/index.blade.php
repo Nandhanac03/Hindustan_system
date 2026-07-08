@@ -76,12 +76,12 @@
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-indigo-650">{{ $payment->receipt_number }}</td>
                                 <td class="px-6 py-4">
-                                    <div class="font-semibold text-slate-900">{{ $payment->customer->name }}</div>
-                                    <div class="text-[10px] text-slate-400">{{ $payment->customer->phone }}</div>
+                                    <div class="font-semibold text-slate-900">{{ $payment->customer?->name ?? 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ $payment->customer?->phone ?? '' }}</div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="font-semibold text-slate-800">{{ $payment->project->name }}</div>
-                                    <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">{{ $payment->project->code }}</span>
+                                    <div class="font-semibold text-slate-800">{{ $payment->project?->name ?? 'N/A' }}</div>
+                                    <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">{{ $payment->project?->code ?? '' }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-bold text-slate-900">₹{{ number_format($payment->amount, 2) }}</td>
                                 <td class="px-6 py-4 text-slate-500 font-medium">{{ $payment->payment_mode }}</td>
@@ -120,8 +120,8 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100 font-mono">{{ $booking->booking_number }}</span>
-                                <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer->name }}</h3>
-                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project->name }} · {{ $booking->unit->unit_number }}</p>
+                                <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? 'Unknown Customer' }}</h3>
+                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · {{ $booking->unit?->unit_number ?? 'No Unit' }}</p>
                             </div>
                             <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->amount / 100000, 1) }}L</span>
                         </div>
@@ -234,8 +234,8 @@ function emiApp() {
             this.form.booking_id = booking.id;
             this.form.amount = booking.outstanding;
             this.form.payment_mode = 'Cash';
-            this.form.customer_name = booking.customer.name;
-            this.form.unit_number = booking.unit.unit_number;
+            this.form.customer_name = booking.customer ? booking.customer.name : 'Unknown';
+            this.form.unit_number = booking.unit ? (booking.unit.unit_number || booking.unit.door_no || 'No Unit') : 'No Unit';
             this.form.outstanding = booking.outstanding;
             this.modal.open = true;
         },

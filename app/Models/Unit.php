@@ -18,6 +18,7 @@ class Unit extends Model
         'floor_id',
         'unit_type_id',
         'door_no',
+        'unit_number',
         'built_up_area',
         'carpet_area',
         'expected_rate_per_sqft',
@@ -26,6 +27,7 @@ class Unit extends Model
         'sale_amount',
         'difference',
         'status',
+        'is_active',
     ];
 
     protected $casts = [
@@ -36,7 +38,22 @@ class Unit extends Model
         'sale_rate_per_sqft'     => 'decimal:2',
         'sale_amount'            => 'decimal:2',
         'difference'             => 'decimal:2',
+        'is_active'              => 'boolean',
     ];
+
+    protected $appends = [
+        'unit_number',
+    ];
+
+    public function getUnitNumberAttribute(): string
+    {
+        return (string) ($this->door_no ?? '');
+    }
+
+    public function setUnitNumberAttribute($value): void
+    {
+        $this->attributes['door_no'] = $value;
+    }
 
     public function project()
     {
