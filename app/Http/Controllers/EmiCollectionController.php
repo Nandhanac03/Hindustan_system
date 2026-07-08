@@ -100,4 +100,24 @@ class EmiCollectionController extends Controller
             'payment' => $payment
         ]);
     }
+
+    public function schedules(Request $request): View
+    {
+        return view('emi-collections.schedules');
+    }
+
+    public function receipts(Request $request): View
+    {
+        return view('emi-collections.receipts');
+    }
+
+    public function outstanding(Request $request): View
+    {
+        return view('emi-collections.outstanding');
+    }
+
+    public function cashBook(Request $request): View
+    {
+        return view('emi-collections.cash-book');
+    }
 }

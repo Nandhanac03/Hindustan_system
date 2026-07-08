@@ -159,6 +159,7 @@
                 Project Units
             </a>
 
+
             <!--- Customers -->
             <a href="{{ route('customers.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('customers.*') ? 'active text-white' : 'text-slate-300' }}">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,12 +168,65 @@
                 Customer
             </a>
             <!-- EMI Collections -->
-            <a href="{{ route('emi-collections.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('emi-collections.index') ? 'active text-white' : 'text-slate-300' }}">
+            <!-- <a href="{{ route('emi-collections.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('emi-collections.index') ? 'active text-white' : 'text-slate-300' }}">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 EMI Collections
-            </a>
+            </a> -->
+
+            <!-- EMI Collections Dropdown -->
+            <div x-data="{ openEMI: {{ Request::routeIs('emi-collections.*') ? 'true' : 'false' }} }" class="space-y-1">
+                <button @click="openEMI = !openEMI" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        EMI & Collections
+                    </div>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openEMI ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+                <div x-show="openEMI" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                    <a href="{{ route('emi-collections.index') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ Request::routeIs('emi-collections.index')
+                            ? 'bg-[#a38c29] text-white shadow-md font-bold'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Dashboard
+                    </a>
+                    <a href="{{ route('emi-collections.schedules') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ Request::routeIs('emi-collections.schedules')
+                            ? 'bg-[#a38c29] text-white shadow-md font-bold'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Payment Schedules
+                    </a>
+                    <a href="{{ route('emi-collections.receipts') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ Request::routeIs('emi-collections.receipts')
+                            ? 'bg-[#a38c29] text-white shadow-md font-bold'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Receipts Entry
+                    </a>
+                    <a href="{{ route('emi-collections.outstanding') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ Request::routeIs('emi-collections.outstanding')
+                            ? 'bg-[#a38c29] text-white shadow-md font-bold'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Outstanding Summary
+                    </a>
+                    <a href="{{ route('emi-collections.cash-book') }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ Request::routeIs('emi-collections.cash-book')
+                            ? 'bg-[#a38c29] text-white shadow-md font-bold'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Cash Book
+                    </a>
+                </div>
+            </div>
+
 
             <!-- Partner Management -->
             <a href="{{ route('partners.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('partners.*') ? 'active text-white' : 'text-slate-300' }}">

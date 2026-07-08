@@ -59,6 +59,10 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     // EMI Collections & Reports
     Route::get('/emi-collections', [\App\Http\Controllers\EmiCollectionController::class, 'index'])->name('emi-collections.index');
     Route::post('/emi-collections', [\App\Http\Controllers\EmiCollectionController::class, 'store'])->name('emi-collections.store');
+    Route::get('/emi-collections/schedules', [\App\Http\Controllers\EmiCollectionController::class, 'schedules'])->name('emi-collections.schedules');
+    Route::get('/emi-collections/receipts', [\App\Http\Controllers\EmiCollectionController::class, 'receipts'])->name('emi-collections.receipts');
+    Route::get('/emi-collections/outstanding', [\App\Http\Controllers\EmiCollectionController::class, 'outstanding'])->name('emi-collections.outstanding');
+    Route::get('/emi-collections/cash-book', [\App\Http\Controllers\EmiCollectionController::class, 'cashBook'])->name('emi-collections.cash-book');
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 
     // Sales Register & Bookings
