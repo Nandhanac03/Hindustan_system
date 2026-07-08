@@ -66,6 +66,11 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('bookings/{booking}/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('bookings.cancel');
     Route::post('bookings/{booking}/resale', [\App\Http\Controllers\BookingController::class, 'resale'])->name('bookings.resale');
 
+    // Bank Master
+    Route::get('/bank', function() {
+        return view('bank.index');
+    })->name('bank.index');
+
     // Partner Management
     Route::get('/partners', [\App\Http\Controllers\PartnerController::class, 'index'])->name('partners.index');
     Route::post('/partners', [\App\Http\Controllers\PartnerController::class, 'storePartner'])->name('partners.store');

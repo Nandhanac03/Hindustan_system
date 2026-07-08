@@ -97,6 +97,33 @@
                 </svg>
                 Dashboard
             </a>
+
+            <!-- Master Dropdown -->
+            <div x-data="{ openMaster: {{ Request::routeIs('bank.*') ? 'true' : 'false' }} }" class="space-y-1">
+                <button @click="openMaster = !openMaster" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                        Master
+                    </div>
+                    <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openMaster ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+              <div x-show="openMaster" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+    <a href="{{ route('bank.index') }}"
+       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+       {{ Request::routeIs('bank.*')
+            ? 'bg-[#a38c29] text-white shadow-md'
+            : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+
+       
+
+        Bank Master
+    </a>
+</div>
+            </div>
             
             <a href="{{ route('customers.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('customers.*') ? 'active text-white' : 'text-slate-300' }}">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
