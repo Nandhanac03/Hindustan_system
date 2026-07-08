@@ -6,119 +6,65 @@
 <div class="max-w-[1400px] mx-auto space-y-6">
 
   {{-- WELCOME HERO BANNER --}}
-<div class="anim-1 relative overflow-hidden rounded-2xl bg-white p-7 shadow-sm border border-slate-200">
-
+<div class="relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm border border-slate-200">
     <!-- Decorative Background -->
-    <div class="absolute -top-16 -right-16 w-72 h-72 bg-[#a38c29]/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute -bottom-16 -left-8 w-56 h-56 bg-slate-200/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-[#a38c29]/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-12 w-72 h-72 bg-slate-100 rounded-full blur-3xl pointer-events-none"></div>
     <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#a38c29]/50 to-transparent"></div>
 
-    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+        
+        <!-- Left Content -->
+        <div class="flex-1">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="h-8 w-8 rounded-full bg-[#a38c29]/10 flex items-center justify-center border border-[#a38c29]/20">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900">
+                    Welcome back, {{ auth()->user()->name }}
+                </h1>
+            </div>
 
-        <!-- Left -->
-        <div>
-
-            @php
-                $hour = now()->hour;
-                $greeting = $hour < 12
-                    ? 'Good Morning'
-                    : ($hour < 17 ? 'Good Afternoon' : 'Good Evening');
-            @endphp
-
-            <p class="text-[#a38c29] text-xs font-bold uppercase tracking-[0.25em] mb-2">
-                {{ $greeting }}
-            </p>
-
-            <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900">
-                Welcome, {{ auth()->user()->name }} 👋
-            </h1>
-
-            <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-
-                Here's your real estate portfolio overview for
-
-                <span class="font-semibold text-slate-900">
-                    {{ now()->format('l, d M Y') }}
-                </span>.
-
+            <p class="max-w-2xl text-sm leading-relaxed text-slate-600 font-medium">
+                Here is your real estate portfolio overview for <span class="text-slate-900 font-semibold">{{ now()->format('l, d M Y') }}</span>.
                 @if($pendingApprovals > 0)
-
-                    You have
-
-                    <span class="font-bold text-[#a38c29]">
-                        {{ $pendingApprovals }}
-                        pending approval{{ $pendingApprovals > 1 ? 's' : '' }}
-                    </span>
-
-                    awaiting review.
-
+                    You have <span class="font-bold text-[#a38c29]">{{ $pendingApprovals }} pending approval{{ $pendingApprovals > 1 ? 's' : '' }}</span> awaiting review.
                 @else
-
-                    <span class="font-semibold text-emerald-600">
-                        All approvals are up to date.
-                    </span>
-
-                    Great work!
-
+                    <span class="text-emerald-600 font-semibold">All approvals are up to date.</span> Great work!
                 @endif
-
             </p>
 
             <div class="mt-6 flex flex-wrap gap-3">
-
-                <a href="{{ route('approvals.index') }}"
-                   class="inline-flex items-center gap-2 rounded-xl bg-[#a38c29] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition-all duration-300 hover:bg-[#8d7923] shadow-md">
-
-                    <svg class="w-4 h-4"
-                         fill="none"
-                         stroke="currentColor"
-                         viewBox="0 0 24 24">
-
-                        <path stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
-
+                <a href="{{ route('approvals.index') }}" class="inline-flex items-center gap-2 rounded-xl bg-[#a38c29] px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-white transition-all duration-300 hover:bg-[#8d7923] shadow-md shadow-[#a38c29]/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
                     </svg>
-
                     Approvals Inbox
-
                 </a>
-
             </div>
-
         </div>
 
-        <!-- Right -->
-        <div class="flex flex-col items-start lg:items-end gap-3">
-
-            <div class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2">
-
-                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-
-                <span class="text-sm font-medium text-slate-700">
+        <!-- Right Content / Badges -->
+        <div class="flex flex-col items-start lg:items-end gap-3 border-t lg:border-t-0 lg:border-l border-slate-200 pt-5 lg:pt-0 lg:pl-8">
+            <div class="inline-flex items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 shadow-sm">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span class="text-xs font-semibold text-slate-700">
                     {{ auth()->user()->system->name ?? 'All Regions' }}
                 </span>
-
                 <span class="text-slate-400">•</span>
-
-                <span class="font-bold text-[#a38c29]">
+                <span class="text-xs font-bold text-[#a38c29] uppercase tracking-wider">
                     {{ auth()->user()->roles->first()->name ?? 'User' }}
                 </span>
-
             </div>
 
-            <div class="text-[11px] uppercase tracking-[0.2em] text-slate-500">
-
-                Last Login :
-                {{ auth()->user()->last_login_at?->diffForHumans() ?? 'Just now' }}
-
+            <div class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-semibold px-2 mt-1">
+                Last Login: {{ auth()->user()->last_login_at?->diffForHumans() ?? 'Just now' }}
             </div>
-
         </div>
-
     </div>
-
 </div>
 
     {{-- KPI Cards Grid --}}
@@ -306,103 +252,66 @@
         </div>
     </div>
 
-    {{-- PROJECT UNIT AVAILABILITY GRID --}}
-    <div class="anim-5 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-        <div class="flex items-center justify-between mb-5">
-            <div>
-                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Project Unit Availability</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Live inventory across all active projects</p>
-            </div>
-            <a href="{{ route('projects.index') }}" class="text-xs font-bold text-primary hover:text-primary-700 uppercase tracking-wider transition-colors">
-                View All Projects &rarr;
-            </a>
-        </div>
-        @php
-            $dashProjects = \App\Models\Project::withCount(['units' => fn($q) => $q->where('is_active', true)])->get();
-            foreach ($dashProjects as $dp) {
-                $dp->avail   = \App\Models\Unit::where('project_id', $dp->id)->where('status', 'available')->where('is_active', true)->count();
-                $dp->sold    = \App\Models\Unit::where('project_id', $dp->id)->whereIn('status', ['sold','booked'])->where('is_active', true)->count();
-                $dp->reserv  = \App\Models\Unit::where('project_id', $dp->id)->where('status', 'reserved')->where('is_active', true)->count();
-            }
-        @endphp
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ min(4, max(1, $dashProjects->count())) }} gap-4">
-            @forelse($dashProjects as $dp)
-                @php $pct = $dp->units_count > 0 ? ($dp->avail / $dp->units_count) * 100 : 0; @endphp
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary-300 hover:shadow-md transition-all">
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="min-w-0">
-                            <p class="text-xs font-bold text-slate-800 truncate leading-tight">{{ $dp->name }}</p>
-                            <p class="text-[10px] text-slate-400 mt-0.5">{{ $dp->city }}, {{ $dp->country }}</p>
-                        </div>
-                        <span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary-100 text-primary-800 rounded flex-shrink-0 ml-2">{{ $dp->code }}</span>
-                    </div>
-                    <div class="flex items-end justify-between mb-2">
-                        <span class="text-2xl font-extrabold text-slate-900">{{ $dp->avail }}</span>
-                        <span class="text-[10px] text-slate-400">of {{ $dp->units_count }} units</span>
-                    </div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:{{ $pct }}%"></div></div>
-                    <div class="mt-2 flex gap-3 text-[10px] font-semibold">
-                        <span class="text-emerald-600">{{ $dp->avail }} avail</span>
-                        <span class="text-primary">{{ $dp->sold }} sold</span>
-                        <span class="text-slate-500">{{ $dp->reserv }} reserved</span>
-                    </div>
-                </div>
-            @empty
-                <div class="col-span-full py-8 text-center text-slate-400 text-xs italic">No projects found. Add your first project.</div>
-            @endforelse
-        </div>
-    </div>
-
-    {{-- RECENT PROJECTS + TOP CUSTOMERS --}}
+    {{-- RECENT UNITS + TOP CUSTOMERS --}}
     <div class="anim-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-        {{-- Recent Projects Table (3/5) --}}
+        {{-- Recent Units Table (3/5) --}}
         <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Recent Projects</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Latest project activity & completion status</p>
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Recent Units</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Latest units added to inventory</p>
                 </div>
-                <a href="{{ route('projects.index') }}" class="text-xs font-bold text-primary hover:text-primary-700 uppercase tracking-wider transition-colors">View All</a>
+                <a href="{{ route('units.index') }}" class="text-xs font-bold text-[#a38c29] hover:text-[#8a7522] uppercase tracking-wider transition-colors">View All</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-xs">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100">
-                            <th class="px-6 py-3 text-left font-bold text-slate-500 uppercase tracking-widest text-[10px]">Project</th>
+                            <th class="px-6 py-3 text-left font-bold text-slate-500 uppercase tracking-widest text-[10px]">Unit</th>
+                            <th class="px-6 py-3 text-left font-bold text-slate-500 uppercase tracking-widest text-[10px]">Type / Area</th>
                             <th class="px-6 py-3 text-left font-bold text-slate-500 uppercase tracking-widest text-[10px]">Status</th>
-                            <th class="px-6 py-3 text-left font-bold text-slate-500 uppercase tracking-widest text-[10px]">Progress</th>
-                            <th class="px-4 py-3 text-right font-bold text-slate-500 uppercase tracking-widest text-[10px]">%</th>
+                            <th class="px-4 py-3 text-right font-bold text-slate-500 uppercase tracking-widest text-[10px]">Price</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-50">
-                        @forelse($recentProjects as $project)
+                        @forelse($recentUnits as $unit)
                             <tr class="table-row transition-colors">
                                 <td class="px-6 py-3.5">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-7 h-7 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
-                                            <svg style="width:13px;height:13px" class="text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <div class="w-7 h-7 rounded-lg bg-[#a38c29]/10 flex items-center justify-center flex-shrink-0">
+                                            <svg style="width:13px;height:13px" class="text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
                                             </svg>
                                         </div>
                                         <div>
-                                            <div class="font-semibold text-slate-900">{{ $project->name }}</div>
-                                            <div class="text-[10px] text-slate-400">{{ $project->city }}, {{ $project->country }}</div>
+                                            <div class="font-semibold text-slate-900">{{ $unit->door_no }}</div>
+                                            <div class="text-[10px] text-slate-400">Floor: {{ $unit->floor->name ?? 'N/A' }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-3.5">
-                                    <span class="badge-pill badge-{{ $project->status }}">{{ ucfirst($project->status) }}</span>
+                                    <div class="font-semibold text-slate-700">{{ $unit->unitType->name ?? 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ $unit->built_up_area }} Sq Ft</div>
                                 </td>
                                 <td class="px-6 py-3.5">
-                                    <div class="progress-bar w-28">
-                                        <div class="progress-fill" style="width:{{ $project->completion_percentage }}%"></div>
-                                    </div>
+                                    @php
+                                        $badgeClass = match($unit->status) {
+                                            'available' => 'bg-emerald-50 text-emerald-700 border border-emerald-100',
+                                            'blocked' => 'bg-amber-50 text-amber-700 border border-amber-100',
+                                            'booked' => 'bg-indigo-50 text-indigo-700 border border-indigo-100',
+                                            'sold' => 'bg-rose-50 text-rose-700 border border-rose-100',
+                                            default => 'bg-slate-50 text-slate-700 border border-slate-200',
+                                        };
+                                    @endphp
+                                    <span class="badge-pill {{ $badgeClass }}">{{ ucfirst($unit->status) }}</span>
                                 </td>
-                                <td class="px-4 py-3.5 text-right font-bold text-slate-800">{{ number_format($project->completion_percentage, 0) }}%</td>
+                                <td class="px-4 py-3.5 text-right font-bold text-slate-800">
+                                    {!! $currencySymbol !!}{{ number_format($unit->expected_sale_amount ?? 0) }}
+                                </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">No projects found.</td></tr>
+                            <tr><td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">No units found.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -410,36 +319,57 @@
         </div>
 
         {{-- Top Customers (2/5) --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-            <div class="flex items-center justify-between mb-5">
-                <div>
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Top Customers</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">By payment volume</p>
-                </div>
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col ">
+            <div class="mb-5">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Top Customers</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Ranked by total payment volume</p>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-3">
                 @forelse($topCustomers as $idx => $customer)
                     @php
                         $sv = $customer->payments_sum_amount ?? 0;
                         $sdFmt = $sv >= 10000000 ? $currencySymbol.number_format($sv/10000000,2).'Cr' : ($sv >= 100000 ? $currencySymbol.number_format($sv/100000,2).'L' : $currencySymbol.number_format($sv));
+                        
+                        // Dynamic rank badge styling
+                        $rankBadge = match($idx) {
+                            0 => 'bg-amber-100 text-amber-800 border-amber-200 ring-4 ring-amber-50',
+                            1 => 'bg-slate-100 text-slate-800 border-slate-200 ring-4 ring-slate-50',
+                            2 => 'bg-orange-100 text-orange-800 border-orange-200 ring-4 ring-orange-50',
+                            default => 'bg-slate-50 text-slate-600 border-slate-100'
+                        };
+                        
+                        $initials = collect(explode(' ', $customer->name))
+                            ->map(fn($n) => mb_substr($n, 0, 1))
+                            ->take(2)
+                            ->join('');
                     @endphp
-                    <div class="flex items-center gap-3">
-                        <div class="relative flex-shrink-0">
-                            <img src="https://api.dicebear.com/7.x/initials/svg?seed={{ urlencode($customer->name) }}&backgroundColor=a38c29"
-                                 class="w-9 h-9 rounded-full" alt="{{ $customer->name }}">
-                            <span class="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[8px] font-bold rounded-full flex items-center justify-center">{{ $idx+1 }}</span>
+                    <div class="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-[#a38c29]/30 hover:bg-[#a38c29]/5 hover:shadow-sm transition-all duration-200 group">
+                        <div class="flex items-center gap-3">
+                            {{-- Rank Badge --}}
+                            <span class="w-6 h-6 flex items-center justify-center rounded-lg text-[10px] font-bold border {{ $rankBadge }} flex-shrink-0 font-mono">
+                                {{ $idx + 1 }}
+                            </span>
+                            
+                            {{-- Avatar Initials --}}
+                            <div class="w-9 h-9 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-bold text-slate-700 tracking-wider flex-shrink-0 uppercase group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29] group-hover:border-[#a38c29]/20 transition-colors">
+                                {{ $initials ?: 'C' }}
+                            </div>
+
+                            <div class="min-w-0">
+                                <div class="text-xs font-bold text-slate-900 group-hover:text-[#8a7522] transition-colors truncate">{{ $customer->name }}</div>
+                                <div class="text-[10px] text-slate-400 font-semibold">{{ $customer->bookings_count }} {{ Str::plural('Booking', $customer->bookings_count) }}</div>
+                            </div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="text-xs font-semibold text-slate-900 truncate">{{ $customer->name }}</div>
-                            <div class="text-[10px] text-slate-400">{{ $customer->bookings_count }} {{ Str::plural('Booking', $customer->bookings_count) }}</div>
-                        </div>
-                        <div class="text-right flex-shrink-0">
-                            <div class="text-xs font-bold text-slate-900">{!! $sdFmt !!}</div>
-                            <div class="text-[10px] text-emerald-600 font-semibold">Verified</div>
+
+                        <div class="text-right pl-3 flex-shrink-0">
+                            <div class="text-xs font-extrabold text-slate-900">{!! $sdFmt !!}</div>
+                            <div class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider flex items-center justify-end gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Verified
+                            </div>
                         </div>
                     </div>
                 @empty
-                    <p class="text-xs text-slate-400 text-center py-4 italic">No customer data yet.</p>
+                    <p class="text-xs text-slate-400 text-center py-8 italic">No customer data yet.</p>
                 @endforelse
             </div>
         </div>
@@ -447,63 +377,69 @@
 
     <div class="anim-7 grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-        {{-- Pending Approvals Inbox --}}
+        {{-- Recent Bookings --}}
         <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Live Approvals Inbox</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Direct actions for pending items</p>
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Recent Bookings</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Latest bookings across your units</p>
                 </div>
-                <span class="badge-pill bg-amber-50 text-amber-700 border border-amber-200">{{ $pendingApprovals }} Requests</span>
+                <a href="{{ route('bookings.index') }}" class="text-xs font-bold text-[#a38c29] hover:text-[#8a7522] uppercase tracking-wider transition-colors">View All</a>
             </div>
             <div class="divide-y divide-slate-100 max-h-[350px] overflow-y-auto">
-                @forelse($approvalRequests as $req)
+                @forelse($recentBookings as $booking)
                     @php
-                        $pColor = match($req->priority ?? 'low') {
-                            'critical','high' => ['bg'=>'bg-rose-50','text'=>'text-rose-600','border'=>'border-rose-200'],
-                            'medium'          => ['bg'=>'bg-amber-50','text'=>'text-amber-600','border'=>'border-amber-200'],
-                            default           => ['bg'=>'bg-blue-50','text'=>'text-blue-600','border'=>'border-blue-200'],
+                        $bColor = match($booking->status) {
+                            'pending'  => ['bg'=>'bg-amber-50','text'=>'text-amber-600','border'=>'border-amber-200'],
+                            'approved' => ['bg'=>'bg-emerald-50','text'=>'text-emerald-600','border'=>'border-emerald-200'],
+                            'rejected','cancelled' => ['bg'=>'bg-rose-50','text'=>'text-rose-600','border'=>'border-rose-200'],
+                            default    => ['bg'=>'bg-slate-50','text'=>'text-slate-600','border'=>'border-slate-200'],
                         };
                     @endphp
                     <div class="px-6 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                        <div class="w-2 h-10 rounded-full {{ $pColor['bg'] }} border {{ $pColor['border'] }} flex-shrink-0"></div>
+                        <div class="w-2 h-10 rounded-full {{ $bColor['bg'] }} border {{ $bColor['border'] }} flex-shrink-0"></div>
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-0.5">
-                                <span class="text-[9px] font-bold uppercase tracking-widest {{ $pColor['text'] }}">{{ ucfirst($req->priority ?? 'Normal') }}</span>
-                                <span class="text-[10px] text-slate-400">{{ $req->type ?? 'Request' }}</span>
+                                <span class="text-[9px] font-bold uppercase tracking-widest {{ $bColor['text'] }}">{{ ucfirst($booking->status) }}</span>
+                                <span class="text-[10px] text-slate-400">Unit: {{ $booking->unit->door_no ?? 'N/A' }}</span>
                             </div>
-                            <div class="text-xs font-semibold text-slate-900 truncate">{{ $req->title ?? 'Approval Required' }}</div>
-                            <div class="text-[10px] text-slate-400 mt-0.5">{{ $req->created_at->diffForHumans() }}</div>
+                            <div class="text-xs font-semibold text-slate-900 truncate">Customer: {{ $booking->customer->name ?? 'Unknown' }}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">{{ $booking->created_at->diffForHumans() }}</div>
                         </div>
-                        <a href="{{ route('approvals.index') }}" class="flex-shrink-0 w-7 h-7 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-lg flex items-center justify-center transition-colors">
-                            <svg style="width:13px;height:13px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                        </a>
+                        <div class="text-right flex-shrink-0">
+                            <div class="text-xs font-bold text-slate-900">{!! $currencySymbol !!}{{ number_format($booking->amount ?? 0) }}</div>
+                            <div class="text-[10px] text-slate-400">Booking Value</div>
+                        </div>
                     </div>
                 @empty
                     <div class="px-6 py-10 text-center">
-                        <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-                            <svg style="width:24px;height:24px" class="text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <svg style="width:24px;height:24px" class="text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <p class="text-xs font-semibold text-slate-700">All Caught Up!</p>
-                        <p class="text-[11px] text-slate-400 mt-1">No pending approvals at the moment.</p>
+                        <p class="text-xs font-semibold text-slate-700">No Bookings Yet</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Bookings will appear here once created.</p>
                     </div>
                 @endforelse
             </div>
         </div>
 
-        {{-- Recent Activity Timeline --}}
+        {{-- Recent Unit Activity Timeline --}}
         <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
             <div class="mb-5">
-                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Recent Activity</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Latest system events & actions</p>
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Unit Activity</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Latest status updates across units</p>
             </div>
             <div class="relative">
                 <div class="absolute left-[11px] top-2 bottom-2 w-px bg-slate-200"></div>
                 <div class="space-y-5">
-                    @forelse($activityLogs as $log)
+                    @forelse($inventoryActivity as $unitEvent)
                         @php
-                            $dotColors = ['indigo'=>'border-primary-500 bg-primary-100','green'=>'border-emerald-500 bg-emerald-100','blue'=>'border-blue-500 bg-blue-100','amber'=>'border-amber-500 bg-amber-100','purple'=>'border-primary-500 bg-primary-100','rose'=>'border-rose-500 bg-rose-100'];
-                            $dot = $dotColors[$log->color_code ?? 'indigo'] ?? 'border-primary-500 bg-primary-100';
+                            $dot = match($unitEvent->status) {
+                                'sold' => 'border-emerald-500 bg-emerald-100',
+                                'booked' => 'border-[#a38c29] bg-[#a38c29]/20',
+                                'blocked' => 'border-rose-500 bg-rose-100',
+                                default => 'border-blue-500 bg-blue-100',
+                            };
                         @endphp
                         <div class="flex gap-4 pl-1">
                             <div class="relative z-10 mt-1 flex-shrink-0">
@@ -512,15 +448,14 @@
                                 </div>
                             </div>
                             <div class="flex-1 pb-2 min-w-0">
-                                <div class="text-xs font-semibold text-slate-900 leading-snug">{{ $log->description }}</div>
+                                <div class="text-xs font-semibold text-slate-900 leading-snug">Unit {{ $unitEvent->door_no }} is now {{ ucfirst($unitEvent->status) }}</div>
                                 <div class="text-[10px] text-slate-400 mt-1">
-                                    {{ $log->created_at->diffForHumans() }}
-                                    @if($log->user_name ?? false) &bull; <span class="text-slate-500">{{ $log->user_name }}</span> @endif
+                                    {{ $unitEvent->updated_at->diffForHumans() }} &bull; <span class="text-slate-500">Floor: {{ $unitEvent->floor->name ?? 'N/A' }}</span>
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <p class="text-xs text-slate-400 text-center py-6 italic">No recent activity recorded.</p>
+                        <p class="text-xs text-slate-400 text-center py-6 italic">No recent unit activity recorded.</p>
                     @endforelse
                 </div>
             </div>

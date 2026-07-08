@@ -52,17 +52,32 @@ class UnitController extends Controller
             }
 
             if ($request->filled('status')) {
-                $query->where('status', $request->status);
+                if ($request->status === 'recently_added') {
+                    // Do not filter by status, just sort later
+                } else {
+                    $query->where('status', $request->status);
+                }
             }
 
             if ($request->filled('unit_type_id')) {
                 $query->where('unit_type_id', $request->unit_type_id);
             }
 
-            $units = $query->orderBy('door_no')->get();
+            if ($request->filled('status') && $request->status === 'recently_added') {
+                $query->latest();
+            } else {
+                $query->orderBy('door_no');
+            }
+
+            $units = $query->paginate(10);
 
             return response()->json([
-                'units' => $units,
+                'units' => $units->items(),
+                'pagination' => [
+                    'current_page' => $units->currentPage(),
+                    'last_page' => $units->lastPage(),
+                    'total' => $units->total(),
+                ]
             ]);
         }
 

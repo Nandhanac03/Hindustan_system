@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 
@@ -69,8 +70,16 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/partners', [\App\Http\Controllers\PartnerController::class, 'index'])->name('partners.index');
     Route::post('/partners', [\App\Http\Controllers\PartnerController::class, 'storePartner'])->name('partners.store');
     Route::get('/partners/shares/{project}', [\App\Http\Controllers\PartnerController::class, 'shares'])->name('partners.shares');
-    Route::post('/partners/shares/{project}', [\App\Http\Controllers\PartnerController::class, 'updateShares'])->name('partners.shares.update');
+    Route::post('/partners/shares/{project}', [\App\Http\Controllers\PartnerController::class, 'updateShares'])->name('partners.shares.update');  
     Route::get('/partners/{partner}/statement', [\App\Http\Controllers\PartnerController::class, 'statement'])->name('partners.statement');
+
+    // Customers
+    Route::get('/customers', [\App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');
+    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
+    Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+    Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
 });
 
 require __DIR__ . '/auth.php';
