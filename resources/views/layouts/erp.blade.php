@@ -229,7 +229,7 @@
             </div> -->
 
             <!-- 9. Petty Cash & Loans Dropdown -->
-            <!-- <div x-data="{ openPetty: false }" class="space-y-1">
+            <div x-data="{ openPetty: false }" class="space-y-1">
                 <button @click="openPetty = !openPetty" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
                     <div class="flex items-center gap-3">
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,11 +251,11 @@
                     <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                         Replenishments
                     </a>
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        Bank Loan Master
+                    <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                        Bank Loan Repayment
                     </a>
                 </div>
-            </div> -->
+            </div>
 
             <!-- 10. Voucher & Ledger Dropdown -->
             <!-- <div x-data="{ openVoucher: false }" class="space-y-1">

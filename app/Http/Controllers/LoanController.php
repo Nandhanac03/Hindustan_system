@@ -1,0 +1,372 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Controllers;
+
+use App\Models\Loan;
+use App\Models\EmiSchedule;
+use App\Models\LoanPrepayment;
+use App\Models\Project;
+use App\Models\Account;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
+class LoanController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $projects = Project::orderBy('name')->get();
+        
+        $query = Loan::with(['project', 'ledgerAccount', 'interestAccount', 'prepayments']);
+        
+        // Filters
+        if ($request->filled('lender_name')) {
+            $query->where('lender_name', 'like', '%' . $request->lender_name . '%');
+        }
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        
+        $loans = $query->latest()->paginate(10);
+        
+        // Calculate dynamic sums for the table row listings
+        foreach ($loans as $loan) {
+            $paidSchedules = EmiSchedule::where('loan_id', $loan->id)->where('status', 'Paid')->get();
+            $loan->paid_principal_to_date = $paidSchedules->sum('principal_component');
+            $loan->cumulative_interest_paid = $paidSchedules->sum('interest_component');
+        }
+        
+        $accounts = Account::orderBy('name')->get();
+
+        return view('loans.index', compact('loans', 'projects', 'accounts'));
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'project_id' => ['required', 'exists:projects,id'],
+            'loan_account_no' => ['required', 'string', 'max:50'],
+            'lender_name' => ['required', 'string', 'max:255'],
+            'principal_amount' => ['required', 'numeric', 'min:1'],
+            'interest_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'tenure_months' => ['required', 'integer', 'min:1', 'max:600'],
+            'start_date' => ['required', 'date'],
+            'schedule_type' => ['required', 'in:reducing_balance,flat'],
+            'ledger_account_id' => ['required', 'exists:accounts,id'],
+            'interest_account_id' => ['required', 'exists:accounts,id'],
+        ]);
+
+        $loan = null;
+
+        DB::transaction(function () use ($validated, &$loan) {
+            $principal = (float)$validated['principal_amount'];
+            $rate = (float)$validated['interest_rate'];
+            $tenure = (int)$validated['tenure_months'];
+            $scheduleType = $validated['schedule_type'];
+            $startDate = \Carbon\Carbon::parse($validated['start_date']);
+            
+            $r = $rate / 12 / 100;
+            $emi = 0.0;
+
+            if ($scheduleType === 'reducing_balance') {
+                if ($r > 0) {
+                    $emi = $principal * ($r * pow(1 + $r, $tenure)) / (pow(1 + $r, $tenure) - 1);
+                } else {
+                    $emi = $principal / $tenure;
+                }
+            } else {
+                // Flat Rate
+                $emi = ($principal / $tenure) + ($principal * $r);
+            }
+
+            $validated['outstanding_balance'] = $principal;
+            $validated['system_id'] = Auth::user()->system_id ?? 1;
+            $validated['status'] = 'Active';
+
+            $loan = Loan::create($validated);
+
+            // Generate Repayment Schedule
+            $tempPrincipal = $principal;
+            for ($i = 1; $i <= $tenure; $i++) {
+                $dueDate = $startDate->copy()->addMonths($i);
+
+                if ($scheduleType === 'reducing_balance') {
+                    $interestComp = $tempPrincipal * $r;
+                    $principalComp = $emi - $interestComp;
+
+                    if ($i === $tenure) {
+                        $principalComp = $tempPrincipal;
+                        $emi = $principalComp + $interestComp;
+                    }
+                    $tempPrincipal -= $principalComp;
+                } else {
+                    // Flat Rate
+                    $principalComp = $principal / $tenure;
+                    $interestComp = $principal * $r;
+                }
+
+                EmiSchedule::create([
+                    'system_id' => $loan->system_id,
+                    'loan_id' => $loan->id,
+                    'installment_no' => $i,
+                    'due_date' => $dueDate,
+                    'emi_amount' => $emi,
+                    'principal_component' => $principalComp,
+                    'interest_component' => $interestComp,
+                    'amount_paid' => 0.00,
+                    'status' => 'Due',
+                ]);
+            }
+        });
+
+        return response()->json(['success' => true, 'loan' => $loan]);
+    }
+
+    public function showSchedule(Loan $loan): View
+    {
+        $loan->load(['project', 'ledgerAccount', 'interestAccount', 'emiSchedules', 'prepayments']);
+        return view('loans.schedule', compact('loan'));
+    }
+
+    public function payEmi(Request $request, Loan $loan, EmiSchedule $installment): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'paid_date' => ['required', 'date'],
+        ]);
+
+        $amount = (float)$validated['amount'];
+        $paidDate = $validated['paid_date'];
+
+        if ($installment->loan_id !== $loan->id) {
+            return response()->json(['error' => 'Invalid installment for this loan.'], 400);
+        }
+
+        DB::transaction(function () use ($loan, $installment, $amount, $paidDate) {
+            $prevPaid = (float)$installment->amount_paid;
+            $newPaid = $prevPaid + $amount;
+
+            $installment->amount_paid = $newPaid;
+            $installment->paid_date = $paidDate;
+
+            if ($newPaid >= $installment->emi_amount) {
+                $installment->status = 'Paid';
+                // Subtract principal component from loan outstanding balance
+                if ($installment->getOriginal('status') !== 'Paid') {
+                    $loan->decrement('outstanding_balance', $installment->principal_component);
+                }
+            } else {
+                $installment->status = 'Due';
+            }
+
+            $installment->save();
+
+            // Check if loan is fully repaid and mark status as Closed
+            $loan->refresh();
+            if ((float)$loan->outstanding_balance <= 0.01) {
+                $loan->update(['status' => 'Closed']);
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
+
+    public function prepay(Request $request, Loan $loan): JsonResponse
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:1'],
+            'prepayment_date' => ['required', 'date'],
+            'reschedule_option' => ['required', 'in:reduce_emi,reduce_tenure'],
+        ]);
+
+        $amount = (float)$validated['amount'];
+        $rescheduleOption = $validated['reschedule_option'];
+
+        if ($amount > $loan->outstanding_balance) {
+            return response()->json(['error' => 'Prepayment amount exceeds outstanding balance.'], 422);
+        }
+
+        DB::transaction(function () use ($loan, $amount, $rescheduleOption, $validated) {
+            $prevOutstanding = (float)$loan->outstanding_balance;
+            $loan->decrement('outstanding_balance', $amount);
+            $newOutstanding = (float)$loan->outstanding_balance;
+
+            // Log the Prepayment/Reschedule
+            LoanPrepayment::create([
+                'loan_id' => $loan->id,
+                'prepayment_amount' => $amount,
+                'prepayment_date' => $validated['prepayment_date'],
+                'reschedule_option' => $rescheduleOption,
+                'previous_outstanding' => $prevOutstanding,
+                'new_outstanding' => $newOutstanding,
+            ]);
+
+            $unpaidInstallments = $loan->emiSchedules()->where('status', '!=', 'Paid')->get();
+
+            if ($unpaidInstallments->isEmpty()) {
+                if ($newOutstanding <= 0.01) {
+                    $loan->update(['status' => 'Closed']);
+                }
+                return;
+            }
+
+            $remainingPrincipal = $newOutstanding;
+            $rate = (float)$loan->interest_rate;
+            $r = $rate / 12 / 100;
+            $k = $unpaidInstallments->count();
+            $isReducing = $loan->schedule_type === 'reducing_balance';
+
+            if ($rescheduleOption === 'reduce_emi') {
+                if ($isReducing) {
+                    if ($r > 0) {
+                        $newEmi = $remainingPrincipal * ($r * pow(1 + $r, $k)) / (pow(1 + $r, $k) - 1);
+                    } else {
+                        $newEmi = $remainingPrincipal / $k;
+                    }
+
+                    $tempPrincipal = $remainingPrincipal;
+                    foreach ($unpaidInstallments as $idx => $inst) {
+                        $interestComp = $tempPrincipal * $r;
+                        $principalComp = $newEmi - $interestComp;
+
+                        if ($idx === $k - 1) {
+                            $principalComp = $tempPrincipal;
+                            $newEmi = $principalComp + $interestComp;
+                        }
+
+                        $inst->update([
+                            'emi_amount' => $newEmi,
+                            'principal_component' => $principalComp,
+                            'interest_component' => $interestComp,
+                        ]);
+
+                        $tempPrincipal -= $principalComp;
+                    }
+                } else {
+                    // Flat Rate
+                    $newPrincipalComp = $remainingPrincipal / $k;
+                    $newInterestComp = $remainingPrincipal * $r;
+                    $newEmi = $newPrincipalComp + $newInterestComp;
+
+                    foreach ($unpaidInstallments as $inst) {
+                        $inst->update([
+                            'emi_amount' => $newEmi,
+                            'principal_component' => $newPrincipalComp,
+                            'interest_component' => $newInterestComp,
+                        ]);
+                    }
+                }
+            } else {
+                // Reduce Tenure
+                $tempPrincipal = $remainingPrincipal;
+                foreach ($unpaidInstallments as $inst) {
+                    if ($tempPrincipal <= 0) {
+                        $inst->delete();
+                        continue;
+                    }
+
+                    if ($isReducing) {
+                        $interestComp = $tempPrincipal * $r;
+                        $constantEmi = (float)$inst->emi_amount;
+                        $principalComp = $constantEmi - $interestComp;
+
+                        if ($tempPrincipal <= $principalComp) {
+                            $principalComp = $tempPrincipal;
+                            $emi = $principalComp + $interestComp;
+                            $tempPrincipal = 0;
+                        } else {
+                            $emi = $constantEmi;
+                            $tempPrincipal -= $principalComp;
+                        }
+                    } else {
+                        // Flat rate
+                        $principalComp = (float)$inst->principal_component;
+                        $interestComp = (float)$inst->interest_component;
+                        $emi = $principalComp + $interestComp;
+
+                        if ($tempPrincipal <= $principalComp) {
+                            $principalComp = $tempPrincipal;
+                            $emi = $principalComp + $interestComp;
+                            $tempPrincipal = 0;
+                        } else {
+                            $tempPrincipal -= $principalComp;
+                        }
+                    }
+
+                    $inst->update([
+                        'emi_amount' => $emi,
+                        'principal_component' => $principalComp,
+                        'interest_component' => $interestComp,
+                    ]);
+                }
+            }
+
+            if ($newOutstanding <= 0.01) {
+                $loan->update(['status' => 'Closed']);
+            }
+        });
+
+        return response()->json(['success' => true]);
+    }
+
+    public function reports(Request $request): View
+    {
+        $projects = Project::orderBy('name')->get();
+        $selectedProjectId = $request->project_id;
+
+        $loansQuery = Loan::with('project');
+        if ($selectedProjectId) {
+            $loansQuery->where('project_id', $selectedProjectId);
+        }
+        $loans = $loansQuery->get();
+
+        // Metrics calculations
+        $totalOutstanding = 0.0;
+        $totalPaidPrincipal = 0.0;
+        $totalInterestPaid = 0.0;
+        $totalLoansAmount = 0.0;
+
+        foreach ($loans as $loan) {
+            $totalLoansAmount += (float)$loan->principal_amount;
+            $totalOutstanding += (float)$loan->outstanding_balance;
+            
+            $paidSchedules = EmiSchedule::where('loan_id', $loan->id)->where('status', 'Paid')->get();
+            $totalPaidPrincipal += $paidSchedules->sum('principal_component');
+            $totalInterestPaid += $paidSchedules->sum('interest_component');
+        }
+
+        // EMIs due today and this month
+        $today = \Carbon\Carbon::today()->toDateString();
+        $startOfMonth = \Carbon\Carbon::now()->startOfMonth()->toDateString();
+        $endOfMonth = \Carbon\Carbon::now()->endOfMonth()->toDateString();
+
+        $emiDueQuery = EmiSchedule::with('loan.project')->where('status', '!=', 'Paid');
+        if ($selectedProjectId) {
+            $emiDueQuery->whereHas('loan', function ($q) use ($selectedProjectId) {
+                $q->where('project_id', $selectedProjectId);
+            });
+        }
+
+        $emiDueToday = (clone $emiDueQuery)->where('due_date', $today)->get();
+        $emiDueThisMonth = (clone $emiDueQuery)->whereBetween('due_date', [$startOfMonth, $endOfMonth])->get();
+
+        return view('loans.reports', compact(
+            'projects',
+            'selectedProjectId',
+            'loans',
+            'totalLoansAmount',
+            'totalOutstanding',
+            'totalPaidPrincipal',
+            'totalInterestPaid',
+            'emiDueToday',
+            'emiDueThisMonth'
+        ));
+    }
+}

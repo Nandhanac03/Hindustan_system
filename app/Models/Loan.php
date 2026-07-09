@@ -1,17 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasSystemScope;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Loan extends Model
 {
-    use HasFactory;
+    use HasSystemScope;
+
+    protected $table = 'loans';
 
     protected $fillable = [
         'system_id',
         'project_id',
+        'loan_account_no',
         'lender_name',
         'principal_amount',
         'interest_rate',
@@ -21,23 +28,50 @@ class Loan extends Model
         'outstanding_balance',
         'ledger_account_id',
         'interest_account_id',
+        'status',
     ];
 
     protected $casts = [
-        'start_date' => 'date',
         'principal_amount' => 'decimal:2',
         'interest_rate' => 'decimal:2',
+        'tenure_months' => 'integer',
+        'start_date' => 'date',
         'outstanding_balance' => 'decimal:2',
     ];
 
-    public function project()
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            if (auth()->check()) {
+                $model->system_id = auth()->user()->system_id;
+            }
+        });
+    }
+
+    public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    public function emiSchedules()
+    public function ledgerAccount(): BelongsTo
     {
-        return $this->hasMany(EmiSchedule::class);
+        return $this->belongsTo(Account::class, 'ledger_account_id');
+    }
+
+    public function interestAccount(): BelongsTo
+    {
+        return $this->belongsTo(Account::class, 'interest_account_id');
+    }
+
+    public function emiSchedules(): HasMany
+    {
+        return $this->hasMany(EmiSchedule::class, 'loan_id')->orderBy('installment_no');
+    }
+
+    public function prepayments(): HasMany
+    {
+        return $this->hasMany(LoanPrepayment::class, 'loan_id')->latest();
     }
 
     public function getBaseEmiAttribute(): float

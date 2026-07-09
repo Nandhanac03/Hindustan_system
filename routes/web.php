@@ -143,6 +143,14 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::put('/sales/{sale}', [SalesController::class, 'update'])->name('sales.update');
     Route::post('/sales/{sale}/status', [SalesController::class, 'changeStatus'])->name('sales.status');
     Route::post('/sales/{sale}/receipts', [SalesController::class, 'addReceipt'])->name('sales.receipts.store');
+
+    // Bank Loans Repayment Schedule Management
+    Route::get('/loans', [\App\Http\Controllers\LoanController::class, 'index'])->name('loans.index');
+    Route::post('/loans', [\App\Http\Controllers\LoanController::class, 'store'])->name('loans.store');
+    Route::get('/loans/reports', [\App\Http\Controllers\LoanController::class, 'reports'])->name('loans.reports');
+    Route::get('/loans/{loan}/schedule', [\App\Http\Controllers\LoanController::class, 'showSchedule'])->name('loans.schedule');
+    Route::post('/loans/{loan}/pay-emi/{installment}', [\App\Http\Controllers\LoanController::class, 'payEmi'])->name('loans.pay-emi');
+    Route::post('/loans/{loan}/prepay', [\App\Http\Controllers\LoanController::class, 'prepay'])->name('loans.prepay');
 });
 
 require __DIR__ . '/auth.php';
