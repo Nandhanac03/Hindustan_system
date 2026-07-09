@@ -23,6 +23,7 @@ class ProjectController extends Controller
 {
     public function index(): View
     {
+        $user = Auth::user();
         // SystemScope auto-scopes by logged-in user unless Owner
         $projects = Project::withCount('units')->paginate(12);
 
@@ -33,24 +34,27 @@ class ProjectController extends Controller
                 ->count();
         }
 
-        return view('projects.index', compact('projects'));
+        // Fetch systems if user has permission to manage projects
+        $systems = collect();
+        if ($user->hasPermissionTo('projects.manage')) {
+            if ($user->hasMultiSystemAccess()) {
+                $systems = System::where('is_active', true)->get();
+            } else {
+                $systems = System::where('id', $user->system_id)->get();
+            }
+        }
+
+        return view('projects.index', compact('projects', 'systems'));
     }
 
-    public function create(): View
+    public function create(): RedirectResponse
     {
         $user = Auth::user();
         if (!$user->hasPermissionTo('projects.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Owners can choose any system, others are locked to their own
-        if ($user->hasMultiSystemAccess()) {
-            $systems = System::where('is_active', true)->get();
-        } else {
-            $systems = System::where('id', $user->system_id)->get();
-        }
-
-        return view('projects.create', compact('systems'));
+        return redirect()->route('projects.index', ['open_create' => 1]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -66,7 +70,6 @@ class ProjectController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'state_or_emirate' => ['required', 'string', 'max:100'],
             'country' => ['required', 'string', 'max:100'],
-            'rera_number' => ['nullable', 'string', 'max:100'],
             'total_floors' => ['required', 'integer', 'min:1'],
             'start_date' => ['nullable', 'date'],
             'expected_completion_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -276,5 +279,37 @@ public function update(Request $request, Project $project): RedirectResponse
 
         return redirect()->route('project.show', $project->id)
             ->with('status', 'Floors and units generated successfully.');
+    }
+
+    public function destroy(Project $project): RedirectResponse
+    {
+        $user = Auth::user();
+        if (!$user->hasPermissionTo('projects.manage')) {
+            abort(403);
+        }
+
+        // Delete project image if exists
+        if (!empty($project->image_url) && Storage::disk('public')->exists($project->image_url)) {
+            Storage::disk('public')->delete($project->image_url);
+        }
+
+        // Delete floors and units related to the project in a transaction
+        DB::transaction(function () use ($project) {
+            $unitIds = $project->units()->pluck('id');
+            UnitStatusLog::whereIn('unit_id', $unitIds)->delete();
+            UnitRateLog::whereIn('unit_id', $unitIds)->delete();
+
+            // Delete units
+            $project->units()->delete();
+
+            // Delete floors
+            $project->floors()->delete();
+
+            // Delete the project
+            $project->delete();
+        });
+
+        return redirect()->route('projects.index')
+            ->with('status', 'Project deleted successfully.');
     }
 }
