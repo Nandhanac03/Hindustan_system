@@ -195,7 +195,7 @@ public function update(Request $request, Project $project): RedirectResponse
             'units_per_floor' => ['required', 'integer', 'min:1'],
             'unit_type_id' => ['required', 'exists:unit_types,id'],
             'unit_prefix' => ['nullable', 'string', 'max:10'],
-            'bua_area' => ['required', 'numeric', 'min:0.01'],
+            'bua_area' => ['nullable', 'numeric', 'min:0'],
             'carpet_area' => ['nullable', 'numeric', 'min:0'],
             'base_rate' => ['required', 'numeric', 'min:0'],
             'facing' => ['nullable', 'string', 'max:50'],
@@ -205,8 +205,11 @@ public function update(Request $request, Project $project): RedirectResponse
         $end = (int)$request->end_floor;
         $unitsPerFloor = (int)$request->units_per_floor;
         $prefix = $request->unit_prefix ?? '';
+        $buaArea = $request->filled('bua_area') ? (float)$request->bua_area : null;
+        $carpetArea = $request->filled('carpet_area') ? (float)$request->carpet_area : null;
+        $baseRate = (float)($request->base_rate ?? 0);
 
-        DB::transaction(function () use ($project, $request, $start, $end, $unitsPerFloor, $prefix) {
+        DB::transaction(function () use ($project, $request, $start, $end, $unitsPerFloor, $prefix, $buaArea, $carpetArea, $baseRate) {
             for ($f = $start; $f <= $end; $f++) {
                 // Determine floor name
                 if ($f < 0) {
@@ -233,8 +236,10 @@ public function update(Request $request, Project $project): RedirectResponse
                     $floorStr = $f < 0 ? 'B' . abs($f) : (string)$f;
                     $unitNumber = $prefix . $floorStr . sprintf('%02d', $u);
 
-                    // Check unique constraint to avoid duplicates
+                    // Check unique constraint per project + floor + unit type
                     $exists = Unit::where('project_id', $project->id)
+                        ->where('floor_id', $floor->id)
+                        ->where('unit_type_id', $request->unit_type_id)
                         ->where('door_no', $unitNumber)
                         ->exists();
 
@@ -242,16 +247,16 @@ public function update(Request $request, Project $project): RedirectResponse
                         continue;
                     }
 
-                    $expectedSaleAmount = (float)$request->bua_area * (float)$request->base_rate;
+                    $expectedSaleAmount = $buaArea !== null ? ($buaArea * $baseRate) : null;
 
                     $unit = Unit::create([
                         'project_id' => $project->id,
                         'floor_id' => $floor->id,
                         'unit_type_id' => $request->unit_type_id,
                         'door_no' => $unitNumber,
-                        'built_up_area' => $request->bua_area,
-                        'carpet_area' => $request->carpet_area,
-                        'expected_rate_per_sqft' => $request->base_rate,
+                        'built_up_area' => $buaArea,
+                        'carpet_area' => $carpetArea,
+                        'expected_rate_per_sqft' => $baseRate,
                         'expected_sale_amount' => $expectedSaleAmount,
                         'status' => 'available',
                     ]);

@@ -219,45 +219,7 @@
                         <th class="px-3 py-3 border text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
-                    <template x-for="unit in units" :key="unit.id">
-                        <tr class="table-row transition-colors cursor-pointer text-center text-xs font-semibold text-slate-700" @click="openEditModal(unit.id)">
-                            <td class="px-3 py-3 border text-slate-600 font-bold" x-text="unit.floor.name"></td>
-                            <td class="px-3 py-3 border text-slate-600" x-text="unit.unit_type.name"></td>
-                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.door_no"></td>
-                            <td class="px-3 py-3 border" x-text="Number(unit.built_up_area).toLocaleString() + ' Sq Ft'"></td>
-                            <td class="px-3 py-3 border" x-text="unit.carpet_area != null ? Number(unit.carpet_area).toLocaleString() + ' Sq Ft' : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.expected_rate_per_sqft != null ? '₹' + Number(unit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-emerald-700" x-text="unit.expected_sale_amount != null ? '₹' + Number(unit.expected_sale_amount).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="unit.sale_rate_per_sqft != null ? '₹' + Number(unit.sale_rate_per_sqft).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-emerald-850" x-text="unit.sale_amount != null ? '₹' + Number(unit.sale_amount).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border font-bold text-rose-750" x-text="unit.difference != null ? '₹' + Number(unit.difference).toLocaleString() : 'N/A'"></td>
-                            <td class="px-3 py-3 border">
-                                <span class="badge-pill" :class="getStatusBadgeClass(unit.status)" x-text="unit.status"></span>
-                            </td>
-                            <td class="px-3 py-3 border text-right" @click.stop>
-                                <template x-if="permissions.manage">
-                                    <div class="inline-flex items-center justify-end gap-1.5">
-                                        <button @click="openViewModal(unit)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Unit Details">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
-                                        <button @click="openRateHistoryModal(unit)" class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] transition inline-flex items-center justify-center shadow-sm" title="View Rate Change History">
-                                            <svg class="w-4 h-4" style="color: rgb(67 56 212);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
-                                        </button>
-                                        <button @click="openEditModal(unit.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
-                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                        </button>
-                                        <button @click="confirmDelete(unit)" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" :disabled="unit.status !== 'available'" :class="unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : ''" title="Delete Unit">
-                                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        </button>
-                                    </div>
-                                </template>
-                            </td>
-                        </tr>
-                    </template>
-                    <tr x-show="units.length === 0">
-                        <td colspan="12" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td>
-                    </tr>
+                <tbody id="units-tbody" x-effect="renderUnitsTable()">
                 </tbody>
             </table>
         </div>
@@ -335,7 +297,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor</label>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor <span class="text-rose-500">*</span></label>
                             <select x-model="forms.add.floor_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                 <option value="">Select Floor...</option>
                                 @foreach($floors as $floor)
@@ -346,7 +308,7 @@
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type</label>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type <span class="text-rose-500">*</span></label>
                             <select x-model="forms.add.unit_type_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
                                 <option value="">Select Type...</option>
                                 @foreach($unitTypes as $type)
@@ -358,29 +320,45 @@
                     </div>
 
                     <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No (e.g. A-404)</label>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No (e.g. A-404) <span class="text-rose-500">*</span></label>
                         <input type="text" x-model="forms.add.door_no" placeholder="Enter door number..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
-                            <input type="number" step="0.01" x-model="forms.add.built_up_area" placeholder="e.g. 1200" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                            <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
+                    {{-- Area fields: hidden for Parking type --}}
+                    <template x-if="!isParking(forms.add.unit_type_id)">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
+                                <input type="number" step="0.01" x-model="forms.add.built_up_area" placeholder="e.g. 1200" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
+                                <input type="number" step="0.01" x-model="forms.add.carpet_area" placeholder="e.g. 1000" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
+                            </div>
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
-                            <input type="number" step="0.01" x-model="forms.add.carpet_area" placeholder="e.g. 1000" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                            <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
-                        </div>
-                    </div>
+                    </template>
 
-                    <div class="space-y-1.5">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Rate per Sq Ft (₹)</label>
-                        <input type="number" step="0.01" x-model="forms.add.expected_rate_per_sqft" placeholder="e.g. 4500" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_rate_per_sqft[0]"></p></template>
-                    </div>
+                    {{-- Rate field: hidden for Parking; show direct Expected Sale instead --}}
+                    <template x-if="!isParking(forms.add.unit_type_id)">
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Rate per Sq Ft (₹) <span class="text-rose-500">*</span></label>
+                            <input type="number" step="0.01" x-model="forms.add.expected_rate_per_sqft" placeholder="e.g. 4500" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                            <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_rate_per_sqft[0]"></p></template>
+                        </div>
+                    </template>
+
+                    {{-- Parking: direct Expected Sale field (no area, no rate) --}}
+                    <template x-if="isParking(forms.add.unit_type_id)">
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Sale Amount (₹) <span class="text-rose-500">*</span></label>
+                            <input type="number" step="0.01" x-model="forms.add.expected_sale_amount" placeholder="e.g. 300000" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                            <p class="text-[10px] text-slate-400 italic">Auto-calculation not applicable for Parking.</p>
+                            <template x-if="errors.expected_sale_amount"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_sale_amount[0]"></p></template>
+                        </div>
+                    </template>
                 </div>
                 <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
                     <button type="button" @click="closeAddModal()" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
@@ -464,29 +442,45 @@
                                     <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="space-y-1.5">
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
-                                        <input type="number" step="0.01" x-model="forms.edit.built_up_area"
-                                            class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                                        <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
+                                {{-- Area fields: hidden for Parking --}}
+                                <template x-if="!isParking(forms.edit.unit_type_id)">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="space-y-1.5">
+                                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
+                                            <input type="number" step="0.01" x-model="forms.edit.built_up_area"
+                                                class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                            <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
+                                            <input type="number" step="0.01" x-model="forms.edit.carpet_area"
+                                                class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                            <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
+                                        </div>
                                     </div>
+                                </template>
+
+                                {{-- Parking: editable Expected Sale Amount --}}
+                                <template x-if="isParking(forms.edit.unit_type_id)">
                                     <div class="space-y-1.5">
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
-                                        <input type="number" step="0.01" x-model="forms.edit.carpet_area"
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Sale Amount (₹) <span class="text-rose-500">*</span></label>
+                                        <input type="number" step="0.01" x-model="forms.edit.expected_sale_amount"
                                             class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                                        <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
+                                        <p class="text-[10px] text-slate-400 italic">Auto-calculation not applicable for Parking.</p>
+                                        <template x-if="errors.expected_sale_amount"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_sale_amount[0]"></p></template>
                                     </div>
-                                </div>
+                                </template>
 
                                 {{-- Pricing Summary Card --}}
                                 <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
                                     <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Pricing Summary</p>
                                     <div class="grid grid-cols-2 gap-3 text-xs">
-                                        <div>
-                                            <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Expected Rate</span>
-                                            <strong class="text-slate-800 text-xs" x-text="activeUnit.expected_rate_per_sqft ? '₹' + Number(activeUnit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></strong>
-                                        </div>
+                                        <template x-if="!isParking(forms.edit.unit_type_id)">
+                                            <div>
+                                                <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Expected Rate</span>
+                                                <strong class="text-slate-800 text-xs" x-text="activeUnit.expected_rate_per_sqft ? '₹' + Number(activeUnit.expected_rate_per_sqft).toLocaleString() : 'N/A'"></strong>
+                                            </div>
+                                        </template>
                                         <div>
                                             <span class="text-[9px] text-slate-400 uppercase tracking-wider block">Expected Sale</span>
                                             <strong class="text-emerald-700 text-xs" x-text="activeUnit.expected_sale_amount ? '₹' + Number(activeUnit.expected_sale_amount).toLocaleString() : 'N/A'"></strong>
@@ -1210,6 +1204,7 @@ function unitsApp() {
     return {
         // App states
         projectId: {{ $project->id }},
+        unitTypeMap: {!! json_encode($unitTypes->pluck('name','id')) !!},
         editProjectModal: false,
         imagePreview: null,
         units: [],
@@ -1248,14 +1243,16 @@ function unitsApp() {
                 door_no: '',
                 built_up_area: '',
                 carpet_area: '',
-                expected_rate_per_sqft: ''
+                expected_rate_per_sqft: '',
+                expected_sale_amount: ''
             },
             edit: {
                 floor_id: '',
                 unit_type_id: '',
                 door_no: '',
                 built_up_area: '',
-                carpet_area: ''
+                carpet_area: '',
+                expected_sale_amount: ''
             },
             bulk: {
                 floor_id: '',
@@ -1295,6 +1292,7 @@ function unitsApp() {
         fetchUnits(page = 1) {
             let params = new URLSearchParams();
             params.append('page', page);
+            if (this.projectId) params.append('project_id', this.projectId);
             if (this.filters.search) params.append('search', this.filters.search);
             if (this.filters.floor_id) params.append('floor_id', this.filters.floor_id);
             if (this.filters.unit_type_id) params.append('unit_type_id', this.filters.unit_type_id);
@@ -1350,12 +1348,126 @@ function unitsApp() {
             return rangeWithDots;
         },
 
+        // Returns true when the selected unit_type_id maps to "Parking"
+        isParking(typeId) {
+            return typeId && (this.unitTypeMap[typeId] || '').toLowerCase() === 'parking';
+        },
+
         resetFilters() {
             this.filters.search = '';
             this.filters.floor_id = '';
             this.filters.unit_type_id = '';
             this.filters.status = '';
             this.fetchUnits();
+        },
+
+        // Group units by floor for rowspan rendering
+        groupedUnits() {
+            let groups = [];
+            let currentFloorId = null;
+            let currentGroup = null;
+            for (let unit of this.units) {
+                let floorId = unit.floor ? unit.floor.id : null;
+                if (floorId !== currentFloorId) {
+                    currentFloorId = floorId;
+                    currentGroup = {
+                        floor_id: floorId,
+                        floor_name: unit.floor ? unit.floor.name : 'Unknown Floor',
+                        units: []
+                    };
+                    groups.push(currentGroup);
+                }
+                currentGroup.units.push(unit);
+            }
+            return groups;
+        },
+
+        // Render units table with rowspan floor grouping via direct DOM injection
+        renderUnitsTable() {
+            const tbody = document.getElementById('units-tbody');
+            if (!tbody) return;
+
+            if (this.units.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td></tr>`;
+                return;
+            }
+
+            const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString() : 'N/A';
+            const fmtMoney = (v) => v != null && v !== '' ? '₹' + Number(v).toLocaleString() : 'N/A';
+            const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString() + ' Sq Ft' : 'N/A';
+            const statusBadge = (s) => {
+                const cls = {
+                    'available': 'bg-emerald-50 text-emerald-700 border border-emerald-100',
+                    'blocked': 'bg-amber-50 text-amber-700 border border-amber-100',
+                    'booked': 'bg-indigo-50 text-indigo-700 border border-indigo-100',
+                    'sold': 'bg-rose-50 text-rose-700 border border-rose-100',
+                }[s] || 'bg-slate-50 text-slate-700 border border-slate-200';
+                return `<span class="badge-pill ${cls}">${s}</span>`;
+            };
+            const canManage = this.permissions.manage;
+            const actionsBtns = (unit) => {
+                if (!canManage) return '';
+                const disabledDel = unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : '';
+                return `<div class="inline-flex items-center justify-end gap-1.5">
+                    <button data-action="view" data-id="${unit.id}" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] transition inline-flex items-center justify-center shadow-sm" title="View Unit Details">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+                    <button data-action="rate-history" data-id="${unit.id}" class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] transition inline-flex items-center justify-center shadow-sm" title="View Rate History">
+                        <svg class="w-4 h-4" style="color:rgb(67 56 212)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </button>
+                    <button data-action="edit" data-id="${unit.id}" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
+                        <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                    </button>
+                    <button data-action="delete" data-id="${unit.id}" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 transition inline-flex items-center justify-center shadow-sm ${disabledDel}" title="Delete Unit" ${unit.status !== 'available' ? 'disabled' : ''}>
+                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                </div>`;
+            };
+
+            let html = '';
+            const groups = this.groupedUnits();
+            for (const group of groups) {
+                group.units.forEach((unit, ui) => {
+                    html += `<tr class="unit-table-row transition-colors cursor-pointer text-center text-xs font-semibold text-slate-700" data-unit-id="${unit.id}">`;
+                    if (ui === 0) {
+                        html += `<td rowspan="${group.units.length}" class="border text-slate-900 font-extrabold text-[11px] uppercase bg-[#a38c29]/10 select-none" style="writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);min-width:38px;padding:14px 8px;text-align:center;vertical-align:middle;letter-spacing:0.13em;">${group.floor_name}</td>`;
+                    }
+                    html += `
+                        <td class="px-3 py-3 border text-slate-600">${unit.unit_type ? unit.unit_type.name : ''}</td>
+                        <td class="px-3 py-3 border font-bold text-slate-900">${unit.door_no}</td>
+                        <td class="px-3 py-3 border">${fmtArea(unit.built_up_area)}</td>
+                        <td class="px-3 py-3 border">${fmtArea(unit.carpet_area)}</td>
+                        <td class="px-3 py-3 border font-bold text-slate-900">${fmtMoney(unit.expected_rate_per_sqft)}</td>
+                        <td class="px-3 py-3 border font-bold text-emerald-700">${fmtMoney(unit.expected_sale_amount)}</td>
+                        <td class="px-3 py-3 border font-bold text-slate-900">${fmtMoney(unit.sale_rate_per_sqft)}</td>
+                        <td class="px-3 py-3 border font-bold">${fmtMoney(unit.sale_amount)}</td>
+                        <td class="px-3 py-3 border font-bold">${fmtMoney(unit.difference)}</td>
+                        <td class="px-3 py-3 border">${statusBadge(unit.status)}</td>
+                        <td class="px-3 py-3 border text-right">${actionsBtns(unit)}</td>
+                    </tr>`;
+                });
+            }
+            tbody.innerHTML = html;
+
+            // Attach click handlers via delegation
+            const self = this;
+            tbody.querySelectorAll('[data-action]').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = parseInt(this.dataset.id);
+                    const unit = self.units.find(u => u.id === id);
+                    if (this.dataset.action === 'view') self.openViewModal(unit);
+                    else if (this.dataset.action === 'rate-history') self.openRateHistoryModal(unit);
+                    else if (this.dataset.action === 'edit') self.openEditModal(id);
+                    else if (this.dataset.action === 'delete') self.confirmDelete(unit);
+                });
+            });
+            tbody.querySelectorAll('.unit-table-row').forEach(row => {
+                const id = parseInt(row.dataset.unitId);
+                row.addEventListener('click', function() {
+                    self.openEditModal(id);
+                });
+            });
         },
 
         // Helper Status Colors
@@ -1500,7 +1612,8 @@ function unitsApp() {
                     unit_type_id: this.activeUnit.unit_type_id,
                     door_no: this.activeUnit.door_no,
                     built_up_area: this.activeUnit.built_up_area,
-                    carpet_area: this.activeUnit.carpet_area
+                    carpet_area: this.activeUnit.carpet_area,
+                    expected_sale_amount: this.activeUnit.expected_sale_amount
                 };
 
                 this.modals.edit.open = true;
@@ -1547,6 +1660,34 @@ function unitsApp() {
 
         // POST/AJAX Actions
         submitAddUnit() {
+            // Client-side required field validation
+            let clientErrors = {};
+            if (!this.forms.add.floor_id) {
+                clientErrors.floor_id = ['The floor field is required.'];
+            }
+            if (!this.forms.add.unit_type_id) {
+                clientErrors.unit_type_id = ['The unit type field is required.'];
+            }
+            if (!this.forms.add.door_no || !this.forms.add.door_no.trim()) {
+                clientErrors.door_no = ['The door number field is required.'];
+            }
+
+            const isParking = this.isParking(this.forms.add.unit_type_id);
+            if (isParking) {
+                if (!this.forms.add.expected_sale_amount && this.forms.add.expected_sale_amount !== 0) {
+                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
+                }
+            } else {
+                if (!this.forms.add.expected_rate_per_sqft && this.forms.add.expected_rate_per_sqft !== 0) {
+                    clientErrors.expected_rate_per_sqft = ['The expected rate per sq ft field is required.'];
+                }
+            }
+
+            if (Object.keys(clientErrors).length > 0) {
+                this.errors = clientErrors;
+                return;
+            }
+
             let payload = {
                 project_id: this.projectId,
                 ...this.forms.add
@@ -1570,7 +1711,7 @@ function unitsApp() {
                 } else {
                     this.showToast('Unit added successfully.');
                     this.closeAddModal();
-                    this.fetchUnits();
+                    this.resetFilters();
                 }
             })
             .catch(err => {
@@ -1580,6 +1721,30 @@ function unitsApp() {
         },
 
         submitEditUnit() {
+            // Client-side required field validation
+            let clientErrors = {};
+            if (!this.forms.edit.floor_id) {
+                clientErrors.floor_id = ['The floor field is required.'];
+            }
+            if (!this.forms.edit.unit_type_id) {
+                clientErrors.unit_type_id = ['The unit type field is required.'];
+            }
+            if (!this.forms.edit.door_no || !this.forms.edit.door_no.trim()) {
+                clientErrors.door_no = ['The door number field is required.'];
+            }
+
+            const isParking = this.isParking(this.forms.edit.unit_type_id);
+            if (isParking) {
+                if (!this.forms.edit.expected_sale_amount && this.forms.edit.expected_sale_amount !== 0) {
+                    clientErrors.expected_sale_amount = ['The expected sale amount field is required.'];
+                }
+            }
+
+            if (Object.keys(clientErrors).length > 0) {
+                this.errors = clientErrors;
+                return;
+            }
+
             fetch(`{{ url('units') }}/${this.activeUnit.id}`, {
                 method: 'PUT',
                 headers: {
@@ -1632,7 +1797,7 @@ function unitsApp() {
                 } else {
                     this.showToast(`Bulk created ${data.count} units successfully.`);
                     this.closeBulkModal();
-                    this.fetchUnits();
+                    this.resetFilters();
                 }
             })
             .catch(err => {
