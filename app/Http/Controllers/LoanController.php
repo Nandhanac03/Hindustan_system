@@ -20,6 +20,9 @@ class LoanController extends Controller
     public function index(Request $request): View
     {
         $projects = Project::orderBy('name')->get();
+        if (!$request->has('project_id') && !$request->filled('project_id') && $projects->isNotEmpty()) {
+            $request->merge(['project_id' => (string)$projects->first()->id]);
+        }
         
         $query = Loan::with(['project', 'ledgerAccount', 'interestAccount', 'prepayments']);
         

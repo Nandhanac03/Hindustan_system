@@ -18,7 +18,7 @@ class Brokerage extends Model
 
     public function broker()
     {
-        return $this->belongsTo(Partner::class, 'broker_id');
+        return $this->belongsTo(Broker::class, 'broker_id');
     }
 
     public function getBalanceDueAttribute(): float

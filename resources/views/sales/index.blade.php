@@ -580,7 +580,7 @@
 function salesApp() {
     return {
         sales: [],
-        filters: { search: '', project_id: '', status: '', date_from: '', date_to: '' },
+        filters: { search: '', project_id: '{{ request('project_id') }}', status: '', date_from: '', date_to: '' },
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
         availableUnits: { add: [], edit: [] },
         selectedUnit: { add: null, edit: null },
@@ -590,7 +590,7 @@ function salesApp() {
         quickCustomerErrors: {},
         forms: {
             add: {
-                project_id: '', unit_id: '', customer_id: '', broker_id: '',
+                project_id: '{{ request('project_id') }}', unit_id: '', customer_id: '', broker_id: '',
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
                 rate_per_sqft: '', sale_amount: '', gst_type: 'none',
                 gst_amount: 0, base_amount: '', total_amount: '',
@@ -791,7 +791,7 @@ function salesApp() {
             this.availableUnits.add = [];
             this.selectedUnit.add = null;
             this.forms.add = {
-                project_id: '', unit_id: '', customer_id: '', broker_id: '',
+                project_id: '{{ request('project_id') }}', unit_id: '', customer_id: '', broker_id: '',
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
                 rate_per_sqft: '', sale_amount: '', gst_type: 'none',
                 gst_amount: 0, base_amount: '', total_amount: '',
@@ -801,6 +801,9 @@ function salesApp() {
                 notes: ''
             };
             this.modals.add.open = true;
+            if (this.forms.add.project_id) {
+                this.loadUnitsForProject('add');
+            }
         },
         closeAddModal() { this.modals.add.open = false; },
 

@@ -228,34 +228,15 @@
                 </div>
             </div> -->
 
-            <!-- 9. Petty Cash & Loans Dropdown -->
-            <div x-data="{ openPetty: false }" class="space-y-1">
-                <button @click="openPetty = !openPetty" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
-                    <div class="flex items-center gap-3">
-                        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                        Petty Cash & Loans
-                    </div>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openPetty ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
-                <div x-show="openPetty" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        Daily Petty Cash
-                    </a>
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        Receipt Uploads
-                    </a>
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        Replenishments
-                    </a>
-                    <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        Bank Loan Repayment
-                    </a>
-                </div>
-            </div>
+            <!-- 9. Bank Loan Repayment -->
+            <a href="{{ route('loans.index') }}" 
+               class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors 
+               {{ Request::routeIs('loans.*') ? 'active text-white bg-slate-800/30' : 'text-slate-300' }}">
+                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Bank Loan Repayment
+            </a>
 
             <!-- 10. Voucher & Ledger Dropdown -->
             <!-- <div x-data="{ openVoucher: false }" class="space-y-1">
@@ -292,37 +273,97 @@
                 </div>
             </div> -->
 
-            <!-- 11. Reports & Dashboard Dropdown -->
-            <!-- <div x-data="{ openReports: false }" class="space-y-1">
+            <!-- 11. Reports Dropdown -->
+            <div x-data="{ openReports: {{ Request::routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-1">
                 <button @click="openReports = !openReports" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
                     <div class="flex items-center gap-3">
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/>
                         </svg>
-                        Reports & Dashboard
+                        Reports Center
                     </div>
                     <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openReports ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                     </svg>
                 </button>
                 <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                    <a href="{{ route('reports.index', ['report' => 'availability']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'availability' || !request('report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Availability Report
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'sales']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'sales' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Sales Report
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'emi_collections']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'emi_collections' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        EMI & Collections
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'customer_ledger']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'customer_ledger' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Customer Ledger/Stmt
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'cash_book']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'cash_book' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Consolidated Cash Book
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'bank_reports']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'bank_reports' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Bank Reports
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'partner_statements']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'partner_statements' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Partner Statements
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'supplier_contractor']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'supplier_contractor' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Supplier & Contractor
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'sales_return']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'sales_return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Sales Return Report
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'exchange_report']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'exchange_report' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Exchange Report
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'petty_cash']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'petty_cash' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Petty Cash Book
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'loan_schedules']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'loan_schedules' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Bank Loan EMI
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'trial_balance']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'trial_balance' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Trial Balance
                     </a>
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        Profit & Loss Account
+                    <a href="{{ route('reports.index', ['report' => 'profit_loss']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'profit_loss' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Profit & Loss
                     </a>
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
+                    <a href="{{ route('reports.index', ['report' => 'balance_sheet']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'balance_sheet' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Balance Sheet Summary
                     </a>
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        Cash Flow & Bank Book
-                    </a>
-                    <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
-                        MIS KPI Indicators
-                    </a>
                 </div>
-            </div> -->
+            </div>
 
             <!-- 12. Master Setup Dropdown (Moved to Bottom) -->
             <div x-data="{ openMaster: {{ Request::routeIs('bank.*') || Request::routeIs('projects.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('gst.*') ? 'true' : 'false' }} }" class="space-y-1 pt-3 mt-3 border-t border-slate-800/80">

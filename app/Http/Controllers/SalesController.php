@@ -20,6 +20,11 @@ class SalesController extends Controller
 {
     public function index(Request $request): View|JsonResponse
     {
+        $projectsList = Project::orderBy('name')->get();
+        if (!$request->has('project_id') && !$request->filled('project_id') && $projectsList->isNotEmpty()) {
+            $request->merge(['project_id' => (string)$projectsList->first()->id]);
+        }
+
         $query = Sale::with(['project', 'unit', 'customer', 'broker']);
 
         if ($request->filled('search')) {
