@@ -204,7 +204,7 @@ class SalesController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $sale = Sale::with(['project', 'unit', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage'])->findOrFail($id);
+        $sale = Sale::with(['project', 'unit.floor', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage'])->findOrFail($id);
         $sale->status_logs = $sale->statusLogs;
 
         return response()->json(['sale' => $sale]);
@@ -219,6 +219,20 @@ class SalesController extends Controller
             'sale_date'   => ['required', 'date'],
             'gst_type'    => ['required', Rule::in(['none', 'inclusive', 'exclusive'])],
             'notes'       => ['nullable', 'string'],
+            'rate_per_sqft' => ['nullable', 'numeric'],
+            'broker_involved' => ['nullable', 'boolean'],
+            'broker_id' => ['nullable', 'exists:brokers,id'],
+            'brokerage_type' => ['nullable', Rule::in(['percentage', 'fixed'])],
+            'brokerage_value' => ['nullable', 'numeric'],
+            'brokerage_amount' => ['nullable', 'numeric'],
+            'brokerage_status' => ['nullable', Rule::in(['pending', 'paid'])],
+            'registration_date' => ['nullable', 'date'],
+            'payment_plan'      => ['nullable', Rule::in(['lump_sum', 'emi'])],
+            'initial_payment_amount' => ['nullable', 'numeric', 'min:0'],
+            'payment_mode' => ['nullable', 'string'],
+            'reference_no' => ['nullable', 'string'],
+            'bank_name' => ['nullable', 'string'],
+            'initial_payment_date' => ['nullable', 'date'],
         ]);
 
         $amount = $validated['sale_amount'];
@@ -234,17 +248,82 @@ class SalesController extends Controller
         $sale->update([
             'sale_amount'    => $validated['sale_amount'],
             'sale_date'      => $validated['sale_date'],
+            'agreement_date' => $validated['sale_date'],
+            'registration_date' => $validated['registration_date'] ?? null,
+            'rate_per_sqft'   => $validated['rate_per_sqft'] ?? $sale->rate_per_sqft,
             'gst_applicable'    => $validated['gst_type'] !== 'none',
             'gst_type'          => $validated['gst_type'],
             'gst_percentage'    => $validated['gst_type'] !== 'none' ? 18 : null,
             'gst_amount'        => $gstAmount,
             'base_amount'       => $baseAmount,
             'total_amount'      => $totalAmount,
-            'remaining_balance' => round($totalAmount - $sale->receipts()->sum('amount'), 2),
+            'broker_involved'   => !empty($validated['broker_involved']),
+            'broker_id'         => (!empty($validated['broker_involved']) && !empty($validated['broker_id'])) ? $validated['broker_id'] : null,
+            'payment_plan'      => $validated['payment_plan'] ?? $sale->payment_plan,
             'notes'             => $validated['notes'] ?? null,
         ]);
 
-        return response()->json(['sale' => $sale->load(['receipts', 'brokerage'])]);
+        // Manage Brokerage
+        if (!empty($validated['broker_involved']) && !empty($validated['broker_id'])) {
+            $commissionAmount = $validated['brokerage_type'] === 'percentage'
+                ? round($totalAmount * ($validated['brokerage_value'] / 100), 2)
+                : round($validated['brokerage_value'] ?? 0, 2);
+
+            $sale->brokerage()->updateOrCreate(
+                ['sale_id' => $sale->id],
+                [
+                    'broker_id'          => $validated['broker_id'],
+                    'commission_type'    => $validated['brokerage_type'] ?? 'fixed',
+                    'commission_percent' => ($validated['brokerage_type'] ?? 'fixed') === 'percentage' ? $validated['brokerage_value'] : null,
+                    'commission_amount'  => $commissionAmount,
+                    'paid_amount'        => 0,
+                    'status'             => $validated['brokerage_status'] ?? 'pending',
+                    'remarks'            => 'Updated at sale edit',
+                ]
+            );
+        } else {
+            $sale->brokerage()->delete();
+        }
+
+        // Manage Initial Payment Receipt
+        $initialPayment = (float)($validated['initial_payment_amount'] ?? 0);
+        $receipt = $sale->receipts()->where('remarks', 'Initial payment at sale creation')->first();
+
+        if ($initialPayment > 0) {
+            if ($receipt) {
+                $receipt->update([
+                    'amount'       => $initialPayment,
+                    'payment_mode' => $validated['payment_mode'] ?? 'Cash',
+                    'reference_no' => $validated['reference_no'] ?? null,
+                    'bank_name'    => $validated['bank_name'] ?? null,
+                    'receipt_date' => $validated['initial_payment_date'] ?? $validated['sale_date'],
+                ]);
+            } else {
+                $sale->receipts()->create([
+                    'customer_id'  => $sale->customer_id,
+                    'project_id'   => $sale->project_id,
+                    'unit_id'      => $sale->unit_id,
+                    'receipt_date' => $validated['initial_payment_date'] ?? $validated['sale_date'],
+                    'amount'       => $initialPayment,
+                    'payment_mode' => $validated['payment_mode'] ?? 'Cash',
+                    'reference_no' => $validated['reference_no'] ?? null,
+                    'bank_name'    => $validated['bank_name'] ?? null,
+                    'remarks'      => 'Initial payment at sale creation',
+                    'created_by'   => auth()->id(),
+                ]);
+            }
+        } else {
+            if ($receipt) {
+                $receipt->delete();
+            }
+        }
+
+        // Recalculate remaining balance
+        $sale->update([
+            'remaining_balance' => round($totalAmount - $sale->receipts()->sum('amount'), 2),
+        ]);
+
+        return response()->json(['sale' => $sale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
     }
 
     /**

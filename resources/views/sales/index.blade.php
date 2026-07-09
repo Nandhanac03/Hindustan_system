@@ -423,109 +423,237 @@
             </form>
         </div>
     </div>
-
-
+    
     {{-- ═══════════════════════════════════════════
-         EDIT SALE MODAL (includes status transitions)
+         EDIT SALE MODAL — Aligned to Add Sale Modal style
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
+        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit Sale — <span x-text="activeSale.sale_number"></span></h3>
                 <button @click="closeEditModal()" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
-            <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+            <form @submit.prevent="submitEditSale()">
+                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto font-sans">
 
-                <form @submit.prevent="submitEditSale()" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Amount (₹)</label>
-                            <input type="number" step="0.01" x-model="forms.edit.sale_amount" @input="recalculateGst('edit')"
-                                   class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition">
+                    {{-- ── Section 1 — Basics (Read-Only) ── --}}
+                    <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project</label>
+                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.project ? activeSale.project.name : '—'"></span>
                         </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Date</label>
-                            <input type="date" x-model="forms.edit.sale_date"
-                                   class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition">
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unit</label>
+                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—'"></span>
                         </div>
-                    </div>
-
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <select x-model="forms.edit.gst_type" @change="recalculateGst('edit')"
-                                    class="px-3 py-2 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary">
-                                <option value="none">No GST (None)</option>
-                                <option value="inclusive">GST Included (18%)</option>
-                                <option value="exclusive">GST Excluded (18% Extra)</option>
-                            </select>
-                            <input type="text" :value="'GST: ₹' + Number(forms.edit.gst_amount || 0).toLocaleString()" disabled
-                                   class="px-3 py-2 bg-slate-100 border border-slate-250 rounded-xl text-xs text-slate-500">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 pt-1">
-                            <input type="text" :value="'Base: ₹' + Number(forms.edit.base_amount || forms.edit.sale_amount || 0).toLocaleString()" disabled
-                                   class="px-3 py-2 bg-slate-100 border border-slate-250 rounded-xl text-xs text-slate-500">
-                            <input type="text" :value="'Total: ₹' + Number(forms.edit.total_amount || forms.edit.sale_amount || 0).toLocaleString()" disabled
-                                   class="px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-bold">
+                        <div>
+                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer</label>
+                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.customer ? activeSale.customer.name : '—'"></span>
                         </div>
                     </div>
 
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Notes</label>
-                        <textarea x-model="forms.edit.notes" rows="2"
-                                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition resize-none"></textarea>
-                    </div>
+                    {{-- ── Section 2 — Sale Amount ── --}}
+                    <div class="border-t border-slate-100 pt-4">
+                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">📐 Sale Amount</p>
+                        <div class="grid grid-cols-3 gap-4 items-stretch">
 
-                    <button type="submit" class="w-full py-2.5 bg-primary hover:bg-primary-700 text-white rounded-lg text-xs font-bold transition uppercase tracking-wide">
-                        Save Changes
-                    </button>
-                </form>
-
-                {{-- Status Transitions --}}
-                <div class="border-t border-slate-100 pt-4 space-y-3">
-                    <p class="text-[9px] font-bold text-primary uppercase tracking-widest">Status Actions</p>
-                    <div class="flex flex-wrap gap-2">
-                        <template x-if="activeSale.status === 'active'">
-                            <button type="button" @click="promptStatusChange('cancelled')" class="px-3 py-1.5 border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded-lg text-xs transition">Cancel Sale</button>
-                        </template>
-                        <template x-if="activeSale.status === 'active'">
-                            <button type="button" @click="promptStatusChange('returned')" class="px-3 py-1.5 border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold rounded-lg text-xs transition">Mark Returned</button>
-                        </template>
-                        <template x-if="['active','returned'].includes(activeSale.status)">
-                            <button type="button" @click="promptStatusChange('exchanged')" class="px-3 py-1.5 border border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-lg text-xs transition">Mark Exchanged</button>
-                        </template>
-                        <template x-if="['cancelled','returned'].includes(activeSale.status)">
-                            <button type="button" @click="promptStatusChange('resale')" class="px-3 py-1.5 border border-primary-300 bg-primary-50 hover:bg-primary-100 text-primary-700 font-semibold rounded-lg text-xs transition">Mark for Resale</button>
-                        </template>
-                    </div>
-                    <div x-show="statusChange.pending">
-                        <input type="text" x-model="statusChange.reason" placeholder="Reason (required)..."
-                               class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-primary/40 focus:border-primary outline-none transition mb-2">
-                        <div class="flex gap-2">
-                            <button type="button" @click="confirmStatusChange()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg text-xs transition uppercase">Confirm</button>
-                            <button type="button" @click="statusChange.pending = false" class="px-3 py-1.5 border border-slate-200 text-slate-600 font-bold rounded-lg text-xs transition uppercase">Cancel</button>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Status History --}}
-                <div class="border-t border-slate-100 pt-4 space-y-2">
-                    <p class="text-[9px] font-bold text-primary uppercase tracking-widest">Status History</p>
-                    <div class="space-y-2 max-h-40 overflow-y-auto">
-                        <template x-for="log in activeSale.status_logs" :key="log.id">
-                            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100 text-[10px]">
-                                <div class="flex justify-between">
-                                    <span class="font-bold text-slate-800" x-text="(log.from_status || 'created') + ' → ' + log.to_status"></span>
-                                    <span class="text-slate-400" x-text="log.created_at"></span>
+                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Expected Rate / Sq.Ft</p>
+                                    <p class="font-bold text-slate-800" x-text="selectedUnit.edit ? '₹' + Number(selectedUnit.edit.expected_rate_per_sqft).toLocaleString() : '—'"></p>
                                 </div>
-                                <p class="text-slate-500 mt-0.5" x-text="log.reason || 'No reason provided'"></p>
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Expected Sale Value</p>
+                                    <p class="font-bold text-slate-800" x-text="selectedUnit.edit ? '₹' + Number(selectedUnit.edit.expected_sale_amount).toLocaleString() : '—'"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Built-up Area</p>
+                                    <p class="font-bold text-slate-800" x-text="(selectedUnit.edit ? Number(selectedUnit.edit.built_up_area).toLocaleString() : '—') + ' Sq.Ft'"></p>
+                                </div>
                             </div>
-                        </template>
-                        <template x-if="!activeSale.status_logs || activeSale.status_logs.length === 0">
-                            <p class="text-xs text-slate-400 italic">No status changes logged.</p>
-                        </template>
+
+                            <div class="space-y-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Rate per Sq.Ft *</label>
+                                    <input type="number" step="0.01" x-model="forms.edit.rate_per_sqft" @input="onRateChange('edit')" placeholder="Enter agreed rate"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Agreed Sale Amount</p>
+                                    <p class="text-lg font-extrabold text-slate-900 font-mono" x-text="'₹' + Number(forms.edit.sale_amount || 0).toLocaleString()"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Difference</p>
+                                    <p class="text-sm font-bold font-mono" :class="saleDifference('edit') >= 0 ? 'text-emerald-600' : 'text-rose-600'" x-text="'₹' + Number(saleDifference('edit')).toLocaleString()"></p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Type</label>
+                                    <select x-model="forms.edit.gst_type" @change="recalculateGst('edit')"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <option value="none">None — No GST</option>
+                                        <option value="inclusive">GST Included (18%)</option>
+                                        <option value="exclusive">GST Excluded (18% Extra)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">GST Amount</p>
+                                    <p class="font-bold text-slate-800 font-mono" x-text="'₹' + Number(forms.edit.gst_amount || 0).toLocaleString()"></p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Payable</p>
+                                    <p class="text-sm font-extrabold text-emerald-700 font-mono" x-text="'₹' + Number(forms.edit.total_amount || 0).toLocaleString()"></p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    {{-- ── Section 3 — Broker / Commission ── --}}
+                    <div class="border-t border-slate-100 pt-4">
+                        <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                            <input type="checkbox" x-model="forms.edit.broker_involved" class="rounded text-primary focus:ring-primary/20">
+                            <span class="text-xs font-bold text-primary uppercase tracking-widest">Broker / Commission — A broker is involved in this sale</span>
+                        </label>
+                        <div x-show="forms.edit.broker_involved" class="grid grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
+                                <select x-model="forms.edit.broker_id" @change="onBrokerSelect('edit')"
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    <option value="">— Select Broker —</option>
+                                    @foreach($brokers as $broker)
+                                        <option value="{{ $broker->id }}">{{ $broker->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
+                                <div class="flex items-center gap-4 h-9">
+                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                        <input type="radio" value="percentage" x-model="forms.edit.brokerage_type" @change="onBrokerageTypeChange('edit')" class="text-primary focus:ring-primary/20">
+                                        Percentage (%)
+                                    </label>
+                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                        <input type="radio" value="fixed" x-model="forms.edit.brokerage_type" @change="onBrokerageTypeChange('edit')" class="text-primary focus:ring-primary/20">
+                                        Fixed (₹)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
+                                <input type="number" step="0.01" x-model="forms.edit.brokerage_value"  @input="recalculateBrokerage('edit')"
+                                       :placeholder="forms.edit.brokerage_type === 'fixed' ? '0' : 'e.g. 2 for 2%'"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brokerage Amount</p>
+                                <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.edit.brokerage_amount || 0).toLocaleString()"></p>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
+                                <select x-model="forms.edit.brokerage_status"
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Paid</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ── Section 4 — Dates ── --}}
+                    <div class="border-t border-slate-100 pt-4 grid grid-cols-3 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement / Sale Date *</label>
+                            <input type="date" x-model="forms.edit.sale_date"
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                        </div>
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registration Date</label>
+                            <input type="date" x-model="forms.edit.registration_date"
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                        </div>
+                    </div>
+
+                    {{-- ── Section 5 — Initial Payment ── --}}
+                    <div class="border-t border-slate-100 pt-4">
+                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💼 Initial Payment</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Initial Payment Amount</label>
+                                <input type="number" step="0.01" x-model="forms.edit.initial_payment_amount" @input="recalculateBalance('edit')" placeholder="Enter 0 if none"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                <p class="text-[10px] text-slate-400">Enter 0 if no payment at this time</p>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</label>
+                                <select x-model="forms.edit.payment_mode"
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    <option value="Cash">Cash</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Cheque">Cheque</option>
+                                    <option value="UPI">UPI</option>
+                                    <option value="Credit Card">Credit Card</option>
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Date</label>
+                                <input type="date" x-model="forms.edit.initial_payment_date"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            </div>
+
+                            <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Cheque No</label>
+                                <input type="text" x-model="forms.edit.reference_no" placeholder="e.g. UTR / Cheque number"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            </div>
+                            <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Name</label>
+                                <input type="text" x-model="forms.edit.bank_name" placeholder="e.g. HDFC Bank"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ── Section 6 — Balance & Payment Plan ── --}}
+                    <div class="border-t border-slate-100 pt-4">
+                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">📊 Balance & Payment Plan</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Balance</p>
+                                <p class="text-lg font-extrabold text-primary font-mono" x-text="'₹' + Number(forms.edit.remaining_balance || 0).toLocaleString()"></p>
+                            </div>
+                            <div class="space-y-1.5 col-span-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Plan</label>
+                                <div class="flex items-center gap-4 h-9">
+                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                        <input type="radio" value="lump_sum" x-model="forms.edit.payment_plan" class="text-primary focus:ring-primary/20">
+                                        Lump Sum (Full payment)
+                                    </label>
+                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                        <input type="radio" value="emi" x-model="forms.edit.payment_plan" class="text-primary focus:ring-primary/20">
+                                        EMI / Installment Plan
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ── Section 7 — Remarks ── --}}
+                    <div class="border-t border-slate-100 pt-4">
+                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💬 Remarks</p>
+                        <textarea x-model="forms.edit.notes" rows="3" placeholder="Optional remarks or notes..."
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
+                    </div>
+
                 </div>
-            </div>
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -533,40 +661,152 @@
          VIEW SALE MODAL (read-only)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
+        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Sale Details</p>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Agreement details</p>
                         <h2 class="text-lg font-extrabold text-white" x-text="activeSale.sale_number"></h2>
                         <span class="badge-pill text-[9px] mt-1 inline-block" :class="getStatusBadgeClass(activeSale.status)" x-text="activeSale.status"></span>
                     </div>
                     <button @click="closeViewModal()" class="text-slate-400 hover:text-white transition">✕</button>
                 </div>
             </div>
-            <div class="p-6 space-y-4 text-xs">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Project</p><p class="text-slate-900 font-semibold" x-text="activeSale.project ? activeSale.project.name : 'N/A'"></p></div>
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Unit</p><p class="text-slate-900 font-semibold" x-text="activeSale.unit ? activeSale.unit.door_no : 'N/A'"></p></div>
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Customer</p><p class="text-slate-900 font-semibold" x-text="activeSale.customer ? activeSale.customer.name : 'N/A'"></p></div>
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Broker</p><p class="text-slate-900 font-semibold" x-text="activeSale.broker ? activeSale.broker.name : 'Direct Sale'"></p></div>
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Sale Amount</p><p class="text-slate-900 font-bold" x-text="'₹' + Number(activeSale.sale_amount || 0).toLocaleString()"></p></div>
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">GST</p><p class="text-slate-900 font-semibold" x-text="activeSale.gst_type && activeSale.gst_type !== 'none' ? '₹' + Number(activeSale.gst_amount).toLocaleString() + ' (' + activeSale.gst_percentage + '%, ' + activeSale.gst_type + ')' : 'Not Applicable'"></p></div>
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Total Amount</p><p class="text-emerald-700 font-bold" x-text="'₹' + Number(activeSale.total_amount || 0).toLocaleString()"></p></div>
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Sale Date</p><p class="text-slate-900 font-semibold" x-text="activeSale.sale_date"></p></div>
+            <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto font-sans text-xs">
+                
+                {{-- Basics & Partners Info --}}
+                <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Project Name</label>
+                        <strong class="text-slate-800 text-xs block mt-0.5" x-text="activeSale.project ? activeSale.project.name : '—'"></strong>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Unit No</label>
+                        <strong class="text-slate-800 text-xs block mt-0.5" x-text="activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—'"></strong>
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Customer Details</label>
+                        <strong class="text-slate-800 text-xs block mt-0.5" x-text="activeSale.customer ? activeSale.customer.name : '—'"></strong>
+                        <span class="text-slate-450 text-[10px] block mt-0.5" x-text="activeSale.customer ? activeSale.customer.email + ' • ' + activeSale.customer.phone : ''"></span>
+                    </div>
                 </div>
-                <template x-if="activeSale.is_resale">
-                    <div class="p-2.5 bg-primary-50 border border-primary-200 rounded-lg text-[10px] text-primary-700 font-semibold">
-                        This is a resale linked to original sale #<span x-text="activeSale.original_sale_id"></span>
+
+                {{-- Sale Amounts --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">📐 Rate & Amounts Breakdown</p>
+                    <div class="grid grid-cols-4 gap-4">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Expected Rate</span>
+                            <span class="font-bold text-slate-800 font-mono" x-text="activeSale.unit ? '₹' + Number(activeSale.unit.expected_rate_per_sqft).toLocaleString() : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Agreed Rate / Sqft</span>
+                            <span class="font-extrabold text-indigo-750 font-mono" x-text="'₹' + Number(activeSale.rate_per_sqft || 0).toLocaleString()"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Built-up Area</span>
+                            <span class="font-bold text-slate-800 font-mono" x-text="activeSale.unit ? Number(activeSale.unit.built_up_area).toLocaleString() + ' Sq.Ft' : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Agreed Sale Amount</span>
+                            <span class="font-extrabold text-slate-900 font-mono" x-text="'₹' + Number(activeSale.sale_amount || 0).toLocaleString()"></span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-4 mt-3 pt-3 border-t border-dashed border-slate-150">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">GST Type</span>
+                            <span class="font-bold text-slate-700 uppercase" x-text="activeSale.gst_type || 'none'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">GST Amount (18%)</span>
+                            <span class="font-bold text-slate-800 font-mono" x-text="'₹' + Number(activeSale.gst_amount || 0).toLocaleString()"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Amount Payable</span>
+                            <span class="font-extrabold text-emerald-700 font-mono" x-text="'₹' + Number(activeSale.total_amount || 0).toLocaleString()"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Remaining Balance</span>
+                            <span class="font-extrabold text-rose-600 font-mono" x-text="'₹' + Number(activeSale.remaining_balance || 0).toLocaleString()"></span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Dates & Payment Plan --}}
+                <div class="border-t border-slate-100 pt-4 grid grid-cols-3 gap-4">
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Agreement Date</span>
+                        <span class="font-semibold text-slate-800" x-text="formatDate(activeSale.sale_date)"></span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Registration Date</span>
+                        <span class="font-semibold text-slate-800" x-text="formatDate(activeSale.registration_date)"></span>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Payment Plan Selected</span>
+                        <span class="font-bold text-indigo-750 uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI / Installment Plan' : 'Lump Sum'"></span>
+                    </div>
+                </div>
+
+                {{-- Broker details --}}
+                <div class="border-t border-slate-100 pt-4">
+                    <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">💼 Broker & Commission Details</p>
+                    <div class="grid grid-cols-3 gap-4" x-show="activeSale.brokerage">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Broker Name</span>
+                            <span class="font-bold text-slate-800" x-text="activeSale.broker ? activeSale.broker.name : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Commission Calculations</span>
+                            <span class="font-semibold text-slate-700" x-text="activeSale.brokerage ? (activeSale.brokerage.commission_type === 'percentage' ? activeSale.brokerage.commission_percent + '%' : 'Fixed Rate') : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Commission Amount / Status</span>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <span class="font-bold text-slate-900 font-mono" x-text="activeSale.brokerage ? '₹' + Number(activeSale.brokerage.commission_amount).toLocaleString() : '—'"></span>
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide"
+                                      :class="activeSale.brokerage && activeSale.brokerage.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
+                                      x-text="activeSale.brokerage ? activeSale.brokerage.status : ''"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div x-show="!activeSale.brokerage" class="text-slate-400 italic text-[11px]">
+                        No broker was associated with this transaction (Direct Sale).
+                    </div>
+                </div>
+
+                {{-- Status logs narrative --}}
+                <div class="border-t border-slate-100 pt-4 space-y-2">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Narrative Status logs</p>
+                    <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                        <template x-for="log in activeSale.status_logs" :key="log.id">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[10px]">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-slate-800 uppercase tracking-wide" x-text="(log.from_status || 'created') + ' → ' + log.to_status"></span>
+                                    <span class="text-slate-450 font-mono" x-text="formatDate(log.created_at)"></span>
+                                </div>
+                                <p class="text-slate-600 italic font-sans" x-text="log.reason || 'No narrative provided'"></p>
+                            </div>
+                        </template>
+                        <template x-if="!activeSale.status_logs || activeSale.status_logs.length === 0">
+                            <p class="text-xs text-slate-400 italic">No transition history logged for this agreement.</p>
+                        </template>
+                    </div>
+                </div>
+
+                {{-- Remarks --}}
+                <template x-if="activeSale.notes">
+                    <div class="border-t border-slate-100 pt-4">
+                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Remarks / Notes</span>
+                        <p class="text-slate-700 mt-1 font-sans text-xs bg-slate-50 p-3 rounded-lg border border-slate-150" x-text="activeSale.notes"></p>
                     </div>
                 </template>
-                <template x-if="activeSale.notes">
-                    <div><p class="text-[9px] text-slate-400 uppercase tracking-wider font-bold">Notes</p><p class="text-slate-600" x-text="activeSale.notes"></p></div>
-                </template>
+
             </div>
             <div class="px-6 py-4 border-t border-slate-100 flex justify-end bg-slate-50">
-                <button @click="closeViewModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+                <button @click="closeViewModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
             </div>
         </div>
     </div>
@@ -615,6 +855,24 @@ function salesApp() {
 
         fmt(value) {
             return '₹' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        formatDate(val) {
+            if (!val) return '—';
+            try {
+                const clean = val.replace('Z', '').split('T')[0];
+                const parts = clean.split('-');
+                if (parts.length === 3) {
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const yr = parts[0];
+                    const mo = months[parseInt(parts[1], 10) - 1];
+                    const dy = parts[2];
+                    return `${dy} ${mo} ${yr}`;
+                }
+                return clean;
+            } catch(e) {
+                return val.split('T')[0];
+            }
         },
 
         fetchSales() {
@@ -834,14 +1092,45 @@ function salesApp() {
             .then(res => res.json())
             .then(data => {
                 this.activeSale = data.sale;
+                
+                this.selectedUnit.edit = this.activeSale.unit ? {
+                    id: this.activeSale.unit.id,
+                    door_no: this.activeSale.unit.door_no,
+                    floor_name: this.activeSale.unit.floor ? this.activeSale.unit.floor.name : '',
+                    built_up_area: this.activeSale.unit.built_up_area,
+                    expected_rate_per_sqft: this.activeSale.unit.expected_rate_per_sqft,
+                    expected_sale_amount: this.activeSale.unit.expected_sale_amount
+                } : null;
+
+                const initialReceipt = this.activeSale.receipts ? this.activeSale.receipts.find(r => r.remarks === 'Initial payment at sale creation') : null;
+
                 this.forms.edit = {
+                    project_id: this.activeSale.project_id,
+                    unit_id: this.activeSale.unit_id,
+                    customer_id: this.activeSale.customer_id,
+                    sale_date: this.activeSale.sale_date ? this.activeSale.sale_date.split('T')[0] : '',
+                    agreement_date: this.activeSale.sale_date ? this.activeSale.sale_date.split('T')[0] : '',
+                    registration_date: this.activeSale.registration_date ? this.activeSale.registration_date.split('T')[0] : '',
+                    rate_per_sqft: this.activeSale.rate_per_sqft || '',
                     sale_amount: this.activeSale.sale_amount,
-                    sale_date: this.activeSale.sale_date,
                     gst_type: this.activeSale.gst_type || 'none',
                     gst_percentage: this.activeSale.gst_percentage || 18,
                     gst_amount: this.activeSale.gst_amount,
                     base_amount: this.activeSale.base_amount,
                     total_amount: this.activeSale.total_amount,
+                    broker_involved: this.activeSale.brokerage ? true : false,
+                    broker_id: this.activeSale.brokerage ? this.activeSale.brokerage.broker_id : '',
+                    brokerage_type: this.activeSale.brokerage ? this.activeSale.brokerage.commission_type : 'percentage',
+                    brokerage_value: this.activeSale.brokerage ? (this.activeSale.brokerage.commission_type === 'percentage' ? this.activeSale.brokerage.commission_percent : this.activeSale.brokerage.commission_amount) : '',
+                    brokerage_amount: this.activeSale.brokerage ? this.activeSale.brokerage.commission_amount : 0,
+                    brokerage_status: this.activeSale.brokerage ? this.activeSale.brokerage.status : 'pending',
+                    initial_payment_amount: initialReceipt ? initialReceipt.amount : 0,
+                    payment_mode: initialReceipt ? initialReceipt.payment_mode : 'Cash',
+                    reference_no: initialReceipt ? initialReceipt.reference_no || '' : '',
+                    bank_name: initialReceipt ? initialReceipt.bank_name || '' : '',
+                    initial_payment_date: initialReceipt ? (initialReceipt.receipt_date ? initialReceipt.receipt_date.split('T')[0] : '') : '',
+                    payment_plan: this.activeSale.payment_plan || 'lump_sum',
+                    remaining_balance: this.activeSale.remaining_balance || 0,
                     notes: this.activeSale.notes
                 };
                 this.modals.edit.open = true;
