@@ -70,16 +70,32 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::delete('/units/{unit}', [UnitController::class, 'destroy'])->name('units.destroy');
     Route::post('/units/bulk', [UnitController::class, 'bulkStore'])->name('units.bulk-store');
 
-    // EMI Collections & Reports
-    Route::get('/emi-collections', [\App\Http\Controllers\EmiCollectionController::class, 'index'])->name('emi-collections.index');
-    Route::post('/emi-collections', [\App\Http\Controllers\EmiCollectionController::class, 'store'])->name('emi-collections.store');
-    Route::get('/emi-collections/schedules', [\App\Http\Controllers\EmiCollectionController::class, 'schedules'])->name('emi-collections.schedules');
-    Route::get('/emi-collections/receipts', [\App\Http\Controllers\EmiCollectionController::class, 'receipts'])->name('emi-collections.receipts');
-    Route::get('/emi-collections/outstanding', [\App\Http\Controllers\EmiCollectionController::class, 'outstanding'])->name('emi-collections.outstanding');
-    Route::get('/emi-collections/cash-book', [\App\Http\Controllers\EmiCollectionController::class, 'cashBook'])->name('emi-collections.cash-book');
+    // EMI & Collections Module (linked to Sales → Receipts workflow)
+    Route::get('/emi-collections',                      [\App\Http\Controllers\EmiCollectionController::class, 'index'])->name('emi-collections.index');
+    Route::get('/emi-collections/schedules',            [\App\Http\Controllers\EmiCollectionController::class, 'schedules'])->name('emi-collections.schedules');
+    Route::post('/emi-collections/schedules/generate',  [\App\Http\Controllers\EmiCollectionController::class, 'generateSchedule'])->name('emi-collections.schedules.generate');
+    Route::delete('/emi-collections/schedules/{sale}',  [\App\Http\Controllers\EmiCollectionController::class, 'deleteSchedule'])->name('emi-collections.schedules.delete');
+    Route::put('/emi-collections/installments/{installment}', [\App\Http\Controllers\EmiCollectionController::class, 'updateInstallment'])->name('emi-collections.installments.update');
+    Route::get('/emi-collections/receipts',             [\App\Http\Controllers\EmiCollectionController::class, 'receipts'])->name('emi-collections.receipts');
+    Route::post('/emi-collections/receipts',            [\App\Http\Controllers\EmiCollectionController::class, 'store'])->name('emi-collections.store');
+    Route::get('/emi-collections/outstanding',          [\App\Http\Controllers\EmiCollectionController::class, 'outstanding'])->name('emi-collections.outstanding');
+    Route::get('/emi-collections/cash-book',            [\App\Http\Controllers\EmiCollectionController::class, 'cashBook'])->name('emi-collections.cash-book');
+    Route::get('/emi-collections/ledger/{sale}',        [\App\Http\Controllers\EmiCollectionController::class, 'customerLedger'])->name('emi-collections.ledger');
+    Route::get('/emi-collections/loans',                [\App\Http\Controllers\EmiCollectionController::class, 'loans'])->name('emi-collections.loans');
+    Route::post('/emi-collections/loans',               [\App\Http\Controllers\EmiCollectionController::class, 'storeLoan'])->name('emi-collections.loans.store');
+    Route::get('/emi-collections/loans/{loan}/amortization', [\App\Http\Controllers\EmiCollectionController::class, 'loanAmortization'])->name('emi-collections.loans.amortization');
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
 
-    // Sales Register & Bookings
+    // Sales Module (primary sales flow: Sale → Receipt → EMI)
+    Route::get('/sales', [\App\Http\Controllers\SalesController::class, 'index'])->name('sales.index');
+    Route::post('/sales', [\App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
+    Route::get('/sales/{id}', [\App\Http\Controllers\SalesController::class, 'show'])->name('sales.show');
+    Route::put('/sales/{id}', [\App\Http\Controllers\SalesController::class, 'update'])->name('sales.update');
+    Route::post('/sales/{id}/receipt', [\App\Http\Controllers\SalesController::class, 'addReceipt'])->name('sales.add-receipt');
+    Route::post('/sales/{id}/status', [\App\Http\Controllers\SalesController::class, 'changeStatus'])->name('sales.change-status');
+    Route::get('/sales/available-units/{projectId}', [\App\Http\Controllers\SalesController::class, 'availableUnits'])->name('sales.available-units');
+
+    // Sales Register & Bookings (legacy — kept for backward compat)
     Route::resource('bookings', \App\Http\Controllers\BookingController::class)->only(['index', 'create', 'store']);
     Route::post('bookings/{booking}/cancel', [\App\Http\Controllers\BookingController::class, 'cancel'])->name('bookings.cancel');
     Route::post('bookings/{booking}/resale', [\App\Http\Controllers\BookingController::class, 'resale'])->name('bookings.resale');

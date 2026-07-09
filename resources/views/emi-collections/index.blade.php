@@ -74,20 +74,20 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($payments as $payment)
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-bold text-indigo-650">{{ $payment->receipt_number }}</td>
+                                <td class="px-6 py-4 font-bold text-indigo-650">REC-{{ sprintf("%05d", $payment->id) }}</td>
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-slate-900">{{ $payment->customer?->name ?? 'N/A' }}</div>
                                     <div class="text-[10px] text-slate-400">{{ $payment->customer?->phone ?? '' }}</div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="font-semibold text-slate-800">{{ $payment->project?->name ?? 'N/A' }}</div>
-                                    <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">{{ $payment->project?->code ?? '' }}</span>
+                                    <div class="font-semibold text-slate-800">{{ $payment->sale?->project?->name ?? 'N/A' }}</div>
+                                    <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">Unit: {{ $payment->sale?->unit?->door_no ?? '—' }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-bold text-slate-900">₹{{ number_format($payment->amount, 2) }}</td>
                                 <td class="px-6 py-4 text-slate-500 font-medium">{{ $payment->payment_mode }}</td>
                                 <td class="px-6 py-4">
-                                    <span class="badge-pill {{ $payment->status === 'completed' ? 'badge-completed' : 'badge-pending' }}">
-                                        {{ ucfirst($payment->status) }}
+                                    <span class="badge-pill badge-completed bg-emerald-50 text-emerald-700 border-emerald-200">
+                                        Completed
                                     </span>
                                 </td>
                             </tr>
@@ -107,11 +107,11 @@
             @endif
         </div>
 
-        {{-- Right side: Active Bookings for quick receipt mapping (1/3 width) --}}
+        {{-- Right side: Active Bookings/Sales for quick receipt mapping (1/3 width) --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
             <div>
                 <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Map New Receipt</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Select a recent active booking to register an incoming payment installment.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Select a recent active sale with outstanding balance to register an incoming payment installment.</p>
             </div>
 
             <div class="space-y-4">
@@ -119,18 +119,19 @@
                     <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 hover:border-indigo-200 hover:shadow-sm transition-all">
                         <div class="flex justify-between items-start">
                             <div>
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100 font-mono">{{ $booking->booking_number }}</span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100 font-mono">{{ $booking->sale_number }}</span>
                                 <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? 'Unknown Customer' }}</h3>
-                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · {{ $booking->unit?->unit_number ?? 'No Unit' }}</p>
+                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
                             </div>
-                            <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->amount / 100000, 1) }}L</span>
+                            <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->total_amount / 100000, 1) }}L</span>
                         </div>
-                        <button @click="openCollectModal({{ json_encode($booking) }})" class="w-full mt-2 py-1.5 bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-indigo-700 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
+                        <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
+                                class="w-full mt-2 py-1.5 bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-indigo-700 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
                             Collect Installment
                         </button>
                     </div>
                 @empty
-                    <p class="text-xs text-slate-450 italic text-center py-4">No recent active bookings found.</p>
+                    <p class="text-xs text-slate-450 italic text-center py-4">No recent active sales with outstanding balances found.</p>
                 @endforelse
             </div>
         </div>
@@ -229,14 +230,14 @@ function emiApp() {
         },
         errors: {},
 
-        openCollectModal(booking) {
+        openCollectModal(item) {
             this.errors = {};
-            this.form.booking_id = booking.id;
-            this.form.amount = booking.outstanding;
+            this.form.booking_id = item.id;
+            this.form.amount = item.outstanding;
             this.form.payment_mode = 'Cash';
-            this.form.customer_name = booking.customer ? booking.customer.name : 'Unknown';
-            this.form.unit_number = booking.unit ? (booking.unit.unit_number || booking.unit.door_no || 'No Unit') : 'No Unit';
-            this.form.outstanding = booking.outstanding;
+            this.form.customer_name = item.customer_name;
+            this.form.unit_number = item.door_no;
+            this.form.outstanding = item.outstanding;
             this.modal.open = true;
         },
 

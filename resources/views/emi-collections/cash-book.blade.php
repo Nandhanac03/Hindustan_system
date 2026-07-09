@@ -99,16 +99,15 @@
 
         {{-- Table --}}
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
+            <table class="w-full text-xs">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-100">
-                        <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Voucher Ref.</th>
-                        <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Post Date</th>
-                        <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Transaction Narrative / Customer</th>
-                        <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Mode</th>
-                        <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Debit (-)</th>
-                        <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Credit (+)</th>
-                        <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Run Balance</th>
+                    <tr class="bg-slate-50 border-b border-slate-100 text-left">
+                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Date</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Sale No.</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Customer</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Project / Unit</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Mode</th>
+                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest text-right">Amount (Cr.)</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-mono text-slate-650">
