@@ -3,21 +3,21 @@
     <x-slot:headerTitle>Real Estate Projects</x-slot:headerTitle>
 
     <div x-data="{ 
-        editModalOpen: false, 
+        editModalOpen: {{ $errors->any() && old('_method') === 'PUT' ? 'true' : 'false' }}, 
+        createModalOpen: {{ request()->query('open_create') || ($errors->any() && old('_method') !== 'PUT') ? 'true' : 'false' }},
         editProject: {
-            id: '',
-            name: '',
-            location: '',
-            city: '',
-            state_or_emirate: '',
-            country: '',
-            rera_number: '',
-            total_floors: '',
-            start_date: '',
-            expected_completion_date: '',
-            status: 'planning',
-            description: '',
-            image_url: ''
+            id: '{{ old('id') }}',
+            name: '{{ old('name') }}',
+            location: '{{ old('location') }}',
+            city: '{{ old('city') }}',
+            state_or_emirate: '{{ old('state_or_emirate') }}',
+            country: '{{ old('country') }}',
+            total_floors: '{{ old('total_floors') }}',
+            start_date: '{{ old('start_date') }}',
+            expected_completion_date: '{{ old('expected_completion_date') }}',
+            status: '{{ old('status', 'planning') }}',
+            description: '{{ old('description') }}',
+            image_url: '{{ old('image_url') }}'
         },
         openEditModal(project) {
             this.editProject = { ...project };
@@ -39,12 +39,12 @@
             </div>
             
             @can('projects.manage')
-            <a href="{{ route('projects.create') }}" class="btn-ripple flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/95 transition-colors shadow-md shadow-primary/10 tracking-wide uppercase">
+            <button @click="createModalOpen = true" class="btn-ripple flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl text-xs font-bold hover:bg-primary/95 transition-colors shadow-md shadow-primary/10 tracking-wide uppercase">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
                 New Project
-            </a>
+            </button>
             @endcan
         </div>
 
@@ -92,9 +92,7 @@
                         </span>
 
                         <!-- Project Code Badge -->
-                        <span class="absolute bottom-4 left-4 bg-black/70 text-primary-300 border border-primary-500/30 font-bold uppercase text-[9px] tracking-wider px-2 py-0.5 rounded backdrop-blur-sm">
-                            {{ $proj->code }}
-                        </span>
+                        
                     </div>
 
                     <!-- Card Body -->
@@ -152,7 +150,7 @@
                             </div>
                         @else
                             <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider italic flex items-center gap-1.5">
-                                <svg class="w-3.5 h-3.5 text-amber-505" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
                                 No units generated yet.
@@ -162,8 +160,7 @@
 
                     <!-- Footer Controls -->
                     <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs">
-                        
-                        <div class="inline-flex items-center justify-end gap-1.5">
+                        <div class="inline-flex items-center justify-end gap-1.5 ml-auto">
                             @can('projects.manage')
 
                                 <a href="{{ route('projects.edit', $proj->id) }}" title="Edit Project Details" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm">
@@ -174,6 +171,15 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
 
+                                <form method="POST" action="{{ route('projects.destroy', $proj->id) }}" onsubmit="return confirm('Are you sure you want to delete this project? All associated floors, units, and rates will be permanently removed.')" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" title="Delete Project" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-700 transition inline-flex items-center justify-center shadow-sm border border-rose-100">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </form>
                             @endcan
                             <a href="{{ route('projects.show', $proj->id) }}" title="View Project Unit Grid" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 transition inline-flex items-center justify-center shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2v-2z"/></svg>
@@ -205,7 +211,7 @@
 
         <!-- Edit Project Modal -->
         <div x-show="editModalOpen" 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4" 
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-955/60 backdrop-blur-sm flex items-center justify-center p-4" 
              style="display: none;"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0"
@@ -288,7 +294,7 @@
                         </div>
                     </div>
 
-                    <!-- State, Country, RERA -->
+                    <!-- State & Country -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <label for="edit_state_or_emirate" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">State / Emirate</label>
@@ -309,8 +315,6 @@
                                    required 
                                    class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
                         </div>
-
-                       
                     </div>
 
                     <!-- Dates & Status -->
@@ -383,6 +387,192 @@
                         </button>
                         <button type="submit" class="px-6 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold transition shadow-md shadow-primary/10 tracking-wide uppercase">
                             Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- New Project Modal -->
+        <div x-show="createModalOpen" 
+             class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4" 
+             style="display: none;"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            
+            <div @click.away="createModalOpen = false" 
+                 class="bg-white rounded-3xl border border-slate-200 shadow-xl max-w-2xl w-full overflow-hidden flex flex-col transform transition-all max-h-[90vh]"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+                
+                <!-- Modal Header -->
+                <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 uppercase tracking-wide">Register New Project</h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Define geographical parameters, total structures, and dates.</p>
+                    </div>
+                    <button @click="createModalOpen = false" type="button" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-650 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Modal Body (Form) -->
+                <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" class="flex-1 overflow-y-auto p-6 space-y-4">
+                    @csrf
+
+                  
+
+                    <!-- Name & Total Floors -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2 space-y-1.5">
+                            <label for="create_name" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Name</label>
+                            <input id="create_name" 
+                                   type="text" 
+                                   name="name" 
+                                   value="{{ old('name') }}" 
+                                   required 
+                                   placeholder="e.g. Hindustan Emerald Heights"
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 placeholder-slate-400 focus:outline-none transition" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="create_total_floors" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Floors</label>
+                            <input id="create_total_floors" 
+                                   type="number" 
+                                   name="total_floors" 
+                                   value="{{ old('total_floors', 1) }}" 
+                                   required 
+                                   min="1"
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
+                        </div>
+                    </div>
+
+                    <!-- Location & City -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="create_location" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Address / Location</label>
+                            <input id="create_location" 
+                                   type="text" 
+                                   name="location" 
+                                   value="{{ old('location') }}" 
+                                   required 
+                                   placeholder="Sector 62"
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="create_city" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">City</label>
+                            <input id="create_city" 
+                                   type="text" 
+                                   name="city" 
+                                   value="{{ old('city') }}" 
+                                   required 
+                                   placeholder="Noida / Dubai"
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
+                        </div>
+                    </div>
+
+                    <!-- State & Country -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="create_state_or_emirate" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">State / Emirate</label>
+                            <input id="create_state_or_emirate" 
+                                   type="text" 
+                                   name="state_or_emirate" 
+                                   value="{{ old('state_or_emirate') }}" 
+                                   required 
+                                   placeholder="Uttar Pradesh / Dubai"
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="create_country" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Country</label>
+                            <input id="create_country" 
+                                   type="text" 
+                                   name="country" 
+                                   value="{{ old('country') }}" 
+                                   required 
+                                   placeholder="India / UAE"
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
+                        </div>
+                    </div>
+
+                    <!-- Dates & Status -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="create_start_date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Start Date</label>
+                            <input id="create_start_date" 
+                                   type="date" 
+                                   name="start_date" 
+                                   value="{{ old('start_date') }}" 
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="create_expected_completion_date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Expected Completion</label>
+                            <input id="create_expected_completion_date" 
+                                   type="date" 
+                                   name="expected_completion_date" 
+                                   value="{{ old('expected_completion_date') }}" 
+                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="create_status" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Status</label>
+                            <select id="create_status" 
+                                    name="status" 
+                                    required 
+                                    class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer">
+                                <option value="planning" {{ old('status', 'planning') === 'planning' ? 'selected' : '' }}>Planning</option>
+                                <option value="ongoing" {{ old('status') === 'ongoing' ? 'selected' : '' }}>Ongoing</option>
+                                <option value="completed" {{ old('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                                <option value="on_hold" {{ old('status') === 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="space-y-1.5">
+                        <label for="create_description" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Description / Notes</label>
+                        <textarea id="create_description" 
+                                  name="description" 
+                                  rows="3" 
+                                  placeholder="Brief description of project specifications..."
+                                  class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition">{{ old('description') }}</textarea>
+                    </div>
+
+                    <!-- Image Upload -->
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Cover Image</label>
+                        <div class="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                            <div class="flex-1 space-y-1">
+                                <input id="create_image" 
+                                       type="file" 
+                                       name="image" 
+                                       accept="image/*"
+                                       class="text-xs text-slate-650 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
+                                <p class="text-[9px] text-slate-400">Upload a project cover image. Max size: 2MB.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal Actions Footer -->
+                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
+                        <button type="button" @click="createModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition uppercase tracking-wider">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-6 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold transition shadow-md shadow-primary/10 tracking-wide uppercase">
+                            Create Project
                         </button>
                     </div>
                 </form>

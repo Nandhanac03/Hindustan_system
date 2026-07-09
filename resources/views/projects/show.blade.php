@@ -45,9 +45,6 @@
                 </div>
                 <p class="text-xs text-slate-500 mt-1 font-medium">
                     {{ $project->location }}, {{ $project->city }}, {{ $project->state_or_emirate }}, {{ $project->country }}
-                    @if($project->rera_number)
-                        | <strong class="text-slate-700">RERA:</strong> {{ $project->rera_number }}
-                    @endif
                 </p>
             </div>
 
