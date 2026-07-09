@@ -108,7 +108,7 @@ class ProjectController extends Controller
     public function show(Project $project): View
     {
         // View unit details, floor configuration and bulk tools
-        $project->load(['floors.units.unitType', 'floors.units.rateLogs.user', 'floors.units.statusLogs.user']);
+        $project->load(['floors.units.unitType', 'floors.units.rateLogs.user', 'floors.units.statusLogs.user', 'partnerShares.partner']);
         $unitTypes = UnitType::where('is_active', true)->get();
 
         return view('projects.show', compact('project', 'unitTypes'));

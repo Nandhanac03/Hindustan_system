@@ -155,6 +155,48 @@
             </div>
         </div>
 
+        <!-- Partner Shares & Allocations Section -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Project Partner Shares</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Partners registered to this project with their collection share percentages.</p>
+                </div>
+                @can('projects.manage')
+                    <a href="{{ route('partners.shares', $project->id) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary-700 font-bold rounded-xl text-xs uppercase tracking-wide transition shadow-sm border border-primary-100">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Configure Shares
+                    </a>
+                @endcan
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                @forelse($project->partnerShares as $share)
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between shadow-sm">
+                        <div>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Partner</span>
+                            <a href="{{ route('partners.statement', $share->partner->id) }}?project_id={{ $project->id }}" class="text-xs font-bold text-slate-900 hover:text-primary transition">
+                                {{ $share->partner->name }}
+                            </a>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Share %</span>
+                            <span class="px-2.5 py-1 bg-primary/10 text-primary font-bold text-xs rounded-lg inline-block mt-0.5">
+                                {{ $share->share_pct }}%
+                            </span>
+                        </div>
+                    </div>
+                @empty
+                    <div class="col-span-full py-4 text-center text-slate-450 italic text-xs">
+                        No partners assigned to this project yet. Assign partners to automatically allocate their shares of booking receipts.
+                    </div>
+                @endforelse
+            </div>
+        </div>
+
         <!-- Dynamic Drawer Slide-Over Panel -->
         <div x-show="panelOpen" 
              class="fixed inset-0 z-50 overflow-hidden" 

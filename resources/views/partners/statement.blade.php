@@ -25,7 +25,7 @@
                     @endforeach
                 </select>
                 @if($projectId)
-                    <a href="{{ route('partners.statement', $partner->id) }}" class="px-3 py-2 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-xl text-xs font-bold transition uppercase tracking-wide text-center">Clear</a>
+                    <a href="{{ route('partners.statement', $partner->id) }}?project_id=" class="px-3 py-2 border border-slate-200 hover:bg-slate-50 text-slate-500 rounded-xl text-xs font-bold transition uppercase tracking-wide text-center">Clear</a>
                 @endif
             </form>
         </div>
