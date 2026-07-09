@@ -146,7 +146,8 @@ class UnitController extends Controller
             $unit = Unit::create($validated);
 
             // Record initial rate
-            $this->rateService->updateRate($unit, $expectedRate ?? 0.0, now()->toDateString(), 'Initial Rate');
+            $initialRate = $isParking ? (float)$validated['expected_sale_amount'] : ($expectedRate ?? 0.0);
+            $this->rateService->updateRate($unit, $initialRate, now()->toDateString(), 'Initial Rate');
 
             // Record initial status log
             \App\Models\UnitStatusLog::create([
@@ -279,7 +280,10 @@ class UnitController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $request->validate([
+        $unitType = \App\Models\UnitType::find($request->unit_type_id);
+        $isParking = $unitType && strtolower($unitType->name) === 'parking';
+
+        $rules = [
             'project_id' => ['required', 'exists:projects,id'],
             'floor_id' => ['required', 'exists:floors,id'],
             'unit_type_id' => ['required', 'exists:unit_types,id'],
@@ -288,8 +292,16 @@ class UnitController extends Controller
             'count' => ['required', 'integer', 'min:1', 'max:100'],
             'built_up_area' => ['nullable', 'numeric', 'min:0'],
             'carpet_area' => ['nullable', 'numeric', 'min:0'],
-            'expected_rate_per_sqft' => ['required', 'numeric', 'min:0'],
-        ]);
+        ];
+
+        if ($isParking) {
+            $rules['expected_sale_amount'] = ['required', 'numeric', 'min:0'];
+            $rules['expected_rate_per_sqft'] = ['nullable', 'numeric', 'min:0'];
+        } else {
+            $rules['expected_rate_per_sqft'] = ['required', 'numeric', 'min:0'];
+        }
+
+        $request->validate($rules);
 
         $project_id = (int)$request->project_id;
         $floor_id = (int)$request->floor_id;
@@ -299,11 +311,12 @@ class UnitController extends Controller
         $count = (int)$request->count;
         $built_up_area = $request->filled('built_up_area') ? (float)$request->built_up_area : null;
         $carpet = $request->filled('carpet_area') ? (float)$request->carpet_area : null;
-        $expected_rate_per_sqft = (float)($request->expected_rate_per_sqft ?? 0);
+        $expected_rate_per_sqft = $isParking ? null : (float)($request->expected_rate_per_sqft ?? 0);
+        $expected_sale_amount = $isParking ? (float)$request->expected_sale_amount : null;
 
         $created = [];
 
-        DB::transaction(function () use ($project_id, $floor_id, $unit_type_id, $prefix, $start, $count, $built_up_area, $carpet, $expected_rate_per_sqft, &$created) {
+        DB::transaction(function () use ($project_id, $floor_id, $unit_type_id, $prefix, $start, $count, $built_up_area, $carpet, $expected_rate_per_sqft, $expected_sale_amount, $isParking, &$created) {
             for ($i = 0; $i < $count; $i++) {
                 $num = $start + $i;
                 $unitNumber = $prefix . $num;
@@ -319,7 +332,7 @@ class UnitController extends Controller
                     continue;
                 }
 
-                $expectedSaleAmount = $built_up_area !== null ? ($built_up_area * $expected_rate_per_sqft) : null;
+                $expectedSaleAmount = $isParking ? $expected_sale_amount : ($built_up_area !== null ? ($built_up_area * $expected_rate_per_sqft) : null);
 
                 $unit = Unit::create([
                     'project_id' => $project_id,
@@ -334,7 +347,8 @@ class UnitController extends Controller
                 ]);
 
                 // Initial rate log
-                $this->rateService->updateRate($unit, $expected_rate_per_sqft, now()->toDateString(), 'Bulk creation');
+                $initialRate = $isParking ? $expected_sale_amount : ($expected_rate_per_sqft ?? 0.0);
+                $this->rateService->updateRate($unit, $initialRate, now()->toDateString(), 'Bulk creation');
 
                 // Initial status log
                 \App\Models\UnitStatusLog::create([
