@@ -12,7 +12,7 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <form method="POST" action="{{ route('projects.store') }}" class="space-y-5">
+            <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" class="space-y-5">
                 @csrf
 
                 <!-- System selection (Owner only) -->
@@ -97,7 +97,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
                     <div class="space-y-1.5">
                         <label for="state_or_emirate" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">State / Emirate</label>
                         <input id="state_or_emirate" 
@@ -120,16 +120,8 @@
                                class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
                     </div>
 
-                    <div class="space-y-1.5">
-                        <label for="rera_number" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">RERA Number (IN only)</label>
-                        <input id="rera_number" 
-                               type="text" 
-                               name="rera_number" 
-                               value="{{ old('rera_number') }}" 
-                               placeholder="UPRERAPRJ12345"
-                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                    </div>
-                </div>
+                  
+             
 
                 <!-- Dates & Status -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -173,6 +165,22 @@
                               rows="3" 
                               placeholder="Brief description of project specifications..."
                               class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition">{{ old('description') }}</textarea>
+                </div>
+
+                <!-- Project Cover Image -->
+                <div class="space-y-1.5">
+                    <label for="image" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Cover Image</label>
+                    <div class="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                        <input id="image" 
+                               type="file" 
+                               name="image" 
+                               accept="image/*"
+                               class="text-xs text-slate-650 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
+                        <span class="text-[10px] text-slate-400 font-medium">Max size: 2MB (JPG, PNG, WEBP)</span>
+                    </div>
+                    @if($errors->has('image'))
+                        <p class="text-xs text-rose-500 font-medium mt-1">{{ $errors->first('image') }}</p>
+                    @endif
                 </div>
 
                 <!-- Submit Button -->

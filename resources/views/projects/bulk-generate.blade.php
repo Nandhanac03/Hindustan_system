@@ -12,7 +12,7 @@
         </div>
 
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <form method="POST" action="{{ route('projects.bulk-generate.store', $project->id) }}" class="space-y-5">
+            <form method="POST" action="{{ route('project.bulk-generate.store', $project->id) }}" class="space-y-5">
                 @csrf
 
                 <!-- Floor range (Start/End) and Units per floor -->
