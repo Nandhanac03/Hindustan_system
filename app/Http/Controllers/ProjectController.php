@@ -25,7 +25,7 @@ class ProjectController extends Controller
     {
         $user = Auth::user();
         // SystemScope auto-scopes by logged-in user unless Owner
-        $projects = Project::withCount('units')->paginate(12);
+        $projects = Project::withCount('units')->latest()->paginate(50);
 
         // Fetch counts of available units per project
         foreach ($projects as $project) {

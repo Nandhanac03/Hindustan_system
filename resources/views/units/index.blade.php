@@ -265,20 +265,32 @@
         {{-- Pagination Controls --}}
         <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between" x-show="pagination.total > 0">
             <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                Showing <span class="text-slate-900" x-text="(pagination.current_page - 1) * 10 + 1"></span> to 
-                <span class="text-slate-900" x-text="Math.min(pagination.current_page * 10, pagination.total)"></span> of 
-                <span class="text-slate-900" x-text="pagination.total"></span> entries
+                Showing <span class="text-slate-900" x-text="(pagination.current_page - 1) * (pagination.per_page || 50) + 1"></span> to 
+                <span class="text-slate-900" x-text="Math.min(pagination.current_page * (pagination.per_page || 50), pagination.total)"></span> of 
+                <span class="text-slate-900" x-text="Number(pagination.total).toLocaleString()"></span> Units
             </div>
             <div class="flex items-center gap-1.5">
                 <button @click="if(pagination.current_page > 1) fetchUnits(pagination.current_page - 1)" 
                         :disabled="pagination.current_page <= 1"
-                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     Prev
                 </button>
-                <span class="px-2 py-1 text-[10px] font-bold text-slate-700" x-text="pagination.current_page + ' / ' + pagination.last_page"></span>
+                
+                {{-- Page Numbers --}}
+                <template x-for="p in getPageNumbers()">
+                    <span class="inline-flex items-center gap-1">
+                        <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                        <button x-show="p !== '...'"
+                                @click="fetchUnits(p)"
+                                x-text="p"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors"
+                                :class="pagination.current_page === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                    </span>
+                </template>
+                
                 <button @click="if(pagination.current_page < pagination.last_page) fetchUnits(pagination.current_page + 1)" 
                         :disabled="pagination.current_page >= pagination.last_page"
-                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     Next
                 </button>
             </div>
@@ -1204,7 +1216,8 @@ function unitsApp() {
         pagination: {
             current_page: 1,
             last_page: 1,
-            total: 0
+            total: 0,
+            per_page: 50
         },
         filters: {
             search: '',
@@ -1304,6 +1317,37 @@ function unitsApp() {
                 console.error('Error fetching units:', err);
                 this.showToast('Failed to fetch units list.', 'error');
             });
+        },
+
+        getPageNumbers() {
+            let current = this.pagination.current_page;
+            let last = this.pagination.last_page;
+            let delta = 2;
+            let left = current - delta;
+            let right = current + delta + 1;
+            let range = [];
+            let rangeWithDots = [];
+            let l;
+
+            for (let i = 1; i <= last; i++) {
+                if (i === 1 || i === last || (i >= left && i < right)) {
+                    range.push(i);
+                }
+            }
+
+            for (let i of range) {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    } else if (i - l > 2) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            }
+
+            return rangeWithDots;
         },
 
         resetFilters() {

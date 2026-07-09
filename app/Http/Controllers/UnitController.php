@@ -69,13 +69,10 @@ class UnitController extends Controller
                 $query->where('unit_type_id', $request->unit_type_id);
             }
 
-            if ($request->filled('status') && $request->status === 'recently_added') {
-                $query->latest();
-            } else {
-                $query->orderBy('door_no');
-            }
+            // Apply sorting before pagination (newest records first)
+            $query->latest();
 
-            $units = $query->paginate(10);
+            $units = $query->paginate(50);
 
             return response()->json([
                 'units' => $units->items(),
@@ -83,6 +80,7 @@ class UnitController extends Controller
                     'current_page' => $units->currentPage(),
                     'last_page' => $units->lastPage(),
                     'total' => $units->total(),
+                    'per_page' => $units->perPage(),
                 ]
             ]);
         }
