@@ -114,9 +114,9 @@
                         @can('projects.manage')
     <button
         @click="editProjectModal = true"
-        class="px-2.5 py-1 bg-white border border-[#a38c29] hover:bg-[#a38c29]/10 text-[#a38c29] hover:text-[#8a7522] font-bold rounded-lg transition text-[10px] uppercase tracking-wide flex items-center gap-1"
+        class="px-2.5 py-1 bg-white border border-[#09876B] hover:bg-[#09876B]/10 text-[#09876B] hover:text-[#076852] font-bold rounded-lg transition text-[10px] uppercase tracking-wide flex items-center gap-1"
     >
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        <svg class="w-3.5 h-3.5 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
         Edit Project
     </button>
 @endcan
@@ -158,12 +158,12 @@
                 </div>
                 <input type="text" placeholder="Search Door No..." 
                        x-model="filters.search" @input.debounce.300ms="fetchUnits()"
-                       class="w-full pl-10 pr-4 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                       class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
             </div>
 
             {{-- Floor Filter --}}
             <select x-model="filters.floor_id" @change="fetchUnits()"
-                    class="w-full px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                    class="w-full px-3.5 py-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                 <option value="">All Floors</option>
                 @foreach($floors as $floor)
                     <option value="{{ $floor->id }}">{{ $floor->name }}</option>
@@ -172,7 +172,7 @@
 
             {{-- Unit Type Filter --}}
             <select x-model="filters.unit_type_id" @change="fetchUnits()"
-                    class="w-full px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                    class="w-full px-3.5 py-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                 <option value="">All Types</option>
                 @foreach($unitTypes as $type)
                     <option value="{{ $type->id }}">{{ $type->name }} ({{ ucfirst($type->category) }})</option>
@@ -181,7 +181,7 @@
 
             {{-- Status Filter --}}
             <select x-model="filters.status" @change="fetchUnits()"
-                    class="w-full px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                    class="w-full px-3.5 py-2.5 bg-white border border-slate-200 hover:border-slate-300 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                 <option value="">All Statuses</option>
                 <option value="recently_added">Recently Added</option>
                 <option value="available">Available</option>
@@ -193,7 +193,7 @@
         </div>
 
         <button @click="resetFilters()"
-                class="inline-flex items-center justify-center gap-2 rounded-xl border-0 bg-[#a38c29] hover:bg-[#8a7522] px-4.5 py-2.5 text-xs font-bold text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wide">
+                class="inline-flex items-center justify-center gap-2 rounded-xl border-0 bg-[#a38c29] hover:bg-[#8a7522] px-7 py-2.5 text-xs font-bold text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wide">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             Reset Filters
         </button>
@@ -241,14 +241,14 @@
                                         <button @click="openViewModal(unit)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Unit Details">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
-                                        <button @click="openRateHistoryModal(unit)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Rate Change History">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+                                        <button @click="openRateHistoryModal(unit)" class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] transition inline-flex items-center justify-center shadow-sm" title="View Rate Change History">
+                                            <svg class="w-4 h-4" style="color: rgb(67 56 212);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
                                         </button>
-                                        <button @click="openEditModal(unit.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        <button @click="openEditModal(unit.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Unit">
+                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
-                                        <button @click="confirmDelete(unit)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" :disabled="unit.status !== 'available'" :class="unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : ''" title="Delete Unit">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        <button @click="confirmDelete(unit)" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" :disabled="unit.status !== 'available'" :class="unit.status !== 'available' ? 'opacity-30 cursor-not-allowed' : ''" title="Delete Unit">
+                                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     </div>
                                 </template>
@@ -1017,11 +1017,11 @@
                         <span>/</span>
                         <span>All Units</span>
                         <span>/</span>
-                        <span class="text-[#a38c29]">Rate History</span>
+                        <span class="text-[rgb(67,56,212)]" style="color: rgb(67 56 212);">Rate History</span>
                     </div>
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="w-8 h-8 rounded-lg bg-[rgb(67,56,212)]/10 flex items-center justify-center text-[rgb(67,56,212)]" style="color: rgb(67 56 212);">
+                            <svg class="w-4 h-4" style="color: rgb(67 56 212);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <h3 class="text-base font-extrabold text-slate-950 tracking-tight">Rate Change History Register</h3>
                     </div>
@@ -1096,8 +1096,8 @@
 
                 {{-- Empty State --}}
                 <div x-show="!loadingRateHistory && (!rateHistoryLogs || rateHistoryLogs.length === 0)" class="py-12 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                    <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
+                    <div class="w-12 h-12 rounded-full bg-[rgb(67,56,212)]/10 text-[rgb(67,56,212)] flex items-center justify-center mx-auto mb-3" style="color: rgb(67 56 212);">
+                        <svg class="w-6 h-6" style="color: rgb(67 56 212);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg>
                     </div>
                     <h4 class="text-sm font-bold text-slate-700">No Rate Modifications Logged</h4>
                     <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">The rate for this unit has not been modified since its initial setup.</p>
