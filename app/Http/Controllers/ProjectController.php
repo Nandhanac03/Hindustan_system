@@ -72,6 +72,7 @@ class ProjectController extends Controller
             'expected_completion_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
             'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
 
         // Owner must supply system_id. Others use their system_id
@@ -83,6 +84,11 @@ class ProjectController extends Controller
 
         if (!$user->hasMultiSystemAccess()) {
             $validated['system_id'] = $user->system_id;
+        }
+
+        // Upload image
+        if ($request->hasFile('image')) {
+            $validated['image_url'] = $request->file('image')->store('projects', 'public');
         }
 
         // Generate short code
@@ -153,7 +159,7 @@ public function update(Request $request, Project $project): RedirectResponse
     $project->update($validated);
 
     return redirect()
-        ->route('units.index', ['project' => $project->id])
+        ->route('projects.index')
         ->with('status', 'Project details updated successfully.');
 }
 
