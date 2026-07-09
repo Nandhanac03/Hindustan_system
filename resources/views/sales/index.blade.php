@@ -270,7 +270,7 @@
                         <div x-show="forms.add.broker_involved" class="grid grid-cols-3 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
-                                <select x-model="forms.add.broker_id"
+                                <select x-model="forms.add.broker_id" @change="onBrokerSelect('add')"
                                         class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="">— Select Broker —</option>
                                     @foreach($brokers as $broker)
@@ -283,18 +283,19 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
                                 <div class="flex items-center gap-4 h-9">
                                     <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                                        <input type="radio" value="percentage" x-model="forms.add.brokerage_type" @change="recalculateBrokerage('add')" class="text-primary focus:ring-primary/20">
+                                        <input type="radio" value="percentage" x-model="forms.add.brokerage_type" @change="onBrokerageTypeChange('add')" class="text-primary focus:ring-primary/20">
                                         Percentage (%)
                                     </label>
                                     <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                                        <input type="radio" value="fixed" x-model="forms.add.brokerage_type" @change="recalculateBrokerage('add')" class="text-primary focus:ring-primary/20">
+                                        <input type="radio" value="fixed" x-model="forms.add.brokerage_type" @change="onBrokerageTypeChange('add')" class="text-primary focus:ring-primary/20">
                                         Fixed (₹)
                                     </label>
                                 </div>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
-                                <input type="number" step="0.01" x-model="forms.add.brokerage_value" @input="recalculateBrokerage('add')" placeholder="e.g. 2 for 2%"
+                                <input type="number" step="0.01" x-model="forms.add.brokerage_value"  @input="recalculateBrokerage('add')"
+                                       :placeholder="forms.add.brokerage_type === 'fixed' ? '0' : 'e.g. 2 for 2%'"
                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                 <template x-if="errors.brokerage_value"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.brokerage_value[0]"></p></template>
                             </div>
@@ -584,6 +585,7 @@ function salesApp() {
         availableUnits: { add: [], edit: [] },
         selectedUnit: { add: null, edit: null },
         customerList: @json($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'email' => $c->email])),
+        brokerList: @json($brokers->map(fn($b) => ['id' => $b->id, 'name' => $b->name, 'default_commission_pct' => $b->default_commission_pct ?? null])),
         quickCustomer: { name: '', email: '', phone: '' },
         quickCustomerErrors: {},
         forms: {
@@ -609,6 +611,10 @@ function salesApp() {
 
         init() {
             this.fetchSales();
+        },
+
+        fmt(value) {
+            return '₹' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
 
         fetchSales() {
@@ -695,6 +701,26 @@ function salesApp() {
             form.brokerage_amount = form.brokerage_type === 'percentage'
                 ? Math.round(total * (value / 100) * 100) / 100
                 : Math.round(value * 100) / 100;
+        },
+
+        onBrokerSelect(mode) {
+            const form = this.forms[mode];
+            const broker = this.brokerList.find(b => b.id == form.broker_id);
+            if (broker && form.brokerage_type === 'percentage' && broker.default_commission_pct !== null) {
+                form.brokerage_value = broker.default_commission_pct;
+            }
+            this.recalculateBrokerage(mode);
+        },
+
+        onBrokerageTypeChange(mode) {
+            const form = this.forms[mode];
+            if (form.brokerage_type === 'percentage') {
+                const broker = this.brokerList.find(b => b.id == form.broker_id);
+                form.brokerage_value = (broker && broker.default_commission_pct !== null) ? broker.default_commission_pct : '';
+            } else {
+                form.brokerage_value = '';
+            }
+            this.recalculateBrokerage(mode);
         },
 
         recalculateBalance(mode) {
