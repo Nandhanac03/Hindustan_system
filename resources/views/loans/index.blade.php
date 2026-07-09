@@ -295,7 +295,7 @@ function loanApp() {
         },
         openAddModal() {
             this.addForm = {
-                project_id: '',
+                project_id: '{{ request('project_id') ?? ($projects->first()->id ?? '') }}',
                 loan_account_no: '',
                 lender_name: '',
                 principal_amount: '',

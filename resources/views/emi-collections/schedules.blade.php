@@ -94,40 +94,6 @@
                 </div>
             </div>
 
-            {{-- Card 3: Standard 36-Month Plan --}}
-            <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col hover:shadow-glow/10 transition-all duration-300">
-                <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start">
-                    <div>
-                        <span class="text-[9px] font-bold px-2 py-0.5 bg-amber-50 text-amber-700 rounded border border-amber-100 uppercase tracking-wider">Extended Fixed</span>
-                        <h3 class="text-sm font-bold text-slate-900 mt-2.5">36-Month Milestone + Fixed Combo</h3>
-                        <p class="text-[11px] text-slate-400 mt-0.5 font-medium">3-year custom repayment plan.</p>
-                    </div>
-                    <span class="text-xs font-extrabold text-primary font-mono">Combo</span>
-                </div>
-                <div class="p-6 flex-1 space-y-4 text-xs text-slate-600">
-                    <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-150">
-                        <span>Down Payment</span>
-                        <strong class="text-slate-900">15% of Unit Value</strong>
-                    </div>
-                    <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-150">
-                        <span>EMI Duration</span>
-                        <strong class="text-slate-900">36 Months</strong>
-                    </div>
-                    <div class="flex justify-between items-center py-1 border-b border-dashed border-slate-150">
-                        <span>Milestone Interludes</span>
-                        <strong class="text-slate-900">5% at Plinth & 5% at Roof Slab</strong>
-                    </div>
-                    <div class="flex justify-between items-center py-1">
-                        <span>Payment Gateway Fees</span>
-                        <strong class="text-slate-900">Waived for online trans</strong>
-                    </div>
-                </div>
-                <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-[10px] text-slate-400 uppercase font-bold">59 bookings active</span>
-                    <button @click="showTemplateDetails('fixed-36')" class="text-xs font-bold text-primary hover:text-primary-700 uppercase tracking-wider">View Milestones &rarr;</button>
-                </div>
-            </div>
-
         </div>
 
         {{-- Dynamic Plan Stage Breakdown Details (shows when a template is selected) --}}
