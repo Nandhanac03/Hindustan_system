@@ -10,6 +10,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SalesController;
 
 // Fallback routes to serve storage files directly if public/storage symlink is not created or accessible
 Route::get('/storage/{path}', function ($path) {
@@ -118,6 +119,14 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::put('customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::delete('customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 
+    //Sales
+    Route::get('/sales', [SalesController::class, 'index'])->name('sales.index');
+    Route::post('/sales', [SalesController::class, 'store'])->name('sales.store');
+    Route::get('/sales/available-units/{project}', [SalesController::class, 'availableUnits'])->name('sales.available-units');
+    Route::get('/sales/{sale}/json', [SalesController::class, 'show'])->name('sales.show');
+    Route::put('/sales/{sale}', [SalesController::class, 'update'])->name('sales.update');
+    Route::post('/sales/{sale}/status', [SalesController::class, 'changeStatus'])->name('sales.status');
+    Route::post('/sales/{sale}/receipts', [SalesController::class, 'addReceipt'])->name('sales.receipts.store');
 });
 
 require __DIR__ . '/auth.php';
