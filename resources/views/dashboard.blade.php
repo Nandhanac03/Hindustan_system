@@ -1,6 +1,6 @@
 <x-erp-layout title="Dashboard" headerTitle="Executive Dashboard">
 @php
-    $currencySymbol = (auth()->user()->system->currency_code ?? 'INR') === 'AED' ? 'AED ' : '&#8377;';
+    $currencySymbol = (auth()->user()->system->currency_code ?? 'INR') === 'AED' ? 'AED ' : '₹';
 @endphp
 
 <div class="max-w-[1800px] mx-auto space-y-6">
@@ -398,7 +398,7 @@
 
                             <div class="min-w-0">
                                 <div class="text-xs font-bold text-slate-900 group-hover:text-[#8a7522] transition-colors truncate">{{ $customer->name }}</div>
-                                <div class="text-[10px] text-slate-400 font-semibold">{{ $customer->bookings_count }} {{ Str::plural('Booking', $customer->bookings_count) }}</div>
+                                <div class="text-[10px] text-slate-400 font-semibold">{{ $customer->sales_count }} {{ Str::plural('Sale', $customer->sales_count) }}</div>
                             </div>
                         </div>
 
@@ -425,7 +425,7 @@
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Recent Bookings</h2>
                     <p class="text-xs text-slate-400 mt-0.5">Latest bookings across your units</p>
                 </div>
-                <a href="{{ route('bookings.index') }}" class="text-xs font-bold text-[#a38c29] hover:text-[#8a7522] uppercase tracking-wider transition-colors">View All</a>
+                <a href="{{ route('sales.index') }}" class="text-xs font-bold text-[#a38c29] hover:text-[#8a7522] uppercase tracking-wider transition-colors">View All</a>
             </div>
             <div class="divide-y divide-slate-100 max-h-[350px] overflow-y-auto">
                 @forelse($recentBookings as $booking)
@@ -448,8 +448,8 @@
                             <div class="text-[10px] text-slate-400 mt-0.5">{{ $booking->created_at->diffForHumans() }}</div>
                         </div>
                         <div class="text-right flex-shrink-0">
-                            <div class="text-xs font-bold text-slate-900">{!! $currencySymbol !!}{{ number_format($booking->amount ?? 0) }}</div>
-                            <div class="text-[10px] text-slate-400">Booking Value</div>
+                            <div class="text-xs font-bold text-slate-900">{!! $currencySymbol !!}{{ number_format($booking->total_amount ?? 0) }}</div>
+                            <div class="text-[10px] text-slate-400">Sale Value</div>
                         </div>
                     </div>
                 @empty

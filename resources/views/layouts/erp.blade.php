@@ -128,6 +128,10 @@
                         class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request()->has('tab') ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
                           Sales List
                      </a>
+                     <a href="{{ route('sales.index') }}?tab=exchange"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+                          Sales Exchange
+                     </a>
                      <a href="{{ route('sales.index') }}?tab=returns"
                         class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'returns' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
                           Sales Return

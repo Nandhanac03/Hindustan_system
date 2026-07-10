@@ -4,20 +4,49 @@
         <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
             <a href="{{ route('dashboard') }}" class="hover:text-primary transition-colors">Home</a>
             <span>&gt;</span>
-            <span class="text-slate-650">Sales Return & Unit Exchange Operations</span>
+            <span class="text-slate-650">
+                @if(request('tab') === 'exchange')
+                    Unit Exchange Operations
+                @elseif(request('tab') === 'cancellations')
+                    Sales Cancellations
+                @else
+                    Sales Returns
+                @endif
+            </span>
         </div>
-        <h2 class="text-lg font-extrabold text-slate-900 tracking-tight uppercase mt-1">Sales Return & Unit Exchange Operations</h2>
+        <h2 class="text-lg font-extrabold text-slate-900 tracking-tight uppercase mt-1">
+            @if(request('tab') === 'exchange')
+                Unit Exchange Operations
+            @elseif(request('tab') === 'cancellations')
+                Sales Cancellations
+            @else
+                Sales Returns
+            @endif
+        </h2>
     </div>
 </div>
 
-{{-- Two-Column Dashboard Layout --}}
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+{{-- Layout wrapper: full width, conditionally shown --}}
+<div class="space-y-6">
 
     {{-- LEFT COLUMN: SALES RETURNS & CANCELLATIONS --}}
+    @if(request('tab') === 'returns' || request('tab') === 'cancellations')
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5">
         <div>
-            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Sales Returns (Cancellations)</h3>
-            <p class="text-[10px] text-slate-450 mt-0.5">Manage property cancellations, calculate fees and refund payouts.</p>
+            <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                @if(request('tab') === 'cancellations')
+                    Sales Cancellations
+                @else
+                    Sales Returns
+                @endif
+            </h3>
+            <p class="text-[10px] text-slate-450 mt-0.5">
+                @if(request('tab') === 'cancellations')
+                    Manage property cancellations, fees, and documentation.
+                @else
+                    Manage property returns, refund calculations, and ledger settlements.
+                @endif
+            </p>
         </div>
 
         {{-- Filter Grid --}}
@@ -204,10 +233,11 @@
                     <span>Customer Ledger Update</span>
                 </div>
             </div>
-        </div>
     </div>
+    @endif
 
     {{-- RIGHT COLUMN: UNIT-TO-UNIT EXCHANGE PLAN --}}
+    @if(request('tab') === 'exchange')
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5">
         <div>
             <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Unit-to-Unit Exchange Plan</h3>
@@ -396,5 +426,6 @@
             <div id="returnsExchangesChart" class="w-full" style="height: 180px;"></div>
         </div>
     </div>
+    @endif
 
 </div>

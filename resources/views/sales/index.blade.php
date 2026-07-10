@@ -1,6 +1,6 @@
 @php
-    $isReturnExchange = request('tab') === 'returns' || request('tab') === 'cancellations';
-    $pageTitle = $isReturnExchange ? 'Sales Return & Unit Exchange Operations' : 'Sales Register';
+    $isReturnExchange = request('tab') === 'returns' || request('tab') === 'cancellations' || request('tab') === 'exchange';
+    $pageTitle = request('tab') === 'exchange' ? 'Unit Exchange Operations' : (request('tab') === 'cancellations' ? 'Sales Cancellations' : ($isReturnExchange ? 'Sales Returns' : 'Sales Register'));
 @endphp
 <x-erp-layout :title="$pageTitle" :headerTitle="$pageTitle">
 
@@ -905,7 +905,7 @@ function salesApp() {
         toast: { open: false, message: '', type: 'success' },
 
         // Return & Exchange State
-        returnFilters: { search: '', project_id: '{{ request('project_id') }}', type: '', status: '' },
+        returnFilters: { search: '', project_id: '{{ request('project_id') }}', type: '', status: '{{ request('tab') === 'cancellations' ? 'cancelled' : (request('tab') === 'returns' ? 'returned' : '') }}' },
         exchangeFilters: { search: '', project_id: '{{ request('project_id') }}', type: '', status: '' },
         selectedReturnSale: null,
         targetReturnStatus: '',

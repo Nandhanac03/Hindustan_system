@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use App\Models\ApprovalRequest;
-use App\Models\Booking;
+use App\Models\Approval;
+use App\Models\Sale;
 use App\Models\Customer;
-use App\Models\Payment;
+use App\Models\Receipt;
 use App\Models\Project;
 use App\Models\Unit;
 use Illuminate\Http\Request;
@@ -25,8 +25,8 @@ class DashboardController extends Controller
         $totalProjects      = Project::count();
 
         $unitQuery    = fn() => $activeProject ? Unit::where('project_id', $activeProject->id) : Unit::query();
-        $bookingQuery = fn() => $activeProject ? Booking::where('project_id', $activeProject->id) : Booking::query();
-        $paymentQuery = fn() => $activeProject ? Payment::where('project_id', $activeProject->id) : Payment::query();
+        $bookingQuery = fn() => $activeProject ? Sale::where('project_id', $activeProject->id) : Sale::query();
+        $paymentQuery = fn() => $activeProject ? Receipt::where('project_id', $activeProject->id) : Receipt::query();
 
         $totalUnits         = $unitQuery()->count();
         $availableUnits     = $unitQuery()->where('status', 'available')->count();
@@ -35,12 +35,12 @@ class DashboardController extends Controller
         $soldUnitsValue     = $unitQuery()->where('status', 'sold')->sum('expected_sale_amount');
         $reservedUnits      = $unitQuery()->where('status', 'reserved')->count();
         $totalCustomers     = Customer::count();
-        $totalSales         = $bookingQuery()->where('status', 'approved')->sum('amount');
-        $totalCollections   = $paymentQuery()->where('status', 'completed')->sum('amount');
-        $pendingApprovals   = ApprovalRequest::where('status', 'pending')->count();
+        $totalSales         = (float) $bookingQuery()->where('status', 'active')->sum('total_amount');
+        $totalCollections   = (float) $paymentQuery()->sum('amount');
+        $pendingApprovals   = Approval::where('status', 'pending')->count();
 
         // Outstanding = Sales - Collections
-        $outstanding = max(0, $totalSales - $totalCollections);
+        $outstanding = max(0.00, $totalSales - $totalCollections);
 
         // ── Recent Units ───────────────────────────────────────────────────
         $recentUnits = $unitQuery()->with(['project', 'floor', 'unitType'])->latest()
@@ -49,11 +49,11 @@ class DashboardController extends Controller
 
         // ── Top Customers (by total payment amount) ───────────────────────────
         $topCustomers = Customer::withSum(
-                ['payments' => fn ($q) => $activeProject ? $q->where('status', 'completed')->where('project_id', $activeProject->id) : $q->where('status', 'completed')],
+                ['receipts' => fn ($q) => $activeProject ? $q->where('project_id', $activeProject->id) : $q],
                 'amount'
             )
-            ->withCount(['bookings' => fn ($q) => $activeProject ? $q->where('project_id', $activeProject->id) : $q])
-            ->orderByDesc('payments_sum_amount')
+            ->withCount(['sales' => fn ($q) => $activeProject ? $q->where('status', 'active')->where('project_id', $activeProject->id) : $q->where('status', 'active')])
+            ->orderByDesc('receipts_sum_amount')
             ->take(5)
             ->get();
 
@@ -69,16 +69,16 @@ class DashboardController extends Controller
         // ── Revenue Chart (monthly bookings + payments for current year) ──────
         $currentYear = Carbon::now()->year;
 
-        $monthlyBookings = $bookingQuery()->where('status', 'approved')
-            ->whereYear('created_at', $currentYear)
-            ->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
+        $monthlyBookings = $bookingQuery()->where('status', 'active')
+            ->whereYear('sale_date', $currentYear)
+            ->selectRaw('MONTH(sale_date) as month, SUM(total_amount) as total')
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();
 
-        $monthlyPayments = $paymentQuery()->where('status', 'completed')
-            ->whereYear('created_at', $currentYear)
-            ->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
+        $monthlyPayments = $paymentQuery()
+            ->whereYear('receipt_date', $currentYear)
+            ->selectRaw('MONTH(receipt_date) as month, SUM(amount) as total')
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();
@@ -102,9 +102,9 @@ class DashboardController extends Controller
         $donutReserved  = $unitStatusCounts['reserved']  ?? 0;
 
         // ── Cash Flow mini chart (last 12 months of payments) ─────────────────
-        $cashFlowData = $paymentQuery()->where('status', 'completed')
-            ->where('created_at', '>=', Carbon::now()->subMonths(12))
-            ->selectRaw('MONTH(created_at) as month, SUM(amount) as total')
+        $cashFlowData = $paymentQuery()
+            ->where('receipt_date', '>=', Carbon::now()->subMonths(12))
+            ->selectRaw('MONTH(receipt_date) as month, SUM(amount) as total')
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month')
