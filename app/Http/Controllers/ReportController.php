@@ -41,7 +41,7 @@ class ReportController extends Controller
         $unitTypes = UnitType::where('is_active', true)->orderBy('name')->get();
         $bankAccounts = Account::where('type', 'Asset')->where('name', 'like', '%bank%')->get();
 
-        $activeTab = $request->query('report', 'availability');
+        $activeTab = $request->query('report', 'dashboard');
 
         // Initialize variables for each tab to avoid undefined errors
         $inventorySummary = [];

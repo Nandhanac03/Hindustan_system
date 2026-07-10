@@ -109,17 +109,19 @@
 
              <!-- Sales Submenu Dropdown -->
              <div x-data="{ openSales: {{ Request::routeIs('sales.*') || request('tab') === 'returns' || request('tab') === 'cancellations' ? 'true' : 'false' }} }" class="space-y-1">
-                 <a href="#" @click.prevent="openSales = !openSales" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
-                     <div class="flex items-center gap-3">
+                 <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') ? 'bg-slate-800/20' : '' }}">
+                     <a href="{{ route('sales.index') }}" class="flex-1 flex items-center gap-3 px-3 py-2.5 text-xs font-semibold hover:text-primary-300 transition-colors {{ Request::routeIs('sales.*') ? 'active text-white' : 'text-slate-300' }}">
                          <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                          </svg>
                          Sales
-                     </div>
-                     <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                     </svg>
-                 </a>
+                     </a>
+                     <button @click.prevent="openSales = !openSales" class="p-2.5 text-slate-400 hover:text-primary-300 transition-colors focus:outline-none">
+                         <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                         </svg>
+                     </button>
+                 </div>
                  <div x-show="openSales" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
                     
                      <a href="{{ route('sales.index') }}"
@@ -290,17 +292,19 @@
 
             <!-- 11. Reports Dropdown -->
             <div x-data="{ openReports: {{ Request::routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-1">
-                <button @click="openReports = !openReports" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
-                    <div class="flex items-center gap-3">
+                <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.*') ? 'bg-slate-800/20' : '' }}">
+                    <a href="{{ route('reports.index', ['report' => 'dashboard']) }}" class="flex-1 flex items-center gap-3 px-3 py-2.5 text-xs font-semibold hover:text-primary-300 transition-colors {{ Request::routeIs('reports.*') ? 'text-white' : 'text-slate-300' }}">
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/>
                         </svg>
                         Reports Center
-                    </div>
-                    <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openReports ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
+                    </a>
+                    <button @click.prevent="openReports = !openReports" class="p-2.5 text-slate-400 hover:text-primary-300 transition-colors focus:outline-none">
+                        <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openReports ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
                 <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
                     <a href="{{ route('reports.index', ['report' => 'dashboard']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
