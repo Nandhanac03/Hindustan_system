@@ -251,7 +251,14 @@ function receiptsApp() {
         submitting: false,
         error: '',
         success: '',
-
+        init() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const saleIdParam = urlParams.get('sale_id');
+            if (saleIdParam) {
+                this.form.sale_id = saleIdParam;
+                this.updateSaleDetail();
+            }
+        },
         updateSaleDetail() {
             if (!this.form.sale_id) {
                 this.selectedSale = null;

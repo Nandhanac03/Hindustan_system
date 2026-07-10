@@ -258,14 +258,26 @@ class EmiCollectionController extends Controller
             $totalPaid = $sale->receipts()->sum('amount');
             $sale->update(['remaining_balance' => max(0, round((float)$sale->total_amount - $totalPaid, 2))]);
 
-            // Auto-mark the oldest pending installment as paid
-            $oldest = CustomerInstallment::where('sale_id', $sale->id)
-                ->whereIn('status', ['pending', 'partial'])
+            // Auto-allocate receipt amount to mark installments as paid/partial
+            $remainingPayment = (float)$validated['amount'];
+            $installments = CustomerInstallment::where('sale_id', $sale->id)
+                ->where('status', '!=', 'paid')
                 ->orderBy('installment_no')
-                ->first();
+                ->get();
 
-            if ($oldest && (float)$validated['amount'] >= (float)$oldest->amount) {
-                $oldest->update(['status' => 'paid']);
+            foreach ($installments as $inst) {
+                if ($remainingPayment <= 0) {
+                    break;
+                }
+
+                $instAmount = (float)$inst->amount;
+                if ($remainingPayment >= $instAmount) {
+                    $inst->update(['status' => 'paid']);
+                    $remainingPayment -= $instAmount;
+                } else {
+                    $inst->update(['status' => 'partial']);
+                    $remainingPayment = 0;
+                }
             }
 
             return $receipt;
