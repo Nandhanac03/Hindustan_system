@@ -103,19 +103,7 @@
                         <td class="px-5 py-3 text-slate-500 text-[10px] font-mono">{{ $row['date'] }}</td>
                         <td class="px-5 py-3">
                             <div class="font-semibold text-slate-800">{{ $row['description'] }}</div>
-                            @if(isset($row['status']) && $row['type'] === 'installment')
-                                <div class="mt-0.5">
-                                    @if($row['status'] === 'paid')
-                                        <span class="text-[9px] font-bold text-emerald-650 uppercase">Paid</span>
-                                    @else
-                                        <button @click.stop="openPayModal({{ $row['debit'] }}, '{{ addslashes($row['description']) }}')"
-                                                type="button"
-                                                class="px-2.5 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white font-extrabold rounded-lg text-[9px] uppercase tracking-wider transition-all shadow-md">
-                                            Pay Installment
-                                        </button>
-                                    @endif
-                                </div>
-                            @endif
+                           
                         </td>
                         <td class="px-5 py-3 text-right font-mono {{ $row['debit'] > 0 ? 'text-rose-600 font-bold' : 'text-slate-300' }}">
                             {{ $row['debit'] > 0 ? '₹' . number_format($row['debit'], 2) : '—' }}
@@ -127,11 +115,34 @@
                             ₹{{ number_format(abs($row['running_balance']), 2) }}
                             <span class="text-[8px] font-semibold">{{ $row['running_balance'] > 0 ? 'DR' : 'CR' }}</span>
                         </td>
-                        <td class="px-5 py-3">
-                            <span class="text-[9px] font-bold border px-1.5 py-0.5 rounded {{ $cfg['badge'] }}">
-                                {{ strtoupper($row['type']) }}
-                            </span>
-                        </td>
+                  <td class="px-5 py-3 align-middle">
+    <div class="flex items-center gap-2 flex-wrap">
+
+        {{-- Type Badge --}}
+        <span class="inline-flex items-center justify-center px-2 py-1 text-[9px] font-bold uppercase rounded-md border {{ $cfg['badge'] }}">
+            {{ strtoupper($row['type']) }}
+        </span>
+
+        {{-- Installment Status / Button --}}
+        @if(isset($row['status']) && $row['type'] === 'installment')
+
+            @if($row['status'] === 'paid')
+                <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
+                    Paid
+                </span>
+            @else
+                <button
+                    @click.stop="openPayModal({{ $row['debit'] }}, '{{ addslashes($row['description']) }}')"
+                    type="button"
+                    class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
+                    Pay Installment
+                </button>
+            @endif
+
+        @endif
+
+    </div>
+</td>
                     </tr>
                     @empty
                     <tr>
