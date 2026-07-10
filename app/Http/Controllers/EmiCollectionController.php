@@ -254,6 +254,8 @@ class EmiCollectionController extends Controller
                 'partner_id'   => $validated['partner_id'] ?? null,
             ]);
 
+            Receipt::allocateToPartners($receipt);
+
             // Recompute remaining balance from all receipts
             $totalPaid = $sale->receipts()->sum('amount');
             $sale->update(['remaining_balance' => max(0, round((float)$sale->total_amount - $totalPaid, 2))]);

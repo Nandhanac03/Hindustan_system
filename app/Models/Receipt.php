@@ -30,4 +30,31 @@ class Receipt extends Model
     {
         return $this->belongsTo(Payee::class, 'partner_id');
     }
+
+    public static function allocateToPartners(self $receipt): void
+    {
+        if ($receipt->partner_id !== null) {
+            return;
+        }
+
+        $shares = \App\Models\PartnerShare::where('project_id', $receipt->project_id)->get();
+        foreach ($shares as $share) {
+            $partnerAmount = $receipt->amount * ($share->share_pct / 100);
+            
+            self::create([
+                'sale_id'      => $receipt->sale_id,
+                'customer_id'  => $receipt->customer_id,
+                'project_id'   => $receipt->project_id,
+                'unit_id'      => $receipt->unit_id,
+                'receipt_date' => $receipt->receipt_date,
+                'amount'       => $partnerAmount,
+                'payment_mode' => $receipt->payment_mode,
+                'reference_no' => $receipt->reference_no,
+                'bank_name'    => $receipt->bank_name,
+                'remarks'      => "Share of collection ({$share->share_pct}%) from receipt #{$receipt->id}",
+                'created_by'   => $receipt->created_by,
+                'partner_id'   => $share->partner_id,
+            ]);
+        }
+    }
 }

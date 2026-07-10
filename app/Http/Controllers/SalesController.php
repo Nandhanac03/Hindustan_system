@@ -187,7 +187,7 @@ class SalesController extends Controller
 
         // Create the initial payment as a receipt, so it's tracked like any other payment
         if ($initialPayment > 0) {
-            Receipt::create([
+            $receipt = Receipt::create([
                 'sale_id'      => $sale->id,
                 'customer_id'  => $validated['customer_id'],
                 'project_id'   => $validated['project_id'],
@@ -200,6 +200,7 @@ class SalesController extends Controller
                 'remarks'      => 'Initial payment at sale creation',
                 'created_by'   => auth()->id(),
             ]);
+            Receipt::allocateToPartners($receipt);
         }
 
         // Create the brokerage record if a broker is involved
@@ -403,6 +404,7 @@ class SalesController extends Controller
             'remarks'      => $validated['remarks'] ?? null,
             'created_by'   => auth()->id(),
         ]);
+        Receipt::allocateToPartners($receipt);
 
         $sale->update([
             'remaining_balance' => round($sale->total_amount - $sale->receipts()->sum('amount'), 2),
