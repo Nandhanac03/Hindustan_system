@@ -715,152 +715,199 @@
          VIEW SALE MODAL (read-only)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Agreement details</p>
-                        <h2 class="text-lg font-extrabold text-white" x-text="activeSale.sale_number"></h2>
-                        <span class="badge-pill text-[9px] mt-1 inline-block" :class="getStatusBadgeClass(activeSale.status)" x-text="activeSale.status"></span>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">Agreement Details</span>
+                            <span class="badge-pill text-[9px]" :class="getStatusBadgeClass(activeSale.status)" x-text="activeSale.status"></span>
+                        </div>
+                        <h2 class="text-xl font-extrabold text-white tracking-tight" x-text="activeSale.sale_number"></h2>
                     </div>
-                    <button @click="closeViewModal()" class="text-slate-400 hover:text-white transition">✕</button>
+                    <button @click="closeViewModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none">✕</button>
                 </div>
             </div>
-            <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto font-sans text-xs">
+
+            {{-- Scrollable Container --}}
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                 
-                {{-- Basics & Partners Info --}}
-                <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                    <div>
-                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Project Name</label>
-                        <strong class="text-slate-800 text-xs block mt-0.5" x-text="activeSale.project ? activeSale.project.name : '—'"></strong>
-                    </div>
-                    <div>
-                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Unit No</label>
-                        <strong class="text-slate-800 text-xs block mt-0.5" x-text="activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—'"></strong>
-                    </div>
-                    <div>
-                        <label class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Customer Details</label>
-                        <strong class="text-slate-800 text-xs block mt-0.5" x-text="activeSale.customer ? activeSale.customer.name : '—'"></strong>
-                        <span class="text-slate-450 text-[10px] block mt-0.5" x-text="activeSale.customer ? activeSale.customer.email + ' • ' + activeSale.customer.phone : ''"></span>
-                    </div>
-                </div>
-
-                {{-- Sale Amounts --}}
-                <div class="border-t border-slate-100 pt-4">
-                    <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">📐 Rate & Amounts Breakdown</p>
-                    <div class="grid grid-cols-4 gap-4">
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Expected Rate</span>
-                            <span class="font-bold text-slate-800 font-mono" x-text="activeSale.unit ? '₹' + Number(activeSale.unit.expected_rate_per_sqft).toLocaleString() : '—'"></span>
+                {{-- Row 1: Sale Profile --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {{-- Project Card --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Agreed Rate / Sqft</span>
-                            <span class="font-extrabold text-indigo-750 font-mono" x-text="'₹' + Number(activeSale.rate_per_sqft || 0).toLocaleString()"></span>
-                        </div>
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Built-up Area</span>
-                            <span class="font-bold text-slate-800 font-mono" x-text="activeSale.unit ? Number(activeSale.unit.built_up_area).toLocaleString() + ' Sq.Ft' : '—'"></span>
-                        </div>
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Agreed Sale Amount</span>
-                            <span class="font-extrabold text-slate-900 font-mono" x-text="'₹' + Number(activeSale.sale_amount || 0).toLocaleString()"></span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Project Name</span>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.project ? activeSale.project.name : '—'"></strong>
                         </div>
                     </div>
-
-                    <div class="grid grid-cols-4 gap-4 mt-3 pt-3 border-t border-dashed border-slate-150">
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">GST Type</span>
-                            <span class="font-bold text-slate-700 uppercase" x-text="activeSale.gst_type || 'none'"></span>
+                    {{-- Unit Card --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">GST Amount (18%)</span>
-                            <span class="font-bold text-slate-800 font-mono" x-text="'₹' + Number(activeSale.gst_amount || 0).toLocaleString()"></span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Unit & Floor</span>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—'"></strong>
                         </div>
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Total Amount Payable</span>
-                            <span class="font-extrabold text-emerald-700 font-mono" x-text="'₹' + Number(activeSale.total_amount || 0).toLocaleString()"></span>
+                    </div>
+                    {{-- Customer Card --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         </div>
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Remaining Balance</span>
-                            <span class="font-extrabold text-rose-600 font-mono" x-text="'₹' + Number(activeSale.remaining_balance || 0).toLocaleString()"></span>
+                        <div class="overflow-hidden">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Customer Details</span>
+                            <strong class="text-slate-800 text-xs block mt-1 truncate" x-text="activeSale.customer ? activeSale.customer.name : '—'"></strong>
+                            <span class="text-slate-450 text-[10px] block mt-0.5 truncate" x-text="activeSale.customer ? activeSale.customer.phone : ''"></span>
                         </div>
                     </div>
                 </div>
 
-                {{-- Dates & Payment Plan --}}
-                <div class="border-t border-slate-100 pt-4 grid grid-cols-3 gap-4">
-                    <div>
-                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Agreement Date</span>
-                        <span class="font-semibold text-slate-800" x-text="formatDate(activeSale.sale_date)"></span>
+                {{-- Row 2: Financial Summary Card --}}
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                    <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">💰 Pricing & GST Breakdown</p>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Agreed Rate / Sqft</span>
+                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="activeSale.rate_per_sqft > 0 ? '₹' + Number(activeSale.rate_per_sqft).toLocaleString() : '₹0 (Flat Price)'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Built-up Area</span>
+                            <span class="font-bold text-slate-800 text-sm mt-1 block font-mono" x-text="activeSale.unit ? Number(activeSale.unit.built_up_area).toLocaleString() + ' Sq.Ft' : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">GST Type & Amount</span>
+                            <span class="font-bold text-slate-800 text-sm mt-1 block" x-text="activeSale.gst_type && activeSale.gst_type !== 'none' ? '₹' + Number(activeSale.gst_amount || 0).toLocaleString() + ' (' + activeSale.gst_percentage + '%)' : 'None / Excluded'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total Amount Payable</span>
+                            <span class="font-extrabold text-[#a38c29] text-base mt-1 block font-mono" x-text="'₹' + Number(activeSale.total_amount || 0).toLocaleString()"></span>
+                        </div>
                     </div>
-                    <div>
-                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Registration Date</span>
-                        <span class="font-semibold text-slate-800" x-text="formatDate(activeSale.registration_date)"></span>
-                    </div>
-                    <div>
-                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Payment Plan Selected</span>
-                        <span class="font-bold text-indigo-750 uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI / Installment Plan' : 'Lump Sum'"></span>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-100 bg-slate-50/50 -mx-5 -mb-5 p-5 rounded-b-xl">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Agreement Date</span>
+                            <span class="font-bold text-slate-800 mt-1 block" x-text="formatDate(activeSale.sale_date)"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Registration Date</span>
+                            <span class="font-bold text-slate-800 mt-1 block" x-text="formatDate(activeSale.registration_date)"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Selected Plan</span>
+                            <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_plan_type || 'Custom') + ')' : 'Lump Sum'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-450 font-bold uppercase block tracking-wider">Remaining Balance</span>
+                            <span class="font-extrabold text-sm mt-1 block font-mono" :class="activeSale.remaining_balance > 0 ? 'text-rose-600' : 'text-emerald-700'" x-text="'₹' + Number(activeSale.remaining_balance || 0).toLocaleString()"></span>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Broker details --}}
-                <div class="border-t border-slate-100 pt-4">
-                    <p class="text-[10px] font-bold text-primary uppercase tracking-widest mb-3">💼 Broker & Commission Details</p>
-                    <div class="grid grid-cols-3 gap-4" x-show="activeSale.brokerage">
+                {{-- Row 3: Receipts Ledger --}}
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-55/30">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest">💳 Collection Receipts History</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead>
+                                <tr class="bg-slate-50/50 text-[9px] font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100">
+                                    <th class="px-4 py-3">Receipt No</th>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3">Payment Mode</th>
+                                    <th class="px-4 py-3 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="r in activeSale.receipts" :key="r.id">
+                                    <tr class="hover:bg-slate-50/40 transition-colors">
+                                        <td class="px-4 py-3 font-bold text-slate-900" x-text="'REC-' + String(r.id).padStart(5, '0') + (r.reference_no ? ' (' + r.reference_no + ')' : '')"></td>
+                                        <td class="px-4 py-3 text-slate-500" x-text="formatDate(r.receipt_date)"></td>
+                                        <td class="px-4 py-3 text-slate-500 uppercase" x-text="r.payment_mode"></td>
+                                        <td class="px-4 py-3 text-right font-extrabold text-emerald-700 font-mono" x-text="'₹' + Number(r.amount).toLocaleString()"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="!activeSale.receipts || activeSale.receipts.length === 0">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-6 text-center text-slate-400 italic bg-white">No receipts recorded for this sale.</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Row 4: Broker details --}}
+                <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 mb-3">💼 Broker & Commission Details</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" x-show="activeSale.brokerage">
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Broker Name</span>
-                            <span class="font-bold text-slate-800" x-text="activeSale.broker ? activeSale.broker.name : '—'"></span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Broker Name</span>
+                            <span class="font-bold text-slate-800 mt-1 block" x-text="activeSale.broker ? activeSale.broker.name : '—'"></span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Commission Calculations</span>
-                            <span class="font-semibold text-slate-700" x-text="activeSale.brokerage ? (activeSale.brokerage.commission_type === 'percentage' ? activeSale.brokerage.commission_percent + '%' : 'Fixed Rate') : '—'"></span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Commission Structure</span>
+                            <span class="font-bold text-slate-850 mt-1 block" x-text="activeSale.brokerage ? (activeSale.brokerage.commission_type === 'percentage' ? activeSale.brokerage.commission_percent + '% of Sale Price' : 'Fixed Commission') : '—'"></span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Commission Amount / Status</span>
-                            <div class="flex items-center gap-1.5 mt-0.5">
-                                <span class="font-bold text-slate-900 font-mono" x-text="activeSale.brokerage ? '₹' + Number(activeSale.brokerage.commission_amount).toLocaleString() : '—'"></span>
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wide"
-                                      :class="activeSale.brokerage && activeSale.brokerage.status === 'paid' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'"
+                            <span class="text-[9px] text-slate-450 font-bold uppercase block tracking-wider">Payout Amount / Status</span>
+                            <div class="flex items-center gap-1.5 mt-1">
+                                <span class="font-extrabold text-slate-900 font-mono" x-text="activeSale.brokerage ? '₹' + Number(activeSale.brokerage.commission_amount).toLocaleString() : '—'"></span>
+                                <span class="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider inline-block"
+                                      :class="activeSale.brokerage && activeSale.brokerage.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
                                       x-text="activeSale.brokerage ? activeSale.brokerage.status : ''"></span>
                             </div>
                         </div>
                     </div>
-                    <div x-show="!activeSale.brokerage" class="text-slate-400 italic text-[11px]">
+                    <div x-show="!activeSale.brokerage" class="text-slate-400 italic text-[11px] py-1">
                         No broker was associated with this transaction (Direct Sale).
                     </div>
                 </div>
 
-                {{-- Status logs narrative --}}
-                <div class="border-t border-slate-100 pt-4 space-y-2">
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Narrative Status logs</p>
-                    <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
-                        <template x-for="log in activeSale.status_logs" :key="log.id">
-                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-[10px]">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="font-bold text-slate-800 uppercase tracking-wide" x-text="(log.from_status || 'created') + ' → ' + log.to_status"></span>
-                                    <span class="text-slate-450 font-mono" x-text="formatDate(log.created_at)"></span>
+                {{-- Row 5: Logs & Remarks --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- Transition logs --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm space-y-2.5">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">📜 Transition History Logs</p>
+                        <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                            <template x-for="log in activeSale.status_logs" :key="log.id">
+                                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200/60 text-[10px]">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="font-bold text-slate-800 uppercase tracking-wide" x-text="(log.from_status || 'created') + ' → ' + log.to_status"></span>
+                                        <span class="text-slate-400 font-mono text-[9px]" x-text="formatDate(log.created_at)"></span>
+                                    </div>
+                                    <p class="text-slate-600 italic font-sans" x-text="log.reason || 'No narrative provided'"></p>
                                 </div>
-                                <p class="text-slate-600 italic font-sans" x-text="log.reason || 'No narrative provided'"></p>
-                            </div>
-                        </template>
-                        <template x-if="!activeSale.status_logs || activeSale.status_logs.length === 0">
-                            <p class="text-xs text-slate-400 italic">No transition history logged for this agreement.</p>
-                        </template>
+                            </template>
+                            <template x-if="!activeSale.status_logs || activeSale.status_logs.length === 0">
+                                <p class="text-xs text-slate-400 italic py-2">No transition history logged for this agreement.</p>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Remarks --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">💬 Agreement Notes & Remarks</p>
+                        <div class="flex-1 mt-3">
+                            <p class="text-slate-650 font-sans text-xs bg-slate-50 p-3 rounded-lg border border-slate-200/80 h-full min-h-[80px]" x-text="activeSale.notes || 'No remarks recorded for this agreement.'"></p>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Remarks --}}
-                <template x-if="activeSale.notes">
-                    <div class="border-t border-slate-100 pt-4">
-                        <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Remarks / Notes</span>
-                        <p class="text-slate-700 mt-1 font-sans text-xs bg-slate-50 p-3 rounded-lg border border-slate-150" x-text="activeSale.notes"></p>
-                    </div>
-                </template>
-
             </div>
-            <div class="px-6 py-4 border-t border-slate-100 flex justify-end bg-slate-50">
-                <button @click="closeViewModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+            
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t border-slate-200 flex justify-end bg-slate-50">
+                <button @click="closeViewModal()" class="px-4 py-2 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Close Modal</button>
             </div>
         </div>
     </div>
@@ -910,7 +957,7 @@ function salesApp() {
         selectedReturnSale: null,
         targetReturnStatus: '',
         selectedExchangeSale: null,
-        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: 0, reason: '', revert_unsold: true },
+        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: 100000, reason: '', revert_unsold: true },
         exchangeForm: { new_project_id: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '' },
         exchangeAvailableUnits: [],
         exchangeSelectedUnit: null,
@@ -988,7 +1035,7 @@ function salesApp() {
         selectReturnSale(sale, targetStatus) {
             this.selectedReturnSale = sale;
             this.targetReturnStatus = targetStatus;
-            this.returnForm.cancellation_fee = 0;
+            this.returnForm.cancellation_fee = 100000;
             this.returnForm.reason = sale.cancellation_reason || '';
             this.returnForm.revert_unsold = true;
         },
