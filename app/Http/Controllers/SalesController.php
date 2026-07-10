@@ -153,8 +153,17 @@ class SalesController extends Controller
             'created_by'        => auth()->id(),
         ]);
 
-        // Mark the unit as sold
-        Unit::where('id', $validated['unit_id'])->update(['status' => 'sold']);
+        // Mark the unit as sold and update pricing details
+        $unit = Unit::findOrFail($validated['unit_id']);
+        $unitDifference = (float)$unit->expected_sale_amount - (float)$validated['sale_amount'];
+        $unit->update([
+            'status'             => 'sold',
+            'sale_rate_per_sqft' => (float)$validated['rate_per_sqft'],
+            'sale_amount'        => (float)$validated['sale_amount'],
+            'difference'         => $unitDifference,
+            'gst_behavior'       => $validated['gst_type'],
+            'gst_amount'         => $gstAmount,
+        ]);
 
         SaleStatusLog::create([
             'sale_id'      => $sale->id,
@@ -262,6 +271,18 @@ class SalesController extends Controller
             'payment_plan'      => $validated['payment_plan'] ?? $sale->payment_plan,
             'notes'             => $validated['notes'] ?? null,
         ]);
+
+        // Update Unit pricing details since Sale updated
+        if ($sale->unit) {
+            $unitDifference = (float)$sale->unit->expected_sale_amount - (float)$validated['sale_amount'];
+            $sale->unit->update([
+                'sale_rate_per_sqft' => $validated['rate_per_sqft'] ?? $sale->unit->sale_rate_per_sqft,
+                'sale_amount'        => (float)$validated['sale_amount'],
+                'difference'         => $unitDifference,
+                'gst_behavior'       => $validated['gst_type'],
+                'gst_amount'         => $gstAmount,
+            ]);
+        }
 
         // Manage Brokerage
         if (!empty($validated['broker_involved']) && !empty($validated['broker_id'])) {
@@ -413,7 +434,14 @@ class SalesController extends Controller
                 'cancellation_reason' => $validated['reason'],
                 'cancelled_at' => now(),
             ]);
-            Unit::where('id', $sale->unit_id)->update(['status' => 'available']);
+            Unit::where('id', $sale->unit_id)->update([
+                'status'             => 'available',
+                'sale_rate_per_sqft' => null,
+                'sale_amount'        => null,
+                'difference'         => null,
+                'gst_behavior'       => 'none',
+                'gst_amount'         => 0.00,
+            ]);
 
             // 2. Create the new active sale
             $newAmount = (float)$newUnit->expected_sale_amount;
@@ -465,8 +493,16 @@ class SalesController extends Controller
                 $newSale->update(['remaining_balance' => $totalAmount - $newSale->receipts()->sum('amount')]);
             }
 
-            // 4. Mark new unit as sold
-            $newUnit->update(['status' => 'sold']);
+            // 4. Mark new unit as sold and update pricing details
+            $newUnitDifference = (float)$newUnit->expected_sale_amount - $newAmount;
+            $newUnit->update([
+                'status'             => 'sold',
+                'sale_rate_per_sqft' => $newRate,
+                'sale_amount'        => $newAmount,
+                'difference'         => $newUnitDifference,
+                'gst_behavior'       => $gstType,
+                'gst_amount'         => $gstAmount,
+            ]);
 
             // 5. Log status changes
             SaleStatusLog::create([
@@ -509,7 +545,14 @@ class SalesController extends Controller
         }
 
         if ($shouldFreeUnit) {
-            Unit::where('id', $sale->unit_id)->update(['status' => 'available']);
+            Unit::where('id', $sale->unit_id)->update([
+                'status'             => 'available',
+                'sale_rate_per_sqft' => null,
+                'sale_amount'        => null,
+                'difference'         => null,
+                'gst_behavior'       => 'none',
+                'gst_amount'         => 0.00,
+            ]);
         }
 
         SaleStatusLog::create([
