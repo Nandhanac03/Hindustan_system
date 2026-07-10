@@ -19,8 +19,8 @@ class PartnerController extends Controller
         return collect([
             (object)[
                 'id' => 1,
-                'name' => 'Koval Ahmed Haji',
-                'linkedAccount' => (object)['code' => 'PRT-KAH01'],
+                'name' => 'Basheer',
+                'linkedAccount' => (object)['code' => 'PRT-BAS01'],
                 'total_allocated' => 5400000.00,
                 'total_paid' => 3200000.00,
                 'balance' => 2200000.00,
@@ -33,8 +33,8 @@ class PartnerController extends Controller
             ],
             (object)[
                 'id' => 2,
-                'name' => 'Vijayan',
-                'linkedAccount' => (object)['code' => 'PRT-VIJ02'],
+                'name' => 'Pavoor',
+                'linkedAccount' => (object)['code' => 'PRT-PAV02'],
                 'total_allocated' => 3600000.00,
                 'total_paid' => 1500000.00,
                 'balance' => 2100000.00,
@@ -58,8 +58,8 @@ class PartnerController extends Controller
                 'id' => 1,
                 'name' => 'Tabasco Hindustan Infra Developers Pvt.Ltd',
                 'partnerShares' => collect([
-                    (object)['partner' => (object)['name' => 'Koval Ahmed Haji'], 'share_pct' => 60.0],
-                    (object)['partner' => (object)['name' => 'Vijayan'], 'share_pct' => 40.0],
+                    (object)['partner' => (object)['name' => 'Basheer'], 'share_pct' => 60.0],
+                    (object)['partner' => (object)['name' => 'Pavoor'], 'share_pct' => 40.0],
                 ])
             ],
         
