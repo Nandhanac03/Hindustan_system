@@ -64,6 +64,8 @@ class ReportController extends Controller
         $dashboardData = [];
         $auditTrailEntries = collect();
         $approvalReportEntries = collect();
+        $cashBookStats = [];
+        $cashBookChartData = [];
 
         $selectedCustomer = null;
         $totalDebits = 0;
@@ -171,9 +173,17 @@ class ReportController extends Controller
             }
         }
 
-        // 5. CASH BOOK
+        // 5. CASH BOOK — Partner Analytics Dashboard
         if ($activeTab === 'cash_book') {
-            $cashQuery = Receipt::with(['customer', 'sale.project', 'sale.unit']);
+            $cashQuery = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner']);
+
+            // Partner filter
+            $selectedPartnerId = $request->filled('partner_id') ? (int)$request->partner_id : null;
+            if ($selectedPartnerId) {
+                $cashQuery->where('partner_id', $selectedPartnerId);
+            }
+
+            // Payment mode filter
             if ($request->filled('payment_mode')) {
                 $cashQuery->where('payment_mode', $request->payment_mode);
             }
@@ -183,7 +193,109 @@ class ReportController extends Controller
             if ($request->filled('date_to')) {
                 $cashQuery->whereDate('receipt_date', '<=', $request->date_to);
             }
-            $cashBookEntries = $cashQuery->orderByDesc('receipt_date')->paginate(50);
+            if ($request->filled('project_id')) {
+                $cashQuery->where('project_id', $request->project_id);
+            }
+
+            $cashBookEntries = $cashQuery->orderByDesc('receipt_date')->paginate(25);
+
+            // --- Summary Stats ---
+            $statsBaseQuery = Receipt::query();
+            if ($selectedPartnerId) {
+                $statsBaseQuery->where('partner_id', $selectedPartnerId);
+            }
+            if ($request->filled('date_from')) {
+                $statsBaseQuery->whereDate('receipt_date', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $statsBaseQuery->whereDate('receipt_date', '<=', $request->date_to);
+            }
+            if ($request->filled('project_id')) {
+                $statsBaseQuery->where('project_id', $request->project_id);
+            }
+
+            $totalReceived = (float)$statsBaseQuery->sum('amount');
+            $cashReceived  = (float)(clone $statsBaseQuery)->where('payment_mode', 'Cash')->sum('amount');
+            $bankReceived  = (float)(clone $statsBaseQuery)->whereIn('payment_mode', ['Bank Transfer', 'Cheque', 'Online', 'UPI'])->sum('amount');
+            // Pending = outstanding balance of active sales for partner's customers
+            $pendingQuery  = Sale::where('status', 'active')->where('remaining_balance', '>', 0);
+            if ($selectedPartnerId) {
+                $pendingQuery->whereHas('receipts', fn($q) => $q->where('partner_id', $selectedPartnerId));
+            }
+            $pendingBalance = (float)$pendingQuery->sum('remaining_balance');
+
+            $cashBookStats = [
+                'total_received'  => $totalReceived,
+                'cash_received'   => $cashReceived,
+                'bank_received'   => $bankReceived,
+                'pending_balance' => $pendingBalance,
+                'selected_partner_id' => $selectedPartnerId,
+            ];
+
+            // --- Monthly trend (last 12 months) ---
+            $monthlyData = [];
+            for ($i = 11; $i >= 0; $i--) {
+                $month = Carbon::now()->subMonths($i);
+                $monthQ = Receipt::query()
+                    ->whereYear('receipt_date', $month->year)
+                    ->whereMonth('receipt_date', $month->month);
+                if ($selectedPartnerId) {
+                    $monthQ->where('partner_id', $selectedPartnerId);
+                }
+                if ($request->filled('project_id')) {
+                    $monthQ->where('project_id', $request->project_id);
+                }
+                $monthlyData[] = [
+                    'label'  => $month->format('M Y'),
+                    'amount' => (float)$monthQ->sum('amount'),
+                ];
+            }
+
+            // --- Payment mode distribution ---
+            $paymentModes = Receipt::query()
+                ->selectRaw('payment_mode, SUM(amount) as total')
+                ->when($selectedPartnerId, fn($q) => $q->where('partner_id', $selectedPartnerId))
+                ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
+                ->when($request->filled('date_to'),   fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->groupBy('payment_mode')
+                ->orderByDesc('total')
+                ->get();
+
+            // --- Partner-wise breakdown ---
+            $partnerWise = Receipt::query()
+                ->selectRaw('partner_id, SUM(amount) as total')
+                ->with('partner')
+                ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
+                ->when($request->filled('date_to'),   fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->groupBy('partner_id')
+                ->orderByDesc('total')
+                ->get();
+
+            // --- Daily trend (last 30 days) ---
+            $dailyData = [];
+            for ($i = 29; $i >= 0; $i--) {
+                $day = Carbon::now()->subDays($i);
+                $dayQ = Receipt::query()->whereDate('receipt_date', $day->toDateString());
+                if ($selectedPartnerId) {
+                    $dayQ->where('partner_id', $selectedPartnerId);
+                }
+                if ($request->filled('project_id')) {
+                    $dayQ->where('project_id', $request->project_id);
+                }
+                $dailyData[] = [
+                    'label'  => $day->format('d M'),
+                    'amount' => (float)$dayQ->sum('amount'),
+                ];
+            }
+
+            $cashBookChartData = [
+                'monthly'      => $monthlyData,
+                'daily'        => $dailyData,
+                'payment_modes' => $paymentModes,
+                'partner_wise'  => $partnerWise,
+            ];
         }
 
         // 6. BANK REPORTS
@@ -441,7 +553,9 @@ class ReportController extends Controller
             'balanceSheetEntries',
             'dashboardData',
             'auditTrailEntries',
-            'approvalReportEntries'
+            'approvalReportEntries',
+            'cashBookStats',
+            'cashBookChartData'
         ));
     }
 }

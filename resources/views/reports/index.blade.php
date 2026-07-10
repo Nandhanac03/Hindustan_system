@@ -445,40 +445,233 @@
 
         {{-- 5. CASH BOOK --}}
         @if($activeTab === 'cash_book')
-        <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Consolidated Cash Book</h3>
+        <div class="space-y-6" id="cashBookDashboard">
 
-            <div id="cashFlowTrendChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
-
-            <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                <table id="reportsTable" class="w-full text-xs text-left">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
-                            <th class="px-5 py-3">Receipt Date</th>
-                            <th class="px-5 py-3">Voucher ID</th>
-                            <th class="px-5 py-3">Description</th>
-                            <th class="px-5 py-3">Inflow Mode</th>
-                            <th class="px-5 py-3 text-right">Inflow Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-650 font-mono">
-                        @forelse($cashBookEntries as $cash)
-                        <tr class="hover:bg-slate-50/60 font-semibold">
-                            <td class="px-5 py-3 text-slate-500 font-sans">{{ $cash->receipt_date?->format('d M Y') }}</td>
-                            <td class="px-5 py-3 font-bold text-indigo-700">REC-{{ sprintf("%05d", $cash->id) }}</td>
-                            <td class="px-5 py-3 font-sans text-slate-800">Payment receipt from {{ $cash->customer?->name }} (Unit: {{ $cash->sale?->unit?->door_no }})</td>
-                            <td class="px-5 py-3 font-sans">{{ $cash->payment_mode }}</td>
-                            <td class="px-5 py-3 text-right text-emerald-700 font-bold">₹{{ number_format($cash->amount, 2) }}</td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="px-5 py-12 text-center text-slate-400 italic">No cash register logs logged.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            {{-- Section Header with partner context --}}
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Partner Cash Book Analytics</h3>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Real-time collection register with partner-wise breakdown and trend analytics.</p>
+                </div>
+                {{-- Partner Quick-filter pill tabs --}}
+                <div class="flex flex-wrap gap-2">
+                    <a href="?{{ http_build_query(array_merge(request()->query(), ['report'=>'cash_book', 'partner_id'=>''])) }}"
+                       class="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all
+                              {{ !request('partner_id') ? 'bg-slate-900 text-white border-slate-900 shadow-md' : 'border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-800' }}">
+                        All Partners
+                    </a>
+                    @foreach($partners as $pt)
+                    <a href="?{{ http_build_query(array_merge(request()->query(), ['report'=>'cash_book', 'partner_id'=>$pt->id])) }}"
+                       class="px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all
+                              {{ request('partner_id') == $pt->id ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-md' : 'border-slate-200 text-slate-500 hover:border-[#a38c29] hover:text-[#a38c29]' }}">
+                        {{ $pt->name }}
+                    </a>
+                    @endforeach
+                </div>
             </div>
-            <div>{{ $cashBookEntries->appends(request()->query())->links() }}</div>
+
+            {{-- KPI Summary Cards --}}
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {{-- Total Received --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-2xl p-5 shadow-lg text-white">
+                    <div class="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                    <div class="absolute -bottom-3 -left-3 w-14 h-14 bg-white/10 rounded-full"></div>
+                    <div class="relative">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+                            </div>
+                            <span class="text-[9px] font-bold uppercase tracking-widest opacity-80">Total Received</span>
+                        </div>
+                        <div class="text-xl font-black font-mono tracking-tight">₹{{ number_format($cashBookStats['total_received'] ?? 0, 0) }}</div>
+                        <div class="text-[9px] opacity-70 mt-1 font-sans">All payment modes</div>
+                    </div>
+                </div>
+
+                {{-- Cash Received --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 shadow-lg text-white">
+                    <div class="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                    <div class="absolute -bottom-3 -left-3 w-14 h-14 bg-white/10 rounded-full"></div>
+                    <div class="relative">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <span class="text-[9px] font-bold uppercase tracking-widest opacity-80">Cash in Hand</span>
+                        </div>
+                        <div class="text-xl font-black font-mono tracking-tight">₹{{ number_format($cashBookStats['cash_received'] ?? 0, 0) }}</div>
+                        <div class="text-[9px] opacity-70 mt-1 font-sans">Cash mode only</div>
+                    </div>
+                </div>
+
+                {{-- Bank / Digital Received --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-violet-500 to-violet-700 rounded-2xl p-5 shadow-lg text-white">
+                    <div class="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                    <div class="absolute -bottom-3 -left-3 w-14 h-14 bg-white/10 rounded-full"></div>
+                    <div class="relative">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            </div>
+                            <span class="text-[9px] font-bold uppercase tracking-widest opacity-80">Bank / Digital</span>
+                        </div>
+                        <div class="text-xl font-black font-mono tracking-tight">₹{{ number_format($cashBookStats['bank_received'] ?? 0, 0) }}</div>
+                        <div class="text-[9px] opacity-70 mt-1 font-sans">Bank · Cheque · UPI · Online</div>
+                    </div>
+                </div>
+
+                {{-- Pending Collections --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 shadow-lg text-white">
+                    <div class="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full"></div>
+                    <div class="absolute -bottom-3 -left-3 w-14 h-14 bg-white/10 rounded-full"></div>
+                    <div class="relative">
+                        <div class="flex items-center gap-2 mb-2">
+                            <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <span class="text-[9px] font-bold uppercase tracking-widest opacity-80">Pending Balance</span>
+                        </div>
+                        <div class="text-xl font-black font-mono tracking-tight">₹{{ number_format($cashBookStats['pending_balance'] ?? 0, 0) }}</div>
+                        <div class="text-[9px] opacity-70 mt-1 font-sans">Outstanding receivables</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Charts Row 1: Monthly Bar + Daily Line --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">Monthly Cash Collections</h4>
+                            <p class="text-[9px] text-slate-400">Last 12 months · bar chart</p>
+                        </div>
+                        <span class="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">INFLOW</span>
+                    </div>
+                    <div id="cbMonthlyChart" class="w-full" style="height:220px;"></div>
+                </div>
+
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">Payment Mode Mix</h4>
+                            <p class="text-[9px] text-slate-400">Cash · Bank · UPI · Cheque</p>
+                        </div>
+                    </div>
+                    <div id="cbPaymentModeChart" class="w-full" style="height:220px;"></div>
+                </div>
+            </div>
+
+            {{-- Charts Row 2: Daily Line + Partner Donut + Partner Bar --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div class="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">Daily Collection Trend</h4>
+                            <p class="text-[9px] text-slate-400">Last 30 days · line chart</p>
+                        </div>
+                        <span class="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">TREND</span>
+                    </div>
+                    <div id="cbDailyTrendChart" class="w-full" style="height:200px;"></div>
+                </div>
+
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h4 class="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">Partner-wise Collections</h4>
+                            <p class="text-[9px] text-slate-400">Basheer vs Pavoor · donut</p>
+                        </div>
+                    </div>
+                    <div id="cbPartnerDonutChart" class="w-full flex-1" style="height:200px;"></div>
+                </div>
+            </div>
+
+            {{-- Partner comparison bar chart --}}
+            @if($cashBookChartData['partner_wise']->count() > 1)
+            <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h4 class="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">Partner Collection Comparison</h4>
+                        <p class="text-[9px] text-slate-400">Total amount received per partner</p>
+                    </div>
+                </div>
+                <div id="cbPartnerBarChart" class="w-full" style="height:180px;"></div>
+            </div>
+            @endif
+
+            {{-- Transaction Table --}}
+            <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
+                <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h4 class="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">Recent Cash Book Entries</h4>
+                    <span class="text-[9px] text-slate-400 font-mono">{{ $cashBookEntries->total() }} records</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="reportsTable" class="w-full text-xs text-left">
+                        <thead>
+                            <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="px-5 py-3">Date</th>
+                                <th class="px-5 py-3">Voucher #</th>
+                                <th class="px-5 py-3">Customer / Unit</th>
+                                <th class="px-5 py-3">Partner</th>
+                                <th class="px-5 py-3">Mode</th>
+                                <th class="px-5 py-3">Bank Ref</th>
+                                <th class="px-5 py-3 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            @forelse($cashBookEntries as $cash)
+                            @php
+                                $modeColors = [
+                                    'Cash'          => 'bg-emerald-50 text-emerald-700 border-emerald-100',
+                                    'Bank Transfer' => 'bg-blue-50 text-blue-700 border-blue-100',
+                                    'Cheque'        => 'bg-violet-50 text-violet-700 border-violet-100',
+                                    'Online'        => 'bg-indigo-50 text-indigo-700 border-indigo-100',
+                                    'UPI'           => 'bg-amber-50 text-amber-700 border-amber-100',
+                                ];
+                                $mc = $modeColors[$cash->payment_mode] ?? 'bg-slate-100 text-slate-700 border-slate-200';
+                            @endphp
+                            <tr class="hover:bg-slate-50/70 transition-colors font-semibold">
+                                <td class="px-5 py-3.5 text-slate-500 font-sans whitespace-nowrap">{{ $cash->receipt_date?->format('d M Y') }}</td>
+                                <td class="px-5 py-3.5">
+                                    <span class="font-bold text-indigo-700 font-mono">REC-{{ sprintf("%05d", $cash->id) }}</span>
+                                </td>
+                                <td class="px-5 py-3.5 font-sans">
+                                    <div class="font-bold text-slate-900">{{ $cash->customer?->name ?? '—' }}</div>
+                                    <div class="text-[10px] text-slate-400">
+                                        {{ $cash->sale?->project?->name }} · Unit {{ $cash->sale?->unit?->door_no ?? '—' }}
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3.5 font-sans">
+                                    @if($cash->partner)
+                                        <span class="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-100 inline-block">{{ $cash->partner->name }}</span>
+                                    @else
+                                        <span class="text-slate-300 font-mono text-[10px]">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 font-sans">
+                                    <span class="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase border inline-block {{ $mc }}">{{ $cash->payment_mode }}</span>
+                                </td>
+                                <td class="px-5 py-3.5 font-mono text-slate-400 text-[10px]">{{ $cash->reference_no ?? '—' }}</td>
+                                <td class="px-5 py-3.5 text-right font-black font-mono text-emerald-700 text-sm">₹{{ number_format($cash->amount, 2) }}</td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="px-5 py-16 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center">
+                                            <svg class="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        </div>
+                                        <p class="text-slate-400 italic text-xs">No cash entries found for the selected filters.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-5 py-4 border-t border-slate-100">
+                    {{ $cashBookEntries->appends(request()->query())->links() }}
+                </div>
+            </div>
         </div>
         @endif
 
@@ -1214,19 +1407,109 @@ function reportsApp() {
             }
             @endif
 
-            // 5. CASH BOOK
+            // 5. CASH BOOK — Partner Analytics Dashboard
             @if($activeTab === 'cash_book')
             if (this.activeTab === 'cash_book') {
-                new ApexCharts(document.querySelector("#cashFlowTrendChart"), {
-                    series: [{
-                        name: 'Cash Receipts',
-                        data: [44, 55, 41, 67, 22, 43, 21, 49, 56, 27, 43, 56]
-                    }],
-                    chart: { type: 'bar', height: 140, toolbar: { show: false } },
-                    colors: ['#10b981'],
-                    plotOptions: { bar: { columnWidth: '40%', borderRadius: 2 } },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] }
+                // Monthly collections bar chart
+                const cbMonthlyLabels  = {!! json_encode(array_column($cashBookChartData['monthly'], 'label')) !!};
+                const cbMonthlyAmounts = {!! json_encode(array_column($cashBookChartData['monthly'], 'amount')) !!};
+                new ApexCharts(document.querySelector("#cbMonthlyChart"), {
+                    series: [{ name: 'Collections', data: cbMonthlyAmounts }],
+                    chart: { type: 'bar', height: 220, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                    colors: ['#a38c29'],
+                    plotOptions: { bar: { columnWidth: '55%', borderRadius: 4 } },
+                    dataLabels: { enabled: false },
+                    xaxis: {
+                        categories: cbMonthlyLabels,
+                        labels: { style: { fontSize: '9px', fontWeight: 600 } }
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v >= 1000 ? (v/1000).toFixed(0)+'K' : v))
+                        }
+                    },
+                    grid: { borderColor: '#f1f5f9' },
+                    tooltip: { y: { formatter: (v) => '₹' + v.toLocaleString('en-IN') } }
                 }).render();
+
+                // Payment mode donut
+                const cbModeLabels  = {!! json_encode($cashBookChartData['payment_modes']->pluck('payment_mode')->map(fn($m) => $m ?? 'Unknown')) !!};
+                const cbModeAmounts = {!! json_encode($cashBookChartData['payment_modes']->pluck('total')->map(fn($v) => (float)$v)) !!};
+                if (cbModeLabels.length > 0) {
+                    new ApexCharts(document.querySelector("#cbPaymentModeChart"), {
+                        series: cbModeAmounts,
+                        labels: cbModeLabels,
+                        chart: { type: 'donut', height: 220, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#f97316'],
+                        legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
+                        dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        plotOptions: { pie: { donut: { size: '65%' } } }
+                    }).render();
+                }
+
+                // Daily trend line chart (last 30 days)
+                const cbDailyLabels  = {!! json_encode(array_column($cashBookChartData['daily'], 'label')) !!};
+                const cbDailyAmounts = {!! json_encode(array_column($cashBookChartData['daily'], 'amount')) !!};
+                new ApexCharts(document.querySelector("#cbDailyTrendChart"), {
+                    series: [{ name: 'Daily Collections', data: cbDailyAmounts }],
+                    chart: { type: 'area', height: 200, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                    colors: ['#3b82f6'],
+                    stroke: { curve: 'smooth', width: 2 },
+                    fill: {
+                        type: 'gradient',
+                        gradient: { shadeIntensity: 1, opacityFrom: 0.35, opacityTo: 0.05, stops: [0, 100] }
+                    },
+                    dataLabels: { enabled: false },
+                    xaxis: {
+                        categories: cbDailyLabels,
+                        labels: { rotate: -45, style: { fontSize: '8px' }, show: cbDailyLabels.length <= 15 }
+                    },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v) } },
+                    grid: { borderColor: '#f1f5f9' },
+                    tooltip: { y: { formatter: (v) => '₹' + v.toLocaleString('en-IN') } }
+                }).render();
+
+                // Partner-wise donut chart
+                const cbPartnerLabels  = {!! json_encode($cashBookChartData['partner_wise']->map(fn($r) => $r->partner?->name ?? 'Unknown')) !!};
+                const cbPartnerAmounts = {!! json_encode($cashBookChartData['partner_wise']->pluck('total')->map(fn($v) => (float)$v)) !!};
+                if (cbPartnerLabels.length > 0) {
+                    new ApexCharts(document.querySelector("#cbPartnerDonutChart"), {
+                        series: cbPartnerAmounts,
+                        labels: cbPartnerLabels,
+                        chart: { type: 'donut', height: 200, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#a38c29', '#10b981', '#3b82f6', '#f97316', '#8b5cf6'],
+                        legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
+                        dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        plotOptions: { pie: { donut: { size: '65%', labels: { show: true, total: { show: true, label: 'Total', formatter: (w) => '₹' + w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString('en-IN') } } } } }
+                    }).render();
+                }
+
+                // Partner comparison bar chart (if multiple partners)
+                @if($cashBookChartData['partner_wise']->count() > 1)
+                const cbPartnerBarEl = document.querySelector("#cbPartnerBarChart");
+                if (cbPartnerBarEl) {
+                    new ApexCharts(cbPartnerBarEl, {
+                        series: [{ name: 'Total Received', data: cbPartnerAmounts }],
+                        chart: { type: 'bar', height: 180, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#a38c29', '#10b981', '#3b82f6', '#f97316'],
+                        plotOptions: { bar: { horizontal: true, borderRadius: 4, dataLabels: { position: 'top' } } },
+                        dataLabels: {
+                            enabled: true,
+                            formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN'),
+                            style: { fontSize: '9px', colors: ['#475569'] },
+                            offsetX: 5
+                        },
+                        xaxis: {
+                            categories: cbPartnerLabels,
+                            labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') }
+                        },
+                        grid: { borderColor: '#f1f5f9' },
+                        tooltip: { y: { formatter: (v) => '₹' + v.toLocaleString('en-IN') } }
+                    }).render();
+                }
+                @endif
             }
             @endif
 
