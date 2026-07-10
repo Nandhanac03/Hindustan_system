@@ -403,7 +403,6 @@
                                     <select x-model="forms.add.emi_plan_type" required
                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                         <option value="fixed-12">Fixed 12-Month Repayment Plan</option>
-                                        <option value="clp">Construction Linked Milestone Plan (CLP)</option>
                                         <option value="fixed-36">36-Month Milestone + Fixed Combo Plan</option>
                                     </select>
                                 </div>
