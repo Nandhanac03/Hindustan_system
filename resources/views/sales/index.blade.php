@@ -112,7 +112,7 @@
                                 <span x-show="!sale.gst_type || sale.gst_type === 'none'" class="text-slate-400">N/A</span>
                             </td>
                             <td class="px-3 py-3 border font-bold text-emerald-700" x-text="'₹' + Number(sale.total_amount).toLocaleString()"></td>
-                            <td class="px-3 py-3 border text-slate-500" x-text="sale.sale_date"></td>
+                            <td class="px-3 py-3 border text-slate-500" x-text="formatDate(sale.sale_date)"></td>
                             <td class="px-3 py-3 border">
                                 <span class="badge-pill" :class="getStatusBadgeClass(sale.status)" x-text="sale.status"></span>
                             </td>
@@ -233,16 +233,23 @@
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Rate per Sq.Ft *</label>
                                     <input type="number" step="0.01" x-model="forms.add.rate_per_sqft" @input="onRateChange('add')" placeholder="Enter agreed rate"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                           :disabled="selectedUnit.add && (selectedUnit.add.unit_type_name === 'Parking' || selectedUnit.add.unit_type_category === 'parking')"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
                                     <template x-if="errors.rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.rate_per_sqft[0]"></p></template>
                                 </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Agreed Sale Amount</p>
-                                    <p class="text-lg font-extrabold text-slate-900" x-text="'₹' + Number(forms.add.sale_amount || 0).toLocaleString()"></p>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
+                                    <template x-if="selectedUnit.add && (selectedUnit.add.unit_type_name === 'Parking' || selectedUnit.add.unit_type_category === 'parking')">
+                                        <input type="number" step="0.01" x-model="forms.add.sale_amount" @input="recalculateGst('add'); recalculateBrokerage('add');" placeholder="Enter agreed amount"
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    </template>
+                                    <template x-if="!selectedUnit.add || (selectedUnit.add.unit_type_name !== 'Parking' && selectedUnit.add.unit_type_category !== 'parking')">
+                                        <p class="text-lg font-extrabold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.add.sale_amount || 0).toLocaleString()"></p>
+                                    </template>
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Difference</p>
-                                    <p class="text-sm font-bold" :class="saleDifference('add') >= 0 ? 'text-emerald-600' : 'text-rose-600'" x-text="'₹' + Number(saleDifference('add')).toLocaleString()"></p>
+                                    <p class="text-sm font-bold font-mono" :class="saleDifference('add') >= 0 ? 'text-emerald-600' : 'text-rose-600'" x-text="'₹' + Number(saleDifference('add')).toLocaleString()"></p>
                                 </div>
                             </div>
 
@@ -500,11 +507,18 @@
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Rate per Sq.Ft *</label>
                                     <input type="number" step="0.01" x-model="forms.edit.rate_per_sqft" @input="onRateChange('edit')" placeholder="Enter agreed rate"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                           :disabled="selectedUnit.edit && (selectedUnit.edit.unit_type_name === 'Parking' || selectedUnit.edit.unit_type_category === 'parking')"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
                                 </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Agreed Sale Amount</p>
-                                    <p class="text-lg font-extrabold text-slate-900 font-mono" x-text="'₹' + Number(forms.edit.sale_amount || 0).toLocaleString()"></p>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
+                                    <template x-if="selectedUnit.edit && (selectedUnit.edit.unit_type_name === 'Parking' || selectedUnit.edit.unit_type_category === 'parking')">
+                                        <input type="number" step="0.01" x-model="forms.edit.sale_amount" @input="recalculateGst('edit'); recalculateBrokerage('edit');" placeholder="Enter agreed amount"
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    </template>
+                                    <template x-if="!selectedUnit.edit || (selectedUnit.edit.unit_type_name !== 'Parking' && selectedUnit.edit.unit_type_category !== 'parking')">
+                                        <p class="text-lg font-extrabold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.edit.sale_amount || 0).toLocaleString()"></p>
+                                    </template>
                                 </div>
                                 <div>
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Difference</p>
@@ -1218,8 +1232,16 @@ function salesApp() {
             const unit = this.availableUnits[mode].find(u => u.id == this.forms[mode].unit_id);
             this.selectedUnit[mode] = unit || null;
             if (unit) {
-                this.forms[mode].rate_per_sqft = unit.expected_rate_per_sqft || '';
-                this.onRateChange(mode);
+                const isParking = unit.unit_type_name === 'Parking' || unit.unit_type_category === 'parking';
+                if (isParking) {
+                    this.forms[mode].rate_per_sqft = 0;
+                    this.forms[mode].sale_amount = unit.expected_sale_amount || '';
+                    this.recalculateGst(mode);
+                    this.recalculateBrokerage(mode);
+                } else {
+                    this.forms[mode].rate_per_sqft = unit.expected_rate_per_sqft || '';
+                    this.onRateChange(mode);
+                }
             }
         },
 
@@ -1415,7 +1437,9 @@ function salesApp() {
                     floor_name: this.activeSale.unit.floor ? this.activeSale.unit.floor.name : '',
                     built_up_area: this.activeSale.unit.built_up_area,
                     expected_rate_per_sqft: this.activeSale.unit.expected_rate_per_sqft,
-                    expected_sale_amount: this.activeSale.unit.expected_sale_amount
+                    expected_sale_amount: this.activeSale.unit.expected_sale_amount,
+                    unit_type_name: this.activeSale.unit.unit_type ? this.activeSale.unit.unit_type.name : '',
+                    unit_type_category: this.activeSale.unit.unit_type ? this.activeSale.unit.unit_type.category : ''
                 } : null;
 
                 const initialReceipt = this.activeSale.receipts ? this.activeSale.receipts.find(r => r.remarks === 'Initial payment at sale creation') : null;

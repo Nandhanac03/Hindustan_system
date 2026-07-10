@@ -22,7 +22,7 @@ class SalesController extends Controller
     public function index(Request $request): View|JsonResponse
     {
         $projectsList = Project::orderBy('name')->get();
-        if (!$request->has('project_id') && !$request->filled('project_id') && $projectsList->isNotEmpty()) {
+        if (!$request->ajax() && !$request->wantsJson() && !$request->has('project_id') && !$request->filled('project_id') && $projectsList->isNotEmpty()) {
             $request->merge(['project_id' => (string)$projectsList->first()->id]);
         }
 
@@ -72,7 +72,7 @@ class SalesController extends Controller
         $units = Unit::where('project_id', $projectId)
             ->where('status', 'available')
             ->where('is_active', true)
-            ->with('floor')
+            ->with(['floor', 'unitType'])
             ->get()
             ->map(function ($unit) {
                 return [
@@ -82,6 +82,8 @@ class SalesController extends Controller
                     'built_up_area' => $unit->built_up_area,
                     'expected_rate_per_sqft' => $unit->expected_rate_per_sqft,
                     'expected_sale_amount' => $unit->expected_sale_amount,
+                    'unit_type_name' => $unit->unitType?->name ?? '',
+                    'unit_type_category' => $unit->unitType?->category ?? '',
                 ];
             });
 
@@ -90,6 +92,13 @@ class SalesController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        if ($request->has('unit_id')) {
+            $unit = Unit::with('unitType')->find($request->unit_id);
+            if ($unit && $unit->unitType && (strtolower($unit->unitType->name) === 'parking' || strtolower($unit->unitType->category) === 'parking')) {
+                $request->merge(['rate_per_sqft' => 0]);
+            }
+        }
+
         $validated = $request->validate([
             'project_id'             => ['required', 'exists:projects,id'],
             'unit_id'                => ['required', 'exists:hindustan_units,id'],
@@ -218,7 +227,7 @@ class SalesController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        $sale = Sale::with(['project', 'unit.floor', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage'])->findOrFail($id);
+        $sale = Sale::with(['project', 'unit.floor', 'unit.unitType', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage'])->findOrFail($id);
         $sale->status_logs = $sale->statusLogs;
 
         return response()->json(['sale' => $sale]);
@@ -227,6 +236,13 @@ class SalesController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         $sale = Sale::findOrFail($id);
+
+        if ($sale->unit_id) {
+            $unit = Unit::with('unitType')->find($sale->unit_id);
+            if ($unit && $unit->unitType && (strtolower($unit->unitType->name) === 'parking' || strtolower($unit->unitType->category) === 'parking')) {
+                $request->merge(['rate_per_sqft' => 0]);
+            }
+        }
 
         $validated = $request->validate([
             'sale_amount' => ['required', 'numeric', 'min:0'],

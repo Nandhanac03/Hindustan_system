@@ -36,6 +36,8 @@ return new class extends Migration
                 $table->id();
                 $table->string('booking_number')->unique();
                 $table->foreignId('customer_id')->constrained('customers')->cascadeOnDelete();
+                $table->unsignedBigInteger('project_id');
+                $table->unsignedBigInteger('unit_id');
                 $table->foreignId('sales_executive_id')->constrained('sales_executives')->cascadeOnDelete();
                 $table->decimal('amount', 15, 2);
                 $table->string('status'); // pending_approval, approved, rejected
