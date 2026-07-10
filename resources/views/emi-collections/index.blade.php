@@ -120,6 +120,9 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100 font-mono">{{ $booking->sale_number }}</span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 {{ $booking->payment_plan === 'emi' ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-slate-50 text-slate-600 border-slate-100' }} rounded border ml-1">
+                                    {{ $booking->payment_plan === 'emi' ? 'EMI Plan' : 'Lump Sum' }}
+                                </span>
                                 <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? 'Unknown Customer' }}</h3>
                                 <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
                             </div>

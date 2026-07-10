@@ -73,9 +73,9 @@ class UnitController extends Controller
                 $query->where("{$table}.unit_type_id", $request->unit_type_id);
             }
 
-            // Sort by floor number (asc), then by creation order (oldest first, latest at bottom)
+            // Sort by floor number (asc), then by door number (ascending)
             $query->orderBy('floors.floor_number', 'asc')
-                  ->orderBy("{$table}.created_at", 'asc');
+                  ->orderBy("{$table}.door_no", 'asc');
 
             $units = $query->paginate(50);
 

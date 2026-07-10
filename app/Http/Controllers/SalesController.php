@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Unit;
 use App\Models\Customer;
 use App\Models\Partner;
+use App\Models\CustomerInstallment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -208,6 +209,8 @@ class SalesController extends Controller
             ]);
         }
 
+        $this->syncDefaultEmiSchedule($sale);
+
         return response()->json(['sale' => $sale->load(['receipts', 'brokerage'])], 201);
     }
 
@@ -343,6 +346,8 @@ class SalesController extends Controller
         $sale->update([
             'remaining_balance' => round($totalAmount - $sale->receipts()->sum('amount'), 2),
         ]);
+
+        $this->syncDefaultEmiSchedule($sale);
 
         return response()->json(['sale' => $sale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
     }
@@ -523,6 +528,9 @@ class SalesController extends Controller
                 'performed_by' => auth()->id(),
             ]);
 
+            \App\Models\CustomerInstallment::where('sale_id', $sale->id)->delete();
+            $this->syncDefaultEmiSchedule($newSale);
+
             return response()->json(['sale' => $newSale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
         }
 
@@ -553,6 +561,7 @@ class SalesController extends Controller
                 'gst_behavior'       => 'none',
                 'gst_amount'         => 0.00,
             ]);
+            \App\Models\CustomerInstallment::where('sale_id', $sale->id)->delete();
         }
 
         SaleStatusLog::create([
@@ -565,5 +574,57 @@ class SalesController extends Controller
         ]);
 
         return response()->json(['sale' => $sale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
+    }
+
+    private function syncDefaultEmiSchedule(Sale $sale): void
+    {
+        // Always wipe existing schedule first to avoid duplicates
+        CustomerInstallment::where('sale_id', $sale->id)->delete();
+
+        if ($sale->payment_plan !== 'emi') {
+            return;
+        }
+
+        $totalAmount = (float)$sale->total_amount;
+        $remaining = (float)$sale->remaining_balance;
+        $downPayment = round($totalAmount - $remaining, 2);
+
+        $startDate = \Carbon\Carbon::parse($sale->agreement_date ?? $sale->sale_date ?? now());
+
+        // 1. Down payment (status = paid if fully received, otherwise pending/partial)
+        if ($downPayment > 0) {
+            CustomerInstallment::create([
+                'sale_id'        => $sale->id,
+                'installment_no' => 0,
+                'label'          => 'Down Payment',
+                'due_date'       => $startDate->toDateString(),
+                'amount'         => $downPayment,
+                'status'         => 'paid',
+                'schedule_type'  => 'fixed_emi',
+            ]);
+        }
+
+        // 2. 12 Monthly EMI installments
+        $numEmi = 12;
+        $emiAmount = $numEmi > 0 ? round($remaining / $numEmi, 2) : 0;
+
+        for ($i = 1; $i <= $numEmi; $i++) {
+            $due = $startDate->copy()->addMonths($i);
+            $amt = ($i === $numEmi)
+                ? round($remaining - ($emiAmount * ($numEmi - 1)), 2)
+                : $emiAmount;
+
+            if ($amt > 0) {
+                CustomerInstallment::create([
+                    'sale_id'        => $sale->id,
+                    'installment_no' => $i,
+                    'label'          => "EMI {$i}",
+                    'due_date'       => $due->toDateString(),
+                    'amount'         => $amt,
+                    'status'         => 'pending',
+                    'schedule_type'  => 'fixed_emi',
+                ]);
+            }
+        }
     }
 }

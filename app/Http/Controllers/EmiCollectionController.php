@@ -183,6 +183,7 @@ class EmiCollectionController extends Controller
     {
         $sales = Sale::with(['customer', 'project', 'unit', 'receipts'])
             ->where('status', 'active')
+            ->where('remaining_balance', '>', 0)
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
             ->latest('sale_date')
             ->get();
@@ -230,7 +231,7 @@ class EmiCollectionController extends Controller
             ], 422);
         }
 
-        if ((float)$validated['amount'] > (float)$sale->remaining_balance) {
+        if (round((float)$validated['amount'], 2) > round((float)$sale->remaining_balance, 2)) {
             return response()->json([
                 'error' => 'Payment (₹' . number_format((float)$validated['amount'], 2) .
                            ') exceeds remaining balance (₹' . number_format((float)$sale->remaining_balance, 2) . ').'

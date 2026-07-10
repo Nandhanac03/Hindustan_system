@@ -255,6 +255,7 @@ function receiptsApp() {
         updateSaleDetail() {
             if (!this.form.sale_id) {
                 this.selectedSale = null;
+                this.form.amount = '';
                 return;
             }
             const sel = document.querySelector(`select[x-model="form.sale_id"] option[value="${this.form.sale_id}"]`);
@@ -267,8 +268,10 @@ function receiptsApp() {
                     customer:  sel.dataset.customer || '—',
                     salenum:   sel.dataset.salenum || '',
                 };
+                this.form.amount = parseFloat(this.selectedSale.remaining) || '';
             } else {
                 this.selectedSale = null;
+                this.form.amount = '';
             }
         },
 
