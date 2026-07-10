@@ -222,56 +222,256 @@
 
         {{-- 1. AVAILABILITY REPORT --}}
         @if($activeTab === 'availability')
-        <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Property Availability Matrix</h3>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50 lg:col-span-1">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Availability Distribution</h4>
-                    <div id="availabilityDistributionChart" class="w-full h-52"></div>
-                </div>
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50 lg:col-span-2">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Unit Type Distribution</h4>
-                    <div id="unitTypeDistributionChart" class="w-full h-52"></div>
+        <div class="space-y-6" x-data="{ currentSubTab: 'summary' }">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Property Availability Matrix</h3>
+                
+                {{-- Sub-tab Navigation --}}
+                <div class="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl">
+                    <button type="button" @click="currentSubTab = 'summary'"
+                            :class="currentSubTab === 'summary' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
+                            class="px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all">
+                        Summary
+                    </button>
+                    <button type="button" @click="currentSubTab = 'shop'"
+                            :class="currentSubTab === 'shop' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
+                            class="px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all">
+                        Shop
+                    </button>
+                    <button type="button" @click="currentSubTab = 'flat'"
+                            :class="currentSubTab === 'flat' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
+                            class="px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all">
+                        Flat
+                    </button>
+                    <button type="button" @click="currentSubTab = 'parking'"
+                            :class="currentSubTab === 'parking' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
+                            class="px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all">
+                        Parking
+                    </button>
+                    @if($others->isNotEmpty())
+                    <button type="button" @click="currentSubTab = 'other'"
+                            :class="currentSubTab === 'other' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
+                            class="px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all">
+                        Other
+                    </button>
+                    @endif
                 </div>
             </div>
 
-            <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                <table id="reportsTable" class="w-full text-xs text-left">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
-                            <th class="px-5 py-3">Door No.</th>
-                            <th class="px-5 py-3">Project</th>
-                            <th class="px-5 py-3">Floor</th>
-                            <th class="px-5 py-3">Type</th>
-                            <th class="px-5 py-3 text-right">Built Area</th>
-                            <th class="px-5 py-3 text-right">Carpet Area</th>
-                            <th class="px-5 py-3 text-center">Availability</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-650">
-                        @forelse($inventoryGrid as $row)
-                        <tr class="hover:bg-slate-50/60 font-semibold font-mono">
-                            <td class="px-5 py-3 font-bold text-slate-900">{{ $row->door_no }}</td>
-                            <td class="px-5 py-3 font-sans">{{ $row->project?->name }}</td>
-                            <td class="px-5 py-3 font-sans">{{ $row->floor?->name ?? '—' }}</td>
-                            <td class="px-5 py-3 font-sans text-indigo-700">{{ $row->unitType?->name }}</td>
-                            <td class="px-5 py-3 text-right">{{ number_format($row->built_up_area, 2) }} sqft</td>
-                            <td class="px-5 py-3 text-right">{{ number_format($row->carpet_area, 2) }} sqft</td>
-                            <td class="px-5 py-3 text-center">
-                                @php $sc = ['available'=>'bg-emerald-50 text-emerald-700 border border-emerald-100','sold'=>'bg-rose-50 text-rose-700 border border-rose-100','booked'=>'bg-amber-50 text-amber-700 border border-amber-100','reserved'=>'bg-blue-50 text-blue-700 border border-blue-100']; @endphp
-                                <span class="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase inline-block {{ $sc[$row->status] ?? 'bg-slate-100' }}">{{ $row->status }}</span>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7" class="px-5 py-12 text-center text-slate-400 italic">No inventory matching filter criteria.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            {{-- SUMMARY SUB-TAB --}}
+            <div x-show="currentSubTab === 'summary'" class="space-y-6" x-transition>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50 lg:col-span-1">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Availability Distribution</h4>
+                        <div id="availabilityDistributionChart" class="w-full h-52"></div>
+                    </div>
+                    <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50 lg:col-span-2">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Unit Type Distribution</h4>
+                        <div id="unitTypeDistributionChart" class="w-full h-52"></div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                    <table class="w-full text-xs text-left">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="px-5 py-3">Type</th>
+                                <th class="px-5 py-3 text-center">Nos</th>
+                                <th class="px-5 py-3 text-right">Built Up Area (In Sq Ft)</th>
+                                <th class="px-5 py-3 text-right">Carpet Area (In Sq Ft)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
+                            @php
+                                $totalNos = 0;
+                                $totalBuilt = 0;
+                                $totalCarpet = 0;
+                            @endphp
+                            @foreach($groupedSummary as $row)
+                                @php
+                                    $totalNos += $row->nos;
+                                    $totalBuilt += $row->built_up_area;
+                                    $totalCarpet += $row->carpet_area;
+                                @endphp
+                                <tr class="hover:bg-slate-50/60">
+                                    <td class="px-5 py-3.5 font-sans font-bold text-slate-900">{{ $row->type }}</td>
+                                    <td class="px-5 py-3.5 text-center text-slate-650">{{ $row->nos }}</td>
+                                    <td class="px-5 py-3.5 text-right">
+                                        {{ $row->built_up_area > 0 ? number_format($row->built_up_area, 2) : '—' }}
+                                    </td>
+                                    <td class="px-5 py-3.5 text-right">
+                                        {{ $row->carpet_area > 0 ? number_format($row->carpet_area, 2) : '—' }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                            <tr class="bg-slate-50/80 font-bold text-slate-900">
+                                <td class="px-5 py-4 font-sans uppercase">Total</td>
+                                <td class="px-5 py-4 text-center">{{ $totalNos }}</td>
+                                <td class="px-5 py-4 text-right">{{ number_format($totalBuilt, 2) }}</td>
+                                <td class="px-5 py-4 text-right">{{ number_format($totalCarpet, 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div>{{ $inventoryGrid->appends(request()->query())->links() }}</div>
+
+            {{-- SHOP SUB-TAB --}}
+            <div x-show="currentSubTab === 'shop'" class="space-y-4" x-transition style="display: none;">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                    <table class="w-full text-xs text-left">
+                        <thead>
+                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="px-5 py-3 w-16 text-center">No</th>
+                                <th class="px-5 py-3">Floor</th>
+                                <th class="px-5 py-3">Type</th>
+                                <th class="px-5 py-3">Door No</th>
+                                <th class="px-5 py-3 text-right">Built Up Area (Sq Ft)</th>
+                                <th class="px-5 py-3 text-right">Carpet Area (Sq Ft)</th>
+                                <th class="px-5 py-3 text-center">Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
+                            @forelse($shops as $index => $row)
+                                <tr class="hover:bg-slate-50/60">
+                                    <td class="px-5 py-3.5 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-500">{{ $row->floor?->name ?? '—' }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-900 font-bold">{{ $row->unitType?->name }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-indigo-700">{{ $row->door_no }}</td>
+                                    <td class="px-5 py-3.5 text-right">{{ number_format($row->built_up_area, 2) }}</td>
+                                    <td class="px-5 py-3.5 text-right">{{ number_format($row->carpet_area, 2) }}</td>
+                                    <td class="px-5 py-3.5 text-center font-sans">
+                                        <span class="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">Available</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-5 py-16 text-center text-slate-400 italic">No shops matching filter criteria.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- FLAT SUB-TAB --}}
+            <div x-show="currentSubTab === 'flat'" class="space-y-4" x-transition style="display: none;">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                    <table class="w-full text-xs text-left">
+                        <thead>
+                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="px-5 py-3 w-16 text-center">No</th>
+                                <th class="px-5 py-3">Floor</th>
+                                <th class="px-5 py-3">Type</th>
+                                <th class="px-5 py-3">Door No</th>
+                                <th class="px-5 py-3 text-right">Built Up Area (Sq Ft)</th>
+                                <th class="px-5 py-3 text-right">Carpet Area (Sq Ft)</th>
+                                <th class="px-5 py-3 text-center">Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
+                            @forelse($flats as $index => $row)
+                                <tr class="hover:bg-slate-50/60">
+                                    <td class="px-5 py-3.5 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-500">{{ $row->floor?->name ?? '—' }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-900 font-bold">{{ $row->unitType?->name }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-indigo-700">{{ $row->door_no }}</td>
+                                    <td class="px-5 py-3.5 text-right">{{ number_format($row->built_up_area, 2) }}</td>
+                                    <td class="px-5 py-3.5 text-right">{{ number_format($row->carpet_area, 2) }}</td>
+                                    <td class="px-5 py-3.5 text-center font-sans">
+                                        <span class="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">Available</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-5 py-16 text-center text-slate-400 italic">No flats matching filter criteria.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- PARKING SUB-TAB --}}
+            <div x-show="currentSubTab === 'parking'" class="space-y-4" x-transition style="display: none;">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                    <table class="w-full text-xs text-left">
+                        <thead>
+                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="px-5 py-3 w-16 text-center">No</th>
+                                <th class="px-5 py-3">Floor</th>
+                                <th class="px-5 py-3">Type</th>
+                                <th class="px-5 py-3">Parking No</th>
+                                <th class="px-5 py-3">Sold/Booked To</th>
+                                <th class="px-5 py-3 text-center">Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
+                            @forelse($parkings as $index => $row)
+                                <tr class="hover:bg-slate-50/60">
+                                    <td class="px-5 py-3.5 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-500">{{ $row->floor?->name ?? '—' }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-900 font-bold">{{ $row->unitType?->name }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-indigo-700">{{ $row->door_no }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-800">
+                                        @if($row->sale)
+                                            <div class="font-bold text-[11px]">{{ $row->sale->customer?->name }}</div>
+                                            <div class="text-[9px] text-slate-400 font-mono">Sale: {{ $row->sale->sale_number }}</div>
+                                        @else
+                                            <span class="text-slate-350 italic font-normal text-[10px]">Unassigned</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-5 py-3.5 text-center font-sans">
+                                        <span class="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">Available</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-5 py-16 text-center text-slate-400 italic">No parking bays matching filter criteria.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- OTHER SUB-TAB --}}
+            <div x-show="currentSubTab === 'other'" class="space-y-4" x-transition style="display: none;">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                    <table class="w-full text-xs text-left">
+                        <thead>
+                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="px-5 py-3 w-16 text-center">No</th>
+                                <th class="px-5 py-3">Floor</th>
+                                <th class="px-5 py-3">Type</th>
+                                <th class="px-5 py-3">Door No</th>
+                                <th class="px-5 py-3 text-right">Built Up Area (Sq Ft)</th>
+                                <th class="px-5 py-3 text-right">Carpet Area (Sq Ft)</th>
+                                <th class="px-5 py-3 text-center">Availability</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
+                            @forelse($others as $index => $row)
+                                <tr class="hover:bg-slate-50/60">
+                                    <td class="px-5 py-3.5 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-500">{{ $row->floor?->name ?? '—' }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-900 font-bold">{{ $row->unitType?->name }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-indigo-700">{{ $row->door_no }}</td>
+                                    <td class="px-5 py-3.5 text-right">{{ number_format($row->built_up_area, 2) }}</td>
+                                    <td class="px-5 py-3.5 text-right">{{ number_format($row->carpet_area, 2) }}</td>
+                                    <td class="px-5 py-3.5 text-center font-sans">
+                                        <span class="px-2.5 py-0.5 rounded text-[9px] font-bold uppercase inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">Available</span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-5 py-16 text-center text-slate-400 italic">No other properties matching filter criteria.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
         @endif
 
@@ -1319,22 +1519,30 @@ function reportsApp() {
             @if($activeTab === 'availability')
             if (this.activeTab === 'availability') {
                 new ApexCharts(document.querySelector("#availabilityDistributionChart"), {
-                    series: [44, 55, 13, 33],
+                    series: [
+                        {{ $inventoryGrid->where('status', 'available')->count() }},
+                        {{ $inventoryGrid->where('status', 'sold')->count() }},
+                        {{ $inventoryGrid->where('status', 'booked')->count() }},
+                        {{ $inventoryGrid->where('status', 'reserved')->count() }}
+                    ],
                     labels: ['Available', 'Sold', 'Booked', 'Reserved'],
                     chart: { type: 'donut', height: 200 },
                     colors: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6'],
                     legend: { position: 'bottom' }
                 }).render();
 
+                const unitTypeNames = {!! json_encode($groupedSummary->pluck('type')) !!};
+                const unitTypeCounts = {!! json_encode($groupedSummary->pluck('nos')) !!};
+
                 new ApexCharts(document.querySelector("#unitTypeDistributionChart"), {
                     series: [{
                         name: 'Units Count',
-                        data: [25, 45, 15, 30]
+                        data: unitTypeCounts
                     }],
                     chart: { type: 'bar', height: 200, toolbar: { show: false } },
                     colors: ['#6366f1'],
                     plotOptions: { bar: { columnWidth: '40%', borderRadius: 4 } },
-                    xaxis: { categories: ['Apartments', 'Commercial', 'Penthouses', 'Parking'] }
+                    xaxis: { categories: unitTypeNames }
                 }).render();
             }
             @endif

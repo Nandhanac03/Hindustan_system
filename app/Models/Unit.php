@@ -97,4 +97,9 @@ class Unit extends Model
     {
         return $this->hasOne(Booking::class)->latestOfMany();
     }
+
+    public function sale(): HasOne
+    {
+        return $this->hasOne(Sale::class)->where('status', 'active');
+    }
 }

@@ -61,6 +61,12 @@ class ReportController extends Controller
         $profitLossEntries = [];
         $balanceSheetEntries = [];
         
+        $shops = collect();
+        $flats = collect();
+        $parkings = collect();
+        $others = collect();
+        $groupedSummary = collect();
+
         $dashboardData = [];
         $auditTrailEntries = collect();
         $approvalReportEntries = collect();
@@ -74,7 +80,7 @@ class ReportController extends Controller
 
         // 1. AVAILABILITY REPORT
         if ($activeTab === 'availability') {
-            $invQuery = Unit::with(['floor', 'unitType', 'project']);
+            $invQuery = Unit::with(['floor', 'unitType', 'project', 'sale.customer']);
             if ($request->filled('project_id')) {
                 $invQuery->where('project_id', $request->project_id);
             }
@@ -84,20 +90,43 @@ class ReportController extends Controller
             if ($request->filled('unit_type_id')) {
                 $invQuery->where('unit_type_id', $request->unit_type_id);
             }
-            $inventoryGrid = $invQuery->orderBy('door_no')->paginate(50);
+            
+            $allUnits = $invQuery->orderBy('door_no')->get();
+            $inventoryGrid = $allUnits;
 
-            $sumQuery = Unit::select('unit_type_id', 
-                DB::raw('COUNT(*) as count'),
-                DB::raw('SUM(CASE WHEN status="available" THEN 1 ELSE 0 END) as available'),
-                DB::raw('SUM(CASE WHEN status="sold" OR status="booked" THEN 1 ELSE 0 END) as sold'),
-                DB::raw('SUM(built_up_area) as total_built_up'),
-                DB::raw('SUM(carpet_area) as total_carpet')
-            )->groupBy('unit_type_id');
+            // Only available units for the summary and lists
+            $availableUnits = $allUnits->where('status', 'available');
 
-            if ($request->filled('project_id')) {
-                $sumQuery->where('project_id', $request->project_id);
-            }
-            $inventorySummary = $sumQuery->with('unitType')->get();
+            // Compute summary from available units
+            $groupedSummary = $availableUnits->groupBy(function($unit) {
+                $name = strtolower($unit->unitType?->name ?? 'other');
+                if (str_contains($name, 'shop') || $unit->unitType?->category === 'commercial') {
+                    return 'SHOP';
+                } elseif (str_contains($name, 'flat') || str_contains($name, 'bhk') || str_contains($name, 'villa') || $unit->unitType?->category === 'residential') {
+                    return 'FLAT';
+                } elseif (str_contains($name, 'parking') || $unit->unitType?->category === 'parking') {
+                    return 'PARKING';
+                } elseif (str_contains($name, 'counter')) {
+                    return 'COUNTER';
+                } else {
+                    return 'OTHER';
+                }
+            })->map(function($units, $key) {
+                return (object)[
+                    'type'          => $key,
+                    'nos'           => $units->count(),
+                    'built_up_area' => $units->sum('built_up_area'),
+                    'carpet_area'   => $units->sum('carpet_area'),
+                ];
+            })->values();
+
+            // Split into sub-collections for the view (available units only)
+            $shops = $availableUnits->filter(fn($u) => str_contains(strtolower($u->unitType?->name ?? ''), 'shop') || $u->unitType?->category === 'commercial')->values();
+            $flats = $availableUnits->filter(fn($u) => str_contains(strtolower($u->unitType?->name ?? ''), 'flat') || str_contains(strtolower($u->unitType?->name ?? ''), 'bhk') || str_contains(strtolower($u->unitType?->name ?? ''), 'villa') || $u->unitType?->category === 'residential')->values();
+            $parkings = $availableUnits->filter(fn($u) => str_contains(strtolower($u->unitType?->name ?? ''), 'parking') || $u->unitType?->category === 'parking')->values();
+            $others = $availableUnits->filter(fn($u) => !$shops->contains('id', $u->id) && !$flats->contains('id', $u->id) && !$parkings->contains('id', $u->id))->values();
+
+            $inventorySummary = $groupedSummary;
         }
 
         // 2. SALES REPORT
@@ -555,7 +584,12 @@ class ReportController extends Controller
             'auditTrailEntries',
             'approvalReportEntries',
             'cashBookStats',
-            'cashBookChartData'
+            'cashBookChartData',
+            'shops',
+            'flats',
+            'parkings',
+            'others',
+            'groupedSummary'
         ));
     }
 }
