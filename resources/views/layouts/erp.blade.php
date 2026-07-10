@@ -173,6 +173,16 @@
                     </svg>
                 </a>
                 <div x-show="openEMI" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                    @php
+                        $firstSaleId = \App\Models\Sale::first()?->id ?? 7;
+                    @endphp
+                    <a href="{{ route('emi-collections.ledger', $firstSaleId) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ Request::routeIs('emi-collections.ledger')
+                            ? 'bg-[#a38c29] text-white shadow-md font-bold'
+                            : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Customer EMI
+                    </a>
                     <a href="{{ route('emi-collections.schedules') }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ Request::routeIs('emi-collections.schedules')

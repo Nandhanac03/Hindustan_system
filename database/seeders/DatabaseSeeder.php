@@ -338,13 +338,13 @@ class DatabaseSeeder extends Seeder
             'system_id' => $india->id,
             'project_id' => $projects[0]->id,
             'partner_id' => $partner1->id,
-            'share_pct' => 60.00,
+            'share_pct' => 57.50,
         ]);
         PartnerShare::create([
             'system_id' => $india->id,
             'project_id' => $projects[0]->id,
             'partner_id' => $partner2->id,
-            'share_pct' => 40.00,
+            'share_pct' => 42.50,
         ]);
 
         // 10. Record default activity log entries using the new record helper

@@ -3,12 +3,26 @@
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="ledgerApp()">
 
     {{-- Breadcrumb --}}
-    <div class="flex items-center gap-2 text-[11px] text-slate-400 font-semibold">
-        <a href="{{ route('sales.index') }}" class="hover:text-primary transition-colors">Sales</a>
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <a href="{{ route('emi-collections.outstanding') }}" class="hover:text-primary transition-colors">Outstanding</a>
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        <span class="text-slate-700">Ledger — {{ $sale->sale_number }}</span>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-[11px] text-slate-400 font-semibold">
+        <div class="flex items-center gap-2">
+            <a href="{{ route('sales.index') }}" class="hover:text-primary transition-colors">Sales</a>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <a href="{{ route('emi-collections.outstanding') }}" class="hover:text-primary transition-colors">Outstanding</a>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-slate-700">Ledger — {{ $sale->sale_number }}</span>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Select Customer / Unit:</span>
+            <select onchange="window.location.href='/emi-collections/ledger/' + this.value" 
+                    class="px-3 py-1.5 bg-white border border-slate-200 focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-700 font-bold focus:outline-none transition-all">
+                @foreach($allSales as $s)
+                    <option value="{{ $s->id }}" {{ $s->id == $sale->id ? 'selected' : '' }}>
+                        {{ $s->customer?->name ?? '—' }} — Unit: {{ $s->unit?->door_no ?? '—' }} ({{ $s->sale_number }})
+                    </option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     {{-- Sale Summary Card --}}

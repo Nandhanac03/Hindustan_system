@@ -75,7 +75,7 @@ class PartnerSeeder extends Seeder
                 'system_id'  => $systemId,
                 'partner_id' => $basheerPayeeId,
                 'project_id' => $projectId,
-                'share_pct'  => 50.00,
+                'share_pct'  => 57.50,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
@@ -91,7 +91,7 @@ class PartnerSeeder extends Seeder
                 'system_id'  => $systemId,
                 'partner_id' => $pavoorPayeeId,
                 'project_id' => $projectId,
-                'share_pct'  => 50.00,
+                'share_pct'  => 42.50,
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);

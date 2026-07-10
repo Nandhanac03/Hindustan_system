@@ -432,6 +432,7 @@ class EmiCollectionController extends Controller
         $totalDebits    = $ledger->sum('debit');
         $totalCredits   = $ledger->sum('credit');
         $closingBalance = (float)$sale->remaining_balance;
+        $allSales       = Sale::with(['customer', 'unit'])->get();
 
         return view('emi-collections.ledger', compact(
             'sale',
@@ -439,7 +440,8 @@ class EmiCollectionController extends Controller
             'opening',
             'totalDebits',
             'totalCredits',
-            'closingBalance'
+            'closingBalance',
+            'allSales'
         ));
     }
 

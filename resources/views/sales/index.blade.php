@@ -81,42 +81,42 @@
     {{-- Sales Table --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
+            <table class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100 text-center font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border">Sale No</th>
-                        <th class="px-3 py-3 border">Project / Unit</th>
-                        <th class="px-3 py-3 border">Customer</th>
-                        <th class="px-3 py-3 border">Broker</th>
-                        <th class="px-3 py-3 border">Sale Amount</th>
-                        <th class="px-3 py-3 border">GST</th>
-                        <th class="px-3 py-3 border">Total</th>
-                        <th class="px-3 py-3 border">Sale Date</th>
-                        <th class="px-3 py-3 border">Status</th>
-                        <th class="px-3 py-3 border text-right">Actions</th>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-center font-bold text-slate-650 uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Sale No</th>
+                        <th class="px-4 py-3.5 text-left text-slate-500 font-bold border-b">Project / Unit</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Customer</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Broker</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Sale Amount</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">GST</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Total</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Sale Date</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Status</th>
+                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50">
+                <tbody class="divide-y divide-slate-100 bg-white">
                     <template x-for="sale in sales" :key="sale.id">
-                        <tr class="table-row transition-colors text-center text-xs font-semibold text-slate-700">
-                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="sale.sale_number"></td>
-                            <td class="px-3 py-3 border text-left">
+                        <tr class="hover:bg-slate-50/50 transition-colors text-center text-xs font-semibold text-slate-700">
+                            <td class="px-4 py-4 font-bold text-slate-900 border-b border-slate-100" x-text="sale.sale_number"></td>
+                            <td class="px-4 py-4 text-left border-b border-slate-100">
                                 <div class="font-bold text-slate-800" x-text="sale.project ? sale.project.name : 'N/A'"></div>
-                                <div class="text-[10px] text-slate-400" x-text="sale.unit ? sale.unit.door_no : ''"></div>
+                                <div class="text-[10px] text-slate-400 mt-0.5" x-text="sale.unit ? sale.unit.door_no : ''"></div>
                             </td>
-                            <td class="px-3 py-3 border text-slate-600" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                            <td class="px-3 py-3 border text-slate-500" x-text="sale.broker ? sale.broker.name : '—'"></td>
-                            <td class="px-3 py-3 border font-bold text-slate-900" x-text="'₹' + Number(sale.sale_amount).toLocaleString()"></td>
-                            <td class="px-3 py-3 border">
+                            <td class="px-4 py-4 text-slate-600 border-b border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+                            <td class="px-4 py-4 text-slate-500 border-b border-slate-100" x-text="sale.broker ? sale.broker.name : '—'"></td>
+                            <td class="px-4 py-4 font-bold text-slate-900 border-b border-slate-100" x-text="'₹' + Number(sale.sale_amount).toLocaleString()"></td>
+                            <td class="px-4 py-4 border-b border-slate-100">
                                 <span x-show="sale.gst_type && sale.gst_type !== 'none'" x-text="'₹' + Number(sale.gst_amount).toLocaleString() + ' (' + sale.gst_percentage + '%, ' + sale.gst_type + ')'"></span>
                                 <span x-show="!sale.gst_type || sale.gst_type === 'none'" class="text-slate-400">N/A</span>
                             </td>
-                            <td class="px-3 py-3 border font-bold text-emerald-700" x-text="'₹' + Number(sale.total_amount).toLocaleString()"></td>
-                            <td class="px-3 py-3 border text-slate-500" x-text="formatDate(sale.sale_date)"></td>
-                            <td class="px-3 py-3 border">
+                            <td class="px-4 py-4 font-bold text-emerald-700 border-b border-slate-100" x-text="'₹' + Number(sale.total_amount).toLocaleString()"></td>
+                            <td class="px-4 py-4 text-slate-500 border-b border-slate-100" x-text="formatDate(sale.sale_date)"></td>
+                            <td class="px-4 py-4 border-b border-slate-100">
                                 <span class="badge-pill" :class="getStatusBadgeClass(sale.status)" x-text="sale.status"></span>
                             </td>
-                            <td class="px-3 py-3 border text-right">
+                            <td class="px-4 py-4 text-right border-b border-slate-100">
                                 <div class="flex items-center justify-end gap-2">
                                     <button @click="openViewModal(sale.id)" class="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded transition-colors" title="View">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -129,7 +129,7 @@
                         </tr>
                     </template>
                     <tr x-show="sales.length === 0">
-                        <td colspan="10" class="px-6 py-10 text-center text-slate-400 italic">No sales match the query filters.</td>
+                        <td colspan="10" class="px-6 py-10 text-center text-slate-400 italic bg-white">No sales match the query filters.</td>
                     </tr>
                 </tbody>
             </table>
@@ -403,7 +403,7 @@
                                     <select x-model="forms.add.emi_plan_type" required
                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                         <option value="fixed-12">Fixed 12-Month Repayment Plan</option>
-                                        <option value="fixed-36">36-Month Milestone + Fixed Combo Plan</option>
+                                        <option value="fixed-36">36-Month</option>
                                     </select>
                                 </div>
                             </div>
