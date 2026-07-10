@@ -325,6 +325,16 @@
                        {{ request('report') === 'sales' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Sales Report
                     </a>
+                    <a href="{{ route('reports.index', ['report' => 'sales_return']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'sales_return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Sales Return Report
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'exchange_report']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'exchange_report' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Exchange Report
+                    </a>
                     <a href="{{ route('reports.index', ['report' => 'emi_collections']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'emi_collections' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
@@ -350,47 +360,37 @@
                        {{ request('report') === 'partner_statements' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Partner Statements
                     </a>
-                    <a href="{{ route('reports.index', ['report' => 'supplier_contractor']) }}"
+                    <!-- <a href="{{ route('reports.index', ['report' => 'supplier_contractor']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'supplier_contractor' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Supplier & Contractor
-                    </a>
-                    <a href="{{ route('reports.index', ['report' => 'sales_return']) }}"
-                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
-                       {{ request('report') === 'sales_return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                        Sales Return Report
-                    </a>
-                    <a href="{{ route('reports.index', ['report' => 'exchange_report']) }}"
-                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
-                       {{ request('report') === 'exchange_report' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                        Exchange Report
-                    </a>
-                    <a href="{{ route('reports.index', ['report' => 'petty_cash']) }}"
+                    </a> -->
+                    <!-- <a href="{{ route('reports.index', ['report' => 'petty_cash']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'petty_cash' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Petty Cash Book
-                    </a>
+                    </a> -->
                     <a href="{{ route('reports.index', ['report' => 'loan_schedules']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'loan_schedules' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Bank Loan EMI
                     </a>
-                    <a href="{{ route('reports.index', ['report' => 'trial_balance']) }}"
+                    <!-- <a href="{{ route('reports.index', ['report' => 'trial_balance']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'trial_balance' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Trial Balance
-                    </a>
+                    </a> -->
                     <a href="{{ route('reports.index', ['report' => 'profit_loss']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'profit_loss' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Profit & Loss
                     </a>
-                    <a href="{{ route('reports.index', ['report' => 'balance_sheet']) }}"
+                    <!-- <a href="{{ route('reports.index', ['report' => 'balance_sheet']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'balance_sheet' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Balance Sheet Summary
-                    </a>
-                    <a href="{{ route('reports.index', ['report' => 'audit_trail']) }}"
+                    </a> -->
+                    <!-- <a href="{{ route('reports.index', ['report' => 'audit_trail']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'audit_trail' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Audit Trail Report
@@ -399,7 +399,7 @@
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'approvals' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Approval Reports
-                    </a>
+                    </a> -->
                 </div>
             </div>
 

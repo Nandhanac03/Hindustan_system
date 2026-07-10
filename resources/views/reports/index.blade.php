@@ -206,7 +206,7 @@
                 </div>
             </div>
 
-            {{-- Profitability Charts --}}
+            <!-- {{-- Profitability Charts --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50">
                     <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Revenue vs Cost comparison</h4>
@@ -216,7 +216,7 @@
                     <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Profit Margins breakdown</h4>
                     <div id="profitMarginsChart" class="w-full h-64"></div>
                 </div>
-            </div>
+            </div> -->
         </div>
         @endif
 
@@ -478,7 +478,7 @@
         {{-- 2. SALES REPORT --}}
         @if($activeTab === 'sales')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Real-time Sales Register</h3>
+            <!-- <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Real-time Sales Register</h3>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50">
@@ -489,7 +489,7 @@
                     <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sales by Project</h4>
                     <div id="salesByProjectChart" class="w-full h-56"></div>
                 </div>
-            </div>
+            </div> -->
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">
