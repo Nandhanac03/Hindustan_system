@@ -328,10 +328,18 @@
                         <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💼 Initial Payment</p>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Initial Payment Amount</label>
-                                <input type="number" step="0.01" x-model="forms.add.initial_payment_amount" @input="recalculateBalance('add')" placeholder="Enter 0 if none"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                <p class="text-[10px] text-slate-400">Enter 0 if no payment at this time</p>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Initial Payment</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <input type="number" step="0.01" x-model="forms.add.initial_payment_amount" @input="updateInitialPaymentFromAmount('add')" placeholder="Amount (₹)"
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    </div>
+                                    <div>
+                                        <input type="number" step="0.01" min="0" max="100" x-model="forms.add.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('add')" placeholder="Percentage (%)"
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    </div>
+                                </div>
+                                <p class="text-[9px] text-slate-400">Enter amount or percentage (0 if none)</p>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</label>
@@ -598,10 +606,18 @@
                         <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💼 Initial Payment</p>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Initial Payment Amount</label>
-                                <input type="number" step="0.01" x-model="forms.edit.initial_payment_amount" @input="recalculateBalance('edit')" placeholder="Enter 0 if none"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                <p class="text-[10px] text-slate-400">Enter 0 if no payment at this time</p>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Initial Payment</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <input type="number" step="0.01" x-model="forms.edit.initial_payment_amount" @input="updateInitialPaymentFromAmount('edit')" placeholder="Amount (₹)"
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    </div>
+                                    <div>
+                                        <input type="number" step="0.01" min="0" max="100" x-model="forms.edit.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('edit')" placeholder="Percentage (%)"
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    </div>
+                                </div>
+                                <p class="text-[9px] text-slate-400">Enter amount or percentage (0 if none)</p>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</label>
@@ -1259,7 +1275,32 @@ function salesApp() {
         recalculateBalance(mode) {
             const form = this.forms[mode];
             const total = parseFloat(form.total_amount) || parseFloat(form.sale_amount) || 0;
+            if (form.initial_payment_percentage !== '' && form.initial_payment_percentage !== undefined) {
+                const pct = parseFloat(form.initial_payment_percentage) || 0;
+                form.initial_payment_amount = Math.round((total * pct / 100) * 100) / 100;
+            }
             const paid = parseFloat(form.initial_payment_amount) || 0;
+            form.remaining_balance = Math.round((total - paid) * 100) / 100;
+        },
+
+        updateInitialPaymentFromPercentage(mode) {
+            const form = this.forms[mode];
+            const total = parseFloat(form.total_amount) || parseFloat(form.sale_amount) || 0;
+            const pct = parseFloat(form.initial_payment_percentage) || 0;
+            form.initial_payment_amount = Math.round((total * pct / 100) * 100) / 100;
+            const paid = parseFloat(form.initial_payment_amount) || 0;
+            form.remaining_balance = Math.round((total - paid) * 100) / 100;
+        },
+
+        updateInitialPaymentFromAmount(mode) {
+            const form = this.forms[mode];
+            const total = parseFloat(form.total_amount) || parseFloat(form.sale_amount) || 0;
+            const paid = parseFloat(form.initial_payment_amount) || 0;
+            if (total > 0) {
+                form.initial_payment_percentage = Math.round((paid / total * 100) * 100) / 100;
+            } else {
+                form.initial_payment_percentage = '';
+            }
             form.remaining_balance = Math.round((total - paid) * 100) / 100;
         },
 
@@ -1329,7 +1370,7 @@ function salesApp() {
                 rate_per_sqft: '', sale_amount: '', gst_type: 'none',
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0, brokerage_status: 'pending',
-                initial_payment_amount: 0, payment_mode: 'Cash', reference_no: '', bank_name: '', initial_payment_date: new Date().toISOString().split('T')[0],
+                initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_name: '', initial_payment_date: new Date().toISOString().split('T')[0],
                 payment_plan: 'lump_sum', emi_plan_type: 'fixed-12', remaining_balance: 0,
                 notes: ''
             };
@@ -1400,6 +1441,7 @@ function salesApp() {
                     brokerage_amount: this.activeSale.brokerage ? this.activeSale.brokerage.commission_amount : 0,
                     brokerage_status: this.activeSale.brokerage ? this.activeSale.brokerage.status : 'pending',
                     initial_payment_amount: initialReceipt ? initialReceipt.amount : 0,
+                    initial_payment_percentage: (initialReceipt && this.activeSale.total_amount > 0) ? Math.round((parseFloat(initialReceipt.amount) / parseFloat(this.activeSale.total_amount) * 100) * 100) / 100 : '',
                     payment_mode: initialReceipt ? initialReceipt.payment_mode : 'Cash',
                     reference_no: initialReceipt ? initialReceipt.reference_no || '' : '',
                     bank_name: initialReceipt ? initialReceipt.bank_name || '' : '',
