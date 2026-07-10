@@ -110,6 +110,7 @@ class SalesController extends Controller
             'bank_name'              => ['nullable', 'string'],
             'initial_payment_date'   => ['nullable', 'date'],
             'payment_plan'           => ['required', Rule::in(['lump_sum', 'emi'])],
+            'emi_plan_type'          => ['nullable', 'string', Rule::in(['fixed-12', 'clp', 'fixed-36'])],
             'notes'                  => ['nullable', 'string'],
         ]);
 
@@ -149,6 +150,7 @@ class SalesController extends Controller
             'status'            => 'active',
             'broker_involved'   => $brokerInvolved,
             'payment_plan'      => $validated['payment_plan'],
+            'emi_plan_type'     => $validated['emi_plan_type'] ?? 'fixed-12',
             'remaining_balance' => round($totalAmount - $initialPayment, 2),
             'notes'             => $validated['notes'] ?? null,
             'created_by'        => auth()->id(),
@@ -240,6 +242,7 @@ class SalesController extends Controller
             'brokerage_status' => ['nullable', Rule::in(['pending', 'paid'])],
             'registration_date' => ['nullable', 'date'],
             'payment_plan'      => ['nullable', Rule::in(['lump_sum', 'emi'])],
+            'emi_plan_type'     => ['nullable', 'string', Rule::in(['fixed-12', 'clp', 'fixed-36'])],
             'initial_payment_amount' => ['nullable', 'numeric', 'min:0'],
             'payment_mode' => ['nullable', 'string'],
             'reference_no' => ['nullable', 'string'],
@@ -272,6 +275,7 @@ class SalesController extends Controller
             'broker_involved'   => !empty($validated['broker_involved']),
             'broker_id'         => (!empty($validated['broker_involved']) && !empty($validated['broker_id'])) ? $validated['broker_id'] : null,
             'payment_plan'      => $validated['payment_plan'] ?? $sale->payment_plan,
+            'emi_plan_type'     => $validated['emi_plan_type'] ?? $sale->emi_plan_type ?? 'fixed-12',
             'notes'             => $validated['notes'] ?? null,
         ]);
 
@@ -604,27 +608,138 @@ class SalesController extends Controller
             ]);
         }
 
-        // 2. 12 Monthly EMI installments
-        $numEmi = 12;
-        $emiAmount = $numEmi > 0 ? round($remaining / $numEmi, 2) : 0;
+        $planType = $sale->emi_plan_type ?? 'fixed-12';
 
-        for ($i = 1; $i <= $numEmi; $i++) {
-            $due = $startDate->copy()->addMonths($i);
-            $amt = ($i === $numEmi)
-                ? round($remaining - ($emiAmount * ($numEmi - 1)), 2)
-                : $emiAmount;
+        if ($planType === 'fixed-12') {
+            // 2. 12 Monthly EMI installments
+            $numEmi = 12;
+            $emiAmount = $numEmi > 0 ? round($remaining / $numEmi, 2) : 0;
 
-            if ($amt > 0) {
-                CustomerInstallment::create([
-                    'sale_id'        => $sale->id,
-                    'installment_no' => $i,
-                    'label'          => "EMI {$i}",
-                    'due_date'       => $due->toDateString(),
-                    'amount'         => $amt,
-                    'status'         => 'pending',
-                    'schedule_type'  => 'fixed_emi',
-                ]);
+            for ($i = 1; $i <= $numEmi; $i++) {
+                $due = $startDate->copy()->addMonths($i);
+                $amt = ($i === $numEmi)
+                    ? round($remaining - ($emiAmount * ($numEmi - 1)), 2)
+                    : $emiAmount;
+
+                if ($amt > 0) {
+                    CustomerInstallment::create([
+                        'sale_id'        => $sale->id,
+                        'installment_no' => $i,
+                        'label'          => "EMI {$i}",
+                        'due_date'       => $due->toDateString(),
+                        'amount'         => $amt,
+                        'status'         => 'pending',
+                        'schedule_type'  => 'fixed_emi',
+                    ]);
+                }
             }
+        } elseif ($planType === 'clp') {
+            // Construction Linked Milestone Plan (CLP)
+            // Milestones with percentages (Total = 90%)
+            $milestones = [
+                ['label' => 'Excavation & Foundation Start', 'pct' => 15],
+                ['label' => 'Plinth Level Casting', 'pct' => 15],
+                ['label' => 'Ground Floor Slab Casting', 'pct' => 10],
+                ['label' => 'First Floor Slab Casting', 'pct' => 10],
+                ['label' => 'Masonry & Internal Brickwork', 'pct' => 15],
+                ['label' => 'Sanitary & External Plastering', 'pct' => 15],
+                ['label' => 'Final Handover possession', 'pct' => 10],
+            ];
+
+            $numMilestones = count($milestones);
+            $cumulativeAllocated = 0.0;
+
+            for ($i = 0; $i < $numMilestones; $i++) {
+                $m = $milestones[$i];
+                $due = $startDate->copy()->addMonths(($i + 1) * 3); // estimated 3 month intervals
+                
+                // Scale percentage so the milestones sum to 100% of remaining balance
+                if ($i === $numMilestones - 1) {
+                    $amt = round($remaining - $cumulativeAllocated, 2);
+                } else {
+                    $amt = round($remaining * ($m['pct'] / 90.0), 2);
+                    $cumulativeAllocated += $amt;
+                }
+
+                if ($amt > 0) {
+                    CustomerInstallment::create([
+                        'sale_id'        => $sale->id,
+                        'installment_no' => $i + 1,
+                        'label'          => $m['label'],
+                        'due_date'       => $due->toDateString(),
+                        'amount'         => $amt,
+                        'status'         => 'pending',
+                        'schedule_type'  => 'milestone_clp',
+                    ]);
+                }
+            }
+        } elseif ($planType === 'fixed-36') {
+            // 36-Month Milestone + Fixed Combo Plan
+            // 35 monthly payments representing ~2% each (scaled) + 3 mid-step/registry payments (~5% each)
+            // Sum of weights = 35 * 2 + 3 * 5 = 70 + 15 = 85.
+            $monthlyWeight = 2.0;
+            $milestoneWeight = 5.0;
+            $totalWeight = 85.0;
+
+            $cumulativeAllocated = 0.0;
+            $instIndex = 1;
+
+            // Generate 35 monthly installments
+            for ($i = 1; $i <= 35; $i++) {
+                $due = $startDate->copy()->addMonths($i);
+                $amt = round($remaining * ($monthlyWeight / $totalWeight), 2);
+                $cumulativeAllocated += $amt;
+
+                if ($amt > 0) {
+                    CustomerInstallment::create([
+                        'sale_id'        => $sale->id,
+                        'installment_no' => $instIndex++,
+                        'label'          => "EMI {$i} (Month {$i})",
+                        'due_date'       => $due->toDateString(),
+                        'amount'         => $amt,
+                        'status'         => 'pending',
+                        'schedule_type'  => 'combo_fixed_36',
+                    ]);
+                }
+            }
+
+            // Milestone 1 (Plinth, Month 10)
+            $amtPlinth = round($remaining * ($milestoneWeight / $totalWeight), 2);
+            $cumulativeAllocated += $amtPlinth;
+            CustomerInstallment::create([
+                'sale_id'        => $sale->id,
+                'installment_no' => $instIndex++,
+                'label'          => 'Plinth Stage (Milestone 1)',
+                'due_date'       => $startDate->copy()->addMonths(10)->toDateString(),
+                'amount'         => $amtPlinth,
+                'status'         => 'pending',
+                'schedule_type'  => 'combo_fixed_36',
+            ]);
+
+            // Milestone 2 (Roof, Month 22)
+            $amtRoof = round($remaining * ($milestoneWeight / $totalWeight), 2);
+            $cumulativeAllocated += $amtRoof;
+            CustomerInstallment::create([
+                'sale_id'        => $sale->id,
+                'installment_no' => $instIndex++,
+                'label'          => 'Roof Stage (Milestone 2)',
+                'due_date'       => $startDate->copy()->addMonths(22)->toDateString(),
+                'amount'         => $amtRoof,
+                'status'         => 'pending',
+                'schedule_type'  => 'combo_fixed_36',
+            ]);
+
+            // Milestone 3 (Handover / Registry, Month 36) - adjusts for rounding
+            $amtHandover = round($remaining - $cumulativeAllocated, 2);
+            CustomerInstallment::create([
+                'sale_id'        => $sale->id,
+                'installment_no' => $instIndex++,
+                'label'          => 'Handover & Registry (Milestone 3)',
+                'due_date'       => $startDate->copy()->addMonths(36)->toDateString(),
+                'amount'         => $amtHandover,
+                'status'         => 'pending',
+                'schedule_type'  => 'combo_fixed_36',
+            ]);
         }
     }
 }

@@ -308,28 +308,28 @@ class DatabaseSeeder extends Seeder
         $partner1Acc = Account::create([
             'system_id' => $india->id,
             'code' => 'PRT-ACC-01',
-            'name' => 'Aditya Roy Capital',
+            'name' => 'Basheer Capital',
             'type' => 'liability',
             'is_active' => true,
         ]);
         $partner1 = Payee::create([
             'system_id' => $india->id,
             'type' => 'Partner',
-            'name' => 'Aditya Roy',
+            'name' => 'Basheer',
             'linked_account_id' => $partner1Acc->id,
         ]);
 
         $partner2Acc = Account::create([
             'system_id' => $india->id,
             'code' => 'PRT-ACC-02',
-            'name' => 'Divya Sharma Capital',
+            'name' => 'Pavoor Capital',
             'type' => 'liability',
             'is_active' => true,
         ]);
         $partner2 = Payee::create([
             'system_id' => $india->id,
             'type' => 'Partner',
-            'name' => 'Divya Sharma',
+            'name' => 'Pavoor',
             'linked_account_id' => $partner2Acc->id,
         ]);
 

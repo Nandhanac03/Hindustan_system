@@ -16,7 +16,7 @@ class Sale extends Model
         'gst_amount', 'base_amount', 'total_amount', 'sale_date', 'agreement_date', 'registration_date',
         'status', 'original_sale_id', 'is_resale', 'cancellation_reason', 'cancelled_at',
         'cancellation_fee', 'refund_amount',
-        'broker_involved', 'payment_plan', 'remaining_balance',
+        'broker_involved', 'payment_plan', 'emi_plan_type', 'remaining_balance',
         'notes', 'created_by',
     ];
 

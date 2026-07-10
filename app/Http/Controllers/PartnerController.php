@@ -18,9 +18,67 @@ use Carbon\Carbon;
 
 class PartnerController extends Controller
 {
+<<<<<<< HEAD
     // ────────────────────────────────────────────────────────────────
     // PARTNER INDEX — Dashboard listing all partners
     // ────────────────────────────────────────────────────────────────
+=======
+    /**
+     * Get mock partners data.
+     */
+    private function getMockPartners(): Collection
+    {
+        return collect([
+            (object)[
+                'id' => 1,
+                'name' => 'Basheer',
+                'linkedAccount' => (object)['code' => 'PRT-BAS01'],
+                'total_allocated' => 5400000.00,
+                'total_paid' => 3200000.00,
+                'balance' => 2200000.00,
+                'partnerShares' => collect([
+                    (object)[
+                        'project' => (object)['name' => 'Tabasco Hindustan Infra Developers Pvt.Ltd'],
+                        'share_pct' => 60.0
+                    ]
+                ])
+            ],
+            (object)[
+                'id' => 2,
+                'name' => 'Pavoor',
+                'linkedAccount' => (object)['code' => 'PRT-PAV02'],
+                'total_allocated' => 3600000.00,
+                'total_paid' => 1500000.00,
+                'balance' => 2100000.00,
+                'partnerShares' => collect([
+                    (object)[
+                        'project' => (object)['name' => 'Tabasco Hindustan Infra Developers Pvt.Ltd'],
+                        'share_pct' => 40.0
+                    ]
+                ])
+            ]
+        ]);
+    }
+
+    /**
+     * Get mock active projects data.
+     */
+    private function getMockProjects(): Collection
+    {
+        return collect([
+            (object)[
+                'id' => 1,
+                'name' => 'Tabasco Hindustan Infra Developers Pvt.Ltd',
+                'partnerShares' => collect([
+                    (object)['partner' => (object)['name' => 'Basheer'], 'share_pct' => 60.0],
+                    (object)['partner' => (object)['name' => 'Pavoor'], 'share_pct' => 40.0],
+                ])
+            ],
+        
+        ]);
+    }
+
+>>>>>>> 3bfee8ee1f18084b62e1d98c805595786e24ba1e
     public function index(): View
     {
         $partners = Payee::where('type', 'Partner')
