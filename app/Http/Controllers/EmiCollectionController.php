@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Account;
 use App\Models\Loan;
 use App\Models\EmiSchedule;
+use App\Models\Payee;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -188,13 +189,14 @@ class EmiCollectionController extends Controller
 
         $projects     = Project::where('is_active', true)->orderBy('name')->get();
         $bankAccounts = Account::where('type', 'Asset')->orderBy('name')->get();
+        $partners     = Payee::where('type', 'Partner')->orderBy('name')->get();
 
-        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit'])
+        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner'])
             ->latest('receipt_date')
             ->take(20)
             ->get();
 
-        return view('emi-collections.receipts', compact('sales', 'projects', 'bankAccounts', 'recentReceipts'));
+        return view('emi-collections.receipts', compact('sales', 'projects', 'bankAccounts', 'partners', 'recentReceipts'));
     }
 
     /**
@@ -211,6 +213,7 @@ class EmiCollectionController extends Controller
             'reference_no'  => ['nullable', 'string', 'max:100'],
             'bank_name'     => ['nullable', 'string', 'max:100'],
             'remarks'       => ['nullable', 'string', 'max:500'],
+            'partner_id'    => ['nullable', 'exists:payees,id'],
         ]);
 
         $saleId = $validated['sale_id'] ?? $validated['booking_id'];
@@ -247,6 +250,7 @@ class EmiCollectionController extends Controller
                 'bank_name'    => $validated['bank_name'] ?? null,
                 'remarks'      => $validated['remarks'] ?? null,
                 'created_by'   => auth()->id(),
+                'partner_id'   => $validated['partner_id'] ?? null,
             ]);
 
             // Recompute remaining balance from all receipts
@@ -326,12 +330,12 @@ class EmiCollectionController extends Controller
 
     public function cashBook(Request $request): View
     {
-        $receipts = Receipt::with(['customer', 'sale.project', 'sale.unit'])
+        $receipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner'])
             ->when($request->filled('mode'), fn($q) => $q->where('payment_mode', $request->mode))
             ->when($request->filled('from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->from))
             ->when($request->filled('to'), fn($q) => $q->whereDate('receipt_date', '<=', $request->to))
             ->latest('receipt_date')
-            ->paginate(50);
+            ->get(); // Fetch all matching to make ledger calculations and show in Alpine
 
         $modeSummary = Receipt::select('payment_mode', DB::raw('SUM(amount) as total'), DB::raw('COUNT(*) as count'))
             ->groupBy('payment_mode')

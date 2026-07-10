@@ -126,6 +126,18 @@
                     </div>
                 </div>
 
+                {{-- Partner Selection (Only for Cash) --}}
+                <div class="space-y-1.5" x-show="form.payment_mode === 'Cash'" x-transition>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Received By Partner (Optional)</label>
+                    <select x-model="form.partner_id"
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                        <option value="">-- No Partner (Office/Counter Cash) --</option>
+                        @foreach($partners as $partner)
+                        <option value="{{ $partner->id }}">{{ $partner->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 {{-- Reference & Bank --}}
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1.5">
@@ -204,6 +216,9 @@
                             <td class="px-5 py-3">
                                 @php $modeColors = ['Cash'=>'bg-emerald-50 text-emerald-700','Cheque'=>'bg-amber-50 text-amber-700','Bank Transfer'=>'bg-blue-50 text-blue-700','Online'=>'bg-indigo-50 text-indigo-700']; @endphp
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ $modeColors[$receipt->payment_mode] ?? 'bg-slate-100 text-slate-600' }}">{{ $receipt->payment_mode }}</span>
+                                @if($receipt->partner)
+                                <div class="text-[9px] font-bold text-indigo-650 mt-1">Via: {{ $receipt->partner->name }}</div>
+                                @endif
                             </td>
                             <td class="px-5 py-3 text-slate-500 text-[10px]">{{ $receipt->receipt_date?->format('d M Y') ?? '—' }}</td>
                         </tr>
@@ -230,6 +245,7 @@ function receiptsApp() {
             reference_no: '',
             bank_name:    '',
             remarks:      '',
+            partner_id:   '',
         },
         selectedSale: null,
         submitting: false,
