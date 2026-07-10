@@ -101,7 +101,7 @@
                             </td>
                             <td class="px-5 py-4">
                                 @php
-                                    $badge = $row['type'] === 'Collection Share'
+                                    $badge = str_contains($row['type'], 'Collection')
                                         ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
                                         : 'bg-rose-50 text-rose-700 border-rose-100';
                                 @endphp
@@ -129,6 +129,53 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    {{-- Record Payout Panel --}}
+    <div class="bg-white rounded-2xl border border-amber-200/60 shadow-sm p-5 space-y-4" x-data="{ openPayout: false }">
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Record Payout / Disbursement</h3>
+                <p class="text-[10px] text-slate-400 mt-0.5">Log a direct payment made to {{ $partner->name }}.</p>
+            </div>
+            <button @click="openPayout = !openPayout"
+                    class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Record Payout
+            </button>
+        </div>
+
+        <div x-show="openPayout" x-transition style="display:none;">
+            <form action="{{ route('partners.payout', $partner->id) }}" method="POST" class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-2 border-t border-slate-100">
+                @csrf
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Project *</label>
+                    <select name="project_id" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) *</label>
+                    <input type="number" name="allocated_amount" required min="1" step="0.01" placeholder="e.g. 50000"
+                           class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Date *</label>
+                    <input type="date" name="date" required value="{{ date('Y-m-d') }}"
+                           class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                </div>
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks</label>
+                    <div class="flex gap-2">
+                        <input type="text" name="remarks" placeholder="Bank transfer, Cheque..."
+                               class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none">
+                        <button type="submit" class="px-4 py-2.5 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition whitespace-nowrap shadow-md">Save</button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 

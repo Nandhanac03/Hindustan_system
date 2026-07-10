@@ -118,8 +118,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/partners', [\App\Http\Controllers\PartnerController::class, 'index'])->name('partners.index');
     Route::post('/partners', [\App\Http\Controllers\PartnerController::class, 'storePartner'])->name('partners.store');
     Route::get('/partners/shares/{project}', [\App\Http\Controllers\PartnerController::class, 'shares'])->name('partners.shares');
-    Route::post('/partners/shares/{project}', [\App\Http\Controllers\PartnerController::class, 'updateShares'])->name('partners.shares.update');  
     Route::get('/partners/{partner}/statement', [\App\Http\Controllers\PartnerController::class, 'statement'])->name('partners.statement');
+    Route::post('/partners/{partner}/payout', [\App\Http\Controllers\PartnerController::class, 'recordPayout'])->name('partners.payout');
+    Route::delete('/partners/{partner}', [\App\Http\Controllers\PartnerController::class, 'destroy'])->name('partners.destroy');
 
     // Brokerage & Commission Management
     Route::get('/brokers', [\App\Http\Controllers\BrokerController::class, 'index'])->name('brokers.index');
