@@ -120,18 +120,36 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100 font-mono">{{ $booking->sale_number }}</span>
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 {{ $booking->payment_plan === 'emi' ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-slate-50 text-slate-600 border-slate-100' }} rounded border ml-1">
-                                    {{ $booking->payment_plan === 'emi' ? 'EMI Plan' : 'Lump Sum' }}
-                                </span>
+                                @if($booking->payment_plan === 'emi')
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1">
+                                        @if($booking->emi_plan_type === 'clp')
+                                            CLP Plan
+                                        @elseif($booking->emi_plan_type === 'fixed-36')
+                                            36-Mo Combo
+                                        @else
+                                            12-Mo Fixed
+                                        @endif
+                                    </span>
+                                @else
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-50 text-slate-600 border-slate-100 rounded border ml-1">
+                                        Lump Sum
+                                    </span>
+                                @endif
                                 <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? 'Unknown Customer' }}</h3>
                                 <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
                             </div>
                             <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->total_amount / 100000, 1) }}L</span>
                         </div>
-                        <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
-                                class="w-full mt-2 py-1.5 bg-white border border-slate-200 hover:bg-indigo-50 hover:border-indigo-300 text-indigo-700 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
-                            Collect Installment
-                        </button>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
+                                    class="py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
+                                Collect
+                            </button>
+                            <a href="{{ route('emi-collections.ledger', $booking->id) }}"
+                               class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
+                                Ledger &rarr;
+                            </a>
+                        </div>
                     </div>
                 @empty
                     <p class="text-xs text-slate-450 italic text-center py-4">No recent active sales with outstanding balances found.</p>

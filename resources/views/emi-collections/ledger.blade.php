@@ -94,7 +94,7 @@
                     @forelse($ledger as $row)
                     @php
                         $typeColors = [
-                            'installment' => ['row' => $row['status'] === 'paid' ? 'bg-emerald-50/20' : ($row['status'] === 'overdue' ? 'bg-rose-50/30' : ''), 'badge' => 'bg-amber-50 text-amber-700 border-amber-200'],
+                            'installment' => ['row' => ($row['status'] ?? '') === 'paid' ? 'bg-emerald-50/20' : (($row['status'] ?? '') === 'overdue' ? 'bg-rose-50/30' : ''), 'badge' => 'bg-amber-50 text-amber-700 border-amber-200'],
                             'receipt'     => ['row' => 'bg-emerald-50/20', 'badge' => 'bg-emerald-50 text-emerald-700 border-emerald-200'],
                         ];
                         $cfg = $typeColors[$row['type']] ?? ['row' => '', 'badge' => 'bg-slate-100 text-slate-600 border-slate-200'];

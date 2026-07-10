@@ -400,6 +400,7 @@ class EmiCollectionController extends Controller
                 'credit'          => 0,
                 'running_balance' => 0,
                 'type'            => 'installment',
+                'status'          => 'pending',
                 'sort_date'       => Carbon::parse($sale->sale_date),
             ]);
         }

@@ -383,6 +383,15 @@
                                         EMI / Installment Plan
                                     </label>
                                 </div>
+                                <div x-show="forms.add.payment_plan === 'emi'" class="mt-2" x-transition>
+                                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Select EMI Plan Scheme *</label>
+                                    <select x-model="forms.add.emi_plan_type" required
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <option value="fixed-12">Fixed 12-Month Repayment Plan</option>
+                                        <option value="clp">Construction Linked Milestone Plan (CLP)</option>
+                                        <option value="fixed-36">36-Month Milestone + Fixed Combo Plan</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -643,6 +652,15 @@
                                         <input type="radio" value="emi" x-model="forms.edit.payment_plan" class="text-primary focus:ring-primary/20">
                                         EMI / Installment Plan
                                     </label>
+                                </div>
+                                <div x-show="forms.edit.payment_plan === 'emi'" class="mt-2" x-transition>
+                                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Select EMI Plan Scheme *</label>
+                                    <select x-model="forms.edit.emi_plan_type" required
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <option value="fixed-12">Fixed 12-Month Repayment Plan</option>
+                                        <option value="clp">Construction Linked Milestone Plan (CLP)</option>
+                                        <option value="fixed-36">36-Month Milestone + Fixed Combo Plan</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -1312,7 +1330,7 @@ function salesApp() {
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0, brokerage_status: 'pending',
                 initial_payment_amount: 0, payment_mode: 'Cash', reference_no: '', bank_name: '', initial_payment_date: new Date().toISOString().split('T')[0],
-                payment_plan: 'lump_sum', remaining_balance: 0,
+                payment_plan: 'lump_sum', emi_plan_type: 'fixed-12', remaining_balance: 0,
                 notes: ''
             };
             this.modals.add.open = true;
@@ -1387,6 +1405,7 @@ function salesApp() {
                     bank_name: initialReceipt ? initialReceipt.bank_name || '' : '',
                     initial_payment_date: initialReceipt ? (initialReceipt.receipt_date ? initialReceipt.receipt_date.split('T')[0] : '') : '',
                     payment_plan: this.activeSale.payment_plan || 'lump_sum',
+                    emi_plan_type: this.activeSale.emi_plan_type || 'fixed-12',
                     remaining_balance: this.activeSale.remaining_balance || 0,
                     notes: this.activeSale.notes
                 };
