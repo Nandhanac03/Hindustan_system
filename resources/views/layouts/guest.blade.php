@@ -96,19 +96,19 @@
              
             </div>
 
-            <!-- Two-column Layout: Login + Credentials -->
-            <div class="grid lg:grid-cols-2 gap-6 items-start fade-in-delay">
+            <!-- Centered Layout: Login Card -->
+            <div class="flex justify-center fade-in-delay">
 
                 <!-- Login / Auth Card -->
-                <div class="w-full bg-slate-900/80 border border-slate-800 p-8 rounded-2xl shadow-2xl backdrop-blur-2xl">
+                <div class="w-full max-w-md bg-slate-900/80 border border-slate-800 p-8 rounded-2xl shadow-2xl backdrop-blur-2xl">
                     {{ $slot }}
                 </div>
 
                 <!-- Demo Credentials Panel -->
-                @php
+                <!-- @php
                     $demoUsers = \App\Models\User::with('roles')->get();
-                @endphp
-                <div class="w-full bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl">
+                @endphp -->
+                <!-- <div class="w-full bg-slate-900/60 border border-slate-800 p-6 rounded-2xl shadow-xl backdrop-blur-xl">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="w-6 h-6 bg-amber-500/20 rounded-lg flex items-center justify-center">
                             <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -121,7 +121,7 @@
                         </div>
                     </div>
 
-                    <!-- Password note -->
+                   
                     <div class="mb-4 px-3 py-2 bg-primary-950/60 border border-primary-800/50 rounded-lg flex items-center gap-2">
                         <svg class="w-3 h-3 text-primary-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -129,14 +129,14 @@
                         <span class="text-[10px] text-primary-300">All accounts use password: <strong class="text-primary-200 font-bold">password</strong></span>
                     </div>
 
-                    <!-- Users Table -->
+                   
                     <div class="space-y-2">
                         @forelse($demoUsers as $demoUser)
                         <div class="credential-row border border-slate-800 rounded-xl px-3 py-2.5 group"
                              onclick="fillCredentials('{{ $demoUser->email }}')">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2.5 min-w-0">
-                                    <!-- Avatar -->
+                                  
                                     <div class="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0">
                                         {{ strtoupper(substr($demoUser->name, 0, 2)) }}
                                     </div>
@@ -161,7 +161,7 @@
                                     </svg>
                                 </div>
                             </div>
-                            <!-- System Badge -->
+                          
                             @if($demoUser->system)
                             <div class="mt-1.5 pl-9">
                                 <span class="text-[9px] text-slate-600 font-medium">
@@ -176,11 +176,11 @@
                         @endforelse
                     </div>
 
-                    <!-- Footer Note -->
+                    
                     <p class="mt-4 text-[9px] text-slate-600 text-center uppercase tracking-widest">
                         Hindustan Real Estate ERP &copy; {{ date('Y') }}
                     </p>
-                </div>
+                </div> -->
 
             </div>
         </div>
