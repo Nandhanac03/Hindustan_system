@@ -18,11 +18,11 @@ use Carbon\Carbon;
 
 class PartnerController extends Controller
 {
-<<<<<<< HEAD
+
     // ────────────────────────────────────────────────────────────────
     // PARTNER INDEX — Dashboard listing all partners
     // ────────────────────────────────────────────────────────────────
-=======
+
     /**
      * Get mock partners data.
      */
@@ -78,7 +78,7 @@ class PartnerController extends Controller
         ]);
     }
 
->>>>>>> 3bfee8ee1f18084b62e1d98c805595786e24ba1e
+
     public function index(): View
     {
         $partners = Payee::where('type', 'Partner')
