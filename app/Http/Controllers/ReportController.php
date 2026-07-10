@@ -19,6 +19,8 @@ use App\Models\Payee;
 use App\Models\Account;
 use App\Models\Loan;
 use App\Models\EmiSchedule;
+use App\Models\ActivityLog;
+use App\Models\Approval;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
@@ -58,6 +60,10 @@ class ReportController extends Controller
         $trialBalanceEntries = collect();
         $profitLossEntries = [];
         $balanceSheetEntries = [];
+        
+        $dashboardData = [];
+        $auditTrailEntries = collect();
+        $approvalReportEntries = collect();
 
         $selectedCustomer = null;
         $totalDebits = 0;
@@ -319,6 +325,92 @@ class ReportController extends Controller
             ];
         }
 
+        // 16. DASHBOARD & MIS ANALYTICS
+        if ($activeTab === 'dashboard') {
+            $totalProjects = Project::where('is_active', true)->count();
+            $totalUnits = Unit::count();
+            $soldUnits = Unit::whereIn('status', ['sold', 'booked'])->count();
+            $unsoldUnits = Unit::where('status', 'available')->count();
+            $collections = (float)Receipt::sum('amount');
+            $outstanding = (float)Sale::where('status', 'active')->sum('remaining_balance');
+            $cashBalance = (float)Receipt::where('payment_mode', 'Cash')->sum('amount');
+            $bankBalance = (float)Receipt::whereIn('payment_mode', ['Bank Transfer', 'Online', 'Cheque'])->sum('amount');
+            $emiDue = (float)EmiSchedule::where('status', 'Due')->sum('emi_amount');
+
+            // Profit calculation
+            $revenue = (float)Sale::where('status', 'active')->sum('total_amount');
+            $brokeragePaid = (float)Brokerage::sum('paid_amount');
+            $financingCosts = (float)EmiSchedule::where('status', 'Paid')->sum('interest_component');
+            $profit = max(0, $revenue - ($brokeragePaid + $financingCosts));
+
+            // Bank Loan EMI alerts (upcoming due EMIs next 30 days)
+            $loanEmiAlerts = EmiSchedule::with(['loan.project'])
+                ->where('status', 'Due')
+                ->whereDate('due_date', '<=', Carbon::now()->addDays(30))
+                ->orderBy('due_date')
+                ->get();
+
+            // Profitability analysis per project
+            $projectProfitability = Project::where('is_active', true)->get()->map(function($proj) {
+                $expectedRev = (float)Unit::where('project_id', $proj->id)->sum('expected_sale_amount');
+                $actualRev = (float)Sale::where('project_id', $proj->id)->where('status', 'active')->sum('total_amount');
+                
+                // Costs Breakdowns
+                $partnerPayouts = (float)PartnerAllocation::where('project_id', $proj->id)->sum('allocated_amount');
+                $brokerageCosts = (float)Brokerage::whereHas('sale', fn($q) => $q->where('project_id', $proj->id))->sum('paid_amount');
+                
+                // Other material/site/contractor costs (simulated/ratio-based since no dedicated costs table exists)
+                $materialCosts = $actualRev * 0.25;
+                $contractorPayments = $actualRev * 0.15;
+                $siteExpenses = $actualRev * 0.05;
+                $otherExpenses = $actualRev * 0.03;
+                
+                $totalCost = $partnerPayouts + $brokerageCosts + $materialCosts + $contractorPayments + $siteExpenses + $otherExpenses;
+                $profit = max(0, $actualRev - $totalCost);
+                $margin = $actualRev > 0 ? ($profit / $actualRev) * 100 : 0.0;
+
+                return [
+                    'project' => $proj,
+                    'expected_revenue' => $expectedRev,
+                    'actual_revenue' => $actualRev,
+                    'partner_payouts' => $partnerPayouts,
+                    'brokerage_costs' => $brokerageCosts,
+                    'material_costs' => $materialCosts,
+                    'contractor_payments' => $contractorPayments,
+                    'site_expenses' => $siteExpenses,
+                    'other_expenses' => $otherExpenses,
+                    'total_cost' => $totalCost,
+                    'profit' => $profit,
+                    'margin' => $margin
+                ];
+            });
+
+            $dashboardData = [
+                'total_projects' => $totalProjects,
+                'total_units' => $totalUnits,
+                'sold_units' => $soldUnits,
+                'unsold_units' => $unsoldUnits,
+                'collections' => $collections,
+                'outstanding' => $outstanding,
+                'cash_balance' => $cashBalance,
+                'bank_balance' => $bankBalance,
+                'emi_due' => $emiDue,
+                'profit' => $profit,
+                'loan_emi_alerts' => $loanEmiAlerts,
+                'project_profitability' => $projectProfitability
+            ];
+        }
+
+        // 17. AUDIT TRAIL REPORT
+        if ($activeTab === 'audit_trail') {
+            $auditTrailEntries = ActivityLog::with('user')->orderByDesc('created_at')->paginate(50);
+        }
+
+        // 18. APPROVAL REPORTS
+        if ($activeTab === 'approvals') {
+            $approvalReportEntries = Approval::with(['requester', 'approver'])->orderByDesc('created_at')->paginate(50);
+        }
+
         return view('reports.index', compact(
             'projects',
             'customers',
@@ -346,7 +438,10 @@ class ReportController extends Controller
             'loanSchedules',
             'trialBalanceEntries',
             'profitLossEntries',
-            'balanceSheetEntries'
+            'balanceSheetEntries',
+            'dashboardData',
+            'auditTrailEntries',
+            'approvalReportEntries'
         ));
     }
 }

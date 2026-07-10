@@ -302,9 +302,14 @@
                     </svg>
                 </button>
                 <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                    <a href="{{ route('reports.index', ['report' => 'dashboard']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'dashboard' || !request('report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Dashboard & MIS
+                    </a>
                     <a href="{{ route('reports.index', ['report' => 'availability']) }}"
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
-                       {{ request('report') === 'availability' || !request('report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                       {{ request('report') === 'availability' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Availability Report
                     </a>
                     <a href="{{ route('reports.index', ['report' => 'sales']) }}"
@@ -376,6 +381,16 @@
                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
                        {{ request('report') === 'balance_sheet' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         Balance Sheet Summary
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'audit_trail']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'audit_trail' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Audit Trail Report
+                    </a>
+                    <a href="{{ route('reports.index', ['report' => 'approvals']) }}"
+                       class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+                       {{ request('report') === 'approvals' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                        Approval Reports
                     </a>
                 </div>
             </div>
