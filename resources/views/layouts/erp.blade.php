@@ -107,13 +107,35 @@
                  Units
             </a>
 
-             <!-- Sales -->
-            <a href="{{ route('sales.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('sales.*') ? 'active text-white' : 'text-slate-300' }}">
-                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                Sales
-            </a>
+             <!-- Sales Submenu Dropdown -->
+             <div x-data="{ openSales: {{ Request::routeIs('sales.*') || request('tab') === 'returns' || request('tab') === 'cancellations' ? 'true' : 'false' }} }" class="space-y-1">
+                 <a href="#" @click.prevent="openSales = !openSales" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
+                     <div class="flex items-center gap-3">
+                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                         </svg>
+                         Sales
+                     </div>
+                     <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                     </svg>
+                 </a>
+                 <div x-show="openSales" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                    
+                     <a href="{{ route('sales.index') }}"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request()->has('tab') ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+                          Sales List
+                     </a>
+                     <a href="{{ route('sales.index') }}?tab=returns"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'returns' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+                          Sales Return
+                     </a>
+                     <a href="{{ route('sales.index') }}?tab=cancellations"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'cancellations' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+                          Sales Cancel
+                     </a>
+                 </div>
+             </div>
 
             <!-- 3. Customers (Buyers & Leads) -->
             <a href="{{ route('customers.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('customers.*') ? 'active text-white' : 'text-slate-300' }}">

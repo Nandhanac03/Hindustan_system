@@ -25,7 +25,7 @@ class SalesController extends Controller
             $request->merge(['project_id' => (string)$projectsList->first()->id]);
         }
 
-        $query = Sale::with(['project', 'unit', 'customer', 'broker']);
+        $query = Sale::with(['project', 'unit', 'customer', 'broker', 'receipts']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -370,20 +370,145 @@ class SalesController extends Controller
         $validated = $request->validate([
             'status' => ['required', Rule::in(['cancelled', 'returned', 'exchanged', 'resale'])],
             'reason' => ['required', 'string'],
+            'cancellation_fee' => ['nullable', 'numeric', 'min:0'],
+            'refund_amount' => ['nullable', 'numeric', 'min:0'],
+            'revert_unsold' => ['nullable', 'boolean'],
+            'new_unit_id' => ['nullable', 'exists:hindustan_units,id'],
+            'carry_forward' => ['nullable', 'boolean'],
         ]);
 
         $sale = Sale::findOrFail($id);
         $fromStatus = $sale->status;
+
+        // Validation Rule: Before processing a Sales Return, the system must verify that the sale status is Cancelled.
+        if ($validated['status'] === 'returned' && $fromStatus !== 'cancelled') {
+            return response()->json([
+                'message' => 'Sales Return can only be processed for cancelled sales.',
+                'errors' => [
+                    'status' => ['Sales Return can only be processed for cancelled sales.']
+                ]
+            ], 422);
+        }
+
+        if ($validated['status'] === 'exchanged') {
+            $newUnitId = $validated['new_unit_id'];
+            if (!$newUnitId) {
+                return response()->json([
+                    'message' => 'Target Unit is required for unit exchange.',
+                    'errors' => ['new_unit_id' => ['Target Unit is required for unit exchange.']]
+                ], 422);
+            }
+
+            $newUnit = Unit::findOrFail($newUnitId);
+            if ($newUnit->status !== 'available') {
+                return response()->json([
+                    'message' => 'Target Unit is not available for exchange.',
+                    'errors' => ['new_unit_id' => ['Target Unit is not available for exchange.']]
+                ], 422);
+            }
+
+            // 1. Mark old sale as exchanged, free up old unit
+            $sale->update([
+                'status' => 'exchanged',
+                'cancellation_reason' => $validated['reason'],
+                'cancelled_at' => now(),
+            ]);
+            Unit::where('id', $sale->unit_id)->update(['status' => 'available']);
+
+            // 2. Create the new active sale
+            $newAmount = (float)$newUnit->expected_sale_amount;
+            $newRate = (float)$newUnit->expected_rate_per_sqft;
+            $gstType = $sale->gst_type ?? 'none';
+            $gstAmount = 0.0;
+            if ($gstType === 'exclusive') {
+                $gstAmount = round($newAmount * 0.18, 2);
+            } elseif ($gstType === 'inclusive') {
+                $gstAmount = round($newAmount * 18 / 118, 2);
+            }
+            $baseAmount = $gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount;
+            $totalAmount = $gstType === 'exclusive' ? round($newAmount + $gstAmount, 2) : $newAmount;
+
+            $newSale = Sale::create([
+                'sale_number'       => 'SL-' . strtoupper(uniqid()),
+                'project_id'        => $newUnit->project_id,
+                'unit_id'           => $newUnit->id,
+                'customer_id'       => $sale->customer_id,
+                'broker_id'         => $sale->broker_id,
+                'rate_per_sqft'     => $newRate,
+                'sale_amount'       => $newAmount,
+                'gst_applicable'    => $gstType !== 'none',
+                'gst_type'          => $gstType,
+                'gst_percentage'    => $gstType !== 'none' ? 18 : null,
+                'gst_amount'        => $gstAmount,
+                'base_amount'       => $baseAmount,
+                'total_amount'      => $totalAmount,
+                'sale_date'         => now(),
+                'agreement_date'    => now(),
+                'status'            => 'active',
+                'broker_involved'   => $sale->broker_involved,
+                'payment_plan'      => $sale->payment_plan ?? 'lump_sum',
+                'remaining_balance' => $totalAmount,
+                'notes'             => 'Exchanged from sale ' . $sale->sale_number . '. ' . $validated['reason'],
+                'created_by'        => auth()->id(),
+            ]);
+
+            // 3. Re-associate receipts if carry_forward is checked
+            if (!empty($validated['carry_forward'])) {
+                Receipt::where('sale_id', $sale->id)->update([
+                    'sale_id' => $newSale->id,
+                    'project_id' => $newUnit->project_id,
+                    'unit_id' => $newUnit->id,
+                ]);
+
+                // Recalculate remaining balances
+                $sale->update(['remaining_balance' => $sale->total_amount - $sale->receipts()->sum('amount')]);
+                $newSale->update(['remaining_balance' => $totalAmount - $newSale->receipts()->sum('amount')]);
+            }
+
+            // 4. Mark new unit as sold
+            $newUnit->update(['status' => 'sold']);
+
+            // 5. Log status changes
+            SaleStatusLog::create([
+                'sale_id'      => $sale->id,
+                'from_status'  => $fromStatus,
+                'to_status'    => 'exchanged',
+                'event_type'   => 'exchanged',
+                'reason'       => $validated['reason'],
+                'performed_by' => auth()->id(),
+            ]);
+
+            SaleStatusLog::create([
+                'sale_id'      => $newSale->id,
+                'from_status'  => null,
+                'to_status'    => 'active',
+                'event_type'   => 'created',
+                'reason'       => 'Created via unit exchange from sale ' . $sale->sale_number,
+                'performed_by' => auth()->id(),
+            ]);
+
+            return response()->json(['sale' => $newSale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
+        }
 
         $sale->update([
             'status'               => $validated['status'],
             'cancellation_reason'  => in_array($validated['status'], ['cancelled', 'returned']) ? $validated['reason'] : $sale->cancellation_reason,
             'cancelled_at'         => in_array($validated['status'], ['cancelled', 'returned']) ? now() : $sale->cancelled_at,
             'is_resale'            => $validated['status'] === 'resale' ? true : $sale->is_resale,
+            'cancellation_fee'     => $validated['status'] === 'returned' ? ($validated['cancellation_fee'] ?? 0.00) : $sale->cancellation_fee,
+            'refund_amount'        => $validated['status'] === 'returned' ? ($validated['refund_amount'] ?? 0.00) : $sale->refund_amount,
         ]);
 
-        // Free up the unit again if cancelled, returned, or resold
-        if (in_array($validated['status'], ['cancelled', 'returned', 'resale'])) {
+        $shouldFreeUnit = false;
+        if ($validated['status'] === 'cancelled') {
+            $shouldFreeUnit = true;
+        } elseif ($validated['status'] === 'returned') {
+            $shouldFreeUnit = $request->has('revert_unsold') ? !empty($validated['revert_unsold']) : true;
+        } elseif ($validated['status'] === 'resale') {
+            $shouldFreeUnit = true;
+        }
+
+        if ($shouldFreeUnit) {
             Unit::where('id', $sale->unit_id)->update(['status' => 'available']);
         }
 
@@ -396,6 +521,6 @@ class SalesController extends Controller
             'performed_by' => auth()->id(),
         ]);
 
-        return response()->json(['sale' => $sale]);
+        return response()->json(['sale' => $sale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
     }
 }

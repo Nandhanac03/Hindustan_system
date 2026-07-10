@@ -223,6 +223,15 @@ class ReportController extends Controller
             if ($request->filled('project_id')) {
                 $retQuery->where('project_id', $request->project_id);
             }
+            if ($request->filled('category')) {
+                $cat = strtolower($request->category);
+                if (in_array($cat, ['apartment', 'apartments', 'residential'])) {
+                    $cat = 'residential';
+                }
+                $retQuery->whereHas('unit.unitType', function ($q) use ($cat) {
+                    $q->where('category', $cat);
+                });
+            }
             $salesReturns = $retQuery->orderByDesc('cancelled_at')->paginate(50);
         }
 

@@ -612,10 +612,36 @@
         <div class="p-6 space-y-6">
             <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-5">
                 <div>
-                    <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Sales Cancellations & Returns</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Summary of refunded bookings, initial values, and paid vs remaining liabilities.</p>
+                    <h3 class="text-sm font-bold text-slate-900 uppercase tracking-widest">Sales Cancellations & Returns Report</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Separate sales return registers for commercial units, apartments, and parking properties.</p>
                 </div>
             </div>
+
+            <form method="GET" action="" class="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-150">
+                <input type="hidden" name="report" value="sales_return">
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wide block mb-1">Project</label>
+                    <select name="project_id" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none cursor-pointer">
+                        <option value="">All Projects</option>
+                        @foreach($projects as $p)
+                            <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wide block mb-1">Property Category</label>
+                    <select name="category" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none cursor-pointer">
+                        <option value="">All Categories</option>
+                        <option value="commercial" {{ request('category') == 'commercial' ? 'selected' : '' }}>Commercial Units</option>
+                        <option value="residential" {{ request('category') == 'residential' ? 'selected' : '' }}>Apartments</option>
+                        <option value="parking" {{ request('category') == 'parking' ? 'selected' : '' }}>Parking Spaces</option>
+                    </select>
+                </div>
+                <div class="flex items-end gap-2 sm:col-span-2">
+                    <button type="submit" class="px-5 py-2 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary-700 uppercase tracking-wider">Filter Report</button>
+                    <a href="?report=sales_return" class="px-4 py-2 bg-slate-200 text-slate-600 text-xs font-bold rounded-lg hover:bg-slate-350 uppercase tracking-wider">Reset</a>
+                </div>
+            </form>
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table class="w-full text-xs text-left">
@@ -624,26 +650,39 @@
                             <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest">Unit No</th>
                             <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest">Customer Name</th>
                             <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest">Project</th>
-                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-right">Initial Sale Value</th>
+                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest">Category</th>
+                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-right">Contract Value</th>
                             <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-right">Paid to Date</th>
-                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-right">Refund Value</th>
-                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest">Cancellation Reason</th>
+                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-right">Cancellation Fee</th>
+                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-right">Refund Amount</th>
+                            <th class="px-5 py-3 font-bold text-[9px] uppercase tracking-widest">Date / Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-650 font-mono">
                         @forelse($salesReturns as $ret)
                         <tr class="hover:bg-slate-50/60">
-                            <td class="px-5 py-3 font-bold text-slate-900 font-sans">Unit {{ $ret->unit?->door_no }}</td>
+                            <td class="px-5 py-3 font-bold text-slate-900 font-sans">
+                                <div>Unit {{ $ret->unit?->door_no }}</div>
+                                <div class="text-[9px] text-slate-450 uppercase font-mono">{{ $ret->unit?->floor?->name }}</div>
+                            </td>
                             <td class="px-5 py-3 font-sans font-semibold text-slate-800">{{ $ret->customer?->name }}</td>
                             <td class="px-5 py-3 font-sans text-slate-500">{{ $ret->project?->name }}</td>
+                            <td class="px-5 py-3 font-sans font-semibold text-indigo-750 uppercase text-[10px]">{{ $ret->unit?->unitType?->category }}</td>
                             <td class="px-5 py-3 text-right">₹{{ number_format($ret->total_amount, 2) }}</td>
                             <td class="px-5 py-3 text-right text-emerald-600">₹{{ number_format($ret->receipts->sum('amount'), 2) }}</td>
-                            <td class="px-5 py-3 text-right text-rose-600 font-bold">₹{{ number_format($ret->receipts->sum('amount'), 2) }}</td>
-                            <td class="px-5 py-3 font-sans text-slate-400 italic text-[11px]">{{ $ret->cancellation_reason ?? 'Customer withdrew request' }}</td>
+                            <td class="px-5 py-3 text-right text-amber-700">₹{{ number_format($ret->cancellation_fee, 2) }}</td>
+                            <td class="px-5 py-3 text-right text-rose-600 font-bold">₹{{ number_format($ret->refund_amount, 2) }}</td>
+                            <td class="px-5 py-3 font-sans">
+                                <div class="text-[10px] text-slate-500 font-semibold">{{ $ret->cancelled_at ? \Carbon\Carbon::parse($ret->cancelled_at)->format('d M Y') : '—' }}</div>
+                                <span class="px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider block mt-1 w-max"
+                                      :class="'{{ $ret->status }}' === 'returned' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200'">
+                                    {{ $ret->status }}
+                                </span>
+                            </td>
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center text-slate-400 italic">No cancelled or returned sales records found.</td>
+                            <td colspan="9" class="px-5 py-12 text-center text-slate-400 italic">No cancelled or returned sales records found.</td>
                         </tr>
                         @endforelse
                     </tbody>
