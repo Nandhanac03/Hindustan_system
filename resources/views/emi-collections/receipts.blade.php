@@ -275,7 +275,7 @@ function receiptsApp() {
                     customer:  sel.dataset.customer || '—',
                     salenum:   sel.dataset.salenum || '',
                 };
-                this.form.amount = parseFloat(this.selectedSale.remaining) || '';
+                this.form.amount = '';
             } else {
                 this.selectedSale = null;
                 this.form.amount = '';
