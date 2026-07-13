@@ -347,6 +347,11 @@ class DatabaseSeeder extends Seeder
             'share_pct' => 42.50,
         ]);
 
+        // 9.5 Seed default banks
+        \App\Models\Bank::firstOrCreate(['ifsc_code' => 'HDFC0000123'], ['bank_name' => 'HDFC Bank', 'status' => 'active']);
+        \App\Models\Bank::firstOrCreate(['ifsc_code' => 'SBIN0000456'], ['bank_name' => 'State Bank of India', 'status' => 'active']);
+        \App\Models\Bank::firstOrCreate(['ifsc_code' => 'FDRL0000789'], ['bank_name' => 'Federal Bank', 'status' => 'inactive']);
+
         // 10. Record default activity log entries using the new record helper
         ActivityLog::record('System Booted', 'System initialized and default seed data populated.');
     }

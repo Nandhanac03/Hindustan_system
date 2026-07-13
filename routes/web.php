@@ -101,9 +101,10 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('bookings/{booking}/resale', [\App\Http\Controllers\BookingController::class, 'resale'])->name('bookings.resale');
 
     // Bank Master
-    Route::get('/bank', function() {
-        return view('bank.index');
-    })->name('bank.index');
+    Route::get('/bank', [\App\Http\Controllers\BankController::class, 'index'])->name('bank.index');
+    Route::post('/bank', [\App\Http\Controllers\BankController::class, 'store'])->name('bank.store');
+    Route::put('/bank/{bank}', [\App\Http\Controllers\BankController::class, 'update'])->name('bank.update');
+    Route::delete('/bank/{bank}', [\App\Http\Controllers\BankController::class, 'destroy'])->name('bank.destroy');
 
     // GST Master
     Route::get('/gst', function() {
