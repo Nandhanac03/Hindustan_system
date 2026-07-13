@@ -35,7 +35,7 @@
             </div>
             <div>
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Sale Number / Project</span>
-                <span class="text-sm font-bold text-indigo-600 mt-1 block font-mono">{{ $sale->sale_number }}</span>
+                <span class="text-sm font-bold text-primary mt-1 block font-mono">{{ $sale->sale_number }}</span>
                 <span class="text-[10px] text-slate-500">{{ $sale->project?->name ?? '—' }} — Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
             </div>
             <div>
@@ -88,7 +88,7 @@
             </div>
             <div class="flex gap-3">
                 <button @click="openPayModal({{ $closingBalance }}, 'Outstanding Balance')" class="text-[10px] font-bold text-primary hover:underline bg-transparent border-0 cursor-pointer p-0">↗ Add Receipt</button>
-                <a href="{{ route('sales.index') }}" class="text-[10px] font-bold text-indigo-600 hover:underline">↗ Sales Register</a>
+                 <a href="{{ route('sales.index') }}" class="text-[10px] font-bold text-primary hover:underline">↗ Sales Register</a>
             </div>
         </div>
 

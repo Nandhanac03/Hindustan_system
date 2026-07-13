@@ -39,8 +39,8 @@
                     Healthy & Balanced
                 </span>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
+                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
                 </svg>
             </div>
@@ -74,7 +74,7 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($payments as $payment)
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-bold text-indigo-650">REC-{{ sprintf("%05d", $payment->id) }}</td>
+                                <td class="px-6 py-4 font-bold text-primary-700">REC-{{ sprintf("%05d", $payment->id) }}</td>
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-slate-900">{{ $payment->customer?->name ?? 'N/A' }}</div>
                                     <div class="text-[10px] text-slate-400">{{ $payment->customer?->phone ?? '' }}</div>
@@ -116,10 +116,10 @@
 
             <div class="space-y-4">
                 @forelse($recentBookings as $booking)
-                    <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 hover:border-indigo-200 hover:shadow-sm transition-all">
+                    <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 hover:border-primary-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                         <div class="flex justify-between items-start">
                             <div>
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100 font-mono">{{ $booking->sale_number }}</span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded border border-primary-100 font-mono">{{ $booking->sale_number }}</span>
                                 @if($booking->payment_plan === 'emi')
                                     <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1">
                                         @if($booking->emi_plan_type === 'clp')
@@ -142,11 +142,11 @@
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-2">
                             <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
-                                    class="py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
+                                    class="py-1.5 bg-primary hover:bg-primary-700 active:scale-95 text-white text-[10px] font-bold rounded-lg transition-all uppercase tracking-wide">
                                 Collect
                             </button>
                             <a href="{{ route('emi-collections.ledger', $booking->id) }}"
-                               class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
+                               class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
                                 Ledger &rarr;
                             </a>
                         </div>
@@ -188,17 +188,17 @@
             
             <form @submit.prevent="submitCollection()" class="p-6 space-y-4">
                 {{-- Info Box --}}
-                <div class="p-3 bg-indigo-50/50 border border-indigo-100 rounded-xl space-y-1 text-[11px] font-semibold text-slate-650">
+                <div class="p-3 bg-primary-50/50 border border-primary-100 rounded-xl space-y-1 text-[11px] font-semibold text-slate-650">
                     <div>Customer: <strong class="text-slate-800" x-text="form.customer_name"></strong></div>
                     <div>Unit: <strong class="text-slate-800" x-text="form.unit_number"></strong></div>
-                    <div>Outstanding: <strong class="text-indigo-750">₹<span x-text="Number(form.outstanding).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span></strong></div>
+                    <div>Outstanding: <strong class="text-primary-700">₹<span x-text="Number(form.outstanding).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span></strong></div>
                 </div>
 
                 {{-- Amount Field --}}
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹)</label>
                     <input type="number" step="0.01" x-model="form.amount" required
-                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 rounded-xl text-xs placeholder-slate-400 focus:outline-none transition-all">
+                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs placeholder-slate-400 focus:outline-none transition-all">
                     <template x-if="errors.amount">
                         <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.amount[0]"></span>
                     </template>
@@ -208,7 +208,7 @@
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode</label>
                     <select x-model="form.payment_mode" required
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
                         <option value="Cash">Cash</option>
                         <option value="Bank Transfer">Bank Transfer</option>
                         <option value="Credit Card">Credit Card</option>
@@ -222,7 +222,7 @@
                 {{-- Action Buttons --}}
                 <div class="pt-4 flex justify-end gap-2">
                     <button type="button" @click="closeCollectModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md shadow-indigo-600/10">Confirm Payment</button>
+                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wide shadow-md shadow-primary-600/10">Confirm Payment</button>
                 </div>
             </form>
         </div>

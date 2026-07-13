@@ -33,7 +33,7 @@
                     ₹{{ number_format($recentReceipts->where('payment_mode','Online')->sum('amount'), 0) }}
                 </span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
         </div>
@@ -203,7 +203,7 @@
                     <tbody class="divide-y divide-slate-100">
                         @forelse($recentReceipts as $receipt)
                         <tr class="hover:bg-slate-50/60 transition-colors">
-                            <td class="px-5 py-3 font-bold text-indigo-600 font-mono text-[10px]">{{ $receipt->sale?->sale_number ?? '—' }}</td>
+                            <td class="px-5 py-3 font-bold text-primary font-mono text-[10px]">{{ $receipt->sale?->sale_number ?? '—' }}</td>
                             <td class="px-5 py-3">
                                 <div class="font-semibold text-slate-800">{{ $receipt->customer?->name ?? '—' }}</div>
                                 <div class="text-[9px] text-slate-400">{{ $receipt->customer?->phone ?? '' }}</div>
@@ -214,10 +214,10 @@
                             </td>
                             <td class="px-5 py-3 text-right font-bold text-slate-900 font-mono">₹{{ number_format($receipt->amount, 2) }}</td>
                             <td class="px-5 py-3">
-                                @php $modeColors = ['Cash'=>'bg-emerald-50 text-emerald-700','Cheque'=>'bg-amber-50 text-amber-700','Bank Transfer'=>'bg-blue-50 text-blue-700','Online'=>'bg-indigo-50 text-indigo-700']; @endphp
+                                @php $modeColors = ['Cash'=>'bg-emerald-50 text-emerald-700','Cheque'=>'bg-amber-50 text-amber-700','Bank Transfer'=>'bg-blue-50 text-blue-700','Online'=>'bg-primary-50 text-primary-700']; @endphp
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded {{ $modeColors[$receipt->payment_mode] ?? 'bg-slate-100 text-slate-600' }}">{{ $receipt->payment_mode }}</span>
                                 @if($receipt->partner)
-                                <div class="text-[9px] font-bold text-indigo-650 mt-1">Via: {{ $receipt->partner->name }}</div>
+                                <div class="text-[9px] font-bold text-primary-700 mt-1">Via: {{ $receipt->partner->name }}</div>
                                 @endif
                             </td>
                             <td class="px-5 py-3 text-slate-500 text-[10px]">{{ $receipt->receipt_date?->format('d M Y') ?? '—' }}</td>

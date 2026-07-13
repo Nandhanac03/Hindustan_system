@@ -76,7 +76,7 @@
         </div>
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Active Accounts</span>
-            <span class="text-2xl font-extrabold text-indigo-600 mt-1 block font-mono">
+            <span class="text-2xl font-extrabold text-primary mt-1 block font-mono">
                 {{ collect($brackets)->flatten(1)->count() }}
             </span>
             <span class="text-[10px] text-slate-400 mt-0.5 block">Sales with balance due</span>
@@ -139,7 +139,7 @@
                                 <div class="font-semibold text-slate-700">{{ $sale->project?->name ?? '—' }}</div>
                                 <div class="text-[9px] text-slate-400">Unit: {{ $sale->unit?->door_no ?? '—' }}</div>
                             </td>
-                            <td class="px-6 py-4 font-mono text-[10px] text-indigo-600 font-bold">{{ $sale->sale_number }}</td>
+                            <td class="px-6 py-4 font-mono text-[10px] text-primary font-bold">{{ $sale->sale_number }}</td>
                             <td class="px-6 py-4 text-right font-mono font-semibold text-slate-800">₹{{ number_format($sale->total_amount, 0) }}</td>
                             <td class="px-6 py-4 text-right font-mono font-semibold text-emerald-600">₹{{ number_format($row['total_paid'], 0) }}</td>
                             <td class="px-6 py-4 text-right font-mono font-extrabold text-rose-600">₹{{ number_format($row['outstanding'], 0) }}</td>
@@ -150,7 +150,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <a href="{{ route('emi-collections.ledger', $sale) }}"
-                                   class="text-[10px] font-bold text-indigo-600 hover:underline">View Ledger</a>
+                                   class="text-[10px] font-bold text-primary hover:underline">View Ledger</a>
                             </td>
                         </tr>
                         @endforeach
@@ -177,7 +177,7 @@
                 Total Receipts Applied: <strong class="text-emerald-600 font-mono">₹{{ number_format($totalReceived, 0) }}</strong>
             </span>
             <span class="text-slate-500 font-semibold">
-                Net Closing Outstanding: <strong class="text-indigo-600 font-mono">₹{{ number_format(array_sum($totals), 0) }}</strong>
+                Net Closing Outstanding: <strong class="text-primary font-mono">₹{{ number_format(array_sum($totals), 0) }}</strong>
             </span>
         </div>
     </div>

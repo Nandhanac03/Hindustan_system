@@ -100,7 +100,7 @@
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">ICICI Bank Balance</span>
             <div class="flex justify-between items-baseline mt-1">
                 <span class="text-2xl font-extrabold text-slate-900 font-mono">₹{{ number_format($bankBalance, 2) }}</span>
-                <span class="text-[9px] text-indigo-650 font-bold bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100 font-mono">Live Sync</span>
+                <span class="text-[9px] text-primary-700 font-bold bg-primary-50 px-1.5 py-0.5 rounded border border-primary-200/40 font-mono">Live Sync</span>
             </div>
             <p class="text-[10px] text-slate-400 mt-2 font-medium">Direct bank reconciliations completed.</p>
         </div>

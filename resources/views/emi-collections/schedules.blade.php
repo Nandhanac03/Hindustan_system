@@ -64,7 +64,7 @@
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col hover:shadow-glow/10 transition-all duration-300">
                 <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-start">
                     <div>
-                        <span class="text-[9px] font-bold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded border border-indigo-100 uppercase tracking-wider">Milestone-Based</span>
+                        <span class="text-[9px] font-bold px-2 py-0.5 bg-primary-50 text-primary-700 rounded border border-primary-100 uppercase tracking-wider">Milestone-Based</span>
                         <h3 class="text-sm font-bold text-slate-900 mt-2.5">Construction Linked Plan (CLP)</h3>
                         <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Linked to actual on-site progress stages.</p>
                     </div>
