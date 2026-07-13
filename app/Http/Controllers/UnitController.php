@@ -316,10 +316,13 @@ class UnitController extends Controller
 
         $created = [];
 
-        DB::transaction(function () use ($project_id, $floor_id, $unit_type_id, $prefix, $start, $count, $built_up_area, $carpet, $expected_rate_per_sqft, $expected_sale_amount, $isParking, &$created) {
+        $floor = \App\Models\Floor::find($floor_id);
+        $floorPrefix = $floor ? \App\Models\Floor::getDoorPrefix($floor->floor_number) : '';
+
+        DB::transaction(function () use ($project_id, $floor_id, $unit_type_id, $prefix, $floorPrefix, $start, $count, $built_up_area, $carpet, $expected_rate_per_sqft, $expected_sale_amount, $isParking, &$created) {
             for ($i = 0; $i < $count; $i++) {
                 $num = $start + $i;
-                $unitNumber = $prefix . $num;
+                $unitNumber = trim($prefix . ' ' . $floorPrefix) . ' ' . $num;
 
                 // check uniqueness per project + floor + unit type
                 $exists = Unit::where('project_id', $project_id)

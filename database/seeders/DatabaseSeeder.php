@@ -208,7 +208,7 @@ class DatabaseSeeder extends Seeder
                         'project_id' => $proj->id,
                         'floor_id' => $floor->id,
                         'unit_type_id' => $flatType->id,
-                        'door_no' => 'U-' . $floor->floor_number . sprintf('%02d', $i),
+                        'door_no' => Floor::getDoorPrefix($floor->floor_number) . ' ' . $i,
                         'built_up_area' => $bua,
                         'carpet_area' => 1000.00,
                         'expected_rate_per_sqft' => $expectedRate,

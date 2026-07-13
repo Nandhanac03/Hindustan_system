@@ -233,8 +233,8 @@ public function update(Request $request, Project $project): RedirectResponse
 
                 // Create units for this floor
                 for ($u = 1; $u <= $unitsPerFloor; $u++) {
-                    $floorStr = $f < 0 ? 'B' . abs($f) : (string)$f;
-                    $unitNumber = $prefix . $floorStr . sprintf('%02d', $u);
+                    $floorPrefix = Floor::getDoorPrefix($f);
+                    $unitNumber = trim($prefix . ' ' . $floorPrefix) . ' ' . $u;
 
                     // Check unique constraint per project + floor + unit type
                     $exists = Unit::where('project_id', $project->id)

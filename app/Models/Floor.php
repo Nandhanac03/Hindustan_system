@@ -29,4 +29,24 @@ class Floor extends Model
     {
         return $this->hasMany(Unit::class);
     }
+
+    public static function getDoorPrefix(int $floorNumber): string
+    {
+        if ($floorNumber < 0) {
+            return 'B' . abs($floorNumber);
+        }
+        return match ($floorNumber) {
+            0 => 'G',
+            1 => 'F',
+            2 => 'S',
+            3 => 'T',
+            4 => 'Fo',
+            5 => 'Fi',
+            6 => 'Si',
+            7 => 'Se',
+            8 => 'E',
+            9 => 'N',
+            default => (string)$floorNumber,
+        };
+    }
 }
