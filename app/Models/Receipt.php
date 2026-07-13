@@ -8,7 +8,7 @@ class Receipt extends Model
 {
     protected $fillable = [
         'sale_id', 'customer_id', 'project_id', 'unit_id',
-        'receipt_date', 'amount', 'payment_mode', 'reference_no', 'bank_name',
+        'receipt_date', 'amount', 'payment_mode', 'reference_no', 'bank_id',
         'remarks', 'created_by', 'partner_id',
     ];
 
@@ -31,6 +31,16 @@ class Receipt extends Model
         return $this->belongsTo(Payee::class, 'partner_id');
     }
 
+    public function bank()
+    {
+        return $this->belongsTo(Bank::class, 'bank_id');
+    }
+
+    public function getBankNameAttribute()
+    {
+        return $this->bank?->bank_name;
+    }
+
     public static function allocateToPartners(self $receipt): void
     {
         if ($receipt->partner_id !== null) {
@@ -50,7 +60,7 @@ class Receipt extends Model
                 'amount'       => $partnerAmount,
                 'payment_mode' => $receipt->payment_mode,
                 'reference_no' => $receipt->reference_no,
-                'bank_name'    => $receipt->bank_name,
+                'bank_id'      => $receipt->bank_id,
                 'remarks'      => "Share of collection ({$share->share_pct}%) from receipt #{$receipt->id}",
                 'created_by'   => $receipt->created_by,
                 'partner_id'   => $share->partner_id,

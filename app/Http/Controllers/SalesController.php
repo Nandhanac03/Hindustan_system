@@ -12,6 +12,7 @@ use App\Models\Unit;
 use App\Models\Customer;
 use App\Models\Partner;
 use App\Models\CustomerInstallment;
+use App\Models\Bank;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -64,6 +65,7 @@ class SalesController extends Controller
             'projects' => Project::orderBy('name')->get(),
             'customers' => Customer::orderBy('name')->get(),
             'brokers' => Broker::orderBy('name')->get(),
+            'bankAccounts' => Bank::where('status', 'active')->orderBy('bank_name')->get(),
         ]);
     }
 
@@ -116,7 +118,7 @@ class SalesController extends Controller
             'initial_payment_amount' => ['nullable', 'numeric', 'min:0'],
             'payment_mode'           => ['nullable', 'string'],
             'reference_no'           => ['nullable', 'string'],
-            'bank_name'              => ['nullable', 'string'],
+            'bank_id'                => ['nullable', 'exists:banks,id'],
             'initial_payment_date'   => ['nullable', 'date'],
             'payment_plan'           => ['required', Rule::in(['lump_sum', 'emi'])],
             'emi_plan_type'          => ['nullable', 'string', Rule::in(['fixed-12', 'clp', 'fixed-36'])],
@@ -163,6 +165,7 @@ class SalesController extends Controller
             'remaining_balance' => round($totalAmount - $initialPayment, 2),
             'notes'             => $validated['notes'] ?? null,
             'created_by'        => auth()->id(),
+            'bank_id'           => $validated['bank_id'] ?? null,
         ]);
 
         // Mark the unit as sold and update pricing details
@@ -196,7 +199,7 @@ class SalesController extends Controller
                 'amount'       => $initialPayment,
                 'payment_mode' => $validated['payment_mode'] ?? 'cash',
                 'reference_no' => $validated['reference_no'] ?? null,
-                'bank_name'    => $validated['bank_name'] ?? null,
+                'bank_id'      => $validated['bank_id'] ?? null,
                 'remarks'      => 'Initial payment at sale creation',
                 'created_by'   => auth()->id(),
             ]);
@@ -263,7 +266,7 @@ class SalesController extends Controller
             'initial_payment_amount' => ['nullable', 'numeric', 'min:0'],
             'payment_mode' => ['nullable', 'string'],
             'reference_no' => ['nullable', 'string'],
-            'bank_name' => ['nullable', 'string'],
+            'bank_id' => ['nullable', 'exists:banks,id'],
             'initial_payment_date' => ['nullable', 'date'],
         ]);
 
@@ -294,6 +297,7 @@ class SalesController extends Controller
             'payment_plan'      => $validated['payment_plan'] ?? $sale->payment_plan,
             'emi_plan_type'     => $validated['emi_plan_type'] ?? $sale->emi_plan_type ?? 'fixed-12',
             'notes'             => $validated['notes'] ?? null,
+            'bank_id'           => $validated['bank_id'] ?? null,
         ]);
 
         // Update Unit pricing details since Sale updated
@@ -340,7 +344,7 @@ class SalesController extends Controller
                     'amount'       => $initialPayment,
                     'payment_mode' => $validated['payment_mode'] ?? 'Cash',
                     'reference_no' => $validated['reference_no'] ?? null,
-                    'bank_name'    => $validated['bank_name'] ?? null,
+                    'bank_id'      => $validated['bank_id'] ?? null,
                     'receipt_date' => $validated['initial_payment_date'] ?? $validated['sale_date'],
                 ]);
             } else {
@@ -352,7 +356,7 @@ class SalesController extends Controller
                     'amount'       => $initialPayment,
                     'payment_mode' => $validated['payment_mode'] ?? 'Cash',
                     'reference_no' => $validated['reference_no'] ?? null,
-                    'bank_name'    => $validated['bank_name'] ?? null,
+                    'bank_id'      => $validated['bank_id'] ?? null,
                     'remarks'      => 'Initial payment at sale creation',
                     'created_by'   => auth()->id(),
                 ]);
@@ -387,7 +391,7 @@ class SalesController extends Controller
             'receipt_date' => ['required', 'date'],
             'payment_mode' => ['required', 'string'],
             'reference_no' => ['nullable', 'string'],
-            'bank_name'    => ['nullable', 'string'],
+            'bank_id'    => ['nullable', 'exists:banks,id'],
             'remarks'      => ['nullable', 'string'],
         ]);
 
@@ -400,7 +404,7 @@ class SalesController extends Controller
             'amount'       => $validated['amount'],
             'payment_mode' => $validated['payment_mode'],
             'reference_no' => $validated['reference_no'] ?? null,
-            'bank_name'    => $validated['bank_name'] ?? null,
+            'bank_id'      => $validated['bank_id'] ?? null,
             'remarks'      => $validated['remarks'] ?? null,
             'created_by'   => auth()->id(),
         ]);

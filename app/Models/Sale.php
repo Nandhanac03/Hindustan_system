@@ -17,7 +17,7 @@ class Sale extends Model
         'status', 'original_sale_id', 'is_resale', 'cancellation_reason', 'cancelled_at',
         'cancellation_fee', 'refund_amount',
         'broker_involved', 'payment_plan', 'emi_plan_type', 'remaining_balance',
-        'notes', 'created_by',
+        'notes', 'created_by', 'bank_id',
     ];
 
     protected $casts = [
@@ -68,5 +68,15 @@ class Sale extends Model
     public function statusLogs()
     {
         return $this->hasMany(SaleStatusLog::class)->orderByDesc('created_at');
+    }
+
+    public function bank()
+    {
+        return $this->belongsTo(Bank::class, 'bank_id');
+    }
+
+    public function getBankNameAttribute()
+    {
+        return $this->bank?->bank_name;
     }
 }

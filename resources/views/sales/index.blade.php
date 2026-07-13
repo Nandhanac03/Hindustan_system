@@ -372,8 +372,13 @@
                             </div>
                             <div x-show="['Bank Transfer', 'Cheque'].includes(forms.add.payment_mode)" class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Name</label>
-                                <input type="text" x-model="forms.add.bank_name" placeholder="e.g. HDFC Bank"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                <select x-model="forms.add.bank_id"
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    <option value="">Select Bank Account</option>
+                                    <template x-for="bank in bankAccountsList" :key="bank.id">
+                                        <option :value="bank.id" x-text="bank.name"></option>
+                                    </template>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -656,8 +661,13 @@
                             </div>
                             <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Name</label>
-                                <input type="text" x-model="forms.edit.bank_name" placeholder="e.g. HDFC Bank"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                <select x-model="forms.edit.bank_id"
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    <option value="">Select Bank Account</option>
+                                    <template x-for="bank in bankAccountsList" :key="bank.id">
+                                        <option :value="bank.id" x-text="bank.name"></option>
+                                    </template>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -928,6 +938,7 @@ function salesApp() {
         selectedUnit: { add: null, edit: null },
         customerList: @json($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'email' => $c->email])),
         brokerList: @json($brokers->map(fn($b) => ['id' => $b->id, 'name' => $b->name, 'default_commission_pct' => $b->default_commission_pct ?? null])),
+        bankAccountsList: @json($bankAccounts->map(fn($ba) => ['id' => $ba->id, 'name' => $ba->bank_name])),
         quickCustomer: { name: '', email: '', phone: '' },
         quickCustomerErrors: {},
         forms: {
@@ -937,7 +948,7 @@ function salesApp() {
                 rate_per_sqft: '', sale_amount: '', gst_type: 'none',
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0, brokerage_status: 'pending',
-                initial_payment_amount: 0, payment_mode: 'Cash', reference_no: '', bank_name: '', initial_payment_date: new Date().toISOString().split('T')[0],
+                initial_payment_amount: 0, payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
                 payment_plan: 'lump_sum', remaining_balance: 0,
                 notes: ''
             },
@@ -1438,7 +1449,7 @@ function salesApp() {
                 rate_per_sqft: '', sale_amount: '', gst_type: 'none',
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0, brokerage_status: 'pending',
-                initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_name: '', initial_payment_date: new Date().toISOString().split('T')[0],
+                initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
                 payment_plan: 'lump_sum', emi_plan_type: 'fixed-12', remaining_balance: 0,
                 notes: ''
             };
@@ -1514,7 +1525,7 @@ function salesApp() {
                     initial_payment_percentage: (initialReceipt && this.activeSale.total_amount > 0) ? Math.round((parseFloat(initialReceipt.amount) / parseFloat(this.activeSale.total_amount) * 100) * 100) / 100 : '',
                     payment_mode: initialReceipt ? initialReceipt.payment_mode : 'Cash',
                     reference_no: initialReceipt ? initialReceipt.reference_no || '' : '',
-                    bank_name: initialReceipt ? initialReceipt.bank_name || '' : '',
+                    bank_id: initialReceipt ? initialReceipt.bank_id || '' : '',
                     initial_payment_date: initialReceipt ? (initialReceipt.receipt_date ? initialReceipt.receipt_date.split('T')[0] : '') : '',
                     payment_plan: this.activeSale.payment_plan || 'lump_sum',
                     emi_plan_type: this.activeSale.emi_plan_type || 'fixed-12',
