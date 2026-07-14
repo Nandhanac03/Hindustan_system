@@ -282,7 +282,7 @@ public function update(Request $request, Project $project): RedirectResponse
             }
         });
 
-        return redirect()->route('project.show', $project->id)
+        return redirect()->route('projects.show', $project->id)
             ->with('status', 'Floors and units generated successfully.');
     }
 

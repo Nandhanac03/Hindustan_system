@@ -42,10 +42,10 @@
 
             <template x-if="permissions.manage">
                 <div class="flex items-center gap-2">
-                    <!-- <button @click="openBulkModal()" class="btn-ripple inline-flex items-center gap-2 px-3 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wide">
+                     <button @click="openBulkModal()" class="btn-ripple inline-flex items-center gap-2 px-3 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wide">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Bulk Add
-                    </button> -->
+                    </button> 
                     <button @click="openAddModal()" class="btn-ripple inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Add Unit

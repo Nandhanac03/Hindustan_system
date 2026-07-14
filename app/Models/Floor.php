@@ -40,12 +40,13 @@ class Floor extends Model
             1 => 'F',
             2 => 'S',
             3 => 'T',
-            4 => 'Fo',
-            5 => 'Fi',
-            6 => 'Si',
-            7 => 'Se',
+            4 => 'FO',
+            5 => 'FI',
+            6 => 'SI',
+            7 => 'SE',
             8 => 'E',
             9 => 'N',
+            14 => 'FOR',
             default => (string)$floorNumber,
         };
     }

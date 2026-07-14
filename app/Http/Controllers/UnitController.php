@@ -73,8 +73,9 @@ class UnitController extends Controller
                 $query->where("{$table}.unit_type_id", $request->unit_type_id);
             }
 
-            // Sort by floor number (asc), then by door number (ascending)
+            // Sort by floor number (asc), then naturally by door number (length, then lexicographically)
             $query->orderBy('floors.floor_number', 'asc')
+                  ->orderByRaw("LENGTH(door_no) asc")
                   ->orderBy("{$table}.door_no", 'asc');
 
             $units = $query->paginate(50);
