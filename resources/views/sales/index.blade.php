@@ -1,6 +1,6 @@
 @php
-    $isReturnExchange = request('tab') === 'returns' || request('tab') === 'cancellations' || request('tab') === 'exchange';
-    $pageTitle = request('tab') === 'exchange' ? 'Unit Exchange Operations' : (request('tab') === 'cancellations' ? 'Sales Cancellations' : ($isReturnExchange ? 'Sales Returns' : 'Sales Register'));
+    $isReturnExchange = request('tab') === 'returns' || request('tab') === 'cancellations' || request('tab') === 'exchange' || request('tab') === 'sale-return';
+    $pageTitle = request('tab') === 'exchange' ? 'Unit Exchange Operations' : (request('tab') === 'cancellations' ? 'Sales Cancellations' : (request('tab') === 'sale-return' ? 'Sales Return / Cancellation' : ($isReturnExchange ? 'Sales Returns' : 'Sales Register')));
 @endphp
 <x-erp-layout :title="$pageTitle" :headerTitle="$pageTitle">
 
@@ -102,14 +102,14 @@
                             <td class="px-4 py-4 font-bold text-slate-900 border-b border-slate-100" x-text="sale.sale_number"></td>
                             <td class="px-4 py-4 text-left border-b border-slate-100">
                                 <div class="font-bold text-slate-800" x-text="sale.project ? sale.project.name : 'N/A'"></div>
-                                <div class="text-[10px] text-slate-400 mt-0.5" x-text="sale.unit ? sale.unit.door_no : ''"></div>
+                                <div class="text-[10px] text-slate-400 mt-0.5" x-text="sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (sale.unit ? sale.unit.door_no : '')"></div>
                             </td>
                             <td class="px-4 py-4 text-slate-600 border-b border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
                             <td class="px-4 py-4 text-slate-500 border-b border-slate-100" x-text="sale.broker ? sale.broker.name : '—'"></td>
                             <td class="px-4 py-4 font-bold text-slate-900 border-b border-slate-100" x-text="'₹' + Number(sale.sale_amount).toLocaleString()"></td>
                             <td class="px-4 py-4 border-b border-slate-100">
-                                <span x-show="sale.gst_type && sale.gst_type !== 'none'" x-text="'₹' + Number(sale.gst_amount).toLocaleString() + ' (' + sale.gst_percentage + '%, ' + sale.gst_type + ')'"></span>
-                                <span x-show="!sale.gst_type || sale.gst_type === 'none'" class="text-slate-400">N/A</span>
+                                <span x-show="sale.gst_amount > 0" x-text="'₹' + Number(sale.gst_amount).toLocaleString()"></span>
+                                <span x-show="!sale.gst_amount || sale.gst_amount == 0" class="text-slate-400">N/A</span>
                             </td>
                             <td class="px-4 py-4 font-bold text-emerald-700 border-b border-slate-100" x-text="'₹' + Number(sale.total_amount).toLocaleString()"></td>
                             <td class="px-4 py-4 text-slate-500 border-b border-slate-100" x-text="formatDate(sale.sale_date)"></td>
@@ -137,12 +137,12 @@
     </div>
 
     {{-- ═══════════════════════════════════════════
-         ADD SALE MODAL — 6 Sections (aligned to a consistent 3-column grid)
+         ADD SALE MODAL — 6 Sections with Repeatable Alpine Rows
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Sale</h3>
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Sale (Multi-Unit Contract)</h3>
                 <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <form @submit.prevent="submitAddSale()">
@@ -162,19 +162,7 @@
                             <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.project_id[0]"></p></template>
                         </div>
 
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
-                            <select x-model="forms.add.unit_id" @change="onUnitSelect('add')" :disabled="!forms.add.project_id"
-                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
-                                <option value="">— Select Project First —</option>
-                                <template x-for="unit in availableUnits.add" :key="unit.id">
-                                    <option :value="unit.id" x-text="unit.door_no + ' — ' + unit.floor_name"></option>
-                                </template>
-                            </select>
-                            <template x-if="errors.unit_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_id[0]"></p></template>
-                        </div>
-
-                        <div class="space-y-1.5">
+                        <div class="space-y-1.5 col-span-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer *</label>
                             <div class="flex gap-2">
                                 <select x-model="forms.add.customer_id"
@@ -204,74 +192,106 @@
                             <input type="date" x-model="forms.add.registration_date"
                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                         </div>
-
-                        {{-- spacer keeps the 3-col rhythm; drop this div if a third field is added --}}
-                        <div></div>
                     </div>
 
-                    {{-- ── Section 2 — Sale Amount ── --}}
+                    {{-- ── Section 2 — Repeatable Units / Line Items ── --}}
                     <div class="border-t border-slate-100 pt-4">
-                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">📐 Sale Amount</p>
-                        <div class="grid grid-cols-3 gap-4 items-stretch">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs font-bold text-primary uppercase tracking-widest">🏢 Booked Inventory / Units</p>
+                            <button type="button" @click="addUnitRow()"
+                                    class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition shadow-sm">
+                                + Add Unit Row
+                            </button>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <template x-for="(row, index) in forms.add.units" :key="index">
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative">
+                                    <button type="button" @click="removeUnitRow(index)" x-show="forms.add.units.length > 1"
+                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
+                                    
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
+                                            <select x-model="row.unit_id" @change="onRowUnitSelect(index)" :disabled="!forms.add.project_id"
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
+                                                <option value="">— Select Unit —</option>
+                                                <template x-for="unit in availableUnits.add" :key="unit.id">
+                                                    <option :value="unit.id" x-text="unit.door_no + ' — ' + unit.floor_name" :disabled="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)"></option>
+                                                </template>
+                                            </select>
+                                        </div>
 
-                            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-                                <div>
-                                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Expected Rate / Sq.Ft</p>
-                                    <p class="font-bold text-slate-800" x-text="selectedUnit.add ? '₹' + Number(selectedUnit.add.expected_rate_per_sqft).toLocaleString() : '—'"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Expected Sale Value</p>
-                                    <p class="font-bold text-slate-800" x-text="selectedUnit.add ? '₹' + Number(selectedUnit.add.expected_sale_amount).toLocaleString() : '—'"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Built-up Area</p>
-                                    <p class="font-bold text-slate-800" x-text="(selectedUnit.add ? Number(selectedUnit.add.built_up_area).toLocaleString() : '—') + ' Sq.Ft'"></p>
-                                </div>
-                            </div>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area (Sq Ft)</label>
+                                            <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 font-bold h-9 flex items-center">
+                                                <span x-text="onGetRowArea(index) + ' Sq Ft'"></span>
+                                            </div>
+                                        </div>
 
-                            <div class="space-y-3">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Rate per Sq.Ft *</label>
-                                    <input type="number" step="0.01" x-model="forms.add.rate_per_sqft" @input="onRateChange('add')" placeholder="Enter agreed rate"
-                                           :disabled="selectedUnit.add && (selectedUnit.add.unit_type_name === 'Parking' || selectedUnit.add.unit_type_category === 'parking')"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
-                                    <template x-if="errors.rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.rate_per_sqft[0]"></p></template>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
-                                    <template x-if="selectedUnit.add && (selectedUnit.add.unit_type_name === 'Parking' || selectedUnit.add.unit_type_category === 'parking')">
-                                        <input type="number" step="0.01" x-model="forms.add.sale_amount" @input="recalculateGst('add'); recalculateBrokerage('add');" placeholder="Enter agreed amount"
-                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                    </template>
-                                    <template x-if="!selectedUnit.add || (selectedUnit.add.unit_type_name !== 'Parking' && selectedUnit.add.unit_type_category !== 'parking')">
-                                        <p class="text-lg font-extrabold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.add.sale_amount || 0).toLocaleString()"></p>
-                                    </template>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Difference</p>
-                                    <p class="text-sm font-bold font-mono" :class="saleDifference('add') >= 0 ? 'text-emerald-600' : 'text-rose-600'" x-text="'₹' + Number(saleDifference('add')).toLocaleString()"></p>
-                                </div>
-                            </div>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Rate/Sqft *</label>
+                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index)" placeholder="Agreed rate"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        </div>
 
-                            <div class="space-y-3">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Type</label>
-                                    <select x-model="forms.add.gst_type" @change="recalculateGst('add')"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                        <option value="none">None — No GST</option>
-                                        <option value="inclusive">GST Included (18%)</option>
-                                        <option value="exclusive">GST Excluded (18% Extra)</option>
-                                    </select>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
+                                            <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index)" placeholder="Base Amount"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
+                                            <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index)" placeholder="e.g. 18"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        </div>
+
+                                        <div class="text-xs">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">GST Amount</p>
+                                            <p class="font-bold text-slate-800 mt-1 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
+                                        </div>
+
+                                        <div class="text-xs">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Payable</p>
+                                            <p class="font-extrabold text-indigo-700 mt-1 font-mono" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
+                                        </div>
+
+                                        {{-- Row-level commission details --}}
+                                        <div class="flex items-center gap-2 h-9" x-show="forms.add.broker_involved">
+                                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-650 cursor-pointer">
+                                                <input type="checkbox" x-model="row.broker_involved" @change="recalculateRowBrokerage(index)" class="rounded text-primary focus:ring-primary/20">
+                                                <span>Commission Row?</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50" x-show="forms.add.broker_involved && row.broker_involved">
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
+                                            <select x-model="row.brokerage_type" @change="recalculateRowBrokerage(index)"
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                <option value="percentage">Percentage (%)</option>
+                                                <option value="fixed">Fixed (₹)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
+                                            <input type="number" step="0.01" x-model="row.brokerage_value" @input="recalculateRowBrokerage(index)" placeholder="Value"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        </div>
+
+                                        <div class="text-xs">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Brokerage Amount</p>
+                                            <p class="font-bold text-slate-800 mt-1 font-mono" x-text="'₹' + Number(row.brokerage_amount || 0).toLocaleString()"></p>
+                                        </div>
+                                        <div></div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">GST Amount</p>
-                                    <p class="font-bold text-slate-800" x-text="'₹' + Number(forms.add.gst_amount || 0).toLocaleString()"></p>
-                                </div>
-                                <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Payable</p>
-                                    <p class="text-sm font-extrabold text-emerald-700" x-text="'₹' + Number(forms.add.total_amount || 0).toLocaleString()"></p>
-                                </div>
-                            </div>
+                            </template>
                         </div>
                     </div>
 
@@ -284,7 +304,7 @@
                         <div x-show="forms.add.broker_involved" class="grid grid-cols-3 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
-                                <select x-model="forms.add.broker_id" @change="onBrokerSelect('add')"
+                                <select x-model="forms.add.broker_id"
                                         class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="">— Select Broker —</option>
                                     @foreach($brokers as $broker)
@@ -294,31 +314,9 @@
                                 <template x-if="errors.broker_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.broker_id[0]"></p></template>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
-                                <div class="flex items-center gap-4 h-9">
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                                        <input type="radio" value="percentage" x-model="forms.add.brokerage_type" @change="onBrokerageTypeChange('add')" class="text-primary focus:ring-primary/20">
-                                        Percentage (%)
-                                    </label>
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                                        <input type="radio" value="fixed" x-model="forms.add.brokerage_type" @change="onBrokerageTypeChange('add')" class="text-primary focus:ring-primary/20">
-                                        Fixed (₹)
-                                    </label>
-                                </div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Brokerage Amount</p>
+                                <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.add.brokerage_amount || 0).toLocaleString()"></p>
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
-                                <input type="number" step="0.01" x-model="forms.add.brokerage_value"  @input="recalculateBrokerage('add')"
-                                       :placeholder="forms.add.brokerage_type === 'fixed' ? '0' : 'e.g. 2 for 2%'"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                <template x-if="errors.brokerage_value"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.brokerage_value[0]"></p></template>
-                            </div>
-
-                            <div class="space-y-1.5">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brokerage Amount</p>
-                                <p class="font-bold text-slate-900 leading-9" x-text="'₹' + Number(forms.add.brokerage_amount || 0).toLocaleString()"></p>
-                            </div>
-
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
                                 <select x-model="forms.add.brokerage_status"
@@ -327,6 +325,22 @@
                                     <option value="paid">Paid</option>
                                 </select>
                             </div>
+                        </div>
+                    </div>
+
+                    {{-- Aggregated Contract Summary --}}
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total SALE Amount</span>
+                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.add.base_amount || 0).toLocaleString()"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total GST Amount</span>
+                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.add.gst_amount || 0).toLocaleString()"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Contract Value</span>
+                            <span class="font-extrabold text-[#a38c29] text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.add.total_amount || 0).toLocaleString()"></span>
                         </div>
                     </div>
 
@@ -424,7 +438,7 @@
 
                 </div>
                 <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
+                    <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Create Sale</button>
                 </div>
             </form>
@@ -452,7 +466,7 @@
                     <template x-if="quickCustomerErrors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="quickCustomerErrors.email[0]"></p></template>
                 </div>
                 <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="modals.quickCustomer.open = false" class="px-4 py-2 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl uppercase">Cancel</button>
+                    <button type="button" @click="modals.quickCustomer.open = false" class="px-4 py-2 border border-slate-200 text-slate-650 text-xs font-bold rounded-xl uppercase">Cancel</button>
                     <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl uppercase">Add & Select</button>
                 </div>
             </form>
@@ -460,7 +474,7 @@
     </div>
     
     {{-- ═══════════════════════════════════════════
-         EDIT SALE MODAL — Aligned to Add Sale Modal style
+         EDIT SALE MODAL (legacy single-unit fields kept for backward-compatible edits)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
@@ -479,7 +493,7 @@
                         </div>
                         <div>
                             <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unit</label>
-                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—'"></span>
+                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.sale_units && activeSale.sale_units.length ? activeSale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (activeSale.unit ? activeSale.unit.door_no : '—')"></span>
                         </div>
                         <div>
                             <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer</label>
@@ -763,7 +777,7 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Unit & Floor</span>
-                            <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—'"></strong>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.sale_units && activeSale.sale_units.length ? activeSale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—')"></strong>
                         </div>
                     </div>
                     {{-- Customer Card --}}
@@ -779,6 +793,35 @@
                     </div>
                 </div>
 
+                {{-- Multi Unit Details Table --}}
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3" x-show="activeSale.sale_units && activeSale.sale_units.length > 0">
+                    <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">🏢 Booked Inventory / Units</p>
+                    <table class="w-full text-left text-[11px] border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                <th class="py-2">Unit</th>
+                                <th class="py-2">Floor</th>
+                                <th class="py-2">Area (Sq.Ft)</th>
+                                <th class="py-2">Rate/Sq.Ft</th>
+                                <th class="py-2">GST</th>
+                                <th class="py-2 text-right">Line Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                            <template x-for="su in activeSale.sale_units" :key="su.id">
+                                <tr>
+                                    <td class="py-2 font-bold text-indigo-700" x-text="su.unit ? su.unit.door_no : '—'"></td>
+                                    <td class="py-2" x-text="su.unit && su.unit.floor ? su.unit.floor.name : '—'"></td>
+                                    <td class="py-2 font-mono" x-text="Number(su.area_sqft).toLocaleString()"></td>
+                                    <td class="py-2 font-mono" x-text="'₹' + Number(su.rate_per_sqft).toLocaleString()"></td>
+                                    <td class="py-2" x-text="su.gst_type !== 'none' ? '₹' + Number(su.gst_amount).toLocaleString() + ' (' + su.gst_type + ')' : 'None'"></td>
+                                    <td class="py-2 text-right font-mono text-slate-900" x-text="'₹' + Number(su.line_total).toLocaleString()"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
                 {{-- Row 2: Financial Summary Card --}}
                 <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                     <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">💰 Pricing & GST Breakdown</p>
@@ -789,15 +832,15 @@
                             <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="activeSale.rate_per_sqft > 0 ? '₹' + Number(activeSale.rate_per_sqft).toLocaleString() : '₹0 (Flat Price)'"></span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Built-up Area</span>
-                            <span class="font-bold text-slate-800 text-sm mt-1 block font-mono" x-text="activeSale.unit ? Number(activeSale.unit.built_up_area).toLocaleString() + ' Sq.Ft' : '—'"></span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total Base Amount</span>
+                            <span class="font-bold text-slate-800 text-sm mt-1 block font-mono" x-text="activeSale.base_amount ? '₹' + Number(activeSale.base_amount).toLocaleString() : '—'"></span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">GST Type & Amount</span>
-                            <span class="font-bold text-slate-800 text-sm mt-1 block" x-text="activeSale.gst_type && activeSale.gst_type !== 'none' ? '₹' + Number(activeSale.gst_amount || 0).toLocaleString() + ' (' + activeSale.gst_percentage + '%)' : 'None / Excluded'"></span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total GST Amount</span>
+                            <span class="font-bold text-slate-800 text-sm mt-1 block" x-text="activeSale.gst_amount > 0 ? '₹' + Number(activeSale.gst_amount || 0).toLocaleString() : 'None / Excluded'"></span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total Amount Payable</span>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total Contract Value</span>
                             <span class="font-extrabold text-[#a38c29] text-base mt-1 block font-mono" x-text="'₹' + Number(activeSale.total_amount || 0).toLocaleString()"></span>
                         </div>
                     </div>
@@ -816,7 +859,7 @@
                             <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_plan_type || 'Custom') + ')' : 'Lump Sum'"></span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-450 font-bold uppercase block tracking-wider">Remaining Balance</span>
+                            <span class="text-[9px] text-slate-455 font-bold uppercase block tracking-wider">Remaining Balance</span>
                             <span class="font-extrabold text-sm mt-1 block font-mono" :class="activeSale.remaining_balance > 0 ? 'text-rose-600' : 'text-emerald-700'" x-text="'₹' + Number(activeSale.remaining_balance || 0).toLocaleString()"></span>
                         </div>
                     </div>
@@ -866,10 +909,10 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Commission Structure</span>
-                            <span class="font-bold text-slate-850 mt-1 block" x-text="activeSale.brokerage ? (activeSale.brokerage.commission_type === 'percentage' ? activeSale.brokerage.commission_percent + '% of Sale Price' : 'Fixed Commission') : '—'"></span>
+                            <span class="font-bold text-slate-855 mt-1 block" x-text="activeSale.brokerage ? (activeSale.brokerage.commission_type === 'percentage' ? activeSale.brokerage.commission_percent + '% of Sale Price' : 'Fixed Commission') : '—'"></span>
                         </div>
                         <div>
-                            <span class="text-[9px] text-slate-450 font-bold uppercase block tracking-wider">Payout Amount / Status</span>
+                            <span class="text-[9px] text-slate-455 font-bold uppercase block tracking-wider">Payout Amount / Status</span>
                             <div class="flex items-center gap-1.5 mt-1">
                                 <span class="font-extrabold text-slate-900 font-mono" x-text="activeSale.brokerage ? '₹' + Number(activeSale.brokerage.commission_amount).toLocaleString() : '—'"></span>
                                 <span class="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider inline-block"
@@ -943,14 +986,14 @@ function salesApp() {
         quickCustomerErrors: {},
         forms: {
             add: {
-                project_id: '{{ request('project_id') }}', unit_id: '', customer_id: '', broker_id: '',
+                project_id: '{{ request('project_id') }}', customer_id: '', broker_id: '',
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
-                rate_per_sqft: '', sale_amount: '', gst_type: 'none',
                 gst_amount: 0, base_amount: '', total_amount: '',
-                broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0, brokerage_status: 'pending',
-                initial_payment_amount: 0, payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
-                payment_plan: 'lump_sum', remaining_balance: 0,
-                notes: ''
+                broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
+                initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
+                payment_plan: 'lump_sum', emi_plan_type: 'fixed-12', remaining_balance: 0,
+                notes: '',
+                units: []
             },
             edit: {
                 sale_amount: '', sale_date: '', gst_type: 'none',
@@ -964,7 +1007,7 @@ function salesApp() {
 
         // Return & Exchange State
         returnFilters: { search: '', project_id: '{{ request('project_id') }}', type: '', status: '{{ request('tab') === 'cancellations' ? 'cancelled' : (request('tab') === 'returns' ? 'returned' : '') }}' },
-        exchangeFilters: { search: '', project_id: '{{ request('project_id') }}', type: '', status: '' },
+        exchangeFilters: { search: '', project_id: '', type: '', status: '' },
         selectedReturnSale: null,
         targetReturnStatus: '',
         selectedExchangeSale: null,
@@ -972,9 +1015,35 @@ function salesApp() {
         exchangeForm: { new_project_id: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '' },
         exchangeAvailableUnits: [],
         exchangeSelectedUnit: null,
+        openNewReturnModal: false,
+        newReturnStep: 1,
+        newReturnSaleId: '',
+        newReturnSale: null,
+        isEditReturn: false,
+        isCancellationTab: {{ request('tab') === 'cancellations' ? 'true' : 'false' }},
+        openNewExchangeModal: false,
+        newExchangeStep: 1,
+        newExchangeSaleId: '',
+        openViewExchangeModal: false,
+        viewExchangeSale: null,
 
         init() {
             this.fetchSales();
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const autoSaleId = urlParams.get('sale_id');
+            if (autoSaleId && urlParams.get('tab') === 'exchange') {
+                let checkExist = setInterval(() => {
+                    if (this.sales && this.sales.length > 0) {
+                        const foundSale = this.sales.find(s => s.id == autoSaleId);
+                        if (foundSale) {
+                            this.selectExchangeSale(foundSale);
+                            clearInterval(checkExist);
+                        }
+                    }
+                }, 100);
+                setTimeout(() => clearInterval(checkExist), 3000);
+            }
         },
 
         fmt(value) {
@@ -1001,6 +1070,7 @@ function salesApp() {
 
         fetchSales() {
             let params = new URLSearchParams();
+            params.append('tab', '{{ request('tab') }}');
             Object.entries(this.filters).forEach(([key, val]) => { if (val) params.append(key, val); });
 
             fetch('{{ route('sales.index') }}?' + params.toString(), {
@@ -1037,10 +1107,9 @@ function salesApp() {
             setTimeout(() => { this.toast.open = false; }, 3000);
         },
 
-        // Helper calculations & Actions for Returns/Cancellations & Exchanges
         getPaidTillDate(sale) {
             if (!sale) return 0;
-            return sale.receipts ? sale.receipts.reduce((sum, r) => sum + Number(r.amount), 0) : 0;
+            return sale.receipts ? sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0) : 0;
         },
 
         selectReturnSale(sale, targetStatus) {
@@ -1084,6 +1153,157 @@ function salesApp() {
                 } else {
                     this.showToast(this.targetReturnStatus === 'cancelled' ? 'Sale cancelled successfully.' : 'Sales return processed successfully.');
                     this.selectedReturnSale = null;
+                    this.fetchSales();
+                }
+            })
+            .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
+        },
+
+        getReturnStats() {
+            let salesList = this.sales.filter(s => s.status === 'cancelled' || s.status === 'returned');
+            if (this.returnFilters && this.returnFilters.project_id) {
+                salesList = salesList.filter(s => s.project_id == this.returnFilters.project_id);
+            }
+            let totalReturns = salesList.length;
+            let returnAmount = salesList.reduce((sum, s) => sum + parseFloat(s.total_amount || 0), 0);
+            let payableToCustomer = 0;
+            let receivableFromCustomer = 0;
+            
+            salesList.forEach(s => {
+                let paid = this.getPaidTillDate(s);
+                let fee = parseFloat(s.cancellation_fee || 0);
+                if (s.status === 'returned') {
+                    payableToCustomer += parseFloat(s.refund_amount || 0);
+                    receivableFromCustomer += fee;
+                } else {
+                    if (paid > fee) {
+                        payableToCustomer += (paid - fee);
+                    } else {
+                        receivableFromCustomer += (fee - paid);
+                    }
+                }
+            });
+            
+            return { totalReturns, returnAmount, payableToCustomer, receivableFromCustomer };
+        },
+
+        getExchangeStats() {
+            let salesList = this.sales.filter(s => s.status === 'exchanged');
+            if (this.exchangeFilters && this.exchangeFilters.project_id) {
+                salesList = salesList.filter(s => s.project_id == this.exchangeFilters.project_id);
+            }
+            let totalExchanges = salesList.length;
+            let totalDiff = 0;
+            let payableByCustomer = 0;
+            let refundableToCustomer = 0;
+            let completedExchanges = salesList.filter(s => s.status === 'exchanged').length;
+
+            salesList.forEach(sale => {
+                const newVal = this.getNewUnitValue(sale);
+                const oldVal = parseFloat(sale.total_amount);
+                const diff = newVal - oldVal;
+                totalDiff += Math.abs(diff);
+                if (diff > 0) {
+                    payableByCustomer += diff;
+                } else if (diff < 0) {
+                    refundableToCustomer += Math.abs(diff);
+                }
+            });
+
+            return { totalExchanges, totalDiff, payableByCustomer, refundableToCustomer, completedExchanges };
+        },
+
+        getNewUnitDoorNo(sale) {
+            if (sale.status !== 'exchanged') return '—';
+            const newSale = this.sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + sale.sale_number));
+            return newSale && newSale.unit ? newSale.unit.door_no : '—';
+        },
+
+        getNewUnitValue(sale) {
+            if (sale.status !== 'exchanged') return 0;
+            const newSale = this.sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + sale.sale_number));
+            return newSale ? parseFloat(newSale.total_amount) : 0;
+        },
+
+        getDifferentialDue(sale) {
+            if (sale.status !== 'exchanged') return 0;
+            const newVal = this.getNewUnitValue(sale);
+            const oldVal = parseFloat(sale.total_amount);
+            return newVal - oldVal;
+        },
+
+        getDifferenceAmount(sale) {
+            if (sale.status !== 'exchanged') return 0;
+            const newVal = this.getNewUnitValue(sale);
+            const oldVal = parseFloat(sale.total_amount);
+            return Math.abs(newVal - oldVal);
+        },
+
+        fmtIndian(value) {
+            let num = Number(value || 0);
+            if (num >= 10000000) {
+                return '₹' + (num / 10000000).toFixed(2) + ' Cr';
+            } else if (num >= 100000) {
+                return '₹' + (num / 100000).toFixed(2) + ' L';
+            }
+            return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+
+        selectNewReturnSale() {
+            let sale = this.sales.find(s => s.id == this.newReturnSaleId);
+            if (!sale) {
+                this.showToast('Please select a sale first.', 'error');
+                return;
+            }
+            this.newReturnSale = sale;
+            this.newReturnStep = 2;
+            this.returnForm.date = new Date().toISOString().split('T')[0];
+            this.returnForm.cancellation_fee = 100000;
+            this.returnForm.reason = '';
+            this.returnForm.revert_unsold = true;
+        },
+
+        selectNewExchangeSale() {
+            let sale = this.sales.find(s => s.id == this.newExchangeSaleId);
+            if (!sale) {
+                this.showToast('Please select a sale first.', 'error');
+                return;
+            }
+            this.selectExchangeSale(sale);
+            this.newExchangeStep = 2;
+        },
+
+        submitNewReturn() {
+            if (!this.returnForm.reason) {
+                this.showToast('Reason is required.', 'error');
+                return;
+            }
+            const approvedRefund = this.getPaidTillDate(this.newReturnSale) - (Number(this.returnForm.cancellation_fee) || 0);
+            fetch(`{{ url('sales') }}/${this.newReturnSale.id}/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: 'cancelled',
+                    reason: this.returnForm.reason,
+                    cancellation_fee: this.returnForm.cancellation_fee,
+                    refund_amount: Math.max(0, approvedRefund),
+                    revert_unsold: this.returnForm.revert_unsold
+                })
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (!res.ok) {
+                    this.showToast(data.error || data.message || 'Failed to process.', 'error');
+                } else {
+                    this.showToast('Sales return/cancellation processed successfully.');
+                    this.openNewReturnModal = false;
+                    this.newReturnSaleId = '';
+                    this.newReturnSale = null;
+                    this.newReturnStep = 1;
                     this.fetchSales();
                 }
             })
@@ -1167,6 +1387,7 @@ function salesApp() {
                 } else {
                     this.showToast('Unit exchange processed successfully.');
                     this.selectedExchangeSale = null;
+                    this.openNewExchangeModal = false;
                     this.fetchSales();
                 }
             })
@@ -1175,6 +1396,7 @@ function salesApp() {
 
         filteredReturnSales() {
             return this.sales.filter(sale => {
+                if (sale.status === 'exchanged') return false;
                 if (this.returnFilters.search) {
                     const q = this.returnFilters.search.toLowerCase();
                     const cust = sale.customer ? sale.customer.name.toLowerCase() : '';
@@ -1192,7 +1414,8 @@ function salesApp() {
                 if (this.returnFilters.status) {
                     if (sale.status !== this.returnFilters.status) return false;
                 } else {
-                    if (!['active', 'cancelled', 'returned'].includes(sale.status)) return false;
+                    const allowed = ('{{ request('tab') }}' === 'sale-return' || '{{ request('tab') }}' === 'returns') ? ['cancelled', 'returned'] : ['active', 'cancelled', 'returned'];
+                    if (!allowed.includes(sale.status)) return false;
                 }
                 return true;
             });
@@ -1217,7 +1440,7 @@ function salesApp() {
                 if (this.exchangeFilters.status) {
                     if (sale.status !== this.exchangeFilters.status) return false;
                 } else {
-                    if (!['active', 'exchanged'].includes(sale.status)) return false;
+                    if (!['active', 'cancelled', 'exchanged'].includes(sale.status)) return false;
                 }
                 return true;
             });
@@ -1245,7 +1468,6 @@ function salesApp() {
             const sumReturns = returnsData.reduce((a,b)=>a+b, 0);
             const sumExchanges = exchangesData.reduce((a,b)=>a+b, 0);
             if (sumReturns === 0 && sumExchanges === 0) {
-                // Mock premium demo trend values
                 returnsData[5] = 2; returnsData[6] = 5; returnsData[7] = 4; returnsData[8] = 3;
                 exchangesData[5] = 4; exchangesData[6] = 8; exchangesData[7] = 6; exchangesData[8] = 5;
             }
@@ -1256,7 +1478,7 @@ function salesApp() {
                     { name: 'Exchanges', data: exchangesData }
                 ],
                 chart: { type: 'bar', height: 180, toolbar: { show: false } },
-                colors: ['#3b82f6', '#f97316'], // blue, orange
+                colors: ['#3b82f6', '#f97316'],
                 plotOptions: { bar: { horizontal: false, columnWidth: '45%', borderRadius: 3 } },
                 dataLabels: { enabled: false },
                 xaxis: { categories: months },
@@ -1268,6 +1490,108 @@ function salesApp() {
             chartEl.innerHTML = '';
             const chart = new ApexCharts(chartEl, options);
             chart.render();
+        },
+
+        addUnitRow() {
+            this.forms.add.units.push({
+                unit_id: '', wing: '', rate_per_sqft: '', sale_amount: '', gst_type: 'exclusive', gst_percentage: 18,
+                gst_amount: 0, base_amount: 0, total_amount: 0,
+                broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0
+            });
+            this.recalculateAllTotals();
+        },
+
+        removeUnitRow(index) {
+            this.forms.add.units.splice(index, 1);
+            this.recalculateAllTotals();
+        },
+
+        onRowUnitSelect(index) {
+            const row = this.forms.add.units[index];
+            const unit = this.availableUnits.add.find(u => u.id == row.unit_id);
+            if (unit) {
+                const isParking = unit.unit_type_name === 'Parking' || unit.unit_type_category === 'parking';
+                if (isParking) {
+                    row.rate_per_sqft = 0;
+                    row.sale_amount = unit.expected_sale_amount || '';
+                } else {
+                    row.rate_per_sqft = unit.expected_rate_per_sqft || '';
+                }
+                this.onRowRateChange(index);
+            }
+        },
+
+        onGetRowArea(index) {
+            const row = this.forms.add.units[index];
+            const unit = this.availableUnits.add.find(u => u.id == row.unit_id);
+            return unit ? (unit.built_up_area || '—') : '—';
+        },
+
+        onRowRateChange(index) {
+            const row = this.forms.add.units[index];
+            const unit = this.availableUnits.add.find(u => u.id == row.unit_id);
+            const rate = parseFloat(row.rate_per_sqft) || 0;
+            const area = unit ? parseFloat(unit.built_up_area) || 0 : 0;
+            row.sale_amount = Math.round(rate * area * 100) / 100;
+            this.recalculateRowGst(index);
+        },
+
+        recalculateRowGst(index) {
+            const row = this.forms.add.units[index];
+            const entered = parseFloat(row.sale_amount) || 0;
+            const pct = parseFloat(row.gst_percentage) || 0;
+            if (pct > 0) {
+                const gst = Math.round(entered * (pct / 100) * 100) / 100;
+                row.base_amount = entered;
+                row.gst_amount = gst;
+                row.total_amount = Math.round((entered + gst) * 100) / 100;
+                row.gst_type = 'exclusive';
+            } else {
+                row.base_amount = entered;
+                row.gst_amount = 0;
+                row.total_amount = entered;
+                row.gst_type = 'none';
+            }
+            this.recalculateRowBrokerage(index);
+            this.recalculateAllTotals();
+        },
+
+        recalculateRowBrokerage(index) {
+            const row = this.forms.add.units[index];
+            const total = parseFloat(row.total_amount) || parseFloat(row.sale_amount) || 0;
+            const value = parseFloat(row.brokerage_value) || 0;
+            if (!this.forms.add.broker_involved || !row.broker_involved || !value) {
+                row.brokerage_amount = 0;
+                return;
+            }
+            row.brokerage_amount = row.brokerage_type === 'percentage'
+                ? Math.round(total * (value / 100) * 100) / 100
+                : Math.round(value * 100) / 100;
+        },
+
+        recalculateAllTotals() {
+            let totalBase = 0;
+            let totalGst = 0;
+            let totalVal = 0;
+            let totalBrokerage = 0;
+            
+            this.forms.add.units.forEach((row) => {
+                totalBase += parseFloat(row.base_amount) || 0;
+                totalGst += parseFloat(row.gst_amount) || 0;
+                totalVal += parseFloat(row.total_amount) || 0;
+                totalBrokerage += parseFloat(row.brokerage_amount) || 0;
+            });
+            
+            this.forms.add.base_amount = Math.round(totalBase * 100) / 100;
+            this.forms.add.gst_amount = Math.round(totalGst * 100) / 100;
+            this.forms.add.total_amount = Math.round(totalVal * 100) / 100;
+            this.forms.add.brokerage_amount = Math.round(totalBrokerage * 100) / 100;
+            
+            const paid = parseFloat(this.forms.add.initial_payment_amount) || 0;
+            this.forms.add.remaining_balance = Math.round((this.forms.add.total_amount - paid) * 100) / 100;
+            if (this.forms.add.total_amount > 0) {
+                this.forms.add.initial_payment_percentage = Math.round((paid / this.forms.add.total_amount * 100) * 100) / 100;
+            }
         },
 
         loadUnitsForProject(mode) {
@@ -1444,15 +1768,16 @@ function salesApp() {
             this.availableUnits.add = [];
             this.selectedUnit.add = null;
             this.forms.add = {
-                project_id: '{{ request('project_id') }}', unit_id: '', customer_id: '', broker_id: '',
+                project_id: '{{ request('project_id') }}', customer_id: '', broker_id: '',
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
-                rate_per_sqft: '', sale_amount: '', gst_type: 'none',
                 gst_amount: 0, base_amount: '', total_amount: '',
-                broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0, brokerage_status: 'pending',
+                broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
                 payment_plan: 'lump_sum', emi_plan_type: 'fixed-12', remaining_balance: 0,
-                notes: ''
+                notes: '',
+                units: []
             };
+            this.addUnitRow();
             this.modals.add.open = true;
             if (this.forms.add.project_id) {
                 this.loadUnitsForProject('add');

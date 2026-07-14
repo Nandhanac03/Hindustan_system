@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Unit extends Model
 {
@@ -98,8 +99,20 @@ class Unit extends Model
         return $this->hasOne(Booking::class)->latestOfMany();
     }
 
-    public function sale(): HasOne
+    public function saleUnits(): HasMany
     {
-        return $this->hasOne(Sale::class)->where('status', 'active');
+        return $this->hasMany(SaleUnit::class, 'unit_id');
+    }
+
+    public function sale(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Sale::class,
+            SaleUnit::class,
+            'unit_id',
+            'id',
+            'id',
+            'sale_id'
+        )->where('sales.status', 'active');
     }
 }

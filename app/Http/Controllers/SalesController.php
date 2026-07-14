@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Models\SaleUnit;
 use App\Models\SaleStatusLog;
 use App\Models\Receipt;
 use App\Models\Brokerage;
@@ -17,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
 {
@@ -27,7 +29,7 @@ class SalesController extends Controller
             $request->merge(['project_id' => (string)$projectsList->first()->id]);
         }
 
-        $query = Sale::with(['project', 'unit', 'customer', 'broker', 'receipts']);
+        $query = Sale::with(['project', 'unit', 'customer', 'broker', 'receipts', 'saleUnits.unit.floor']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -39,7 +41,7 @@ class SalesController extends Controller
             });
         }
 
-        if ($request->filled('project_id')) {
+        if ($request->filled('project_id') && $request->tab !== 'exchange') {
             $query->where('project_id', $request->project_id);
         }
 
@@ -94,26 +96,13 @@ class SalesController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        if ($request->has('unit_id')) {
-            $unit = Unit::with('unitType')->find($request->unit_id);
-            if ($unit && $unit->unitType && (strtolower($unit->unitType->name) === 'parking' || strtolower($unit->unitType->category) === 'parking')) {
-                $request->merge(['rate_per_sqft' => 0]);
-            }
-        }
-
         $validated = $request->validate([
             'project_id'             => ['required', 'exists:projects,id'],
-            'unit_id'                => ['required', 'exists:hindustan_units,id'],
             'customer_id'            => ['required', 'exists:customers,id'],
             'agreement_date'         => ['required', 'date'],
             'registration_date'      => ['nullable', 'date'],
-            'rate_per_sqft'          => ['required', 'numeric', 'min:0'],
-            'sale_amount'            => ['required', 'numeric', 'min:0'],
-            'gst_type'               => ['required', Rule::in(['none', 'inclusive', 'exclusive'])],
             'broker_involved'        => ['nullable', 'boolean'],
             'broker_id'              => ['nullable', 'required_if:broker_involved,true', 'exists:brokers,id'],
-            'brokerage_type'         => ['nullable', 'required_if:broker_involved,true', Rule::in(['percentage', 'fixed'])],
-            'brokerage_value'        => ['nullable', 'required_if:broker_involved,true', 'numeric', 'min:0'],
             'brokerage_status'       => ['nullable', Rule::in(['pending', 'partial', 'paid'])],
             'initial_payment_amount' => ['nullable', 'numeric', 'min:0'],
             'payment_mode'           => ['nullable', 'string'],
@@ -123,115 +112,196 @@ class SalesController extends Controller
             'payment_plan'           => ['required', Rule::in(['lump_sum', 'emi'])],
             'emi_plan_type'          => ['nullable', 'string', Rule::in(['fixed-12', 'clp', 'fixed-36'])],
             'notes'                  => ['nullable', 'string'],
+            'units'                  => ['required', 'array', 'min:1'],
+            'units.*.unit_id'        => ['required', 'exists:hindustan_units,id'],
+            'units.*.wing'           => ['nullable', 'string'],
+            'units.*.rate_per_sqft'  => ['required', 'numeric', 'min:0'],
+            'units.*.sale_amount'    => ['required', 'numeric', 'min:0'],
+            'units.*.gst_percentage' => ['required', 'numeric', 'min:0'],
+            'units.*.broker_involved'=> ['nullable', 'boolean'],
+            'units.*.brokerage_type' => ['nullable', Rule::in(['percentage', 'fixed'])],
+            'units.*.brokerage_value'=> ['nullable', 'numeric', 'min:0'],
         ]);
 
-        // GST math matches the reference implementation exactly:
-        // exclusive -> entered amount is base, GST added on top (amount * 0.18)
-        // inclusive -> entered amount already includes GST (amount * 18/118)
-        $amount = $validated['sale_amount'];
-        $gstAmount = 0.0;
-        if ($validated['gst_type'] === 'exclusive') {
-            $gstAmount = round($amount * 0.18, 2);
-        } elseif ($validated['gst_type'] === 'inclusive') {
-            $gstAmount = round($amount * 18 / 118, 2);
-        }
-        $baseAmount = $validated['gst_type'] === 'inclusive' ? round($amount - $gstAmount, 2) : $amount;
-        $totalAmount = $validated['gst_type'] === 'exclusive' ? round($amount + $gstAmount, 2) : $amount;
+        return DB::transaction(function () use ($validated) {
+            $unitsData = $validated['units'];
+            
+            // Compute aggregated totals
+            $totalSaleAmount = 0.0;
+            $totalGstAmount = 0.0;
+            $totalBaseAmount = 0.0;
+            $totalContractAmount = 0.0;
+            $totalBrokerageAmount = 0.0;
 
-        $brokerInvolved = (bool) ($validated['broker_involved'] ?? false);
-        $initialPayment = $validated['initial_payment_amount'] ?? 0;
+            $processedUnits = [];
 
-        $sale = Sale::create([
-            'sale_number'       => 'SL-' . strtoupper(uniqid()),
-            'project_id'        => $validated['project_id'],
-            'unit_id'           => $validated['unit_id'],
-            'customer_id'       => $validated['customer_id'],
-            'broker_id'         => $brokerInvolved ? ($validated['broker_id'] ?? null) : null,
-            'rate_per_sqft'     => $validated['rate_per_sqft'],
-            'sale_amount'       => $amount,
-            'gst_applicable'    => $validated['gst_type'] !== 'none',
-            'gst_type'          => $validated['gst_type'],
-            'gst_percentage'    => $validated['gst_type'] !== 'none' ? 18 : null,
-            'gst_amount'        => $gstAmount,
-            'base_amount'       => $baseAmount,
-            'total_amount'      => $totalAmount,
-            'sale_date'         => $validated['agreement_date'],
-            'agreement_date'    => $validated['agreement_date'],
-            'registration_date' => $validated['registration_date'] ?? null,
-            'status'            => 'active',
-            'broker_involved'   => $brokerInvolved,
-            'payment_plan'      => $validated['payment_plan'],
-            'emi_plan_type'     => $validated['emi_plan_type'] ?? 'fixed-12',
-            'remaining_balance' => round($totalAmount - $initialPayment, 2),
-            'notes'             => $validated['notes'] ?? null,
-            'created_by'        => auth()->id(),
-            'bank_id'           => $validated['bank_id'] ?? null,
-        ]);
+            foreach ($unitsData as $item) {
+                $unitModel = Unit::findOrFail($item['unit_id']);
+                $area = (float)$unitModel->built_up_area ?: 1.0;
+                
+                $rate = (float)$item['rate_per_sqft'];
+                $amount = (float)$item['sale_amount'];
+                
+                $gstPct = (float)($item['gst_percentage'] ?? 0);
+                $gstAmount = 0.0;
+                if ($gstPct > 0) {
+                    $gstAmount = round($amount * ($gstPct / 100), 2);
+                }
+                
+                $baseAmount = $amount;
+                $lineTotal = round($amount + $gstAmount, 2);
+                $gstType = $gstPct > 0 ? 'exclusive' : 'none';
 
-        // Mark the unit as sold and update pricing details
-        $unit = Unit::findOrFail($validated['unit_id']);
-        $unitDifference = (float)$unit->expected_sale_amount - (float)$validated['sale_amount'];
-        $unit->update([
-            'status'             => 'sold',
-            'sale_rate_per_sqft' => (float)$validated['rate_per_sqft'],
-            'sale_amount'        => (float)$validated['sale_amount'],
-            'difference'         => $unitDifference,
-            'gst_behavior'       => $validated['gst_type'],
-            'gst_amount'         => $gstAmount,
-        ]);
+                $lineBrokerageAmount = 0.0;
+                $lineBrokerInvolved = !empty($item['broker_involved']);
+                
+                if ($lineBrokerInvolved && !empty($item['brokerage_value'])) {
+                    $bVal = (float)$item['brokerage_value'];
+                    $bType = $item['brokerage_type'] ?? 'percentage';
+                    
+                    if ($bType === 'percentage') {
+                        $lineBrokerageAmount = round($lineTotal * ($bVal / 100), 2);
+                    } else {
+                        $lineBrokerageAmount = round($bVal, 2);
+                    }
+                }
 
-        SaleStatusLog::create([
-            'sale_id'      => $sale->id,
-            'from_status'  => null,
-            'to_status'    => 'active',
-            'event_type'   => 'created',
-            'performed_by' => auth()->id(),
-        ]);
+                $processedUnits[] = [
+                    'unit_id' => $item['unit_id'],
+                    'wing' => $item['wing'] ?? null,
+                    'rate_per_sqft' => $rate,
+                    'area_sqft' => $area,
+                    'base_amount' => $baseAmount,
+                    'gst_type' => $gstType,
+                    'gst_percentage' => $gstPct,
+                    'gst_amount' => $gstAmount,
+                    'line_total' => $lineTotal,
+                    'brokerage_type' => $lineBrokerInvolved ? ($item['brokerage_type'] ?? 'percentage') : null,
+                    'brokerage_value' => $lineBrokerInvolved ? ($item['brokerage_value'] ?? null) : null,
+                    'brokerage_amount' => $lineBrokerageAmount,
+                ];
 
-        // Create the initial payment as a receipt, so it's tracked like any other payment
-        if ($initialPayment > 0) {
-            $receipt = Receipt::create([
+                $totalSaleAmount += $amount;
+                $totalGstAmount += $gstAmount;
+                $totalBaseAmount += $baseAmount;
+                $totalContractAmount += $lineTotal;
+                $totalBrokerageAmount += $lineBrokerageAmount;
+            }
+
+            $brokerInvolved = (bool)($validated['broker_involved'] ?? false);
+            $initialPayment = (float)($validated['initial_payment_amount'] ?? 0);
+
+            // Populating first unit's info in main table to prevent backward compatibility issues
+            $firstLine = $processedUnits[0];
+
+            $sale = Sale::create([
+                'sale_number'       => 'SL-' . strtoupper(uniqid()),
+                'project_id'        => $validated['project_id'],
+                'unit_id'           => $firstLine['unit_id'], // fallback
+                'customer_id'       => $validated['customer_id'],
+                'broker_id'         => $brokerInvolved ? ($validated['broker_id'] ?? null) : null,
+                'rate_per_sqft'     => $firstLine['rate_per_sqft'],
+                'sale_amount'       => $totalSaleAmount,
+                'gst_applicable'    => $totalGstAmount > 0,
+                'gst_type'          => $firstLine['gst_type'],
+                'gst_percentage'    => $totalGstAmount > 0 ? 18 : null,
+                'gst_amount'        => $totalGstAmount,
+                'base_amount'       => $totalBaseAmount,
+                'total_amount'      => $totalContractAmount,
+                'sale_date'         => $validated['agreement_date'],
+                'agreement_date'    => $validated['agreement_date'],
+                'registration_date' => $validated['registration_date'] ?? null,
+                'status'            => 'active',
+                'broker_involved'   => $brokerInvolved,
+                'payment_plan'      => $validated['payment_plan'],
+                'emi_plan_type'     => $validated['emi_plan_type'] ?? 'fixed-12',
+                'remaining_balance' => round($totalContractAmount - $initialPayment, 2),
+                'notes'             => $validated['notes'] ?? null,
+                'created_by'        => auth()->id(),
+                'bank_id'           => $validated['bank_id'] ?? null,
+            ]);
+
+            // Save individual units & update status
+            foreach ($processedUnits as $pUnit) {
+                $su = SaleUnit::create(array_merge($pUnit, ['sale_id' => $sale->id]));
+
+                $unitModel = Unit::findOrFail($pUnit['unit_id']);
+                $unitDifference = (float)$unitModel->expected_sale_amount - (float)$pUnit['line_total'];
+                
+                $unitModel->update([
+                    'status'             => 'sold',
+                    'sale_rate_per_sqft' => $pUnit['rate_per_sqft'],
+                    'sale_amount'        => $pUnit['line_total'],
+                    'difference'         => $unitDifference,
+                    'gst_behavior'       => $pUnit['gst_type'],
+                    'gst_amount'         => $pUnit['gst_amount'],
+                ]);
+
+                // Record brokerage line
+                if ($brokerInvolved && $pUnit['brokerage_amount'] > 0) {
+                    Brokerage::create([
+                        'sale_id'            => $sale->id,
+                        'sale_unit_id'       => $su->id,
+                        'broker_id'          => $validated['broker_id'],
+                        'commission_type'    => $pUnit['brokerage_type'],
+                        'commission_percent' => $pUnit['brokerage_type'] === 'percentage' ? $pUnit['brokerage_value'] : null,
+                        'commission_amount'  => $pUnit['brokerage_amount'],
+                        'paid_amount'        => 0,
+                        'status'             => $validated['brokerage_status'] ?? 'pending',
+                        'remarks'            => 'Auto-created line item commission',
+                    ]);
+                }
+            }
+
+            // Create global brokerage mapping if none created but broker involved
+            if ($brokerInvolved && $totalBrokerageAmount > 0 && !Brokerage::where('sale_id', $sale->id)->exists()) {
+                Brokerage::create([
+                    'sale_id'            => $sale->id,
+                    'broker_id'          => $validated['broker_id'],
+                    'commission_type'    => 'fixed',
+                    'commission_percent' => null,
+                    'commission_amount'  => $totalBrokerageAmount,
+                    'paid_amount'        => 0,
+                    'status'             => $validated['brokerage_status'] ?? 'pending',
+                    'remarks'            => 'Auto-created overall commission',
+                ]);
+            }
+
+            SaleStatusLog::create([
                 'sale_id'      => $sale->id,
-                'customer_id'  => $validated['customer_id'],
-                'project_id'   => $validated['project_id'],
-                'unit_id'      => $validated['unit_id'],
-                'receipt_date' => $validated['initial_payment_date'] ?? $validated['agreement_date'],
-                'amount'       => $initialPayment,
-                'payment_mode' => $validated['payment_mode'] ?? 'cash',
-                'reference_no' => $validated['reference_no'] ?? null,
-                'bank_id'      => $validated['bank_id'] ?? null,
-                'remarks'      => 'Initial payment at sale creation',
-                'created_by'   => auth()->id(),
+                'from_status'  => null,
+                'to_status'    => 'active',
+                'event_type'   => 'created',
+                'performed_by' => auth()->id(),
             ]);
-            Receipt::allocateToPartners($receipt);
-        }
 
-        // Create the brokerage record if a broker is involved
-        if ($brokerInvolved && $validated['brokerage_value'] > 0) {
-            $commissionAmount = $validated['brokerage_type'] === 'percentage'
-                ? round($totalAmount * ($validated['brokerage_value'] / 100), 2)
-                : round($validated['brokerage_value'], 2);
+            // Create initial payment receipt
+            if ($initialPayment > 0) {
+                $receipt = Receipt::create([
+                    'sale_id'      => $sale->id,
+                    'customer_id'  => $validated['customer_id'],
+                    'project_id'   => $validated['project_id'],
+                    'unit_id'      => $firstLine['unit_id'],
+                    'receipt_date' => $validated['initial_payment_date'] ?? $validated['agreement_date'],
+                    'amount'       => $initialPayment,
+                    'payment_mode' => $validated['payment_mode'] ?? 'cash',
+                    'reference_no' => $validated['reference_no'] ?? null,
+                    'bank_id'      => $validated['bank_id'] ?? null,
+                    'remarks'      => 'Initial payment at sale creation',
+                    'created_by'   => auth()->id(),
+                ]);
+                Receipt::allocateToPartners($receipt);
+            }
 
-            Brokerage::create([
-                'sale_id'            => $sale->id,
-                'broker_id'          => $validated['broker_id'],
-                'commission_type'    => $validated['brokerage_type'],
-                'commission_percent' => $validated['brokerage_type'] === 'percentage' ? $validated['brokerage_value'] : null,
-                'commission_amount'  => $commissionAmount,
-                'paid_amount'        => 0,
-                'status'             => $validated['brokerage_status'] ?? 'pending',
-                'remarks'            => 'Auto-created at sale',
-            ]);
-        }
+            $this->syncDefaultEmiSchedule($sale);
 
-        $this->syncDefaultEmiSchedule($sale);
-
-        return response()->json(['sale' => $sale->load(['receipts', 'brokerage'])], 201);
+            return response()->json(['sale' => $sale->load(['receipts', 'brokerage'])], 201);
+        });
     }
 
     public function show(int $id): JsonResponse
     {
-        $sale = Sale::with(['project', 'unit.floor', 'unit.unitType', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage'])->findOrFail($id);
+        $sale = Sale::with(['project', 'unit.floor', 'unit.unitType', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage', 'saleUnits.unit.floor'])->findOrFail($id);
         $sale->status_logs = $sale->statusLogs;
 
         return response()->json(['sale' => $sale]);
@@ -300,7 +370,6 @@ class SalesController extends Controller
             'bank_id'           => $validated['bank_id'] ?? null,
         ]);
 
-        // Update Unit pricing details since Sale updated
         if ($sale->unit) {
             $unitDifference = (float)$sale->unit->expected_sale_amount - (float)$validated['sale_amount'];
             $sale->unit->update([
@@ -312,7 +381,6 @@ class SalesController extends Controller
             ]);
         }
 
-        // Manage Brokerage
         if (!empty($validated['broker_involved']) && !empty($validated['broker_id'])) {
             $commissionAmount = $validated['brokerage_type'] === 'percentage'
                 ? round($totalAmount * ($validated['brokerage_value'] / 100), 2)
@@ -334,7 +402,6 @@ class SalesController extends Controller
             $sale->brokerage()->delete();
         }
 
-        // Manage Initial Payment Receipt
         $initialPayment = (float)($validated['initial_payment_amount'] ?? 0);
         $receipt = $sale->receipts()->where('remarks', 'Initial payment at sale creation')->first();
 
@@ -367,7 +434,6 @@ class SalesController extends Controller
             }
         }
 
-        // Recalculate remaining balance
         $sale->update([
             'remaining_balance' => round($totalAmount - $sale->receipts()->sum('amount'), 2),
         ]);
@@ -377,11 +443,6 @@ class SalesController extends Controller
         return response()->json(['sale' => $sale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
     }
 
-    /**
-     * Record an additional payment against an existing sale (e.g. an EMI
-     * installment), and recompute the remaining balance from the full
-     * receipts history rather than trusting a client-supplied balance.
-     */
     public function addReceipt(Request $request, int $id): JsonResponse
     {
         $sale = Sale::findOrFail($id);
@@ -429,10 +490,9 @@ class SalesController extends Controller
             'carry_forward' => ['nullable', 'boolean'],
         ]);
 
-        $sale = Sale::findOrFail($id);
+        $sale = Sale::with('saleUnits')->findOrFail($id);
         $fromStatus = $sale->status;
 
-        // Validation Rule: Before processing a Sales Return, the system must verify that the sale status is Cancelled.
         if ($validated['status'] === 'returned' && $fromStatus !== 'cancelled') {
             return response()->json([
                 'message' => 'Sales Return can only be processed for cancelled sales.',
@@ -459,22 +519,23 @@ class SalesController extends Controller
                 ], 422);
             }
 
-            // 1. Mark old sale as exchanged, free up old unit
             $sale->update([
                 'status' => 'exchanged',
                 'cancellation_reason' => $validated['reason'],
                 'cancelled_at' => now(),
             ]);
-            Unit::where('id', $sale->unit_id)->update([
-                'status'             => 'available',
-                'sale_rate_per_sqft' => null,
-                'sale_amount'        => null,
-                'difference'         => null,
-                'gst_behavior'       => 'none',
-                'gst_amount'         => 0.00,
-            ]);
 
-            // 2. Create the new active sale
+            foreach ($sale->saleUnits as $su) {
+                Unit::where('id', $su->unit_id)->update([
+                    'status'             => 'available',
+                    'sale_rate_per_sqft' => null,
+                    'sale_amount'        => null,
+                    'difference'         => null,
+                    'gst_behavior'       => 'none',
+                    'gst_amount'         => 0.00,
+                ]);
+            }
+
             $newAmount = (float)$newUnit->expected_sale_amount;
             $newRate = (float)$newUnit->expected_rate_per_sqft;
             $gstType = $sale->gst_type ?? 'none';
@@ -511,7 +572,6 @@ class SalesController extends Controller
                 'created_by'        => auth()->id(),
             ]);
 
-            // 3. Re-associate receipts if carry_forward is checked
             if (!empty($validated['carry_forward'])) {
                 Receipt::where('sale_id', $sale->id)->update([
                     'sale_id' => $newSale->id,
@@ -519,12 +579,10 @@ class SalesController extends Controller
                     'unit_id' => $newUnit->id,
                 ]);
 
-                // Recalculate remaining balances
                 $sale->update(['remaining_balance' => $sale->total_amount - $sale->receipts()->sum('amount')]);
                 $newSale->update(['remaining_balance' => $totalAmount - $newSale->receipts()->sum('amount')]);
             }
 
-            // 4. Mark new unit as sold and update pricing details
             $newUnitDifference = (float)$newUnit->expected_sale_amount - $newAmount;
             $newUnit->update([
                 'status'             => 'sold',
@@ -535,7 +593,6 @@ class SalesController extends Controller
                 'gst_amount'         => $gstAmount,
             ]);
 
-            // 5. Log status changes
             SaleStatusLog::create([
                 'sale_id'      => $sale->id,
                 'from_status'  => $fromStatus,
@@ -565,8 +622,8 @@ class SalesController extends Controller
             'cancellation_reason'  => in_array($validated['status'], ['cancelled', 'returned']) ? $validated['reason'] : $sale->cancellation_reason,
             'cancelled_at'         => in_array($validated['status'], ['cancelled', 'returned']) ? now() : $sale->cancelled_at,
             'is_resale'            => $validated['status'] === 'resale' ? true : $sale->is_resale,
-            'cancellation_fee'     => $validated['status'] === 'returned' ? ($validated['cancellation_fee'] ?? 0.00) : $sale->cancellation_fee,
-            'refund_amount'        => $validated['status'] === 'returned' ? ($validated['refund_amount'] ?? 0.00) : $sale->refund_amount,
+            'cancellation_fee'     => in_array($validated['status'], ['cancelled', 'returned']) ? ($validated['cancellation_fee'] ?? 0.00) : $sale->cancellation_fee,
+            'refund_amount'        => in_array($validated['status'], ['cancelled', 'returned']) ? ($validated['refund_amount'] ?? 0.00) : $sale->refund_amount,
         ]);
 
         $shouldFreeUnit = false;
@@ -579,14 +636,16 @@ class SalesController extends Controller
         }
 
         if ($shouldFreeUnit) {
-            Unit::where('id', $sale->unit_id)->update([
-                'status'             => 'available',
-                'sale_rate_per_sqft' => null,
-                'sale_amount'        => null,
-                'difference'         => null,
-                'gst_behavior'       => 'none',
-                'gst_amount'         => 0.00,
-            ]);
+            foreach ($sale->saleUnits as $su) {
+                Unit::where('id', $su->unit_id)->update([
+                    'status'             => 'available',
+                    'sale_rate_per_sqft' => null,
+                    'sale_amount'        => null,
+                    'difference'         => null,
+                    'gst_behavior'       => 'none',
+                    'gst_amount'         => 0.00,
+                ]);
+            }
             \App\Models\CustomerInstallment::where('sale_id', $sale->id)->delete();
         }
 
@@ -604,7 +663,6 @@ class SalesController extends Controller
 
     private function syncDefaultEmiSchedule(Sale $sale): void
     {
-        // Always wipe existing schedule first to avoid duplicates
         CustomerInstallment::where('sale_id', $sale->id)->delete();
 
         if ($sale->payment_plan !== 'emi') {
@@ -617,7 +675,6 @@ class SalesController extends Controller
 
         $startDate = \Carbon\Carbon::parse($sale->agreement_date ?? $sale->sale_date ?? now());
 
-        // 1. Down payment (status = paid if fully received, otherwise pending/partial)
         if ($downPayment > 0) {
             CustomerInstallment::create([
                 'sale_id'        => $sale->id,
@@ -633,7 +690,6 @@ class SalesController extends Controller
         $planType = $sale->emi_plan_type ?? 'fixed-12';
 
         if ($planType === 'fixed-12') {
-            // 2. 12 Monthly EMI installments
             $numEmi = 12;
             $emiAmount = $numEmi > 0 ? round($remaining / $numEmi, 2) : 0;
 
@@ -656,8 +712,6 @@ class SalesController extends Controller
                 }
             }
         } elseif ($planType === 'clp') {
-            // Construction Linked Milestone Plan (CLP)
-            // Milestones with percentages (Total = 90%)
             $milestones = [
                 ['label' => 'Excavation & Foundation Start', 'pct' => 15],
                 ['label' => 'Plinth Level Casting', 'pct' => 15],
@@ -673,9 +727,8 @@ class SalesController extends Controller
 
             for ($i = 0; $i < $numMilestones; $i++) {
                 $m = $milestones[$i];
-                $due = $startDate->copy()->addMonths(($i + 1) * 3); // estimated 3 month intervals
+                $due = $startDate->copy()->addMonths(($i + 1) * 3);
                 
-                // Scale percentage so the milestones sum to 100% of remaining balance
                 if ($i === $numMilestones - 1) {
                     $amt = round($remaining - $cumulativeAllocated, 2);
                 } else {
@@ -696,9 +749,6 @@ class SalesController extends Controller
                 }
             }
         } elseif ($planType === 'fixed-36') {
-            // 36-Month Milestone + Fixed Combo Plan
-            // 35 monthly payments representing ~2% each (scaled) + 3 mid-step/registry payments (~5% each)
-            // Sum of weights = 35 * 2 + 3 * 5 = 70 + 15 = 85.
             $monthlyWeight = 2.0;
             $milestoneWeight = 5.0;
             $totalWeight = 85.0;
@@ -706,7 +756,6 @@ class SalesController extends Controller
             $cumulativeAllocated = 0.0;
             $instIndex = 1;
 
-            // Generate 35 monthly installments
             for ($i = 1; $i <= 35; $i++) {
                 $due = $startDate->copy()->addMonths($i);
                 $amt = round($remaining * ($monthlyWeight / $totalWeight), 2);
@@ -725,7 +774,6 @@ class SalesController extends Controller
                 }
             }
 
-            // Milestone 1 (Plinth, Month 10)
             $amtPlinth = round($remaining * ($milestoneWeight / $totalWeight), 2);
             $cumulativeAllocated += $amtPlinth;
             CustomerInstallment::create([
@@ -738,7 +786,6 @@ class SalesController extends Controller
                 'schedule_type'  => 'combo_fixed_36',
             ]);
 
-            // Milestone 2 (Roof, Month 22)
             $amtRoof = round($remaining * ($milestoneWeight / $totalWeight), 2);
             $cumulativeAllocated += $amtRoof;
             CustomerInstallment::create([
@@ -751,7 +798,6 @@ class SalesController extends Controller
                 'schedule_type'  => 'combo_fixed_36',
             ]);
 
-            // Milestone 3 (Handover / Registry, Month 36) - adjusts for rounding
             $amtHandover = round($remaining - $cumulativeAllocated, 2);
             CustomerInstallment::create([
                 'sale_id'        => $sale->id,

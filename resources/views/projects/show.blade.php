@@ -319,6 +319,12 @@
                                                             <span class="text-slate-455 font-medium block">Difference</span>
                                                             <strong class="text-rose-750" x-text="'{{ $project->system->currency_code }} ' + Number(unit.difference).toLocaleString('en-US')"></strong>
                                                         </div>
+                                                        <template x-if="unit.sale">
+                                                            <div class="col-span-2 border-t border-slate-200/60 pt-2 text-left">
+                                                                <span class="text-slate-455 font-medium block">Linked Sale</span>
+                                                                <a :href="'/sales?search=' + unit.sale.sale_number" class="text-indigo-600 hover:text-indigo-800 hover:underline font-extrabold uppercase tracking-wider text-[11px]" x-text="unit.sale.sale_number"></a>
+                                                            </div>
+                                                        </template>
                                                     </div>
                                                 </template>
                                             </div>

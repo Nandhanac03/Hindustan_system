@@ -168,7 +168,7 @@ class UnitController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $unit->load(['unitType', 'floor', 'rateLogs.user', 'statusLogs.user', 'booking']);
+        $unit->load(['unitType', 'floor', 'rateLogs.user', 'statusLogs.user', 'booking', 'sale']);
 
         // Determine allowed transitions
         $allowed = [];

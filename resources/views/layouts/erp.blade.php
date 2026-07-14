@@ -138,15 +138,19 @@
         <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request()->has('tab') ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
             Sales Register
         </a>
+         <a href="{{ route('sales.index') }}?tab=sale-return" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+           Cancel Booking
+        </a>
         <a href="{{ route('sales.index') }}?tab=exchange" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
             Unit Exchange
         </a>
         <!-- <a href="{{ route('sales.index') }}?tab=returns" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'returns' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
             Sales Return
         </a> -->
-        <a href="{{ route('sales.index') }}?tab=cancellations" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'cancellations' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+       
+        <!-- <a href="{{ route('sales.index') }}?tab=cancellations" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'cancellations' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
             Cancel Booking
-        </a>
+        </a> -->
     </div>
 </div>
 
