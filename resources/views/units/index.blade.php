@@ -201,10 +201,21 @@
 
     {{-- Units Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+        <style>
+            #units-table thead th {
+                border-color: #8a7522 !important;
+            }
+            #units-tbody tr:nth-child(even) {
+                background-color: #F6F3E9 !important;
+            }
+            #units-tbody tr:hover {
+                background-color: #ebe5d0 !important;
+            }
+        </style>
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
+            <table id="units-table" class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100 text-center font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
                         <th class="px-3 py-3 border">FLOOR</th>
                         <th class="px-3 py-3 border">TYPE</th>
                         <th class="px-3 py-3 border">DOOR NO</th>
