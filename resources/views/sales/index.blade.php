@@ -417,13 +417,47 @@
                                         EMI / Installment Plan
                                     </label>
                                 </div>
-                                <div x-show="forms.add.payment_plan === 'emi'" class="mt-2" x-transition>
-                                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Select EMI Plan Scheme *</label>
-                                    <select x-model="forms.add.emi_plan_type" required
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                        <option value="fixed-12">Fixed 12-Month Repayment Plan</option>
-                                        <option value="fixed-36">36-Month</option>
-                                    </select>
+                                <div x-show="forms.add.payment_plan === 'emi'" class="mt-4 space-y-4" x-transition>
+                                    {{-- Equal Installments Fields --}}
+                                    <div class="grid grid-cols-3 gap-3 border border-slate-100 p-3 rounded-xl bg-slate-50/50">
+                                        <div class="space-y-1">
+                                            <label class="text-[9px] font-bold text-slate-400 uppercase block">No. of Installments</label>
+                                            <input type="number" x-model="forms.add.emi_installment_count" min="1" placeholder="e.g. 12"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[9px] font-bold text-slate-400 uppercase block">Frequency</label>
+                                            <select x-model="forms.add.emi_frequency"
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                <option value="monthly">Monthly</option>
+                                                <option value="quarterly">Quarterly</option>
+                                            </select>
+                                        </div>
+                                        <div class="space-y-1">
+                                            <label class="text-[9px] font-bold text-slate-400 uppercase block">First Installment Date</label>
+                                            <input type="date" x-model="forms.add.first_installment_date"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                        </div>
+                                    </div>
+
+                                    {{-- Live Preview Block --}}
+                                    <div class="bg-indigo-50/30 border border-indigo-100/50 rounded-xl p-3 space-y-2">
+                                        <p class="text-[9px] font-bold text-indigo-800 uppercase tracking-widest">📝 Live Schedule Preview</p>
+                                        <div class="max-h-48 overflow-y-auto space-y-1.5 pr-1 text-[11px] font-semibold text-slate-700">
+                                            <template x-for="(preview, pIdx) in getEmiPreview()" :key="pIdx">
+                                                <div class="flex justify-between items-center py-1 border-b border-indigo-100/30">
+                                                    <span x-text="preview.label"></span>
+                                                    <div class="flex gap-4">
+                                                        <span class="text-slate-400 font-mono text-[10px]" x-text="preview.due_date"></span>
+                                                        <span class="font-bold text-indigo-700 font-mono" x-text="'₹' + Number(preview.amount).toLocaleString()"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template x-if="getEmiPreview().length === 0">
+                                                <p class="text-[10px] text-slate-455 italic py-1 text-center">No schedule preview available. Fill EMI parameters.</p>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -991,7 +1025,7 @@ function salesApp() {
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
-                payment_plan: 'lump_sum', emi_plan_type: 'fixed-12', remaining_balance: 0,
+                payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: new Date().toISOString().split('T')[0], milestones: [], remaining_balance: 0,
                 notes: '',
                 units: []
             },
@@ -1492,6 +1526,37 @@ function salesApp() {
             chart.render();
         },
 
+        getEmiPreview() {
+            const preview = [];
+            const remaining = parseFloat(this.forms.add.remaining_balance) || 0;
+            if (remaining <= 0 || this.forms.add.payment_plan !== 'emi') {
+                return preview;
+            }
+            const count = parseInt(this.forms.add.emi_installment_count) || 0;
+            if (count <= 0) return preview;
+            const emiAmt = Math.round((remaining / count) * 100) / 100;
+            const freq = this.forms.add.emi_frequency || 'monthly';
+            const firstDate = this.forms.add.first_installment_date ? new Date(this.forms.add.first_installment_date) : new Date();
+
+            for (let i = 1; i <= count; i++) {
+                const d = new Date(firstDate);
+                if (i > 1) {
+                    if (freq === 'quarterly') {
+                        d.setMonth(d.getMonth() + (i - 1) * 3);
+                    } else {
+                        d.setMonth(d.getMonth() + (i - 1));
+                    }
+                }
+                const amt = (i === count) ? (Math.round((remaining - (emiAmt * (count - 1))) * 100) / 100) : emiAmt;
+                preview.push({
+                    label: `EMI ${i}`,
+                    due_date: d.toISOString().split('T')[0],
+                    amount: amt
+                });
+            }
+            return preview;
+        },
+
         addUnitRow() {
             this.forms.add.units.push({
                 unit_id: '', wing: '', rate_per_sqft: '', sale_amount: '', gst_type: 'exclusive', gst_percentage: 18,
@@ -1773,7 +1838,7 @@ function salesApp() {
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
-                payment_plan: 'lump_sum', emi_plan_type: 'fixed-12', remaining_balance: 0,
+                payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: new Date().toISOString().split('T')[0], milestones: [], remaining_balance: 0,
                 notes: '',
                 units: []
             };
