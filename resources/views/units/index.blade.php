@@ -125,7 +125,7 @@
 
                 @if($project->description)
                     <div class="mt-3 text-[11px] leading-relaxed text-slate-500 bg-slate-50/50 p-2.5 rounded-lg border border-slate-100">
-                        {{ $project->description }}
+                        {!! $project->description !!}
                     </div>
                 @endif
             </div>
