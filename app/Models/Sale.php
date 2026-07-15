@@ -82,6 +82,11 @@ class Sale extends Model
         return $this->hasMany(SaleUnit::class, 'sale_id');
     }
 
+    public function extraWorks(): HasMany
+    {
+        return $this->hasMany(SaleExtraWork::class, 'sale_id');
+    }
+
     public function getComputedSaleAmountAttribute(): float
     {
         return (float) $this->saleUnits->sum('base_amount');

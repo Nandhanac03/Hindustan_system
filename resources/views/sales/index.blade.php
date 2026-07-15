@@ -300,30 +300,107 @@
                             <input type="checkbox" x-model="forms.add.broker_involved" class="rounded text-primary focus:ring-primary/20">
                             <span class="text-xs font-bold text-primary uppercase tracking-widest">Broker / Commission — A broker is involved in this sale</span>
                         </label>
-                        <div x-show="forms.add.broker_involved" class="grid grid-cols-3 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
-                                <select x-model="forms.add.broker_id"
-                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                    <option value="">— Select Broker —</option>
-                                    @foreach($brokers as $broker)
-                                        <option value="{{ $broker->id }}">{{ $broker->name }}</option>
-                                    @endforeach
-                                </select>
-                                <template x-if="errors.broker_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.broker_id[0]"></p></template>
+                        <div x-show="forms.add.broker_involved" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
+                                    <select x-model="forms.add.broker_id" @change="onBrokerSelect('add')"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <option value="">— Select Broker —</option>
+                                        @foreach($brokers as $broker)
+                                            <option value="{{ $broker->id }}">{{ $broker->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <template x-if="errors.broker_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.broker_id[0]"></p></template>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
+                                    <div class="flex items-center gap-4 h-9">
+                                        <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
+                                            <input type="radio" value="percentage" x-model="forms.add.brokerage_type" @change="onBrokerageTypeChange('add')" class="text-primary focus:ring-primary/20">
+                                            <span>Percentage (%)</span>
+                                        </label>
+                                        <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
+                                            <input type="radio" value="fixed" x-model="forms.add.brokerage_type" @change="onBrokerageTypeChange('add')" class="text-primary focus:ring-primary/20">
+                                            <span>Fixed (₹)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
+                                    <input type="number" step="0.01" x-model="forms.add.brokerage_value" @input="recalculateAllTotals('add')" placeholder="e.g. 2 for 2%"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                </div>
                             </div>
-                            <div class="space-y-1.5">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Brokerage Amount</p>
-                                <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.add.brokerage_amount || 0).toLocaleString()"></p>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                <div class="space-y-1.5">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brokerage Amount</p>
+                                    <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.add.brokerage_amount || 0).toLocaleString()"></p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
+                                    <select x-model="forms.add.brokerage_status"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <option value="pending">Pending</option>
+                                        <option value="paid">Paid</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
-                                <select x-model="forms.add.brokerage_status"
-                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                    <option value="pending">Pending</option>
-                                    <option value="paid">Paid</option>
-                                </select>
-                            </div>
+                        </div>
+                    </div>
+                    {{-- ── Custom Alterations / Extra Work (add) ── --}}
+                    <div class="border-t border-slate-100 pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs font-bold text-primary uppercase tracking-widest">🛠️ Custom Alterations / Extra Work</p>
+                            <button type="button" @click="addExtraWorkRow('add')"
+                                    class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition shadow-sm">
+                                + Add Extra Work
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <template x-for="(row, index) in forms.add.extra_works" :key="index">
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative">
+                                    <button type="button" @click="removeExtraWorkRow(index, 'add')"
+                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                        <div class="space-y-1.5 sm:col-span-2">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Description / Work Details *</label>
+                                            <input type="text" x-model="row.description" placeholder="e.g. Flooring Upgrade, Custom Fittings"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹) *</label>
+                                            <input type="number" step="0.01" x-model="row.amount" @input="recalculateExtraWorkRowGst(index, 'add')" placeholder="Enter amount"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Type</label>
+                                            <select x-model="row.gst_type" @change="recalculateExtraWorkRowGst(index, 'add')"
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                <option value="none">None</option>
+                                                <option value="exclusive">Exclusive</option>
+                                                <option value="inclusive">Inclusive</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
+                                            <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'add')" placeholder="18"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        </div>
+                                        <div></div>
+                                        <div class="space-y-1.5">
+                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
+                                            <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
+                                            <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
                     {{-- Aggregated Contract Summary --}}
@@ -605,6 +682,61 @@
                                         <div class="space-y-1.5">
                                             <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
                                             <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    {{-- ── Custom Alterations / Extra Work (edit) ── --}}
+                    <div class="border-t border-slate-100 pt-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs font-bold text-primary uppercase tracking-widest">🛠️ Custom Alterations / Extra Work</p>
+                            <button type="button" @click="addExtraWorkRow('edit')"
+                                    class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition shadow-sm">
+                                + Add Extra Work
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <template x-for="(row, index) in forms.edit.extra_works" :key="index">
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative">
+                                    <button type="button" @click="removeExtraWorkRow(index, 'edit')"
+                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                        <div class="space-y-1.5 sm:col-span-2">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Description / Work Details *</label>
+                                            <input type="text" x-model="row.description" placeholder="e.g. Flooring Upgrade, Custom Fittings"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹) *</label>
+                                            <input type="number" step="0.01" x-model="row.amount" @input="recalculateExtraWorkRowGst(index, 'edit')" placeholder="Enter amount"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Type</label>
+                                            <select x-model="row.gst_type" @change="recalculateExtraWorkRowGst(index, 'edit')"
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                <option value="none">None</option>
+                                                <option value="exclusive">Exclusive</option>
+                                                <option value="inclusive">Inclusive</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
+                                            <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'edit')" placeholder="18"
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        </div>
+                                        <div></div>
+                                        <div class="space-y-1.5">
+                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
+                                            <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
+                                            <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -901,6 +1033,40 @@
                         </tbody>
                     </table>
                 </div>
+                {{-- Row 1.5: Extra Works Details --}}
+                <template x-if="activeSale.extra_works && activeSale.extra_works.length > 0">
+                    <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden mb-6">
+                        <div class="p-4 border-b border-slate-100 bg-slate-55/30">
+                            <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest">🛠️ Custom Alterations / Extra Work Details</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead>
+                                    <tr class="bg-slate-50/50 text-[9px] font-bold text-slate-455 uppercase tracking-wider border-b border-slate-100">
+                                        <th class="px-4 py-3">Description</th>
+                                        <th class="px-4 py-3 text-right">Amount</th>
+                                        <th class="px-4 py-3">GST Type</th>
+                                        <th class="px-4 py-3">GST (%)</th>
+                                        <th class="px-4 py-3 text-right">GST Amount</th>
+                                        <th class="px-4 py-3 text-right font-bold text-emerald-800">Total Payable</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                                    <template x-for="ew in activeSale.extra_works" :key="ew.id">
+                                        <tr class="hover:bg-slate-55/40 transition-colors">
+                                            <td class="px-4 py-3 font-bold text-slate-900" x-text="ew.description"></td>
+                                            <td class="px-4 py-3 text-right font-mono" x-text="'₹' + Number(ew.amount).toLocaleString()"></td>
+                                            <td class="px-4 py-3 uppercase" x-text="ew.gst_type"></td>
+                                            <td class="px-4 py-3" x-text="ew.gst_percentage + '%'"></td>
+                                            <td class="px-4 py-3 text-right font-mono" x-text="'₹' + Number(ew.gst_amount).toLocaleString()"></td>
+                                            <td class="px-4 py-3 text-right font-mono text-emerald-800 font-bold" x-text="'₹' + Number(ew.line_total).toLocaleString()"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
                 {{-- Row 2: Financial Summary Card --}}
                 <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                     <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">💰 Pricing & GST Breakdown</p>
@@ -1031,7 +1197,7 @@
             </div>
             {{-- Footer --}}
             <div class="px-6 py-4 border-t border-slate-200 flex justify-end bg-slate-50">
-                <button @click="closeViewModal()" class="px-4 py-2 bg-slate-900 hover:bg-slate-850 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Close Modal</button>
+                <button @click="closeViewModal()" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Close Modal</button>
             </div>
         </div>
     </div>
@@ -1059,16 +1225,21 @@ function salesApp() {
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
+                brokerage_type: 'percentage', brokerage_value: '',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
                 payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: new Date().toISOString().split('T')[0], milestones: [], remaining_balance: 0,
                 notes: '',
-                units: []
+                units: [],
+                extra_works: []
             },
             edit: {
                 project_id: '', sale_amount: '', sale_date: '', gst_type: 'none',
                 gst_percentage: 18, gst_amount: 0, base_amount: '', total_amount: '', notes: '',
                 payment_plan: 'lump_sum', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: new Date().toISOString().split('T')[0],
-                units: []
+                broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
+                brokerage_type: 'percentage', brokerage_value: '', broker_id: '',
+                units: [],
+                extra_works: []
             }
         },
         activeSale: {},
@@ -1553,8 +1724,7 @@ function salesApp() {
             this.forms[mode].units.push({
                 id: null,
                 unit_id: '', wing: '', rate_per_sqft: '', sale_amount: '', gst_type: 'exclusive', gst_percentage: 18,
-                gst_amount: 0, base_amount: 0, total_amount: 0,
-                broker_involved: false, brokerage_type: 'percentage', brokerage_value: '', brokerage_amount: 0
+                gst_amount: 0, base_amount: 0, total_amount: 0
             });
             this.recalculateAllTotals(mode);
         },
@@ -1605,7 +1775,6 @@ function salesApp() {
                 row.total_amount = entered;
                 row.gst_type = 'none';
             }
-            this.recalculateRowBrokerage(index, mode);
             this.recalculateAllTotals(mode);
         },
         recalculateRowBrokerage(index, mode = 'add') {
@@ -1620,21 +1789,77 @@ function salesApp() {
                 ? Math.round(total * (value / 100) * 100) / 100
                 : Math.round(value * 100) / 100;
         },
+        addExtraWorkRow(mode = 'add') {
+            if (!this.forms[mode].extra_works) {
+                this.forms[mode].extra_works = [];
+            }
+            this.forms[mode].extra_works.push({
+                description: '', amount: '', gst_type: 'none', gst_percentage: 18, gst_amount: 0, line_total: 0
+            });
+            this.recalculateAllTotals(mode);
+        },
+        removeExtraWorkRow(index, mode = 'add') {
+            this.forms[mode].extra_works.splice(index, 1);
+            this.recalculateAllTotals(mode);
+        },
+        recalculateExtraWorkRowGst(index, mode = 'add') {
+            const row = this.forms[mode].extra_works[index];
+            const entered = parseFloat(row.amount) || 0;
+            const pct = parseFloat(row.gst_percentage) || 0;
+            const type = row.gst_type || 'none';
+            let gst = 0;
+            let total = 0;
+            if (type === 'exclusive') {
+                gst = Math.round(entered * (pct / 100) * 100) / 100;
+                total = Math.round((entered + gst) * 100) / 100;
+            } else if (type === 'inclusive') {
+                const base = entered / (1 + (pct / 100));
+                gst = Math.round((entered - base) * 100) / 100;
+                total = entered;
+            } else {
+                gst = 0;
+                total = entered;
+            }
+            row.gst_amount = gst;
+            row.line_total = total;
+            this.recalculateAllTotals(mode);
+        },
         recalculateAllTotals(mode = 'add') {
             let totalBase = 0;
             let totalGst = 0;
             let totalVal = 0;
+            if (this.forms[mode].units) {
+                this.forms[mode].units.forEach((row) => {
+                    totalBase += parseFloat(row.base_amount) || 0;
+                    totalGst += parseFloat(row.gst_amount) || 0;
+                    totalVal += parseFloat(row.total_amount) || 0;
+                });
+            }
+            let extraBase = 0;
+            let extraGst = 0;
+            let extraVal = 0;
+            if (this.forms[mode].extra_works) {
+                this.forms[mode].extra_works.forEach((row) => {
+                    const line_total = parseFloat(row.line_total) || 0;
+                    const gst = parseFloat(row.gst_amount) || 0;
+                    extraBase += (line_total - gst);
+                    extraGst += gst;
+                    extraVal += line_total;
+                });
+            }
             let totalBrokerage = 0;
-            if (!this.forms[mode].units) return;
-            this.forms[mode].units.forEach((row) => {
-                totalBase += parseFloat(row.base_amount) || 0;
-                totalGst += parseFloat(row.gst_amount) || 0;
-                totalVal += parseFloat(row.total_amount) || 0;
-                totalBrokerage += parseFloat(row.brokerage_amount) || 0;
-            });
-            this.forms[mode].base_amount = Math.round(totalBase * 100) / 100;
-            this.forms[mode].gst_amount = Math.round(totalGst * 100) / 100;
-            this.forms[mode].total_amount = Math.round(totalVal * 100) / 100;
+            if (this.forms[mode].broker_involved) {
+                const bVal = parseFloat(this.forms[mode].brokerage_value) || 0;
+                const bType = this.forms[mode].brokerage_type || 'percentage';
+                if (bType === 'percentage') {
+                    totalBrokerage = totalBase * (bVal / 100);
+                } else {
+                    totalBrokerage = bVal;
+                }
+            }
+            this.forms[mode].base_amount = Math.round((totalBase + extraBase) * 100) / 100;
+            this.forms[mode].gst_amount = Math.round((totalGst + extraGst) * 100) / 100;
+            this.forms[mode].total_amount = Math.round((totalVal + extraVal) * 100) / 100;
             this.forms[mode].brokerage_amount = Math.round(totalBrokerage * 100) / 100;
             this.forms[mode].sale_amount = Math.round(totalBase * 100) / 100;
             const paid = parseFloat(this.forms[mode].initial_payment_amount) || 0;
@@ -1888,6 +2113,23 @@ function salesApp() {
                     notes: this.activeSale.notes,
                     units: []
                 };
+                // Populate existing extra works
+                if (this.activeSale.extra_works && this.activeSale.extra_works.length > 0) {
+                    this.forms.edit.extra_works = this.activeSale.extra_works.map(ew => {
+                        const isInclusive = ew.gst_type === 'inclusive';
+                        const displayAmt = isInclusive ? parseFloat(ew.line_total) : parseFloat(ew.amount);
+                        return {
+                            description: ew.description,
+                            amount: displayAmt,
+                            gst_type: ew.gst_type || 'none',
+                            gst_percentage: ew.gst_percentage,
+                            gst_amount: ew.gst_amount,
+                            line_total: ew.line_total
+                        };
+                    });
+                } else {
+                    this.forms.edit.extra_works = [];
+                }
                 // Populate existing units
                 if (this.activeSale.sale_units && this.activeSale.sale_units.length > 0) {
                     this.forms.edit.units = this.activeSale.sale_units.map(su => {
