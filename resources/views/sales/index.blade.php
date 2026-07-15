@@ -502,7 +502,7 @@
                                             <select x-model="forms.add.emi_frequency"
                                                     class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                                 <option value="monthly">Monthly</option>
-                                                <option value="quarterly">Quarterly</option>
+                                                <!-- <option value="quarterly">Quarterly</option> -->
                                             </select>
                                         </div>
                                         <div class="space-y-1">
@@ -905,7 +905,7 @@
                                             <select x-model="forms.edit.emi_frequency"
                                                     class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
                                                 <option value="monthly">Monthly</option>
-                                                <option value="quarterly">Quarterly</option>
+                                                <!-- <option value="quarterly">Quarterly</option> -->
                                             </select>
                                         </div>
                                         <div class="space-y-1">
