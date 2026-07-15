@@ -169,6 +169,7 @@ class PartnerController extends Controller
         $floors = collect();
         $floorMatrix = [];
         $parkingRows = [];
+        $matrixColumns = [];
         
         $areaStats = [
             'total' => 5741,
@@ -302,9 +303,10 @@ class PartnerController extends Controller
             $collectionStats['target_formatted'] = number_format($collectionStats['target']);
             $collectionStats['remaining_formatted'] = number_format($collectionStats['remaining']);
 
-            // Matrix Grid formatting
+            // Matrix Grid — dynamic: floors = rows (vertical), units = columns (horizontal)
+            // Step 1: Separate parking floors from regular floors
+            $regularFloors = [];
             foreach ($floors as $floor) {
-                // Check if it's parking floor
                 $isParking = false;
                 if (stripos($floor->name, 'parking') !== false || stripos($floor->name, 'basement') !== false) {
                     $isParking = true;
@@ -318,52 +320,43 @@ class PartnerController extends Controller
                 if ($isParking) {
                     $rowUnits = $floor->units->sortBy('door_no')->values();
                     $parkingRows[] = [
-                        'floor' => $floor,
+                        'floor'        => $floor,
                         'display_name' => $floor->name,
-                        'units' => $rowUnits,
+                        'units'        => $rowUnits,
                     ];
                 } else {
-                    $cols = array_fill(1, 8, null);
-                    foreach ($floor->units as $unit) {
-                        $doorNo = $unit->door_no;
-                        $colIndex = null;
-                        
-                        if (preg_match('/(\d+)\s*$/', $doorNo, $matches)) {
-                            $colIndex = (int)$matches[1];
-                        } elseif (preg_match('/([a-fA-F])\s*$/', $doorNo, $matches)) {
-                            $letter = strtoupper($matches[1]);
-                            $colIndex = ord($letter) - ord('A') + 1;
-                        }
-                        
-                        if ($colIndex && $colIndex >= 1 && $colIndex <= 8) {
-                            $cols[$colIndex] = $unit;
-                        } else {
-                            for ($i = 1; $i <= 8; $i++) {
-                                if ($cols[$i] === null) {
-                                    $cols[$i] = $unit;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    $displayName = match ($floor->floor_number) {
-                        0 => 'G-1',
-                        1 => 'G-2',
-                        2 => 'G-3',
-                        3 => 'G-4',
-                        6 => 'G-6',
-                        7 => 'G-7',
-                        8 => 'G-8',
-                        default => $floor->name,
-                    };
-
-                    $floorMatrix[] = [
-                        'floor' => $floor,
-                        'display_name' => $displayName,
-                        'columns' => $cols,
-                    ];
+                    $regularFloors[] = $floor;
                 }
+            }
+
+            // Step 2: Collect all unique door_no values across all regular floors, sorted naturally
+            $allDoorNos = collect();
+            foreach ($regularFloors as $floor) {
+                foreach ($floor->units as $unit) {
+                    $allDoorNos->push($unit->door_no);
+                }
+            }
+            // Natural sort: by length first, then alphabetically (matches door_no numbering like G 1, G 2 ... G 10)
+            $matrixColumns = $allDoorNos->unique()->sortBy(function($doorNo) {
+                return [strlen($doorNo), $doorNo];
+            })->values()->toArray();
+
+            // Step 3: Build floor matrix rows mapped to those columns
+            foreach ($regularFloors as $floor) {
+                // Index this floor's units by door_no for O(1) lookup
+                $unitsByDoor = $floor->units->keyBy('door_no');
+
+                // Map each column to the unit (or null if absent)
+                $cols = [];
+                foreach ($matrixColumns as $doorNo) {
+                    $cols[$doorNo] = $unitsByDoor->get($doorNo);
+                }
+
+                $floorMatrix[] = [
+                    'floor'        => $floor,
+                    'display_name' => $floor->name,
+                    'columns'      => $cols,
+                ];
             }
 
             // Additional Counts
@@ -504,7 +497,8 @@ class PartnerController extends Controller
             'collectionStats', 
             'collectionsTrend', 
             'forecastTrend', 
-            'floorMatrix', 
+            'floorMatrix',
+            'matrixColumns',
             'parkingRows', 
             'bankEmiAlerts',
             'receiptsCount',
