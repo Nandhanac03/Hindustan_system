@@ -158,8 +158,8 @@
                 <!-- Section 4: Global Narration -->
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Voucher Narration / Remarks</label>
-                    <textarea name="narration" rows="2" placeholder="Adjusting Site Expenses for partner accounts..."
-                              class="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-4 focus:ring-[#a38c29]/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition-all resize-none"></textarea>
+                    <textarea id="ck_journal_narration" name="narration" rows="2" placeholder="Adjusting Site Expenses for partner accounts..."
+                              class="ck-editor-field w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-4 focus:ring-[#a38c29]/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition-all resize-none"></textarea>
                 </div>
             </div>
 

@@ -885,8 +885,9 @@
 
                     <div class="space-y-1 mt-3">
                         <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Description</label>
-                        <textarea name="description" rows="3"
-                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none">{{ old('description', $project->description) }}</textarea>
+                        <textarea name="description" id="ck_units_project_description" rows="4"
+                            placeholder="Write a detailed project description..."
+                            class="ck-editor-field w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none">{{ old('description', $project->description) }}</textarea>
                     </div>
                 </div>
             </div>

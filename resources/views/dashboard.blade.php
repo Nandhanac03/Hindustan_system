@@ -64,7 +64,7 @@
 
                 @if($activeProject->description)
                     <div class="mt-3 text-xs leading-relaxed text-slate-600 bg-slate-50/80 p-3 rounded-xl border border-slate-100 font-medium">
-                        {{ $activeProject->description }}
+                        {!! $activeProject->description !!}
                     </div>
                 @endif
             </div>

@@ -541,11 +541,11 @@
                     <!-- Description -->
                     <div class="space-y-1.5">
                         <label for="create_description" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Description / Notes</label>
-                        <textarea id="create_description" 
-                                  name="description" 
-                                  rows="3" 
+                        <textarea id="ck_project_create_description"
+                                  name="description"
+                                  rows="4"
                                   placeholder="Brief description of project specifications..."
-                                  class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition">{{ old('description') }}</textarea>
+                                  class="ck-editor-field w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition">{{ old('description') }}</textarea>
                     </div>
 
                     <!-- Image Upload -->

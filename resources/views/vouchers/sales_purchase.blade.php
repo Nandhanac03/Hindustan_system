@@ -174,8 +174,8 @@
                 <!-- Row 5: Narration -->
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Narration / Context</label>
-                    <textarea name="narration" rows="3" placeholder="Explain the transaction context (e.g., Sales billing for Unit 302)..."
-                              class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition-all resize-none"></textarea>
+                    <textarea id="ck_salespurchase_narration" name="narration" rows="3" placeholder="Explain the transaction context (e.g., Sales billing for Unit 302)..."
+                              class="ck-editor-field w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition-all resize-none"></textarea>
                 </div>
             </div>
 

@@ -10,6 +10,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    {{-- CKEditor 5 — Rich Text Editor for description/narration fields --}}
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.4.2/classic/ckeditor.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -436,6 +438,48 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+    </script>
+
+    {{-- ═══ GLOBAL CKEDITOR INITIALIZER ═══ --}}
+    {{-- Any <textarea class="ck-editor-field" id="unique_id"> will be upgraded to a rich editor --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const ckToolbar = [
+                'heading', '|',
+                'bold', 'italic', 'underline', '|',
+                'bulletedList', 'numberedList', '|',
+                'blockQuote', 'link', '|',
+                'undo', 'redo'
+            ];
+
+            document.querySelectorAll('textarea.ck-editor-field').forEach(textarea => {
+                ClassicEditor
+                    .create(textarea, {
+                        toolbar: ckToolbar,
+                        placeholder: textarea.getAttribute('placeholder') || 'Enter details here...',
+                    })
+                    .then(editor => {
+                        // Sync editor data back to textarea on every keystroke
+                        editor.model.document.on('change:data', () => {
+                            textarea.value = editor.getData();
+                        });
+
+                        // Also sync before the parent form is submitted
+                        const form = textarea.closest('form');
+                        if (form) {
+                            form.addEventListener('submit', () => {
+                                textarea.value = editor.getData();
+                            }, { once: false });
+                        }
+
+                        // Store reference globally keyed by textarea id
+                        if (textarea.id) {
+                            window['ckEditor_' + textarea.id] = editor;
+                        }
+                    })
+                    .catch(err => console.error('CKEditor init error on #' + textarea.id + ':', err));
+            });
+        });
     </script>
 </body>
 </html>
