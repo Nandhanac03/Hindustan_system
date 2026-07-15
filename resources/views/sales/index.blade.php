@@ -232,14 +232,14 @@
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area (Sq Ft)</label>
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
                                             <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 font-bold h-9 flex items-center">
                                                 <span x-text="onGetRowArea(index) + ' Sq Ft'"></span>
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Rate/Sqft *</label>
-                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index)" placeholder="Agreed rate"
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
+                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index)" placeholder="Expected rate"
                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                         </div>
                                         <div class="space-y-1.5">
@@ -653,14 +653,14 @@
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Area (Sq Ft)</label>
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
                                             <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 font-bold h-9 flex items-center">
                                                 <span x-text="onGetRowArea(index, 'edit') + ' Sq Ft'"></span>
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Rate/Sqft *</label>
-                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index, 'edit')" placeholder="Agreed rate"
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
+                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index, 'edit')" placeholder="Expected rate"
                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                         </div>
                                         <div class="space-y-1.5">
