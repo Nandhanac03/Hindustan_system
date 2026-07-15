@@ -281,7 +281,7 @@
 
                                 <div x-show="!loading && unit">
                                     
-                                    <!-- TAB 1: DETAILS & ACTIONS -->
+                                    <!-- TAB 1: DETAILS -->
                                     <div x-show="activeTab === 'details'" class="space-y-6">
                                         <!-- Specs Matrix Card -->
                                         <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 space-y-3 text-xs">
@@ -305,104 +305,87 @@
                                                         <strong class="text-emerald-700" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.expected_sale_amount).toLocaleString('en-US') : ''"></strong>
                                                     </div>
                                                 </div>
-                                                <template x-if="unit && unit.sale_rate_per_sqft">
-                                                    <div class="col-span-2 border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <span class="text-slate-455 font-medium block">Sale Rate</span>
-                                                            <strong class="text-slate-850" x-text="'{{ $project->system->currency_code }} ' + Number(unit.sale_rate_per_sqft).toLocaleString('en-US')"></strong>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-slate-455 font-medium block">Sale Amount</span>
-                                                            <strong class="text-emerald-800" x-text="'{{ $project->system->currency_code }} ' + Number(unit.sale_amount).toLocaleString('en-US')"></strong>
-                                                        </div>
-                                                        <div class="col-span-2 border-t border-slate-200/60 pt-2 text-left">
-                                                            <span class="text-slate-455 font-medium block">Difference</span>
-                                                            <strong class="text-rose-750" x-text="'{{ $project->system->currency_code }} ' + Number(unit.difference).toLocaleString('en-US')"></strong>
-                                                        </div>
-                                                        <template x-if="unit.sale">
-                                                            <div class="col-span-2 border-t border-slate-200/60 pt-2 text-left">
-                                                                <span class="text-slate-455 font-medium block">Linked Sale</span>
-                                                                <a :href="'/sales?search=' + unit.sale.sale_number" class="text-indigo-600 hover:text-indigo-800 hover:underline font-extrabold uppercase tracking-wider text-[11px]" x-text="unit.sale.sale_number"></a>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-                                                </template>
                                             </div>
                                         </div>
 
-                                        <!-- STATUS CHANGE ACTIONS -->
-                                        @can('units.manage')
-                                            <div class="border-t border-slate-100 pt-4 space-y-4">
-                                                <h4 class="text-[10px] font-bold text-indigo-650 uppercase tracking-widest">Execute State Transition</h4>
-                                                
-                                                <div x-show="allowedTransitions.length === 0" class="p-3 bg-slate-50 text-slate-400 italic text-xs rounded-xl">
-                                                    No valid status transitions can be performed from the current status.
+                                        <!-- Sale Details (Shown if unit is sold) -->
+                                        <div x-show="unit.status === 'sold'" class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 space-y-3 text-xs">
+                                            <div class="flex items-center justify-between border-b border-emerald-100 pb-1.5">
+                                                <h4 class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-widest">Sale Information</h4>
+                                                <span x-show="unit.sale" class="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded" x-text="unit.sale ? unit.sale.sale_number : ''"></span>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-3.5">
+                                                <div class="col-span-2">
+                                                    <span class="text-emerald-650 block font-medium">Customer / Sold To</span>
+                                                    <strong class="text-slate-800 font-extrabold" x-text="unit.sale && unit.sale.customer ? unit.sale.customer.name : 'Unknown Customer'"></strong>
                                                 </div>
-
-                                                <template x-if="allowedTransitions.length > 0">
-                                                    <form method="POST" :action="'/units/' + unit.id + '/status'" class="space-y-4">
-                                                        @csrf
-                                                        
-                                                        <div class="space-y-1.5">
-                                                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Select Target Status</label>
-                                                            <select name="status" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-2.5 focus:outline-none cursor-pointer">
-                                                                <option value="">Choose status...</option>
-                                                                <template x-for="target in allowedTransitions" :key="target">
-                                                                    <option :value="target" x-text="target.toUpperCase()"></option>
-                                                                </template>
-                                                            </select>
-                                                        </div>
-
-                                                        <!-- Checkbox if moving sold -> available (resale trigger) -->
-                                                        <div x-show="unit.status === 'sold'" class="flex items-center gap-2">
-                                                            <input id="is_resale" type="checkbox" name="is_resale" value="1" class="rounded border-slate-200 text-primary w-4 h-4" />
-                                                            <label for="is_resale" class="text-xs text-slate-650 font-bold select-none cursor-pointer">Trigger explicitly as Resale / Booking cancellation</label>
-                                                        </div>
-
-                                                        <div class="space-y-1.5">
-                                                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Authorization / Change Reason</label>
-                                                            <input type="text" name="reason" placeholder="Explain this status update..." class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-2.5 focus:outline-none" />
-                                                        </div>
-
-                                                        <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-650/10 tracking-wide uppercase">
-                                                            Apply Status Change
-                                                        </button>
-                                                    </form>
-                                                </template>
+                                                <div x-show="unit.sale && unit.sale.sale_date">
+                                                    <span class="text-emerald-650 block font-medium">Sale Date</span>
+                                                    <strong class="text-slate-800 font-extrabold" x-text="unit.sale ? new Date(unit.sale.sale_date).toLocaleDateString() : 'N/A'"></strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-emerald-650 block font-medium">Sale Area (BUA)</span>
+                                                    <strong class="text-slate-800 font-extrabold" x-text="unit.built_up_area ? unit.built_up_area + ' Sq Ft' : 'N/A'"></strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-emerald-650 block font-medium">Expected Rate / Sq Ft</span>
+                                                    <strong class="text-slate-850 font-extrabold" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.expected_rate_per_sqft || 0).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-emerald-650 block font-medium">Sale Rate / Sq Ft</span>
+                                                    <strong class="text-slate-800 font-extrabold" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.sale_rate_per_sqft || (unit.sale ? unit.sale.rate_per_sqft : 0)).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-emerald-650 block font-medium">Expected Price</span>
+                                                    <strong class="text-slate-850 font-extrabold" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.expected_sale_amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-emerald-650 block font-medium">Actual Sale Price</span>
+                                                    <strong class="text-emerald-800 font-extrabold" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.sale_amount || (unit.sale ? unit.sale.sale_amount : 0)).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                                <div class="col-span-2 bg-rose-50 border border-rose-100 rounded-lg p-2.5">
+                                                    <span class="text-rose-600 block font-bold text-[9px] uppercase tracking-wider">Shortfall / Difference</span>
+                                                    <strong class="text-rose-750 font-extrabold text-sm" x-text="unit ? '{{ $project->system->currency_code }} ' + Number(unit.difference || 0).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                                <div x-show="unit.sale">
+                                                    <span class="text-emerald-650 block font-medium">Total Amount (Tax Inc.)</span>
+                                                    <strong class="text-emerald-850 font-extrabold" x-text="unit.sale ? '{{ $project->system->currency_code }} ' + Number(unit.sale.total_amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                                <div x-show="unit.sale">
+                                                    <span class="text-emerald-650 block font-medium">Remaining Bal.</span>
+                                                    <strong class="text-rose-750 font-extrabold" x-text="unit.sale ? '{{ $project->system->currency_code }} ' + Number(unit.sale.remaining_balance || 0).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                                <div class="col-span-2 border-t border-emerald-100/60 pt-2 flex items-center justify-between" x-show="unit.sale">
+                                                    <span class="text-[10px] text-emerald-700 font-bold uppercase">View Sale Details</span>
+                                                    <a :href="unit.sale ? '/sales/' + unit.sale.id : '#'" 
+                                                       class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 hover:underline font-extrabold text-[11px] uppercase tracking-wider">
+                                                        Open Contract &rarr;
+                                                    </a>
+                                                </div>
                                             </div>
-                                        @endcan
+                                        </div>
 
-                                        <!-- RATE CHANGE ACTION -->
-                                        @can('units.rate.manage')
-                                            <div class="border-t border-slate-100 pt-4 space-y-4">
-                                                <h4 class="text-[10px] font-bold text-indigo-650 uppercase tracking-widest">Modify Pricing / Base Rate</h4>
-                                                
-                                                <form method="POST" :action="'/units/' + unit.id + '/rate'" class="space-y-4">
-                                                    @csrf
-                                                    
-                                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div class="space-y-1.5">
-                                                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">New Rate (per Sq Ft)</label>
-                                                            <input type="number" step="0.01" name="rate" :value="unit.expected_rate_per_sqft" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-2.5 focus:outline-none" />
-                                                        </div>
-
-                                                        <div class="space-y-1.5">
-                                                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Effective Date</label>
-                                                            <input type="date" name="effective_from" :value="new Date().toISOString().split('T')[0]" required class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-2.5 focus:outline-none cursor-pointer" />
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="space-y-1.5">
-                                                        <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Rate Escalation Reason</label>
-                                                        <input type="text" name="reason" placeholder="e.g. Quarterly price revision" class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-2.5 focus:outline-none" />
-                                                    </div>
-
-                                                    <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-850 text-white rounded-xl text-xs font-bold transition uppercase tracking-wider">
-                                                        Record New Rate
-                                                    </button>
-                                                </form>
+                                        <!-- Booking Details (Shown if unit is booked and has linked booking information) -->
+                                        <div x-show="unit.status === 'booked' && unit.booking" class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 space-y-3 text-xs">
+                                            <div class="flex items-center justify-between border-b border-blue-100 pb-1.5">
+                                                <h4 class="text-[10px] font-extrabold text-blue-800 uppercase tracking-widest">Booking Information</h4>
+                                                <span class="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded" x-text="unit.booking ? unit.booking.booking_number : ''"></span>
                                             </div>
-                                        @endcan
+                                            <div class="grid grid-cols-2 gap-3.5">
+                                                <div class="col-span-2">
+                                                    <span class="text-blue-650 block font-medium">Customer</span>
+                                                    <strong class="text-slate-800 font-extrabold" x-text="unit.booking && unit.booking.customer ? unit.booking.customer.name : 'Unknown Customer'"></strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-blue-650 block font-medium">Booking Date</span>
+                                                    <strong class="text-slate-800 font-extrabold" x-text="unit.booking && unit.booking.agreement_date ? new Date(unit.booking.agreement_date).toLocaleDateString() : 'N/A'"></strong>
+                                                </div>
+                                                <div>
+                                                    <span class="text-blue-650 block font-medium">Booking Amount</span>
+                                                    <strong class="text-blue-850 font-extrabold" x-text="unit.booking ? '{{ $project->system->currency_code }} ' + Number(unit.booking.amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- TAB 2: RATE HISTORY -->
@@ -463,5 +446,5 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 </x-erp-layout>
