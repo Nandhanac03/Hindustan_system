@@ -14,7 +14,14 @@ class BankController extends Controller
     public function index(): View
     {
         $banks = Bank::orderBy('bank_name')->get();
-        return view('bank.index', compact('banks'));
+        
+        $pendingEmis = \App\Models\EmiSchedule::where('status', 'Due')
+            ->where('due_date', '<=', now()->endOfMonth())
+            ->get();
+        $pendingEmisCount = $pendingEmis->count();
+        $pendingEmisAmount = $pendingEmis->sum('emi_amount');
+
+        return view('bank.index', compact('banks', 'pendingEmisCount', 'pendingEmisAmount'));
     }
 
     public function store(Request $request): RedirectResponse

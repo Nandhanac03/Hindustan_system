@@ -39,16 +39,37 @@ class LoanController extends Controller
         
         $loans = $query->latest()->paginate(10);
         
-        // Calculate dynamic sums for the table row listings
+        // Calculate dynamic sums and fetch next pending EMI for the table row listings
         foreach ($loans as $loan) {
             $paidSchedules = EmiSchedule::where('loan_id', $loan->id)->where('status', 'Paid')->get();
             $loan->paid_principal_to_date = $paidSchedules->sum('principal_component');
             $loan->cumulative_interest_paid = $paidSchedules->sum('interest_component');
+            
+            // Next unpaid EMI for quick pay
+            $loan->next_emi = EmiSchedule::where('loan_id', $loan->id)
+                ->where('status', 'Due')
+                ->orderBy('installment_no')
+                ->first();
         }
         
-        $accounts = Account::orderBy('name')->get();
+        // All pending EMIs across active loans due on/before end of current month
+        $pendingEmis = EmiSchedule::where('status', 'Due')
+            ->where('due_date', '<=', now()->endOfMonth())
+            ->get();
+        $pendingEmisCount = $pendingEmis->count();
+        $pendingEmisAmount = $pendingEmis->sum('emi_amount');
 
-        return view('loans.index', compact('loans', 'projects', 'accounts'));
+        // Global stats for KPI metrics cards
+        $activeLoansCount = Loan::where('status', 'Active')->count();
+        $totalOutstanding = Loan::sum('outstanding_balance');
+        $allPaidSchedules = EmiSchedule::where('status', 'Paid')->get();
+        $totalPaidPrincipal = $allPaidSchedules->sum('principal_component');
+        $totalPaidInterest = $allPaidSchedules->sum('interest_component');
+        
+        $accounts = Account::orderBy('name')->get();
+        $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
+
+        return view('loans.index', compact('loans', 'projects', 'accounts', 'banks', 'pendingEmisCount', 'pendingEmisAmount', 'activeLoansCount', 'totalOutstanding', 'totalPaidPrincipal', 'totalPaidInterest'));
     }
 
     public function store(Request $request): JsonResponse
@@ -59,6 +80,7 @@ class LoanController extends Controller
             'lender_name' => ['required', 'string', 'max:255'],
             'principal_amount' => ['required', 'numeric', 'min:1'],
             'interest_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'interest_period' => ['nullable', 'in:annual,monthly'],
             'tenure_months' => ['required', 'integer', 'min:1', 'max:600'],
             'start_date' => ['required', 'date'],
             'schedule_type' => ['required', 'in:reducing_balance,flat'],
@@ -68,16 +90,30 @@ class LoanController extends Controller
 
         $loan = null;
 
-        DB::transaction(function () use ($validated, &$loan) {
+        DB::transaction(function () use ($validated, &$loan, $request) {
             $principal = (float)$validated['principal_amount'];
             $rate = (float)$validated['interest_rate'];
             $tenure = (int)$validated['tenure_months'];
             $scheduleType = $validated['schedule_type'];
             $startDate = \Carbon\Carbon::parse($validated['start_date']);
             
-            $r = $rate / 12 / 100;
-            $emi = 0.0;
+            $period = $request->input('interest_period', 'annual');
+            if ($period === 'monthly') {
+                $annualRate = $rate * 12;
+                $r = $rate / 100;
+            } else {
+                $annualRate = $rate;
+                $r = $rate / 12 / 100;
+            }
 
+            $validated['interest_rate'] = $annualRate;
+            $validated['outstanding_balance'] = $principal;
+            $validated['system_id'] = Auth::user()->system_id ?? 1;
+            $validated['status'] = 'Active';
+
+            $loan = Loan::create($validated);
+
+            $emi = 0.0;
             if ($scheduleType === 'reducing_balance') {
                 if ($r > 0) {
                     $emi = $principal * ($r * pow(1 + $r, $tenure)) / (pow(1 + $r, $tenure) - 1);
@@ -85,15 +121,8 @@ class LoanController extends Controller
                     $emi = $principal / $tenure;
                 }
             } else {
-                // Flat Rate
                 $emi = ($principal / $tenure) + ($principal * $r);
             }
-
-            $validated['outstanding_balance'] = $principal;
-            $validated['system_id'] = Auth::user()->system_id ?? 1;
-            $validated['status'] = 'Active';
-
-            $loan = Loan::create($validated);
 
             // Generate Repayment Schedule
             $tempPrincipal = $principal;
@@ -371,5 +400,81 @@ class LoanController extends Controller
             'emiDueToday',
             'emiDueThisMonth'
         ));
+    }
+
+    public function updateInterest(Request $request, Loan $loan): JsonResponse
+    {
+        $validated = $request->validate([
+            'interest_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'interest_period' => ['nullable', 'in:annual,monthly'],
+        ]);
+
+        $rate = (float)$validated['interest_rate'];
+        $period = $request->input('interest_period', 'annual');
+        
+        if ($period === 'monthly') {
+            $annualRate = $rate * 12;
+            $r = $rate / 100;
+        } else {
+            $annualRate = $rate;
+            $r = $rate / 12 / 100;
+        }
+
+        DB::transaction(function () use ($loan, $annualRate, $r) {
+            $loan->update(['interest_rate' => $annualRate]);
+
+            $unpaidInstallments = $loan->emiSchedules()->where('status', '!=', 'Paid')->get();
+            if ($unpaidInstallments->isEmpty()) {
+                return;
+            }
+
+            $remainingPrincipal = (float)$loan->outstanding_balance;
+            $k = $unpaidInstallments->count();
+            $isReducing = $loan->schedule_type === 'reducing_balance';
+
+            if ($isReducing) {
+                if ($r > 0) {
+                    $newEmi = $remainingPrincipal * ($r * pow(1 + $r, $k)) / (pow(1 + $r, $k) - 1);
+                } else {
+                    $newEmi = $remainingPrincipal / $k;
+                }
+
+                $tempPrincipal = $remainingPrincipal;
+                foreach ($unpaidInstallments as $idx => $inst) {
+                    $interestComp = $tempPrincipal * $r;
+                    $principalComp = $newEmi - $interestComp;
+
+                    if ($tempPrincipal <= $principalComp || $idx === $k - 1) {
+                        $principalComp = $tempPrincipal;
+                        $emi = $principalComp + $interestComp;
+                        $tempPrincipal = 0;
+                    } else {
+                        $emi = $newEmi;
+                        $tempPrincipal -= $principalComp;
+                    }
+
+                    $inst->update([
+                        'emi_amount' => $emi,
+                        'principal_component' => $principalComp,
+                        'interest_component' => $interestComp,
+                    ]);
+                }
+            } else {
+                // Flat rate
+                $principalComp = $remainingPrincipal / $k;
+                $interestComp = $remainingPrincipal * $r;
+                $emi = $principalComp + $interestComp;
+
+                foreach ($unpaidInstallments as $inst) {
+                    $inst->update([
+                        'emi_amount' => $emi,
+                        'principal_component' => $principalComp,
+                        'interest_component' => $interestComp,
+                    ]);
+                }
+            }
+        });
+
+        return response()->json(['success' => true]);
     }
 }
