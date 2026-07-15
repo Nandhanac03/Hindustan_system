@@ -298,7 +298,7 @@ class SalesController extends Controller
                     'remarks'      => 'Initial payment at sale creation',
                     'created_by'   => auth()->id(),
                 ]);
-                Receipt::allocateToPartners($receipt);
+                // Receipt::allocateToPartners($receipt);
             }
             $this->syncDefaultEmiSchedule($sale);
             return response()->json(['sale' => $sale->load(['receipts', 'brokerage'])], 201);
@@ -571,7 +571,7 @@ class SalesController extends Controller
             'remarks'      => $validated['remarks'] ?? null,
             'created_by'   => auth()->id(),
         ]);
-        Receipt::allocateToPartners($receipt);
+        // Receipt::allocateToPartners($receipt);
         $sale->update([
             'remaining_balance' => round($sale->total_amount - $sale->receipts()->sum('amount'), 2),
         ]);
