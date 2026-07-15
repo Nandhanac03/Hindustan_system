@@ -235,6 +235,44 @@
         </div>
     </div>
 
+    <!-- Vouchers & Core Accounting Engine Dropdown -->
+    <div x-data="{ openVoucher: {{ Request::routeIs('vouchers.*') ? 'true' : 'false' }} }" class="space-y-1">
+        <button @click="openVoucher = !openVoucher" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('vouchers.*') ? 'text-white' : 'text-slate-300' }}">
+            <div class="flex items-center gap-3">
+                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Vouchers 
+            </div>
+            <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openVoucher ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </button>
+        <div x-show="openVoucher" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+            <a href="{{ route('vouchers.receipt.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.receipt.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                Receipt Vouchers
+            </a>
+            <a href="{{ route('vouchers.payment.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.payment.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                Payment Vouchers
+            </a>
+            <a href="{{ route('vouchers.contra.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.contra.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                Contra Vouchers
+            </a>
+            <a href="{{ route('vouchers.journal.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.journal.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                Journal Vouchers
+            </a>
+            <a href="{{ route('vouchers.sales-purchase.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.sales-purchase.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                Sales & Purchases
+            </a>
+            <a href="{{ route('vouchers.ledger.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                Ledger Directory
+            </a>
+          
+        </div>
+    </div>
+
+   
+
     {{-- ═══ PARTNERS SECTION ═══ --}}
     <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Partners</p>
 

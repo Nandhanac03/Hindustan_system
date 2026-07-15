@@ -154,6 +154,31 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/loans/{loan}/schedule', [\App\Http\Controllers\LoanController::class, 'showSchedule'])->name('loans.schedule');
     Route::post('/loans/{loan}/pay-emi/{installment}', [\App\Http\Controllers\LoanController::class, 'payEmi'])->name('loans.pay-emi');
     Route::post('/loans/{loan}/prepay', [\App\Http\Controllers\LoanController::class, 'prepay'])->name('loans.prepay');
+
+    // Vouchers & Core Accounting Engine
+    Route::get('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'createReceipt'])->name('vouchers.receipt.create');
+    Route::post('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'storeReceipt'])->name('vouchers.receipt.store');
+    Route::get('/vouchers/payment', [\App\Http\Controllers\VoucherController::class, 'createPayment'])->name('vouchers.payment.create');
+    Route::post('/vouchers/payment', [\App\Http\Controllers\VoucherController::class, 'storePayment'])->name('vouchers.payment.store');
+    Route::get('/vouchers/contra', [\App\Http\Controllers\VoucherController::class, 'createContra'])->name('vouchers.contra.create');
+    Route::post('/vouchers/contra', [\App\Http\Controllers\VoucherController::class, 'storeContra'])->name('vouchers.contra.store');
+    Route::get('/vouchers/journal', [\App\Http\Controllers\VoucherController::class, 'createJournal'])->name('vouchers.journal.create');
+    Route::post('/vouchers/journal', [\App\Http\Controllers\VoucherController::class, 'storeJournal'])->name('vouchers.journal.store');
+    Route::get('/vouchers/sales-purchase', [\App\Http\Controllers\VoucherController::class, 'createSalesPurchase'])->name('vouchers.sales-purchase.create');
+    Route::post('/vouchers/sales-purchase', [\App\Http\Controllers\VoucherController::class, 'storeSalesPurchase'])->name('vouchers.sales-purchase.store');
+    Route::get('/vouchers/ledger-directory', [\App\Http\Controllers\VoucherController::class, 'ledgerIndex'])->name('vouchers.ledger.index');
+    Route::get('/vouchers/cash-book', [\App\Http\Controllers\VoucherController::class, 'cashBook'])->name('vouchers.cash-book');
+    Route::get('/vouchers/bank-book', [\App\Http\Controllers\VoucherController::class, 'bankBook'])->name('vouchers.bank-book');
+    Route::get('/vouchers/entity-ledger', [\App\Http\Controllers\VoucherController::class, 'entityLedger'])->name('vouchers.entity-ledger');
+
+    // ── Cash Management ───────────────────────────────────────────────────────
+    Route::get('/cash/petty-cash',          [\App\Http\Controllers\CashManagementController::class, 'pettyCashIndex'])->name('cash.petty-cash.index');
+    Route::get('/cash/petty-cash/create',   [\App\Http\Controllers\CashManagementController::class, 'pettyCashCreate'])->name('cash.petty-cash.create');
+    Route::post('/cash/petty-cash',         [\App\Http\Controllers\CashManagementController::class, 'pettyCashStore'])->name('cash.petty-cash.store');
+    Route::get('/cash/denomination',        [\App\Http\Controllers\CashManagementController::class, 'denominationIndex'])->name('cash.denomination.index');
+    Route::get('/cash/denomination/create', [\App\Http\Controllers\CashManagementController::class, 'denominationCreate'])->name('cash.denomination.create');
+    Route::post('/cash/denomination',       [\App\Http\Controllers\CashManagementController::class, 'denominationStore'])->name('cash.denomination.store');
+    Route::get('/cash/reconciliation',      [\App\Http\Controllers\CashManagementController::class, 'reconciliation'])->name('cash.reconciliation');
 });
 
 require __DIR__ . '/auth.php';
