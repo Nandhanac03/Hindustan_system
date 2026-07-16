@@ -464,39 +464,48 @@
             </div>
         </div>
 
-        {{-- Recent Unit Activity Timeline --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-            <div class="mb-5">
-                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Unit Activity</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Latest status updates across units</p>
-            </div>
-            <div class="relative">
-                <div class="absolute left-[11px] top-2 bottom-2 w-px bg-slate-200"></div>
-                <div class="space-y-5">
-                    @forelse($inventoryActivity as $unitEvent)
-                        @php
-                            $dot = match($unitEvent->status) {
-                                'sold' => 'border-emerald-500 bg-emerald-100',
-                                'booked' => 'border-[#a38c29] bg-[#a38c29]/20',
-                                'blocked' => 'border-rose-500 bg-rose-100',
-                                default => 'border-blue-500 bg-blue-100',
-                            };
-                        @endphp
-                        <div class="flex gap-4 pl-1">
-                            <div class="relative z-10 mt-1 flex-shrink-0">
-                                <div class="w-[22px] h-[22px] rounded-full border-2 {{ $dot }} flex items-center justify-center">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-current opacity-70"></div>
+        {{-- Bank Loan EMI Repayment Notifications Card --}}
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center mb-5">
+                    <div>
+                        <h2 class="text-sm font-bold text-[#0B1E36] uppercase tracking-wider">EMI Pending Alerts</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Active bank loan EMI repayment obligations</p>
+                    </div>
+                    <a href="{{ route('loans.index') }}" class="text-[10px] font-extrabold text-[#a38c29] hover:underline uppercase tracking-wider">
+                        Show All
+                    </a>
+                </div>
+                
+                <div class="space-y-3.5">
+                    @forelse($pendingEmiAlerts as $alert)
+                        <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-between shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <!-- Bank Logo abbreviation box -->
+                                <div class="w-8 h-8 rounded-xl bg-[#0B1E36] text-white flex items-center justify-center font-bold text-[9px] shrink-0 uppercase">
+                                    {{ substr($alert->provider, 0, 2) }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-900 text-xs">{{ $alert->provider }}</div>
+                                    <div class="text-[9px] mt-0.5 font-bold uppercase {{ $alert->is_overdue ? 'text-rose-600' : 'text-amber-700' }}">
+                                        {{ $alert->due_text }}
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex-1 pb-2 min-w-0">
-                                <div class="text-xs font-semibold text-slate-900 leading-snug">Unit {{ $unitEvent->door_no }} is now {{ ucfirst($unitEvent->status) }}</div>
-                                <div class="text-[10px] text-slate-400 mt-1">
-                                    {{ $unitEvent->updated_at->diffForHumans() }} &bull; <span class="text-slate-500">Floor: {{ $unitEvent->floor->name ?? 'N/A' }}</span>
-                                </div>
+                            <div class="text-right flex flex-col items-end gap-1">
+                                <span class="font-mono font-bold text-slate-900 text-xs">₹{{ number_format($alert->emi_amount, 2) }}</span>
+                                <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase {{ $alert->is_overdue ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-amber-50 text-amber-700 border border-amber-100' }}">
+                                    {{ $alert->status }}
+                                </span>
                             </div>
                         </div>
                     @empty
-                        <p class="text-xs text-slate-400 text-center py-6 italic">No recent unit activity recorded.</p>
+                        <div class="p-5 rounded-2xl bg-emerald-50/30 border border-emerald-200/50 text-xs font-semibold text-slate-700 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="text-[10px] font-bold uppercase tracking-wider">No pending EMIs due at this time</span>
+                        </div>
                     @endforelse
                 </div>
             </div>
