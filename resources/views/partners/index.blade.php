@@ -554,16 +554,24 @@
         </div>
 
         <!-- FLOOR MATRIX GRID -->
-        <div class="bg-white border border-[#EFECE1] rounded-2xl p-5 shadow-sm space-y-4 relative">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div>
-                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Floor Matrix Grid</h3>
-                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Vertical = Floors &nbsp;|&nbsp; Horizontal = Units (Door No.)</p>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 relative">
+            
+            <!-- Header with Title and Legend -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[#2e7d32] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    <h3 class="text-sm font-extrabold text-[#1b5e20] uppercase tracking-wider">Floor Matrix – Unit Availability</h3>
                 </div>
-                <a href="{{ route('units.index') }}" class="inline-flex items-center gap-1.5 rounded-xl bg-[#a38c29] hover:bg-[#8d7923] px-3.5 py-2 text-[10px] font-extrabold text-white uppercase tracking-wider transition shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    View All Units
-                </a>
+                
+                <!-- Status Legends -->
+                <div class="flex items-center gap-4 text-[9px] font-extrabold uppercase tracking-wider">
+                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#2e7d32] border border-[#1b5e20]"></span> Available</span>
+                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#bbdefb] border border-[#90caf9]"></span> Booked</span>
+                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#ffe082] border border-[#ffd54f]"></span> Pending</span>
+                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#e53935] border border-[#d32f2f]"></span> Sold</span>
+                </div>
             </div>
 
             @php
@@ -579,6 +587,25 @@
                         }
                     }
                 }
+
+                // Summary aggregates
+                $totalUnitsCount = 0;
+                $availableCount = 0;
+                $bookedCount = 0;
+                $pendingCount = 0;
+                $soldCount = 0;
+                foreach ($floorMatrix as $row) {
+                    foreach ($row['columns'] as $u) {
+                        if ($u) {
+                            $totalUnitsCount++;
+                            $st = strtolower($u->status);
+                            if ($st === 'sold') $soldCount++;
+                            elseif ($st === 'booked') $bookedCount++;
+                            elseif ($st === 'blocked') $pendingCount++;
+                            elseif ($st === 'available') $availableCount++;
+                        }
+                    }
+                }
             @endphp
 
             @if(empty($matrixColumns) && empty($parkingRows))
@@ -589,62 +616,53 @@
                     </div>
                     <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">No unit data available</p>
                     <p class="text-[10px] text-slate-400 mt-1">Add floors and units to see the property matrix.</p>
-                    <a href="{{ route('units.index') }}" class="mt-4 px-4 py-2 bg-[#a38c29] text-white text-[10px] font-bold uppercase rounded-xl tracking-wide hover:bg-[#8d7923] transition">Go to Units</a>
                 </div>
             @else
                 <!-- Table Matrix Container -->
-                <div class="overflow-x-auto relative min-h-[200px]">
-                    <table class="border-collapse" style="min-width: max-content; width: 100%;">
+                <div class="overflow-x-auto relative">
+                    <table class="border-collapse w-full" style="min-width: max-content;">
                         <thead>
-                            <tr class="border-b-2 border-[#EAE3CD]">
+                            <tr class="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                                 <!-- Floor label column -->
-                                <th class="p-2 text-left text-[9px] font-extrabold uppercase text-slate-500 tracking-wider sticky left-0 bg-white z-10 min-w-[90px] border-r border-slate-100">
-                                    Floor / Unit
+                                <th class="p-3 text-left sticky left-0 bg-slate-50 z-10 min-w-[120px] border-r border-slate-200">
+                                    Floor \ Unit
                                 </th>
                                 <!-- Dynamic Unit Column Headers -->
                                 @foreach ($matrixColumns as $doorNo)
-                                    <th class="p-2 text-center min-w-[80px]">
-                                        <span class="block text-[10px] font-extrabold text-slate-700 tracking-wider leading-tight">{{ $doorNo }}</span>
-                                        @if(($colCounts[$doorNo] ?? 0) > 0)
-                                            <span class="inline-block text-[8px] font-bold text-[#7E6A1B] bg-[#FAF8F2] border border-[#EAE3CD] px-1.5 py-0.5 rounded-full mt-1">
-                                                {{ $colCounts[$doorNo] }} floor(s)
-                                            </span>
-                                        @endif
+                                    <th class="p-3 text-center min-w-[90px]">
+                                        <span class="block">{{ $doorNo }}</span>
                                     </th>
                                 @endforeach
                                 @if(!empty($parkingRows))
                                     <!-- Parking columns header -->
                                     @php $maxParkingUnits = collect($parkingRows)->max(fn($p) => $p['units']->count()); @endphp
                                     @for($pc = 1; $pc <= $maxParkingUnits; $pc++)
-                                        <th class="p-2 text-center min-w-[70px]">
-                                            <span class="block text-[10px] font-extrabold text-slate-500 tracking-wider">P-{{ $pc }}</span>
+                                        <th class="p-3 text-center min-w-[80px]">
+                                            <span>P-{{ $pc }}</span>
                                         </th>
                                     @endfor
                                 @endif
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100 bg-white">
                             <!-- Regular Floor Rows -->
                             @foreach ($floorMatrix as $row)
-                                <tr class="hover:bg-[#FAF8F2] transition-colors duration-100">
+                                <tr class="hover:bg-slate-50/50 transition-colors duration-100">
                                     <!-- Floor Label -->
-                                    <td class="p-2 sticky left-0 bg-white z-10 border-r border-slate-100">
-                                        <span class="inline-flex w-full items-center justify-center rounded-lg py-2 px-2 text-[9px] font-extrabold uppercase tracking-wide
-                                            @if($row['floor']->floor_number < 0)
-                                                bg-amber-50 border border-amber-200 text-amber-800
-                                            @elseif($row['floor']->floor_number === 0)
-                                                bg-blue-50 border border-blue-200 text-blue-800
-                                            @else
-                                                bg-slate-50 border border-slate-200 text-slate-700
-                                            @endif">
-                                            {{ $row['display_name'] }}
-                                        </span>
+                                    <td class="p-3 sticky left-0 bg-white z-10 border-r border-slate-150 flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                        <div>
+                                            <span class="block text-[9px] font-extrabold text-slate-800 uppercase tracking-wider">{{ $row['display_name'] }}</span>
+                                            <span class="block text-[8px] text-slate-400 font-bold mt-0.5">{{ collect($row['columns'])->filter()->count() }} Unit(s)</span>
+                                        </div>
                                     </td>
 
                                     <!-- Unit Cells -->
                                     @foreach ($matrixColumns as $doorNo)
                                         @php $unit = $row['columns'][$doorNo] ?? null; @endphp
-                                        <td class="p-1">
+                                        <td class="p-1.5">
                                             @if ($unit)
                                                 @php
                                                     $status = strtolower($unit->status);
@@ -655,30 +673,21 @@
                                                 @endphp
                                                 <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}' }; hoveredEl = $el"
                                                      @mouseleave="hoveredUnit = null"
-                                                     class="w-full h-11 flex flex-col items-center justify-center rounded-lg shadow-sm border transition-all hover:scale-105 hover:shadow-md cursor-pointer duration-150 group
-                                                     @if ($isSold) bg-emerald-600 border-emerald-700 text-white
-                                                     @elseif ($isBooked) bg-blue-600 border-blue-700 text-white
-                                                     @elseif ($isBlocked) bg-amber-500 border-amber-600 text-white
-                                                     @else bg-[#FAF8F2] border-[#EFECE1] text-[#7E6A1B] hover:border-[#a38c29]/50 @endif">
+                                                     class="w-full min-w-[85px] py-1.5 px-2 flex flex-col items-center justify-center rounded-lg shadow-sm border transition-all hover:scale-105 hover:shadow-md cursor-pointer duration-150
+                                                     @if ($isSold) bg-[#e53935] border-[#d32f2f] text-white
+                                                     @elseif ($isBooked) bg-[#bbdefb] border-[#90caf9] text-[#0d47a1]
+                                                     @elseif ($isBlocked) bg-[#ffe082] border-[#ffd54f] text-[#e65100]
+                                                     @else bg-[#2e7d32] border-[#1b5e20] text-white @endif">
 
-                                                    <span class="text-[8px] font-extrabold font-mono leading-tight px-1 text-center truncate max-w-full
-                                                        @if($isSold || $isBooked || $isBlocked) text-white/90 @else text-[#7E6A1B] @endif">
+                                                    <span class="text-[9px] font-extrabold uppercase font-sans leading-tight">
                                                         {{ $unit->door_no }}
                                                     </span>
-                                                    @if($isSold)
-                                                        <svg class="w-3 h-3 text-white/80 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                                    @elseif($isBooked)
-                                                        <svg class="w-3 h-3 text-white/80 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                                                    @elseif($isBlocked)
-                                                        <svg class="w-3 h-3 text-white/80 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                                                    @else
-                                                        <svg class="w-3 h-3 text-[#D1B46A] mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                                                    @endif
+                                                    <span class="text-[7.5px] font-bold mt-0.5 font-mono leading-none opacity-90">
+                                                        {{ $unit->built_up_area ? number_format((float)$unit->built_up_area, 2) . ' Sq.ft' : 'N/A' }}
+                                                    </span>
                                                 </div>
                                             @else
-                                                <div class="w-full h-11 bg-slate-50 border border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-300 text-[10px]">
-                                                    —
-                                                </div>
+                                                <div class="w-full min-w-[85px] h-9"></div>
                                             @endif
                                         </td>
                                     @endforeach
@@ -686,7 +695,7 @@
                                     @if(!empty($parkingRows))
                                         @php $maxParkingUnits = collect($parkingRows)->max(fn($p) => $p['units']->count()); @endphp
                                         @for($pc = 1; $pc <= $maxParkingUnits; $pc++)
-                                            <td class="p-1"><div class="w-full h-11 bg-slate-50 border border-dashed border-slate-100 rounded-lg"></div></td>
+                                            <td class="p-1.5"><div class="w-full min-w-[80px] h-9"></div></td>
                                         @endfor
                                     @endif
                                 </tr>
@@ -694,37 +703,39 @@
 
                             <!-- PARKING ROWS -->
                             @foreach ($parkingRows as $pRow)
-                                <tr class="bg-[#FAF8F2]/60">
+                                <tr>
                                     <!-- Parking Label -->
-                                    <td class="p-2 sticky left-0 z-10 border-r border-slate-100" style="background: #FAF8F2;">
-                                        <span class="inline-flex w-full items-center justify-center bg-[#FAF8F2] border border-[#EAE3CD] rounded-lg py-2 px-2 text-[9px] font-extrabold text-[#7E6A1B] uppercase tracking-wide">
-                                            {{ $pRow['display_name'] }}
-                                        </span>
+                                    <td class="p-3 sticky left-0 z-10 border-r border-slate-150 flex items-center gap-2 bg-slate-50/50">
+                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/>
+                                        </svg>
+                                        <div>
+                                            <span class="block text-[9px] font-extrabold text-[#7E6A1B] uppercase tracking-wider">{{ $pRow['display_name'] }}</span>
+                                            <span class="block text-[8px] text-slate-400 font-bold mt-0.5">{{ $pRow['units']->count() }} Slot(s)</span>
+                                        </div>
                                     </td>
 
                                     <!-- Blank cells under regular unit columns -->
                                     @foreach($matrixColumns as $doorNo)
-                                        <td class="p-1"><div class="w-full h-11 bg-[#FAF8F2] border border-dashed border-[#EAE3CD] rounded-lg"></div></td>
+                                        <td class="p-1.5"><div class="w-full min-w-[85px] h-9"></div></td>
                                     @endforeach
 
                                     <!-- Parking Unit Cells -->
                                     @php $maxParkingUnits = collect($parkingRows)->max(fn($p) => $p['units']->count()); @endphp
                                     @for($pc = 1; $pc <= $maxParkingUnits; $pc++)
                                         @php $pUnit = $pRow['units']->get($pc - 1); @endphp
-                                        <td class="p-1">
+                                        <td class="p-1.5">
                                             @if($pUnit)
                                                 @php $isOccupied = in_array(strtolower($pUnit->status), ['sold', 'booked']); @endphp
                                                 <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($pUnit->door_no) }}', floor: '{{ addslashes($pRow['display_name']) }}', area: 'Car Parking Space', status: '{{ $isOccupied ? 'Reserved' : 'Available' }}', price: '₹{{ number_format($pUnit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
                                                      @mouseleave="hoveredUnit = null"
-                                                     class="w-full h-11 flex flex-col items-center justify-center rounded-lg shadow-sm border transition-all hover:scale-105 hover:shadow-md cursor-pointer duration-150
-                                                     @if($isOccupied) bg-[#B08968] border-[#9C6D3B] text-white @else bg-[#FAF8F2] border-[#EFECE1] text-slate-700 hover:border-[#a38c29]/50 @endif">
-                                                    <svg class="w-3.5 h-3.5 {{ $isOccupied ? 'text-white' : 'text-slate-500' }}" fill="currentColor" viewBox="0 0 24 24">
-                                                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-                                                    </svg>
-                                                    <span class="text-[7px] font-bold font-mono mt-0.5 uppercase {{ $isOccupied ? 'text-white/90' : 'text-slate-500' }}">{{ $pUnit->door_no }}</span>
+                                                     class="w-full min-w-[80px] py-1.5 px-2 flex flex-col items-center justify-center rounded-lg shadow-sm border transition-all hover:scale-105 hover:shadow-md cursor-pointer duration-150
+                                                     @if($isOccupied) bg-[#B08968] border-[#9C6D3B] text-white @else bg-slate-100 border-slate-200 text-slate-700 hover:border-[#a38c29]/50 @endif">
+                                                    <span class="text-[9px] font-extrabold uppercase font-sans leading-tight">{{ $pUnit->door_no }}</span>
+                                                    <span class="text-[7.5px] font-bold mt-0.5 font-mono leading-none opacity-80">Parking</span>
                                                 </div>
                                             @else
-                                                <div class="w-full h-11 bg-slate-50 border border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-300 text-[10px]">—</div>
+                                                <div class="w-full min-w-[80px] h-9"></div>
                                             @endif
                                         </td>
                                     @endfor
@@ -746,7 +757,7 @@
                             <span class="text-xs font-extrabold text-slate-800 uppercase tracking-wider" x-text="hoveredUnit?.door_no"></span>
                         </div>
                         <span class="text-[8px] font-bold text-white px-2 py-0.5 rounded-full uppercase tracking-wider"
-                              :class="{'bg-emerald-600': hoveredUnit?.status === 'Sold', 'bg-blue-600': hoveredUnit?.status === 'Booked', 'bg-amber-500': hoveredUnit?.status === 'Blocked', 'bg-[#a38c29]': hoveredUnit?.status === 'Available', 'bg-[#B08968]': hoveredUnit?.status === 'Reserved'}"
+                              :class="{'bg-[#e53935]': hoveredUnit?.status === 'Sold', 'bg-[#bbdefb] text-[#0d47a1]': hoveredUnit?.status === 'Booked', 'bg-[#ffe082] text-[#e65100]': hoveredUnit?.status === 'Blocked', 'bg-[#2e7d32]': hoveredUnit?.status === 'Available', 'bg-[#B08968]': hoveredUnit?.status === 'Reserved'}"
                               x-text="hoveredUnit?.status"></span>
                     </div>
 
@@ -762,32 +773,57 @@
                     </div>
                 </div>
 
-                <!-- Legend -->
-                <div class="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100 text-[10px] font-bold text-slate-500 uppercase">
-                    <div class="flex flex-wrap gap-4">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-3.5 h-3.5 rounded bg-[#FAF8F2] border border-[#EFECE1] inline-block"></span>
-                            <span>Available</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-3.5 h-3.5 rounded bg-emerald-600 border border-emerald-700 inline-block"></span>
-                            <span>Sold</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-3.5 h-3.5 rounded bg-blue-600 border border-blue-700 inline-block"></span>
-                            <span>Booked</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-3.5 h-3.5 rounded bg-amber-500 border border-amber-600 inline-block"></span>
-                            <span>Blocked</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-3.5 h-3.5 rounded bg-[#B08968] border border-[#9C6D3B] inline-block"></span>
-                            <span>Parking / Reserved</span>
+                <!-- Footer Summary Bar matching the design -->
+                <div class="grid grid-cols-2 sm:grid-cols-6 gap-4 p-4.5 bg-slate-50 border border-slate-150 rounded-2xl items-center text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    
+                    <!-- Summary Icon Column -->
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
+                        </svg>
+                        <span class="font-extrabold text-[#0B1E36]">Summary</span>
+                    </div>
+
+                    <!-- Total Units -->
+                    <div>
+                        <span class="block text-[8px] text-slate-400 font-bold">Total Units</span>
+                        <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $totalUnitsCount }}</span>
+                    </div>
+
+                    <!-- Available -->
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded bg-[#2e7d32] border border-[#1b5e20] shrink-0"></span>
+                        <div>
+                            <span class="block text-[8px] text-slate-400 font-bold">Available</span>
+                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $availableCount }}</span>
                         </div>
                     </div>
-                    <div class="text-[9px] text-slate-400">
-                        {{ count($matrixColumns) }} unit column(s) &nbsp;|&nbsp; {{ count($floorMatrix) }} floor row(s)
+
+                    <!-- Booked -->
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded bg-[#bbdefb] border border-[#90caf9] shrink-0"></span>
+                        <div>
+                            <span class="block text-[8px] text-slate-400 font-bold">Booked</span>
+                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $bookedCount }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Pending -->
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded bg-[#ffe082] border border-[#ffd54f] shrink-0"></span>
+                        <div>
+                            <span class="block text-[8px] text-slate-400 font-bold">Pending</span>
+                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $pendingCount }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Sold -->
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded bg-[#e53935] border border-[#d32f2f] shrink-0"></span>
+                        <div>
+                            <span class="block text-[8px] text-slate-400 font-bold">Sold</span>
+                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $soldCount }}</span>
+                        </div>
                     </div>
                 </div>
             @endif
