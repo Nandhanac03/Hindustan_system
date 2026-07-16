@@ -84,13 +84,27 @@ class LoanController extends Controller
             'tenure_months' => ['required', 'integer', 'min:1', 'max:600'],
             'start_date' => ['required', 'date'],
             'schedule_type' => ['required', 'in:reducing_balance,flat'],
-            'ledger_account_id' => ['required', 'exists:accounts,id'],
+            'ledger_account_id' => ['nullable', 'exists:accounts,id'],
             'interest_account_id' => ['required', 'exists:accounts,id'],
         ]);
 
         $loan = null;
 
         DB::transaction(function () use ($validated, &$loan, $request) {
+            $systemId = Auth::user()->system_id ?? 1;
+
+            if (empty($validated['ledger_account_id'])) {
+                // Automatically create a ledger liability account for the loan
+                $loanAcc = Account::create([
+                    'system_id' => $systemId,
+                    'name' => 'Loan Account - ' . $validated['lender_name'] . ' (' . $validated['loan_account_no'] . ')',
+                    'code' => 'LOAN-' . strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $validated['loan_account_no'])),
+                    'type' => 'liability',
+                    'is_active' => true,
+                ]);
+                $validated['ledger_account_id'] = $loanAcc->id;
+            }
+
             $principal = (float)$validated['principal_amount'];
             $rate = (float)$validated['interest_rate'];
             $tenure = (int)$validated['tenure_months'];
@@ -108,7 +122,7 @@ class LoanController extends Controller
 
             $validated['interest_rate'] = $annualRate;
             $validated['outstanding_balance'] = $principal;
-            $validated['system_id'] = Auth::user()->system_id ?? 1;
+            $validated['system_id'] = $systemId;
             $validated['status'] = 'Active';
 
             $loan = Loan::create($validated);

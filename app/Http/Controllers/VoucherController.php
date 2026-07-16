@@ -94,7 +94,7 @@ class VoucherController extends Controller
 
         $customerAccountMap = $customers->pluck('ledger_account_id', 'id')->toArray();
 
-        $recentReceipts = Receipt::with(['customer', 'sale'])
+        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit'])
             ->whereNull('partner_id')  // raw intake receipts, not partner-split sub-receipts
             ->latest('receipt_date')
             ->take(50)
@@ -114,7 +114,9 @@ class VoucherController extends Controller
                     'customer_ledger_account_id' => $customerAccountMap[$r->customer_id] ?? null,
                     'payment_mode'               => $r->payment_mode,
                     'project_id'                 => $r->project_id,
+                    'project_name'               => $r->sale?->project?->name ?? '—',
                     'unit_id'                    => $r->unit_id,
+                    'unit_name'                  => $r->sale?->unit?->door_no ?? '—',
                     'sale_number'                => $r->sale?->sale_number ?? '—',
                     'is_allocated'               => $isAllocated,
                 ];

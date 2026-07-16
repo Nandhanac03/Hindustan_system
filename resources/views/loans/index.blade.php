@@ -424,15 +424,7 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Ledger Account (Liability) *</label>
-                        <select x-model="addForm.ledger_account_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
-                            <option value="">Select Ledger Account...</option>
-                            @foreach($accounts as $acc)
-                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ strtoupper($acc->type) }})</option>
-                            @endforeach
-                        </select>
-                    </div>
+
 
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Expense Account *</label>
