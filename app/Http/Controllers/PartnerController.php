@@ -385,88 +385,35 @@ class PartnerController extends Controller
             return $pRow;
         }, $parkingRows, array_keys($parkingRows));
 
-        // Bank EMI Alerts
+        // Bank EMI Alerts - only this month list of emi which is expiring
         $bankEmiAlerts = \App\Models\EmiSchedule::with(['loan.project'])
             ->where('status', 'Due')
+            ->whereMonth('due_date', Carbon::now()->month)
+            ->whereYear('due_date', Carbon::now()->year)
             ->orderBy('due_date')
-            ->take(10)
             ->get();
 
-        if ($bankEmiAlerts->isEmpty()) {
-            $bankEmiAlerts = collect([
-                (object)[
-                    'provider' => 'Builder-Bank',
-                    'due_text' => 'Due 7 days',
-                    'amount' => 1500000,
-                    'status' => 'Available',
-                    'is_overdue' => false,
-                ],
-                (object)[
-                    'provider' => 'Builder-Bank',
-                    'due_text' => 'Due 7 days',
-                    'amount' => 1500000,
-                    'status' => 'Available',
-                    'is_overdue' => false,
-                ],
-                (object)[
-                    'provider' => 'Concepital Bank',
-                    'due_text' => 'Due 7 days',
-                    'amount' => 750000,
-                    'status' => 'Available',
-                    'is_overdue' => false,
-                ],
-                (object)[
-                    'provider' => 'Concepital Bank',
-                    'due_text' => 'Due 7 days',
-                    'amount' => 750000,
-                    'status' => 'Available',
-                    'is_overdue' => false,
-                ],
-                (object)[
-                    'provider' => 'Concepital Bank',
-                    'due_text' => 'Due 7 days',
-                    'amount' => 700000,
-                    'status' => 'Available',
-                    'is_overdue' => false,
-                ],
-                (object)[
-                    'provider' => 'Builder-Bank',
-                    'due_text' => 'Overdue',
-                    'amount' => 300000,
-                    'status' => 'Overdue',
-                    'is_overdue' => true,
-                ],
-                (object)[
-                    'provider' => 'Concepital Bank',
-                    'due_text' => 'Overdue',
-                    'amount' => 250000,
-                    'status' => 'Overdue',
-                    'is_overdue' => true,
-                ],
-            ]);
-        } else {
-            $bankEmiAlerts = $bankEmiAlerts->map(function($emi) {
-                $dueDate = Carbon::parse($emi->due_date);
-                $daysDiff = Carbon::now()->diffInDays($dueDate, false);
-                
-                $due_text = '';
-                $is_overdue = false;
-                if ($daysDiff < 0) {
-                    $due_text = 'Overdue';
-                    $is_overdue = true;
-                } else {
-                    $due_text = 'Due ' . $daysDiff . ' days';
-                }
-                
-                return (object)[
-                    'provider' => $emi->loan->lender_name ?? 'Bank',
-                    'due_text' => $due_text,
-                    'amount' => $emi->emi_amount,
-                    'status' => $is_overdue ? 'Overdue' : 'Available',
-                    'is_overdue' => $is_overdue,
-                ];
-            });
-        }
+        $bankEmiAlerts = $bankEmiAlerts->map(function($emi) {
+            $dueDate = Carbon::parse($emi->due_date);
+            $daysDiff = (int) round(Carbon::now()->diffInDays($dueDate, false));
+            
+            $due_text = '';
+            $is_overdue = false;
+            if ($daysDiff < 0) {
+                $due_text = 'Overdue';
+                $is_overdue = true;
+            } else {
+                $due_text = 'Due ' . $daysDiff . ' days';
+            }
+            
+            return (object)[
+                'provider' => $emi->loan->lender_name ?? 'Bank',
+                'due_text' => $due_text,
+                'amount' => $emi->emi_amount,
+                'status' => $is_overdue ? 'Overdue' : 'Available',
+                'is_overdue' => $is_overdue,
+            ];
+        });
 
         // Commission Summary calculation
         $firstPartner = $partners->first();

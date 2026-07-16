@@ -196,18 +196,18 @@
                                 <div class="flex items-center justify-end gap-2">
                                     @if($loan->next_emi && $loan->status === 'Active')
                                         <button @click="openPayModal({{ json_encode($loan) }}, {{ json_encode($loan->next_emi) }})" 
-                                                class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wide transition shadow-sm flex items-center gap-1">
+                                                class="px-2.5 py-1.5 bg-primary hover:bg-primary-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wide transition shadow-sm flex items-center gap-1">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             Quick Pay
                                         </button>
                                     @endif
-                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition inline-flex items-center justify-center shadow-sm" title="Repayment Schedule">
+                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="p-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition inline-flex items-center justify-center shadow-sm" title="Repayment Schedule">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                         <span class="ml-1 text-[10px] font-bold uppercase tracking-wider">Ledger</span>
                                     </a>
                                     @if($loan->status === 'Active')
                                         <button @click="openEditInterestModal({{ json_encode($loan) }})" 
-                                                class="p-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-750 border border-indigo-200 transition inline-flex items-center justify-center shadow-sm" title="Edit Interest Rate">
+                                                class="p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition inline-flex items-center justify-center shadow-sm" title="Edit Interest Rate">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                             <span class="ml-1 text-[10px] font-bold uppercase tracking-wider">Edit Rate</span>
                                         </button>
