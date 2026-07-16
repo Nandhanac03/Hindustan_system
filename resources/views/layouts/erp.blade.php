@@ -352,6 +352,7 @@
         <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
             @php
                 $reportLinks = [
+                    'activity_statements' => '📊 Activity Statements',
                     'dashboard'  => 'Dashboard & MIS',
                     'availability' => 'Availability Report',
                     'sales' => 'Sales Report',
@@ -365,7 +366,7 @@
                     'loan_schedules' => 'Bank Loan EMI',
                     'profit_loss' => 'Profit & Loss',
                 ];
-                $currentReport = request('report', 'dashboard');
+                $currentReport = request('report', 'activity_statements');
             @endphp
             @foreach($reportLinks as $key => $label)
                 <a href="{{ route('reports.index', ['report' => $key]) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ $currentReport === $key ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">

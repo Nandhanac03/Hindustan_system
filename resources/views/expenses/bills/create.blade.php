@@ -8,7 +8,7 @@
             <div class="max-w-4xl mx-auto relative flex items-center justify-between">
                 <!-- Progress Line -->
                 <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200 -z-0"></div>
-                <div class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-blue-600 transition-all duration-300 -z-0"
+                <div class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-primary transition-all duration-300 -z-0"
                      :style="'width: ' + ((step - 1) * 50) + '%'"></div>
 
                 <!-- Step 1 Circle -->
@@ -240,7 +240,7 @@
                         </div>
                         <div class="p-6 space-y-6">
                             <!-- Drag & Drop Zone -->
-                            <div class="border-2 border-dashed border-slate-250 hover:border-blue-500 hover:bg-blue-50/10 rounded-2xl p-8 text-center transition cursor-pointer">
+                            <div class="border-2 border-dashed border-slate-250 hover:border-primary hover:bg-primary-50/10 rounded-2xl p-8 text-center transition cursor-pointer">
                                 <svg class="w-10 h-10 mx-auto text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                 </svg>

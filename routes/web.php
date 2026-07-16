@@ -176,8 +176,13 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::delete('/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])->name('employees.destroy');
 
     // Vouchers & Core Accounting Engine
+    Route::get('/vouchers/project/{projectId}/units', [\App\Http\Controllers\VoucherController::class, 'getProjectUnits'])->name('vouchers.project.units');
     Route::get('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'createReceipt'])->name('vouchers.receipt.create');
     Route::post('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'storeReceipt'])->name('vouchers.receipt.store');
+    Route::get('/vouchers/receipt/{id}/posted', [\App\Http\Controllers\VoucherController::class, 'receiptPosted'])->name('vouchers.receipt.posted');
+    Route::get('/api/receipt/targets', [\App\Http\Controllers\VoucherController::class, 'receiptTargets'])->name('api.receipt.targets');
+    Route::get('/api/receipt/{id}/detail', [\App\Http\Controllers\VoucherController::class, 'receiptDetail'])->name('api.receipt.detail');
+    Route::get('/api/receipts/unallocated', [\App\Http\Controllers\VoucherController::class, 'unallocatedReceipts'])->name('api.receipts.unallocated');
     Route::get('/vouchers/payment', [\App\Http\Controllers\VoucherController::class, 'createPayment'])->name('vouchers.payment.create');
     Route::post('/vouchers/payment', [\App\Http\Controllers\VoucherController::class, 'storePayment'])->name('vouchers.payment.store');
     Route::get('/vouchers/contra', [\App\Http\Controllers\VoucherController::class, 'createContra'])->name('vouchers.contra.create');

@@ -25,6 +25,16 @@ class Receipt extends Model
     {
         return $this->belongsTo(Customer::class, 'customer_id');
     }
+ 
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
+ 
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
+    }
 
     public function partner()
     {

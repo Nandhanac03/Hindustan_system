@@ -37,7 +37,11 @@ class ReportController extends Controller
         }
         $customers = Customer::orderBy('name')->get();
         $brokers = Broker::orderBy('name')->get();
-        $partners = Payee::orderBy('name')->get();
+        $partners = Payee::where('type', 'Partner')->orderBy('name')->get();
+        $suppliers = Payee::whereIn('type', ['Supplier', 'Contractor'])->orderBy('name')->get();
+        if ($suppliers->isEmpty()) {
+            $suppliers = Payee::orderBy('name')->get();
+        }
         $unitTypes = UnitType::where('is_active', true)->orderBy('name')->get();
         $bankAccounts = Account::where('type', 'Asset')->where('name', 'like', '%bank%')->get();
 
@@ -577,6 +581,7 @@ class ReportController extends Controller
             'customers',
             'brokers',
             'partners',
+            'suppliers',
             'unitTypes',
             'bankAccounts',
             'activeTab',

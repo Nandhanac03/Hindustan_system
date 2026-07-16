@@ -1,11 +1,12 @@
 <?php
-
+ 
 declare(strict_types=1);
-
+ 
 namespace App\Http\Controllers;
-
+ 
 use App\Models\Account;
 use App\Models\Customer;
+use App\Models\Receipt;
 use App\Models\Voucher;
 use App\Models\VoucherLine;
 use App\Models\LedgerEntry;
@@ -17,7 +18,7 @@ use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
+ 
 class VoucherController extends Controller
 {
     public function createReceipt()
@@ -25,7 +26,7 @@ class VoucherController extends Controller
         $user = Auth::user();
         $systemId = $user->system_id;
         $this->ensureDefaultAccounts($systemId);
-
+ 
         $accounts = Account::where('system_id', $systemId)->where('is_active', true)->get();
         
         $assetAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset' && $acc->code !== 'BANK-KAR-213');
@@ -41,7 +42,7 @@ class VoucherController extends Controller
         }
         
         $creditAccounts = $accounts->filter(fn($acc) => in_array(strtolower($acc->type), ['liability', 'income', 'equity']));
-
+ 
         // Generate voucher number
         $lastVoucher = Voucher::where('system_id', $systemId)
             ->where('type', 'Receipt')
@@ -51,13 +52,13 @@ class VoucherController extends Controller
         $nextNum = $lastVoucher ? ((int) preg_replace('/[^0-9]/', '', $lastVoucher->voucher_number) + 1) : 1;
         $voucherNumber = 'RC-' . date('Y') . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
         $projects = Project::all();
-
+ 
         // 1. Fetch Partners
         $partners = Payee::where('system_id', $systemId)
             ->where('type', 'Partner')
             ->orderBy('name')
             ->get();
-
+ 
         // 2. Fetch Pending Supplier Bills
         $pendingBills = DB::table('bills')
             ->join('payees', 'bills.payee_id', '=', 'payees.id')
@@ -66,7 +67,7 @@ class VoucherController extends Controller
             ->select('bills.id', 'bills.bill_number', 'bills.final_amount', 'payees.name as supplier_name')
             ->orderBy('bills.bill_number')
             ->get();
-
+ 
         // 3. Fetch Cancelled Sales with refund payable
         $cancelledSales = Sale::whereIn('project_id', Project::where('system_id', $systemId)->pluck('id'))
             ->where('status', 'cancelled')
@@ -82,12 +83,49 @@ class VoucherController extends Controller
             ->filter(fn($sale) => $sale->remaining_refund > 0)
             ->values();
 
+        // Load recent receipts (source transactions) — unallocated ones show first
+        $allocatedReceiptIds = DB::table('vouchers')
+            ->where('type', 'Receipt')
+            ->whereNotNull('reference_no')
+            ->get('reference_no')
+            ->map(fn($v) => json_decode($v->reference_no, true)['source_receipt_id'] ?? null)
+            ->filter()
+            ->values();
+
+        $customerAccountMap = $customers->pluck('ledger_account_id', 'id')->toArray();
+
+        $recentReceipts = Receipt::with(['customer', 'sale'])
+            ->whereNull('partner_id')  // raw intake receipts, not partner-split sub-receipts
+            ->latest('receipt_date')
+            ->take(50)
+            ->get()
+            ->map(function ($r) use ($allocatedReceiptIds, $customerAccountMap) {
+                $isAllocated = $allocatedReceiptIds->contains($r->id);
+                $ref = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
+                $statusStr = $isAllocated ? '🟢 Allocated' : '🔴 Unallocated';
+                return [
+                    'id'                         => $r->id,
+                    'label'                      => ($ref) . ' — ' . ($r->customer?->name ?? 'Unknown') . ' — ₹' . number_format((float)$r->amount, 2) . ' [' . $statusStr . ']',
+                    'ref'                        => $ref,
+                    'amount'                     => (float)$r->amount,
+                    'date'                       => $r->receipt_date?->format('Y-m-d'),
+                    'customer_name'              => $r->customer?->name ?? '—',
+                    'customer_id'                => $r->customer_id,
+                    'customer_ledger_account_id' => $customerAccountMap[$r->customer_id] ?? null,
+                    'payment_mode'               => $r->payment_mode,
+                    'project_id'                 => $r->project_id,
+                    'unit_id'                    => $r->unit_id,
+                    'sale_number'                => $r->sale?->sale_number ?? '—',
+                    'is_allocated'               => $isAllocated,
+                ];
+            });
+ 
         return view('vouchers.receipt', compact(
             'assetAccounts', 'creditAccounts', 'customers', 'voucherNumber', 
-            'projects', 'partners', 'pendingBills', 'cancelledSales'
+            'projects', 'partners', 'pendingBills', 'cancelledSales', 'recentReceipts'
         ));
     }
-
+ 
     public function getProjectUnits(int $projectId)
     {
         $units = Unit::where('project_id', $projectId)
@@ -97,11 +135,90 @@ class VoucherController extends Controller
         return response()->json($units);
     }
 
+    public function receiptTargets(Request $request)
+    {
+        $user     = Auth::user();
+        $systemId = $user->system_id;
+        $projectId = $request->project_id;
+
+        // Filter partners by the selected project via partner_shares
+        if ($projectId) {
+            $partners = Payee::where('system_id', $systemId)
+                ->where('type', 'Partner')
+                ->whereIn('id', function($query) use ($projectId, $systemId) {
+                    $query->select('partner_id')
+                        ->from('partner_shares')
+                        ->where('system_id', $systemId)
+                        ->where('project_id', $projectId);
+                })
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        } else {
+            $partners = Payee::where('system_id', $systemId)
+                ->where('type', 'Partner')
+                ->orderBy('name')
+                ->get(['id', 'name']);
+        }
+
+        // Filter supplier bills by the selected project
+        $pendingBills = DB::table('bills')
+            ->join('payees', 'bills.payee_id', '=', 'payees.id')
+            ->where('bills.system_id', $systemId)
+            ->whereIn('bills.status', ['approved_unpaid', 'partially_paid'])
+            ->when($projectId, fn($q) => $q->where('bills.project_id', $projectId))
+            ->select(
+                'bills.id',
+                'bills.bill_number',
+                'bills.final_amount',
+                'payees.name as supplier_name',
+                DB::raw('bills.final_amount - COALESCE((SELECT SUM(bp.amount) FROM bill_payments bp WHERE bp.bill_id = bills.id), 0) as balance')
+            )
+            ->orderBy('bills.bill_number')
+            ->get();
+
+        // Filter cancelled sales by the selected project
+        $cancelledSales = Sale::where('status', 'cancelled')
+            ->when($projectId, fn($q) => $q->where('project_id', $projectId))
+            ->with(['customer', 'unit'])
+            ->get()
+            ->map(function ($sale) {
+                $totalPaid       = $sale->receipts()->sum('amount');
+                $refundPayable   = max(0.00, $totalPaid - (float)($sale->cancellation_fee ?? 0.00));
+                $remainingRefund = max(0.00, $refundPayable - (float)($sale->refund_amount ?? 0.00));
+                return [
+                    'id'             => $sale->id,
+                    'label'          => ($sale->customer->name ?? 'N/A') . ' — ' . $sale->sale_number . ' (Bal: ₹' . number_format($remainingRefund, 2) . ')',
+                    'remaining'      => $remainingRefund,
+                ];
+            })
+            ->filter(fn($s) => $s['remaining'] > 0)
+            ->values();
+
+        $defaultShares = [];
+        if ($projectId) {
+            $defaultShares = DB::table('partner_shares')
+                ->where('system_id', $systemId)
+                ->where('project_id', $projectId)
+                ->get(['partner_id', 'share_pct'])
+                ->map(fn($sh) => [
+                    'partner_id' => $sh->partner_id,
+                    'share_pct'  => (float)$sh->share_pct,
+                ]);
+        }
+
+        return response()->json([
+            'partners'        => $partners,
+            'pending_bills'   => $pendingBills,
+            'cancelled_sales' => $cancelledSales,
+            'default_shares'  => $defaultShares,
+        ]);
+    }
+ 
     public function storeReceipt(Request $request)
     {
         $user = Auth::user();
         $systemId = $user->system_id;
-
+ 
         $request->validate([
             'voucher_number' => 'required|string',
             'date' => 'required|date',
@@ -114,16 +231,12 @@ class VoucherController extends Controller
             'payment_mode' => 'nullable|string',
             'gst_rate' => 'nullable|numeric',
             
-            // New split details
+            // Split details
             'split_active' => 'nullable',
-            'partner_id' => 'nullable|exists:payees,id',
-            'partner_amount' => 'nullable|numeric|min:0',
-            'bill_id' => 'nullable|exists:bills,id',
-            'bill_amount' => 'nullable|numeric|min:0',
-            'refund_sale_id' => 'nullable|exists:sales,id',
-            'refund_amount' => 'nullable|numeric|min:0',
+            'allocations' => 'nullable|string',
+            'source_receipt_id' => 'nullable|integer',
         ]);
-
+ 
         DB::transaction(function () use ($request, $systemId, $user) {
             $baseAmount = (float)$request->amount;
             $gstBehavior = $request->gst_behavior;
@@ -135,7 +248,7 @@ class VoucherController extends Controller
             $cgst = 0.0;
             $sgst = 0.0;
             $totalAmount = $baseAmount;
-
+ 
             if ($gstBehavior === 'inclusive') {
                 $base = round($baseAmount / (1 + $gstRate), 2);
                 $cgst = round($base * $halfGstRate, 2);
@@ -147,15 +260,17 @@ class VoucherController extends Controller
                 $totalAmount = $baseAmount + $cgst + $sgst;
                 $partyCredit = $baseAmount;
             }
-
+ 
             // Create reference metadata json
             $referenceNo = json_encode([
                 'project_id' => $request->project_id,
                 'payment_mode' => $request->payment_mode,
                 'gst_rate' => $gstPct,
                 'split_active' => (bool)$request->split_active,
+                'source_receipt_id' => $request->source_receipt_id ? (int)$request->source_receipt_id : null,
+                'allocations' => $request->allocations ? json_decode($request->allocations, true) : [],
             ]);
-
+ 
             // Create Voucher
             $voucher = Voucher::create([
                 'system_id' => $systemId,
@@ -167,7 +282,7 @@ class VoucherController extends Controller
                 'status' => 'Posted',
                 'reference_no' => $referenceNo,
             ]);
-
+ 
             // 1. Debit the Destination Account (Bank/Cash)
             $debitLine = VoucherLine::create([
                 'voucher_id' => $voucher->id,
@@ -176,7 +291,7 @@ class VoucherController extends Controller
                 'credit' => 0.00,
                 'line_narration' => 'Debit to Destination Account',
             ]);
-
+ 
             LedgerEntry::create([
                 'system_id' => $systemId,
                 'account_id' => $request->destination_account_id,
@@ -187,7 +302,7 @@ class VoucherController extends Controller
                 'credit' => 0.00,
                 'running_balance' => 0.00,
             ]);
-
+ 
             // 2. Credit the Party Account (Customer)
             $creditLine = VoucherLine::create([
                 'voucher_id' => $voucher->id,
@@ -196,7 +311,7 @@ class VoucherController extends Controller
                 'credit' => $partyCredit,
                 'line_narration' => 'Credit to Customer Ledger',
             ]);
-
+ 
             LedgerEntry::create([
                 'system_id' => $systemId,
                 'account_id' => $request->credit_account_id,
@@ -207,7 +322,7 @@ class VoucherController extends Controller
                 'credit' => $partyCredit,
                 'running_balance' => 0.00,
             ]);
-
+ 
             // 3. Tax Credits (Output CGST and Output SGST)
             if ($cgst > 0 || $sgst > 0) {
                 $cgstAccount = Account::firstOrCreate(
@@ -218,7 +333,7 @@ class VoucherController extends Controller
                     ['system_id' => $systemId, 'code' => 'TAX-SGST-OUT'],
                     ['name' => 'Output SGST Account', 'type' => 'Liability', 'is_active' => true]
                 );
-
+ 
                 $cgstLine = VoucherLine::create([
                     'voucher_id' => $voucher->id,
                     'account_id' => $cgstAccount->id,
@@ -226,7 +341,7 @@ class VoucherController extends Controller
                     'credit' => $cgst,
                     'line_narration' => 'Output CGST ' . ($gstPct / 2) . '%',
                 ]);
-
+ 
                 LedgerEntry::create([
                     'system_id' => $systemId,
                     'account_id' => $cgstAccount->id,
@@ -237,7 +352,7 @@ class VoucherController extends Controller
                     'credit' => $cgst,
                     'running_balance' => 0.00,
                 ]);
-
+ 
                 $sgstLine = VoucherLine::create([
                     'voucher_id' => $voucher->id,
                     'account_id' => $sgstAccount->id,
@@ -245,7 +360,7 @@ class VoucherController extends Controller
                     'credit' => $sgst,
                     'line_narration' => 'Output SGST ' . ($gstPct / 2) . '%',
                 ]);
-
+ 
                 LedgerEntry::create([
                     'system_id' => $systemId,
                     'account_id' => $sgstAccount->id,
@@ -257,193 +372,71 @@ class VoucherController extends Controller
                     'running_balance' => 0.00,
                 ]);
             }
-
+ 
             // 4. Process split if active
-            if ($request->split_active) {
-                $partnerAmount = (float)($request->partner_amount ?? 0.0);
-                $billAmount = (float)($request->bill_amount ?? 0.0);
-                $refundAmount = (float)($request->refund_amount ?? 0.0);
-                $sumAllocations = $partnerAmount + $billAmount + $refundAmount;
-
-                // Simple check for balance
+            if ($request->split_active && $request->filled('allocations')) {
+                $allocations = json_decode($request->input('allocations'), true) ?? [];
+                
+                $sumAllocations = 0.0;
+                foreach ($allocations as $alloc) {
+                    $sumAllocations += (float)($alloc['amount'] ?? 0.0);
+                }
+ 
+                // Check balance
                 if (abs($sumAllocations - $totalAmount) > 0.01) {
                     throw new \Exception('Total allocated amount (₹' . number_format($sumAllocations, 2) . ') does not match the total receipt amount (₹' . number_format($totalAmount, 2) . ').');
                 }
-
-                // 4a. Process Partner Share Allocation
-                if ($partnerAmount > 0) {
-                    if (!$request->partner_id) {
-                        throw new \Exception('Partner must be selected when allocating Partner Share.');
-                    }
-
-                    $partner = Payee::where('type', 'Partner')->findOrFail($request->partner_id);
-
-                    // Insert partner allocation tracking record
-                    PartnerAllocation::create([
-                        'system_id' => $systemId,
-                        'partner_id' => $partner->id,
-                        'project_id' => $request->project_id ? (int)$request->project_id : 1,
-                        'allocated_amount' => $partnerAmount,
-                        'date' => $request->date,
-                        'voucher_id' => $voucher->id,
-                        'payment_id' => null, // made nullable in migration!
-                    ]);
-
-                    // Ledger entries: Debit Partner's Account (decreasing liability/payout drawing) and Credit Cash/Bank
-                    $partnerLine = VoucherLine::create([
-                        'voucher_id' => $voucher->id,
-                        'account_id' => $partner->linked_account_id,
-                        'debit' => $partnerAmount,
-                        'credit' => 0.00,
-                        'line_narration' => 'Partner share drawing allocation for ' . $partner->name,
-                    ]);
-
-                    LedgerEntry::create([
-                        'system_id' => $systemId,
-                        'account_id' => $partner->linked_account_id,
-                        'voucher_id' => $voucher->id,
-                        'voucher_line_id' => $partnerLine->id,
-                        'date' => $request->date,
-                        'debit' => $partnerAmount,
-                        'credit' => 0.00,
-                        'running_balance' => 0.00,
-                    ]);
-
-                    $bankCreditLine = VoucherLine::create([
-                        'voucher_id' => $voucher->id,
-                        'account_id' => $request->destination_account_id,
-                        'debit' => 0.00,
-                        'credit' => $partnerAmount,
-                        'line_narration' => 'Credit bank for Partner share drawings allocation',
-                    ]);
-
-                    LedgerEntry::create([
-                        'system_id' => $systemId,
-                        'account_id' => $request->destination_account_id,
-                        'voucher_id' => $voucher->id,
-                        'voucher_line_id' => $bankCreditLine->id,
-                        'date' => $request->date,
-                        'debit' => 0.00,
-                        'credit' => $partnerAmount,
-                        'running_balance' => 0.00,
-                    ]);
-                }
-
-                // 4b. Clear Pending Supplier Bills
-                if ($billAmount > 0) {
-                    if (!$request->bill_id) {
-                        throw new \Exception('Bill must be selected when clearing supplier bills.');
-                    }
-
-                    $bill = DB::table('bills')->where('id', $request->bill_id)->first();
-                    if (!$bill) {
-                        throw new \Exception('Selected bill not found.');
-                    }
-
-                    $supplierPayee = Payee::findOrFail($bill->payee_id);
-
-                    // Insert bill payment record
-                    DB::table('bill_payments')->insert([
-                        'system_id' => $systemId,
-                        'bill_id' => $bill->id,
-                        'payee_id' => $bill->payee_id,
-                        'amount' => $billAmount,
-                        'date' => $request->date,
-                        'voucher_id' => $voucher->id,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]);
-
-                    // Calculate total paid on this bill so far
-                    $totalBillPaid = DB::table('bill_payments')->where('bill_id', $bill->id)->sum('amount');
-                    $newStatus = ($totalBillPaid >= $bill->final_amount) ? 'paid' : 'partially_paid';
-
-                    DB::table('bills')->where('id', $bill->id)->update([
-                        'status' => $newStatus,
-                        'updated_at' => now(),
-                    ]);
-
-                    // Ledger entries: Debit Supplier's Account (reducing liability) and Credit Cash/Bank
-                    $supplierLine = VoucherLine::create([
-                        'voucher_id' => $voucher->id,
-                        'account_id' => $supplierPayee->linked_account_id,
-                        'debit' => $billAmount,
-                        'credit' => 0.00,
-                        'line_narration' => 'Debit Supplier ledger for bill #' . $bill->bill_number,
-                    ]);
-
-                    LedgerEntry::create([
-                        'system_id' => $systemId,
-                        'account_id' => $supplierPayee->linked_account_id,
-                        'voucher_id' => $voucher->id,
-                        'voucher_line_id' => $supplierLine->id,
-                        'date' => $request->date,
-                        'debit' => $billAmount,
-                        'credit' => 0.00,
-                        'running_balance' => 0.00,
-                    ]);
-
-                    $bankCreditLine = VoucherLine::create([
-                        'voucher_id' => $voucher->id,
-                        'account_id' => $request->destination_account_id,
-                        'debit' => 0.00,
-                        'credit' => $billAmount,
-                        'line_narration' => 'Credit bank for supplier bill payment',
-                    ]);
-
-                    LedgerEntry::create([
-                        'system_id' => $systemId,
-                        'account_id' => $request->destination_account_id,
-                        'voucher_id' => $voucher->id,
-                        'voucher_line_id' => $bankCreditLine->id,
-                        'date' => $request->date,
-                        'debit' => 0.00,
-                        'credit' => $billAmount,
-                        'running_balance' => 0.00,
-                    ]);
-                }
-
-                // 4c. Customer Refund
-                if ($refundAmount > 0) {
-                    if (!$request->refund_sale_id) {
-                        throw new \Exception('Refund Customer must be selected.');
-                    }
-
-                    $sale = Sale::findOrFail($request->refund_sale_id);
-                    $sale->increment('refund_amount', $refundAmount);
-
-                    $customerAccCode = 'CUST-REC-' . $sale->customer_id;
-                    $customerAcc = Account::where('system_id', $systemId)->where('code', $customerAccCode)->first();
-
-                    if ($customerAcc) {
-                        // Ledger entries: Debit Customer's Account (reducing credit/receivable) and Credit Cash/Bank
-                        $custRefundLine = VoucherLine::create([
+ 
+                foreach ($allocations as $alloc) {
+                    $amount = (float)($alloc['amount'] ?? 0.0);
+                    if ($amount <= 0) continue;
+ 
+                    $type = $alloc['type'] ?? '';
+                    $targetId = $alloc['target_id'] ?? null;
+                    $remarks = $alloc['remarks'] ?? '';
+ 
+                    if ($type === 'partner') {
+                        $partner = Payee::where('type', 'Partner')->findOrFail($targetId);
+ 
+                        // Insert partner allocation tracking record
+                        PartnerAllocation::create([
+                            'system_id' => $systemId,
+                            'partner_id' => $partner->id,
+                            'project_id' => $request->project_id ? (int)$request->project_id : 1,
+                            'allocated_amount' => $amount,
+                            'date' => $request->date,
                             'voucher_id' => $voucher->id,
-                            'account_id' => $customerAcc->id,
-                            'debit' => $refundAmount,
-                            'credit' => 0.00,
-                            'line_narration' => 'Debit customer ledger for cancellation refund on unit ' . ($sale->unit?->door_no ?? ''),
+                            'payment_id' => null,
                         ]);
-
+ 
+                        // Ledger entries: Debit Partner's Account and Credit Cash/Bank
+                        $partnerLine = VoucherLine::create([
+                            'voucher_id' => $voucher->id,
+                            'account_id' => $partner->linked_account_id,
+                            'debit' => $amount,
+                            'credit' => 0.00,
+                            'line_narration' => 'Partner payout share drawings: ' . $partner->name . ($remarks ? ' (' . $remarks . ')' : ''),
+                        ]);
+ 
                         LedgerEntry::create([
                             'system_id' => $systemId,
-                            'account_id' => $customerAcc->id,
+                            'account_id' => $partner->linked_account_id,
                             'voucher_id' => $voucher->id,
-                            'voucher_line_id' => $custRefundLine->id,
+                            'voucher_line_id' => $partnerLine->id,
                             'date' => $request->date,
-                            'debit' => $refundAmount,
+                            'debit' => $amount,
                             'credit' => 0.00,
                             'running_balance' => 0.00,
                         ]);
-
+ 
                         $bankCreditLine = VoucherLine::create([
                             'voucher_id' => $voucher->id,
                             'account_id' => $request->destination_account_id,
                             'debit' => 0.00,
-                            'credit' => $refundAmount,
-                            'line_narration' => 'Credit bank for customer cancellation refund',
+                            'credit' => $amount,
+                            'line_narration' => 'Credit bank for Partner share drawings allocation',
                         ]);
-
+ 
                         LedgerEntry::create([
                             'system_id' => $systemId,
                             'account_id' => $request->destination_account_id,
@@ -451,15 +444,203 @@ class VoucherController extends Controller
                             'voucher_line_id' => $bankCreditLine->id,
                             'date' => $request->date,
                             'debit' => 0.00,
-                            'credit' => $refundAmount,
+                            'credit' => $amount,
+                            'running_balance' => 0.00,
+                        ]);
+                    }
+                    elseif ($type === 'supplier') {
+                        $bill = DB::table('bills')->where('id', $targetId)->first();
+                        if (!$bill) {
+                            throw new \Exception('Selected bill not found.');
+                        }
+ 
+                        $supplierPayee = Payee::findOrFail($bill->payee_id);
+ 
+                        // Insert bill payment record
+                        DB::table('bill_payments')->insert([
+                            'system_id' => $systemId,
+                            'bill_id' => $bill->id,
+                            'payee_id' => $bill->payee_id,
+                            'amount' => $amount,
+                            'date' => $request->date,
+                            'voucher_id' => $voucher->id,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+ 
+                        // Calculate total paid on this bill so far
+                        $totalBillPaid = DB::table('bill_payments')->where('bill_id', $bill->id)->sum('amount');
+                        $newStatus = ($totalBillPaid >= $bill->final_amount) ? 'paid' : 'partially_paid';
+ 
+                        DB::table('bills')->where('id', $bill->id)->update([
+                            'status' => $newStatus,
+                            'updated_at' => now(),
+                        ]);
+ 
+                        // Ledger entries: Debit Supplier's Account (reducing liability) and Credit Cash/Bank
+                        $supplierLine = VoucherLine::create([
+                            'voucher_id' => $voucher->id,
+                            'account_id' => $supplierPayee->linked_account_id,
+                            'debit' => $amount,
+                            'credit' => 0.00,
+                            'line_narration' => 'Debit Supplier ledger for bill #' . $bill->bill_number . ($remarks ? ' (' . $remarks . ')' : ''),
+                        ]);
+ 
+                        LedgerEntry::create([
+                            'system_id' => $systemId,
+                            'account_id' => $supplierPayee->linked_account_id,
+                            'voucher_id' => $voucher->id,
+                            'voucher_line_id' => $supplierLine->id,
+                            'date' => $request->date,
+                            'debit' => $amount,
+                            'credit' => 0.00,
+                            'running_balance' => 0.00,
+                        ]);
+ 
+                        $bankCreditLine = VoucherLine::create([
+                            'voucher_id' => $voucher->id,
+                            'account_id' => $request->destination_account_id,
+                            'debit' => 0.00,
+                            'credit' => $amount,
+                            'line_narration' => 'Credit bank for supplier bill payment',
+                        ]);
+ 
+                        LedgerEntry::create([
+                            'system_id' => $systemId,
+                            'account_id' => $request->destination_account_id,
+                            'voucher_id' => $voucher->id,
+                            'voucher_line_id' => $bankCreditLine->id,
+                            'date' => $request->date,
+                            'debit' => 0.00,
+                            'credit' => $amount,
+                            'running_balance' => 0.00,
+                        ]);
+                    }
+                    elseif ($type === 'refund') {
+                        $sale = Sale::findOrFail($targetId);
+                        $sale->increment('refund_amount', $amount);
+ 
+                        $customerAccCode = 'CUST-REC-' . $sale->customer_id;
+                        $customerAcc = Account::where('system_id', $systemId)->where('code', $customerAccCode)->first();
+ 
+                        if ($customerAcc) {
+                            // Ledger entries: Debit Customer's Account (reducing credit/receivable) and Credit Cash/Bank
+                            $custRefundLine = VoucherLine::create([
+                                'voucher_id' => $voucher->id,
+                                'account_id' => $customerAcc->id,
+                                'debit' => $amount,
+                                'credit' => 0.00,
+                                'line_narration' => 'Debit customer ledger for cancellation refund on unit ' . ($sale->unit?->door_no ?? '') . ($remarks ? ' (' . $remarks . ')' : ''),
+                            ]);
+ 
+                            LedgerEntry::create([
+                                'system_id' => $systemId,
+                                'account_id' => $customerAcc->id,
+                                'voucher_id' => $voucher->id,
+                                'voucher_line_id' => $custRefundLine->id,
+                                'date' => $request->date,
+                                'debit' => $amount,
+                                'credit' => 0.00,
+                                'running_balance' => 0.00,
+                            ]);
+ 
+                            $bankCreditLine = VoucherLine::create([
+                                'voucher_id' => $voucher->id,
+                                'account_id' => $request->destination_account_id,
+                                'debit' => 0.00,
+                                'credit' => $amount,
+                                'line_narration' => 'Credit bank for customer cancellation refund',
+                            ]);
+ 
+                            LedgerEntry::create([
+                                'system_id' => $systemId,
+                                'account_id' => $request->destination_account_id,
+                                'voucher_id' => $voucher->id,
+                                'voucher_line_id' => $bankCreditLine->id,
+                                'date' => $request->date,
+                                'debit' => 0.00,
+                                'credit' => $amount,
+                                'running_balance' => 0.00,
+                            ]);
+                        }
+                    }
+                    elseif ($type === 'general') {
+                        // Transfer to general fund (Debit General Fund Account, Credit Bank)
+                        $gfAccount = Account::findOrFail($targetId);
+ 
+                        $gfLine = VoucherLine::create([
+                            'voucher_id' => $voucher->id,
+                            'account_id' => $gfAccount->id,
+                            'debit' => $amount,
+                            'credit' => 0.00,
+                            'line_narration' => 'Transfer to General Fund: ' . $gfAccount->name . ($remarks ? ' (' . $remarks . ')' : ''),
+                        ]);
+ 
+                        LedgerEntry::create([
+                            'system_id' => $systemId,
+                            'account_id' => $gfAccount->id,
+                            'voucher_id' => $voucher->id,
+                            'voucher_line_id' => $gfLine->id,
+                            'date' => $request->date,
+                            'debit' => $amount,
+                            'credit' => 0.00,
+                            'running_balance' => 0.00,
+                        ]);
+ 
+                        $bankCreditLine = VoucherLine::create([
+                            'voucher_id' => $voucher->id,
+                            'account_id' => $request->destination_account_id,
+                            'debit' => 0.00,
+                            'credit' => $amount,
+                            'line_narration' => 'Credit bank for general fund transfer',
+                        ]);
+ 
+                        LedgerEntry::create([
+                            'system_id' => $systemId,
+                            'account_id' => $request->destination_account_id,
+                            'voucher_id' => $voucher->id,
+                            'voucher_line_id' => $bankCreditLine->id,
+                            'date' => $request->date,
+                            'debit' => 0.00,
+                            'credit' => $amount,
                             'running_balance' => 0.00,
                         ]);
                     }
                 }
             }
         });
+ 
+        $lastV = Voucher::where('system_id', auth()->user()->system_id)->where('type', 'Receipt')->orderBy('id', 'desc')->first();
+        return redirect()->route('vouchers.receipt.posted', ['id' => $lastV->id]);
+    }
+ 
+    public function receiptPosted(int $id)
+    {
+        $user     = Auth::user();
+        $systemId = $user->system_id;
 
-        return redirect()->route('vouchers.ledger.index')->with('status', 'Receipt Voucher created and split allocations completed successfully.');
+        $voucher = Voucher::where('system_id', $systemId)
+            ->where('type', 'Receipt')
+            ->with(['lines' => function ($q) {
+                $q->with('account');
+            }])
+            ->findOrFail($id);
+
+        $meta = json_decode($voucher->reference_no ?? '{}', true) ?? [];
+
+        $splitRows = $voucher->lines->map(function ($line) {
+            return [
+                'narration' => $line->line_narration,
+                'debit'     => (float)$line->debit,
+                'credit'    => (float)$line->credit,
+                'account'   => $line->account?->name ?? 'N/A',
+            ];
+        });
+
+        $totalIn  = $splitRows->sum('debit');
+        $totalOut = $splitRows->sum('credit');
+
+        return view('vouchers.receipt_posted', compact('voucher', 'meta', 'splitRows', 'totalIn', 'totalOut'));
     }
 
     public function createPayment()
