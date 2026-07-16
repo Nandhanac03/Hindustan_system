@@ -1271,6 +1271,10 @@ function salesApp() {
         init() {
             this.fetchSales();
             const urlParams = new URLSearchParams(window.location.search);
+            const viewSaleId = urlParams.get('view_sale_id');
+            if (viewSaleId) {
+                this.openViewModal(viewSaleId);
+            }
             const autoSaleId = urlParams.get('sale_id');
             if (autoSaleId && urlParams.get('tab') === 'exchange') {
                 let checkExist = setInterval(() => {

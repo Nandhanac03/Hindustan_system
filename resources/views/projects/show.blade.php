@@ -231,7 +231,7 @@
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-2">
                                         <span class="text-[9px] font-bold text-indigo-300 bg-indigo-950 px-2 py-0.5 rounded uppercase" 
-                                              x-text="unit ? unit.unit_type.name : ''"></span>
+                                              x-text="unit && unit.unit_type ? unit.unit_type.name : ''"></span>
                                         <h2 class="text-sm font-bold tracking-tight uppercase" x-text="unit ? 'Unit ' + unit.door_no : ''"></h2>
                                     </div>
                                     <button @click="panelOpen = false" class="text-slate-400 hover:text-white rounded-lg transition-colors p-1.5">
@@ -242,7 +242,7 @@
                                 </div>
 
                                 <div class="mt-4 flex items-center justify-between text-xs text-slate-400 font-medium">
-                                    <span>Floor: <strong class="text-white" x-text="unit ? unit.floor.name : ''"></strong></span>
+                                    <span>Floor: <strong class="text-white" x-text="unit && unit.floor ? unit.floor.name : ''"></strong></span>
                                     <span>Status: 
                                         <span class="ml-1 uppercase text-[9px] font-bold px-2 py-0.5 rounded"
                                               :class="{
@@ -356,8 +356,11 @@
                                                     <strong class="text-rose-750 font-extrabold" x-text="unit.sale ? '{{ $project->system->currency_code }} ' + Number(unit.sale.remaining_balance || 0).toLocaleString('en-US') : ''"></strong>
                                                 </div>
                                                 <div class="col-span-2 border-t border-emerald-100/60 pt-2 flex items-center justify-between" x-show="unit.sale">
-                                                    <span class="text-[10px] text-emerald-700 font-bold uppercase">View Sale Details</span>
-                                                    <a :href="unit.sale ? '/sales/' + unit.sale.id : '#'" 
+                                                    <a :href="unit.sale ? '{{ route('sales.index') }}?view_sale_id=' + unit.sale.id : '#'"
+                                                       class="text-[10px] text-emerald-700 hover:text-emerald-900 font-extrabold uppercase hover:underline">
+                                                        View Sale Details
+                                                    </a>
+                                                    <a :href="unit.sale ? '{{ route('sales.index') }}?view_sale_id=' + unit.sale.id : '#'" 
                                                        class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 hover:underline font-extrabold text-[11px] uppercase tracking-wider">
                                                         Open Contract &rarr;
                                                     </a>
@@ -401,7 +404,7 @@
                                                     <div class="text-xs">
                                                         <div class="flex items-center justify-between font-semibold text-slate-900">
                                                             <span x-text="'{{ $project->system->currency_code }} ' + Number(log.rate).toLocaleString('en-US')"></span>
-                                                            <span class="text-[10px] text-slate-400 font-medium" x-text="log.effective_from"></span>
+                                                            <span class="text-[10px] text-slate-400 font-medium" x-text="log.effective_from ? new Date(log.effective_from).toLocaleDateString() : 'N/A'"></span>
                                                         </div>
                                                         <p class="text-slate-500 font-medium mt-1" x-text="log.reason ?? 'No reason provided'"></p>
                                                         <div class="text-[10px] text-slate-400 mt-0.5">
