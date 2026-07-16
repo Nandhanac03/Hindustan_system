@@ -260,7 +260,7 @@
                                 <!-- Select Destination Bank Account for split processing -->
                                 <div class="pt-3 border-t border-slate-100">
                                     <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Process Into Bank / Cash Account</label>
-                                    <select name="destination_account_id" x-model="form.destination_account_id" required
+                                    <select name="destination_account_id" x-model="form.destination_account_id" required @change="updateNames()"
                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
                                         <option value="">-- Select Destination Ledger --</option>
                                         @foreach($assetAccounts as $acc)
@@ -281,8 +281,8 @@
                         </template>
                         
                         <div class="pt-4 border-t border-slate-100/50">
-                            <button type="button" @click="step = 2" :disabled="!selectedReceiptId || !form.destination_account_id"
-                                    :class="!selectedReceiptId || !form.destination_account_id ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-gradient-to-r from-[#a38c29] to-[#806c1d] hover:brightness-110 text-white shadow-md shadow-[#a38c29]/20'"
+                            <button type="button" @click="step = 2" :disabled="!selectedReceiptId"
+                                    :class="!selectedReceiptId ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-gradient-to-r from-[#a38c29] to-[#806c1d] hover:brightness-110 text-white shadow-md shadow-[#a38c29]/20'"
                                     class="w-full py-3.5 text-center text-[10px] font-extrabold rounded-xl transition duration-300 uppercase tracking-wider flex items-center justify-center gap-2 border border-[#a38c29]/10">
                                 <span>Use This Receipt for Allocation</span>
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
@@ -393,7 +393,7 @@
                                     <tr class="hover:bg-slate-50/30 transition">
                                         <!-- Allocation Type Dropdown -->
                                         <td class="px-6 py-3">
-                                            <select x-model="row.type" @change="row.target_id = ''"
+                                            <select x-model="row.type" @change="row.target_id = ''; recalculatePartnerSplits();"
                                                     class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition cursor-pointer">
                                                 <option value="partner">Partner Payout</option>
                                                 <option value="supplier">Supplier Bill</option>
@@ -403,7 +403,7 @@
                                         </td>
                                         <!-- Dynamic Target Dropdown -->
                                         <td class="px-6 py-3">
-                                            <select x-model="row.target_id" x-html="getTargetOptionsHtml(row.type, row.target_id)"
+                                            <select x-model="row.target_id" x-html="getTargetOptionsHtml(row.type, row.target_id)" @change="recalculatePartnerSplits()"
                                                     class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition cursor-pointer">
                                             </select>
                                         </td>
@@ -412,6 +412,7 @@
                                             <div class="relative flex items-center justify-end">
                                                 <span class="absolute left-2 font-bold text-slate-400">₹</span>
                                                 <input type="number" x-model.number="row.amount" step="0.01" min="0" placeholder="0.00"
+                                                       @input="recalculatePartnerSplits()"
                                                        class="w-full px-2.5 py-2.5 pl-6 text-right bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition">
                                             </div>
                                         </td>
@@ -422,7 +423,7 @@
                                         </td>
                                         <!-- Remove Row -->
                                         <td class="px-6 py-3 text-center">
-                                            <button type="button" @click="removeAllocationRow(idx)"
+                                            <button type="button" @click="removeAllocationRow(idx); recalculatePartnerSplits();"
                                                     class="text-rose-500 hover:text-rose-700 p-1.5 hover:bg-rose-50 rounded-lg transition duration-200">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             </button>
@@ -435,7 +436,7 @@
 
                     <!-- Add Row Action Box -->
                     <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-                        <button type="button" @click="addAllocationRow()"
+                        <button type="button" @click="addAllocationRow(); recalculatePartnerSplits();"
                                 class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-100 hover:border-slate-350 text-slate-700 transition text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-sm">
                             <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>+ Add Allocation Row</span>
@@ -554,6 +555,18 @@
                     </div>
 
                     <div class="space-y-3 pt-6 border-t border-slate-800">
+                        <!-- Process Into Bank/Cash Account (Step 3 Quick Picker) -->
+                        <div class="mb-4 space-y-1">
+                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Process Into Bank / Cash Account</label>
+                            <select x-model="form.destination_account_id" required @change="updateNames()"
+                                    class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 text-xs text-slate-200 font-semibold focus:outline-none transition rounded-xl focus:border-[#a38c29] cursor-pointer">
+                                <option value="">-- Select Destination Ledger --</option>
+                                @foreach($assetAccounts as $acc)
+                                    <option value="{{ $acc->id }}">{{ $acc->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <div class="flex gap-2">
                             <button type="button" @click="step = 2"
                                     class="flex-1 py-3 text-center border border-slate-700 bg-slate-900 hover:bg-slate-850 text-slate-300 text-xs font-extrabold uppercase rounded-xl transition tracking-wider">
@@ -676,22 +689,64 @@
                         .then(res => res.json())
                         .then(data => {
                             this.targets = data;
-                            // Initialize with default allocation rows matching your diagram
-                            this.allocations = [
-                                { type: 'partner', target_id: '', amount: 0, remarks: 'Partner Share allocation' },
-                                { type: 'supplier', target_id: '', amount: 0, remarks: 'Supplier liability clearing' },
-                                { type: 'refund', target_id: '', amount: 0, remarks: 'Customer cancellation refund' }
-                            ];
-                            // Preselect targets if they exist
-                            if (data.partners && data.partners.length > 0) {
-                                this.allocations[0].target_id = data.partners[0].id;
+                            // Initialize allocations empty, then build based on default shares
+                            this.allocations = [];
+                            
+                            // 1. Add rows for all default share partners
+                            if (data.default_shares && data.default_shares.length > 0) {
+                                data.default_shares.forEach(share => {
+                                    this.allocations.push({
+                                        type: 'partner',
+                                        target_id: share.partner_id,
+                                        amount: 0.00,
+                                        remarks: `Partner Share (${share.share_pct}%)`
+                                    });
+                                });
+                            } else if (data.partners && data.partners.length > 0) {
+                                this.allocations.push({
+                                    type: 'partner',
+                                    target_id: data.partners[0].id,
+                                    amount: 0.00,
+                                    remarks: 'Partner Share allocation'
+                                });
                             }
+
+                            // 2. Add default row for supplier bill
                             if (data.pending_bills && data.pending_bills.length > 0) {
-                                this.allocations[1].target_id = data.pending_bills[0].id;
+                                this.allocations.push({
+                                    type: 'supplier',
+                                    target_id: data.pending_bills[0].id,
+                                    amount: 0.00,
+                                    remarks: 'Supplier liability clearing'
+                                });
+                            } else {
+                                this.allocations.push({
+                                    type: 'supplier',
+                                    target_id: '',
+                                    amount: 0.00,
+                                    remarks: 'Supplier liability clearing'
+                                });
                             }
+
+                            // 3. Add default row for customer refund
                             if (data.cancelled_sales && data.cancelled_sales.length > 0) {
-                                this.allocations[2].target_id = data.cancelled_sales[0].id;
+                                this.allocations.push({
+                                    type: 'refund',
+                                    target_id: data.cancelled_sales[0].id,
+                                    amount: 0.00,
+                                    remarks: 'Customer cancellation refund'
+                                });
+                            } else {
+                                this.allocations.push({
+                                    type: 'refund',
+                                    target_id: '',
+                                    amount: 0.00,
+                                    remarks: 'Customer cancellation refund'
+                                });
                             }
+
+                            // Run initial auto split to distribute receipt amount to partners
+                            this.recalculatePartnerSplits();
                         })
                         .catch(() => {
                             this.targets = { partners: [], pending_bills: [], cancelled_sales: [] };
@@ -707,6 +762,42 @@
                 },
                 removeAllocationRow(idx) {
                     this.allocations.splice(idx, 1);
+                },
+                recalculatePartnerSplits() {
+                    if (!this.targets.default_shares || this.targets.default_shares.length === 0) {
+                        return;
+                    }
+                    
+                    // Find all non-partner rows (fixed rows)
+                    const nonPartnerRows = this.allocations.filter(a => a.type !== 'partner');
+                    const nonPartnerSum = nonPartnerRows.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
+                    
+                    // Calculate remaining balance to be split
+                    const balanceToSplit = parseFloat((this.form.amount - nonPartnerSum).toFixed(2));
+                    
+                    // Find partner rows in the allocations array
+                    const partnerRows = this.allocations.filter(a => a.type === 'partner');
+                    
+                    if (partnerRows.length === 0) {
+                        return;
+                    }
+
+                    // Distribute the balanceToSplit among partner rows based on default shares
+                    let distributedAmount = 0.0;
+                    partnerRows.forEach((row, index) => {
+                        const share = this.targets.default_shares.find(s => s.partner_id == row.target_id);
+                        const sharePct = share ? parseFloat(share.share_pct) : 0.0;
+                        
+                        let amt = 0.0;
+                        if (index === partnerRows.length - 1) {
+                            amt = parseFloat(Math.max(0, balanceToSplit - distributedAmount).toFixed(2));
+                        } else {
+                            amt = parseFloat(Math.max(0, balanceToSplit * (sharePct / 100)).toFixed(2));
+                            distributedAmount += amt;
+                        }
+                        row.amount = amt;
+                        row.remarks = `Partner Share (${sharePct}%) allocation`;
+                    });
                 },
                 getTargetOptionsHtml(type, selectedId) {
                     let html = '<option value="">-- Select Target --</option>';
