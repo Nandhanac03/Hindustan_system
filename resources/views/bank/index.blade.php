@@ -29,6 +29,7 @@
                 @endforeach
             </ul>
         </div>
+    @endif
     {{-- Pending EMI Alert --}}
     @if(isset($pendingEmisCount) && $pendingEmisCount > 0)
         <div class="p-4 rounded-xl bg-amber-50 border border-amber-250 text-amber-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
