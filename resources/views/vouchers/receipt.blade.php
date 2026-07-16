@@ -403,8 +403,12 @@
                                         </td>
                                         <!-- Dynamic Target Dropdown -->
                                         <td class="px-6 py-3">
-                                            <select x-model="row.target_id" x-html="getTargetOptionsHtml(row.type, row.target_id)" @change="recalculatePartnerSplits()"
+                                            <select x-model="row.target_id" @change="recalculatePartnerSplits()"
                                                     class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition cursor-pointer">
+                                                <option value="">-- Select Target --</option>
+                                                <template x-for="opt in getFilteredTargets(row.type)" :key="opt.id">
+                                                    <option :value="opt.id" x-text="opt.name" :selected="opt.id == row.target_id"></option>
+                                                </template>
                                             </select>
                                         </td>
                                         <!-- Amount Field -->
@@ -666,7 +670,7 @@
 
                         // Prefill units
                         if (r.project_id) {
-                            fetch(`/vouchers/project/${r.project_id}/units`)
+                            fetch("{{ url('/vouchers/project') }}/" + r.project_id + "/units")
                                 .then(res => res.json())
                                 .then(data => {
                                     this.units = data;
@@ -685,7 +689,7 @@
                         this.targets = { partners: [], pending_bills: [], cancelled_sales: [] };
                         return;
                     }
-                    fetch('/api/receipt/targets?project_id=' + projectId)
+                    fetch("{{ url('/api/receipt/targets') }}?project_id=" + projectId)
                         .then(res => res.json())
                         .then(data => {
                             this.targets = data;
@@ -799,28 +803,25 @@
                         row.remarks = `Partner Share (${sharePct}%) allocation`;
                     });
                 },
-                getTargetOptionsHtml(type, selectedId) {
-                    let html = '<option value="">-- Select Target --</option>';
+                getFilteredTargets(type) {
                     if (type === 'partner') {
-                        this.targets.partners.forEach(p => {
-                            html += `<option value="${p.id}" ${p.id == selectedId ? 'selected' : ''}>${p.name}</option>`;
-                        });
-                    } else if (type === 'supplier') {
-                        this.targets.pending_bills.forEach(b => {
-                            const bal = Number(b.balance).toLocaleString('en-IN', {minimumFractionDigits: 2});
-                            html += `<option value="${b.id}" ${b.id == selectedId ? 'selected' : ''}>${b.bill_number} — ${b.supplier_name} (Bal: ₹${bal})</option>`;
-                        });
-                    } else if (type === 'refund') {
-                        this.targets.cancelled_sales.forEach(r => {
-                            html += `<option value="${r.id}" ${r.id == selectedId ? 'selected' : ''}>${r.label}</option>`;
-                        });
-                    } else if (type === 'general') {
-                        this.generalFunds.forEach(gf => {
-                            html += `<option value="${gf.id}" ${gf.id == selectedId ? 'selected' : ''}>${gf.name}</option>`;
-                        });
+                        return this.targets.partners.map(p => ({ id: p.id, name: p.name }));
                     }
-                    return html;
+                    if (type === 'supplier') {
+                        return this.targets.pending_bills.map(b => ({
+                            id: b.id,
+                            name: `${b.bill_number} — ${b.supplier_name} (Bal: ₹${this.formatCurrency(b.balance)})`
+                        }));
+                    }
+                    if (type === 'refund') {
+                        return this.targets.cancelled_sales.map(s => ({ id: s.id, name: s.label }));
+                    }
+                    if (type === 'general') {
+                        return this.generalFunds.map(gf => ({ id: gf.id, name: gf.name }));
+                    }
+                    return [];
                 },
+
                 totalAllocated() {
                     return this.allocations.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
                 },
