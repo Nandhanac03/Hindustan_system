@@ -104,15 +104,8 @@ class Unit extends Model
         return $this->hasMany(SaleUnit::class, 'unit_id');
     }
 
-    public function sale(): HasOneThrough
+    public function sale(): HasOne
     {
-        return $this->hasOneThrough(
-            Sale::class,
-            SaleUnit::class,
-            'unit_id',
-            'id',
-            'id',
-            'sale_id'
-        )->where('sales.status', 'active');
+        return $this->hasOne(Sale::class, 'unit_id')->where('status', 'active');
     }
 }
