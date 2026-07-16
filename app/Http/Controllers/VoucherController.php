@@ -143,24 +143,19 @@ class VoucherController extends Controller
         $systemId = $user->system_id;
         $projectId = $request->project_id;
 
-        // Filter partners by the selected project via partner_shares
-        if ($projectId) {
-            $partners = Payee::where('system_id', $systemId)
-                ->where('type', 'Partner')
-                ->whereIn('id', function($query) use ($projectId, $systemId) {
-                    $query->select('partner_id')
-                        ->from('partner_shares')
-                        ->where('system_id', $systemId)
-                        ->where('project_id', $projectId);
-                })
-                ->orderBy('name')
-                ->get(['id', 'name']);
-        } else {
-            $partners = Payee::where('system_id', $systemId)
-                ->where('type', 'Partner')
-                ->orderBy('name')
-                ->get(['id', 'name']);
-        }
+        // Fetch all partners directly from the payees table and format with account code
+        $partners = Payee::where('system_id', $systemId)
+            ->where('type', 'Partner')
+            ->with(['linkedAccount:id,code'])
+            ->orderBy('name')
+            ->get()
+            ->map(function ($p) {
+                $code = $p->linkedAccount->code ?? 'N/A';
+                return [
+                    'id'   => $p->id,
+                    'name' => $p->name . " (A/C: " . $code . ")",
+                ];
+            });
 
         // Filter supplier bills by the selected project
         $pendingBills = DB::table('bills')
