@@ -161,6 +161,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/expenses/bills', [\App\Http\Controllers\ExpenseController::class, 'storeBill'])->name('expenses.bills.store');
     Route::get('/expenses/bills', [\App\Http\Controllers\ExpenseController::class, 'listBills'])->name('expenses.bills.index');
     Route::get('/expenses/ledger', [\App\Http\Controllers\ExpenseController::class, 'expenseLedger'])->name('expenses.ledger');
+    Route::get('/expenses/project/{project}/metrics', [\App\Http\Controllers\ExpenseController::class, 'projectMetrics'])->name('expenses.project.metrics');
 
     // Suppliers Master Module
     Route::get('/suppliers', [\App\Http\Controllers\SupplierController::class, 'index'])->name('suppliers.index');

@@ -2,7 +2,7 @@
     <x-slot:title>Create New Supplier Bill - HindustanERP</x-slot:title>
     <x-slot:headerTitle>Site Expenses > Create New Supplier Bill</x-slot:headerTitle>
 
-    <div class="max-w-[1800px] mx-auto" x-data="addBillForm()">
+    <div class="max-w-[1800px] mx-auto" x-data="addBillForm()" x-init="fetchProjectMetrics()">
         <!-- Multi-Step Progress Tracker Bar -->
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6">
             <div class="max-w-4xl mx-auto relative flex items-center justify-between">
@@ -132,6 +132,27 @@
                                 </select>
                             </div>
 
+                            <!-- Base Amount -->
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Base Amount (₹) <span class="text-rose-500">*</span></label>
+                                <input type="number" name="bill_amount" required step="0.01" min="0.01" x-model.number="form.amount" @input="calcTotal(); fetchProjectMetrics()"
+                                       class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                            </div>
+
+                            <!-- Tax Amount -->
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Tax / GST (₹)</label>
+                                <input type="number" step="0.01" min="0" x-model.number="form.tax" @input="calcTotal(); fetchProjectMetrics()"
+                                       class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                            </div>
+
+                            <!-- Total Bill Liability -->
+                            <div class="space-y-1.5 md:col-span-2">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Amount (₹) <span class="text-rose-500">*</span></label>
+                                <input type="number" name="final_amount" required step="0.01" min="0.01" x-model.number="form.total_amount" @input="calcBase(); fetchProjectMetrics()"
+                                       class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition">
+                            </div>
+
                             <!-- Form Action Next Button -->
                             <div class="md:col-span-2 pt-4 flex justify-end">
                                 <button type="button" @click="step = 2"
@@ -146,19 +167,12 @@
                     <!-- Step 2 Content Panel -->
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden" x-show="step === 2" x-transition>
                         <div class="px-6 py-5 bg-white border-b border-slate-100">
-                            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Step 2: Bill Amount, Expense Head & Project Allocation</h3>
+                            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Step 2: Expense Head & Project Allocation</h3>
                         </div>
                         <div class="p-6 space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Bill / Invoice Date -->
-                                <div class="space-y-1.5 col-span-2">
-                                    <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Bill / Invoice Date <span class="text-rose-500">*</span></label>
-                                    <input type="date" x-model="form.invoice_date"
-                                           class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
-                                </div>
-
                                 <!-- Expense Head -->
-                                <div class="space-y-1.5">
+                                <div class="space-y-1.5 col-span-2">
                                     <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Expense Head <span class="text-rose-500">*</span></label>
                                     <select x-model="form.expense_head"
                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none cursor-pointer">
@@ -169,27 +183,6 @@
                                         <option value="Electrical Cable">Electrical Cable</option>
                                     </select>
                                 </div>
-
-                                <!-- Base Amount -->
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Base Amount (₹) <span class="text-rose-500">*</span></label>
-                                    <input type="number" name="bill_amount" required step="0.01" min="0.01" x-model.number="form.amount" @input="calcTotal()"
-                                           class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
-                                </div>
-
-                                <!-- Tax Amount -->
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Tax / GST (₹)</label>
-                                    <input type="number" step="0.01" min="0" x-model.number="form.tax" @input="calcTotal()"
-                                           class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
-                                </div>
-
-                                <!-- Total Bill Liability -->
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Amount (₹)</label>
-                                    <input type="number" name="final_amount" readonly :value="form.total_amount"
-                                           class="w-full px-3 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-850 font-extrabold focus:outline-none">
-                                </div>
                             </div>
 
                             <!-- Project Allocation Section -->
@@ -199,7 +192,7 @@
                                 <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-4 text-xs font-semibold">
                                     <div class="w-1/2 space-y-1">
                                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project / Unit</span>
-                                        <select name="project_id" x-model="form.project_id" @change="updateProjectName($el)"
+                                        <select name="project_id" x-model="form.project_id" @change="updateProjectName($el); fetchProjectMetrics()"
                                                 class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none cursor-pointer">
                                             @foreach($projects as $p)
                                                 <option value="{{ $p->id }}">{{ $p->name }}</option>
@@ -339,11 +332,11 @@
                             <div class="space-y-1.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-455">
                                 <div>
                                     <span class="block text-[8px] font-bold text-slate-400 uppercase">Created By</span>
-                                    <strong class="text-slate-700">Suresh Kumar</strong>
+                                    <strong class="text-slate-700">{{ auth()->user()->name }}</strong>
                                 </div>
                                 <div class="text-right">
                                     <span class="block text-[8px] font-bold text-slate-400 uppercase">Created On</span>
-                                    <strong class="text-slate-700">{{ date('d/m/Y 11:30 A') }}</strong>
+                                    <strong class="text-slate-700">{{ now()->format('d/m/Y h:i A') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -384,50 +377,46 @@
                             <div class="space-y-1">
                                 <div class="flex items-center justify-between text-[9px] font-bold text-slate-500">
                                     <span>Liability Bucket (Progressive Realization)</span>
-                                    <span>60%</span>
-                                                         <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div class="bg-primary h-1.5" style="width: 60%"></div>
+                                    <span x-text="projectMetrics.realized_pct + '%'"></span>
+                                </div>
+                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-primary h-1.5" :style="'width: ' + projectMetrics.realized_pct + '%'"></div>
                                 </div>
                             </div>
                             <div class="text-[9px] font-bold text-slate-500 flex items-center justify-between">
-                                <span class="text-primary font-extrabold" x-text="'₹' + formatCurrency(form.total_amount * 0.6) + ' Paid'"></span>
-                                <span class="text-slate-455" x-text="'₹' + formatCurrency(form.total_amount * 0.4) + ' Pending'"></span>
+                                <span class="text-primary font-extrabold" x-text="'₹' + formatCurrency(form.total_amount * (projectMetrics.realized_pct / 100)) + ' Paid'"></span>
+                                <span class="text-slate-455" x-text="'₹' + formatCurrency(form.total_amount * (projectMetrics.pending_pct / 100)) + ' Pending'"></span>
                             </div>
 
                             <!-- Customer Paid List -->
                             <div class="space-y-2 text-[10px] bg-slate-50 p-3 rounded-xl border border-slate-200">
-                                <div class="font-bold text-slate-500 text-[8px] uppercase tracking-wider">Paid by Customers</div>
+                                <div class="font-bold text-slate-500 text-[8px] uppercase tracking-wider text-left">Paid by Customers</div>
                                 
-                                <div class="flex items-center justify-between text-slate-700">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-                                        <span>Mr. Ramesh (G-301)</span>
+                                <template x-for="cust in projectMetrics.customers">
+                                    <div class="flex items-center justify-between text-slate-700">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
+                                            <span x-text="cust.name + ' (' + cust.units + ')'"></span>
+                                        </div>
+                                        <div class="font-bold text-slate-900 flex items-center gap-2">
+                                            <span class="font-mono" x-text="'₹' + formatCurrency(form.total_amount * (cust.percentage / 100))"></span>
+                                            <span class="text-slate-400 font-normal" x-text="cust.percentage + '%'"></span>
+                                        </div>
                                     </div>
-                                    <div class="font-bold text-slate-900 flex items-center gap-2">
-                                        <span class="font-mono" x-text="'₹' + formatCurrency(form.total_amount * 0.35)"></span>
-                                        <span class="text-slate-400 font-normal">35%</span>
-                                    </div>
-                                </div>
+                                </template>
 
-                                <div class="flex items-center justify-between text-slate-700">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                                        <span>Mr. Suresh (G-302)</span>
-                                    </div>
-                                    <div class="font-bold text-slate-900 flex items-center gap-2">
-                                        <span class="font-mono" x-text="'₹' + formatCurrency(form.total_amount * 0.25)"></span>
-                                        <span class="text-slate-400 font-normal">25%</span>
-                                    </div>
-                                </div>
+                                <template x-if="projectMetrics.customers.length === 0">
+                                    <div class="text-[9px] text-slate-400 italic py-1 text-left">No customer payments received for this project.</div>
+                                </template>
 
-                                <div class="flex items-center justify-between text-slate-450">
+                                <div class="flex items-center justify-between text-slate-455 border-t border-slate-200 pt-1.5 mt-1.5">
                                     <div class="flex items-center gap-1.5">
                                         <span class="w-1.5 h-1.5 bg-slate-300 rounded-full"></span>
-                                        <span>Pending</span>
+                                        <span>Pending Outstanding</span>
                                     </div>
                                     <div class="font-bold text-slate-600 flex items-center gap-2">
-                                        <span class="font-mono" x-text="'₹' + formatCurrency(form.total_amount * 0.4)"></span>
-                                        <span class="text-slate-400 font-normal">40%</span>
+                                        <span class="font-mono" x-text="'₹' + formatCurrency(form.total_amount * (projectMetrics.pending_pct / 100))"></span>
+                                        <span class="text-slate-400 font-normal" x-text="projectMetrics.pending_pct + '%'"></span>
                                     </div>
                                 </div>
                             </div>
@@ -455,26 +444,34 @@
                 step: 1,
                 suppliers: @json($suppliers),
                 systemRef: '{{ $systemBillRef }}',
+                projectMetrics: {
+                    total_receipts: 0.0,
+                    total_outstanding: 0.0,
+                    total_value: 0.0,
+                    realized_pct: 0,
+                    pending_pct: 100,
+                    customers: []
+                },
                 form: {
-                    payee_id: '{{ $suppliers->first()?->id ?? "" }}',
-                    supplier_name: '{{ $suppliers->first()?->name ?? "BuildRight Constructions Pvt. Ltd." }}',
-                    bill_number: 'BR/25-26/0987',
-                    gstin: '{{ $suppliers->first()?->gstin ?? "33AABCB1234C1Z5" }}',
+                    payee_id: '',
+                    supplier_name: '',
+                    bill_number: '',
+                    gstin: '',
                     bill_date: '{{ date('Y-m-d') }}',
-                    pan: '{{ $suppliers->first()?->pan ?? "AABCB1234C" }}',
+                    pan: '',
                     bill_type: 'Material Supply',
                     payment_terms: '30 Days',
                     place_of_supply: 'Tamil Nadu (33)',
                     invoice_date: '{{ date('Y-m-d') }}',
                     expense_head: 'Cement',
-                    amount: 1000000.00,
-                    tax: 180000.00,
-                    total_amount: 1180000.00,
+                    amount: 0.00,
+                    tax: 0.00,
+                    total_amount: 0.00,
                     project_id: '{{ $projects->first()?->id ?? "" }}',
                     project_name: '{{ $projects->first()?->name ?? "" }}',
                     allocation_pct: 100,
-                    uploaded_file_name: 'BR_25-26_0987.pdf',
-                    uploaded_file_size: '1.2 MB'
+                    uploaded_file_name: '',
+                    uploaded_file_size: ''
                 },
                 onSupplierChange() {
                     const supplier = this.suppliers.find(s => s.id == this.form.payee_id);
@@ -491,10 +488,36 @@
                 updateProjectName(el) {
                     this.form.project_name = el.options[el.selectedIndex]?.text || '';
                 },
+                fetchProjectMetrics() {
+                    if (!this.form.project_id) {
+                        this.projectMetrics = {
+                            total_receipts: 0.0,
+                            total_outstanding: 0.0,
+                            total_value: 0.0,
+                            realized_pct: 0,
+                            pending_pct: 100,
+                            customers: []
+                        };
+                        return;
+                    }
+                    fetch(`/expenses/project/${this.form.project_id}/metrics`)
+                        .then(res => res.json())
+                        .then(data => {
+                            this.projectMetrics = data;
+                        })
+                        .catch(err => {
+                            console.error('Error fetching project metrics:', err);
+                        });
+                },
                 calcTotal() {
                     const amt = parseFloat(this.form.amount) || 0;
                     const tx = parseFloat(this.form.tax) || 0;
                     this.form.total_amount = parseFloat((amt + tx).toFixed(2));
+                },
+                calcBase() {
+                    const total = parseFloat(this.form.total_amount) || 0;
+                    const tx = parseFloat(this.form.tax) || 0;
+                    this.form.amount = parseFloat((total - tx).toFixed(2));
                 },
                 formatCurrency(val) {
                     return Number(val.toFixed(2)).toLocaleString('en-IN', {

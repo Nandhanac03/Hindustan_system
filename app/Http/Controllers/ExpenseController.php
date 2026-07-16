@@ -97,4 +97,86 @@ class ExpenseController extends Controller
 
         return view('expenses.bills.ledger', compact('payments'));
     }
+
+    public function projectMetrics(Request $request, $projectId)
+    {
+        $projectId = (int)$projectId;
+
+        // Fetch customer receipts for this project (excluding partner shares receipts where partner_id is not null)
+        $receiptsGrouped = DB::table('receipts')
+            ->join('customers', 'receipts.customer_id', '=', 'customers.id')
+            ->leftJoin('sales', 'receipts.sale_id', '=', 'sales.id')
+            ->leftJoin('units', 'sales.unit_id', '=', 'units.id')
+            ->where('receipts.project_id', $projectId)
+            ->whereNull('receipts.partner_id')
+            ->select(
+                'receipts.customer_id',
+                'customers.name as customer_name',
+                'units.door_no',
+                DB::raw('SUM(receipts.amount) as total_amount')
+            )
+            ->groupBy('receipts.customer_id', 'customers.name', 'units.door_no')
+            ->get();
+
+        // Group by customer to consolidate unit names if a customer has multiple units
+        $customersData = [];
+        $totalReceipts = 0.0;
+
+        foreach ($receiptsGrouped as $row) {
+            $totalReceipts += (float)$row->total_amount;
+            $customerId = $row->customer_id;
+
+            if (!isset($customersData[$customerId])) {
+                $customersData[$customerId] = [
+                    'name' => $row->customer_name,
+                    'units' => [],
+                    'amount' => 0.0,
+                ];
+            }
+
+            $customersData[$customerId]['amount'] += (float)$row->total_amount;
+            if ($row->door_no) {
+                $customersData[$customerId]['units'][] = $row->door_no;
+            }
+        }
+
+        // Fetch outstanding balance from active sales
+        $totalOutstanding = (float)DB::table('sales')
+            ->where('project_id', $projectId)
+            ->where('status', 'active')
+            ->sum('remaining_balance');
+
+        $totalValue = $totalReceipts + $totalOutstanding;
+
+        $realizedPct = 0.0;
+        $pendingPct = 0.0;
+        $customersList = [];
+
+        if ($totalValue > 0) {
+            $realizedPct = round(($totalReceipts / $totalValue) * 100, 2);
+            $pendingPct = round(($totalOutstanding / $totalValue) * 100, 2);
+
+            foreach ($customersData as $cId => $data) {
+                $pct = round(($data['amount'] / $totalValue) * 100, 2);
+                $unitsStr = count($data['units']) > 0 ? implode(', ', array_unique($data['units'])) : 'N/A';
+                $customersList[] = [
+                    'name' => $data['name'],
+                    'units' => $unitsStr,
+                    'amount' => $data['amount'],
+                    'percentage' => $pct,
+                ];
+            }
+        } else {
+            $pendingPct = 100.0;
+        }
+
+        return response()->json([
+            'total_receipts' => $totalReceipts,
+            'total_outstanding' => $totalOutstanding,
+            'total_value' => $totalValue,
+            'realized_pct' => $realizedPct,
+            'pending_pct' => $pendingPct,
+            'customers' => $customersList,
+        ]);
+    }
 }

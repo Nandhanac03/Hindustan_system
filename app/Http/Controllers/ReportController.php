@@ -437,12 +437,14 @@ class ReportController extends Controller
             $revenue = (float)Sale::where('status', 'active')->sum('total_amount');
             $brokeragePaid = (float)Brokerage::sum('paid_amount');
             $financingCosts = (float)EmiSchedule::where('status', 'Paid')->sum('interest_component');
+            $siteExpenses = (float)DB::table('bills')->sum('final_amount');
 
             $profitLossEntries = [
                 'revenue' => $revenue,
                 'brokerage' => $brokeragePaid,
                 'financing' => $financingCosts,
-                'net_profit' => max(0, $revenue - ($brokeragePaid + $financingCosts)),
+                'site_expenses' => $siteExpenses,
+                'net_profit' => max(0, $revenue - ($brokeragePaid + $financingCosts + $siteExpenses)),
             ];
         }
 
@@ -482,7 +484,8 @@ class ReportController extends Controller
             $revenue = (float)Sale::where('status', 'active')->sum('total_amount');
             $brokeragePaid = (float)Brokerage::sum('paid_amount');
             $financingCosts = (float)EmiSchedule::where('status', 'Paid')->sum('interest_component');
-            $profit = max(0, $revenue - ($brokeragePaid + $financingCosts));
+            $totalBills = (float)DB::table('bills')->sum('final_amount');
+            $profit = max(0, $revenue - ($brokeragePaid + $financingCosts + $totalBills));
 
             // Bank Loan EMI alerts (upcoming due EMIs next 30 days)
             $loanEmiAlerts = EmiSchedule::with(['loan.project'])
@@ -500,11 +503,28 @@ class ReportController extends Controller
                 $partnerPayouts = (float)PartnerAllocation::where('project_id', $proj->id)->sum('allocated_amount');
                 $brokerageCosts = (float)Brokerage::whereHas('sale', fn($q) => $q->where('project_id', $proj->id))->sum('paid_amount');
                 
-                // Other material/site/contractor costs (simulated/ratio-based since no dedicated costs table exists)
-                $materialCosts = $actualRev * 0.25;
-                $contractorPayments = $actualRev * 0.15;
-                $siteExpenses = $actualRev * 0.05;
-                $otherExpenses = $actualRev * 0.03;
+                // Fetch actual material costs (payee type 'Supplier')
+                $materialCosts = (float)DB::table('bills')
+                    ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                    ->where('bills.project_id', $proj->id)
+                    ->where('payees.type', 'Supplier')
+                    ->sum('bills.final_amount');
+
+                // Fetch actual contractor payments (payee type 'Contractor')
+                $contractorPayments = (float)DB::table('bills')
+                    ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                    ->where('bills.project_id', $proj->id)
+                    ->where('payees.type', 'Contractor')
+                    ->sum('bills.final_amount');
+
+                // Fetch other project expenses
+                $siteExpenses = (float)DB::table('bills')
+                    ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                    ->where('bills.project_id', $proj->id)
+                    ->whereNotIn('payees.type', ['Supplier', 'Contractor', 'Partner'])
+                    ->sum('bills.final_amount');
+
+                $otherExpenses = 0.0;
                 
                 $totalCost = $partnerPayouts + $brokerageCosts + $materialCosts + $contractorPayments + $siteExpenses + $otherExpenses;
                 $profit = max(0, $actualRev - $totalCost);

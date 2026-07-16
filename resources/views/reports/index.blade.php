@@ -1252,6 +1252,10 @@
                             <span>Less: Bank Financing Interest Paid</span>
                             <span class="text-rose-600 font-bold">-₹{{ number_format($profitLossEntries['financing'], 2) }}</span>
                         </div>
+                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
+                            <span>Less: Site Expenses / Supplier Bills</span>
+                            <span class="text-rose-600 font-bold">-₹{{ number_format($profitLossEntries['site_expenses'] ?? 0, 2) }}</span>
+                        </div>
                         <div class="flex justify-between items-center py-3 bg-white rounded-xl border border-slate-150 px-4 mt-6 font-sans">
                             <strong class="text-slate-900 font-black text-sm uppercase">Net Project Profit Margin</strong>
                             <strong class="text-primary font-mono font-black text-lg">₹{{ number_format($profitLossEntries['net_profit'], 2) }}</strong>
@@ -1853,7 +1857,7 @@ function reportsApp() {
             @if($activeTab === 'profit_loss')
             if (this.activeTab === 'profit_loss') {
                 const revenue = {{ $profitLossEntries['revenue'] ?? 0 }};
-                const cost = {{ ($profitLossEntries['brokerage'] ?? 0) + ($profitLossEntries['financing'] ?? 0) }};
+                const cost = {{ ($profitLossEntries['brokerage'] ?? 0) + ($profitLossEntries['financing'] ?? 0) + ($profitLossEntries['site_expenses'] ?? 0) }};
                 new ApexCharts(document.querySelector("#profitLossMixChart"), {
                     series: [revenue, cost],
                     labels: ['Revenue', 'Expenses'],
