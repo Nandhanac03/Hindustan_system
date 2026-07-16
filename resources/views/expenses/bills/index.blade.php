@@ -9,7 +9,7 @@
                 <h1 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Registered Supplier Bills Directory</h1>
                 <p class="text-xs text-slate-450 mt-1">Manage and track your supplier liabilities and progressive allocations.</p>
             </div>
-            <a href="{{ route('expenses.bills.create') }}" class="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-blue-600 text-white rounded-xl shadow-sm hover:bg-blue-700 transition">
+            <a href="{{ route('expenses.bills.create') }}" class="flex items-center gap-2 px-4 py-2 text-xs font-bold uppercase tracking-wider bg-primary text-white rounded-xl shadow-sm hover:bg-primary-700 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span>Add New Bill</span>
             </a>

@@ -14,30 +14,30 @@
                 <!-- Step 1 Circle -->
                 <div class="relative z-10 flex flex-col items-center">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition duration-300"
-                         :class="step >= 1 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'">
+                         :class="step >= 1 ? 'bg-primary text-white' : 'bg-slate-200 text-slate-600'">
                         1
                     </div>
-                    <span class="text-[10px] font-bold mt-2 uppercase tracking-wider" :class="step >= 1 ? 'text-blue-600' : 'text-slate-500'">Supplier & Bill Details</span>
+                    <span class="text-[10px] font-bold mt-2 uppercase tracking-wider" :class="step >= 1 ? 'text-primary' : 'text-slate-500'">Supplier & Bill Details</span>
                     <span class="text-[8px] text-slate-400">Who is owed & legal details</span>
                 </div>
 
                 <!-- Step 2 Circle -->
                 <div class="relative z-10 flex flex-col items-center">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition duration-300"
-                         :class="step >= 2 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'">
+                         :class="step >= 2 ? 'bg-primary text-white' : 'bg-slate-200 text-slate-600'">
                         2
                     </div>
-                    <span class="text-[10px] font-bold mt-2 uppercase tracking-wider" :class="step >= 2 ? 'text-blue-600' : 'text-slate-500'">Bill Amount & Allocation</span>
+                    <span class="text-[10px] font-bold mt-2 uppercase tracking-wider" :class="step >= 2 ? 'text-primary' : 'text-slate-500'">Bill Amount & Allocation</span>
                     <span class="text-[8px] text-slate-400">How much, when & where</span>
                 </div>
 
                 <!-- Step 3 Circle -->
                 <div class="relative z-10 flex flex-col items-center">
                     <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs transition duration-300"
-                         :class="step >= 3 ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'">
+                         :class="step >= 3 ? 'bg-primary text-white' : 'bg-slate-200 text-slate-600'">
                         3
                     </div>
-                    <span class="text-[10px] font-bold mt-2 uppercase tracking-wider" :class="step >= 3 ? 'text-blue-600' : 'text-slate-500'">Upload Bill Document</span>
+                    <span class="text-[10px] font-bold mt-2 uppercase tracking-wider" :class="step >= 3 ? 'text-primary' : 'text-slate-500'">Upload Bill Document</span>
                     <span class="text-[8px] text-slate-400">Attach bill copy (Mandatory)</span>
                 </div>
             </div>
@@ -135,7 +135,7 @@
                             <!-- Form Action Next Button -->
                             <div class="md:col-span-2 pt-4 flex justify-end">
                                 <button type="button" @click="step = 2"
-                                        class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
+                                        class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                     <span>Next</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
@@ -218,7 +218,7 @@
                                 </div>
 
                                 <div class="pt-3">
-                                    <button type="button" class="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1.5 focus:outline-none">
+                                    <button type="button" class="text-xs font-bold text-primary hover:text-primary-700 flex items-center gap-1.5 focus:outline-none">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0"/></svg>
                                         <span>Add Another Allocation</span>
                                     </button>
@@ -232,7 +232,7 @@
                                     Back
                                 </button>
                                 <button type="button" @click="step = 3"
-                                        class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
+                                        class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                     <span>Next</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
@@ -288,7 +288,7 @@
                                     Back
                                 </button>
                                 <button type="submit"
-                                        class="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
+                                        class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
                                     <span>Save & Create Liability</span>
                                 </button>
@@ -385,14 +385,13 @@
                                 <div class="flex items-center justify-between text-[9px] font-bold text-slate-500">
                                     <span>Liability Bucket (Progressive Realization)</span>
                                     <span>60%</span>
-                                </div>
-                                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                                    <div class="bg-blue-600 h-1.5" style="width: 60%"></div>
+                                                         <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-primary h-1.5" style="width: 60%"></div>
                                 </div>
                             </div>
                             <div class="text-[9px] font-bold text-slate-500 flex items-center justify-between">
-                                <span class="text-blue-600" x-text="'₹' + formatCurrency(form.total_amount * 0.6) + ' Paid'"></span>
-                                <span class="text-slate-450" x-text="'₹' + formatCurrency(form.total_amount * 0.4) + ' Pending'"></span>
+                                <span class="text-primary font-extrabold" x-text="'₹' + formatCurrency(form.total_amount * 0.6) + ' Paid'"></span>
+                                <span class="text-slate-455" x-text="'₹' + formatCurrency(form.total_amount * 0.4) + ' Pending'"></span>
                             </div>
 
                             <!-- Customer Paid List -->
@@ -412,7 +411,7 @@
 
                                 <div class="flex items-center justify-between text-slate-700">
                                     <div class="flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                        <span class="w-1.5 h-1.5 bg-primary rounded-full"></span>
                                         <span>Mr. Suresh (G-302)</span>
                                     </div>
                                     <div class="font-bold text-slate-900 flex items-center gap-2">
@@ -435,15 +434,15 @@
                         </div>
 
                         <!-- Routing Banner Info -->
-                        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-2.5 text-xs text-blue-800">
-                            <span class="text-blue-500 mt-0.5">
+                        <div class="p-3 bg-primary/5 border border-primary/20 rounded-xl flex items-start gap-2.5 text-xs text-primary-800">
+                            <span class="text-primary mt-0.5">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
                             </span>
                             <div class="space-y-0.5">
                                 <p class="font-bold">Ready for Cash Routing</p>
-                                <p class="text-[10px] text-blue-700">This bill is now available in Receipt & Split to be targeted for cash routing.</p>
+                                <p class="text-[10px] text-primary-700">This bill is now available in Receipt & Split to be targeted for cash routing.</p>
                             </div>
-                        </div>
+                        </div>                  </div>
                     </div>
                 </div>
             </div>

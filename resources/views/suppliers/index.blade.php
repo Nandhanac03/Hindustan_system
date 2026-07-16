@@ -84,7 +84,7 @@
 
                     <!-- Submit -->
                     <div class="pt-2">
-                        <button type="submit" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
+                        <button type="submit" class="w-full py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                             Save Supplier
                         </button>
                     </div>
@@ -226,7 +226,7 @@
                                     class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                 Cancel
                             </button>
-                            <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
+                            <button type="submit" class="px-5 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                 Save Changes
                             </button>
                         </div>
