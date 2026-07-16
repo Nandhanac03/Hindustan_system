@@ -63,8 +63,27 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // ── Inventory Activity (replaces ActivityLog) ─────────────────────────
-        $inventoryActivity = $unitQuery()->with('floor')->latest('updated_at')->take(6)->get();
+        // ── Pending EMI Alerts (replaces Inventory Activity) ──────────────────
+        $pendingEmiAlerts = \App\Models\EmiSchedule::with(['loan'])
+            ->where('status', 'Due')
+            ->orderBy('due_date')
+            ->take(5)
+            ->get()
+            ->map(function ($emi) {
+                $daysDiff = (int)ceil(Carbon::parse($emi->due_date)->diffInDays(Carbon::now(), false));
+                if ($daysDiff > 0) {
+                    $emi->due_text = 'Overdue ' . $daysDiff . ' days';
+                    $emi->is_overdue = true;
+                } elseif ($daysDiff === 0) {
+                    $emi->due_text = 'Due Today';
+                    $emi->is_overdue = false;
+                } else {
+                    $emi->due_text = 'Due ' . abs($daysDiff) . ' days';
+                    $emi->is_overdue = false;
+                }
+                $emi->provider = $emi->loan->lender_name ?? 'Bank';
+                return $emi;
+            });
 
         // ── Revenue Chart (monthly bookings + payments for current year) ──────
         $currentYear = Carbon::now()->year;
@@ -132,13 +151,13 @@ class DashboardController extends Controller
             'recentUnits',
             'topCustomers',
             'recentBookings',
-            'inventoryActivity',
+            'pendingEmiAlerts',
             'revenueData',
             'collectionsData',
             'donutAvailable',
             'donutSold',
             'donutReserved',
-            'cashFlowSeries',
+            'cashFlowSeries'
         ));
     }
 }
