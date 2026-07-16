@@ -157,7 +157,7 @@ class VoucherController extends Controller
                 ];
             });
 
-        // Filter supplier bills by the selected project
+        $prefix = DB::getTablePrefix();
         $pendingBills = DB::table('bills')
             ->join('payees', 'bills.payee_id', '=', 'payees.id')
             ->where('bills.system_id', $systemId)
@@ -168,7 +168,7 @@ class VoucherController extends Controller
                 'bills.bill_number',
                 'bills.final_amount',
                 'payees.name as supplier_name',
-                DB::raw('bills.final_amount - COALESCE((SELECT SUM(bp.amount) FROM bill_payments bp WHERE bp.bill_id = bills.id), 0) as balance')
+                DB::raw("{$prefix}bills.final_amount - COALESCE((SELECT SUM(bp.amount) FROM {$prefix}bill_payments bp WHERE bp.bill_id = {$prefix}bills.id), 0) as balance")
             )
             ->orderBy('bills.bill_number')
             ->get();

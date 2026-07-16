@@ -136,24 +136,14 @@ class PartnerController extends Controller
             ->with(['linkedAccount', 'partnerShares.project'])
             ->get()
             ->map(function (Payee $partner) {
-                if (strtolower($partner->name) === 'basheer') {
-                    $partner->total_collected = 2875000.00;
-                    $partner->total_allocated = 75000.00;
-                    $partner->balance = 2800000.00;
-                } elseif (strtolower($partner->name) === 'pavoor') {
-                    $partner->total_collected = 2125000.00;
-                    $partner->total_allocated = 25000.00;
-                    $partner->balance = 2100000.00;
-                } else {
-                    // Total collections received (from receipts linked to this partner)
-                    $partner->total_collected = (float) Receipt::where('partner_id', $partner->id)->sum('amount');
+                // Total collections received (from receipts linked to this partner)
+                $partner->total_collected = (float) Receipt::where('partner_id', $partner->id)->sum('amount');
 
-                    // Total allocations paid out
-                    $partner->total_allocated = (float) PartnerAllocation::where('partner_id', $partner->id)->sum('allocated_amount');
+                // Total allocations paid out
+                $partner->total_allocated = (float) PartnerAllocation::where('partner_id', $partner->id)->sum('allocated_amount');
 
-                    // Balance = collections − allocations
-                    $partner->balance = $partner->total_collected - $partner->total_allocated;
-                }
+                // Balance = collections − allocations
+                $partner->balance = $partner->total_collected - $partner->total_allocated;
 
                 return $partner;
             });
@@ -560,40 +550,6 @@ class PartnerController extends Controller
         // ── Build ledger from real data ──────────────────────────────
 
         $ledger = collect();
-
-        if ($projectId === '' || $projectId == 1) {
-            if (strtolower($partner->name) === 'basheer') {
-                $ledger->push([
-                    'date'        => Carbon::parse('2026-07-09'),
-                    'type'        => 'Collection',
-                    'description' => 'Accumulated Project Share Collections (Opening Balance)',
-                    'credit'      => 2875000.00,
-                    'debit'       => 0.00,
-                ]);
-                $ledger->push([
-                    'date'        => Carbon::parse('2026-07-09'),
-                    'type'        => 'Payout',
-                    'description' => 'Accumulated Payouts (Opening Balance)',
-                    'credit'      => 0.00,
-                    'debit'       => 75000.00,
-                ]);
-            } elseif (strtolower($partner->name) === 'pavoor') {
-                $ledger->push([
-                    'date'        => Carbon::parse('2026-07-09'),
-                    'type'        => 'Collection',
-                    'description' => 'Accumulated Project Share Collections (Opening Balance)',
-                    'credit'      => 2125000.00,
-                    'debit'       => 0.00,
-                ]);
-                $ledger->push([
-                    'date'        => Carbon::parse('2026-07-09'),
-                    'type'        => 'Payout',
-                    'description' => 'Accumulated Payouts (Opening Balance)',
-                    'credit'      => 0.00,
-                    'debit'       => 25000.00,
-                ]);
-            }
-        }
 
         // Collections (receipts tagged with this partner)
         $receiptsQ = Receipt::with(['sale.project', 'sale.unit', 'customer'])
