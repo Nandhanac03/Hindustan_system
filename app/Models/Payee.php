@@ -17,6 +17,11 @@ class Payee extends Model
         'system_id',
         'type',
         'name',
+        'phone',
+        'email',
+        'gstin',
+        'pan',
+        'address',
         'linked_account_id',
     ];
 

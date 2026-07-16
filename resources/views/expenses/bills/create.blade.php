@@ -60,8 +60,8 @@
                         <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Supplier Selection -->
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Supplier / Contractor <span class="text-rose-500">*</span></label>
-                                <select name="payee_id" required x-model="form.payee_id" @change="updateSupplierName($el)"
+                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier / Contractor <span class="text-rose-500">*</span></label>
+                                <select name="payee_id" required x-model="form.payee_id" @change="onSupplierChange()"
                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
                                     <option value="">Select Supplier</option>
                                     @foreach($suppliers as $supplier)
@@ -454,14 +454,15 @@
         function addBillForm() {
             return {
                 step: 1,
+                suppliers: @json($suppliers),
                 systemRef: '{{ $systemBillRef }}',
                 form: {
                     payee_id: '{{ $suppliers->first()?->id ?? "" }}',
                     supplier_name: '{{ $suppliers->first()?->name ?? "BuildRight Constructions Pvt. Ltd." }}',
                     bill_number: 'BR/25-26/0987',
-                    gstin: '33AABCB1234C1Z5',
+                    gstin: '{{ $suppliers->first()?->gstin ?? "33AABCB1234C1Z5" }}',
                     bill_date: '{{ date('Y-m-d') }}',
-                    pan: 'AABCB1234C',
+                    pan: '{{ $suppliers->first()?->pan ?? "AABCB1234C" }}',
                     bill_type: 'Material Supply',
                     payment_terms: '30 Days',
                     place_of_supply: 'Tamil Nadu (33)',
@@ -476,8 +477,17 @@
                     uploaded_file_name: 'BR_25-26_0987.pdf',
                     uploaded_file_size: '1.2 MB'
                 },
-                updateSupplierName(el) {
-                    this.form.supplier_name = el.options[el.selectedIndex]?.text || '';
+                onSupplierChange() {
+                    const supplier = this.suppliers.find(s => s.id == this.form.payee_id);
+                    if (supplier) {
+                        this.form.supplier_name = supplier.name;
+                        this.form.gstin = supplier.gstin || '';
+                        this.form.pan = supplier.pan || '';
+                    } else {
+                        this.form.supplier_name = '';
+                        this.form.gstin = '';
+                        this.form.pan = '';
+                    }
                 },
                 updateProjectName(el) {
                     this.form.project_name = el.options[el.selectedIndex]?.text || '';
