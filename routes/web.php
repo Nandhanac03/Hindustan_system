@@ -156,6 +156,12 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/loans/{loan}/prepay', [\App\Http\Controllers\LoanController::class, 'prepay'])->name('loans.prepay');
     Route::post('/loans/{loan}/update-interest', [\App\Http\Controllers\LoanController::class, 'updateInterest'])->name('loans.update-interest');
 
+    // Site Expenses Module
+    Route::get('/expenses/bills/create', [\App\Http\Controllers\ExpenseController::class, 'createBill'])->name('expenses.bills.create');
+    Route::post('/expenses/bills', [\App\Http\Controllers\ExpenseController::class, 'storeBill'])->name('expenses.bills.store');
+    Route::get('/expenses/bills', [\App\Http\Controllers\ExpenseController::class, 'listBills'])->name('expenses.bills.index');
+    Route::get('/expenses/ledger', [\App\Http\Controllers\ExpenseController::class, 'expenseLedger'])->name('expenses.ledger');
+
     // Vouchers & Core Accounting Engine
     Route::get('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'createReceipt'])->name('vouchers.receipt.create');
     Route::post('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'storeReceipt'])->name('vouchers.receipt.store');
