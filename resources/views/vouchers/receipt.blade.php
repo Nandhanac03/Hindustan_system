@@ -3,7 +3,7 @@
     <x-slot:headerTitle>Receipt Management</x-slot:headerTitle>
 
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="receiptAllocationWorkspace()" x-init="init()">
-        <!-- Breadcrumb Navigation path same as in design: Home > Vouchers > Receipt -->
+        <!-- Breadcrumb Navigation -->
         <div class="text-[11px] font-semibold text-slate-400 tracking-wide uppercase flex items-center gap-1.5 -mt-2">
             <span>Home</span>
             <span class="text-slate-300">›</span>
@@ -31,12 +31,12 @@
             <input type="hidden" name="allocations" :value="JSON.stringify(allocations)">
 
             <!-- ── STEP PROGRESS INDICATOR ── -->
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mb-6 relative">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-md shadow-slate-100/50 p-6 mb-6 relative">
                 <div class="max-w-4xl mx-auto flex items-center justify-between relative">
                     <!-- Step 1 Dot -->
                     <div class="flex items-center gap-4 transition cursor-pointer relative py-2" @click="step = 1">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
-                             :class="step >= 1 ? 'bg-[#a38c29] text-white shadow-glow' : 'bg-slate-100 text-slate-400 border border-slate-200'">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition duration-300"
+                             :class="step >= 1 ? 'bg-[#a38c29] text-white shadow-md shadow-[#a38c29]/20' : 'bg-slate-100 text-slate-400 border border-slate-200'">
                             1
                         </div>
                         <div>
@@ -47,8 +47,8 @@
 
                     <!-- Step 2 Dot -->
                     <div class="flex items-center gap-4 transition relative py-2" :class="selectedReceiptId ? 'cursor-pointer' : 'opacity-60'" @click="selectedReceiptId ? step = 2 : null">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border-2"
-                             :class="step >= 2 ? 'bg-[#a38c29] text-white border-transparent shadow-glow' : 'bg-white text-slate-400 border-blue-50'">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border-2 transition duration-300"
+                             :class="step >= 2 ? 'bg-[#a38c29] text-white border-transparent shadow-md shadow-[#a38c29]/20' : 'bg-white text-slate-400 border-slate-200'">
                             2
                         </div>
                         <div>
@@ -59,8 +59,8 @@
 
                     <!-- Step 3 Dot -->
                     <div class="flex items-center gap-4 transition relative py-2" :class="isBalanced() ? 'cursor-pointer' : 'opacity-60'" @click="isBalanced() ? step = 3 : null">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border-2"
-                             :class="step >= 3 ? 'bg-[#a38c29] text-white border-transparent' : 'bg-white text-slate-400 border-blue-50'">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border-2 transition duration-300"
+                             :class="step >= 3 ? 'bg-[#a38c29] text-white border-transparent shadow-md shadow-[#a38c29]/20' : 'bg-white text-slate-400 border-slate-250'">
                             3
                         </div>
                         <div>
@@ -89,34 +89,35 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch" x-show="step === 1" x-transition>
                 
                 <!-- Left Panel: Unallocated Receipt List (2/3 width) -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden lg:col-span-2 flex flex-col justify-between">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-md shadow-slate-100/40 overflow-hidden lg:col-span-2 flex flex-col justify-between">
                     <div>
-                        <div class="px-6 py-5 bg-white border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <!-- Sleek Dark Navy Header -->
+                        <div class="px-6 py-5 bg-gradient-to-r from-[#2D2B24] to-[#1F1D1A] text-white border-b border-[#a38c29]/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
+                                <div class="w-8 h-8 rounded-xl bg-white/10 text-primary flex items-center justify-center shrink-0 border border-white/10">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/></svg>
                                 </div>
-                                <h3 class="text-xs font-extrabold text-[#0B1E36] uppercase tracking-wider">Unallocated Receipt List</h3>
+                                <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-100">Unallocated Receipt List</h3>
                             </div>
                             
-                            <!-- Search & Filter Controls -->
-                            <div class="flex items-center gap-2">
+                            <!-- Search & Filter Controls inside header -->
+                            <div class="flex flex-wrap items-center gap-2">
                                 <div class="relative flex items-center">
                                     <span class="absolute left-3 text-slate-400">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                     </span>
                                     <input type="text" x-model="searchQuery" placeholder="Search customer/receipt..."
-                                           class="pl-9 pr-3 py-2 bg-slate-50 border border-slate-250/75 rounded-lg text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition-all w-52">
+                                           class="pl-9 pr-3 py-1.5 bg-white/10 border border-slate-700 hover:border-slate-500 rounded-lg text-xs font-semibold text-white placeholder-slate-400 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-white transition-all w-52">
                                 </div>
                                 
                                 <div class="relative flex items-center">
                                     <span class="absolute left-3 text-slate-400">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                     </span>
-                                    <select x-model="filterProject" class="pl-9 pr-8 py-2 bg-slate-50 border border-slate-255/75 rounded-lg text-xs font-semibold focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition-all appearance-none cursor-pointer">
-                                        <option value="">Filter Project</option>
+                                    <select x-model="filterProject" class="pl-9 pr-8 py-1.5 bg-white/10 border border-slate-700 hover:border-slate-500 rounded-lg text-xs font-semibold text-slate-350 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-white transition-all appearance-none cursor-pointer">
+                                        <option value="" class="text-slate-800">Filter Project</option>
                                         @foreach($projects as $p)
-                                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                            <option value="{{ $p->id }}" class="text-slate-800">{{ $p->name }}</option>
                                         @endforeach
                                     </select>
                                     <span class="absolute right-3 pointer-events-none text-slate-400">
@@ -131,16 +132,11 @@
                                 <thead>
                                     <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                                         <th class="px-6 py-4">Receipt No</th>
-                                        <th class="px-6 py-4">
-                                            <span class="flex items-center gap-1 cursor-pointer">
-                                                Date
-                                                <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4"/></svg>
-                                            </span>
-                                        </th>
+                                        <th class="px-6 py-4">Date</th>
                                         <th class="px-6 py-4">Customer</th>
                                         <th class="px-6 py-4">Project</th>
                                         <th class="px-6 py-4">Unit</th>
-                                        <th class="px-6 py-4">Amount Received</th>
+                                        <th class="px-6 py-4 text-right">Amount Received</th>
                                         <th class="px-6 py-4">Mode</th>
                                         <th class="px-6 py-4 text-center">Status</th>
                                     </tr>
@@ -148,7 +144,7 @@
                                 <tbody class="divide-y divide-slate-100 text-xs text-slate-800">
                                     <template x-for="r in filteredReceipts()" :key="r.id">
                                         <tr @click="selectReceipt(r)"
-                                            :class="selectedReceiptId == r.id ? 'bg-primary/5 border-l-4 border-[#a38c29] font-bold' : 'hover:bg-slate-50/50 cursor-pointer'"
+                                            :class="selectedReceiptId == r.id ? 'bg-[#a38c29]/10 border-l-4 border-[#a38c29] font-bold' : 'hover:bg-slate-50/50 cursor-pointer'"
                                             class="transition duration-150">
                                             <td class="px-6 py-5 font-mono text-slate-900 flex items-center gap-2">
                                                 <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
@@ -160,7 +156,7 @@
                                             <td class="px-6 py-5 font-bold text-slate-955" x-text="r.customer_name"></td>
                                             <td class="px-6 py-5 text-slate-500 font-semibold" x-text="r.project_name"></td>
                                             <td class="px-6 py-5 font-extrabold text-slate-800" x-text="r.unit_name"></td>
-                                            <td class="px-6 py-5 font-mono font-extrabold text-slate-950" x-text="'₹' + formatCurrency(r.amount)"></td>
+                                            <td class="px-6 py-5 font-mono font-extrabold text-slate-950 text-right" x-text="'₹' + formatCurrency(r.amount)"></td>
                                             <td class="px-6 py-5">
                                                 <span :class="
                                                     r.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
@@ -188,7 +184,7 @@
                         </div>
                     </div>
 
-                    <!-- Table Footer Pagination bar matching the screenshot layout -->
+                    <!-- Table Footer Pagination -->
                     <div class="px-6 py-5 bg-white border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-450 uppercase tracking-wide">
                         <span x-text="'Showing 1 to ' + filteredReceipts().length + ' of ' + filteredReceipts().length + ' entries'"></span>
                         
@@ -201,9 +197,9 @@
                 </div>
 
                 <!-- Right Panel: Receipt Details (1/3 width) -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between h-full min-h-[580px]">
-                    <!-- Dark Blue Header -->
-                    <div class="px-6 py-5 bg-[#0B1E36] flex items-center gap-3">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-md shadow-slate-100/40 overflow-hidden flex flex-col justify-between h-full min-h-[580px]">
+                    <!-- Dark Blue Header with Gold accents -->
+                    <div class="px-6 py-5 bg-gradient-to-r from-[#2D2B24] to-[#1F1D1A] border-b border-[#a38c29]/20 flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-[#FAF0D7] flex items-center justify-center text-[#9C6D3B] shrink-0 border border-[#EFECE1]">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/>
@@ -225,9 +221,9 @@
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Project / Unit</div>
-                                    <div class="mt-0.5 font-bold text-slate-705" x-text="selectedReceipt.project_name + ' • ' + selectedReceipt.unit_name"></div>
+                                    <div class="mt-0.5 font-bold text-slate-700" x-text="selectedReceipt.project_name + ' • ' + selectedReceipt.unit_name"></div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                                <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
                                     <div>
                                         <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Amount Received</div>
                                         <div class="mt-0.5 font-mono font-extrabold text-slate-900 text-sm" x-text="'₹' + formatCurrency(selectedReceipt.amount)"></div>
@@ -237,7 +233,7 @@
                                         <div class="mt-0.5 font-mono font-extrabold text-emerald-600 text-sm" x-text="'₹' + formatCurrency(selectedReceipt.amount)"></div>
                                     </div>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                                     <div>
                                         <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Already Allocated</div>
                                         <div class="mt-0.5 font-mono text-slate-450 font-bold">₹0.00</div>
@@ -255,16 +251,17 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="pt-2 border-t border-slate-100">
-                                    <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Receipt Narration</div>
-                                    <div class="mt-1 p-2.5 bg-slate-50/70 border border-slate-200/80 rounded-xl text-slate-650 font-semibold italic min-h-[36px]" x-text="selectedReceipt.remarks || '-'"></div>
+                                <div class="pt-3 border-t border-slate-100">
+                                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Receipt Narration</label>
+                                    <textarea x-model="form.narration" placeholder="Enter narration..." rows="2"
+                                              class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 font-semibold focus:outline-none transition resize-none"></textarea>
                                 </div>
 
                                 <!-- Select Destination Bank Account for split processing -->
-                                <div class="pt-2 border-t border-slate-100">
+                                <div class="pt-3 border-t border-slate-100">
                                     <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Process Into Bank / Cash Account</label>
                                     <select name="destination_account_id" x-model="form.destination_account_id" required
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
+                                            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
                                         <option value="">-- Select Destination Ledger --</option>
                                         @foreach($assetAccounts as $acc)
                                             <option value="{{ $acc->id }}">{{ $acc->name }}</option>
@@ -283,10 +280,10 @@
                             </div>
                         </template>
                         
-                        <div class="pt-4">
+                        <div class="pt-4 border-t border-slate-100/50">
                             <button type="button" @click="step = 2" :disabled="!selectedReceiptId || !form.destination_account_id"
-                                    :class="!selectedReceiptId || !form.destination_account_id ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-[#a38c29] hover:bg-[#8a7522] text-white shadow-md shadow-[#a38c29]/20'"
-                                    class="w-full py-3.5 text-center text-[10px] font-extrabold rounded-xl transition duration-300 uppercase tracking-wider flex items-center justify-center gap-2">
+                                    :class="!selectedReceiptId || !form.destination_account_id ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-gradient-to-r from-[#a38c29] to-[#806c1d] hover:brightness-110 text-white shadow-md shadow-[#a38c29]/20'"
+                                    class="w-full py-3.5 text-center text-[10px] font-extrabold rounded-xl transition duration-300 uppercase tracking-wider flex items-center justify-center gap-2 border border-[#a38c29]/10">
                                 <span>Use This Receipt for Allocation</span>
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </button>
@@ -297,34 +294,87 @@
 
             <!-- ── STEP 2: ALLOCATION BUILDER ── -->
             <div class="space-y-6" x-show="step === 2" x-transition>
-                <!-- Header Card displaying balance status -->
+                <!-- Header Cards displaying balance status -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between">
-                        <span class="text-[9px] font-bold text-slate-450 uppercase tracking-wider block">Receipt Amount</span>
-                        <span class="text-2xl font-mono font-extrabold text-slate-900 mt-2" x-text="'₹' + formatCurrency(form.amount)"></span>
+                    
+                    <!-- Card 1: Receipt Amount -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative overflow-hidden flex items-center justify-between group hover:shadow-md transition duration-300">
+                        <div class="space-y-2">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Receipt Amount</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-mono font-black text-slate-900" x-text="'₹' + formatCurrency(form.amount)"></span>
+                            </div>
+                            <span class="text-[8px] text-slate-400 font-medium block">Total intake amount collected</span>
+                        </div>
+                        <div class="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29] transition-all duration-300">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                        </div>
                     </div>
-                    <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between">
-                        <span class="text-[9px] font-bold text-slate-455 uppercase tracking-wider block">Total Allocated</span>
-                        <span class="text-2xl font-mono font-extrabold text-primary mt-2" x-text="'₹' + formatCurrency(totalAllocated())"></span>
+
+                    <!-- Card 2: Total Allocated -->
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 relative overflow-hidden flex flex-col justify-between group hover:shadow-md transition duration-300 min-h-[110px]">
+                        <div class="flex items-center justify-between">
+                            <div class="space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Allocated</span>
+                                <span class="text-2xl font-mono font-black text-primary" x-text="'₹' + formatCurrency(totalAllocated())"></span>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.003 9.003 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Allocation progress bar -->
+                        <div class="mt-4 space-y-1.5">
+                            <div class="flex justify-between items-center text-[9px] font-bold text-slate-400 uppercase tracking-wide">
+                                <span>Allocation Progress</span>
+                                <span x-text="form.amount > 0 ? Math.min(100, Math.round((totalAllocated() / form.amount) * 100)) + '%' : '0%'"></span>
+                            </div>
+                            <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden relative">
+                                <div class="h-full bg-gradient-to-r from-[#a38c29] to-[#c7b252] rounded-full transition-all duration-300"
+                                     :style="'width: ' + (form.amount > 0 ? Math.min(100, (totalAllocated() / form.amount) * 100)) + '%'"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="border rounded-2xl p-6 flex flex-col justify-between transition duration-300"
-                         :class="isBalanced() ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-white border-slate-200'">
-                        <span class="text-[9px] font-bold uppercase tracking-wider block" :class="isBalanced() ? 'text-emerald-600' : 'text-slate-400'">Remaining Balance</span>
-                        <div class="flex items-baseline justify-between mt-2">
-                            <span class="text-2xl font-mono font-extrabold" :class="isBalanced() ? 'text-emerald-700' : 'text-slate-900'" x-text="'₹' + formatCurrency(remainingBalance())"></span>
+
+                    <!-- Card 3: Remaining Balance -->
+                    <div class="rounded-2xl border transition-all duration-300 p-6 flex items-center justify-between group shadow-sm min-h-[110px]"
+                         :class="isBalanced() 
+                            ? 'bg-gradient-to-r from-emerald-500 to-teal-650 border-transparent text-white shadow-md shadow-emerald-500/20' 
+                            : 'bg-white border-slate-200 hover:shadow-md'">
+                        
+                        <div class="space-y-1.5">
+                            <span class="text-[9px] font-bold uppercase tracking-widest block"
+                                  :class="isBalanced() ? 'text-emerald-100' : 'text-rose-500'">Remaining Balance</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-2xl font-mono font-black"
+                                      :class="isBalanced() ? 'text-white' : 'text-slate-900'"
+                                      x-text="'₹' + formatCurrency(remainingBalance())"></span>
+                            </div>
+                            <span class="text-[8px] font-medium block"
+                                  :class="isBalanced() ? 'text-emerald-50' : 'text-slate-400'">
+                                <span x-text="isBalanced() ? 'Funds perfectly allocated' : 'Must be allocated to zero'"></span>
+                            </span>
+                        </div>
+                        
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300"
+                             :class="isBalanced() 
+                                ? 'bg-white/20 text-white' 
+                                : 'bg-rose-50 text-rose-500 border border-rose-100 animate-pulse'">
                             <template x-if="isBalanced()">
-                                <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500 text-white font-extrabold text-[9px] uppercase tracking-wider flex items-center gap-1">
-                                    Balanced ✓
-                                </span>
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                            <template x-if="!isBalanced()">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                             </template>
                         </div>
                     </div>
+
                 </div>
 
                 <!-- Allocation Table -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4.5 bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-150 flex items-center justify-between">
-                        <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Allocation Builder Table</h3>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-md shadow-slate-100/40 overflow-hidden">
+                    <div class="px-6 py-5 bg-gradient-to-r from-[#2D2B24] to-[#1F1D1A] text-white border-b border-[#a38c29]/20 flex items-center justify-between">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-100">Allocation Builder Table</h3>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -344,17 +394,17 @@
                                         <!-- Allocation Type Dropdown -->
                                         <td class="px-6 py-3">
                                             <select x-model="row.type" @change="row.target_id = ''"
-                                                    class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-primary">
+                                                    class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition cursor-pointer">
                                                 <option value="partner">Partner Payout</option>
                                                 <option value="supplier">Supplier Bill</option>
                                                 <option value="refund">Customer Refund</option>
                                                 <option value="general">General Fund</option>
                                             </select>
                                         </td>
-                                        <!-- Dynamic Target Dropdown using custom HTML generation -->
+                                        <!-- Dynamic Target Dropdown -->
                                         <td class="px-6 py-3">
                                             <select x-model="row.target_id" x-html="getTargetOptionsHtml(row.type, row.target_id)"
-                                                    class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-primary">
+                                                    class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-bold text-slate-850 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition cursor-pointer">
                                             </select>
                                         </td>
                                         <!-- Amount Field -->
@@ -362,13 +412,13 @@
                                             <div class="relative flex items-center justify-end">
                                                 <span class="absolute left-2 font-bold text-slate-400">₹</span>
                                                 <input type="number" x-model.number="row.amount" step="0.01" min="0" placeholder="0.00"
-                                                       class="w-full px-2.5 py-2 pl-6 text-right bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary">
+                                                       class="w-full px-2.5 py-2.5 pl-6 text-right bg-slate-50 border border-slate-200 rounded-lg font-mono font-bold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition">
                                             </div>
                                         </td>
                                         <!-- Remarks -->
                                         <td class="px-6 py-3">
                                             <input type="text" x-model="row.remarks" placeholder="Enter remarks..."
-                                                   class="w-full px-2.5 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-primary text-xs font-semibold text-slate-700">
+                                                   class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] text-xs font-semibold text-slate-700 transition">
                                         </td>
                                         <!-- Remove Row -->
                                         <td class="px-6 py-3 text-center">
@@ -386,19 +436,19 @@
                     <!-- Add Row Action Box -->
                     <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
                         <button type="button" @click="addAllocationRow()"
-                                class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:border-slate-300 transition text-xs font-extrabold uppercase tracking-wider rounded-xl">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                class="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-100 hover:border-slate-350 text-slate-700 transition text-xs font-extrabold uppercase tracking-wider rounded-xl shadow-sm">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                             <span>+ Add Allocation Row</span>
                         </button>
 
                         <div class="flex items-center gap-3">
                             <button type="button" @click="step = 1"
-                                    class="px-5 py-2.5 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-extrabold uppercase rounded-xl transition tracking-wider">
+                                    class="px-5 py-2.5 border border-slate-200 bg-white hover:bg-slate-100 text-slate-655 text-xs font-extrabold uppercase rounded-xl transition tracking-wider shadow-sm">
                                 Back
                             </button>
                             <button type="button" @click="goToStep3()" :disabled="!isBalanced()"
-                                    :class="!isBalanced() ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-gradient-to-r from-primary to-primary-700 hover:brightness-110 text-white shadow-soft'"
-                                    class="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition duration-300 tracking-wider flex items-center gap-2 border border-primary-500/20">
+                                    :class="!isBalanced() ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200' : 'bg-gradient-to-r from-[#a38c29] to-[#806c1d] hover:brightness-110 text-white shadow-md shadow-[#a38c29]/20'"
+                                    class="px-6 py-2.5 text-xs font-extrabold uppercase rounded-xl transition duration-300 tracking-wider flex items-center gap-2">
                                 <span>Continue to Review</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </button>
@@ -408,12 +458,12 @@
             </div>
 
             <!-- ── STEP 3: REVIEW & PROCESS ── -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start" x-show="step === 3" x-transition>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch" x-show="step === 3" x-transition>
                 
                 <!-- Left Column: Summary & Ledger Preview (2/3 width) -->
                 <div class="lg:col-span-2 space-y-6">
                     <!-- Summary Card -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-md shadow-slate-100/40 p-6 space-y-4">
                         <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider pb-2 border-b border-slate-100">Review Summary</h3>
                         
                         <div class="grid grid-cols-2 md:grid-cols-3 gap-6 text-xs leading-relaxed">
@@ -423,7 +473,7 @@
                             </div>
                             <div>
                                 <div class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Partner Allocation</div>
-                                <div class="mt-0.5 font-mono font-bold text-primary" x-text="'₹' + formatCurrency(getSummaryAmount('partner'))"></div>
+                                <div class="mt-0.5 font-mono font-bold text-[#a38c29]" x-text="'₹' + formatCurrency(getSummaryAmount('partner'))"></div>
                             </div>
                             <div>
                                 <div class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Supplier Allocation</div>
@@ -445,9 +495,9 @@
                     </div>
 
                     <!-- Ledger Entry Preview Table -->
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="px-6 py-4.5 bg-gradient-to-r from-slate-50 to-slate-100/50 border-b border-slate-150">
-                            <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Ledger Particulars (Double-Entry Matrix Preview)</h3>
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-md shadow-slate-100/40 overflow-hidden">
+                        <div class="px-6 py-5 bg-gradient-to-r from-[#2D2B24] to-[#1F1D1A] text-white border-b border-[#a38c29]/20">
+                            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-100">Ledger Particulars (Double-Entry Matrix Preview)</h3>
                         </div>
 
                         <div class="overflow-x-auto">
@@ -461,7 +511,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-xs text-slate-800">
-                                    <!-- Dr Line (destination bank account receiving the customer cash) -->
+                                    <!-- Dr Line -->
                                     <tr class="bg-primary/5 font-semibold">
                                         <td class="px-6 py-3.5 text-slate-900" x-text="destAccountName || 'Destination Bank Account'"></td>
                                         <td class="px-6 py-3.5 text-slate-500">Intake collection receipt allocation</td>
@@ -469,7 +519,7 @@
                                         <td class="px-6 py-3.5 text-right font-mono text-slate-300">—</td>
                                     </tr>
 
-                                    <!-- Cr Lines for allocations -->
+                                    <!-- Cr Lines -->
                                     <template x-for="(alloc, idx) in allocations" :key="'preview-'+idx">
                                         <tr>
                                             <td class="px-6 py-3.5 font-bold text-slate-850" x-text="getPreviewAccountName(alloc)"></td>
@@ -491,23 +541,26 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Visualizer Chart Panel (1/3 width) -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between h-full min-h-[450px]">
+                <!-- Right Column: Visualizer Chart Panel (1/3 width) - Dark Combo Card! -->
+                <div class="bg-[#1F1D1A] border border-[#a38c29]/20 rounded-2xl shadow-xl shadow-slate-900/10 p-6 flex flex-col justify-between h-full min-h-[450px]">
                     <div class="space-y-4">
-                        <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider pb-2 border-b border-slate-100">Transaction Visualizer</h3>
+                        <h3 class="text-xs font-extrabold text-white uppercase tracking-wider pb-2 border-b border-slate-800 flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29] inline-block shadow-glow"></span>
+                            <span>Transaction Visualizer</span>
+                        </h3>
                         
                         <!-- ApexCharts donut chart container -->
                         <div id="splitChart" class="flex justify-center items-center py-4"></div>
                     </div>
 
-                    <div class="space-y-3 pt-6 border-t border-slate-100">
+                    <div class="space-y-3 pt-6 border-t border-slate-800">
                         <div class="flex gap-2">
                             <button type="button" @click="step = 2"
-                                    class="flex-1 py-3 text-center border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-extrabold uppercase rounded-xl transition tracking-wider">
+                                    class="flex-1 py-3 text-center border border-slate-700 bg-slate-900 hover:bg-slate-850 text-slate-300 text-xs font-extrabold uppercase rounded-xl transition tracking-wider">
                                 Back
                             </button>
                             <button type="submit"
-                                    class="flex-[2] py-3 text-center bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-soft text-xs font-extrabold uppercase rounded-xl transition tracking-wider flex items-center justify-center gap-1.5 border border-emerald-500/20">
+                                    class="flex-[2] py-3 text-center bg-gradient-to-r from-emerald-600 to-emerald-700 hover:brightness-110 text-white shadow-soft text-xs font-extrabold uppercase rounded-xl transition tracking-wider flex items-center justify-center gap-1.5 border border-emerald-500/20">
                                 <svg class="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 <span>Process Receipt & Split</span>
                             </button>
@@ -547,7 +600,7 @@
                 
                 // Search & filters for step 1
                 searchQuery: '',
-                filterProject: '',
+                filterProject: '{{ $projects->first()?->id ?? "" }}',
                 filterCustomer: '',
 
                 // Step 2 allocations builder rows array
@@ -754,7 +807,7 @@
                                 fontSize: '11px',
                                 fontFamily: 'Inter, sans-serif',
                                 labels: {
-                                    colors: '#475569'
+                                    colors: '#f1f5f9'
                                 }
                             },
                             dataLabels: {
