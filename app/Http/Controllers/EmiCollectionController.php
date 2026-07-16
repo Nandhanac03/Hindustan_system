@@ -441,7 +441,8 @@ class EmiCollectionController extends Controller
             'totalDebits',
             'totalCredits',
             'closingBalance',
-            'allSales'
+            'allSales',
+            'installments'
         ));
     }
 
@@ -551,5 +552,66 @@ class EmiCollectionController extends Controller
                 'total_interest'    => $schedules->sum('interest_component'),
             ],
         ]);
+    }
+
+    public function bulkUpdateSchedule(Request $request, Sale $sale): JsonResponse
+    {
+        $request->validate([
+            'installments' => ['required', 'array'],
+            'installments.*.installment_no' => ['required', 'integer'],
+            'installments.*.label' => ['required', 'string', 'max:100'],
+            'installments.*.due_date' => ['required', 'date'],
+            'installments.*.amount' => ['required', 'numeric', 'min:0'],
+            'installments.*.status' => ['required', 'in:pending,paid,overdue,partial'],
+        ]);
+
+        $installmentsData = $request->input('installments');
+
+        $sum = collect($installmentsData)->sum('amount');
+        if (abs($sum - (float)$sale->total_amount) > 0.01) {
+            return response()->json([
+                'error' => 'The sum of all installments (₹' . number_format($sum, 2) . 
+                           ') must equal the total sale amount (₹' . number_format($sale->total_amount, 2) . ').'
+            ], 422);
+        }
+
+        DB::transaction(function () use ($sale, $installmentsData) {
+            $currentInsts = CustomerInstallment::where('sale_id', $sale->id)->get()->keyBy('id');
+            
+            $keepIds = [];
+            foreach ($installmentsData as $inst) {
+                if (isset($inst['id']) && $currentInsts->has($inst['id'])) {
+                    $row = $currentInsts->get($inst['id']);
+                    if ($row->status !== 'paid') {
+                        $row->update([
+                            'installment_no' => $inst['installment_no'],
+                            'label'          => $inst['label'],
+                            'due_date'       => $inst['due_date'],
+                            'amount'         => $inst['amount'],
+                            'status'         => $inst['status'],
+                        ]);
+                    }
+                    $keepIds[] = $row->id;
+                } else {
+                    $newRow = CustomerInstallment::create([
+                        'sale_id'        => $sale->id,
+                        'installment_no' => $inst['installment_no'],
+                        'label'          => $inst['label'],
+                        'due_date'       => $inst['due_date'],
+                        'amount'         => $inst['amount'],
+                        'status'         => $inst['status'],
+                        'schedule_type'  => 'fixed_emi',
+                    ]);
+                    $keepIds[] = $newRow->id;
+                }
+            }
+            
+            CustomerInstallment::where('sale_id', $sale->id)
+                ->whereNotIn('id', $keepIds)
+                ->where('status', '!=', 'paid')
+                ->delete();
+        });
+
+        return response()->json(['success' => true]);
     }
 }

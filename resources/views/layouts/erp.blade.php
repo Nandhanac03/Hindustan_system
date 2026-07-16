@@ -141,7 +141,7 @@
             Sales Register
         </a>
          <a href="{{ route('sales.index') }}?tab=sale-return" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
-           Cancel Booking
+           Cancellation / Return
         </a>
         <a href="{{ route('sales.index') }}?tab=exchange" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
             Unit Exchange
@@ -173,12 +173,12 @@
     </div>
     <div x-show="openEMI" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
         @php $firstSaleId = \App\Models\Sale::first()?->id ?? 7; @endphp
-        <a href="{{ route('emi-collections.ledger', $firstSaleId) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+        <!-- <a href="{{ route('emi-collections.ledger', $firstSaleId) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
             My EMI Ledger
-        </a>
-        <a href="{{ route('emi-collections.schedules') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+        </a> -->
+        <!-- <a href="{{ route('emi-collections.schedules') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
             Payment Schedule
-        </a>
+        </a> -->
         <a href="{{ route('emi-collections.receipts') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.receipts') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
             Collect Payment
         </a>

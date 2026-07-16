@@ -1099,7 +1099,9 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Selected Plan</span>
-                            <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_plan_type || 'Custom') + ')' : 'Lump Sum'"></span>
+                            <!-- <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_plan_type || 'Custom') + ')' : 'Lump Sum'"></span> -->
+                        <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_installment_count || 12) + '-Mo ' + (activeSale.emi_frequency || 'Monthly') + ')' : 'Lump Sum'"></span>
+                        </div>
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-455 font-bold uppercase block tracking-wider">Remaining Balance</span>

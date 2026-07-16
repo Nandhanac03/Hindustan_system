@@ -75,6 +75,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/emi-collections/schedules',            [\App\Http\Controllers\EmiCollectionController::class, 'schedules'])->name('emi-collections.schedules');
     Route::post('/emi-collections/schedules/generate',  [\App\Http\Controllers\EmiCollectionController::class, 'generateSchedule'])->name('emi-collections.schedules.generate');
     Route::delete('/emi-collections/schedules/{sale}',  [\App\Http\Controllers\EmiCollectionController::class, 'deleteSchedule'])->name('emi-collections.schedules.delete');
+    Route::post('/emi-collections/schedules/{sale}/bulk-update', [\App\Http\Controllers\EmiCollectionController::class, 'bulkUpdateSchedule'])->name('emi-collections.schedules.bulk-update');
     Route::put('/emi-collections/installments/{installment}', [\App\Http\Controllers\EmiCollectionController::class, 'updateInstallment'])->name('emi-collections.installments.update');
     Route::get('/emi-collections/receipts',             [\App\Http\Controllers\EmiCollectionController::class, 'receipts'])->name('emi-collections.receipts');
     Route::post('/emi-collections/receipts',            [\App\Http\Controllers\EmiCollectionController::class, 'store'])->name('emi-collections.store');

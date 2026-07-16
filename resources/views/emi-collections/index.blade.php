@@ -122,13 +122,7 @@
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded border border-primary-100 font-mono">{{ $booking->sale_number }}</span>
                                 @if($booking->payment_plan === 'emi')
                                     <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1">
-                                        @if($booking->emi_plan_type === 'clp')
-                                            CLP Plan
-                                        @elseif($booking->emi_plan_type === 'fixed-36')
-                                            36-Mo Combo
-                                        @else
-                                            12-Mo Fixed
-                                        @endif
+                                        {{ $booking->emi_installment_count ?? 12 }}-Mo {{ ucfirst($booking->emi_frequency ?? 'Monthly') }}
                                     </span>
                                 @else
                                     <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-50 text-slate-600 border-slate-100 rounded border ml-1">

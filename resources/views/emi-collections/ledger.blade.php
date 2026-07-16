@@ -87,6 +87,7 @@
                 <p class="text-xs text-slate-400 mt-0.5">Chronological history of installment dues and receipt credits with running balance.</p>
             </div>
             <div class="flex gap-3">
+                <button @click="openEmiModal()" class="text-[10px] font-bold text-primary hover:underline bg-transparent border-0 cursor-pointer p-0">↗ Manage EMI Schedule</button>
                 <button @click="openPayModal({{ $closingBalance }}, 'Outstanding Balance')" class="text-[10px] font-bold text-primary hover:underline bg-transparent border-0 cursor-pointer p-0">↗ Add Receipt</button>
                  <a href="{{ route('sales.index') }}" class="text-[10px] font-bold text-primary hover:underline">↗ Sales Register</a>
             </div>
@@ -270,7 +271,113 @@
          </div>
     </div>
 
-</div>
+    {{-- Manage EMI Schedule Modal --}}
+    <div x-show="emiModalOpen" 
+         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
+         style="display: none;" x-transition>
+         <div @click.away="emiModalOpen = false" 
+              class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-2xl space-y-4">
+              
+              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Manage EMI Schedule</h3>
+                  <button @click="emiModalOpen = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+              </div>
+
+              <div x-show="emiError" class="p-3 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="emiError"></div>
+
+              {{-- Dynamic Summary Stats --}}
+              <div class="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl text-xs">
+                  <div>
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Sale Amount</span>
+                      <strong class="text-slate-800 text-sm font-mono">₹<span x-text="totalSaleAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                  </div>
+                  <div>
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocated Schedule</span>
+                      <strong class="text-slate-800 text-sm font-mono">₹<span x-text="calculateTotalAllocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                  </div>
+                  <div>
+                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unallocated Balance</span>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                          <strong class="text-sm font-mono" :class="calculateUnallocated() === 0 ? 'text-emerald-600' : 'text-rose-600'">
+                              ₹<span x-text="calculateUnallocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                          </strong>
+                          <template x-if="calculateUnallocated() !== 0">
+                              <button type="button" @click="distributeRemaining()" class="px-1.5 py-0.5 bg-primary/10 hover:bg-primary/20 text-primary text-[8px] font-bold uppercase rounded transition-colors">
+                                  Auto-Distribute
+                              </button>
+                          </template>
+                      </div>
+                  </div>
+              </div>
+
+              {{-- Scrollable List of Rows --}}
+              <div class="overflow-y-auto max-h-[350px] space-y-2.5 pr-1">
+                  <template x-for="(inst, index) in editInstallments" :key="index">
+                      <div class="flex items-center gap-3 p-3 rounded-xl border transition-all"
+                           :class="inst.status === 'paid' ? 'bg-emerald-50/20 border-emerald-100' : 'bg-white border-slate-200/80'">
+                          
+                          {{-- Label Input --}}
+                          <div class="w-1/4 space-y-1">
+                              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Label</span>
+                              <input type="text" x-model="inst.label" :disabled="inst.status === 'paid'"
+                                     class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-semibold focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100">
+                          </div>
+
+                          {{-- Due Date Input --}}
+                          <div class="w-1/3 space-y-1">
+                              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Due Date</span>
+                              <input type="date" x-model="inst.due_date" :disabled="inst.status === 'paid'"
+                                     class="w-full px-2 py-1 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-semibold focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100">
+                          </div>
+
+                          {{-- Amount Input --}}
+                          <div class="w-1/3 space-y-1">
+                              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Amount (₹)</span>
+                              <input type="number" step="0.01" x-model.number="inst.amount" :disabled="inst.status === 'paid'"
+                                     class="w-full px-2 py-1 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-bold text-slate-800 font-mono focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100">
+                          </div>
+
+                          {{-- Action / Status --}}
+                          <div class="pt-4">
+                              <template x-if="inst.status === 'paid'">
+                                  <span class="px-2 py-1 rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700">Paid</span>
+                              </template>
+                              <template x-if="inst.status !== 'paid'">
+                                  <button type="button" @click="removeInstallment(index)" class="text-rose-600 hover:text-rose-800 transition-colors" title="Delete Row">
+                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                      </svg>
+                                  </button>
+                              </template>
+                          </div>
+                      </div>
+                  </template>
+              </div>
+
+              {{-- Footer Actions --}}
+              <div class="pt-4 flex justify-between items-center border-t border-slate-100">
+                  <button type="button" @click="addInstallment()"
+                          class="px-4 py-2 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wide flex items-center gap-1.5">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                      </svg>
+                      Add Installment
+                  </button>
+                  <div class="flex gap-2">
+                      <button type="button" @click="emiModalOpen = false" 
+                              class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-550 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                          Cancel
+                      </button>
+                      <button type="button" @click="submitEmiSchedule()" x-bind:disabled="emiSubmitting"
+                              class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md flex items-center gap-1.5">
+                          <span x-text="emiSubmitting ? 'Saving...' : 'Save Schedule'"></span>
+                      </button>
+                  </div>
+              </div>
+         </div>
+    </div>
+
+ </div>
 
 <script>
 function ledgerApp() {
@@ -321,6 +428,108 @@ function ledgerApp() {
                 this.error = 'Request failed: ' + e.message;
             } finally {
                 this.submitting = false;
+            }
+        },
+
+        // Custom EMI schedule editor state
+        originalInstallments: @json($installments),
+        editInstallments: [],
+        emiModalOpen: false,
+        totalSaleAmount: {{ $sale->total_amount }},
+        emiSubmitting: false,
+        emiError: '',
+        openEmiModal() {
+            this.emiError = '';
+            this.editInstallments = this.originalInstallments.map(inst => ({
+                id: inst.id,
+                installment_no: inst.installment_no,
+                label: inst.label,
+                due_date: inst.due_date ? inst.due_date.split('T')[0] : '',
+                amount: Number(inst.amount),
+                status: inst.status
+            }));
+            this.emiModalOpen = true;
+        },
+        addInstallment() {
+            const nextNo = this.editInstallments.length > 0 
+                ? Math.max(...this.editInstallments.map(i => i.installment_no)) + 1 
+                : 1;
+            
+            let lastDate = new Date();
+            if (this.editInstallments.length > 0) {
+                const dates = this.editInstallments.map(i => i.due_date).filter(Boolean);
+                if (dates.length > 0) {
+                    lastDate = new Date(dates[dates.length - 1]);
+                    lastDate.setMonth(lastDate.getMonth() + 1);
+                }
+            }
+            
+            this.editInstallments.push({
+                installment_no: nextNo,
+                label: 'EMI ' + nextNo,
+                due_date: lastDate.toISOString().split('T')[0],
+                amount: 0,
+                status: 'pending'
+            });
+        },
+        removeInstallment(index) {
+            if (this.editInstallments[index].status === 'paid') return;
+            this.editInstallments.splice(index, 1);
+            this.editInstallments.forEach((inst, idx) => {
+                if (inst.installment_no > 0) {
+                    inst.installment_no = idx;
+                }
+            });
+        },
+        calculateTotalAllocated() {
+            return this.editInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
+        },
+        calculateUnallocated() {
+            return Math.round((this.totalSaleAmount - this.calculateTotalAllocated()) * 100) / 100;
+        },
+        distributeRemaining() {
+            const unallocated = this.calculateUnallocated();
+            const pendingInsts = this.editInstallments.filter(inst => inst.status === 'pending');
+            if (pendingInsts.length === 0) {
+                this.emiError = 'No pending installments to distribute balance to.';
+                return;
+            }
+            
+            const perInstallment = Math.round((unallocated / pendingInsts.length) * 100) / 100;
+            pendingInsts.forEach((inst, idx) => {
+                if (idx === pendingInsts.length - 1) {
+                    const allocatedSoFar = perInstallment * (pendingInsts.length - 1);
+                    inst.amount = Math.round((Number(inst.amount) + (unallocated - allocatedSoFar)) * 100) / 100;
+                } else {
+                    inst.amount = Math.round((Number(inst.amount) + perInstallment) * 100) / 100;
+                }
+            });
+        },
+        async submitEmiSchedule() {
+            this.emiError = '';
+            const unallocated = this.calculateUnallocated();
+            if (Math.abs(unallocated) > 0.01) {
+                this.emiError = `Unallocated balance must be 0 (current: ₹${unallocated.toLocaleString('en-IN')}).`;
+                return;
+            }
+            this.emiSubmitting = true;
+            try {
+                const res = await fetch('{{ route('emi-collections.schedules.bulk-update', $sale->id) }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ installments: this.editInstallments, _token: '{{ csrf_token() }}' }),
+                });
+                const json = await res.json();
+                if (res.ok && json.success) {
+                    this.emiModalOpen = false;
+                    window.location.reload();
+                } else {
+                    this.emiError = json.error || json.message || 'An error occurred.';
+                }
+            } catch(e) {
+                this.emiError = 'Request failed: ' + e.message;
+            } finally {
+                this.emiSubmitting = false;
             }
         }
     };
