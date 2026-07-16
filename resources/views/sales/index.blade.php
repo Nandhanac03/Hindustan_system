@@ -1253,8 +1253,9 @@ function salesApp() {
         targetReturnStatus: '',
         selectedExchangeSale: null,
         returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: 100000, reason: '', revert_unsold: true },
-        exchangeForm: { new_project_id: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '' },
+        exchangeForm: { new_project_id: '', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '' },
         exchangeAvailableUnits: [],
+        exchangeUnitTypes: [],
         exchangeSelectedUnit: null,
         openNewReturnModal: false,
         newReturnStep: 1,
@@ -1525,7 +1526,8 @@ function salesApp() {
         },
         selectExchangeSale(sale) {
             this.selectedExchangeSale = sale;
-            this.exchangeForm.new_project_id = '';
+            this.exchangeForm.new_project_id = sale.project_id || '';
+            this.exchangeForm.new_unit_type = '';
             this.exchangeForm.new_unit_id = '';
             this.exchangeForm.new_unit_value = 0;
             this.exchangeForm.equity_applied = this.getPaidTillDate(sale);
@@ -1533,10 +1535,24 @@ function salesApp() {
             this.exchangeForm.reason = '';
             this.exchangeAvailableUnits = [];
             this.exchangeSelectedUnit = null;
+            if (sale.project_id) {
+                this.loadExchangeUnits();
+            }
+        },
+        getFilteredExchangeAvailableUnits() {
+            if (!this.exchangeForm.new_project_id) return [];
+            let units = this.exchangeAvailableUnits;
+            if (this.exchangeForm.new_unit_type) {
+                const typeId = this.exchangeForm.new_unit_type;
+                units = units.filter(unit => unit.unit_type_id == typeId);
+            }
+            return units;
         },
         loadExchangeUnits() {
             const projId = this.exchangeForm.new_project_id;
             this.exchangeAvailableUnits = [];
+            this.exchangeUnitTypes = [];
+            this.exchangeForm.new_unit_type = '';
             this.exchangeForm.new_unit_id = '';
             this.exchangeForm.new_unit_value = 0;
             if (!projId) return;
@@ -1544,7 +1560,10 @@ function salesApp() {
                 headers: { 'Accept': 'application/json' }
             })
             .then(res => res.json())
-            .then(data => { this.exchangeAvailableUnits = data.units; })
+            .then(data => { 
+                this.exchangeAvailableUnits = data.units || [];
+                this.exchangeUnitTypes = data.unitTypes || [];
+            })
             .catch(err => console.error(err));
         },
         onExchangeUnitSelect() {

@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Partner;
 use App\Models\CustomerInstallment;
 use App\Models\Bank;
+use App\Models\UnitType;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -73,11 +74,20 @@ class SalesController extends Controller
                     'built_up_area' => $unit->built_up_area,
                     'expected_rate_per_sqft' => $unit->expected_rate_per_sqft,
                     'expected_sale_amount' => $unit->expected_sale_amount,
+                    'unit_type_id' => $unit->unit_type_id,
                     'unit_type_name' => $unit->unitType?->name ?? '',
                     'unit_type_category' => $unit->unitType?->category ?? '',
                 ];
             });
-        return response()->json(['units' => $units]);
+        $unitTypes = UnitType::where('project_id', $projectId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'category']);
+
+        return response()->json([
+            'units' => $units,
+            'unitTypes' => $unitTypes
+        ]);
     }
     public function store(Request $request): JsonResponse
     {

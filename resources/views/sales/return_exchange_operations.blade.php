@@ -1031,7 +1031,7 @@
                     <button type="button" @click="selectedExchangeSale = null" class="text-blue-700 hover:text-blue-900 font-bold">✕</button>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Project *</label>
                         <select x-model="exchangeForm.new_project_id" @change="loadExchangeUnits()"
@@ -1044,11 +1044,22 @@
                     </div>
 
                     <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Unit Type</label>
+                        <select x-model="exchangeForm.new_unit_type" @change="exchangeForm.new_unit_id = ''; exchangeForm.new_unit_value = 0;" :disabled="!exchangeForm.new_project_id"
+                                class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
+                            <option value="">All Types</option>
+                            <template x-for="ut in exchangeUnitTypes" :key="ut.id">
+                                <option :value="ut.id" x-text="ut.name"></option>
+                            </template>
+                        </select>
+                    </div>
+
+                    <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Available Unit *</label>
                         <select x-model="exchangeForm.new_unit_id" @change="onExchangeUnitSelect()" :disabled="!exchangeForm.new_project_id"
                                 class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
-                            <option value="">— Select Project First —</option>
-                            <template x-for="unit in exchangeAvailableUnits" :key="unit.id">
+                            <option value="">— Select Target Unit —</option>
+                            <template x-for="unit in getFilteredExchangeAvailableUnits()" :key="unit.id">
                                 <option :value="unit.id" x-text="unit.door_no + ' — ' + unit.floor_name"></option>
                             </template>
                         </select>
