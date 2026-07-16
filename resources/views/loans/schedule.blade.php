@@ -108,7 +108,7 @@
                             </td>
                             <td class="px-4 py-3.5 border text-right">
                                 @if($inst->status !== 'Paid' && $loan->status === 'Active')
-                                    <button @click="openPayModal({{ $inst }})" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition shadow-sm">
+                                    <button @click="openPayModal({{ $inst }})" class="px-3 py-1 bg-primary hover:bg-primary-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition shadow-sm">
                                         Pay Installment
                                     </button>
                                 @else
