@@ -30,8 +30,9 @@ class EmiCollectionController extends Controller
 
     public function index(Request $request): View
     {
-        $payments = Receipt::with(['customer', 'sale.unit', 'sale.project'])
-            ->latest('receipt_date')
+        $sales = Sale::with(['customer', 'project', 'unit', 'receipts'])
+            ->where('status', 'active')
+            ->latest('sale_date')
             ->paginate(15);
 
         $totalReceived  = Receipt::sum('amount');
@@ -46,13 +47,19 @@ class EmiCollectionController extends Controller
             ->take(5)
             ->get();
 
+        $activeSales = Sale::with(['customer', 'project', 'unit'])
+            ->where('status', 'active')
+            ->orderBy('sale_number')
+            ->get();
+
         return view('emi-collections.index', compact(
-            'payments',
+            'sales',
             'totalReceived',
             'totalSales',
             'totalOutstanding',
             'pendingPaymentsCount',
-            'recentBookings'
+            'recentBookings',
+            'activeSales'
         ));
     }
 

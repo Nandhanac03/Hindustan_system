@@ -50,12 +50,12 @@
     {{-- Main Two-Column view --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        {{-- Left side: Collection History (2/3 width) --}}
+        {{-- Left side: Customer EMI Accounts Directory (2/3 width) --}}
         <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
             <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">EMI Collection History</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Real-time listing of customer installments and receipts.</p>
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Customer EMI Directory</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Directory of all active customers with outstanding schedules and payment logs.</p>
                 </div>
             </div>
 
@@ -63,91 +63,147 @@
                 <table class="w-full text-xs">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100 text-left">
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Receipt No.</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Booking No.</th>
                             <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Customer</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Project</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Amount</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Mode</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Status</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Project & Unit</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Contract Value</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Total Paid</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Outstanding</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
-                        @forelse($payments as $payment)
+                        @forelse($sales as $sale)
+                            @php
+                                $totalPaid = $sale->receipts->sum('amount');
+                            @endphp
                             <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-bold text-primary-700">REC-{{ sprintf("%05d", $payment->id) }}</td>
+                                <td class="px-6 py-4 font-bold text-primary-700">{{ $sale->sale_number }}</td>
                                 <td class="px-6 py-4">
-                                    <div class="font-semibold text-slate-900">{{ $payment->customer?->name ?? 'N/A' }}</div>
-                                    <div class="text-[10px] text-slate-400">{{ $payment->customer?->phone ?? '' }}</div>
+                                    <div class="font-semibold text-slate-900">{{ $sale->customer?->name ?? 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ $sale->customer?->phone ?? '' }}</div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="font-semibold text-slate-800">{{ $payment->sale?->project?->name ?? 'N/A' }}</div>
-                                    <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">Unit: {{ $payment->sale?->unit?->door_no ?? '—' }}</span>
+                                    <div class="font-semibold text-slate-800">{{ $sale->project?->name ?? 'N/A' }}</div>
+                                    <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
                                 </td>
-                                <td class="px-6 py-4 font-bold text-slate-900">₹{{ number_format($payment->amount, 2) }}</td>
-                                <td class="px-6 py-4 text-slate-500 font-medium">{{ $payment->payment_mode }}</td>
-                                <td class="px-6 py-4">
-                                    <span class="badge-pill badge-completed bg-emerald-50 text-emerald-700 border-emerald-200">
-                                        Completed
-                                    </span>
+                                <td class="px-6 py-4 font-bold text-slate-900 font-mono">₹{{ number_format($sale->total_amount, 2) }}</td>
+                                <td class="px-6 py-4 font-bold text-emerald-600 font-mono">₹{{ number_format($totalPaid, 2) }}</td>
+                                <td class="px-6 py-4 font-bold text-rose-600 font-mono">₹{{ number_format($sale->remaining_balance, 2) }}</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="inline-flex gap-2 justify-end">
+                                        <button @click="openCollectModal({ id: {{ $sale->id }}, outstanding: {{ $sale->remaining_balance }}, customer_name: '{{ addslashes($sale->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($sale->unit?->door_no ?? 'No Unit') }}' })" 
+                                                class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
+                                            Collect
+                                        </button>
+                                        <a href="{{ route('emi-collections.ledger', $sale->id) }}"
+                                           class="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
+                                            Ledger &rarr;
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">No EMI Collection history found.</td>
+                                <td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">No customers found.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
 
-            @if($payments->hasPages())
+            @if($sales->hasPages())
                 <div class="p-4 border-t border-slate-100 bg-slate-50">
-                    {{ $payments->links() }}
+                    {{ $sales->links() }}
                 </div>
             @endif
         </div>
 
         {{-- Right side: Active Bookings/Sales for quick receipt mapping (1/3 width) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
             <div>
                 <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Map New Receipt</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Select a recent active sale with outstanding balance to register an incoming payment installment.</p>
+                <p class="text-xs text-slate-400 mt-0.5">Select a customer or sale below to register an incoming payment installment.</p>
             </div>
 
-            <div class="space-y-4">
-                @forelse($recentBookings as $booking)
-                    <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 hover:border-primary-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            {{-- Customer Select Box --}}
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Select Customer</label>
+                <select x-model="selectedSaleId" @change="onSaleSelect()"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs font-semibold focus:outline-none transition-all">
+                    <option value="">-- Choose Customer... --</option>
+                    <template x-for="s in activeSales" :key="s.id">
+                        <option :value="s.id" x-text="s.customer ? s.customer.name : 'Unknown Customer'"></option>
+                    </template>
+                </select>
+            </div>
+
+            <div class="space-y-4 pt-2">
+                {{-- If a sale is selected --}}
+                <template x-if="selectedSale">
+                    <div class="p-3.5 bg-blue-50/40 border border-blue-100 rounded-xl space-y-2 hover:shadow-md transition-all duration-200">
                         <div class="flex justify-between items-start">
                             <div>
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded border border-primary-100 font-mono">{{ $booking->sale_number }}</span>
-                                @if($booking->payment_plan === 'emi')
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1">
-                                        {{ $booking->emi_installment_count ?? 12 }}-Mo {{ ucfirst($booking->emi_frequency ?? 'Monthly') }}
-                                    </span>
-                                @else
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-50 text-slate-600 border-slate-100 rounded border ml-1">
-                                        Lump Sum
-                                    </span>
-                                @endif
-                                <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? 'Unknown Customer' }}</h3>
-                                <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-750 rounded border border-blue-200 font-mono" x-text="selectedSale.sale_number"></span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1"
+                                      x-text="selectedSale.payment_plan === 'emi' ? (selectedSale.emi_installment_count + '-Mo ' + (selectedSale.emi_frequency ? selectedSale.emi_frequency.charAt(0).toUpperCase() + selectedSale.emi_frequency.slice(1) : 'Monthly')) : 'Lump Sum'">
+                                </span>
+                                <h3 class="text-xs font-bold text-slate-900 mt-2" x-text="selectedSale.customer ? selectedSale.customer.name : 'Unknown Customer'"></h3>
+                                <p class="text-[10px] text-slate-400 mt-0.5" x-text="(selectedSale.project ? selectedSale.project.name : '') + ' · Unit: ' + (selectedSale.unit ? selectedSale.unit.door_no : 'No Unit')"></p>
                             </div>
-                            <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->total_amount / 100000, 1) }}L</span>
+                            <span class="text-[11px] font-extrabold text-slate-900" x-text="'₹' + (Number(selectedSale.total_amount) / 100000).toFixed(1) + 'L'"></span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
+                            <button @click="openCollectModal({ id: selectedSale.id, outstanding: selectedSale.remaining_balance, customer_name: selectedSale.customer ? selectedSale.customer.name : 'Unknown', door_no: selectedSale.unit ? selectedSale.unit.door_no : 'No Unit' })" 
                                     class="py-1.5 bg-primary hover:bg-primary-700 active:scale-95 text-white text-[10px] font-bold rounded-lg transition-all uppercase tracking-wide">
                                 Collect
                             </button>
-                            <a href="{{ route('emi-collections.ledger', $booking->id) }}"
+                            <a :href="'/emi-collections/ledger/' + selectedSale.id"
                                class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
                                 Ledger &rarr;
                             </a>
                         </div>
                     </div>
-                @empty
-                    <p class="text-xs text-slate-450 italic text-center py-4">No recent active sales with outstanding balances found.</p>
-                @endforelse
+                </template>
+
+                {{-- If no sale is selected, show recent list --}}
+                <template x-if="!selectedSale">
+                    <div class="space-y-4">
+                        @forelse($recentBookings as $booking)
+                            <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 hover:border-primary-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded border border-primary-100 font-mono">{{ $booking->sale_number }}</span>
+                                        @if($booking->payment_plan === 'emi')
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1">
+                                                {{ $booking->emi_installment_count ?? 12 }}-Mo {{ ucfirst($booking->emi_frequency ?? 'Monthly') }}
+                                            </span>
+                                        @else
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-50 text-slate-600 border-slate-100 rounded border ml-1">
+                                                Lump Sum
+                                            </span>
+                                        @endif
+                                        <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? 'Unknown Customer' }}</h3>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
+                                    </div>
+                                    <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->total_amount / 100000, 1) }}L</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                    <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
+                                            class="py-1.5 bg-primary hover:bg-primary-700 active:scale-95 text-white text-[10px] font-bold rounded-lg transition-all uppercase tracking-wide">
+                                        Collect
+                                    </button>
+                                    <a href="{{ route('emi-collections.ledger', $booking->id) }}"
+                                       class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
+                                        Ledger &rarr;
+                                    </a>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-xs text-slate-455 italic text-center py-4">No recent active sales with outstanding balances found.</p>
+                        @endforelse
+                    </div>
+                </template>
             </div>
         </div>
 
@@ -244,6 +300,14 @@ function emiApp() {
             type: 'success'
         },
         errors: {},
+
+        activeSales: @json($activeSales),
+        selectedSaleId: '',
+        selectedSale: null,
+
+        onSaleSelect() {
+            this.selectedSale = this.activeSales.find(s => s.id == this.selectedSaleId) || null;
+        },
 
         openCollectModal(item) {
             this.errors = {};
