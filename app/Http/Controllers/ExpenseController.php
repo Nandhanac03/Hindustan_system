@@ -81,56 +81,177 @@ class ExpenseController extends Controller
             $allocations = json_decode($request->allocations, true);
         }
 
-        if (empty($allocations) || count($allocations) <= 1) {
-            // Standard single project bill
-            DB::table('bills')->insert([
-                'system_id' => $systemId,
-                'payee_id' => $request->payee_id,
-                'project_id' => $request->project_id,
-                'bill_number' => $request->bill_number,
-                'bill_type' => $request->bill_type,
-                'payment_terms' => $request->payment_terms,
-                'place_of_supply' => $request->place_of_supply,
-                'expense_head' => $request->expense_head,
-                'bill_file' => $billFilePath,
-                'bill_amount' => $request->bill_amount,
-                'final_amount' => $request->final_amount,
-                'status' => 'approved_unpaid', // Immediately available in receipt split target
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        } else {
-            // Split the bill across multiple projects
-            foreach ($allocations as $idx => $alloc) {
-                $pct = (float)($alloc['allocation_pct'] ?? 100) / 100;
-                $project = Project::find($alloc['project_id']);
-                $projCode = $project ? ($project->code ?: 'PROJ-' . $project->id) : 'P' . ($idx + 1);
-
-                // Calculate proportional amounts
-                $billAmount = round((float)$request->bill_amount * $pct, 2);
-                $finalAmount = round((float)$request->final_amount * $pct, 2);
-
-                // Append suffix to avoid duplicate bill number violation
-                $billNum = $request->bill_number . '/' . $projCode;
-
+        DB::transaction(function () use ($systemId, $request, $user, $billFilePath, $allocations) {
+            if (empty($allocations) || count($allocations) <= 1) {
+                // Standard single project bill
                 DB::table('bills')->insert([
                     'system_id' => $systemId,
                     'payee_id' => $request->payee_id,
-                    'project_id' => $alloc['project_id'],
-                    'bill_number' => $billNum,
+                    'project_id' => $request->project_id,
+                    'bill_number' => $request->bill_number,
                     'bill_type' => $request->bill_type,
                     'payment_terms' => $request->payment_terms,
                     'place_of_supply' => $request->place_of_supply,
                     'expense_head' => $request->expense_head,
                     'bill_file' => $billFilePath,
-                    'bill_amount' => $billAmount,
-                    'final_amount' => $finalAmount,
-                    'status' => 'approved_unpaid',
+                    'bill_amount' => $request->bill_amount,
+                    'final_amount' => $request->final_amount,
+                    'status' => 'approved_unpaid', // Immediately available in receipt split target
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);
+
+                // Post Double-Entry Ledger lines
+                $expenseAccount = \App\Models\Account::firstOrCreate(
+                    ['system_id' => $systemId, 'code' => 'EXP-SITE'],
+                    ['name' => 'Site Expenses', 'type' => 'Expense', 'is_active' => true]
+                );
+
+                $supplierPayee = \App\Models\Payee::findOrFail($request->payee_id);
+                $finalAmount = (float)$request->final_amount;
+
+                // Create Journal Voucher
+                $voucher = \App\Models\Voucher::create([
+                    'system_id' => $systemId,
+                    'voucher_number' => 'JV-BILL-' . $request->bill_number . '-' . time(),
+                    'type' => 'Journal',
+                    'date' => $request->bill_date,
+                    'narration' => 'Bill registered: ' . $request->bill_number . ' for Supplier ' . $supplierPayee->name,
+                    'created_by' => $user->id,
+                    'status' => 'Posted',
+                ]);
+
+                // 1. Debit Site Expenses
+                $siteLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $expenseAccount->id,
+                    'debit' => $finalAmount,
+                    'credit' => 0.00,
+                    'line_narration' => 'Debit Site Expenses for bill #' . $request->bill_number,
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $expenseAccount->id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $siteLine->id,
+                    'date' => $request->bill_date,
+                    'debit' => $finalAmount,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+
+                // 2. Credit Supplier's linked account (payable)
+                $supplierLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $supplierPayee->linked_account_id,
+                    'debit' => 0.00,
+                    'credit' => $finalAmount,
+                    'line_narration' => 'Credit Supplier payable for bill #' . $request->bill_number,
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $supplierPayee->linked_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $supplierLine->id,
+                    'date' => $request->bill_date,
+                    'debit' => 0.00,
+                    'credit' => $finalAmount,
+                    'running_balance' => 0.00,
+                ]);
+            } else {
+                // Split the bill across multiple projects
+                foreach ($allocations as $idx => $alloc) {
+                    $pct = (float)($alloc['allocation_pct'] ?? 100) / 100;
+                    $project = Project::find($alloc['project_id']);
+                    $projCode = $project ? ($project->code ?: 'PROJ-' . $project->id) : 'P' . ($idx + 1);
+
+                    // Calculate proportional amounts
+                    $billAmount = round((float)$request->bill_amount * $pct, 2);
+                    $finalAmount = round((float)$request->final_amount * $pct, 2);
+
+                    // Append suffix to avoid duplicate bill number violation
+                    $billNum = $request->bill_number . '/' . $projCode;
+
+                    DB::table('bills')->insert([
+                        'system_id' => $systemId,
+                        'payee_id' => $request->payee_id,
+                        'project_id' => $alloc['project_id'],
+                        'bill_number' => $billNum,
+                        'bill_type' => $request->bill_type,
+                        'payment_terms' => $request->payment_terms,
+                        'place_of_supply' => $request->place_of_supply,
+                        'expense_head' => $request->expense_head,
+                        'bill_file' => $billFilePath,
+                        'bill_amount' => $billAmount,
+                        'final_amount' => $finalAmount,
+                        'status' => 'approved_unpaid',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+
+                    // Post Double-Entry Ledger lines for this split
+                    $expenseAccount = \App\Models\Account::firstOrCreate(
+                        ['system_id' => $systemId, 'code' => 'EXP-SITE'],
+                        ['name' => 'Site Expenses', 'type' => 'Expense', 'is_active' => true]
+                    );
+
+                    $supplierPayee = \App\Models\Payee::findOrFail($request->payee_id);
+
+                    // Create Journal Voucher
+                    $voucher = \App\Models\Voucher::create([
+                        'system_id' => $systemId,
+                        'voucher_number' => 'JV-BILL-' . $billNum . '-' . time() . '-' . $idx,
+                        'type' => 'Journal',
+                        'date' => $request->bill_date,
+                        'narration' => 'Bill split registered: ' . $billNum . ' for Supplier ' . $supplierPayee->name,
+                        'created_by' => $user->id,
+                        'status' => 'Posted',
+                    ]);
+
+                    // 1. Debit Site Expenses
+                    $siteLine = \App\Models\VoucherLine::create([
+                        'voucher_id' => $voucher->id,
+                        'account_id' => $expenseAccount->id,
+                        'debit' => $finalAmount,
+                        'credit' => 0.00,
+                        'line_narration' => 'Debit Site Expenses for split bill #' . $billNum,
+                    ]);
+
+                    \App\Models\LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $expenseAccount->id,
+                        'voucher_id' => $voucher->id,
+                        'voucher_line_id' => $siteLine->id,
+                        'date' => $request->bill_date,
+                        'debit' => $finalAmount,
+                        'credit' => 0.00,
+                        'running_balance' => 0.00,
+                    ]);
+
+                    // 2. Credit Supplier's linked account (payable)
+                    $supplierLine = \App\Models\VoucherLine::create([
+                        'voucher_id' => $voucher->id,
+                        'account_id' => $supplierPayee->linked_account_id,
+                        'debit' => 0.00,
+                        'credit' => $finalAmount,
+                        'line_narration' => 'Credit Supplier payable for split bill #' . $billNum,
+                    ]);
+
+                    \App\Models\LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $supplierPayee->linked_account_id,
+                        'voucher_id' => $voucher->id,
+                        'voucher_line_id' => $supplierLine->id,
+                        'date' => $request->bill_date,
+                        'debit' => 0.00,
+                        'credit' => $finalAmount,
+                        'running_balance' => 0.00,
+                    ]);
+                }
             }
-        }
+        });
 
         return redirect()->route('expenses.bills.index')->with('status', 'Supplier Bill registered and liability created successfully.');
     }

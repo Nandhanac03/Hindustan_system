@@ -93,7 +93,9 @@
                             <td class="px-4 py-3 font-bold text-slate-700 italic" colspan="3">Opening Balance</td>
                             <td class="px-4 py-3 text-right text-slate-400">—</td>
                             <td class="px-4 py-3 text-right text-slate-400">—</td>
-                            <td class="px-4 py-3 text-right font-bold text-slate-600">₹0.00</td>
+                            <td class="px-4 py-3 text-right font-bold text-slate-600">
+                                ₹{{ number_format(abs($openingBalance), 2) }} {{ $openingBalance < 0 ? 'CR' : 'DR' }}
+                            </td>
                         </tr>
 
                         @forelse($entries as $entry)
@@ -177,7 +179,7 @@
             <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-soft">
                 <div class="space-y-0.5">
                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Opening Balance</span>
-                    <span class="text-xs font-mono font-bold text-slate-650">₹0.00 DR</span>
+                    <span class="text-xs font-mono font-bold text-slate-650">₹{{ number_format(abs($openingBalance), 2) }} {{ $openingBalance < 0 ? 'CR' : 'DR' }}</span>
                 </div>
                 <div class="p-2 bg-slate-100 rounded-xl">
                     <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

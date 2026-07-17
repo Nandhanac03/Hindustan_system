@@ -1377,6 +1377,22 @@ class VoucherController extends Controller
         $startDate = $request->query('start_date');
         $endDate   = $request->query('end_date');
 
+        // Calculate dynamic opening balance for entries before start_date
+        $openingBalance = 0.00;
+        if ($startDate && $cashAccount) {
+            $prevDebit = (float)LedgerEntry::where('system_id', $systemId)
+                ->where('account_id', $cashAccount->id)
+                ->where('date', '<', $startDate)
+                ->sum('debit');
+
+            $prevCredit = (float)LedgerEntry::where('system_id', $systemId)
+                ->where('account_id', $cashAccount->id)
+                ->where('date', '<', $startDate)
+                ->sum('credit');
+
+            $openingBalance = $prevDebit - $prevCredit;
+        }
+
         $query = LedgerEntry::with(['voucher', 'account', 'voucherLine'])
             ->where('system_id', $systemId)
             ->when($cashAccount, fn($q) => $q->where('account_id', $cashAccount->id))
@@ -1385,7 +1401,7 @@ class VoucherController extends Controller
 
         $entries = $query->orderBy('date', 'asc')->orderBy('id', 'asc')->get();
 
-        $balance = 0.00;
+        $balance = $openingBalance;
         $totalDebit  = 0.00;
         $totalCredit = 0.00;
         foreach ($entries as $entry) {
@@ -1397,7 +1413,7 @@ class VoucherController extends Controller
 
         return view('vouchers.cash_book', compact(
             'entries', 'cashAccount', 'startDate', 'endDate',
-            'totalDebit', 'totalCredit', 'balance'
+            'totalDebit', 'totalCredit', 'balance', 'openingBalance'
         ));
     }
 
@@ -1420,6 +1436,22 @@ class VoucherController extends Controller
         $startDate      = $request->query('start_date');
         $endDate        = $request->query('end_date');
 
+        // Calculate dynamic opening balance for entries before start_date
+        $openingBalance = 0.00;
+        if ($startDate && $selectedBankId) {
+            $prevDebit = (float)LedgerEntry::where('system_id', $systemId)
+                ->where('account_id', $selectedBankId)
+                ->where('date', '<', $startDate)
+                ->sum('debit');
+
+            $prevCredit = (float)LedgerEntry::where('system_id', $systemId)
+                ->where('account_id', $selectedBankId)
+                ->where('date', '<', $startDate)
+                ->sum('credit');
+
+            $openingBalance = $prevDebit - $prevCredit;
+        }
+
         $query = LedgerEntry::with(['voucher', 'account', 'voucherLine.account'])
             ->where('system_id', $systemId)
             ->when($selectedBankId, fn($q) => $q->where('account_id', $selectedBankId))
@@ -1428,7 +1460,7 @@ class VoucherController extends Controller
 
         $entries = $query->orderBy('date', 'asc')->orderBy('id', 'asc')->get();
 
-        $balance     = 0.00;
+        $balance     = $openingBalance;
         $totalDebit  = 0.00;
         $totalCredit = 0.00;
         foreach ($entries as $entry) {
@@ -1445,7 +1477,7 @@ class VoucherController extends Controller
 
         return view('vouchers.bank_book', compact(
             'entries', 'bankAccounts', 'selectedBank', 'selectedBankId',
-            'startDate', 'endDate', 'totalDebit', 'totalCredit', 'balance'
+            'startDate', 'endDate', 'totalDebit', 'totalCredit', 'balance', 'openingBalance'
         ));
     }
 
@@ -1463,11 +1495,32 @@ class VoucherController extends Controller
         $endDate        = $request->query('end_date');
 
         $entries = collect();
+        $openingBalance = 0.00;
         $balance = 0.00;
         $totalDebit  = 0.00;
         $totalCredit = 0.00;
 
         if ($selectedId) {
+            // Calculate dynamic opening balance for entries before start_date
+            if ($startDate && $selectedAccount) {
+                $prevDebit = (float)LedgerEntry::where('system_id', $systemId)
+                    ->where('account_id', $selectedId)
+                    ->where('date', '<', $startDate)
+                    ->sum('debit');
+
+                $prevCredit = (float)LedgerEntry::where('system_id', $systemId)
+                    ->where('account_id', $selectedId)
+                    ->where('date', '<', $startDate)
+                    ->sum('credit');
+
+                $type = strtolower($selectedAccount->type ?? 'asset');
+                if (in_array($type, ['asset', 'expense'])) {
+                    $openingBalance = $prevDebit - $prevCredit;
+                } else {
+                    $openingBalance = $prevCredit - $prevDebit;
+                }
+            }
+
             $query = LedgerEntry::with(['voucher', 'account', 'voucherLine'])
                 ->where('system_id', $systemId)
                 ->where('account_id', $selectedId)
@@ -1476,6 +1529,7 @@ class VoucherController extends Controller
 
             $entries = $query->orderBy('date', 'asc')->orderBy('id', 'asc')->get();
 
+            $balance = $openingBalance;
             foreach ($entries as $entry) {
                 $totalDebit  += (float)$entry->debit;
                 $totalCredit += (float)$entry->credit;
@@ -1492,7 +1546,7 @@ class VoucherController extends Controller
         return view('vouchers.entity_ledger', compact(
             'accounts', 'selectedAccount', 'selectedId',
             'entries', 'startDate', 'endDate',
-            'totalDebit', 'totalCredit', 'balance'
+            'totalDebit', 'totalCredit', 'balance', 'openingBalance'
         ));
     }
 }

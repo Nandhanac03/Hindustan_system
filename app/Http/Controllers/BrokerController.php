@@ -238,10 +238,14 @@ class BrokerController extends Controller
         ]);
 
         $systemId = Auth::user()->system_id;
+        $user = Auth::user();
         $count = 0;
         $totalPaid = 0.0;
 
-        DB::transaction(function () use ($validated, $systemId, &$count, &$totalPaid) {
+        DB::transaction(function () use ($validated, $systemId, $user, &$count, &$totalPaid) {
+            $broker = null;
+            $narration = '';
+
             if (!empty($validated['commission_entry_id'])) {
                 $entry = CommissionEntry::where('system_id', $systemId)
                     ->where('id', $validated['commission_entry_id'])
@@ -251,12 +255,11 @@ class BrokerController extends Controller
                 $entry->update(['status' => 'Paid', 'triggered_at' => now()]);
                 $count = 1;
                 $totalPaid = (float)$entry->amount;
-                $brokerName = $entry->deal->broker->name ?? 'Broker';
+                $broker = $entry->deal->broker;
+                $brokerName = $broker->name ?? 'Broker';
+                $narration = "Commission payout to broker '{$brokerName}' for Booking #{$entry->deal->booking->booking_number}.";
 
-                ActivityLog::record(
-                    'broker.payout',
-                    "Disbursed commission payout of ₹" . number_format($totalPaid, 2) . " to broker '{$brokerName}' for Booking #{$entry->deal->booking->booking_number}."
-                );
+                ActivityLog::record('broker.payout', $narration);
             } elseif (!empty($validated['broker_id'])) {
                 $broker = Broker::where('system_id', $systemId)->findOrFail($validated['broker_id']);
                 $entries = CommissionEntry::where('system_id', $systemId)
@@ -271,11 +274,67 @@ class BrokerController extends Controller
                 }
 
                 if ($count > 0) {
-                    ActivityLog::record(
-                        'broker.payout',
-                        "Disbursed bulk commission payout of ₹" . number_format($totalPaid, 2) . " across {$count} deal(s) to broker '{$broker->name}'."
-                    );
+                    $narration = "Bulk commission payout across {$count} deal(s) to broker '{$broker->name}'.";
+                    ActivityLog::record('broker.payout', $narration);
                 }
+            }
+
+            if ($broker && $totalPaid > 0) {
+                // Post Payment Voucher to ledger
+                $voucher = \App\Models\Voucher::create([
+                    'system_id' => $systemId,
+                    'voucher_number' => 'PV-BROKER-' . $broker->id . '-' . time(),
+                    'type' => 'Payment',
+                    'date' => now()->toDateString(),
+                    'narration' => $narration ?: 'Broker commission payout',
+                    'created_by' => $user->id,
+                    'status' => 'Posted',
+                ]);
+
+                // 1. Debit Broker's linked account (reducing liability)
+                $brokerLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $broker->linked_account_id,
+                    'debit' => $totalPaid,
+                    'credit' => 0.00,
+                    'line_narration' => 'Debit Broker commission payable',
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $broker->linked_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $brokerLine->id,
+                    'date' => now()->toDateString(),
+                    'debit' => $totalPaid,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+
+                // 2. Credit Cash-in-Hand
+                $cashAccount = \App\Models\Account::firstOrCreate(
+                    ['system_id' => $systemId, 'code' => 'CASH-HAND'],
+                    ['name' => 'Cash-in-Hand', 'type' => 'Asset', 'is_active' => true]
+                );
+
+                $cashLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $cashAccount->id,
+                    'debit' => 0.00,
+                    'credit' => $totalPaid,
+                    'line_narration' => 'Credit Cash for commission payout',
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $cashAccount->id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $cashLine->id,
+                    'date' => now()->toDateString(),
+                    'debit' => 0.00,
+                    'credit' => $totalPaid,
+                    'running_balance' => 0.00,
+                ]);
             }
         });
 

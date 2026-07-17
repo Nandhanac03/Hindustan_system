@@ -144,7 +144,9 @@
                             <td class="px-4 py-3 font-bold text-slate-700 italic" colspan="3">Opening Balance</td>
                             <td class="px-4 py-3 text-right text-slate-400">—</td>
                             <td class="px-4 py-3 text-right text-slate-400">—</td>
-                            <td class="px-4 py-3 text-right font-bold text-slate-600">₹0.00</td>
+                            <td class="px-4 py-3 text-right font-bold text-slate-600">
+                                ₹{{ number_format(abs($openingBalance), 2) }} {{ $openingBalance < 0 ? 'CR' : 'DR' }}
+                            </td>
                         </tr>
 
                         @forelse($entries as $entry)

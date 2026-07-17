@@ -653,14 +653,73 @@ class PartnerController extends Controller
 
         $systemId = auth()->user()->system_id ?? 1;
         $partner  = Payee::where('type', 'Partner')->findOrFail($partnerId);
+        $user     = auth()->user();
 
-        PartnerAllocation::create([
-            'system_id'        => $systemId,
-            'partner_id'       => $partner->id,
-            'project_id'       => (int) $data['project_id'],
-            'allocated_amount' => (float) $data['allocated_amount'],
-            'date'             => $data['date'],
-        ]);
+        DB::transaction(function () use ($systemId, $partner, $data, $user) {
+            PartnerAllocation::create([
+                'system_id'        => $systemId,
+                'partner_id'       => $partner->id,
+                'project_id'       => (int) $data['project_id'],
+                'allocated_amount' => (float) $data['allocated_amount'],
+                'date'             => $data['date'],
+            ]);
+
+            // Create Payment Voucher
+            $voucher = \App\Models\Voucher::create([
+                'system_id' => $systemId,
+                'voucher_number' => 'PV-PARTNER-' . $partner->id . '-' . time(),
+                'type' => 'Payment',
+                'date' => $data['date'],
+                'narration' => 'Partner Payout recorded for ' . $partner->name . (isset($data['remarks']) ? ' (' . $data['remarks'] . ')' : ''),
+                'created_by' => $user->id,
+                'status' => 'Posted',
+            ]);
+
+            // 1. Debit Partner Account (reducing partner share liability/equity)
+            $partnerLine = \App\Models\VoucherLine::create([
+                'voucher_id' => $voucher->id,
+                'account_id' => $partner->linked_account_id,
+                'debit' => (float)$data['allocated_amount'],
+                'credit' => 0.00,
+                'line_narration' => 'Debit Partner account for payout',
+            ]);
+
+            \App\Models\LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $partner->linked_account_id,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $partnerLine->id,
+                'date' => $data['date'],
+                'debit' => (float)$data['allocated_amount'],
+                'credit' => 0.00,
+                'running_balance' => 0.00,
+            ]);
+
+            // 2. Credit Cash-in-Hand
+            $cashAccount = \App\Models\Account::firstOrCreate(
+                ['system_id' => $systemId, 'code' => 'CASH-HAND'],
+                ['name' => 'Cash-in-Hand', 'type' => 'Asset', 'is_active' => true]
+            );
+
+            $cashLine = \App\Models\VoucherLine::create([
+                'voucher_id' => $voucher->id,
+                'account_id' => $cashAccount->id,
+                'debit' => 0.00,
+                'credit' => (float)$data['allocated_amount'],
+                'line_narration' => 'Credit Cash for partner payout to ' . $partner->name,
+            ]);
+
+            \App\Models\LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $cashAccount->id,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $cashLine->id,
+                'date' => $data['date'],
+                'debit' => 0.00,
+                'credit' => (float)$data['allocated_amount'],
+                'running_balance' => 0.00,
+            ]);
+        });
 
         return redirect()->route('partners.statement', $partnerId)
             ->with('status', "Payout of ₹" . number_format((float)$data['allocated_amount'], 2) . " recorded for {$partner->name}.");
