@@ -21,7 +21,20 @@ class ExpenseController extends Controller
         $suppliers = Payee::where('system_id', $systemId)
             ->where('type', 'Supplier')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($supplier) {
+                // Calculate outstanding amount: sum(final_amount) - sum(payments)
+                $totalBills = (float)DB::table('bills')
+                    ->where('payee_id', $supplier->id)
+                    ->sum('final_amount');
+                
+                $totalPayments = (float)DB::table('bill_payments')
+                    ->where('payee_id', $supplier->id)
+                    ->sum('amount');
+                
+                $supplier->outstanding_balance = max(0.00, $totalBills - $totalPayments);
+                return $supplier;
+            });
 
         // 2. Fetch Projects
         $projects = Project::all();

@@ -71,7 +71,12 @@
                         <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Supplier Selection -->
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier / Contractor <span class="text-rose-500">*</span></label>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier / Contractor <span class="text-rose-500">*</span></label>
+                                    <span x-show="form.payee_id && selectedSupplierBalance() > 0"
+                                          class="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 uppercase"
+                                          x-text="'Owed: ₹' + formatCurrency(selectedSupplierBalance())"></span>
+                                </div>
                                 <select name="payee_id" required x-model="form.payee_id" @change="onSupplierChange()"
                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
                                     <option value="">Select Supplier</option>
@@ -544,16 +549,26 @@
                     uploaded_file_name: '',
                     uploaded_file_size: ''
                 },
+                selectedSupplierBalance() {
+                    const supplier = this.suppliers.find(s => s.id == this.form.payee_id);
+                    return supplier ? (parseFloat(supplier.outstanding_balance) || 0.00) : 0.00;
+                },
                 onSupplierChange() {
                     const supplier = this.suppliers.find(s => s.id == this.form.payee_id);
                     if (supplier) {
                         this.form.supplier_name = supplier.name;
                         this.form.gstin = supplier.gstin || '';
                         this.form.pan = supplier.pan || '';
+                        // Auto-populate outstanding balance to base amount input
+                        this.form.amount = parseFloat(supplier.outstanding_balance) || 0.00;
+                        this.calcTotal();
+                        this.fetchProjectMetrics();
                     } else {
                         this.form.supplier_name = '';
                         this.form.gstin = '';
                         this.form.pan = '';
+                        this.form.amount = 0.00;
+                        this.calcTotal();
                     }
                 },
                 updateProjectName(el) {
