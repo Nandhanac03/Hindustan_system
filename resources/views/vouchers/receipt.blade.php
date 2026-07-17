@@ -159,11 +159,11 @@
                                             <td class="px-6 py-5 font-mono font-extrabold text-slate-950 text-right" x-text="'₹' + formatCurrency(r.amount)"></td>
                                             <td class="px-6 py-5">
                                                 <span :class="
-                                                    r.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                                                    (r.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                                    r.payment_mode && r.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                                    (r.payment_mode && r.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                                                     'bg-blue-50 text-blue-700 border border-blue-100')
                                                 " class="px-2.5 py-1 rounded text-[8px] font-extrabold uppercase tracking-wide">
-                                                    <span x-text="r.payment_mode"></span>
+                                                    <span x-text="r.payment_mode || 'N/A'"></span>
                                                 </span>
                                             </td>
                                             <td class="px-6 py-5 text-center">
@@ -230,23 +230,27 @@
                                     </div>
                                     <div>
                                         <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Remaining Balance</div>
-                                        <div class="mt-0.5 font-mono font-extrabold text-emerald-600 text-sm" x-text="'₹' + formatCurrency(selectedReceipt.amount)"></div>
+                                        <div class="mt-0.5 font-mono font-extrabold text-sm"
+                                             :class="selectedReceipt.is_allocated ? 'text-slate-500' : 'text-emerald-600'"
+                                             x-text="selectedReceipt.is_allocated ? '₹0.00' : '₹' + formatCurrency(selectedReceipt.amount)"></div>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                                     <div>
                                         <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Already Allocated</div>
-                                        <div class="mt-0.5 font-mono text-slate-450 font-bold">₹0.00</div>
+                                        <div class="mt-0.5 font-mono font-bold"
+                                             :class="selectedReceipt.is_allocated ? 'text-amber-600' : 'text-slate-450'"
+                                             x-text="selectedReceipt.is_allocated ? '₹' + formatCurrency(selectedReceipt.amount) : '₹0.00'"></div>
                                     </div>
                                     <div>
                                         <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payment Mode</div>
                                         <div class="mt-1">
                                             <span :class="
-                                                selectedReceipt.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                                                (selectedReceipt.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                                selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                                (selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
                                                 'bg-blue-50 text-blue-700 border border-blue-100')
                                             " class="px-2.5 py-1 rounded text-[8px] font-extrabold uppercase tracking-wide">
-                                                <span x-text="selectedReceipt.payment_mode"></span>
+                                                <span x-text="selectedReceipt.payment_mode || 'N/A'"></span>
                                             </span>
                                         </div>
                                     </div>
@@ -281,10 +285,10 @@
                         </template>
                         
                         <div class="pt-4 border-t border-slate-100/50">
-                            <button type="button" @click="step = 2" :disabled="!selectedReceiptId"
-                                    :class="!selectedReceiptId ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-gradient-to-r from-[#a38c29] to-[#806c1d] hover:brightness-110 text-white shadow-md shadow-[#a38c29]/20'"
+                            <button type="button" @click="step = 2" :disabled="!selectedReceiptId || selectedReceipt?.is_allocated"
+                                    :class="(!selectedReceiptId || selectedReceipt?.is_allocated) ? 'bg-slate-50 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-gradient-to-r from-[#a38c29] to-[#806c1d] hover:brightness-110 text-white shadow-md shadow-[#a38c29]/20'"
                                     class="w-full py-3.5 text-center text-[10px] font-extrabold rounded-xl transition duration-300 uppercase tracking-wider flex items-center justify-center gap-2 border border-[#a38c29]/10">
-                                <span>Use This Receipt for Allocation</span>
+                                <span x-text="selectedReceipt?.is_allocated ? 'Receipt Already Allocated' : 'Use This Receipt for Allocation'"></span>
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                             </button>
                         </div>
@@ -637,8 +641,8 @@
                 filteredReceipts() {
                     return this.allReceipts.filter(r => {
                         const matchesSearch = !this.searchQuery || 
-                            r.ref.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                            r.customer_name.toLowerCase().includes(this.searchQuery.toLowerCase());
+                            (r.ref || '').toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                            (r.customer_name || '').toLowerCase().includes(this.searchQuery.toLowerCase());
                         const matchesProject = !this.filterProject || r.project_id == this.filterProject;
                         const matchesCustomer = !this.filterCustomer || r.customer_id == this.filterCustomer;
                         return matchesSearch && matchesProject && matchesCustomer;

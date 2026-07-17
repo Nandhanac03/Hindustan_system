@@ -49,13 +49,28 @@ class ExpenseController extends Controller
             'bill_amount' => 'required|numeric|min:0.01',
             'final_amount' => 'required|numeric|min:0.01',
             'bill_date' => 'required|date',
+            'bill_type' => 'nullable|string|max:50',
+            'payment_terms' => 'nullable|string|max:50',
+            'place_of_supply' => 'nullable|string|max:100',
+            'expense_head' => 'required|string|max:100',
+            'bill_file' => 'required|file|mimes:pdf,jpeg,png,jpg|max:10240',
         ]);
+
+        $billFilePath = null;
+        if ($request->hasFile('bill_file')) {
+            $billFilePath = $request->file('bill_file')->store('bills', 'public');
+        }
 
         DB::table('bills')->insert([
             'system_id' => $systemId,
             'payee_id' => $request->payee_id,
             'project_id' => $request->project_id,
             'bill_number' => $request->bill_number,
+            'bill_type' => $request->bill_type,
+            'payment_terms' => $request->payment_terms,
+            'place_of_supply' => $request->place_of_supply,
+            'expense_head' => $request->expense_head,
+            'bill_file' => $billFilePath,
             'bill_amount' => $request->bill_amount,
             'final_amount' => $request->final_amount,
             'status' => 'approved_unpaid', // Immediately available in receipt split target

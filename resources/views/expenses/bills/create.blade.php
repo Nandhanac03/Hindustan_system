@@ -43,7 +43,18 @@
             </div>
         </div>
 
-        <form action="{{ route('expenses.bills.store') }}" method="POST">
+        @if ($errors->any())
+            <div class="bg-rose-50 border border-rose-200 text-rose-850 text-xs font-bold rounded-2xl p-4 mb-6 shadow-xs">
+                <div class="uppercase tracking-wider text-[10px] mb-2 font-extrabold text-rose-800">Please correct the following errors:</div>
+                <ul class="list-disc pl-5 space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('expenses.bills.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <!-- Two-Panel Grid Layout -->
@@ -101,7 +112,7 @@
                             <!-- Bill Type -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Bill Type</label>
-                                <select x-model="form.bill_type"
+                                <select name="bill_type" x-model="form.bill_type"
                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none cursor-pointer">
                                     <option value="Material Supply">Material Supply</option>
                                     <option value="Labor Works">Labor Works</option>
@@ -112,7 +123,7 @@
                             <!-- Payment Terms -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Payment Terms</label>
-                                <select x-model="form.payment_terms"
+                                <select name="payment_terms" x-model="form.payment_terms"
                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none cursor-pointer">
                                     <option value="Immediate">Immediate / Cash</option>
                                     <option value="30 Days">30 Days</option>
@@ -124,7 +135,7 @@
                             <!-- Place of Supply -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Place of Supply</label>
-                                <select x-model="form.place_of_supply"
+                                <select name="place_of_supply" x-model="form.place_of_supply"
                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none cursor-pointer">
                                     <option value="Tamil Nadu (33)">Tamil Nadu (33)</option>
                                     <option value="Kerala (32)">Kerala (32)</option>
@@ -155,7 +166,7 @@
 
                             <!-- Form Action Next Button -->
                             <div class="md:col-span-2 pt-4 flex justify-end">
-                                <button type="button" @click="step = 2"
+                                <button type="button" @click="if (validateStep(1)) step = 2"
                                         class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                     <span>Next</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -174,7 +185,7 @@
                                 <!-- Expense Head -->
                                 <div class="space-y-1.5 col-span-2">
                                     <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Expense Head <span class="text-rose-500">*</span></label>
-                                    <select x-model="form.expense_head"
+                                    <select name="expense_head" x-model="form.expense_head"
                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none cursor-pointer">
                                         <option value="Cement">Cement</option>
                                         <option value="Steel/Rebars">Steel/Rebars</option>
@@ -224,7 +235,7 @@
                                         class="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                     Back
                                 </button>
-                                <button type="button" @click="step = 3"
+                                <button type="button" @click="if (validateStep(2)) step = 3"
                                         class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                     <span>Next</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -240,7 +251,14 @@
                         </div>
                         <div class="p-6 space-y-6">
                             <!-- Drag & Drop Zone -->
-                            <div class="border-2 border-dashed border-slate-250 hover:border-primary hover:bg-primary-50/10 rounded-2xl p-8 text-center transition cursor-pointer">
+                            <input type="file" name="bill_file" x-ref="fileInput" class="hidden" @change="onFileChange($event)" accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="border-2 border-dashed border-slate-250 hover:border-primary hover:bg-primary-50/10 rounded-2xl p-8 text-center transition cursor-pointer"
+                                 @dragover.prevent="dragover = true"
+                                 @dragenter.prevent="dragover = true"
+                                 @dragleave.prevent="dragover = false"
+                                 @drop.prevent="onFileDrop($event); dragover = false"
+                                 :class="dragover ? 'border-primary bg-primary-50/10' : ''"
+                                 @click="$refs.fileInput.click()">
                                 <svg class="w-10 h-10 mx-auto text-slate-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                                 </svg>
@@ -253,7 +271,7 @@
                             </div>
 
                             <!-- Uploaded File Display -->
-                            <div class="p-4 border border-slate-200 rounded-2xl flex items-center justify-between bg-slate-50/50">
+                            <div x-show="form.uploaded_file_name" class="p-4 border border-slate-200 rounded-2xl flex items-center justify-between bg-slate-50/50" x-transition>
                                 <div class="flex items-center gap-3">
                                     <!-- PDF Icon -->
                                     <span class="text-rose-500">
@@ -268,7 +286,7 @@
                                     <span class="text-emerald-500">
                                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                     </span>
-                                    <button type="button" class="text-slate-400 hover:text-rose-600 transition">
+                                    <button type="button" @click="removeFile()" class="text-slate-400 hover:text-rose-600 transition">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
@@ -442,6 +460,7 @@
         function addBillForm() {
             return {
                 step: 1,
+                dragover: false,
                 suppliers: @json($suppliers),
                 systemRef: '{{ $systemBillRef }}',
                 projectMetrics: {
@@ -524,6 +543,42 @@
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
+                },
+                onFileChange(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        this.form.uploaded_file_name = file.name;
+                        this.form.uploaded_file_size = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                    }
+                },
+                onFileDrop(e) {
+                    const file = e.dataTransfer.files[0];
+                    if (file) {
+                        this.$refs.fileInput.files = e.dataTransfer.files;
+                        this.form.uploaded_file_name = file.name;
+                        this.form.uploaded_file_size = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                    }
+                },
+                removeFile() {
+                    this.$refs.fileInput.value = '';
+                    this.form.uploaded_file_name = '';
+                    this.form.uploaded_file_size = '';
+                },
+                validateStep(currentStep) {
+                    const panel = document.querySelector(`[x-show="step === ${currentStep}"]`);
+                    if (!panel) return true;
+                    
+                    const inputs = panel.querySelectorAll('input, select, textarea');
+                    let isValid = true;
+                    
+                    for (let i = 0; i < inputs.length; i++) {
+                        if (!inputs[i].checkValidity()) {
+                            inputs[i].reportValidity();
+                            isValid = false;
+                            break;
+                        }
+                    }
+                    return isValid;
                 }
             }
         }
