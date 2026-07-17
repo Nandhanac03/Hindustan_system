@@ -234,7 +234,7 @@ class VoucherController extends Controller
             'source_receipt_id' => 'nullable|integer',
         ]);
  
-        DB::transaction(function () use ($request, $systemId, $user) {
+        $voucher = DB::transaction(function () use ($request, $systemId, $user) {
             $baseAmount = (float)$request->amount;
             $gstBehavior = $request->gst_behavior;
             $gstPct = (float)($request->gst_rate ?? 5.0);
@@ -605,10 +605,10 @@ class VoucherController extends Controller
                     }
                 }
             }
+            return $voucher;
         });
  
-        $lastV = Voucher::where('system_id', auth()->user()->system_id)->where('type', 'Receipt')->orderBy('id', 'desc')->first();
-        return redirect()->route('vouchers.receipt.posted', ['id' => $lastV->id]);
+        return redirect()->route('vouchers.receipt.posted', ['id' => $voucher->id]);
     }
  
     public function receiptPosted(int $id)
