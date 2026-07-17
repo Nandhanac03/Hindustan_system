@@ -92,37 +92,7 @@
             </div>
         </div>
 
-        {{-- Next Steps Card --}}
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest mb-4">What's Next</h3>
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('vouchers.receipt.create') }}"
-                   class="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider bg-primary hover:bg-primary-700 text-white rounded-xl shadow-sm transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    New Receipt
-                </a>
-                <a href="{{ route('vouchers.ledger.index') }}"
-                   class="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider bg-slate-800 hover:bg-slate-900 text-white rounded-xl shadow-sm transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                    View Ledger Directory
-                </a>
-                <a href="{{ route('vouchers.cash-book') }}"
-                   class="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18M3 6h18M3 18h18"/></svg>
-                    Cash Book / Passbook
-                </a>
-                <a href="{{ route('expenses.bills.index') }}"
-                   class="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    Supplier Bills
-                </a>
-                <a href="{{ route('reports.index', ['report' => 'activity_statements']) }}"
-                   class="flex items-center gap-2 px-5 py-2.5 text-xs font-extrabold uppercase tracking-wider bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl shadow-sm transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                    View Statements
-                </a>
-            </div>
-        </div>
+
 
     </div>
 </x-erp-layout>
