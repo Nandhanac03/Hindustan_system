@@ -91,92 +91,179 @@
                 <!-- Left Panel: Unallocated Receipt List (2/3 width) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-md shadow-slate-100/40 overflow-hidden lg:col-span-2 flex flex-col justify-between">
                     <div>
-                        <!-- Sleek Dark Navy Header -->
-                        <div class="px-6 py-5 bg-gradient-to-r from-[#2D2B24] to-[#1F1D1A] text-white border-b border-[#a38c29]/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-white/10 text-primary flex items-center justify-center shrink-0 border border-white/10">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/></svg>
+                        <!-- Modern Header with Stats -->
+                        <div class="px-6 py-5 bg-gradient-to-r from-[#2D2B24] to-[#1F1D1A] text-white border-b border-[#a38c29]/20">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#a38c29]/30 to-[#a38c29]/10 text-[#d4b94e] flex items-center justify-center shrink-0 border border-[#a38c29]/20">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-100">Receipt Ledger</h3>
+                                        <p class="text-[9px] text-slate-400 font-medium mt-0.5">Select a receipt to allocate funds</p>
+                                    </div>
                                 </div>
-                                <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-100">Unallocated Receipt List</h3>
+                                
+                                <!-- Inline Stats -->
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/15 border border-rose-400/20">
+                                        <div class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></div>
+                                        <span class="text-[10px] font-extrabold text-rose-300" x-text="filteredReceipts().filter(r => !r.is_allocated).length"></span>
+                                        <span class="text-[9px] font-semibold text-rose-400/70">Pending</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 border border-emerald-400/20">
+                                        <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                                        <span class="text-[10px] font-extrabold text-emerald-300" x-text="filteredReceipts().filter(r => r.is_allocated).length"></span>
+                                        <span class="text-[9px] font-semibold text-emerald-400/70">Done</span>
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <!-- Search & Filter Controls inside header -->
-                            <div class="flex flex-wrap items-center gap-2">
-                                <div class="relative flex items-center">
-                                    <span class="absolute left-3 text-slate-400">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+
+                            <!-- Search & Filter Row -->
+                            <div class="flex flex-wrap items-center gap-2 mt-4">
+                                <div class="relative flex items-center flex-1 min-w-[180px]">
+                                    <span class="absolute left-3 text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                     </span>
-                                    <input type="text" x-model="searchQuery" placeholder="Search customer/receipt..."
-                                           class="pl-9 pr-3 py-1.5 bg-white/10 border border-slate-700 hover:border-slate-500 rounded-lg text-xs font-semibold text-white placeholder-slate-400 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-white transition-all w-52">
+                                    <input type="text" x-model="searchQuery" placeholder="Search customer, receipt no..."
+                                           class="w-full pl-9 pr-3 py-2 bg-white/10 border border-slate-600/50 hover:border-slate-500 rounded-xl text-xs font-semibold text-white placeholder-slate-500 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition-all">
                                 </div>
                                 
                                 <div class="relative flex items-center">
-                                    <span class="absolute left-3 text-slate-400">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                                    <span class="absolute left-3 text-slate-500">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                     </span>
-                                    <select x-model="filterProject" class="pl-9 pr-8 py-1.5 bg-white/10 border border-slate-700 hover:border-slate-500 rounded-lg text-xs font-semibold text-slate-350 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-white transition-all appearance-none cursor-pointer">
-                                        <option value="" class="text-slate-800">Filter Project</option>
+                                    <select x-model="filterProject" class="pl-9 pr-8 py-2 bg-white/10 border border-slate-600/50 hover:border-slate-500 rounded-xl text-xs font-semibold text-slate-350 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition-all appearance-none cursor-pointer">
+                                        <option value="" class="text-slate-800">All Projects</option>
                                         @foreach($projects as $p)
                                             <option value="{{ $p->id }}" class="text-slate-800">{{ $p->name }}</option>
                                         @endforeach
                                     </select>
-                                    <span class="absolute right-3 pointer-events-none text-slate-400">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    <span class="absolute right-3 pointer-events-none text-slate-500">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="overflow-x-auto">
+                        <!-- Tab Switcher (Modern Gradient Pill Tabs) -->
+                        <div class="p-1.5 bg-slate-100/85 rounded-2xl m-4 border border-slate-200/40 relative">
+                            <div class="grid grid-cols-2 relative z-10 gap-1.5 text-xs">
+                                <!-- Unallocated Button -->
+                                <button type="button" @click="activeTab = 'unallocated'"
+                                        class="relative py-2.5 px-4 rounded-xl font-extrabold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden focus:outline-none"
+                                        :class="activeTab === 'unallocated' ? 'bg-gradient-to-r from-[#a38c29] to-[#c5a832] text-white shadow-md shadow-[#a38c29]/20' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white" x-show="activeTab === 'unallocated'"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" x-show="activeTab !== 'unallocated'"></span>
+                                    Unallocated Receipts
+                                    <span class="ml-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold transition-all"
+                                          :class="activeTab === 'unallocated' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-700'"
+                                          x-text="filteredReceipts().filter(r => !r.is_allocated).length"></span>
+                                </button>
+
+                                <!-- Allocated Button -->
+                                <button type="button" @click="activeTab = 'allocated'"
+                                        class="relative py-2.5 px-4 rounded-xl font-extrabold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden focus:outline-none"
+                                        :class="activeTab === 'allocated' ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-md shadow-emerald-600/20' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white" x-show="activeTab === 'allocated'"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" x-show="activeTab !== 'allocated'"></span>
+                                    Allocated Receipts
+                                    <span class="ml-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold transition-all"
+                                          :class="activeTab === 'allocated' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-700'"
+                                          x-text="filteredReceipts().filter(r => r.is_allocated).length"></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Receipt Table -->
+                        <div class="overflow-x-auto" style="max-height: 420px; overflow-y: auto;">
                             <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                        <th class="px-6 py-4">Receipt No</th>
-                                        <th class="px-6 py-4">Date</th>
-                                        <th class="px-6 py-4">Customer</th>
-                                        <th class="px-6 py-4">Project</th>
-                                        <th class="px-6 py-4">Unit</th>
-                                        <th class="px-6 py-4 text-right">Amount Received</th>
-                                        <th class="px-6 py-4">Mode</th>
-                                        <th class="px-6 py-4 text-center">Status</th>
+                                <thead class="sticky top-0 z-10 shadow-sm">
+                                    <tr class="bg-slate-100/90 backdrop-blur-sm border-b border-slate-200 text-[10px] font-bold text-slate-650 uppercase tracking-widest">
+                                       
+                                        <th class="px-4 py-3.5">Receipt No</th>
+                                        <th class="px-4 py-3.5">Date</th>
+                                        <th class="px-4 py-3.5">Customer</th>
+                                        <th class="px-4 py-3.5">Project</th>
+                                        <th class="px-4 py-3.5">Unit</th>
+                                        <th class="px-4 py-3.5 text-right">Amount</th>
+                                        <th class="px-4 py-3.5 text-center">Mode</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 text-xs text-slate-800">
-                                    <template x-for="r in filteredReceipts()" :key="r.id">
-                                        <tr @click="selectReceipt(r)"
-                                            :class="selectedReceiptId == r.id ? 'bg-[#a38c29]/10 border-l-4 border-[#a38c29] font-bold' : 'hover:bg-slate-50/50 cursor-pointer'"
-                                            class="transition duration-150">
-                                            <td class="px-6 py-5 font-mono text-slate-900 flex items-center gap-2">
-                                                <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/></svg>
-                                                </div>
-                                                <span class="font-bold text-slate-900" x-text="r.ref"></span>
-                                            </td>
-                                            <td class="px-6 py-5 text-slate-500 font-semibold" x-text="r.date"></td>
-                                            <td class="px-6 py-5 font-bold text-slate-955" x-text="r.customer_name"></td>
-                                            <td class="px-6 py-5 text-slate-500 font-semibold" x-text="r.project_name"></td>
-                                            <td class="px-6 py-5 font-extrabold text-slate-800" x-text="r.unit_name"></td>
-                                            <td class="px-6 py-5 font-mono font-extrabold text-slate-950 text-right" x-text="'₹' + formatCurrency(r.amount)"></td>
-                                            <td class="px-6 py-5">
-                                                <span :class="
-                                                    r.payment_mode && r.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
-                                                    (r.payment_mode && r.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
-                                                    'bg-blue-50 text-blue-700 border border-blue-100')
-                                                " class="px-2.5 py-1 rounded text-[8px] font-extrabold uppercase tracking-wide">
-                                                    <span x-text="r.payment_mode || 'N/A'"></span>
-                                                </span>
-                                            </td>
-                                            <td class="px-6 py-5 text-center">
-                                                <span :class="r.is_allocated ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-250'"
-                                                      class="px-2.5 py-1 rounded text-[8px] font-extrabold uppercase tracking-wide"
-                                                      x-text="r.is_allocated ? 'Allocated' : 'Unallocated'">
-                                                </span>
-                                            </td>
-                                        </tr>
+                                <tbody class="divide-y divide-slate-50 text-xs text-slate-800">
+                                    <!-- Unallocated Tab -->
+                                    <template x-if="activeTab === 'unallocated'">
+                                        <template x-for="(r, idx) in filteredReceipts().filter(r => !r.is_allocated).slice((unallocatedPage - 1) * perPage, unallocatedPage * perPage)" :key="r.id">
+                                            <tr @click="selectReceipt(r)"
+                                                :class="selectedReceiptId == r.id ? 'bg-[#a38c29]/8 border-l-[3px] border-l-[#a38c29]' : 'hover:bg-slate-50/80 cursor-pointer border-l-[3px] border-l-transparent'"
+                                                class="transition-all duration-200 group">
+                                                
+                                                <td class="px-4 py-4 font-mono">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0 animate-pulse"></div>
+                                                        <span class="font-bold text-slate-900 text-[11px]" x-text="r.ref"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 text-slate-500 font-semibold" x-text="r.date"></td>
+                                                <td class="px-4 py-4 font-bold text-slate-900" x-text="r.customer_name"></td>
+                                                <td class="px-4 py-4 text-slate-900 font-bold" x-text="r.project_name"></td>
+                                                <td class="px-4 py-4">
+                                                    <span class="px-2 py-0.5 bg-slate-100 rounded-md text-[10px] font-extrabold text-slate-700" x-text="r.unit_name"></span>
+                                                </td>
+                                                <td class="px-4 py-4 font-mono font-extrabold text-slate-950 text-right text-[11px]" x-text="'₹' + formatCurrency(r.amount)"></td>
+                                                <td class="px-4 py-4 text-center">
+                                                    <span :class="
+                                                        r.payment_mode && r.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                                        (r.payment_mode && r.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                                                        'bg-blue-50 text-blue-700 border border-blue-100')
+                                                    " class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wide">
+                                                        <span x-text="r.payment_mode || 'N/A'"></span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </template>
                                     </template>
-                                    <template x-if="filteredReceipts().length === 0">
+
+                                    <!-- Allocated Tab -->
+                                    <template x-if="activeTab === 'allocated'">
+                                        <template x-for="(r, idx) in filteredReceipts().filter(r => r.is_allocated).slice((allocatedPage - 1) * perPage, allocatedPage * perPage)" :key="r.id">
+                                            <tr @click="selectReceipt(r)"
+                                                :class="selectedReceiptId == r.id ? 'bg-emerald-50/50 border-l-[3px] border-l-emerald-500' : 'hover:bg-slate-50/80 cursor-pointer border-l-[3px] border-l-transparent'"
+                                                class="transition-all duration-200 group opacity-80 hover:opacity-100">
+                                                
+                                                <td class="px-4 py-4 font-mono">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></div>
+                                                        <span class="font-bold text-slate-700 text-[11px]" x-text="r.ref"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-4 text-slate-400 font-semibold" x-text="r.date"></td>
+                                                <td class="px-4 py-4 font-bold text-slate-700" x-text="r.customer_name"></td>
+                                                <td class="px-4 py-4 text-slate-900 font-bold" x-text="r.project_name"></td>
+                                                <td class="px-4 py-4">
+                                                    <span class="px-2 py-0.5 bg-slate-100 rounded-md text-[10px] font-extrabold text-slate-500" x-text="r.unit_name"></span>
+                                                </td>
+                                                <td class="px-4 py-4 font-mono font-extrabold text-slate-700 text-right text-[11px]" x-text="'₹' + formatCurrency(r.amount)"></td>
+                                                <td class="px-4 py-4 text-center">
+                                                    <span class="px-2 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wide bg-emerald-50 text-emerald-600 border border-emerald-100">
+                                                        <span x-text="r.payment_mode || 'N/A'"></span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </template>
+
+                                    <!-- Empty State -->
+                                    <template x-if="(activeTab === 'unallocated' && filteredReceipts().filter(r => !r.is_allocated).length === 0) || (activeTab === 'allocated' && filteredReceipts().filter(r => r.is_allocated).length === 0)">
                                         <tr>
-                                            <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">No unallocated receipts found matching filters.</td>
+                                            <td colspan="8" class="px-6 py-16 text-center">
+                                                <div class="flex flex-col items-center gap-3">
+                                                    <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
+                                                        <svg class="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/></svg>
+                                                    </div>
+                                                    <span class="text-slate-400 text-xs font-semibold" x-text="activeTab === 'unallocated' ? 'No unallocated receipts found' : 'No allocated receipts found'"></span>
+                                                </div>
+                                            </td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -184,14 +271,60 @@
                         </div>
                     </div>
 
-                    <!-- Table Footer Pagination -->
-                    <div class="px-6 py-5 bg-white border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-450 uppercase tracking-wide">
-                        <span x-text="'Showing 1 to ' + filteredReceipts().length + ' of ' + filteredReceipts().length + ' entries'"></span>
-                        
-                        <div class="flex items-center gap-1.5">
-                            <button type="button" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition text-slate-650 font-bold">‹</button>
-                            <button type="button" class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-extrabold shadow-glow">1</button>
-                            <button type="button" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition text-slate-650 font-bold">›</button>
+                    <!-- Table Footer with Pagination -->
+                    <div class="px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <!-- Left Info -->
+                        <div class="flex flex-wrap items-center gap-3 text-slate-500">
+                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider"
+                                  x-text="activeTab === 'unallocated' 
+                                    ? (filteredReceipts().filter(r => !r.is_allocated).length === 0 ? 'Showing 0 - 0 of 0' : 'Showing ' + (((unallocatedPage - 1) * perPage) + 1) + ' - ' + Math.min(unallocatedPage * perPage, filteredReceipts().filter(r => !r.is_allocated).length) + ' of ' + filteredReceipts().filter(r => !r.is_allocated).length)
+                                    : (filteredReceipts().filter(r => r.is_allocated).length === 0 ? 'Showing 0 - 0 of 0' : 'Showing ' + (((allocatedPage - 1) * perPage) + 1) + ' - ' + Math.min(allocatedPage * perPage, filteredReceipts().filter(r => r.is_allocated).length) + ' of ' + filteredReceipts().filter(r => r.is_allocated).length)"></span>
+                            <span class="text-slate-300">|</span>
+                            <span class="text-[10px] font-extrabold text-[#a38c29] uppercase tracking-wider"
+                                  x-text="'Total: ₹' + formatCurrency(filteredReceipts().filter(r => activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated).reduce((sum, r) => sum + parseFloat(r.amount || 0), 0))"></span>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div class="flex items-center gap-4">
+                            <!-- Page Size Selector -->
+                            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                                <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Show:</span>
+                                <select x-model.number="perPage" @change="unallocatedPage = 1; allocatedPage = 1;"
+                                        class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#a38c29]/30 cursor-pointer transition">
+                                    <option value="5">5</option>
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </div>
+
+                            <!-- Page Navigation Buttons -->
+                            <div class="flex items-center gap-1">
+                                <!-- Prev Button -->
+                                <button type="button" 
+                                        @click="activeTab === 'unallocated' ? (unallocatedPage > 1 && unallocatedPage--) : (allocatedPage > 1 && allocatedPage--)"
+                                        :disabled="activeTab === 'unallocated' ? unallocatedPage === 1 : allocatedPage === 1"
+                                        class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition text-slate-650 font-bold disabled:opacity-40 disabled:cursor-not-allowed">
+                                    ‹
+                                </button>
+
+                                <!-- Page Info -->
+                                <span class="px-3 text-xs font-bold text-slate-700" 
+                                      x-text="activeTab === 'unallocated' 
+                                        ? unallocatedPage + ' / ' + Math.max(1, Math.ceil(filteredReceipts().filter(r => !r.is_allocated).length / perPage))
+                                        : allocatedPage + ' / ' + Math.max(1, Math.ceil(filteredReceipts().filter(r => r.is_allocated).length / perPage))">
+                                </span>
+
+                                <!-- Next Button -->
+                                <button type="button" 
+                                        @click="activeTab === 'unallocated' ? (unallocatedPage < Math.ceil(filteredReceipts().filter(r => !r.is_allocated).length / perPage) && unallocatedPage++) : (allocatedPage < Math.ceil(filteredReceipts().filter(r => r.is_allocated).length / perPage) && allocatedPage++)"
+                                        :disabled="activeTab === 'unallocated' 
+                                            ? unallocatedPage >= Math.max(1, Math.ceil(filteredReceipts().filter(r => !r.is_allocated).length / perPage)) 
+                                            : allocatedPage >= Math.max(1, Math.ceil(filteredReceipts().filter(r => r.is_allocated).length / perPage))"
+                                        class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition text-slate-650 font-bold disabled:opacity-40 disabled:cursor-not-allowed">
+                                    ›
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -221,7 +354,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Project / Unit</div>
-                                    <div class="mt-0.5 font-bold text-slate-700" x-text="selectedReceipt.project_name + ' • ' + selectedReceipt.unit_name"></div>
+                                    <div class="mt-0.5 font-bold text-slate-900" x-text="selectedReceipt.project_name + ' • ' + selectedReceipt.unit_name"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
                                     <div>
@@ -385,11 +518,11 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                    <th class="px-6 py-3.5 w-1/4">Allocation Type</th>
-                                    <th class="px-6 py-3.5 w-1/3">Target Destination</th>
-                                    <th class="px-6 py-3.5 w-1/4 text-right">Amount (₹)</th>
-                                    <th class="px-6 py-3.5">Remarks</th>
-                                    <th class="px-6 py-3.5 text-center w-12">Action</th>
+                                    <th class="px-4 py-3.5" style="width:18%">Allocation Type</th>
+                                    <th class="px-4 py-3.5" style="width:28%">Target Destination</th>
+                                    <th class="px-4 py-3.5 text-right" style="width:14%">Amount (₹)</th>
+                                    <th class="px-4 py-3.5" style="width:32%">Remarks</th>
+                                    <th class="px-4 py-3.5 text-center" style="width:8%">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-xs">
@@ -425,9 +558,10 @@
                                             </div>
                                         </td>
                                         <!-- Remarks -->
-                                        <td class="px-6 py-3">
+                                        <td class="px-4 py-3">
                                             <input type="text" x-model="row.remarks" placeholder="Enter remarks..."
-                                                   class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] text-xs font-semibold text-slate-700 transition">
+                                                   class="w-full px-2.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] text-xs font-semibold text-slate-700 transition"
+                                                   style="min-width:200px">
                                         </td>
                                         <!-- Remove Row -->
                                         <td class="px-6 py-3 text-center">
@@ -631,15 +765,25 @@
                 customerName: '',
                 destAccountName: '',
 
+                // Pagination & Tab state
+                activeTab: 'unallocated',
+                unallocatedPage: 1,
+                allocatedPage: 1,
+                perPage: 10,
+
                 init() {
                     this.$watch('step', value => {
                         if (value === 3) {
                             this.initChart();
                         }
                     });
+                    this.$watch('searchQuery', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
+                    this.$watch('filterProject', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
+                    this.$watch('filterCustomer', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
+                    this.$watch('activeTab', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
                 },
                 filteredReceipts() {
-                    return this.allReceipts.filter(r => {
+                    let filtered = this.allReceipts.filter(r => {
                         const matchesSearch = !this.searchQuery || 
                             (r.ref || '').toLowerCase().includes(this.searchQuery.toLowerCase()) ||
                             (r.customer_name || '').toLowerCase().includes(this.searchQuery.toLowerCase());
@@ -647,6 +791,12 @@
                         const matchesCustomer = !this.filterCustomer || r.customer_id == this.filterCustomer;
                         return matchesSearch && matchesProject && matchesCustomer;
                     });
+                    // Sort: unallocated first, then by date descending (latest first)
+                    filtered.sort((a, b) => {
+                        if (a.is_allocated !== b.is_allocated) return a.is_allocated ? 1 : -1;
+                        return (b.date || '').localeCompare(a.date || '');
+                    });
+                    return filtered;
                 },
                 selectReceipt(r) {
                     if (this.selectedReceiptId == r.id) {

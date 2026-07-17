@@ -44,13 +44,24 @@ class VoucherController extends Controller
         $creditAccounts = $accounts->filter(fn($acc) => in_array(strtolower($acc->type), ['liability', 'income', 'equity']));
  
         // Generate voucher number
+        $currentYear = date('Y');
         $lastVoucher = Voucher::where('system_id', $systemId)
             ->where('type', 'Receipt')
+            ->where('voucher_number', 'LIKE', "RC-{$currentYear}-%")
+            ->where('voucher_number', 'NOT LIKE', '%.%')
+            ->where('voucher_number', 'NOT LIKE', '%E%')
             ->orderBy('id', 'desc')
             ->first();
         
-        $nextNum = $lastVoucher ? ((int) preg_replace('/[^0-9]/', '', $lastVoucher->voucher_number) + 1) : 1;
-        $voucherNumber = 'RC-' . date('Y') . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+        $nextNum = 1;
+        if ($lastVoucher) {
+            $parts = explode('-', $lastVoucher->voucher_number);
+            $lastSegment = end($parts);
+            if (is_numeric($lastSegment)) {
+                $nextNum = (int)$lastSegment + 1;
+            }
+        }
+        $voucherNumber = 'RC-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
         $projects = Project::all();
  
         // 1. Fetch Partners
@@ -96,8 +107,9 @@ class VoucherController extends Controller
 
         $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit'])
             ->whereNull('partner_id')  // raw intake receipts, not partner-split sub-receipts
-            ->latest('receipt_date')
-            ->take(50)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->take(100)
             ->get()
             ->map(function ($r) use ($allocatedReceiptIds, $customerAccountMap) {
                 $isAllocated = $allocatedReceiptIds->contains($r->id);
@@ -652,13 +664,24 @@ class VoucherController extends Controller
         $creditAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset' && $acc->code !== 'BANK-KAR-213');
 
         // Generate voucher number
+        $currentYear = date('Y');
         $lastVoucher = Voucher::where('system_id', $systemId)
             ->where('type', 'Payment')
+            ->where('voucher_number', 'LIKE', "PV-{$currentYear}-%")
+            ->where('voucher_number', 'NOT LIKE', '%.%')
+            ->where('voucher_number', 'NOT LIKE', '%E%')
             ->orderBy('id', 'desc')
             ->first();
         
-        $nextNum = $lastVoucher ? ((int) preg_replace('/[^0-9]/', '', $lastVoucher->voucher_number) + 1) : 1;
-        $voucherNumber = 'PV-' . date('Y') . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+        $nextNum = 1;
+        if ($lastVoucher) {
+            $parts = explode('-', $lastVoucher->voucher_number);
+            $lastSegment = end($parts);
+            if (is_numeric($lastSegment)) {
+                $nextNum = (int)$lastSegment + 1;
+            }
+        }
+        $voucherNumber = 'PV-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
         $payees = Payee::all();
 
         return view('vouchers.payment', compact('expenseAccounts', 'creditAccounts', 'voucherNumber', 'payees'));
@@ -840,13 +863,24 @@ class VoucherController extends Controller
         $assetAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset' && $acc->code !== 'BANK-KAR-213');
 
         // Generate voucher number
+        $currentYear = date('Y');
         $lastVoucher = Voucher::where('system_id', $systemId)
             ->where('type', 'Contra')
+            ->where('voucher_number', 'LIKE', "CN-{$currentYear}-%")
+            ->where('voucher_number', 'NOT LIKE', '%.%')
+            ->where('voucher_number', 'NOT LIKE', '%E%')
             ->orderBy('id', 'desc')
             ->first();
         
-        $nextNum = $lastVoucher ? ((int) preg_replace('/[^0-9]/', '', $lastVoucher->voucher_number) + 1) : 1;
-        $voucherNumber = 'CN-' . date('Y') . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+        $nextNum = 1;
+        if ($lastVoucher) {
+            $parts = explode('-', $lastVoucher->voucher_number);
+            $lastSegment = end($parts);
+            if (is_numeric($lastSegment)) {
+                $nextNum = (int)$lastSegment + 1;
+            }
+        }
+        $voucherNumber = 'CN-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
 
         return view('vouchers.contra', compact('assetAccounts', 'voucherNumber'));
     }
@@ -940,13 +974,24 @@ class VoucherController extends Controller
         $accounts = Account::where('system_id', $systemId)->where('is_active', true)->get();
 
         // Generate voucher number
+        $currentYear = date('Y');
         $lastVoucher = Voucher::where('system_id', $systemId)
             ->where('type', 'Journal')
+            ->where('voucher_number', 'LIKE', "JV-{$currentYear}-%")
+            ->where('voucher_number', 'NOT LIKE', '%.%')
+            ->where('voucher_number', 'NOT LIKE', '%E%')
             ->orderBy('id', 'desc')
             ->first();
         
-        $nextNum = $lastVoucher ? ((int) preg_replace('/[^0-9]/', '', $lastVoucher->voucher_number) + 1) : 1;
-        $voucherNumber = 'JV-' . date('Y') . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+        $nextNum = 1;
+        if ($lastVoucher) {
+            $parts = explode('-', $lastVoucher->voucher_number);
+            $lastSegment = end($parts);
+            if (is_numeric($lastSegment)) {
+                $nextNum = (int)$lastSegment + 1;
+            }
+        }
+        $voucherNumber = 'JV-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
 
         return view('vouchers.journal', compact('accounts', 'voucherNumber'));
     }
@@ -1042,13 +1087,24 @@ class VoucherController extends Controller
         }
 
         // Generate voucher number
+        $currentYear = date('Y');
         $lastVoucher = Voucher::where('system_id', $systemId)
             ->whereIn('type', ['Sales', 'Purchase'])
+            ->where('voucher_number', 'LIKE', "SP-{$currentYear}-%")
+            ->where('voucher_number', 'NOT LIKE', '%.%')
+            ->where('voucher_number', 'NOT LIKE', '%E%')
             ->orderBy('id', 'desc')
             ->first();
         
-        $nextNum = $lastVoucher ? ((int) preg_replace('/[^0-9]/', '', $lastVoucher->voucher_number) + 1) : 1;
-        $voucherNumber = 'SP-' . date('Y') . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+        $nextNum = 1;
+        if ($lastVoucher) {
+            $parts = explode('-', $lastVoucher->voucher_number);
+            $lastSegment = end($parts);
+            if (is_numeric($lastSegment)) {
+                $nextNum = (int)$lastSegment + 1;
+            }
+        }
+        $voucherNumber = 'SP-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
 
         return view('vouchers.sales_purchase', compact('accounts', 'customers', 'voucherNumber'));
     }

@@ -198,33 +198,59 @@
 
                             <!-- Project Allocation Section -->
                             <div class="pt-4 border-t border-slate-100">
-                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block mb-3">Project Allocation (Multi-Tenant)</label>
+                                <div class="flex items-center justify-between mb-3">
+                                    <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Allocation (Multi-Tenant)</label>
+                                    <!-- Warning Badge if total != 100% -->
+                                    <span class="text-[9px] font-extrabold uppercase px-2.5 py-0.5 rounded-lg transition"
+                                          :class="totalAllocationPct() === 100 ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100 animate-pulse'"
+                                          x-text="totalAllocationPct() === 100 ? 'Total Allocated: 100%' : 'Total Allocated: ' + totalAllocationPct() + '% (Must be 100%)'">
+                                    </span>
+                                </div>
                                 
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-4 text-xs font-semibold">
-                                    <div class="w-1/2 space-y-1">
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project / Unit</span>
-                                        <select name="project_id" x-model="form.project_id" @change="updateProjectName($el); fetchProjectMetrics()"
-                                                class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none cursor-pointer">
-                                            @foreach($projects as $p)
-                                                <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="w-1/4 space-y-1 text-center">
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocation (%)</span>
-                                        <input type="number" x-model.number="form.allocation_pct" min="1" max="100"
-                                               class="w-16 px-2 py-1 text-center bg-white border border-slate-200 rounded-lg font-mono font-bold">
-                                    </div>
-                                    <div class="w-1/4 space-y-1 text-right">
-                                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹)</span>
-                                        <div class="font-mono font-bold text-slate-800 pr-2 pt-1" x-text="formatCurrency((form.allocation_pct / 100) * form.total_amount)"></div>
-                                    </div>
+                                <input type="hidden" name="allocations" :value="JSON.stringify(allocations)">
+                                <input type="hidden" name="project_id" :value="allocations[0] ? allocations[0].project_id : ''">
+
+                                <div class="space-y-3">
+                                    <template x-for="(alloc, idx) in allocations" :key="idx">
+                                        <div class="p-4 bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-4 text-xs font-semibold transition">
+                                            <!-- Project Selection -->
+                                            <div class="flex-1 min-w-[200px] space-y-1">
+                                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project</span>
+                                                <select x-model="alloc.project_id" @change="syncFirstProject()"
+                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#a38c29]/30 cursor-pointer">
+                                                    @foreach($projects as $p)
+                                                        <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <!-- Allocation % -->
+                                            <div class="w-24 space-y-1 text-center">
+                                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocation (%)</span>
+                                                <input type="number" x-model.number="alloc.allocation_pct" min="1" max="100" @input="syncFirstProject()"
+                                                       class="w-16 px-2 py-1 text-center bg-white border border-slate-200 rounded-lg font-mono font-bold focus:outline-none focus:ring-1 focus:ring-[#a38c29]/30">
+                                            </div>
+                                            <!-- Allocated Amount -->
+                                            <div class="w-32 space-y-1 text-right">
+                                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹)</span>
+                                                <div class="font-mono font-extrabold text-slate-900 pr-2 pt-1" x-text="formatCurrency(((alloc.allocation_pct || 0) / 100) * form.total_amount)"></div>
+                                            </div>
+                                            <!-- Action Button (Delete) -->
+                                            <div class="pt-3 sm:pt-0 sm:mt-4 w-8 flex justify-center">
+                                                <button type="button" @click="removeAllocationRow(idx)"
+                                                        x-show="allocations.length > 1"
+                                                        class="text-rose-500 hover:text-rose-700 p-1.5 hover:bg-rose-50 rounded-lg transition duration-200">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
 
                                 <div class="pt-3">
-                                    <button type="button" class="text-xs font-bold text-primary hover:text-primary-700 flex items-center gap-1.5 focus:outline-none">
+                                    <button type="button" @click="addAllocationRow()"
+                                            class="text-xs font-extrabold text-[#a38c29] hover:text-[#8f7b24] flex items-center gap-1.5 focus:outline-none hover:-translate-y-0.5 transition duration-200">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0"/></svg>
-                                        <span>Add Another Allocation</span>
+                                        <span>Add Another Project Allocation</span>
                                     </button>
                                 </div>
                             </div>
@@ -235,8 +261,10 @@
                                         class="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                     Back
                                 </button>
-                                <button type="button" @click="if (validateStep(2)) step = 3"
-                                        class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
+                                <button type="button" @click="if (validateStep(2) && totalAllocationPct() === 100) step = 3"
+                                        :disabled="totalAllocationPct() !== 100"
+                                        :class="totalAllocationPct() !== 100 ? 'opacity-55 cursor-not-allowed bg-slate-300 hover:bg-slate-350' : 'bg-primary hover:bg-primary-700'"
+                                        class="flex items-center gap-2 px-6 py-2.5 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                     <span>Next</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                 </button>
@@ -470,6 +498,30 @@
                     realized_pct: 0,
                     pending_pct: 100,
                     customers: []
+                },
+                allocations: [
+                    { project_id: '{{ $projects->first()?->id ?? "" }}', allocation_pct: 100 }
+                ],
+                addAllocationRow() {
+                    const remaining = 100 - this.totalAllocationPct();
+                    this.allocations.push({
+                        project_id: '{{ $projects->first()?->id ?? "" }}',
+                        allocation_pct: remaining > 0 ? remaining : 0
+                    });
+                    this.syncFirstProject();
+                },
+                removeAllocationRow(idx) {
+                    this.allocations.splice(idx, 1);
+                    this.syncFirstProject();
+                },
+                totalAllocationPct() {
+                    return this.allocations.reduce((sum, item) => sum + (parseFloat(item.allocation_pct) || 0), 0);
+                },
+                syncFirstProject() {
+                    if (this.allocations[0]) {
+                        this.form.project_id = this.allocations[0].project_id;
+                        this.fetchProjectMetrics();
+                    }
                 },
                 form: {
                     payee_id: '',
