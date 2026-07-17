@@ -153,15 +153,43 @@
             </div>
 
             {{-- Customer Select Box --}}
-            <div class="space-y-1.5">
+            <div class="space-y-1.5" x-data="{ searchOpen: false, searchString: '' }" @click.outside="searchOpen = false">
                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Select Customer</label>
-                <select x-model="selectedSaleId" @change="onSaleSelect()"
-                        class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs font-semibold focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap">
-                    <option value="">-- Choose Customer... --</option>
-                    <template x-for="s in activeSales" :key="s.id">
-                        <option :value="s.id" x-text="(s.customer ? s.customer.name : 'Unknown Customer') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
-                    </template>
-                </select>
+                <div class="relative">
+                    <div @click="searchOpen = !searchOpen" 
+                         class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary rounded-xl text-xs font-semibold cursor-pointer flex justify-between items-center transition-all">
+                        <span class="text-ellipsis overflow-hidden whitespace-nowrap" 
+                              x-text="selectedSale ? ((selectedSale.customer ? selectedSale.customer.name : 'Unknown Customer') + ' — ' + selectedSale.sale_number) : '-- Choose Customer... --'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    
+                    <div x-show="searchOpen" x-transition class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 flex flex-col overflow-hidden" style="display: none;">
+                        <div class="p-2 border-b border-slate-100 bg-slate-50/50">
+                            <input type="text" x-model="searchString" placeholder="Search name or sale no..." 
+                                   class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50">
+                        </div>
+                        <ul class="overflow-y-auto flex-1 p-1">
+                            <li @click="selectedSaleId = ''; onSaleSelect(); searchOpen = false; searchString = ''" 
+                                class="px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 rounded-lg text-slate-500 font-medium">-- Choose Customer... --</li>
+                            <template x-for="s in activeSales.filter(sale => {
+                                let searchText = ((sale.customer ? sale.customer.name : 'Unknown Customer') + ' ' + sale.sale_number).toLowerCase();
+                                return searchText.includes(searchString.toLowerCase());
+                            })" :key="s.id">
+                                <li @click="selectedSaleId = s.id; onSaleSelect(); searchOpen = false; searchString = ''"
+                                    class="px-3 py-2 text-xs cursor-pointer hover:bg-primary-50 hover:text-primary-700 rounded-lg font-medium"
+                                    :class="selectedSaleId == s.id ? 'bg-primary-50 text-primary-700' : 'text-slate-700'">
+                                    <span x-text="(s.customer ? s.customer.name : 'Unknown Customer') + ' — ' + s.sale_number"></span>
+                                </li>
+                            </template>
+                            <template x-if="activeSales.filter(sale => {
+                                let searchText = ((sale.customer ? sale.customer.name : 'Unknown Customer') + ' ' + sale.sale_number).toLowerCase();
+                                return searchText.includes(searchString.toLowerCase());
+                            }).length === 0">
+                                <li class="px-3 py-4 text-xs text-center text-slate-400 italic">No matches found.</li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <div class="space-y-4 pt-2">
