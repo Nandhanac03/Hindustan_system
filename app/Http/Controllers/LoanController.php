@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Loan;
 use App\Models\EmiSchedule;
 use App\Models\LoanPrepayment;
+use App\Models\LoanInterestLog;
 use App\Models\Project;
 use App\Models\Account;
 use Illuminate\Http\Request;
@@ -47,17 +48,22 @@ class LoanController extends Controller
             
             // Next unpaid EMI for quick pay
             $loan->next_emi = EmiSchedule::where('loan_id', $loan->id)
-                ->where('status', 'Due')
+                ->where('status', '!=', 'Paid')
                 ->orderBy('installment_no')
                 ->first();
         }
         
         // All pending EMIs across active loans due on/before end of current month
-        $pendingEmis = EmiSchedule::where('status', 'Due')
+        $pendingEmis = EmiSchedule::whereHas('loan', function ($q) {
+                $q->where('status', 'Active');
+            })
+            ->where('status', '!=', 'Paid')
             ->where('due_date', '<=', now()->endOfMonth())
             ->get();
         $pendingEmisCount = $pendingEmis->count();
-        $pendingEmisAmount = $pendingEmis->sum('emi_amount');
+        $pendingEmisAmount = $pendingEmis->sum(function ($inst) {
+            return max(0, (float)$inst->emi_amount - (float)$inst->amount_paid);
+        });
 
         // Global stats for KPI metrics cards
         $activeLoansCount = Loan::where('status', 'Active')->count();
@@ -68,8 +74,9 @@ class LoanController extends Controller
         
         $accounts = Account::orderBy('name')->get();
         $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
+        $interestLogs = LoanInterestLog::with('loan')->latest()->get();
 
-        return view('loans.index', compact('loans', 'projects', 'accounts', 'banks', 'pendingEmisCount', 'pendingEmisAmount', 'activeLoansCount', 'totalOutstanding', 'totalPaidPrincipal', 'totalPaidInterest'));
+        return view('loans.index', compact('loans', 'projects', 'accounts', 'banks', 'pendingEmisCount', 'pendingEmisAmount', 'activeLoansCount', 'totalOutstanding', 'totalPaidPrincipal', 'totalPaidInterest', 'interestLogs'));
     }
 
     public function store(Request $request): JsonResponse
@@ -177,6 +184,53 @@ class LoanController extends Controller
 
     public function showSchedule(Loan $loan): View
     {
+        // Reconcile historical overpayments (where amount_paid > emi_amount from earlier payments)
+        DB::transaction(function () use ($loan) {
+            $overpaidInstallments = EmiSchedule::where('loan_id', $loan->id)
+                ->whereRaw('amount_paid > emi_amount + 0.01')
+                ->orderBy('installment_no')
+                ->get();
+
+            foreach ($overpaidInstallments as $inst) {
+                $emiDue = (float)$inst->emi_amount;
+                $excess = (float)$inst->amount_paid - $emiDue;
+
+                $inst->amount_paid = $emiDue;
+                $inst->status      = 'Paid';
+                $inst->save();
+
+                if ($excess > 0.01) {
+                    $nextInstallments = EmiSchedule::where('loan_id', $loan->id)
+                        ->where('status', '!=', 'Paid')
+                        ->where('installment_no', '>', $inst->installment_no)
+                        ->orderBy('installment_no')
+                        ->get();
+
+                    foreach ($nextInstallments as $next) {
+                        if ($excess <= 0.01) break;
+
+                        $nextEmi      = (float)$next->emi_amount;
+                        $nextPrevPaid = (float)$next->amount_paid;
+                        $nextBalance  = $nextEmi - $nextPrevPaid;
+
+                        if ($excess >= $nextBalance) {
+                            $next->amount_paid = $nextEmi;
+                            $next->paid_date   = $inst->paid_date ?? now();
+                            $next->status      = 'Paid';
+                            $loan->decrement('outstanding_balance', $next->principal_component);
+                            $excess -= $nextBalance;
+                        } else {
+                            $next->amount_paid = $nextPrevPaid + $excess;
+                            $next->paid_date   = $inst->paid_date ?? now();
+                            $next->status      = 'Due';
+                            $excess = 0;
+                        }
+                        $next->save();
+                    }
+                }
+            }
+        });
+
         $loan->load(['project', 'ledgerAccount', 'interestAccount', 'emiSchedules', 'prepayments']);
         return view('loans.schedule', compact('loan'));
     }
@@ -184,37 +238,34 @@ class LoanController extends Controller
     public function payEmi(Request $request, Loan $loan, EmiSchedule $installment): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:0.01'],
+            'amount'    => ['required', 'numeric', 'min:0.01'],
             'paid_date' => ['required', 'date'],
         ]);
 
-        $amount = (float)$validated['amount'];
+        $amount   = (float)$validated['amount'];
         $paidDate = $validated['paid_date'];
 
         if ($installment->loan_id !== $loan->id) {
             return response()->json(['error' => 'Invalid installment for this loan.'], 400);
         }
 
-        DB::transaction(function () use ($loan, $installment, $amount, $paidDate) {
-            $prevPaid = (float)$installment->amount_paid;
-            $newPaid = $prevPaid + $amount;
+        $emiDue = round((float)$installment->emi_amount - (float)$installment->amount_paid, 2);
+        if (abs($amount - $emiDue) > 0.01) {
+            return response()->json([
+                'error' => 'Bank regulations require exact full EMI installment payment of ₹' . number_format($emiDue, 2) . '. Paying more or less amount is not allowed.'
+            ], 422);
+        }
 
-            $installment->amount_paid = $newPaid;
-            $installment->paid_date = $paidDate;
+        DB::transaction(function () use ($loan, $installment, $paidDate) {
+            $installment->amount_paid = (float)$installment->emi_amount;
+            $installment->paid_date   = $paidDate;
+            $installment->status      = 'Paid';
 
-            if ($newPaid >= $installment->emi_amount) {
-                $installment->status = 'Paid';
-                // Subtract principal component from loan outstanding balance
-                if ($installment->getOriginal('status') !== 'Paid') {
-                    $loan->decrement('outstanding_balance', $installment->principal_component);
-                }
-            } else {
-                $installment->status = 'Due';
+            if ($installment->getOriginal('status') !== 'Paid') {
+                $loan->decrement('outstanding_balance', $installment->principal_component);
             }
-
             $installment->save();
 
-            // Check if loan is fully repaid and mark status as Closed
             $loan->refresh();
             if ((float)$loan->outstanding_balance <= 0.01) {
                 $loan->update(['status' => 'Closed']);
@@ -434,7 +485,17 @@ class LoanController extends Controller
             $r = $rate / 12 / 100;
         }
 
-        DB::transaction(function () use ($loan, $annualRate, $r) {
+        DB::transaction(function () use ($loan, $annualRate, $r, $period) {
+            $oldRate = (float)$loan->interest_rate;
+
+            LoanInterestLog::create([
+                'loan_id' => $loan->id,
+                'old_interest_rate' => $oldRate,
+                'new_interest_rate' => $annualRate,
+                'interest_period' => $period,
+                'reason' => 'Interest rate updated via Bank Loan Repayment module',
+            ]);
+
             $loan->update(['interest_rate' => $annualRate]);
 
             $unpaidInstallments = $loan->emiSchedules()->where('status', '!=', 'Paid')->get();

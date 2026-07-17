@@ -74,6 +74,11 @@ class Loan extends Model
         return $this->hasMany(LoanPrepayment::class, 'loan_id')->latest();
     }
 
+    public function interestLogs(): HasMany
+    {
+        return $this->hasMany(LoanInterestLog::class, 'loan_id')->latest();
+    }
+
     public function getBaseEmiAttribute(): float
     {
         $principal   = (float)$this->principal_amount;
