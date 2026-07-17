@@ -439,16 +439,17 @@
             <!-- Profile Info & Sign Out -->
             <div class="flex items-center gap-4">
                 <!-- Interactive Font Size Switcher -->
-                <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1 border border-slate-200/60 mr-2 shrink-0">
-                    <button type="button" @click="fontSize = '90%'" 
-                            :class="fontSize === '90%' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700'"
-                            class="text-[9px] font-bold px-1.5 py-0.5 rounded transition" title="Small text size">A-</button>
+                <div class="flex items-center gap-1.5 bg-slate-100/90 rounded-full px-2.5 py-1 border border-slate-200 shadow-sm mr-2 shrink-0">
+                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 mr-0.5"></i>
                     <button type="button" @click="fontSize = '100%'" 
-                            :class="fontSize === '100%' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700'"
-                            class="text-[9px] font-bold px-1.5 py-0.5 rounded transition" title="Normal text size">A</button>
+                            :class="fontSize === '100%' ? 'bg-white text-primary font-black shadow-sm scale-105' : 'text-slate-500 hover:text-slate-800'"
+                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-150" title="Normal text size">A</button>
                     <button type="button" @click="fontSize = '112.5%'" 
-                            :class="fontSize === '112.5%' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700'"
-                            class="text-[9px] font-bold px-1.5 py-0.5 rounded transition" title="Medium text size">A+</button>
+                            :class="fontSize === '112.5%' ? 'bg-white text-primary font-black shadow-sm scale-105' : 'text-slate-500 hover:text-slate-800'"
+                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-150" title="Medium text size">A+</button>
+                    <button type="button" @click="fontSize = '125%'" 
+                            :class="fontSize === '125%' ? 'bg-white text-primary font-black shadow-sm scale-105' : 'text-slate-500 hover:text-slate-800'"
+                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-150" title="Large text size">A++</button>
                 </div>
 
                 <div class="flex items-center gap-3">

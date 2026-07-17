@@ -66,10 +66,9 @@
                             <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Booking No.</th>
                             <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Customer</th>
                             <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Project & Unit</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Contract Value</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Total Paid</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Outstanding</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Actions</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Contract Value</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Total Paid</th>
+                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Outstanding</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -77,8 +76,14 @@
                             @php
                                 $totalPaid = $sale->receipts->sum('amount');
                             @endphp
-                            <tr class="hover:bg-slate-50 transition-colors">
-                                <td class="px-6 py-4 font-bold text-primary-700">{{ $sale->sale_number }}</td>
+                            <tr @click="selectedSaleId = (selectedSaleId == {{ $sale->id }} ? '' : {{ $sale->id }}); onSaleSelect()" 
+                                class="cursor-pointer transition-colors" 
+                                :class="selectedSaleId == {{ $sale->id }} ? 'bg-primary-50 hover:bg-primary-100/50' : 'hover:bg-slate-50'">
+                                <td class="px-6 py-4 font-bold text-primary-700">
+                                    <a href="{{ route('emi-collections.ledger', $sale->id) }}" class="hover:underline" @click.stop>
+                                        {{ $sale->sale_number }}
+                                    </a>
+                                </td>
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-slate-900">{{ $sale->customer?->name ?? 'N/A' }}</div>
                                     <div class="text-[10px] text-slate-400">{{ $sale->customer?->phone ?? '' }}</div>
@@ -87,25 +92,13 @@
                                     <div class="font-semibold text-slate-800">{{ $sale->project?->name ?? 'N/A' }}</div>
                                     <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
                                 </td>
-                                <td class="px-6 py-4 font-bold text-slate-900 font-mono">₹{{ number_format($sale->total_amount, 2) }}</td>
-                                <td class="px-6 py-4 font-bold text-emerald-600 font-mono">₹{{ number_format($totalPaid, 2) }}</td>
-                                <td class="px-6 py-4 font-bold text-rose-600 font-mono">₹{{ number_format($sale->remaining_balance, 2) }}</td>
-                                <td class="px-6 py-4 text-right">
-                                    <div class="inline-flex gap-2 justify-end">
-                                        <button @click="openCollectModal({ id: {{ $sale->id }}, outstanding: {{ $sale->remaining_balance }}, customer_name: '{{ addslashes($sale->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($sale->unit?->door_no ?? 'No Unit') }}' })" 
-                                                class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
-                                            Collect
-                                        </button>
-                                        <a href="{{ route('emi-collections.ledger', $sale->id) }}"
-                                           class="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
-                                            Ledger &rarr;
-                                        </a>
-                                    </div>
-                                </td>
+                                <td class="px-6 py-4 font-bold text-slate-900 font-mono text-right">₹{{ number_format($sale->total_amount, 2) }}</td>
+                                <td class="px-6 py-4 font-bold text-emerald-600 font-mono text-right">₹{{ number_format($totalPaid, 2) }}</td>
+                                <td class="px-6 py-4 font-bold text-rose-600 font-mono text-right">₹{{ number_format($sale->remaining_balance, 2) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">No customers found.</td>
+                                <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">No customers found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -225,55 +218,119 @@
         <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
     </div>
 
-    {{-- Collect Installment Modal --}}
+    {{-- COLLECTION RECEIPT Modal --}}
     <div x-show="modal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition>
-        <div @click.away="closeCollectModal()" class="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+        <div @click.away="closeCollectModal()" class="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Collect Installment</h3>
-                    <p class="text-[10px] text-slate-450 mt-0.5">Register a payment against booking record.</p>
+                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Collection Receipt</h3>
+                    <p class="text-[10px] text-slate-450 mt-0.5 font-medium">Collections must be linked to an active Sale. Select the Sale first.</p>
                 </div>
                 <button @click="closeCollectModal()" class="text-slate-450 hover:text-slate-700">✕</button>
             </div>
             
             <form @submit.prevent="submitCollection()" class="p-6 space-y-4">
-                {{-- Info Box --}}
-                <div class="p-3 bg-primary-50/50 border border-primary-100 rounded-xl space-y-1 text-[11px] font-semibold text-slate-650">
-                    <div>Customer: <strong class="text-slate-800" x-text="form.customer_name"></strong></div>
-                    <div>Unit: <strong class="text-slate-800" x-text="form.unit_number"></strong></div>
-                    <div>Outstanding: <strong class="text-primary-700">₹<span x-text="Number(form.outstanding).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span></strong></div>
-                </div>
-
-                {{-- Amount Field --}}
+                {{-- Active Sale --}}
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹)</label>
-                    <input type="number" step="0.01" x-model="form.amount" required
-                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs placeholder-slate-400 focus:outline-none transition-all">
-                    <template x-if="errors.amount">
-                        <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.amount[0]"></span>
-                    </template>
-                </div>
-
-                {{-- Payment Mode --}}
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode</label>
-                    <select x-model="form.payment_mode" required
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Active Sale *</label>
+                    <select x-model="form.booking_id" @change="onModalSaleSelect()" required
                             class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
-                        <option value="Cash">Cash</option>
-                        <option value="Bank Transfer">Bank Transfer</option>
-                        <option value="Credit Card">Credit Card</option>
-                        <option value="UPI">UPI</option>
+                        <option value="">-- Select Sale --</option>
+                        <template x-for="s in activeSales" :key="s.id">
+                            <option :value="s.id" x-text="(s.customer ? s.customer.name : '—') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
+                        </template>
                     </select>
+                </div>
+
+                {{-- Info Box --}}
+                <div x-show="form.booking_id && form.project_name" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] font-semibold text-slate-650" x-transition>
+                    <div class="flex justify-between">
+                        <span>Project / Unit:</span>
+                        <strong class="text-slate-900" x-text="form.project_name + ' / Unit ' + form.unit_number"></strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Sale Total:</span>
+                        <strong class="text-slate-700 font-mono" x-text="'₹' + Number(form.total_amount).toLocaleString('en-IN')"></strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Remaining Balance:</span>
+                        <strong class="text-rose-600 font-mono" x-text="'₹' + Number(form.outstanding).toLocaleString('en-IN')"></strong>
+                    </div>
+                </div>
+
+                {{-- Amount & Date --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) *</label>
+                        <input type="number" step="0.01" x-model.number="form.amount" required min="0.01"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs font-bold focus:outline-none transition-all">
+                        <template x-if="errors.amount">
+                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.amount[0]"></span>
+                        </template>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date</label>
+                        <input type="date" x-model="form.receipt_date"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all">
+                        <template x-if="errors.receipt_date">
+                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.receipt_date[0]"></span>
+                        </template>
+                    </div>
+                </div>
+
+                {{-- Payment Mode Toggles --}}
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode *</label>
+                    <div class="grid grid-cols-2 gap-1.5">
+                        <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
+                            <button type="button" @click="form.payment_mode = mode"
+                                    :class="form.payment_mode === mode ? 'bg-primary text-white border-primary shadow-sm shadow-primary-650/20' : 'bg-slate-50 text-slate-655 border-slate-200 hover:border-primary/40'"
+                                    class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+                                    x-text="mode">
+                            </button>
+                        </template>
+                    </div>
                     <template x-if="errors.payment_mode">
                         <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.payment_mode[0]"></span>
                     </template>
                 </div>
 
-                {{-- Action Buttons --}}
-                <div class="pt-4 flex justify-end gap-2">
-                    <button type="button" @click="closeCollectModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 active:scale-95 text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wide shadow-md shadow-primary-600/10">Confirm Payment</button>
+                {{-- Reference & Bank --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No.</label>
+                        <input type="text" x-model="form.reference_no" placeholder="Optional"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
+                        <select x-model="form.bank_name"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                            <option value="">-- Optional --</option>
+                            @foreach($banks as $bank)
+                            <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
+
+                {{-- Remarks --}}
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks</label>
+                    <textarea x-model="form.remarks" rows="2"
+                              class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
+                </div>
+
+                {{-- Submit Button --}}
+                <button type="submit"
+                        class="w-full py-3 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-primary-600/10 active:scale-98">
+                    RECORD RECEIPT
+                </button>
+
+                <p class="text-[10px] text-slate-400 text-center">
+                    To register a new sale, go to
+                    <a href="{{ route('sales.index') }}" class="text-primary font-bold hover:underline">Sales Module &rarr;</a>
+                </p>
             </form>
         </div>
     </div>
@@ -290,9 +347,15 @@ function emiApp() {
             booking_id: '',
             amount: '',
             payment_mode: 'Cash',
+            receipt_date: new Date().toISOString().split('T')[0],
+            reference_no: '',
+            bank_name: '',
+            remarks: '',
             customer_name: '',
             unit_number: '',
-            outstanding: 0
+            outstanding: 0,
+            project_name: '',
+            total_amount: 0
         },
         toast: {
             open: false,
@@ -309,14 +372,46 @@ function emiApp() {
             this.selectedSale = this.activeSales.find(s => s.id == this.selectedSaleId) || null;
         },
 
+        onModalSaleSelect() {
+            const sale = this.activeSales.find(s => s.id == this.form.booking_id);
+            if (sale) {
+                this.form.customer_name = sale.customer ? sale.customer.name : 'Unknown';
+                this.form.unit_number = sale.unit ? sale.unit.door_no : 'No Unit';
+                this.form.outstanding = sale.remaining_balance;
+                this.form.project_name = sale.project ? sale.project.name : '';
+                this.form.total_amount = sale.total_amount;
+                this.form.amount = ''; // Leave blank
+            } else {
+                this.form.customer_name = '';
+                this.form.unit_number = '';
+                this.form.outstanding = 0;
+                this.form.project_name = '';
+                this.form.total_amount = 0;
+                this.form.amount = '';
+            }
+        },
+
         openCollectModal(item) {
             this.errors = {};
             this.form.booking_id = item.id;
-            this.form.amount = item.outstanding;
+            this.form.amount = ''; // Leave blank
             this.form.payment_mode = 'Cash';
+            this.form.receipt_date = new Date().toISOString().split('T')[0];
+            this.form.reference_no = '';
+            this.form.bank_name = '';
+            this.form.remarks = '';
             this.form.customer_name = item.customer_name;
             this.form.unit_number = item.door_no;
             this.form.outstanding = item.outstanding;
+            
+            const sale = this.activeSales.find(s => s.id == item.id);
+            if (sale) {
+                this.form.project_name = sale.project ? sale.project.name : '';
+                this.form.total_amount = sale.total_amount;
+            } else {
+                this.form.project_name = '';
+                this.form.total_amount = 0;
+            }
             this.modal.open = true;
         },
 
@@ -337,7 +432,11 @@ function emiApp() {
                 body: JSON.stringify({
                     booking_id: this.form.booking_id,
                     amount: this.form.amount,
-                    payment_mode: this.form.payment_mode
+                    payment_mode: this.form.payment_mode,
+                    receipt_date: this.form.receipt_date,
+                    reference_no: this.form.reference_no,
+                    bank_name: this.form.bank_name,
+                    remarks: this.form.remarks
                 })
             })
             .then(res => res.json())

@@ -145,9 +145,29 @@
                 <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
                     Paid
                 </span>
+            @elseif($row['status'] === 'partial')
+                <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
+                    Partial
+                </span>
+                <button
+                    @click.stop="openPayModal('', '{{ addslashes($row['description']) }}')"
+                    type="button"
+                    class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
+                    Pay Remaining
+                </button>
+            @elseif($row['status'] === 'overdue')
+                <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
+                    Overdue
+                </span>
+                <button
+                    @click.stop="openPayModal('', '{{ addslashes($row['description']) }}')"
+                    type="button"
+                    class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
+                    Pay Installment
+                </button>
             @else
                 <button
-                    @click.stop="openPayModal({{ $row['debit'] }}, '{{ addslashes($row['description']) }}')"
+                    @click.stop="openPayModal('', '{{ addslashes($row['description']) }}')"
                     type="button"
                     class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
                     Pay Installment
