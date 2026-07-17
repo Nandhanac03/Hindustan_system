@@ -107,6 +107,9 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     @forelse($ledger as $row)
+                    @if($row['type'] === 'receipt')
+                        @continue
+                    @endif
                     @php
                         $typeColors = [
                             'installment' => ['row' => ($row['status'] ?? '') === 'paid' ? 'bg-emerald-50/20' : (($row['status'] ?? '') === 'overdue' ? 'bg-rose-50/30' : ''), 'badge' => 'bg-amber-50 text-amber-700 border-amber-200'],
