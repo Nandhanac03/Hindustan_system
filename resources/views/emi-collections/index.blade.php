@@ -156,10 +156,10 @@
             <div class="space-y-1.5">
                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Select Customer</label>
                 <select x-model="selectedSaleId" @change="onSaleSelect()"
-                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs font-semibold focus:outline-none transition-all">
+                        class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs font-semibold focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap">
                     <option value="">-- Choose Customer... --</option>
                     <template x-for="s in activeSales" :key="s.id">
-                        <option :value="s.id" x-text="s.customer ? s.customer.name : 'Unknown Customer'"></option>
+                        <option :value="s.id" x-text="(s.customer ? s.customer.name : 'Unknown Customer') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
                     </template>
                 </select>
             </div>
