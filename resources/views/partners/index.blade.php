@@ -1,6 +1,6 @@
 <x-erp-layout title="Partner Management" headerTitle="Partner Management & Accounts">
 
-<div class="max-w-[1800px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="{ editProjectModal: false, imagePreview: null }">
 
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -256,10 +256,18 @@
             
             <div class="flex items-center gap-3">
                 <div class="relative" x-data="{ open: false }">
-                    <button @click="open = !open" class="inline-flex items-center gap-2 rounded-xl bg-white border border-[#EAE3CD] px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition">
-                        <span>All Project...</span>
+                    <button @click="open = !open" @click.away="open = false" class="inline-flex items-center gap-2 rounded-xl bg-white border border-[#EAE3CD] px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 transition">
+                        <span>{{ $dashboardProject ? $dashboardProject->name : 'All Projects...' }}</span>
                         <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                     </button>
+                    <div x-show="open" x-cloak class="absolute right-0 mt-2 w-72 bg-white rounded-xl border border-slate-200 shadow-lg py-1 z-30">
+                        @foreach($projects as $proj)
+                            <a href="{{ route('partners.index', ['project_id' => $proj->id]) }}" 
+                               class="block px-4 py-2 text-xs hover:bg-[#a38c29]/5 text-slate-750 hover:text-[#7E6A1B] @if($dashboardProject && $dashboardProject->id == $proj->id) font-extrabold bg-[#a38c29]/10 text-[#7E6A1B] @endif">
+                                {{ $proj->name }}
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
                 
                 <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
@@ -271,7 +279,7 @@
 
         <!-- Project Profile Card -->
         @if($dashboardProject)
-        <div class="bg-white border border-[#EFECE1] rounded-2xl p-5 shadow-sm flex flex-col lg:flex-row gap-6 items-center">
+        <div class="bg-white border border-[#EFECE1] rounded-2xl p-5 shadow-sm flex flex-col lg:flex-row gap-6 items-center" x-data="{ editProjectModal: false, imagePreview: null }">
             <div class="w-full lg:w-48 h-32 rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-slate-100 relative">
                 @if($dashboardProject->image_url)
                     <img src="{{ asset('storage/' . $dashboardProject->image_url) }}" alt="Project Image" class="w-full h-full object-cover">
@@ -294,13 +302,13 @@
                             <span class="text-xs font-semibold text-slate-500">{{ $dashboardProject->location }}, {{ $dashboardProject->city }}, {{ $dashboardProject->state_or_emirate }}, India</span>
                         </div>
                     </div>
-                    <button class="inline-flex items-center gap-1.5 rounded-xl border border-[#a38c29]/50 hover:bg-[#a38c29]/5 px-3 py-1.5 text-[10px] font-extrabold text-[#7E6A1B] uppercase tracking-wider transition">
+                    <button @click="editProjectModal = true" class="inline-flex items-center gap-1.5 rounded-xl border border-[#a38c29]/50 hover:bg-[#a38c29]/5 px-3 py-1.5 text-[10px] font-extrabold text-[#7E6A1B] uppercase tracking-wider transition">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                         Edit Project
                     </button>
                 </div>
                 
-                <p class="text-xs text-slate-500 font-medium leading-relaxed">{{ $dashboardProject->description }}</p>
+                <p class="text-xs text-slate-500 font-medium leading-relaxed">{!! $dashboardProject->description !!}</p>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                     <div class="bg-[#FAF8F2] border border-[#EFECE1] rounded-xl p-3 flex flex-col justify-center">
@@ -315,6 +323,158 @@
                         <span class="text-[9px] font-extrabold text-slate-455 uppercase tracking-wider">Target Completion</span>
                         <span class="text-xs font-bold text-slate-800 mt-1 uppercase">{{ $dashboardProject->expected_completion_date ? \Carbon\Carbon::parse($dashboardProject->expected_completion_date)->format('d-M-Y') : 'N/A' }}</span>
                     </div>
+                </div>
+            </div>
+
+            {{-- ═══════════════════════ EDIT PROJECT MODAL ═══════════════════════ --}}
+            <div x-show="editProjectModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+                {{-- Backdrop --}}
+                <div x-show="editProjectModal"
+                     x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                     x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                     @click="editProjectModal = false"
+                     class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+                {{-- Modal panel --}}
+                <div x-show="editProjectModal"
+                     x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                     class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col"
+                     @click.stop>
+                    
+                    {{-- Header --}}
+                    <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 flex-shrink-0">
+                        <div class="absolute -top-10 -right-10 w-36 h-36 bg-[#a38c29]/20 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 flex items-center justify-between">
+                            <div>
+                                <p class="text-[#a38c29] text-[9px] font-bold uppercase tracking-widest mb-0.5">Edit Project</p>
+                                <h2 class="text-xs font-extrabold text-white">{{ $dashboardProject->name }}</h2>
+                            </div>
+                            <button @click="editProjectModal = false" class="text-slate-400 hover:text-white transition-colors duration-150 p-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('projects.update', $dashboardProject->id) }}" method="POST" enctype="multipart/form-data" class="flex-1 flex flex-col min-h-0">
+                        @csrf
+                        @method('PUT')
+            @php
+                $projectImage = $dashboardProject->image_url
+                    ? asset('storage/' . $dashboardProject->image_url)
+                    : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
+            @endphp
+                        {{-- Single-pane body --}}
+                        <div class="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
+                            {{-- Media & Image --}}
+                            <div class="bg-slate-50/50 p-3 rounded-xl border border-slate-100 space-y-3">
+                                <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Media & Image</p>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 relative">
+                                        <img x-show="!imagePreview" src="{{ $projectImage }}" class="w-full h-full object-cover" alt="Project image">
+                                        <img x-show="imagePreview" :src="imagePreview" class="w-full h-full object-cover" x-cloak>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-bold rounded-lg transition shadow-sm uppercase tracking-wide">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            Upload
+                                            <input type="file" name="image" accept="image/*" class="hidden" @change="const file = $event.target.files[0]; if (file) imagePreview = URL.createObjectURL(file);">
+                                        </label>
+                                        <p class="text-[9px] text-slate-400 mt-1">JPG, PNG up to 2MB</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Project Details Section --}}
+                            <div class="space-y-3">
+                                <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest border-b border-slate-100 pb-1">Project Details</p>
+                                
+                                <div class="space-y-1">
+                                    <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Name</label>
+                                    <input type="text" name="name" value="{{ old('name', $dashboardProject->name) }}"
+                                        class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                </div>
+
+                                <div class="space-y-1">
+                                    <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Location / Address</label>
+                                    <input type="text" name="location" value="{{ old('location', $dashboardProject->location) }}"
+                                        class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                </div>
+
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="space-y-1">
+                                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">City</label>
+                                        <input type="text" name="city" value="{{ old('city', $dashboardProject->city) }}"
+                                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">State</label>
+                                        <input type="text" name="state_or_emirate" value="{{ old('state_or_emirate', $dashboardProject->state_or_emirate) }}"
+                                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Country</label>
+                                        <input type="text" name="country" value="{{ old('country', $dashboardProject->country) }}"
+                                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Status & Scope Section --}}
+                            <div class="space-y-3">
+                                <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest border-b border-slate-100 pb-1">Status & Scope</p>
+                                
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="space-y-1">
+                                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Status</label>
+                                        <select name="status" class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                                            @foreach(['planning' => 'Planning', 'ongoing' => 'Ongoing', 'completed' => 'Completed', 'on_hold' => 'On Hold'] as $value => $label)
+                                                <option value="{{ $value }}" @selected(old('status', $dashboardProject->status) == $value)>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Total Floors</label>
+                                        <input type="number" name="total_floors" value="{{ old('total_floors', $dashboardProject->total_floors) }}"
+                                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 mt-3">
+                                    <div class="space-y-1">
+                                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Start Date</label>
+                                        <input type="date" name="start_date" value="{{ old('start_date', $dashboardProject->start_date ? \Carbon\Carbon::parse($dashboardProject->start_date)->format('Y-m-d') : '') }}"
+                                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Target Completion</label>
+                                        <input type="date" name="expected_completion_date" value="{{ old('expected_completion_date', $dashboardProject->expected_completion_date ? \Carbon\Carbon::parse($dashboardProject->expected_completion_date)->format('Y-m-d') : '') }}"
+                                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1 mt-3">
+                                    <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Description</label>
+                                    <textarea name="description" id="ck_units_project_description" rows="4"
+                                        placeholder="Write a detailed project description..."
+                                        class="ck-editor-field w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none">{{ old('description', $dashboardProject->description) }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Footer --}}
+                        <div class="px-5 py-3.5 border-t border-slate-150 flex items-center justify-end gap-2.5 bg-slate-50 flex-shrink-0">
+                            <button type="button" @click="editProjectModal = false"
+                                class="px-3.5 py-1.5 border border-slate-250 hover:bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
+                                Cancel
+                            </button>
+                            <button type="submit"
+                                class="px-4 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-bold rounded-lg transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -828,9 +988,18 @@
                 </div>
             @endif
         </div>
-
-
     </div>
+
+
+
+
+
+
+
+
+
+
+
 
     <!-- Script to render ApexCharts line / area chart -->
     <script>

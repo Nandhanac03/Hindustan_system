@@ -76,7 +76,7 @@ class PartnerController extends Controller
     }
 
 
-    public function index(): View
+    public function index(\Illuminate\Http\Request $request): View
     {
         $systemId = auth()->user()->system_id ?? 1;
 
@@ -164,7 +164,14 @@ class PartnerController extends Controller
         // ────────────────────────────────────────────────────────────────
         // DASHBOARD DATA FOR LATEST UI BELOW
         // ────────────────────────────────────────────────────────────────
-        $dashboardProject = Project::first();
+        $projectId = $request->query('project_id');
+        $dashboardProject = null;
+        if ($projectId) {
+            $dashboardProject = Project::find($projectId);
+        }
+        if (!$dashboardProject) {
+            $dashboardProject = Project::first();
+        }
         $floors = collect();
         $floorMatrix = [];
         $parkingRows = [];
@@ -265,19 +272,21 @@ class PartnerController extends Controller
                 $unitStats['reserved'] = $reservedUnits;
             }
 
-            // Collection Stats
-            $collected = (float) Receipt::sum('amount');
-            $target = (float) \App\Models\Sale::where('status', 'active')->sum('total_amount');
+            // Collection Stats (project-scoped)
+            $collected = (float) Receipt::where('project_id', $dashboardProject->id)->whereNull('partner_id')->sum('amount');
+            $target = (float) \App\Models\Sale::where('project_id', $dashboardProject->id)->where('status', 'active')->sum('total_amount');
             if ($target <= 0) {
                 $target = (float) \App\Models\Unit::where('project_id', $dashboardProject->id)
                     ->whereIn('status', ['sold', 'booked'])
                     ->sum('expected_sale_amount');
             }
 
+            $outstanding = (float) \App\Models\Sale::where('project_id', $dashboardProject->id)->where('status', 'active')->sum('remaining_balance');
+
             if ($target > 0) {
                 $collectionStats['target'] = $target;
-                $collectionStats['collected'] = $collected > 0 ? $collected : $target * 0.73;
-                $collectionStats['remaining'] = max(0, $collectionStats['target'] - $collectionStats['collected']);
+                $collectionStats['collected'] = $collected;
+                $collectionStats['remaining'] = $outstanding;
                 $collectionStats['efficiency'] = round(($collectionStats['collected'] / $collectionStats['target']) * 100);
             }
 
