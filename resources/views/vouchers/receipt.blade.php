@@ -953,7 +953,8 @@
                     return true;
                 },
                 formatCurrency(val) {
-                    return Number(val.toFixed(2)).toLocaleString('en-IN', {
+                    const num = typeof val === 'number' ? val : parseFloat(val);
+                    return isNaN(num) ? '0.00' : num.toLocaleString('en-IN', {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
