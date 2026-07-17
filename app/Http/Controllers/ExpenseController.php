@@ -118,19 +118,20 @@ class ExpenseController extends Controller
         $projectId = (int)$projectId;
 
         // Fetch customer receipts for this project (excluding partner shares receipts where partner_id is not null)
+        $prefix = DB::getTablePrefix();
         $receiptsGrouped = DB::table('receipts')
             ->join('customers', 'receipts.customer_id', '=', 'customers.id')
             ->leftJoin('sales', 'receipts.sale_id', '=', 'sales.id')
-            ->leftJoin('units', 'sales.unit_id', '=', 'units.id')
+            ->leftJoin('hindustan_units', 'sales.unit_id', '=', 'hindustan_units.id')
             ->where('receipts.project_id', $projectId)
             ->whereNull('receipts.partner_id')
             ->select(
                 'receipts.customer_id',
                 'customers.name as customer_name',
-                'units.door_no',
-                DB::raw('SUM(receipts.amount) as total_amount')
+                'hindustan_units.door_no',
+                DB::raw("SUM({$prefix}receipts.amount) as total_amount")
             )
-            ->groupBy('receipts.customer_id', 'customers.name', 'units.door_no')
+            ->groupBy('receipts.customer_id', 'customers.name', 'hindustan_units.door_no')
             ->get();
 
         // Group by customer to consolidate unit names if a customer has multiple units

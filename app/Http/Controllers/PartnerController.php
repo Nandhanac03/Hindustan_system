@@ -136,8 +136,17 @@ class PartnerController extends Controller
             ->with(['linkedAccount', 'partnerShares.project'])
             ->get()
             ->map(function (Payee $partner) {
-                // Total collections received (from receipts linked to this partner)
-                $partner->total_collected = (float) Receipt::where('partner_id', $partner->id)->sum('amount');
+                // Total collections received (calculated dynamically from project shares and customer receipts)
+                $shares = DB::table('partner_shares')->where('partner_id', $partner->id)->get();
+                $totalCollected = 0.0;
+                foreach ($shares as $share) {
+                    $projectReceiptsSum = (float) DB::table('receipts')
+                        ->where('project_id', $share->project_id)
+                        ->whereNull('partner_id')
+                        ->sum('amount');
+                    $totalCollected += $projectReceiptsSum * ($share->share_pct / 100);
+                }
+                $partner->total_collected = $totalCollected;
 
                 // Total allocations paid out
                 $partner->total_allocated = (float) PartnerAllocation::where('partner_id', $partner->id)->sum('allocated_amount');
@@ -551,27 +560,37 @@ class PartnerController extends Controller
 
         $ledger = collect();
 
-        // Collections (receipts tagged with this partner)
-        $receiptsQ = Receipt::with(['sale.project', 'sale.unit', 'customer'])
-            ->where('partner_id', $partnerId)
-            ->orderBy('receipt_date');
-
+        // Fetch all project shares for this partner
+        $sharesQ = DB::table('partner_shares')->where('partner_id', $partnerId);
         if ($projectId !== '') {
-            $receiptsQ->where('project_id', $projectId);
+            $sharesQ->where('project_id', $projectId);
         }
+        $shares = $sharesQ->get()->keyBy('project_id');
 
-        $receiptsQ->get()->each(function ($receipt) use (&$ledger) {
-            $ledger->push([
-                'date'        => Carbon::parse($receipt->receipt_date),
-                'type'        => 'Collection',
-                'description' => 'Collection from ' . ($receipt->customer?->name ?? 'Customer')
-                    . ' — ' . ($receipt->sale?->project?->name ?? '')
-                    . ' Unit ' . ($receipt->sale?->unit?->door_no ?? '—')
-                    . ($receipt->reference_no ? ' (Ref: ' . $receipt->reference_no . ')' : ''),
-                'credit'      => (float) $receipt->amount,
-                'debit'       => 0.00,
-            ]);
-        });
+        // Collections (receipts for projects where partner has a share, calculated dynamically)
+        if ($shares->isNotEmpty()) {
+            $receiptsQ = Receipt::with(['sale.project', 'sale.unit', 'customer'])
+                ->whereIn('project_id', $shares->keys())
+                ->whereNull('partner_id')
+                ->orderBy('receipt_date');
+
+            $receiptsQ->get()->each(function ($receipt) use (&$ledger, $shares) {
+                $share = $shares->get($receipt->project_id);
+                $sharePct = $share ? (float)$share->share_pct : 0.0;
+                $partnerAmount = $receipt->amount * ($sharePct / 100);
+
+                $ledger->push([
+                    'date'        => Carbon::parse($receipt->receipt_date),
+                    'type'        => 'Collection',
+                    'description' => 'Share of collection (' . $sharePct . '%) from ' . ($receipt->customer?->name ?? 'Customer')
+                        . ' — ' . ($receipt->sale?->project?->name ?? '')
+                        . ' Unit ' . ($receipt->sale?->unit?->door_no ?? '—')
+                        . ($receipt->reference_no ? ' (Ref: ' . $receipt->reference_no . ')' : ''),
+                    'credit'      => (float) $partnerAmount,
+                    'debit'       => 0.00,
+                ]);
+            });
+        }
 
         // Allocations / payouts (partner_allocations)
         $allocsQ = PartnerAllocation::where('partner_id', $partnerId)->orderBy('date');
