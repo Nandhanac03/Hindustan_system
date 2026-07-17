@@ -56,7 +56,7 @@
         {{-- Left: Add Receipt Form (links to Sale) --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5 h-fit">
             <div>
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Record Receipt Collection</h3>
+                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Receipt Collection</h3>
                 <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Collections must be linked to an active Sale. Select the Sale first.</p>
             </div>
 
@@ -126,18 +126,6 @@
                     </div>
                 </div>
 
-                {{-- Partner Selection (Only for Cash) --}}
-                <div class="space-y-1.5" x-show="form.payment_mode === 'Cash'" x-transition>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Received By Partner (Optional)</label>
-                    <select x-model="form.partner_id"
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
-                        <option value="">-- No Partner (Office/Counter Cash) --</option>
-                        @foreach($partners as $partner)
-                        <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
                 {{-- Reference & Bank --}}
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1.5">
@@ -147,8 +135,13 @@
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
-                        <input type="text" x-model="form.bank_name" placeholder="Optional"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all">
+                        <select x-model="form.bank_name"
+                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                            <option value="">-- Optional --</option>
+                            @foreach($banks as $bank)
+                                <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
 
@@ -167,7 +160,7 @@
                 <button type="submit" :disabled="submitting"
                         class="w-full py-3 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider flex items-center justify-center gap-2">
                     <svg x-show="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-                    <span x-text="submitting ? 'Recording...' : 'Record Receipt'"></span>
+                    <span x-text="submitting ? 'Recording...' : 'Collect Receipt'"></span>
                 </button>
 
                 {{-- Link to Sales module --}}
@@ -245,7 +238,6 @@ function receiptsApp() {
             reference_no: '',
             bank_name:    '',
             remarks:      '',
-            partner_id:   '',
         },
         selectedSale: null,
         submitting: false,

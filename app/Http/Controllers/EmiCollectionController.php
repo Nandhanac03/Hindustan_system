@@ -222,13 +222,14 @@ class EmiCollectionController extends Controller
         $projects     = Project::where('is_active', true)->orderBy('name')->get();
         $bankAccounts = Account::where('type', 'Asset')->orderBy('name')->get();
         $partners     = Payee::where('type', 'Partner')->orderBy('name')->get();
+        $banks        = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
 
         $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner'])
             ->latest('receipt_date')
             ->take(20)
             ->get();
 
-        return view('emi-collections.receipts', compact('sales', 'projects', 'bankAccounts', 'partners', 'recentReceipts'));
+        return view('emi-collections.receipts', compact('sales', 'projects', 'bankAccounts', 'partners', 'recentReceipts', 'banks'));
     }
 
     /**
