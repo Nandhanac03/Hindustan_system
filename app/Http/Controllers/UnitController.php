@@ -102,7 +102,7 @@ class UnitController extends Controller
         }
 
         $unitType = \App\Models\UnitType::find($request->unit_type_id);
-        $isParking = $unitType && strtolower($unitType->name) === 'parking';
+        $isParking = $unitType && (strtolower($unitType->name) === 'parking' || strtolower($unitType->category) === 'parking');
 
         $rules = [
             'project_id' => ['required', 'exists:projects,id'],
@@ -201,7 +201,7 @@ class UnitController extends Controller
         }
 
         $unitType = \App\Models\UnitType::find($request->unit_type_id);
-        $isParking = $unitType && strtolower($unitType->name) === 'parking';
+        $isParking = $unitType && (strtolower($unitType->name) === 'parking' || strtolower($unitType->category) === 'parking');
 
         $rules = [
             'floor_id' => ['required', 'exists:floors,id'],
@@ -282,7 +282,7 @@ class UnitController extends Controller
         }
 
         $unitType = \App\Models\UnitType::find($request->unit_type_id);
-        $isParking = $unitType && strtolower($unitType->name) === 'parking';
+        $isParking = $unitType && (strtolower($unitType->name) === 'parking' || strtolower($unitType->category) === 'parking');
 
         $rules = [
             'project_id' => ['required', 'exists:projects,id'],

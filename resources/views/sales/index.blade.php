@@ -199,34 +199,47 @@
                                                 <!-- Trigger Button -->
                                                 <button type="button" @click="open = !open" :disabled="!forms.add.project_id"
                                                         class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8">
-                                                    <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).door_no + ' — ' + availableUnits.add.find(u => u.id == row.unit_id).floor_name) : '— Select Unit —') : '— Select Unit —'"></span>
-                                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                    <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.add.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
+                                                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
                                                 <!-- Dropdown Content -->
                                                 <div x-show="open" x-transition
-                                                     class="absolute z-50 w-full mt-1 bg-white border border-slate-200 shadow-lg rounded-xl overflow-hidden max-h-60 flex flex-col">
+                                                     class="absolute z-50 w-64 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
                                                     <!-- Search Input -->
-                                                    <div class="p-2 border-b border-slate-100 bg-slate-50">
-                                                        <input type="text" x-model="search" placeholder="Type to search..."
-                                                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                                    <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                                                        <input type="text" x-model="search" placeholder="Search floor or unit..."
+                                                               class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0" x-ref="searchInput">
                                                     </div>
-                                                    <!-- Options List -->
-                                                    <div class="overflow-y-auto max-h-48 divide-y divide-slate-50">
-                                                        <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index); open = false; search = ''"
-                                                                class="w-full px-3 py-2 text-left text-xs text-slate-500 hover:bg-slate-55">
-                                                            — Select Unit —
-                                                        </button>
-                                                        <template x-for="unit in availableUnits.add" :key="unit.id">
-                                                            <button type="button" 
-                                                                    x-show="(unit.door_no + ' ' + unit.floor_name).toLowerCase().includes(search.toLowerCase())"
-                                                                    @click="row.unit_id = unit.id; onRowUnitSelect(index); open = false; search = ''"
-                                                                    :disabled="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)"
-                                                                    class="w-full px-3 py-2 text-left text-xs hover:bg-slate-50 flex flex-col disabled:opacity-50"
-                                                                    :class="row.unit_id == unit.id ? 'bg-primary/5 text-primary font-bold' : 'text-slate-700'">
-                                                                <span x-text="unit.door_no"></span>
-                                                                <span class="text-[9px] text-slate-400" x-text="unit.floor_name"></span>
-                                                            </button>
+                                                    <!-- Clear option -->
+                                                    <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index); open = false; search = ''"
+                                                            class="w-full px-3 py-2 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic">
+                                                        — Clear Selection —
+                                                    </button>
+                                                    <!-- Grouped Options List -->
+                                                    <div class="overflow-y-auto flex-1">
+                                                        <template x-for="floorGroup in getFloorGroups('add', search)" :key="floorGroup.floor">
+                                                            <div>
+                                                                <!-- Floor Header -->
+                                                                <div class="px-3 py-1 bg-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500" x-text="floorGroup.floor"></div>
+                                                                <!-- Units in this floor -->
+                                                                <template x-for="unit in floorGroup.units" :key="unit.id">
+                                                                    <button type="button"
+                                                                            @click="row.unit_id = unit.id; onRowUnitSelect(index); open = false; search = ''"
+                                                                            :disabled="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)"
+                                                                            class="w-full px-4 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
+                                                                            :class="row.unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
+                                                                        <span class="font-semibold" x-text="unit.door_no"></span>
+                                                                        <span class="text-[9px] text-slate-400 font-mono" x-text="unit.unit_type_name"></span>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
                                                         </template>
+                                                        <!-- No results -->
+                                                        <div x-show="getFloorGroups('add', search).length === 0"
+                                                             class="px-4 py-6 text-center text-xs text-slate-400">
+                                                            No units match your search.
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -621,33 +634,47 @@
                                                 <!-- Trigger Button -->
                                                 <button type="button" @click="open = !open" :disabled="!forms.edit.project_id"
                                                         class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8">
-                                                    <span x-text="row.unit_id ? (availableUnits.edit.find(u => u.id == row.unit_id) ? (availableUnits.edit.find(u => u.id == row.unit_id).door_no + ' — ' + availableUnits.edit.find(u => u.id == row.unit_id).floor_name) : '— Select Unit —') : '— Select Unit —'"></span>
-                                                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                    <span x-text="row.unit_id ? (availableUnits.edit.find(u => u.id == row.unit_id) ? (availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.edit.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
+                                                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
                                                 <!-- Dropdown Content -->
                                                 <div x-show="open" x-transition
-                                                     class="absolute z-50 w-full mt-1 bg-white border border-slate-200 shadow-lg rounded-xl overflow-hidden max-h-60 flex flex-col">
+                                                     class="absolute z-50 w-64 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
                                                     <!-- Search Input -->
-                                                    <div class="p-2 border-b border-slate-100 bg-slate-50">
-                                                        <input type="text" x-model="search" placeholder="Type to search..."
-                                                               class="w-full px-2 py-1 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20">
+                                                    <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5">
+                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                                                        <input type="text" x-model="search" placeholder="Search floor or unit..."
+                                                               class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0">
                                                     </div>
-                                                    <!-- Options List -->
-                                                    <div class="overflow-y-auto max-h-48 divide-y divide-slate-50">
-                                                        <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index, 'edit'); open = false; search = ''"
-                                                                class="w-full px-3 py-2 text-left text-xs text-slate-500 hover:bg-slate-55">
-                                                            — Select Unit —
-                                                        </button>
-                                                        <template x-for="unit in availableUnits.edit" :key="unit.id">
-                                                            <button type="button" 
-                                                                    x-show="(unit.door_no + ' ' + unit.floor_name).toLowerCase().includes(search.toLowerCase())"
-                                                                    @click="row.unit_id = unit.id; onRowUnitSelect(index, 'edit'); open = false; search = ''"
-                                                                    :disabled="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)"
-                                                                    class="w-full px-3 py-2 text-left text-xs hover:bg-slate-50 flex justify-between items-center disabled:opacity-50 disabled:bg-slate-100/50"
-                                                                    :class="row.unit_id == unit.id ? 'bg-primary-50 text-primary font-bold' : 'text-slate-700'">
-                                                                <span x-text="unit.door_no + ' — ' + unit.floor_name"></span>
-                                                            </button>
+                                                    <!-- Clear option -->
+                                                    <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index, 'edit'); open = false; search = ''"
+                                                            class="w-full px-3 py-2 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic">
+                                                        — Clear Selection —
+                                                    </button>
+                                                    <!-- Grouped Options List -->
+                                                    <div class="overflow-y-auto flex-1">
+                                                        <template x-for="floorGroup in getFloorGroups('edit', search)" :key="floorGroup.floor">
+                                                            <div>
+                                                                <!-- Floor Header -->
+                                                                <div class="px-3 py-1 bg-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500" x-text="floorGroup.floor"></div>
+                                                                <!-- Units in this floor -->
+                                                                <template x-for="unit in floorGroup.units" :key="unit.id">
+                                                                    <button type="button"
+                                                                            @click="row.unit_id = unit.id; onRowUnitSelect(index, 'edit'); open = false; search = ''"
+                                                                            :disabled="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)"
+                                                                            class="w-full px-4 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
+                                                                            :class="row.unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
+                                                                        <span class="font-semibold" x-text="unit.door_no"></span>
+                                                                        <span class="text-[9px] text-slate-400 font-mono" x-text="unit.unit_type_name"></span>
+                                                                    </button>
+                                                                </template>
+                                                            </div>
                                                         </template>
+                                                        <!-- No results -->
+                                                        <div x-show="getFloorGroups('edit', search).length === 0"
+                                                             class="px-4 py-6 text-center text-xs text-slate-400">
+                                                            No units match your search.
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1229,15 +1256,15 @@ function salesApp() {
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 brokerage_type: 'percentage', brokerage_value: '',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
-                payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: new Date().toISOString().split('T')[0], milestones: [], remaining_balance: 0,
+                payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (() => { const d = new Date(); const day = d.getDate(); d.setMonth(d.getMonth() + 1); if (d.getDate() !== day) d.setDate(0); return d.toISOString().split('T')[0]; })(), milestones: [], remaining_balance: 0,
                 notes: '',
                 units: [],
                 extra_works: []
             },
             edit: {
                 project_id: '', sale_amount: '', sale_date: '', gst_type: 'none',
-                gst_percentage: 18, gst_amount: 0, base_amount: '', total_amount: '', notes: '',
-                payment_plan: 'lump_sum', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: new Date().toISOString().split('T')[0],
+                gst_percentage: '', gst_amount: 0, base_amount: '', total_amount: '', notes: '',
+                payment_plan: 'lump_sum', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (() => { const d = new Date(); const day = d.getDate(); d.setMonth(d.getMonth() + 1); if (d.getDate() !== day) d.setDate(0); return d.toISOString().split('T')[0]; })(),
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 brokerage_type: 'percentage', brokerage_value: '', broker_id: '',
                 units: [],
@@ -1748,7 +1775,7 @@ function salesApp() {
         addUnitRow(mode = 'add') {
             this.forms[mode].units.push({
                 id: null,
-                unit_id: '', wing: '', rate_per_sqft: '', sale_amount: '', gst_type: 'exclusive', gst_percentage: 18,
+                unit_id: '', wing: '', rate_per_sqft: '', sale_amount: '', gst_type: 'exclusive', gst_percentage: '',
                 gst_amount: 0, base_amount: 0, total_amount: 0
             });
             this.recalculateAllTotals(mode);
@@ -1761,20 +1788,48 @@ function salesApp() {
             const row = this.forms[mode].units[index];
             const unit = this.availableUnits[mode].find(u => u.id == row.unit_id);
             if (unit) {
-                const isParking = unit.unit_type_name === 'Parking' || unit.unit_type_category === 'parking';
+                const isParking = (unit.unit_type_name || '').toLowerCase() === 'parking'
+                               || (unit.unit_type_category || '').toLowerCase() === 'parking';
                 if (isParking) {
+                    // Parking: no rate per sqft — use expected_sale_amount directly
                     row.rate_per_sqft = 0;
-                    row.sale_amount = unit.expected_sale_amount || '';
+                    row.sale_amount   = unit.expected_sale_amount || '';
+                    this.recalculateRowGst(index, mode);
                 } else {
                     row.rate_per_sqft = unit.expected_rate_per_sqft || '';
+                    this.onRowRateChange(index, mode);
                 }
-                this.onRowRateChange(index, mode);
+            } else {
+                // Cleared selection — reset row fields
+                row.rate_per_sqft = '';
+                row.sale_amount   = '';
+                row.gst_amount    = 0;
+                row.base_amount   = 0;
+                row.total_amount  = 0;
+                this.recalculateAllTotals(mode);
             }
         },
         onGetRowArea(index, mode = 'add') {
             const row = this.forms[mode].units[index];
             const unit = this.availableUnits[mode].find(u => u.id == row.unit_id);
             return unit ? (unit.built_up_area || '—') : '—';
+        },
+        getFloorGroups(mode, search = '') {
+            const s = (search || '').toLowerCase();
+            const filtered = (this.availableUnits[mode] || []).filter(u =>
+                (u.floor_name + ' ' + u.door_no).toLowerCase().includes(s)
+            );
+            const groups = [];
+            const seen = {};
+            filtered.forEach(u => {
+                const key = u.floor_name || 'Other';
+                if (!seen[key]) {
+                    seen[key] = true;
+                    groups.push({ floor: key, units: [] });
+                }
+                groups[groups.length - 1].units.push(u);
+            });
+            return groups;
         },
         onRowRateChange(index, mode = 'add') {
             const row = this.forms[mode].units[index];
@@ -1819,7 +1874,7 @@ function salesApp() {
                 this.forms[mode].extra_works = [];
             }
             this.forms[mode].extra_works.push({
-                description: '', amount: '', gst_type: 'none', gst_percentage: 18, gst_amount: 0, line_total: 0
+                description: '', amount: '', gst_type: 'none', gst_percentage: '', gst_amount: 0, line_total: 0
             });
             this.recalculateAllTotals(mode);
         },
@@ -1910,7 +1965,7 @@ function salesApp() {
             const unit = this.availableUnits[mode].find(u => u.id == this.forms[mode].unit_id);
             this.selectedUnit[mode] = unit || null;
             if (unit) {
-                const isParking = unit.unit_type_name === 'Parking' || unit.unit_type_category === 'parking';
+                const isParking = (unit.unit_type_name || '').toLowerCase() === 'parking' || (unit.unit_type_category || '').toLowerCase() === 'parking';
                 if (isParking) {
                     this.forms[mode].rate_per_sqft = 0;
                     this.forms[mode].sale_amount = unit.expected_sale_amount || '';
@@ -2056,7 +2111,7 @@ function salesApp() {
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
                 initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', reference_no: '', bank_id: '', initial_payment_date: new Date().toISOString().split('T')[0],
-                payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: new Date().toISOString().split('T')[0], milestones: [], remaining_balance: 0,
+                payment_plan: 'lump_sum', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (() => { const d = new Date(); const day = d.getDate(); d.setMonth(d.getMonth() + 1); if (d.getDate() !== day) d.setDate(0); return d.toISOString().split('T')[0]; })(), milestones: [], remaining_balance: 0,
                 notes: '',
                 units: []
             };
@@ -2114,7 +2169,7 @@ function salesApp() {
                     rate_per_sqft: this.activeSale.rate_per_sqft || '',
                     sale_amount: this.activeSale.sale_amount,
                     gst_type: this.activeSale.gst_type || 'none',
-                    gst_percentage: this.activeSale.gst_percentage || 18,
+                    gst_percentage: this.activeSale.gst_percentage || '',
                     gst_amount: this.activeSale.gst_amount,
                     base_amount: this.activeSale.base_amount,
                     total_amount: this.activeSale.total_amount,
@@ -2133,7 +2188,7 @@ function salesApp() {
                     payment_plan: this.activeSale.payment_plan || 'lump_sum',
                     emi_installment_count: this.activeSale.emi_installment_count || 12,
                     emi_frequency: this.activeSale.emi_frequency || 'monthly',
-                    first_installment_date: this.activeSale.first_installment_date ? this.activeSale.first_installment_date.split('T')[0] : new Date().toISOString().split('T')[0],
+                    first_installment_date: this.activeSale.first_installment_date ? this.activeSale.first_installment_date.split('T')[0] : (() => { const d = new Date(); const day = d.getDate(); d.setMonth(d.getMonth() + 1); if (d.getDate() !== day) d.setDate(0); return d.toISOString().split('T')[0]; })(),
                     remaining_balance: this.activeSale.remaining_balance || 0,
                     notes: this.activeSale.notes,
                     units: []
@@ -2183,7 +2238,7 @@ function salesApp() {
                         rate_per_sqft: this.activeSale.rate_per_sqft,
                         sale_amount: this.activeSale.sale_amount,
                         gst_type: this.activeSale.gst_applicable ? 'exclusive' : 'none',
-                        gst_percentage: this.activeSale.gst_applicable ? (this.activeSale.gst_percentage || 18) : 0,
+                        gst_percentage: this.activeSale.gst_applicable ? (this.activeSale.gst_percentage || '') : 0,
                         gst_amount: this.activeSale.gst_amount || 0,
                         base_amount: this.activeSale.base_amount || this.activeSale.sale_amount,
                         total_amount: this.activeSale.total_amount || this.activeSale.sale_amount,

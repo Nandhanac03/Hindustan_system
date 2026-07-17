@@ -997,7 +997,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate / Sq Ft</span>
-                        <span class="text-xs font-bold text-slate-800 mt-0.5 block font-mono" x-text="viewTarget?.unit_type?.name?.toLowerCase() === 'parking' ? 'N/A' : (viewTarget?.expected_rate_per_sqft != null ? '₹' + Number(viewTarget.expected_rate_per_sqft).toLocaleString() : 'N/A')"></span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block font-mono" x-text="(viewTarget?.unit_type?.name?.toLowerCase() === 'parking' || viewTarget?.unit_type?.category?.toLowerCase() === 'parking') ? 'N/A' : (viewTarget?.expected_rate_per_sqft != null ? '₹' + Number(viewTarget.expected_rate_per_sqft).toLocaleString() : 'N/A')"></span>
                     </div>
                     <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Sale Amount</span>
@@ -1016,7 +1016,7 @@
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div>
                                 <span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">Sale Rate / Sq Ft</span>
-                                <strong class="text-slate-800 font-mono" x-text="viewTarget?.unit_type?.name?.toLowerCase() === 'parking' ? 'N/A' : (viewTarget?.sale_rate_per_sqft ? '₹' + Number(viewTarget.sale_rate_per_sqft).toLocaleString() : 'N/A')"></strong>
+                                <strong class="text-slate-800 font-mono" x-text="(viewTarget?.unit_type?.name?.toLowerCase() === 'parking' || viewTarget?.unit_type?.category?.toLowerCase() === 'parking') ? 'N/A' : (viewTarget?.sale_rate_per_sqft ? '₹' + Number(viewTarget.sale_rate_per_sqft).toLocaleString() : 'N/A')"></strong>
                             </div>
                             <div>
                                 <span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">Total Sale Value</span>
@@ -1231,7 +1231,7 @@ function unitsApp() {
     return {
         // App states
         projectId: {{ $project->id }},
-        unitTypeMap: {!! json_encode($unitTypes->pluck('name','id')) !!},
+        unitTypeMap: {!! json_encode($unitTypes->keyBy('id')->map(fn($t) => ['name' => $t->name, 'category' => $t->category])) !!},
         editProjectModal: false,
         imagePreview: null,
         units: [],
@@ -1376,9 +1376,10 @@ function unitsApp() {
             return rangeWithDots;
         },
 
-        // Returns true when the selected unit_type_id maps to "Parking"
         isParking(typeId) {
-            return typeId && (this.unitTypeMap[typeId] || '').toLowerCase() === 'parking';
+            if (!typeId || !this.unitTypeMap[typeId]) return false;
+            const info = this.unitTypeMap[typeId];
+            return (info.name || '').toLowerCase() === 'parking' || (info.category || '').toLowerCase() === 'parking';
         },
 
         resetFilters() {
@@ -1460,7 +1461,7 @@ function unitsApp() {
                     if (ui === 0) {
                         html += `<td rowspan="${group.units.length}" class="border text-slate-900 font-extrabold text-[11px] uppercase bg-[#a38c29]/10 select-none" style="writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);min-width:38px;padding:14px 8px;text-align:center;vertical-align:middle;letter-spacing:0.13em;">${group.floor_name}</td>`;
                     }
-                    const isParkingUnit = unit.unit_type && unit.unit_type.name.toLowerCase() === 'parking';
+                    const isParkingUnit = unit.unit_type && (unit.unit_type.name.toLowerCase() === 'parking' || (unit.unit_type.category || '').toLowerCase() === 'parking');
                     const expRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.expected_rate_per_sqft);
                     const saleRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.sale_rate_per_sqft);
 

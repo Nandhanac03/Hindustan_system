@@ -48,7 +48,7 @@ class SalesController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('sale_date', '<=', $request->date_to);
         }
-        $sales = $query->orderByDesc('sale_date')->get();
+        $sales = $query->orderByDesc('created_at')->get();
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['sales' => $sales]);
         }
@@ -66,26 +66,32 @@ class SalesController extends Controller
             ->where('is_active', true)
             ->with(['floor', 'unitType'])
             ->get()
+            ->sortBy([
+                fn($a, $b) => ($a->floor?->number ?? 0) <=> ($b->floor?->number ?? 0),
+                fn($a, $b) => strnatcmp($a->door_no ?? '', $b->door_no ?? ''),
+            ])
             ->map(function ($unit) {
                 return [
-                    'id' => $unit->id,
-                    'door_no' => $unit->door_no,
-                    'floor_name' => $unit->floor->name ?? '',
-                    'built_up_area' => $unit->built_up_area,
+                    'id'                     => $unit->id,
+                    'door_no'                => $unit->door_no,
+                    'floor_name'             => $unit->floor?->name ?? '',
+                    'floor_number'           => $unit->floor?->number ?? 0,
+                    'built_up_area'          => $unit->built_up_area,
                     'expected_rate_per_sqft' => $unit->expected_rate_per_sqft,
-                    'expected_sale_amount' => $unit->expected_sale_amount,
-                    'unit_type_id' => $unit->unit_type_id,
-                    'unit_type_name' => $unit->unitType?->name ?? '',
-                    'unit_type_category' => $unit->unitType?->category ?? '',
+                    'expected_sale_amount'   => $unit->expected_sale_amount,
+                    'unit_type_id'           => $unit->unit_type_id,
+                    'unit_type_name'         => $unit->unitType?->name ?? '',
+                    'unit_type_category'     => $unit->unitType?->category ?? '',
                 ];
-            });
+            })
+            ->values();
         $unitTypes = UnitType::where('project_id', $projectId)
             ->where('is_active', true)
             ->orderBy('name')
             ->get(['id', 'name', 'category']);
 
         return response()->json([
-            'units' => $units,
+            'units'     => $units,
             'unitTypes' => $unitTypes
         ]);
     }
@@ -112,9 +118,9 @@ class SalesController extends Controller
             'units'                  => ['required', 'array', 'min:1'],
             'units.*.unit_id'        => ['required', 'exists:hindustan_units,id'],
             'units.*.wing'           => ['nullable', 'string'],
-            'units.*.rate_per_sqft'  => ['required', 'numeric', 'min:0'],
+            'units.*.rate_per_sqft'  => ['nullable', 'numeric', 'min:0'],
             'units.*.sale_amount'    => ['required', 'numeric', 'min:0'],
-            'units.*.gst_percentage' => ['required', 'numeric', 'min:0'],
+            'units.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
             'broker_involved'        => ['nullable', 'boolean'],
             'broker_id'              => ['nullable', 'required_if:broker_involved,true', 'exists:brokers,id'],
             'brokerage_type'         => ['nullable', Rule::in(['percentage', 'fixed'])],
@@ -124,7 +130,7 @@ class SalesController extends Controller
             'extra_works.*.description' => ['required', 'string'],
             'extra_works.*.amount'      => ['required', 'numeric', 'min:0'],
             'extra_works.*.gst_type'    => ['required', Rule::in(['exclusive', 'inclusive', 'none'])],
-            'extra_works.*.gst_percentage' => ['required', 'numeric', 'min:0'],
+            'extra_works.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
             'broker_involved'        => ['nullable', 'boolean'],
             'broker_id'              => ['nullable', 'required_if:broker_involved,true', 'exists:brokers,id'],
             'brokerage_type'         => ['nullable', Rule::in(['percentage', 'fixed'])],
@@ -149,7 +155,7 @@ class SalesController extends Controller
             $processedExtraWorks = [];
             foreach ($extraWorksData as $ewItem) {
                 $ewAmount = (float)$ewItem['amount'];
-                $ewGstPct = (float)($ewItem['gst_percentage'] ?? 0);
+                $ewGstPct = isset($ewItem['gst_percentage']) && $ewItem['gst_percentage'] !== '' ? (float)$ewItem['gst_percentage'] : 0.0;
                 $ewGstType = $ewItem['gst_type'] ?? 'none';
                 $ewGstAmount = 0.0;
                 $ewLineTotal = 0.0;
@@ -181,9 +187,10 @@ class SalesController extends Controller
             foreach ($unitsData as $item) {
                 $unitModel = Unit::findOrFail($item['unit_id']);
                 $area = (float)$unitModel->built_up_area ?: 1.0;
-                $rate = (float)$item['rate_per_sqft'];
+                $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
+                $rate = $isUnitParking ? 0.0 : (float)($item['rate_per_sqft'] ?? 0.0);
                 $amount = (float)$item['sale_amount'];
-                $gstPct = (float)($item['gst_percentage'] ?? 0);
+                $gstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : 0.0;
                 $gstAmount = 0.0;
                 if ($gstPct > 0) {
                     $gstAmount = round($amount * ($gstPct / 100), 2);
@@ -342,9 +349,9 @@ class SalesController extends Controller
             'units'                  => ['required', 'array', 'min:1'],
             'units.*.unit_id'        => ['required', 'exists:hindustan_units,id'],
             'units.*.wing'           => ['nullable', 'string'],
-            'units.*.rate_per_sqft'  => ['required', 'numeric', 'min:0'],
+            'units.*.rate_per_sqft'  => ['nullable', 'numeric', 'min:0'],
             'units.*.sale_amount'    => ['required', 'numeric', 'min:0'],
-            'units.*.gst_percentage' => ['required', 'numeric', 'min:0'],
+            'units.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
             'broker_involved'        => ['nullable', 'boolean'],
             'broker_id'              => ['nullable', 'required_if:broker_involved,true', 'exists:brokers,id'],
             'brokerage_type'         => ['nullable', Rule::in(['percentage', 'fixed'])],
@@ -354,7 +361,7 @@ class SalesController extends Controller
             'extra_works.*.description' => ['required', 'string'],
             'extra_works.*.amount'      => ['required', 'numeric', 'min:0'],
             'extra_works.*.gst_type'    => ['required', Rule::in(['exclusive', 'inclusive', 'none'])],
-            'extra_works.*.gst_percentage' => ['required', 'numeric', 'min:0'],
+            'extra_works.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
         ]);
         return DB::transaction(function () use ($validated, $sale) {
             $unitsData = $validated['units'];
@@ -367,7 +374,7 @@ class SalesController extends Controller
             $processedExtraWorks = [];
             foreach ($extraWorksData as $ewItem) {
                 $ewAmount = (float)$ewItem['amount'];
-                $ewGstPct = (float)($ewItem['gst_percentage'] ?? 0);
+                $ewGstPct = isset($ewItem['gst_percentage']) && $ewItem['gst_percentage'] !== '' ? (float)$ewItem['gst_percentage'] : 0.0;
                 $ewGstType = $ewItem['gst_type'] ?? 'none';
                 $ewGstAmount = 0.0;
                 $ewLineTotal = 0.0;
@@ -415,9 +422,10 @@ class SalesController extends Controller
             foreach ($unitsData as $item) {
                 $unitModel = Unit::findOrFail($item['unit_id']);
                 $area = (float)$unitModel->built_up_area ?: 1.0;
-                $rate = (float)$item['rate_per_sqft'];
+                $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
+                $rate = $isUnitParking ? 0.0 : (float)($item['rate_per_sqft'] ?? 0.0);
                 $amount = (float)$item['sale_amount'];
-                $gstPct = (float)($item['gst_percentage'] ?? 0);
+                $gstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : 0.0;
                 $gstAmount = 0.0;
                 if ($gstPct > 0) {
                     $gstAmount = round($amount * ($gstPct / 100), 2);
