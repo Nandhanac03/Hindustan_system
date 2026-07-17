@@ -72,10 +72,10 @@
                             <td class="px-6 py-3.5 text-slate-400 font-mono">{{ $i + 1 }}</td>
                             <td class="px-6 py-3.5 font-bold text-slate-900">{{ $row['account'] }}</td>
                             <td class="px-6 py-3.5 text-slate-500 font-medium">{{ $row['narration'] }}</td>
-                            <td class="px-6 py-3.5 text-right font-mono font-bold {{ $row['debit'] > 0 ? 'text-emerald-700' : 'text-slate-300' }}">
+                            <td class="px-6 py-3.5 text-right font-mono font-bold {{ $row['debit'] > 0 ? 'text-rose-600' : 'text-slate-300' }}">
                                 {{ $row['debit'] > 0 ? '₹' . number_format($row['debit'], 2) : '—' }}
                             </td>
-                            <td class="px-6 py-3.5 text-right font-mono font-bold {{ $row['credit'] > 0 ? 'text-rose-600' : 'text-slate-300' }}">
+                            <td class="px-6 py-3.5 text-right font-mono font-bold {{ $row['credit'] > 0 ? 'text-emerald-700' : 'text-slate-300' }}">
                                 {{ $row['credit'] > 0 ? '₹' . number_format($row['credit'], 2) : '—' }}
                             </td>
                         </tr>
@@ -84,8 +84,8 @@
                     <tfoot>
                         <tr class="bg-slate-50 border-t-2 border-slate-200 text-xs font-extrabold">
                             <td colspan="3" class="px-6 py-3.5 text-slate-700 uppercase">Total</td>
-                            <td class="px-6 py-3.5 text-right font-mono text-emerald-700">₹{{ number_format($totalIn, 2) }}</td>
-                            <td class="px-6 py-3.5 text-right font-mono text-rose-600">₹{{ number_format($totalOut, 2) }}</td>
+                            <td class="px-6 py-3.5 text-right font-mono text-rose-600">₹{{ number_format($totalIn, 2) }}</td>
+                            <td class="px-6 py-3.5 text-right font-mono text-emerald-700">₹{{ number_format($totalOut, 2) }}</td>
                         </tr>
                     </tfoot>
                 </table>

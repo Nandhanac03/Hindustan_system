@@ -260,7 +260,7 @@
                                 <!-- Select Destination Bank Account for split processing -->
                                 <div class="pt-3 border-t border-slate-100">
                                     <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Process Into Bank / Cash Account</label>
-                                    <select name="destination_account_id" x-model="form.destination_account_id" required @change="updateNames()"
+                                    <select x-model="form.destination_account_id" @change="updateNames()"
                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
                                         <option value="">-- Select Destination Ledger --</option>
                                         @foreach($assetAccounts as $acc)
@@ -520,7 +520,7 @@
                                     <tr class="bg-primary/5 font-semibold">
                                         <td class="px-6 py-3.5 text-slate-900" x-text="destAccountName || 'Destination Bank Account'"></td>
                                         <td class="px-6 py-3.5 text-slate-500">Intake collection receipt allocation</td>
-                                        <td class="px-6 py-3.5 text-right font-mono font-extrabold text-emerald-700" x-text="'₹' + formatCurrency(form.amount)"></td>
+                                        <td class="px-6 py-3.5 text-right font-mono font-extrabold text-rose-600" x-text="'₹' + formatCurrency(form.amount)"></td>
                                         <td class="px-6 py-3.5 text-right font-mono text-slate-300">—</td>
                                     </tr>
 
@@ -530,15 +530,15 @@
                                             <td class="px-6 py-3.5 font-bold text-slate-850" x-text="getPreviewAccountName(alloc)"></td>
                                             <td class="px-6 py-3.5 text-slate-500" x-text="getPreviewNarration(alloc)"></td>
                                             <td class="px-6 py-3.5 text-right font-mono text-slate-300">—</td>
-                                            <td class="px-6 py-3.5 text-right font-mono font-bold text-rose-600" x-text="'₹' + formatCurrency(alloc.amount)"></td>
+                                            <td class="px-6 py-3.5 text-right font-mono font-bold text-emerald-700" x-text="'₹' + formatCurrency(alloc.amount)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
                                 <tfoot>
                                     <tr class="bg-slate-50 border-t-2 border-slate-200 font-extrabold text-xs">
                                         <td colspan="2" class="px-6 py-3.5 text-slate-600 uppercase">Total</td>
-                                        <td class="px-6 py-3.5 text-right font-mono text-emerald-700" x-text="'₹' + formatCurrency(form.amount)"></td>
                                         <td class="px-6 py-3.5 text-right font-mono text-rose-600" x-text="'₹' + formatCurrency(form.amount)"></td>
+                                        <td class="px-6 py-3.5 text-right font-mono text-emerald-700" x-text="'₹' + formatCurrency(form.amount)"></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -546,10 +546,10 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Visualizer Chart Panel (1/3 width) - Dark Combo Card! -->
-                <div class="bg-[#1F1D1A] border border-[#a38c29]/20 rounded-2xl shadow-xl shadow-slate-900/10 p-6 flex flex-col justify-between h-full min-h-[450px]">
+                <!-- Right Column: Visualizer Chart Panel (1/3 width) - Light Card -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-md shadow-slate-100/40 p-6 flex flex-col justify-between h-full min-h-[450px]">
                     <div class="space-y-4">
-                        <h3 class="text-xs font-extrabold text-white uppercase tracking-wider pb-2 border-b border-slate-800 flex items-center gap-2">
+                        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider pb-2 border-b border-slate-100 flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29] inline-block shadow-glow"></span>
                             <span>Transaction Visualizer</span>
                         </h3>
@@ -558,12 +558,12 @@
                         <div id="splitChart" class="flex justify-center items-center py-4"></div>
                     </div>
 
-                    <div class="space-y-3 pt-6 border-t border-slate-800">
+                    <div class="space-y-3 pt-6 border-t border-slate-100">
                         <!-- Process Into Bank/Cash Account (Step 3 Quick Picker) -->
                         <div class="mb-4 space-y-1">
-                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Process Into Bank / Cash Account</label>
+                            <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Process Into Bank / Cash Account</label>
                             <select x-model="form.destination_account_id" required @change="updateNames()"
-                                    class="w-full px-3 py-2.5 bg-slate-900 border border-slate-700 text-xs text-slate-200 font-semibold focus:outline-none transition rounded-xl focus:border-[#a38c29] cursor-pointer">
+                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white text-xs text-slate-800 font-semibold focus:outline-none transition rounded-xl focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] cursor-pointer">
                                 <option value="">-- Select Destination Ledger --</option>
                                 @foreach($assetAccounts as $acc)
                                     <option value="{{ $acc->id }}">{{ $acc->name }}</option>
@@ -573,12 +573,12 @@
 
                         <div class="flex gap-2">
                             <button type="button" @click="step = 2"
-                                    class="flex-1 py-3 text-center border border-slate-700 bg-slate-900 hover:bg-slate-850 text-slate-300 text-xs font-extrabold uppercase rounded-xl transition tracking-wider">
+                                    class="flex-1 py-2 text-center border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 text-[10px] font-extrabold uppercase rounded-lg transition tracking-wider shadow-sm">
                                 Back
                             </button>
                             <button type="submit"
-                                    class="flex-[2] py-3 text-center bg-gradient-to-r from-emerald-600 to-emerald-700 hover:brightness-110 text-white shadow-soft text-xs font-extrabold uppercase rounded-xl transition tracking-wider flex items-center justify-center gap-1.5 border border-emerald-500/20">
-                                <svg class="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                    class="flex-[2] py-2 text-center bg-gradient-to-r from-emerald-600 to-emerald-700 hover:brightness-110 text-white shadow-soft text-[10px] font-extrabold uppercase rounded-lg transition tracking-wider flex items-center justify-center gap-1 border border-emerald-500/20">
+                                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                                 <span>Process Receipt & Split</span>
                             </button>
                         </div>
@@ -899,7 +899,7 @@
                                 fontSize: '11px',
                                 fontFamily: 'Inter, sans-serif',
                                 labels: {
-                                    colors: '#f1f5f9'
+                                    colors: '#334155'
                                 }
                             },
                             dataLabels: {
@@ -927,6 +927,20 @@
                     });
                 },
                 onSubmit(e) {
+                    if (!this.form.destination_account_id) {
+                        e.preventDefault();
+                        alert('Please select a destination Bank / Cash Account.');
+                        return false;
+                    }
+                    for (let i = 0; i < this.allocations.length; i++) {
+                        const row = this.allocations[i];
+                        const amt = parseFloat(row.amount) || 0.0;
+                        if (amt > 0 && !row.target_id) {
+                            e.preventDefault();
+                            alert(`Please select a target for row #${i + 1} (${row.type}).`);
+                            return false;
+                        }
+                    }
                     if (!this.isBalanced()) {
                         e.preventDefault();
                         alert('Remaining balance must be balanced to zero to post splits.');
