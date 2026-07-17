@@ -213,7 +213,7 @@
               class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-4">
               
               <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Record Payment for <span x-text="form.label" class="text-primary font-bold"></span></h3>
+                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Payment for <span x-text="form.label" class="text-primary font-bold"></span></h3>
                   <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
               </div>
 
@@ -255,21 +255,17 @@
 
                       <div class="space-y-1.5">
                           <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
-                          <input type="text" x-model="form.bank_name" placeholder="e.g. HDFC Bank"
-                                 class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]">
+                          <select x-model="form.bank_name"
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]">
+                              <option value="">-- Optional --</option>
+                              @foreach($banks as $bank)
+                                  <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
+                              @endforeach
+                          </select>
                       </div>
                   </div>
 
-                  <div class="space-y-1.5">
-                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Received By Partner (Optional)</label>
-                      <select x-model="form.partner_id"
-                              class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]">
-                          <option value="">-- Direct to Company --</option>
-                          @foreach(\App\Models\Payee::where('type', 'Partner')->orderBy('name')->get() as $partner)
-                              <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                          @endforeach
-                      </select>
-                  </div>
+
 
                   <div class="space-y-1.5">
                       <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks / Notes</label>
@@ -284,7 +280,7 @@
                       </button>
                       <button type="submit" x-bind:disabled="submitting"
                               class="px-4 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md flex items-center gap-1.5">
-                          <span x-text="submitting ? 'Recording...' : 'Record Payment'"></span>
+                          <span x-text="submitting ? 'Recording...' : 'Collect Payment'"></span>
                       </button>
                   </div>
               </form>

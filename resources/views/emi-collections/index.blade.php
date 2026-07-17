@@ -96,6 +96,39 @@
                                 <td class="px-6 py-4 font-bold text-emerald-600 font-mono text-right">₹{{ number_format($totalPaid, 2) }}</td>
                                 <td class="px-6 py-4 font-bold text-rose-600 font-mono text-right">₹{{ number_format($sale->remaining_balance, 2) }}</td>
                             </tr>
+                            <tr x-show="selectedSaleId == {{ $sale->id }}" style="display: none;" x-transition>
+                                <td colspan="6" class="p-0 border-b border-slate-100 bg-slate-50/50">
+                                    <div class="px-6 py-4 pl-12 border-l-4 border-primary">
+                                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-3">Payment Logs</h4>
+                                        @if($sale->receipts->count() > 0)
+                                            <table class="w-full text-left text-[11px] bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+                                                <thead class="bg-slate-50 border-b border-slate-200">
+                                                    <tr>
+                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Receipt Date</th>
+                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Payment Mode</th>
+                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Ref / Chq</th>
+                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Bank Name</th>
+                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider text-right">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-100">
+                                                    @foreach($sale->receipts as $receipt)
+                                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                                            <td class="px-4 py-2 text-slate-700 font-mono font-medium">{{ \Carbon\Carbon::parse($receipt->receipt_date)->format('d M Y') }}</td>
+                                                            <td class="px-4 py-2 text-slate-700">{{ $receipt->payment_mode }}</td>
+                                                            <td class="px-4 py-2 text-slate-500 font-mono">{{ $receipt->reference_no ?: '—' }}</td>
+                                                            <td class="px-4 py-2 text-slate-500">{{ $receipt->bank_name ?: '—' }}</td>
+                                                            <td class="px-4 py-2 text-emerald-600 font-extrabold font-mono text-right">₹{{ number_format($receipt->amount, 2) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        @else
+                                            <p class="text-xs text-slate-400 italic bg-white p-3 border border-slate-200 rounded-lg">No payments recorded yet.</p>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
                         @empty
                             <tr>
                                 <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">No customers found.</td>
@@ -324,7 +357,7 @@
                 {{-- Submit Button --}}
                 <button type="submit"
                         class="w-full py-3 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-primary-600/10 active:scale-98">
-                    RECORD RECEIPT
+                    COLLECTION RECEIPT
                 </button>
 
                 <p class="text-[10px] text-slate-400 text-center">
