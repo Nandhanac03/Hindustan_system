@@ -172,5 +172,42 @@
             </div>
         </div>
 
+        {{-- ═══ LOWER STATUS BLOCK ═══ --}}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-soft">
+                <div class="space-y-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Opening Balance</span>
+                    <span class="text-xs font-mono font-bold text-slate-650">₹0.00 DR</span>
+                </div>
+                <div class="p-2 bg-slate-100 rounded-xl">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-2xl p-4 flex items-center justify-between shadow-soft">
+                <div class="space-y-0.5">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Current Total (Debit - Credit)</span>
+                    <span class="text-xs font-mono font-bold text-slate-650">₹{{ number_format($totalDebit - $totalCredit, 2) }}</span>
+                </div>
+                <div class="p-2 bg-slate-100 rounded-xl">
+                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="bg-gradient-to-r from-[#a38c29] to-[#c5a832] text-white rounded-2xl p-4 flex items-center justify-between shadow-md shadow-[#a38c29]/20">
+                <div class="space-y-0.5">
+                    <span class="text-[9px] font-extrabold text-amber-100 uppercase tracking-widest block">Closing Balance</span>
+                    <span class="text-sm font-mono font-extrabold">₹{{ number_format(abs($balance), 2) }} {{ $balance < 0 ? 'CR' : 'DR' }}</span>
+                </div>
+                <div class="p-2 bg-white/20 rounded-xl">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
     </div>
 </x-erp-layout>
