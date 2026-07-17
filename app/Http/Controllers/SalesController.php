@@ -585,6 +585,7 @@ class SalesController extends Controller
         $sale->update([
             'remaining_balance' => round($sale->total_amount - $sale->receipts()->sum('amount'), 2),
         ]);
+        CustomerInstallment::allocatePaymentStatusForSale($sale->id);
         return response()->json(['receipt' => $receipt, 'sale' => $sale->fresh(['receipts', 'brokerage'])], 201);
     }
     public function changeStatus(Request $request, int $id): JsonResponse

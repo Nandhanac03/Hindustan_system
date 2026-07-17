@@ -12,6 +12,7 @@ use App\Models\Account;
 use App\Models\Loan;
 use App\Models\EmiSchedule;
 use App\Models\Payee;
+use App\Models\Bank;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +53,28 @@ class EmiCollectionController extends Controller
             ->orderBy('sale_number')
             ->get();
 
+        foreach ($activeSales as $sale) {
+            $totalPaid = Receipt::where('sale_id', $sale->id)->sum('amount');
+            $installments = CustomerInstallment::where('sale_id', $sale->id)
+                ->orderBy('installment_no')
+                ->get();
+
+            $nextDueAmount = 0;
+            $allocated = $totalPaid;
+            foreach ($installments as $inst) {
+                $instAmt = (float)$inst->amount;
+                if ($allocated >= $instAmt) {
+                    $allocated -= $instAmt;
+                } else {
+                    $nextDueAmount = $instAmt - $allocated;
+                    break;
+                }
+            }
+            $sale->next_due_amount = $nextDueAmount > 0 ? $nextDueAmount : (float)$sale->remaining_balance;
+        }
+
+        $banks = Bank::where('status', 'active')->orderBy('bank_name')->get();
+
         return view('emi-collections.index', compact(
             'sales',
             'totalReceived',
@@ -59,7 +82,8 @@ class EmiCollectionController extends Controller
             'totalOutstanding',
             'pendingPaymentsCount',
             'recentBookings',
-            'activeSales'
+            'activeSales',
+            'banks'
         ));
     }
 
@@ -261,33 +285,14 @@ class EmiCollectionController extends Controller
                 'partner_id'   => $validated['partner_id'] ?? null,
             ]);
 
-            Receipt::allocateToPartners($receipt);
+            // Receipt::allocateToPartners($receipt);
 
             // Recompute remaining balance from all receipts
             $totalPaid = $sale->receipts()->sum('amount');
             $sale->update(['remaining_balance' => max(0, round((float)$sale->total_amount - $totalPaid, 2))]);
 
-            // Auto-allocate receipt amount to mark installments as paid/partial
-            $remainingPayment = (float)$validated['amount'];
-            $installments = CustomerInstallment::where('sale_id', $sale->id)
-                ->where('status', '!=', 'paid')
-                ->orderBy('installment_no')
-                ->get();
-
-            foreach ($installments as $inst) {
-                if ($remainingPayment <= 0) {
-                    break;
-                }
-
-                $instAmount = (float)$inst->amount;
-                if ($remainingPayment >= $instAmount) {
-                    $inst->update(['status' => 'paid']);
-                    $remainingPayment -= $instAmount;
-                } else {
-                    $inst->update(['status' => 'partial']);
-                    $remainingPayment = 0;
-                }
-            }
+            // Auto-allocate receipt amount to mark installments as paid/partial/overdue
+            CustomerInstallment::allocatePaymentStatusForSale($sale->id);
 
             return $receipt;
         });
@@ -384,18 +389,68 @@ class EmiCollectionController extends Controller
         $ledger = collect();
         $opening = 0; // Sales have no "opening balance" concept — full amount is the debit
 
+        $totalPaid = $sale->receipts->sum('amount');
+        $allocatedPayment = $totalPaid;
+
         // Installment rows (debits)
         foreach ($installments as $inst) {
-            $ledger->push([
-                'date'            => $inst->due_date?->format('d M Y') ?? '—',
-                'description'     => $inst->label . ' (Due)',
-                'debit'           => (float)$inst->amount,
-                'credit'          => 0,
-                'running_balance' => 0,
-                'type'            => 'installment',
-                'status'          => $inst->status,
-                'sort_date'       => $inst->due_date,
-            ]);
+            $instAmount = (float)$inst->amount;
+            
+            if ($allocatedPayment >= $instAmount) {
+                $ledger->push([
+                    'date'            => $inst->due_date?->format('d M Y') ?? '—',
+                    'description'     => $inst->label . ' (Due)',
+                    'debit'           => $instAmount,
+                    'credit'          => 0,
+                    'running_balance' => 0,
+                    'type'            => 'installment',
+                    'status'          => 'paid',
+                    'sort_date'       => $inst->due_date,
+                    'remaining'       => 0,
+                ]);
+                $allocatedPayment -= $instAmount;
+            } elseif ($allocatedPayment > 0) {
+                $paidPart = $allocatedPayment;
+                $remainingPart = $instAmount - $paidPart;
+                
+                $ledger->push([
+                    'date'            => $inst->due_date?->format('d M Y') ?? '—',
+                    'description'     => $inst->label . ' (Paid Part)',
+                    'debit'           => $paidPart,
+                    'credit'          => 0,
+                    'running_balance' => 0,
+                    'type'            => 'installment',
+                    'status'          => 'paid',
+                    'sort_date'       => $inst->due_date,
+                    'remaining'       => 0,
+                ]);
+
+                $ledger->push([
+                    'date'            => $inst->due_date?->format('d M Y') ?? '—',
+                    'description'     => $inst->label . ' (Balance Due)',
+                    'debit'           => $remainingPart,
+                    'credit'          => 0,
+                    'running_balance' => 0,
+                    'type'            => 'installment',
+                    'status'          => ($inst->due_date && $inst->due_date->isPast()) ? 'overdue' : 'pending',
+                    'sort_date'       => $inst->due_date,
+                    'remaining'       => $remainingPart,
+                ]);
+                
+                $allocatedPayment = 0;
+            } else {
+                $ledger->push([
+                    'date'            => $inst->due_date?->format('d M Y') ?? '—',
+                    'description'     => $inst->label . ' (Due)',
+                    'debit'           => $instAmount,
+                    'credit'          => 0,
+                    'running_balance' => 0,
+                    'type'            => 'installment',
+                    'status'          => ($inst->due_date && $inst->due_date->isPast()) ? 'overdue' : 'pending',
+                    'sort_date'       => $inst->due_date,
+                    'remaining'       => $instAmount,
+                ]);
+            }
         }
 
         // Receipt rows (credits)
@@ -430,11 +485,11 @@ class EmiCollectionController extends Controller
 
         // Running balance
         $runningBalance = 0;
-        foreach ($ledger as &$row) {
+        $ledger = $ledger->map(function ($row) use (&$runningBalance) {
             $runningBalance += $row['debit'] - $row['credit'];
             $row['running_balance'] = $runningBalance;
-        }
-        unset($row);
+            return $row;
+        });
 
         $totalDebits    = $ledger->sum('debit');
         $totalCredits   = $ledger->sum('credit');
