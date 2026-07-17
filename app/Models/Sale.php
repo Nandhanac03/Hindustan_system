@@ -20,9 +20,10 @@ class Sale extends Model
         'unit_id',
         'customer_id',
         'broker_id',
+        'agreement_date',
+        'registration_date',
         'sale_number',
         'sale_date',
-        'registration_date',
         'rate_per_sqft',
         'sale_amount',
         'gst_type',
@@ -54,6 +55,7 @@ class Sale extends Model
         'cancellation_fee'  => 'decimal:2',
         'refund_amount'     => 'decimal:2',
         'sale_date'         => 'date',
+        'agreement_date'    => 'date',
         'registration_date' => 'date',
     ];
 
