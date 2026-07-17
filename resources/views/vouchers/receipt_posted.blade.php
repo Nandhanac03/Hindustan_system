@@ -91,8 +91,19 @@
                 </table>
             </div>
         </div>
-
-
+        {{-- Action Buttons --}}
+        <div class="flex items-center justify-center gap-4 mt-2">
+            <a href="{{ route('vouchers.receipt.create') }}"
+               class="inline-flex items-center gap-2.5 px-6 py-3 bg-gradient-to-r from-[#a38c29] to-[#c5a832] text-white rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-lg shadow-[#a38c29]/20 hover:shadow-xl hover:shadow-[#a38c29]/30 hover:-translate-y-0.5 transition-all duration-300">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Create New Receipt Voucher
+            </a>
+            <a href="{{ route('vouchers.receipt.create') }}"
+               class="inline-flex items-center gap-2.5 px-6 py-3 bg-white border border-slate-200 text-slate-700 rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-sm hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-0.5 transition-all duration-300">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                View All Receipts
+            </a>
+        </div>
 
     </div>
 </x-erp-layout>
