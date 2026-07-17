@@ -67,7 +67,9 @@
     
     <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}">
 </head>
-<body class="h-full bg-slate-50 text-slate-900" x-data="{ sidebarOpen: false }">
+<body class="h-full bg-slate-50 text-slate-900" 
+      x-data="{ sidebarOpen: false, fontSize: localStorage.getItem('erp-font-size') || '100%' }" 
+      x-init="$watch('fontSize', val => { document.documentElement.style.fontSize = val; localStorage.setItem('erp-font-size', val); }); document.documentElement.style.fontSize = fontSize;">
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"></div>
@@ -436,6 +438,19 @@
 
             <!-- Profile Info & Sign Out -->
             <div class="flex items-center gap-4">
+                <!-- Interactive Font Size Switcher -->
+                <div class="flex items-center gap-1 bg-slate-100 rounded-lg p-1 border border-slate-200/60 mr-2 shrink-0">
+                    <button type="button" @click="fontSize = '90%'" 
+                            :class="fontSize === '90%' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700'"
+                            class="text-[9px] font-bold px-1.5 py-0.5 rounded transition" title="Small text size">A-</button>
+                    <button type="button" @click="fontSize = '100%'" 
+                            :class="fontSize === '100%' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700'"
+                            class="text-[9px] font-bold px-1.5 py-0.5 rounded transition" title="Normal text size">A</button>
+                    <button type="button" @click="fontSize = '112.5%'" 
+                            :class="fontSize === '112.5%' ? 'bg-white text-slate-900 shadow-sm font-extrabold' : 'text-slate-500 hover:text-slate-700'"
+                            class="text-[9px] font-bold px-1.5 py-0.5 rounded transition" title="Medium text size">A+</button>
+                </div>
+
                 <div class="flex items-center gap-3">
                     <img class="h-8 w-8 rounded-full object-cover"
                          src="https://api.dicebear.com/7.x/initials/svg?seed={{ urlencode(auth()->user()->name) }}" alt="Avatar">
