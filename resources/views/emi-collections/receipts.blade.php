@@ -66,7 +66,7 @@
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Active Sale *</label>
                     <select x-model="form.sale_id" required @change="updateSaleDetail()"
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                            class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap">
                         <option value="">-- Select Sale --</option>
                         @foreach($sales as $sale)
                         <option value="{{ $sale->id }}"
