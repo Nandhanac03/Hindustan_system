@@ -126,14 +126,14 @@
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                     </span>
                                     <input type="text" x-model="searchQuery" placeholder="Search customer, receipt no..."
-                                           class="w-full pl-9 pr-3 py-2 bg-white/8 border border-slate-600/50 hover:border-slate-500 rounded-xl text-xs font-semibold text-white placeholder-slate-500 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition-all">
+                                           class="w-full pl-9 pr-3 py-2 bg-white/10 border border-slate-600/50 hover:border-slate-500 rounded-xl text-xs font-semibold text-white placeholder-slate-500 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition-all">
                                 </div>
                                 
                                 <div class="relative flex items-center">
                                     <span class="absolute left-3 text-slate-500">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
                                     </span>
-                                    <select x-model="filterProject" class="pl-9 pr-8 py-2 bg-white/8 border border-slate-600/50 hover:border-slate-500 rounded-xl text-xs font-semibold text-slate-350 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition-all appearance-none cursor-pointer">
+                                    <select x-model="filterProject" class="pl-9 pr-8 py-2 bg-white/10 border border-slate-600/50 hover:border-slate-500 rounded-xl text-xs font-semibold text-slate-350 focus:bg-white focus:text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] transition-all appearance-none cursor-pointer">
                                         <option value="" class="text-slate-800">All Projects</option>
                                         @foreach($projects as $p)
                                             <option value="{{ $p->id }}" class="text-slate-800">{{ $p->name }}</option>
@@ -146,33 +146,40 @@
                             </div>
                         </div>
 
-                        <!-- Tab Switcher -->
-                        <div class="flex border-b border-slate-200 bg-slate-50/50">
-                            <button type="button" @click="activeTab = 'unallocated'"
-                                    :class="activeTab === 'unallocated' ? 'border-b-2 border-[#a38c29] text-[#a38c29] bg-white' : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'"
-                                    class="flex-1 px-5 py-3 text-[10px] font-extrabold uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-2">
-                                <div class="w-2 h-2 rounded-full" :class="activeTab === 'unallocated' ? 'bg-rose-500 animate-pulse' : 'bg-slate-300'"></div>
-                                Unallocated
-                                <span class="ml-1 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold"
-                                      :class="activeTab === 'unallocated' ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-400'"
-                                      x-text="filteredReceipts().filter(r => !r.is_allocated).length"></span>
-                            </button>
-                            <button type="button" @click="activeTab = 'allocated'"
-                                    :class="activeTab === 'allocated' ? 'border-b-2 border-emerald-500 text-emerald-600 bg-white' : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'"
-                                    class="flex-1 px-5 py-3 text-[10px] font-extrabold uppercase tracking-widest transition-all duration-200 flex items-center justify-center gap-2">
-                                <div class="w-2 h-2 rounded-full" :class="activeTab === 'allocated' ? 'bg-emerald-500' : 'bg-slate-300'"></div>
-                                Allocated
-                                <span class="ml-1 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold"
-                                      :class="activeTab === 'allocated' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'"
-                                      x-text="filteredReceipts().filter(r => r.is_allocated).length"></span>
-                            </button>
+                        <!-- Tab Switcher (Modern Gradient Pill Tabs) -->
+                        <div class="p-1.5 bg-slate-100/85 rounded-2xl m-4 border border-slate-200/40 relative">
+                            <div class="grid grid-cols-2 relative z-10 gap-1.5 text-xs">
+                                <!-- Unallocated Button -->
+                                <button type="button" @click="activeTab = 'unallocated'"
+                                        class="relative py-2.5 px-4 rounded-xl font-extrabold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden focus:outline-none"
+                                        :class="activeTab === 'unallocated' ? 'bg-gradient-to-r from-[#a38c29] to-[#c5a832] text-white shadow-md shadow-[#a38c29]/20' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white" x-show="activeTab === 'unallocated'"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" x-show="activeTab !== 'unallocated'"></span>
+                                    Unallocated Receipts
+                                    <span class="ml-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold transition-all"
+                                          :class="activeTab === 'unallocated' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-700'"
+                                          x-text="filteredReceipts().filter(r => !r.is_allocated).length"></span>
+                                </button>
+
+                                <!-- Allocated Button -->
+                                <button type="button" @click="activeTab = 'allocated'"
+                                        class="relative py-2.5 px-4 rounded-xl font-extrabold uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden focus:outline-none"
+                                        :class="activeTab === 'allocated' ? 'bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-md shadow-emerald-600/20' : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-white" x-show="activeTab === 'allocated'"></span>
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" x-show="activeTab !== 'allocated'"></span>
+                                    Allocated Receipts
+                                    <span class="ml-1 px-2 py-0.5 rounded-lg text-[9px] font-extrabold transition-all"
+                                          :class="activeTab === 'allocated' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-700'"
+                                          x-text="filteredReceipts().filter(r => r.is_allocated).length"></span>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Receipt Table -->
                         <div class="overflow-x-auto" style="max-height: 420px; overflow-y: auto;">
                             <table class="w-full text-left border-collapse">
-                                <thead class="sticky top-0 z-10">
-                                    <tr class="bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <thead class="sticky top-0 z-10 shadow-sm">
+                                    <tr class="bg-slate-100/90 backdrop-blur-sm border-b border-slate-200 text-[10px] font-bold text-slate-650 uppercase tracking-widest">
                                        
                                         <th class="px-4 py-3.5">Receipt No</th>
                                         <th class="px-4 py-3.5">Date</th>
@@ -199,7 +206,7 @@
                                                 </td>
                                                 <td class="px-4 py-4 text-slate-500 font-semibold" x-text="r.date"></td>
                                                 <td class="px-4 py-4 font-bold text-slate-900" x-text="r.customer_name"></td>
-                                                <td class="px-4 py-4 text-slate-500 font-medium" x-text="r.project_name"></td>
+                                                <td class="px-4 py-4 text-slate-900 font-bold" x-text="r.project_name"></td>
                                                 <td class="px-4 py-4">
                                                     <span class="px-2 py-0.5 bg-slate-100 rounded-md text-[10px] font-extrabold text-slate-700" x-text="r.unit_name"></span>
                                                 </td>
@@ -232,7 +239,7 @@
                                                 </td>
                                                 <td class="px-4 py-4 text-slate-400 font-semibold" x-text="r.date"></td>
                                                 <td class="px-4 py-4 font-bold text-slate-700" x-text="r.customer_name"></td>
-                                                <td class="px-4 py-4 text-slate-400 font-medium" x-text="r.project_name"></td>
+                                                <td class="px-4 py-4 text-slate-900 font-bold" x-text="r.project_name"></td>
                                                 <td class="px-4 py-4">
                                                     <span class="px-2 py-0.5 bg-slate-100 rounded-md text-[10px] font-extrabold text-slate-500" x-text="r.unit_name"></span>
                                                 </td>
@@ -347,7 +354,7 @@
                                 </div>
                                 <div>
                                     <div class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Project / Unit</div>
-                                    <div class="mt-0.5 font-bold text-slate-700" x-text="selectedReceipt.project_name + ' • ' + selectedReceipt.unit_name"></div>
+                                    <div class="mt-0.5 font-bold text-slate-900" x-text="selectedReceipt.project_name + ' • ' + selectedReceipt.unit_name"></div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 pt-3 border-t border-slate-100">
                                     <div>
