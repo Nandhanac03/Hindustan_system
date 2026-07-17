@@ -395,7 +395,7 @@
                                 </div>
 
                                 <!-- Select Destination Bank Account for split processing -->
-                                <div class="pt-3 border-t border-slate-100">
+                                <!-- <div class="pt-3 border-t border-slate-100">
                                     <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Process Into Bank / Cash Account</label>
                                     <select x-model="form.destination_account_id" @change="updateNames()"
                                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
@@ -404,7 +404,7 @@
                                             <option value="{{ $acc->id }}">{{ $acc->name }}</option>
                                         @endforeach
                                     </select>
-                                </div>
+                                </div> -->
                             </div>
                         </template>
 
@@ -697,17 +697,7 @@
                     </div>
 
                     <div class="space-y-3 pt-6 border-t border-slate-100">
-                        <!-- Process Into Bank/Cash Account (Step 3 Quick Picker) -->
-                        <div class="mb-4 space-y-1">
-                            <label class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Process Into Bank / Cash Account</label>
-                            <select x-model="form.destination_account_id" required @change="updateNames()"
-                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white text-xs text-slate-800 font-semibold focus:outline-none transition rounded-xl focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] cursor-pointer">
-                                <option value="">-- Select Destination Ledger --</option>
-                                @foreach($assetAccounts as $acc)
-                                    <option value="{{ $acc->id }}">{{ $acc->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+                        <!-- Process Into Bank/Cash Account (Step 3 Quick Picker) - Automatically Resolved -->
 
                         <div class="flex gap-2">
                             <button type="button" @click="step = 2"
@@ -819,7 +809,7 @@
                         this.form.date = r.date || '{{ date('Y-m-d') }}';
                         this.form.amount = parseFloat(r.amount) || 0.00;
                         this.form.credit_account_id = r.customer_ledger_account_id || '';
-                        this.form.destination_account_id = ''; // Let them pick destination bank
+                        this.form.destination_account_id = r.resolved_destination_account_id || '';
                         this.form.narration = r.remarks || '';
 
                         // Prefill units
@@ -1029,8 +1019,8 @@
                         const custEl = document.getElementById('credit_account_id');
                         this.customerName = custEl ? custEl.options[custEl.selectedIndex]?.text : '';
                         
-                        const destEl = document.getElementById('destination_account_id');
-                        this.destAccountName = destEl ? destEl.options[destEl.selectedIndex]?.text : '';
+                        const destAcc = this.generalFunds.find(x => x.id == this.form.destination_account_id);
+                        this.destAccountName = destAcc ? destAcc.name : 'Destination Account';
                     });
                 },
                 initChart() {

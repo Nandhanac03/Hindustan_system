@@ -29,7 +29,7 @@ class VoucherController extends Controller
  
         $accounts = Account::where('system_id', $systemId)->where('is_active', true)->get();
         
-        $assetAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset' && $acc->code !== 'BANK-KAR-213');
+        $assetAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset');
         
         // Load customer profiles and map to ledgers
         $customers = Customer::all();
@@ -104,6 +104,8 @@ class VoucherController extends Controller
             ->values();
 
         $customerAccountMap = $customers->pluck('ledger_account_id', 'id')->toArray();
+        $cashAccountId = Account::where('system_id', $systemId)->where('code', 'CASH-HAND')->value('id');
+        $bankAccountId = Account::where('system_id', $systemId)->where('code', 'BANK-KAR-213')->value('id');
 
         $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit'])
             ->whereNull('partner_id')  // raw intake receipts, not partner-split sub-receipts
@@ -111,7 +113,7 @@ class VoucherController extends Controller
             ->orderByDesc('id')
             ->take(100)
             ->get()
-            ->map(function ($r) use ($allocatedReceiptIds, $customerAccountMap) {
+            ->map(function ($r) use ($allocatedReceiptIds, $customerAccountMap, $cashAccountId, $bankAccountId) {
                 $isAllocated = $allocatedReceiptIds->contains($r->id);
                 $ref = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
                 $statusStr = $isAllocated ? '🟢 Allocated' : '🔴 Unallocated';
@@ -131,6 +133,7 @@ class VoucherController extends Controller
                     'unit_name'                  => $r->sale?->unit?->door_no ?? '—',
                     'sale_number'                => $r->sale?->sale_number ?? '—',
                     'is_allocated'               => $isAllocated,
+                    'resolved_destination_account_id' => (strtolower($r->payment_mode ?? '') === 'cash') ? $cashAccountId : $bankAccountId,
                 ];
             });
  
