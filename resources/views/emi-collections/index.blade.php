@@ -319,11 +319,53 @@
                     </div>
                 </div>
 
+                {{-- Collection Type Field --}}
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Action Type *</label>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <button type="button" @click="form.collection_type = 'regular'" :class="form.collection_type === 'regular' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'" class="px-2 py-2 border rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all">Regular</button>
+                        <button type="button" @click="form.collection_type = 'prepayment'" :class="form.collection_type === 'prepayment' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'" class="px-2 py-2 border rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all">Prepayment</button>
+                        <button type="button" @click="form.collection_type = 'reschedule'" :class="form.collection_type === 'reschedule' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'" class="px-2 py-2 border rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all">Reschedule</button>
+                    </div>
+                </div>
+
+                {{-- Prepayment Options --}}
+                <div class="space-y-1.5" x-show="form.collection_type === 'prepayment'" x-cloak>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Prepayment Option *</label>
+                    <select x-model="form.prepayment_option" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                        <option value="reduce_tenure">Reduce Tenure (Close from end)</option>
+                        <option value="reduce_emi">Reduce EMI Amount (Spread evenly)</option>
+                    </select>
+                </div>
+
+                {{-- Reschedule Options --}}
+                <div class="space-y-3" x-show="form.collection_type === 'reschedule'" x-cloak>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Reschedule Option *</label>
+                        <select x-model="form.reschedule_option" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                            <option value="extend_tenure">Extend Tenure (New Installment Count)</option>
+                            <option value="shift_dates">Shift Due Dates</option>
+                        </select>
+                    </div>
+                    <div class="space-y-1.5" x-show="form.reschedule_option === 'extend_tenure'">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">New Total Installments *</label>
+                        <input type="number" x-model.number="form.new_count" min="1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none">
+                    </div>
+                    <div class="space-y-1.5" x-show="form.reschedule_option === 'shift_dates'">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Shift By (Months) *</label>
+                        <input type="number" x-model.number="form.shift_months" min="1" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Reason *</label>
+                        <input type="text" x-model="form.reschedule_reason" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none">
+                    </div>
+                </div>
+
                 {{-- Amount & Date --}}
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3" x-show="form.collection_type !== 'reschedule'">
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) *</label>
-                        <input type="number" step="0.01" x-model.number="form.amount" required min="0.01"
+                        <input type="number" step="0.01" x-model.number="form.amount" :required="form.collection_type !== 'reschedule'" min="0.01"
                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs font-bold focus:outline-none transition-all">
                         <template x-if="errors.amount">
                             <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.amount[0]"></span>
@@ -340,7 +382,7 @@
                 </div>
 
                 {{-- Payment Mode Toggles --}}
-                <div class="space-y-1.5">
+                <div class="space-y-1.5" x-show="form.collection_type !== 'reschedule'">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode *</label>
                     <div class="grid grid-cols-2 gap-1.5">
                         <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
@@ -357,7 +399,7 @@
                 </div>
 
                 {{-- Reference & Bank --}}
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-2 gap-3" x-show="form.collection_type !== 'reschedule'">
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No.</label>
                         <input type="text" x-model="form.reference_no" placeholder="Optional"
@@ -376,7 +418,7 @@
                 </div>
 
                 {{-- Remarks --}}
-                <div class="space-y-1.5">
+                <div class="space-y-1.5" x-show="form.collection_type !== 'reschedule'">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks</label>
                     <textarea x-model="form.remarks" rows="2"
                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
@@ -416,7 +458,13 @@ function emiApp() {
             unit_number: '',
             outstanding: 0,
             project_name: '',
-            total_amount: 0
+            total_amount: 0,
+            collection_type: 'regular',
+            prepayment_option: 'reduce_tenure',
+            reschedule_option: 'extend_tenure',
+            reschedule_reason: '',
+            new_count: 12,
+            shift_months: 1,
         },
         toast: {
             open: false,
@@ -461,6 +509,10 @@ function emiApp() {
             this.form.reference_no = '';
             this.form.bank_name = '';
             this.form.remarks = '';
+            this.form.collection_type = 'regular';
+            this.form.prepayment_option = 'reduce_tenure';
+            this.form.reschedule_option = 'extend_tenure';
+            this.form.reschedule_reason = '';
             this.form.customer_name = item.customer_name;
             this.form.unit_number = item.door_no;
             this.form.outstanding = item.outstanding;
@@ -483,6 +535,15 @@ function emiApp() {
         submitCollection() {
             this.errors = {};
             
+            if (this.form.collection_type !== 'reschedule' && (!this.form.amount || !this.form.payment_mode)) {
+                this.showToast('Please enter amount and choose payment mode.', 'error');
+                return;
+            }
+            if (this.form.collection_type === 'reschedule' && !this.form.reschedule_reason) {
+                this.showToast('Please enter a reason for rescheduling.', 'error');
+                return;
+            }
+            
             fetch('{{ route('emi-collections.store') }}', {
                 method: 'POST',
                 headers: {
@@ -497,7 +558,13 @@ function emiApp() {
                     receipt_date: this.form.receipt_date,
                     reference_no: this.form.reference_no,
                     bank_name: this.form.bank_name,
-                    remarks: this.form.remarks
+                    remarks: this.form.remarks,
+                    collection_type: this.form.collection_type,
+                    prepayment_option: this.form.prepayment_option,
+                    reschedule_option: this.form.reschedule_option,
+                    reschedule_reason: this.form.reschedule_reason,
+                    new_count: this.form.new_count,
+                    shift_months: this.form.shift_months
                 })
             })
             .then(res => res.json())

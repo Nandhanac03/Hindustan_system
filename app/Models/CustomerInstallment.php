@@ -16,18 +16,26 @@ class CustomerInstallment extends Model
         'label',
         'due_date',
         'amount',
+        'paid_amount',
         'status',
         'schedule_type',
+        'rescheduled_from_id',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'amount' => 'decimal:2',
+        'paid_amount' => 'decimal:2',
     ];
 
     public function sale()
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    public function rescheduledFrom()
+    {
+        return $this->belongsTo(CustomerInstallment::class, 'rescheduled_from_id');
     }
 
     public function getIsOverdueAttribute(): bool

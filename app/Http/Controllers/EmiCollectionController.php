@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\Account;
 use App\Models\Loan;
 use App\Models\EmiSchedule;
+use App\Models\EmiRescheduleLog;
 use App\Models\Payee;
 use App\Models\Bank;
 use Illuminate\Http\JsonResponse;
@@ -240,13 +241,19 @@ class EmiCollectionController extends Controller
         $validated = $request->validate([
             'sale_id'       => ['nullable', 'exists:sales,id'],
             'booking_id'    => ['nullable', 'exists:sales,id'], // fallback
-            'amount'        => ['required', 'numeric', 'min:0.01'],
-            'payment_mode'  => ['required', 'in:Cash,Cheque,Bank Transfer,Online,Credit Card,UPI'],
+            'amount'        => ['required_unless:collection_type,reschedule', 'nullable', 'numeric', 'min:0.01'],
+            'payment_mode'  => ['required_unless:collection_type,reschedule', 'nullable', 'in:Cash,Cheque,Bank Transfer,Online,Credit Card,UPI'],
             'receipt_date'  => ['nullable', 'date'],
             'reference_no'  => ['nullable', 'string', 'max:100'],
             'bank_name'     => ['nullable', 'string', 'max:100'],
             'remarks'       => ['nullable', 'string', 'max:500'],
             'partner_id'    => ['nullable', 'exists:payees,id'],
+            'collection_type' => ['nullable', 'in:regular,prepayment,reschedule'],
+            'prepayment_option' => ['nullable', 'in:reduce_tenure,reduce_emi'],
+            'reschedule_option' => ['nullable', 'in:extend_tenure,shift_dates'],
+            'reschedule_reason' => ['nullable', 'string'],
+            'new_count'     => ['nullable', 'integer', 'min:1'],
+            'shift_months'  => ['nullable', 'integer', 'min:1'],
         ]);
 
         $saleId = $validated['sale_id'] ?? $validated['booking_id'];
@@ -263,45 +270,171 @@ class EmiCollectionController extends Controller
             ], 422);
         }
 
-        if (round((float)$validated['amount'], 2) > round((float)$sale->remaining_balance, 2)) {
-            return response()->json([
-                'error' => 'Payment (₹' . number_format((float)$validated['amount'], 2) .
-                           ') exceeds remaining balance (₹' . number_format((float)$sale->remaining_balance, 2) . ').'
-            ], 422);
+        if (($validated['collection_type'] ?? 'regular') !== 'reschedule') {
+            if (round((float)$validated['amount'], 2) > round((float)$sale->remaining_balance, 2)) {
+                return response()->json([
+                    'error' => 'Payment (₹' . number_format((float)$validated['amount'], 2) .
+                               ') exceeds remaining balance (₹' . number_format((float)$sale->remaining_balance, 2) . ').'
+                ], 422);
+            }
         }
 
-        $receipt = DB::transaction(function () use ($validated, $sale) {
-            $receipt = Receipt::create([
-                'sale_id'      => $sale->id,
-                'customer_id'  => $sale->customer_id,
-                'project_id'   => $sale->project_id,
-                'unit_id'      => $sale->unit_id,
-                'receipt_date' => $validated['receipt_date'] ?? now()->toDateString(),
-                'amount'       => $validated['amount'],
-                'payment_mode' => $validated['payment_mode'],
-                'reference_no' => $validated['reference_no'] ?? null,
-                'bank_name'    => $validated['bank_name'] ?? null,
-                'remarks'      => $validated['remarks'] ?? null,
-                'created_by'   => auth()->id(),
-                'partner_id'   => $validated['partner_id'] ?? null,
-            ]);
+        $result = DB::transaction(function () use ($validated, $sale) {
+            $collectionType = $validated['collection_type'] ?? 'regular';
+            $receipt = null;
 
-            // Receipt::allocateToPartners($receipt);
+            if ($collectionType === 'regular' || $collectionType === 'prepayment') {
+                $receipt = Receipt::create([
+                    'sale_id'      => $sale->id,
+                    'customer_id'  => $sale->customer_id,
+                    'project_id'   => $sale->project_id,
+                    'unit_id'      => $sale->unit_id,
+                    'receipt_date' => $validated['receipt_date'] ?? now()->toDateString(),
+                    'amount'       => $validated['amount'],
+                    'payment_mode' => $validated['payment_mode'],
+                    'payment_type' => $collectionType,
+                    'reference_no' => $validated['reference_no'] ?? null,
+                    'bank_name'    => $validated['bank_name'] ?? null,
+                    'remarks'      => $validated['remarks'] ?? null,
+                    'created_by'   => auth()->id() ?? 1,
+                    'partner_id'   => $validated['partner_id'] ?? null,
+                ]);
 
-            // Recompute remaining balance from all receipts
-            $totalPaid = $sale->receipts()->sum('amount');
-            $sale->update(['remaining_balance' => max(0, round((float)$sale->total_amount - $totalPaid, 2))]);
+                $totalPaid = $sale->receipts()->sum('amount');
+                $sale->update(['remaining_balance' => max(0, round((float)$sale->total_amount - $totalPaid, 2))]);
+            }
 
-            // Auto-allocate receipt amount to mark installments as paid/partial/overdue
-            CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+            if ($collectionType === 'regular') {
+                CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+            } 
+            elseif ($collectionType === 'prepayment') {
+                $prepaymentAmount = (float) $validated['amount'];
+                $option = $validated['prepayment_option'];
+                
+                $pendingInstallments = CustomerInstallment::where('sale_id', $sale->id)
+                    ->whereIn('status', ['pending', 'partial'])
+                    ->orderBy('installment_no', 'asc')
+                    ->get();
+                $oldSnapshot = $pendingInstallments->toArray();
+
+                if ($option === 'reduce_tenure') {
+                    $remainingPrepayment = $prepaymentAmount;
+                    $reversedInstallments = $pendingInstallments->reverse();
+                    foreach ($reversedInstallments as $inst) {
+                        if ($remainingPrepayment <= 0) break;
+                        $instOutstanding = $inst->amount - ($inst->paid_amount ?? 0);
+                        if ($remainingPrepayment >= $instOutstanding) {
+                            $inst->update(['paid_amount' => $inst->amount, 'status' => 'paid']);
+                            $remainingPrepayment -= $instOutstanding;
+                        } else {
+                            $inst->update(['paid_amount' => ($inst->paid_amount ?? 0) + $remainingPrepayment, 'status' => 'partial']);
+                            $remainingPrepayment = 0;
+                        }
+                    }
+                } elseif ($option === 'reduce_emi') {
+                    $totalPendingCount = $pendingInstallments->count();
+                    $reductionPerInstallment = round($prepaymentAmount / $totalPendingCount, 2);
+                    $remainingPrepayment = $prepaymentAmount;
+                    foreach ($pendingInstallments as $index => $inst) {
+                        $applyAmount = ($index === $totalPendingCount - 1) ? $remainingPrepayment : $reductionPerInstallment;
+                        $newAmount = max(0, $inst->amount - $applyAmount);
+                        $inst->update([
+                            'amount' => $newAmount,
+                            'status' => $newAmount <= ($inst->paid_amount ?? 0) ? 'paid' : $inst->status,
+                        ]);
+                        $remainingPrepayment -= $applyAmount;
+                    }
+                }
+
+                $newSnapshot = CustomerInstallment::where('sale_id', $sale->id)
+                    ->whereIn('id', $pendingInstallments->pluck('id'))->get()->toArray();
+
+                EmiRescheduleLog::create([
+                    'sale_id' => $sale->id,
+                    'action_type' => 'prepayment_' . $option,
+                    'reason' => 'Prepayment - ' . $option,
+                    'old_schedule_snapshot' => $oldSnapshot,
+                    'new_schedule_snapshot' => $newSnapshot,
+                    'performed_by' => auth()->id() ?? 1,
+                ]);
+            }
+            elseif ($collectionType === 'reschedule') {
+                $option = $validated['reschedule_option'];
+                $reason = $validated['reschedule_reason'];
+                
+                $pendingInstallments = CustomerInstallment::where('sale_id', $sale->id)
+                    ->whereIn('status', ['pending', 'partial'])
+                    ->orderBy('installment_no', 'asc')
+                    ->get();
+                    
+                $oldSnapshot = $pendingInstallments->toArray();
+                foreach ($pendingInstallments as $inst) {
+                    $inst->update(['status' => 'superseded']);
+                }
+
+                $newInstallments = [];
+                $firstPending = $pendingInstallments->first();
+                
+                if ($option === 'extend_tenure') {
+                    $totalOutstanding = $pendingInstallments->sum(function($i) { return $i->amount - ($i->paid_amount ?? 0); });
+                    $newCount = $validated['new_count'];
+                    $newEmiAmount = round($totalOutstanding / $newCount, 2);
+                    $startDate = Carbon::parse($firstPending->due_date);
+                    $remainingBalance = $totalOutstanding;
+                    $startInstallmentNo = $firstPending->installment_no;
+
+                    for ($i = 0; $i < $newCount; $i++) {
+                        $amt = ($i === $newCount - 1) ? $remainingBalance : $newEmiAmount;
+                        $newInst = CustomerInstallment::create([
+                            'sale_id' => $sale->id,
+                            'installment_no' => $startInstallmentNo + $i,
+                            'label' => 'Rescheduled EMI ' . ($startInstallmentNo + $i),
+                            'due_date' => $startDate->copy()->addMonths($i)->toDateString(),
+                            'amount' => $amt,
+                            'paid_amount' => 0,
+                            'status' => 'pending',
+                            'schedule_type' => 'fixed_emi',
+                            'rescheduled_from_id' => $firstPending->id
+                        ]);
+                        $newInstallments[] = $newInst->toArray();
+                        $remainingBalance -= $amt;
+                    }
+                } elseif ($option === 'shift_dates') {
+                    $shiftMonths = $validated['shift_months'];
+                    foreach ($pendingInstallments as $inst) {
+                        $newDate = Carbon::parse($inst->due_date)->addMonths($shiftMonths)->toDateString();
+                        $newInst = CustomerInstallment::create([
+                            'sale_id' => $sale->id,
+                            'installment_no' => $inst->installment_no,
+                            'label' => $inst->label,
+                            'due_date' => $newDate,
+                            'amount' => $inst->amount,
+                            'paid_amount' => $inst->paid_amount,
+                            'status' => ($inst->paid_amount > 0) ? 'partial' : 'pending',
+                            'schedule_type' => $inst->schedule_type,
+                            'rescheduled_from_id' => $inst->id
+                        ]);
+                        $newInstallments[] = $newInst->toArray();
+                    }
+                }
+
+                EmiRescheduleLog::create([
+                    'sale_id' => $sale->id,
+                    'action_type' => 'reschedule_' . $option,
+                    'reason' => $reason,
+                    'old_schedule_snapshot' => $oldSnapshot,
+                    'new_schedule_snapshot' => $newInstallments,
+                    'performed_by' => auth()->id() ?? 1,
+                ]);
+            }
 
             return $receipt;
         });
 
         return response()->json([
             'success' => true,
-            'message' => 'Receipt recorded successfully.',
-            'receipt' => $receipt,
+            'message' => 'Action recorded successfully.',
+            'receipt' => $result,
         ]);
     }
 
@@ -393,9 +526,35 @@ class EmiCollectionController extends Controller
         $totalPaid = $sale->receipts->sum('amount');
         $allocatedPayment = $totalPaid;
 
+        $receiptsQueue = $sale->receipts->sortBy('receipt_date')->values();
+        $receiptIndex = 0;
+        $currentReceiptBalance = $receiptsQueue->isEmpty() ? 0 : (float)$receiptsQueue[0]->amount;
+
         // Installment rows (debits)
         foreach ($installments as $inst) {
             $instAmount = (float)$inst->amount;
+            $appliedReceiptIds = [];
+
+            $remainingToPay = $instAmount;
+            while ($remainingToPay > 0 && $currentReceiptBalance > 0) {
+                $take = min($remainingToPay, $currentReceiptBalance);
+                
+                if (!in_array($receiptsQueue[$receiptIndex]->id, $appliedReceiptIds)) {
+                    $appliedReceiptIds[] = $receiptsQueue[$receiptIndex]->id;
+                }
+                
+                $remainingToPay -= $take;
+                $currentReceiptBalance -= $take;
+                
+                if (round($currentReceiptBalance, 2) <= 0) {
+                    $receiptIndex++;
+                    if ($receiptIndex < $receiptsQueue->count()) {
+                        $currentReceiptBalance = (float)$receiptsQueue[$receiptIndex]->amount;
+                    } else {
+                        $currentReceiptBalance = 0;
+                    }
+                }
+            }
             
             if ($allocatedPayment >= $instAmount) {
                 $ledger->push([
@@ -408,6 +567,7 @@ class EmiCollectionController extends Controller
                     'status'          => 'paid',
                     'sort_date'       => $inst->due_date,
                     'remaining'       => 0,
+                    'receipt_ids'     => $appliedReceiptIds,
                 ]);
                 $allocatedPayment -= $instAmount;
             } elseif ($allocatedPayment > 0) {
@@ -424,6 +584,7 @@ class EmiCollectionController extends Controller
                     'status'          => 'paid',
                     'sort_date'       => $inst->due_date,
                     'remaining'       => 0,
+                    'receipt_ids'     => $appliedReceiptIds,
                 ]);
 
                 $ledger->push([
@@ -436,6 +597,7 @@ class EmiCollectionController extends Controller
                     'status'          => ($inst->due_date && $inst->due_date->isPast()) ? 'overdue' : 'pending',
                     'sort_date'       => $inst->due_date,
                     'remaining'       => $remainingPart,
+                    'receipt_ids'     => [],
                 ]);
                 
                 $allocatedPayment = 0;
@@ -450,16 +612,20 @@ class EmiCollectionController extends Controller
                     'status'          => ($inst->due_date && $inst->due_date->isPast()) ? 'overdue' : 'pending',
                     'sort_date'       => $inst->due_date,
                     'remaining'       => $instAmount,
+                    'receipt_ids'     => [],
                 ]);
             }
         }
 
         // Receipt rows (credits)
         foreach ($sale->receipts as $receipt) {
+            $desc = $receipt->payment_type === 'prepayment' 
+                ? 'Prepayment Receipt — ' . $receipt->payment_mode
+                : 'Receipt — ' . $receipt->payment_mode;
+                
             $ledger->push([
                 'date'            => Carbon::parse($receipt->receipt_date)->format('d M Y'),
-                'description'     => 'Receipt — ' . $receipt->payment_mode
-                    . ($receipt->reference_no ? ' (' . $receipt->reference_no . ')' : ''),
+                'description'     => $desc . ($receipt->reference_no ? ' (' . $receipt->reference_no . ')' : ''),
                 'debit'           => 0,
                 'credit'          => (float)$receipt->amount,
                 'running_balance' => 0,
