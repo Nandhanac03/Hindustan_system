@@ -340,7 +340,7 @@ function scheduleApp() {
                 } else {
                     this.showToast('Payment submitted successfully.');
                     this.payModalOpen = false;
-                    setTimeout(() => { window.location.reload(); }, 1500);
+                    window.location.reload();
                 }
             })
             .catch(err => {
@@ -365,7 +365,7 @@ function scheduleApp() {
                 } else {
                     this.showToast('Prepayment applied and schedule rescheduled successfully.');
                     this.prepayModalOpen = false;
-                    setTimeout(() => { window.location.reload(); }, 1500);
+                    window.location.reload();
                 }
             })
             .catch(err => {

@@ -290,6 +290,17 @@ class LoanController extends Controller
             return response()->json(['error' => 'Prepayment amount exceeds outstanding balance.'], 422);
         }
 
+        // In standard financial logic, a borrower cannot make a prepayment towards the future principal 
+        // if they have past overdue installments. They must clear arrears first.
+        $hasOverdue = $loan->emiSchedules()
+            ->where('status', '!=', 'Paid')
+            ->where('due_date', '<', now()->startOfDay())
+            ->exists();
+
+        if ($hasOverdue) {
+            return response()->json(['error' => 'Prepayment cannot be processed while there are overdue installments. Please clear all overdue payments first.'], 422);
+        }
+
         DB::transaction(function () use ($loan, $amount, $rescheduleOption, $validated) {
             $prevOutstanding = (float)$loan->outstanding_balance;
             $loan->decrement('outstanding_balance', $amount);

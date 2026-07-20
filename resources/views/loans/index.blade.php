@@ -94,53 +94,53 @@
 
     {{-- KPI Metrics Grid --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <div class="bg-rose-50/70 p-5 rounded-2xl border border-rose-200 shadow-sm flex items-center justify-between">
+        <div class="bg-gradient-to-br from-rose-50 to-rose-100/50 p-5 rounded-2xl border border-rose-200 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
             <div>
                 <span class="text-[9px] font-extrabold text-rose-800 uppercase tracking-widest block flex items-center gap-1 animate-pulse">🔥 Urgent Due EMIs (Month)</span>
                 <strong class="text-sm font-extrabold text-rose-700 block mt-1 font-mono">₹{{ number_format((float)($pendingEmisAmount ?? 0), 2) }}</strong>
                 <span class="text-[9px] font-bold text-rose-600 block mt-0.5">{{ $pendingEmisCount ?? 0 }} Installment(s) Due</span>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-rose-200/60 text-rose-700 flex items-center justify-center font-bold">
+            <div class="w-8 h-8 rounded-xl bg-rose-200/60 text-rose-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform duration-300">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
             <div>
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Active Loan Accounts</span>
                 <strong class="text-sm font-extrabold text-slate-900 block mt-1 font-sans">{{ $activeLoansCount ?? 0 }} Accounts</strong>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-slate-50 text-slate-400 flex items-center justify-center font-bold">
+            <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold group-hover:scale-110 group-hover:bg-slate-200 transition-all duration-300">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
             <div>
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Net Outstanding Balance</span>
                 <strong class="text-sm font-extrabold text-rose-700 block mt-1 font-mono">₹{{ number_format((float)($totalOutstanding ?? 0), 2) }}</strong>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 group-hover:bg-rose-100 transition-all duration-300">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
             <div>
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Repaid Principal</span>
                 <strong class="text-sm font-extrabold text-emerald-800 block mt-1 font-mono">₹{{ number_format((float)($totalPaidPrincipal ?? 0), 2) }}</strong>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-100 transition-all duration-300">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
             <div>
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Paid Interest Cost</span>
                 <strong class="text-sm font-extrabold text-[#a38c29] block mt-1 font-mono">₹{{ number_format((float)($totalPaidInterest ?? 0), 2) }}</strong>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 group-hover:bg-amber-100 transition-all duration-300">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
         </div>
@@ -234,18 +234,22 @@
                                 </div>
                             </td>
                             <td class="px-4 py-3.5 border text-right">
-                                <div class="flex items-center justify-end gap-2">
-                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="p-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition inline-flex items-center justify-center shadow-sm" title="Repayment Schedule">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        <span class="ml-1 text-[10px] font-bold uppercase tracking-wider">Ledger</span>
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="px-2.5 py-1.5 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white transition-all inline-flex items-center justify-center shadow-sm hover:shadow-md whitespace-nowrap" title="Repayment Schedule">
+                                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <span class="text-[10px] font-bold uppercase tracking-wider">Ledger</span>
                                     </a>
                                     @if($loan->status === 'Active')
                                         <button @click="openEditInterestModal({{ json_encode($loan) }})" 
-                                                class="p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition inline-flex items-center justify-center shadow-sm" title="Edit Interest Rate">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                            <span class="ml-1 text-[10px] font-bold uppercase tracking-wider">Edit Rate</span>
+                                                class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all inline-flex items-center justify-center shadow-sm hover:shadow-md whitespace-nowrap" title="Edit Interest Rate">
+                                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            <span class="text-[10px] font-bold uppercase tracking-wider">Edit Rate</span>
                                         </button>
                                     @endif
+                                    <button @click="openInterestLogsModal('{{ $loan->loan_account_no }}')" 
+                                            class="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all inline-flex items-center justify-center shadow-sm border border-blue-200" title="Interest Edit Logs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -310,7 +314,7 @@
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
                     <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Interest Rate Modification Log
+                    <span x-text="activeInterestLogAccount ? 'Interest Rate Modification Log: ' + activeInterestLogAccount : 'Interest Rate Modification Log'"></span>
                 </h3>
                 <button @click="interestLogsModalOpen = false" class="text-slate-400 hover:text-slate-650">✕</button>
             </div>
@@ -334,7 +338,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
                                 @foreach($interestLogs as $log)
-                                    <tr class="hover:bg-slate-50/60 transition-colors">
+                                    <tr class="hover:bg-slate-50/60 transition-colors" x-show="!activeInterestLogAccount || activeInterestLogAccount === '{{ $log->loan ? $log->loan->loan_account_no : '' }}'">
                                         <td class="px-4 py-3 border-r text-slate-500 font-mono text-[11px] whitespace-nowrap">{{ $log->created_at->format('d M Y, h:i A') }}</td>
                                         <td class="px-4 py-3 border-r font-bold text-slate-900">{{ $log->loan ? $log->loan->loan_account_no : '—' }}</td>
                                         <td class="px-4 py-3 border-r font-mono text-rose-600 font-bold">{{ $log->old_interest_rate }}%</td>
@@ -533,7 +537,9 @@ function loanApp() {
             this.addModalOpen = true;
         },
         interestLogsModalOpen: false,
-        openInterestLogsModal() {
+        activeInterestLogAccount: null,
+        openInterestLogsModal(accountNo = null) {
+            this.activeInterestLogAccount = accountNo;
             this.interestLogsModalOpen = true;
         },
         editInterestModalOpen: false,
