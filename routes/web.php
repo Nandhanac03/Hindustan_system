@@ -198,13 +198,13 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/vouchers/entity-ledger', [\App\Http\Controllers\VoucherController::class, 'entityLedger'])->name('vouchers.entity-ledger');
 
     // ── Cash Management ───────────────────────────────────────────────────────
-    Route::get('/cash/petty-cash',          [\App\Http\Controllers\CashManagementController::class, 'pettyCashIndex'])->name('cash.petty-cash.index');
-    Route::get('/cash/petty-cash/create',   [\App\Http\Controllers\CashManagementController::class, 'pettyCashCreate'])->name('cash.petty-cash.create');
-    Route::post('/cash/petty-cash',         [\App\Http\Controllers\CashManagementController::class, 'pettyCashStore'])->name('cash.petty-cash.store');
-    Route::get('/cash/denomination',        [\App\Http\Controllers\CashManagementController::class, 'denominationIndex'])->name('cash.denomination.index');
-    Route::get('/cash/denomination/create', [\App\Http\Controllers\CashManagementController::class, 'denominationCreate'])->name('cash.denomination.create');
-    Route::post('/cash/denomination',       [\App\Http\Controllers\CashManagementController::class, 'denominationStore'])->name('cash.denomination.store');
-    Route::get('/cash/reconciliation',      [\App\Http\Controllers\CashManagementController::class, 'reconciliation'])->name('cash.reconciliation');
+    // Route::get('/cash/petty-cash',          [\App\Http\Controllers\CashManagementController::class, 'pettyCashIndex'])->name('cash.petty-cash.index');
+    // Route::get('/cash/petty-cash/create',   [\App\Http\Controllers\CashManagementController::class, 'pettyCashCreate'])->name('cash.petty-cash.create');
+    // Route::post('/cash/petty-cash',         [\App\Http\Controllers\CashManagementController::class, 'pettyCashStore'])->name('cash.petty-cash.store');
+    // Route::get('/cash/denomination',        [\App\Http\Controllers\CashManagementController::class, 'denominationIndex'])->name('cash.denomination.index');
+    // Route::get('/cash/denomination/create', [\App\Http\Controllers\CashManagementController::class, 'denominationCreate'])->name('cash.denomination.create');
+    // Route::post('/cash/denomination',       [\App\Http\Controllers\CashManagementController::class, 'denominationStore'])->name('cash.denomination.store');
+    // Route::get('/cash/reconciliation',      [\App\Http\Controllers\CashManagementController::class, 'reconciliation'])->name('cash.reconciliation');
 });
 
 require __DIR__ . '/auth.php';

@@ -15,7 +15,7 @@
 
         <div class="flex flex-wrap gap-3">
             @if($loan->status === 'Active')
-                <button @click="openPrepayModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition shadow-md uppercase tracking-wide">
+                <button @click="openPrepayModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Prepayment & Reschedule
                 </button>
@@ -73,7 +73,8 @@
             <h2 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Repayment Installment Ledger</h2>
             <div class="flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Paid</span>
-                <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-300"></span> Unpaid</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Partial</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-slate-300"></span> Due</span>
             </div>
         </div>
         <div class="overflow-x-auto">
@@ -93,24 +94,56 @@
                 </thead>
                 <tbody class="divide-y divide-slate-50 text-center">
                     @forelse($loan->emiSchedules as $inst)
-                        <tr class="hover:bg-slate-50/50 transition-colors text-xs font-semibold text-slate-700 {{ $inst->status === 'Paid' ? 'bg-emerald-50/10' : '' }}">
+                        @php
+                            $amtPaid   = (float)$inst->amount_paid;
+                            $emiAmount = (float)$inst->emi_amount;
+                            $balance   = max(0, $emiAmount - $amtPaid);
+                            $isPartial = $inst->status !== 'Paid' && $amtPaid > 0;
+                            $dueDate   = $inst->due_date ? \Carbon\Carbon::parse($inst->due_date) : null;
+                            $isOverdue = $dueDate && $inst->status !== 'Paid' && $dueDate->lt(now()->startOfDay());
+                            $isDueThisMonth = $dueDate && $inst->status !== 'Paid' && $dueDate->between(now()->startOfMonth(), now()->endOfMonth());
+                            $isUrgent  = ($isOverdue || $isDueThisMonth) && $loan->status === 'Active';
+                        @endphp
+                        <tr class="hover:bg-slate-50/50 transition-colors text-xs font-semibold text-slate-700 {{ $inst->status === 'Paid' ? 'bg-emerald-50/30' : ($isUrgent ? 'bg-rose-50/60' : ($isPartial ? 'bg-amber-50/30' : '')) }}">
                             <td class="px-4 py-3.5 border font-bold text-slate-400">{{ $inst->installment_no }}</td>
-                            <td class="px-4 py-3.5 border text-slate-650">{{ $inst->due_date ? \Carbon\Carbon::parse($inst->due_date)->format('d M Y') : '—' }}</td>
-                            <td class="px-4 py-3.5 border font-mono text-slate-900 font-bold">₹{{ number_format((float)$inst->emi_amount, 2) }}</td>
+                            <td class="px-4 py-3.5 border {{ $isUrgent ? 'text-rose-700 font-extrabold' : 'text-slate-650' }}">{{ $inst->due_date ? \Carbon\Carbon::parse($inst->due_date)->format('d M Y') : '—' }}</td>
+                            <td class="px-4 py-3.5 border font-mono {{ $isUrgent ? 'text-rose-600 font-extrabold text-[13px]' : 'text-slate-900 font-bold' }}">₹{{ number_format($emiAmount, 2) }}</td>
                             <td class="px-4 py-3.5 border font-mono text-slate-600">₹{{ number_format((float)$inst->principal_component, 2) }}</td>
                             <td class="px-4 py-3.5 border font-mono text-slate-600">₹{{ number_format((float)$inst->interest_component, 2) }}</td>
-                            <td class="px-4 py-3.5 border font-mono text-emerald-800 font-bold">₹{{ number_format((float)$inst->amount_paid, 2) }}</td>
+                            <td class="px-4 py-3.5 border font-mono font-bold">
+                                @if($isPartial)
+                                    <div class="flex flex-col items-center gap-0.5">
+                                        <span class="text-emerald-700">₹{{ number_format($amtPaid, 2) }}</span>
+                                        <span class="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Paid</span>
+                                        <span class="text-rose-600">₹{{ number_format($balance, 2) }}</span>
+                                        <span class="text-[9px] font-bold text-rose-400 uppercase tracking-wider">Balance Due</span>
+                                    </div>
+                                @else
+                                    <span class="{{ $inst->status === 'Paid' ? 'text-emerald-800' : 'text-slate-400' }}">₹{{ number_format($amtPaid, 2) }}</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-3.5 border text-slate-500">{{ $inst->paid_date ? \Carbon\Carbon::parse($inst->paid_date)->format('d M Y') : '—' }}</td>
                             <td class="px-4 py-3.5 border">
-                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border {{ $inst->status === 'Paid' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-amber-50 border-amber-100 text-amber-700' }}">
-                                    {{ $inst->status }}
-                                </span>
+                                @if($inst->status === 'Paid')
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border bg-emerald-50 border-emerald-100 text-emerald-700">Paid</span>
+                                @elseif($isOverdue)
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border bg-rose-200 border-rose-300 text-rose-800 animate-pulse">⚠️ Overdue Urgent</span>
+                                @elseif($isDueThisMonth)
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border bg-rose-100 border-rose-200 text-rose-700">🔥 Due This Month</span>
+                                @elseif($isPartial)
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border bg-amber-50 border-amber-200 text-amber-700">Partial</span>
+                                @else
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border bg-slate-50 border-slate-200 text-slate-500">Due</span>
+                                @endif
                             </td>
                             <td class="px-4 py-3.5 border text-right">
                                 @if($inst->status !== 'Paid' && $loan->status === 'Active')
-                                    <button @click="openPayModal({{ $inst }})" class="px-3 py-1 bg-primary hover:bg-primary-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition shadow-sm">
-                                        Pay Installment
+                                    <button @click="openPayModal({{ $inst }})" class="px-3 py-1 {{ $isPartial ? 'bg-amber-500 hover:bg-amber-600' : 'bg-primary hover:bg-primary-700' }} text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition shadow-sm">
+                                        {{ $isPartial ? 'Pay Balance' : 'Pay Installment' }}
                                     </button>
+                                    @if($isPartial)
+                                        <div class="text-[9px] text-amber-600 font-bold mt-1">₹{{ number_format($balance, 2) }} pending</div>
+                                    @endif
                                 @else
                                     <span class="text-emerald-650 text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Cleared</span>
                                 @endif
@@ -168,12 +201,25 @@
             <form @submit.prevent="submitPayForm">
                 <div class="p-6 space-y-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">EMI Due (₹)</label>
-                        <input type="text" readonly :value="'₹' + Number(activeInst.emi_amount - activeInst.amount_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 outline-none font-bold">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">EMI Amount (₹)</label>
+                        <input type="text" readonly :value="'₹' + Number(activeInst.emi_amount).toLocaleString('en-IN', {minimumFractionDigits: 2})" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 outline-none">
                     </div>
+                    <template x-if="activeInst.amount_paid > 0">
+                        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1">
+                            <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                                <span class="text-slate-500">Already Paid</span>
+                                <span class="text-emerald-700" x-text="'₹' + Number(activeInst.amount_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                            </div>
+                            <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider">
+                                <span class="text-slate-500">Balance Due</span>
+                                <span class="text-rose-600" x-text="'₹' + Number(activeInst.emi_amount - activeInst.amount_paid).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                            </div>
+                        </div>
+                    </template>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Payment Amount (₹) *</label>
-                        <input type="number" step="0.01" x-model="payForm.amount" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <input type="number" step="0.01" x-model="payForm.amount" readonly required class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold focus:outline-none cursor-not-allowed">
+                        <p class="text-[10px] text-slate-400 mt-1 italic">Only option for pay the full emi amount there.</p>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Payment Date *</label>
