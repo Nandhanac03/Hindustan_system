@@ -40,7 +40,7 @@ return new class extends Migration
                 $table->decimal('commission_percent', 5, 2)->nullable();
                 $table->decimal('commission_amount', 15, 2)->default(0);
                 $table->decimal('paid_amount', 15, 2)->default(0);
-                $table->enum('status', ['pending', 'partial', 'paid'])->default('pending');
+                $table->enum('status', ['pending', 'payable', 'partial', 'paid'])->default('pending');
                 $table->text('remarks')->nullable();
                 $table->timestamps();
             });
