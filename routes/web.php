@@ -177,6 +177,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::delete('/employees/{employee}', [\App\Http\Controllers\EmployeeController::class, 'destroy'])->name('employees.destroy');
 
     // Vouchers & Core Accounting Engine
+    Route::get('/vouchers/approvals', [\App\Http\Controllers\VoucherController::class, 'approvalsIndex'])->name('vouchers.approvals');
+    Route::post('/vouchers/{id}/approve', [\App\Http\Controllers\VoucherController::class, 'approveVoucher'])->name('vouchers.approve');
+    Route::get('/vouchers/source-details', [\App\Http\Controllers\VoucherController::class, 'fetchSourceDetails'])->name('vouchers.source.details');
     Route::get('/vouchers/project/{projectId}/units', [\App\Http\Controllers\VoucherController::class, 'getProjectUnits'])->name('vouchers.project.units');
     Route::get('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'createReceipt'])->name('vouchers.receipt.create');
     Route::post('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'storeReceipt'])->name('vouchers.receipt.store');

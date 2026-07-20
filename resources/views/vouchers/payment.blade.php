@@ -31,6 +31,54 @@
                     </div>
                 @endif
 
+                <!-- Auto-Population / Source Selection -->
+                <div class="p-5 bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 rounded-2xl shadow-sm mb-6">
+                    <div class="flex items-start gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        </div>
+                        <div class="flex-1 space-y-3">
+                            <div>
+                                <h3 class="text-xs font-extrabold text-indigo-900 uppercase tracking-widest">Auto-Populate Voucher</h3>
+                                <p class="text-[10px] text-indigo-600/80 font-medium mt-0.5">Link a pending bill, loan EMI, or brokerage to instantly fill out the voucher details.</p>
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <select x-model="sourceType" @change="sourceId = ''"
+                                        class="flex-1 px-3 py-2 bg-white border border-indigo-200 focus:bg-white focus:ring-2 focus:ring-indigo-300 rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition-all">
+                                    <option value="">-- Select Source Type --</option>
+                                    <option value="bill">Vendor Bill</option>
+                                    <option value="loan">Bank Loan EMI</option>
+                                    <option value="brokerage">Broker Commission</option>
+                                </select>
+
+                                <select x-model="sourceId" x-show="sourceType" @change="fetchSourceData()"
+                                        class="flex-1 px-3 py-2 bg-white border border-indigo-200 focus:bg-white focus:ring-2 focus:ring-indigo-300 rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition-all">
+                                    <option value="">-- Select Pending Item --</option>
+                                    <optgroup label="Pending Bills" x-show="sourceType === 'bill'">
+                                        @foreach($pendingBills as $bill)
+                                            <option value="{{ $bill->id }}">{{ $bill->bill_number }} - {{ $bill->supplier_name }} (Bal: ₹{{ number_format($bill->final_amount ?? 0, 2) }})</option>
+                                        @endforeach
+                                    </optgroup>
+                                    <optgroup label="Active Loans" x-show="sourceType === 'loan'">
+                                        @foreach($pendingLoans as $loan)
+                                            <option value="{{ $loan->id }}">{{ $loan->lender_name }} - {{ $loan->loan_account_no }} (EMI: ₹{{ number_format($loan->base_emi, 2) }})</option>
+                                        @endforeach
+                                    </optgroup>
+                                    <optgroup label="Pending Brokerages" x-show="sourceType === 'brokerage'">
+                                        @foreach($pendingBrokerages as $brokerage)
+                                            <option value="{{ $brokerage->id }}">Brokerage #{{ $brokerage->id }} - {{ $brokerage->broker->name ?? 'Unknown' }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                </select>
+                                
+                                <div x-show="isFetching" class="flex items-center justify-center text-indigo-500">
+                                    <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Date Picker -->
                 <div class="space-y-1.5">
                     <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Date</label>
@@ -38,14 +86,14 @@
                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-950 focus:outline-none transition-all cursor-pointer font-sans font-semibold">
                 </div>
 
-                <!-- Row 1: Expense Ledger -->
+                <!-- Row 1: Particulars Ledger (Debit) -->
                 <div class="space-y-1.5">
-                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Expense Ledger (Debit)</label>
+                    <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Particulars Ledger (Debit)</label>
                     <select name="debit_account_id" required x-model="form.debit_account_id"
                             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition-all cursor-pointer">
-                        <option value="">-- Select Expense Ledger --</option>
-                        @foreach($expenseAccounts as $acc)
-                            <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->code }})</option>
+                        <option value="">-- Select Particulars Ledger --</option>
+                        @foreach($debitAccounts as $acc)
+                            <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->code }}) [{{ ucfirst($acc->type) }}]</option>
                         @endforeach
                     </select>
                 </div>
@@ -53,7 +101,7 @@
                 <!-- Row 2: Contractor / Supplier / Partner Selection -->
                 <div class="space-y-1.5">
                     <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Contractor / Supplier / Partner (Payee)</label>
-                    <select name="payee_id"
+                    <select name="payee_id" x-model="form.payee_id"
                             class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition-all cursor-pointer">
                         <option value="">-- Select Contractor/Supplier/Partner --</option>
                         @foreach($payees as $payee)
@@ -136,19 +184,54 @@
     <script>
         function paymentVoucher() {
             return {
+                sourceType: '',
+                sourceId: '',
+                isFetching: false,
                 form: {
                     date: new Date().toISOString().substring(0,10),
                     debit_account_id: '',
                     credit_account_id: '',
+                    payee_id: '',
                     amount: 0.0,
                     gst_rate: 0,
                     tds_rate: 0,
+                    narration: '',
                 },
+                
+                async fetchSourceData() {
+                    if (!this.sourceType || !this.sourceId) return;
+                    
+                    this.isFetching = true;
+                    try {
+                        const response = await fetch(`/vouchers/source-details?source_type=${this.sourceType}&source_id=${this.sourceId}`);
+                        if (!response.ok) throw new Error('Failed to fetch data');
+                        
+                        const data = await response.json();
+                        
+                        if (data.amount) this.form.amount = data.amount;
+                        if (data.narration) this.form.narration = data.narration;
+                        if (data.debit_account_id) this.form.debit_account_id = data.debit_account_id;
+                        if (data.credit_account_id) this.form.credit_account_id = data.credit_account_id;
+                        if (data.payee_id) this.form.payee_id = data.payee_id;
+                        
+                        // Update CKEditor if it exists
+                        if (window.editor) {
+                            window.editor.setData(this.form.narration);
+                        } else {
+                            document.getElementById('ck_payment_narration').value = this.form.narration;
+                        }
+                    } catch (error) {
+                        console.error("Error fetching source data:", error);
+                        alert("Could not auto-populate data. Please enter manually.");
+                    } finally {
+                        this.isFetching = false;
+                    }
+                },
+                
                 calcFinalTotal() {
                     const amt = parseFloat(this.form.amount) || 0.0;
                     const gst = amt * (this.form.gst_rate / 100);
                     const tds = amt * (this.form.tds_rate / 100);
-                    // Final paid amount is Base + GST - TDS deduction
                     return amt + gst - tds;
                 },
                 formatCurrency(val) {

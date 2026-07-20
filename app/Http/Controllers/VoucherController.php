@@ -21,6 +21,138 @@ use Illuminate\Support\Facades\DB;
  
 class VoucherController extends Controller
 {
+    public function approvalsIndex()
+    {
+        $systemId = auth()->user()->system_id ?? 1;
+        
+        $pendingVouchers = Voucher::with(['lines.account', 'creator'])
+            ->where('system_id', $systemId)
+            ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        return view('vouchers.approvals', compact('pendingVouchers'));
+    }
+    
+    public function approveVoucher($id)
+    {
+        $systemId = auth()->user()->system_id ?? 1;
+        $voucher = Voucher::with('lines')->where('system_id', $systemId)->findOrFail($id);
+        
+        if ($voucher->status === 'pending') {
+            DB::transaction(function () use ($voucher, $systemId) {
+                $voucher->update(['status' => 'approved']);
+                
+                foreach ($voucher->lines as $line) {
+                    LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $line->account_id,
+                        'voucher_id' => $voucher->id,
+                        'voucher_line_id' => $line->id,
+                        'date' => $voucher->date,
+                        'debit' => $line->debit,
+                        'credit' => $line->credit,
+                        'running_balance' => 0.00,
+                    ]);
+                }
+            });
+            return redirect()->route('vouchers.approvals')->with('status', "Voucher {$voucher->voucher_number} approved successfully.");
+        }
+        
+        return redirect()->route('vouchers.approvals')->with('error', 'Voucher is already approved or rejected.');
+    }
+    public function fetchSourceDetails(Request $request)
+    {
+        $type = $request->query('source_type');
+        $id = $request->query('source_id');
+        $systemId = auth()->user()->system_id ?? 1;
+
+        if (!$type || !$id) {
+            return response()->json(['error' => 'Missing source parameters'], 400);
+        }
+
+        if ($type === 'bill') {
+            $bill = DB::table('bills')->where('id', $id)->first();
+            if (!$bill) return response()->json(['error' => 'Bill not found'], 404);
+            
+            // Debit: Accounts Payable (Liability)
+            $debitAcc = Account::where('system_id', $systemId)
+                               ->where('type', 'Liability')
+                               ->where(function($q) {
+                                   $q->where('name', 'LIKE', '%Payable%')
+                                     ->orWhere('name', 'LIKE', '%Supplier%')
+                                     ->orWhere('name', 'LIKE', '%Vendor%');
+                               })
+                               ->first();
+            if (!$debitAcc) {
+                $debitAcc = Account::where('system_id', $systemId)->where('type', 'Liability')->first();
+            }
+            
+            return response()->json([
+                'amount' => (float)($bill->final_amount ?? 0) - (float)($bill->paid_amount ?? 0),
+                'narration' => "Payment against Vendor Bill #{$bill->bill_number}",
+                'debit_account_id' => $debitAcc ? $debitAcc->id : null,
+                'credit_account_id' => null, // Let user select bank
+                'payee_id' => $bill->payee_id ?? null,
+            ]);
+        }
+        
+        if ($type === 'brokerage') {
+            $brokerage = \App\Models\Brokerage::find($id);
+            if (!$brokerage) return response()->json(['error' => 'Brokerage not found'], 404);
+            
+            $debitAcc = Account::where('system_id', $systemId)->where('type', 'Expense')->where('name', 'LIKE', '%Broker%')->first();
+            if (!$debitAcc) {
+                $debitAcc = Account::where('system_id', $systemId)->where('type', 'Expense')->first();
+            }
+            
+            return response()->json([
+                'amount' => $brokerage->commission_amount - ($brokerage->paid_amount ?? 0),
+                'narration' => "Commission payout for Brokerage #{$brokerage->id}",
+                'debit_account_id' => $debitAcc ? $debitAcc->id : null,
+                'credit_account_id' => null,
+                'payee_id' => $brokerage->broker_id ?? null,
+            ]);
+        }
+        
+        if ($type === 'emi') {
+            $installment = \App\Models\CustomerInstallment::with('sale.customer')->find($id);
+            if (!$installment) return response()->json(['error' => 'EMI not found'], 404);
+            
+            // Debit: Bank/Cash (Asset), Credit: Customer Receivable (Liability)
+            $customerAcc = Account::firstOrCreate(
+                ['system_id' => $systemId, 'code' => 'CUST-REC-' . $installment->sale->customer_id],
+                ['name' => $installment->sale->customer->name . ' (Receivable)', 'type' => 'Liability', 'is_active' => true]
+            );
+            $debitAcc = Account::where('system_id', $systemId)->where('type', 'Asset')->first();
+            
+            return response()->json([
+                'amount' => $installment->amount - ($installment->paid_amount ?? 0),
+                'narration' => "EMI Collection for Sale #{$installment->sale->sale_number} - Installment {$installment->installment_no}",
+                'debit_account_id' => $debitAcc ? $debitAcc->id : null,
+                'credit_account_id' => $customerAcc->id,
+            ]);
+        }
+        
+        if ($type === 'loan') {
+            $loan = \App\Models\Loan::find($id);
+            if (!$loan) return response()->json(['error' => 'Loan not found'], 404);
+            
+            // Debit: Loan Payable (Liability), Credit: Bank (Asset)
+            $loanAcc = Account::where('system_id', $systemId)->where('id', $loan->ledger_account_id)->first();
+            $creditAcc = Account::where('system_id', $systemId)->where('type', 'Asset')->first();
+            
+            return response()->json([
+                'amount' => $loan->base_emi,
+                'narration' => "Bank Loan EMI Payment for {$loan->lender_name}",
+                'debit_account_id' => $loanAcc ? $loanAcc->id : null,
+                'credit_account_id' => $creditAcc ? $creditAcc->id : null,
+            ]);
+        }
+
+        return response()->json(['error' => 'Invalid source type'], 400);
+    }
+
     public function createReceipt()
     {
         $user = Auth::user();
@@ -663,7 +795,7 @@ class VoucherController extends Controller
 
         $accounts = Account::where('system_id', $systemId)->where('is_active', true)->get();
         
-        $expenseAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'expense');
+        $debitAccounts = $accounts->filter(fn($acc) => in_array(strtolower($acc->type), ['expense', 'liability', 'asset']));
         $creditAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset' && $acc->code !== 'BANK-KAR-213');
 
         // Generate voucher number
@@ -686,8 +818,24 @@ class VoucherController extends Controller
         }
         $voucherNumber = 'PV-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
         $payees = Payee::all();
+        
+        $pendingBills = DB::table('bills')
+            ->join('payees', 'bills.payee_id', '=', 'payees.id')
+            ->where('bills.system_id', $systemId)
+            ->whereIn('bills.status', ['approved_unpaid', 'partially_paid'])
+            ->select('bills.id', 'bills.bill_number', 'bills.final_amount', 'payees.name as supplier_name')
+            ->orderBy('bills.bill_number')
+            ->get();
+            
+        $pendingLoans = \App\Models\Loan::where('system_id', $systemId)
+            ->where('status', 'active')
+            ->get();
+            
+        $pendingBrokerages = \App\Models\Brokerage::with('broker')
+            ->where('status', 'unpaid')
+            ->get();
 
-        return view('vouchers.payment', compact('expenseAccounts', 'creditAccounts', 'voucherNumber', 'payees'));
+        return view('vouchers.payment', compact('debitAccounts', 'creditAccounts', 'voucherNumber', 'payees', 'pendingBills', 'pendingLoans', 'pendingBrokerages'));
     }
 
     public function storePayment(Request $request)
@@ -725,6 +873,12 @@ class VoucherController extends Controller
                 'tds_rate' => $tdsPct,
             ];
             $referenceNo = json_encode($meta);
+            
+            // -----------------------------------------------------------------
+            // APPROVAL WORKFLOW: High-Value Vouchers
+            // -----------------------------------------------------------------
+            $requiresApproval = $netPaid >= 50000;
+            $status = $requiresApproval ? 'pending' : 'approved';
 
             // Create Voucher
             $voucher = Voucher::create([
@@ -734,7 +888,7 @@ class VoucherController extends Controller
                 'date' => $request->date,
                 'narration' => $request->narration,
                 'created_by' => $user->id,
-                'status' => 'Posted',
+                'status' => $status,
                 'reference_no' => $referenceNo,
             ]);
 
@@ -747,16 +901,18 @@ class VoucherController extends Controller
                 'line_narration' => 'Debit Expense Ledger',
             ]);
 
-            LedgerEntry::create([
-                'system_id' => $systemId,
-                'account_id' => $request->debit_account_id,
-                'voucher_id' => $voucher->id,
-                'voucher_line_id' => $debitLine->id,
-                'date' => $request->date,
-                'debit' => $baseAmount,
-                'credit' => 0.00,
-                'running_balance' => 0.00,
-            ]);
+            if (!$requiresApproval) {
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $request->debit_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $debitLine->id,
+                    'date' => $request->date,
+                    'debit' => $baseAmount,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+            }
 
             // 2. Debit Input GST (if applicable)
             if ($gstAmount > 0) {
@@ -820,16 +976,18 @@ class VoucherController extends Controller
                     'credit' => $tdsAmount,
                     'line_narration' => 'TDS Deduction Credit',
                 ]);
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $tdsAccount->id,
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $tdsLine->id,
-                    'date' => $request->date,
-                    'debit' => 0.00,
-                    'credit' => $tdsAmount,
-                    'running_balance' => 0.00,
-                ]);
+                if (!$requiresApproval) {
+                    LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $tdsAccount->id,
+                        'voucher_id' => $voucher->id,
+                        'voucher_line_id' => $tdsLine->id,
+                        'date' => $request->date,
+                        'debit' => 0.00,
+                        'credit' => $tdsAmount,
+                        'running_balance' => 0.00,
+                    ]);
+                }
             }
 
             // 4. Credit the Source Account (Bank/Cash) (Net Paid Amount)
@@ -841,16 +999,18 @@ class VoucherController extends Controller
                 'line_narration' => 'Credit Bank/Cash',
             ]);
 
-            LedgerEntry::create([
-                'system_id' => $systemId,
-                'account_id' => $request->credit_account_id,
-                'voucher_id' => $voucher->id,
-                'voucher_line_id' => $creditLine->id,
-                'date' => $request->date,
-                'debit' => 0.00,
-                'credit' => $netPaid,
-                'running_balance' => 0.00,
-            ]);
+            if (!$requiresApproval) {
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $request->credit_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $creditLine->id,
+                    'date' => $request->date,
+                    'debit' => 0.00,
+                    'credit' => $netPaid,
+                    'running_balance' => 0.00,
+                ]);
+            }
         });
 
         return redirect()->route('vouchers.ledger.index')->with('status', 'Payment Voucher created successfully.');
@@ -911,6 +1071,10 @@ class VoucherController extends Controller
 
         DB::transaction(function () use ($request, $systemId, $user) {
             $amount = (float)$request->amount;
+            
+            // High-Value Approval Threshold
+            $requiresApproval = $amount >= 50000;
+            $status = $requiresApproval ? 'pending' : 'Posted';
 
             // Create Voucher
             $voucher = Voucher::create([
@@ -920,7 +1084,7 @@ class VoucherController extends Controller
                 'date' => $request->date,
                 'narration' => $request->narration,
                 'created_by' => $user->id,
-                'status' => 'Posted',
+                'status' => $status,
                 'reference_no' => $request->reference_no ?? null,
             ]);
 
@@ -933,17 +1097,6 @@ class VoucherController extends Controller
                 'line_narration' => 'Debit to Destination Account',
             ]);
 
-            LedgerEntry::create([
-                'system_id' => $systemId,
-                'account_id' => $request->destination_account_id,
-                'voucher_id' => $voucher->id,
-                'voucher_line_id' => $debitLine->id,
-                'date' => $request->date,
-                'debit' => $amount,
-                'credit' => 0.00,
-                'running_balance' => 0.00,
-            ]);
-
             // 2. Credit the Source Account
             $creditLine = VoucherLine::create([
                 'voucher_id' => $voucher->id,
@@ -953,19 +1106,32 @@ class VoucherController extends Controller
                 'line_narration' => 'Credit to Source Account',
             ]);
 
-            LedgerEntry::create([
-                'system_id' => $systemId,
-                'account_id' => $request->credit_account_id,
-                'voucher_id' => $voucher->id,
-                'voucher_line_id' => $creditLine->id,
-                'date' => $request->date,
-                'debit' => 0.00,
-                'credit' => $amount,
-                'running_balance' => 0.00,
-            ]);
+            if (!$requiresApproval) {
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $request->destination_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $debitLine->id,
+                    'date' => $request->date,
+                    'debit' => $amount,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $request->credit_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $creditLine->id,
+                    'date' => $request->date,
+                    'debit' => 0.00,
+                    'credit' => $amount,
+                    'running_balance' => 0.00,
+                ]);
+            }
         });
 
-        return redirect()->route('vouchers.ledger.index')->with('status', 'Contra Voucher created successfully.');
+        return redirect()->route('vouchers.ledger.index')->with('status', 'Contra Voucher created successfully. Note: Vouchers >= ₹50,000 require approval.');
     }
 
     public function createJournal()
@@ -1028,6 +1194,10 @@ class VoucherController extends Controller
                 throw new \Exception('Journal entries must be balanced (Total Debits must equal Total Credits).');
             }
 
+            // High-Value Approval Threshold
+            $requiresApproval = $totalDebit >= 50000;
+            $status = $requiresApproval ? 'pending' : 'Posted';
+
             // Create Voucher
             $voucher = Voucher::create([
                 'system_id' => $systemId,
@@ -1036,7 +1206,7 @@ class VoucherController extends Controller
                 'date' => $request->date,
                 'narration' => $request->narration,
                 'created_by' => $user->id,
-                'status' => 'Posted',
+                'status' => $status,
             ]);
 
             foreach ($request->lines as $line) {
@@ -1055,20 +1225,22 @@ class VoucherController extends Controller
                     'line_narration' => $line['line_narration'] ?? 'Journal Line Item',
                 ]);
 
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $line['account_id'],
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $vl->id,
-                    'date' => $request->date,
-                    'debit' => $debit,
-                    'credit' => $credit,
-                    'running_balance' => 0.00,
-                ]);
+                if (!$requiresApproval) {
+                    LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $line['account_id'],
+                        'voucher_id' => $voucher->id,
+                        'voucher_line_id' => $vl->id,
+                        'date' => $request->date,
+                        'debit' => $debit,
+                        'credit' => $credit,
+                        'running_balance' => 0.00,
+                    ]);
+                }
             }
         });
 
-        return redirect()->route('vouchers.ledger.index')->with('status', 'Journal Voucher created successfully.');
+        return redirect()->route('vouchers.ledger.index')->with('status', 'Journal Voucher created successfully. Note: Vouchers >= ₹50,000 require approval.');
     }
 
     public function createSalesPurchase()
@@ -1151,6 +1323,10 @@ class VoucherController extends Controller
                 $creditVal = $baseAmount;
             }
 
+            // High-Value Approval Threshold
+            $requiresApproval = $baseAmount >= 50000;
+            $status = $requiresApproval ? 'pending' : 'Posted';
+
             // Create Voucher
             $voucher = Voucher::create([
                 'system_id' => $systemId,
@@ -1159,7 +1335,7 @@ class VoucherController extends Controller
                 'date' => $request->date,
                 'narration' => $request->narration,
                 'created_by' => $user->id,
-                'status' => 'Posted',
+                'status' => $status,
                 'reference_no' => $request->reference_no ?? null,
             ]);
 
@@ -1172,16 +1348,18 @@ class VoucherController extends Controller
                 'line_narration' => 'Debit Account',
             ]);
 
-            LedgerEntry::create([
-                'system_id' => $systemId,
-                'account_id' => $request->debit_account_id,
-                'voucher_id' => $voucher->id,
-                'voucher_line_id' => $debitLine->id,
-                'date' => $request->date,
-                'debit' => $debitVal,
-                'credit' => 0.00,
-                'running_balance' => 0.00,
-            ]);
+            if (!$requiresApproval) {
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $request->debit_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $debitLine->id,
+                    'date' => $request->date,
+                    'debit' => $debitVal,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+            }
 
             // 2. Credit Line
             $creditLine = VoucherLine::create([
@@ -1192,16 +1370,18 @@ class VoucherController extends Controller
                 'line_narration' => 'Credit Account',
             ]);
 
-            LedgerEntry::create([
-                'system_id' => $systemId,
-                'account_id' => $request->credit_account_id,
-                'voucher_id' => $voucher->id,
-                'voucher_line_id' => $creditLine->id,
-                'date' => $request->date,
-                'debit' => 0.00,
-                'credit' => $creditVal,
-                'running_balance' => 0.00,
-            ]);
+            if (!$requiresApproval) {
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $request->credit_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $creditLine->id,
+                    'date' => $request->date,
+                    'debit' => 0.00,
+                    'credit' => $creditVal,
+                    'running_balance' => 0.00,
+                ]);
+            }
 
             // 3. Taxes
             if ($cgst > 0 || $sgst > 0) {
@@ -1231,16 +1411,18 @@ class VoucherController extends Controller
                     'line_narration' => $taxNamePrefix . ' CGST 2.5%',
                 ]);
 
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $cgstAccount->id,
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $cgstLine->id,
-                    'date' => $request->date,
-                    'debit' => $cgstDeb,
-                    'credit' => $cgstCred,
-                    'running_balance' => 0.00,
-                ]);
+                if (!$requiresApproval) {
+                    LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $cgstAccount->id,
+                        'voucher_id' => $voucher->id,
+                        'voucher_line_id' => $cgstLine->id,
+                        'date' => $request->date,
+                        'debit' => $cgstDeb,
+                        'credit' => $cgstCred,
+                        'running_balance' => 0.00,
+                    ]);
+                }
 
                 $sgstLine = VoucherLine::create([
                     'voucher_id' => $voucher->id,
@@ -1250,20 +1432,22 @@ class VoucherController extends Controller
                     'line_narration' => $taxNamePrefix . ' SGST 2.5%',
                 ]);
 
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $sgstAccount->id,
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $sgstLine->id,
-                    'date' => $request->date,
-                    'debit' => $sgstDeb,
-                    'credit' => $sgstCred,
-                    'running_balance' => 0.00,
-                ]);
+                if (!$requiresApproval) {
+                    LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $sgstAccount->id,
+                        'voucher_id' => $voucher->id,
+                        'voucher_line_id' => $sgstLine->id,
+                        'date' => $request->date,
+                        'debit' => $sgstDeb,
+                        'credit' => $sgstCred,
+                        'running_balance' => 0.00,
+                    ]);
+                }
             }
         });
 
-        return redirect()->route('vouchers.ledger.index')->with('status', $request->transaction_type === 'sales' ? 'Sales Invoice posted successfully.' : 'Purchase Voucher posted successfully.');
+        return redirect()->route('vouchers.ledger.index')->with('status', ($request->transaction_type === 'sales' ? 'Sales Invoice' : 'Purchase Voucher') . ' posted successfully. Note: Vouchers >= ₹50,000 require approval.');
     }
 
     public function ledgerIndex(Request $request)
@@ -1276,6 +1460,7 @@ class VoucherController extends Controller
         $selectedAccount = $request->query('account_id');
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
+        $selectedVoucherType = $request->query('voucher_type');
 
         $query = LedgerEntry::with(['voucher', 'account', 'voucherLine'])->where('system_id', $systemId);
 
@@ -1287,6 +1472,11 @@ class VoucherController extends Controller
         }
         if ($endDate) {
             $query->where('date', '<=', $endDate);
+        }
+        if ($selectedVoucherType) {
+            $query->whereHas('voucher', function($q) use ($selectedVoucherType) {
+                $q->where('type', $selectedVoucherType);
+            });
         }
 
         $entries = $query->orderBy('date', 'asc')->orderBy('id', 'asc')->get();
@@ -1302,7 +1492,30 @@ class VoucherController extends Controller
             $entry->running_balance = $balance;
         }
 
-        return view('vouchers.ledger_directory', compact('accounts', 'entries', 'selectedAccount', 'startDate', 'endDate'));
+        // Fetch real data: latest voucher numbers for the Workflow Guide table
+        $latestReceipt = Voucher::where('system_id', $systemId)->where('type', 'Receipt')->latest('id')->value('voucher_number') ?? 'RV-XXXX-XXXX';
+        $latestPurchase = Voucher::where('system_id', $systemId)->where('type', 'Purchase')->latest('id')->value('voucher_number') ?? 'PV-XXXX-XXXX';
+        $latestPayment = Voucher::where('system_id', $systemId)->where('type', 'Payment')->latest('id')->value('voucher_number') ?? 'PV-XXXX-XXXX';
+        $latestJournal = Voucher::where('system_id', $systemId)->where('type', 'Journal')->latest('id')->value('voucher_number') ?? 'JV-XXXX-XXXX';
+        
+        // Calculate category totals (Total Debit for each voucher type)
+        $categoryTotalsQuery = DB::table('voucher_lines')
+            ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
+            ->where('vouchers.system_id', $systemId)
+            ->where('vouchers.status', '!=', 'pending')
+            ->groupBy('vouchers.type')
+            ->select('vouchers.type', DB::raw('SUM(debit) as total'))
+            ->get();
+            
+        $categoryTotals = [];
+        foreach ($categoryTotalsQuery as $row) {
+            $categoryTotals[$row->type] = $row->total;
+        }
+
+        return view('vouchers.ledger_directory', compact(
+            'accounts', 'entries', 'selectedAccount', 'startDate', 'endDate', 'selectedVoucherType', 'categoryTotals',
+            'latestReceipt', 'latestPurchase', 'latestPayment', 'latestJournal'
+        ));
     }
 
     protected function ensureDefaultAccounts($systemId)

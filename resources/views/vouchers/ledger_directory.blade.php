@@ -43,12 +43,12 @@
         <!-- Filters Header Card -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-soft p-5">
             <h2 class="text-xs font-extrabold text-slate-800 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">Filter & Categorize Ledger Entries</h2>
-            <form method="GET" action="{{ route('vouchers.ledger.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <form id="filterForm" method="GET" action="{{ route('vouchers.ledger.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 
                 <!-- Voucher Type Filter -->
                 <div class="space-y-1.5">
                     <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Payment / Voucher Type</label>
-                    <select name="voucher_type"
+                    <select name="voucher_type" id="voucher_type"
                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 font-extrabold cursor-pointer focus:outline-none transition-all">
                         <option value="">-- All Voucher Types --</option>
                         <option value="Receipt"  {{ $activeType === 'Receipt'  ? 'selected' : '' }}>Receipt Vouchers (Collections)</option>
@@ -106,8 +106,8 @@
 
             {{-- All Tab Box --}}
             @php $isAll = !$activeType; @endphp
-            <a href="{{ route('vouchers.ledger.index') }}"
-               class="p-3.5 rounded-2xl border transition-all duration-200 block space-y-1 group
+            <button type="button" onclick="document.getElementById('voucher_type').value = ''; document.getElementById('filterForm').submit();"
+               class="text-left p-3.5 rounded-2xl border transition-all duration-200 block space-y-1 group cursor-pointer
                       {{ $isAll
                          ? 'bg-slate-900 border-slate-900 text-white shadow-md ring-2 ring-slate-900/20'
                          : 'bg-white border-slate-200/80 hover:border-slate-400 hover:shadow-xs' }}">
@@ -119,13 +119,13 @@
                     {{ count($entries) }} <span class="text-[10px] font-normal opacity-70">rows</span>
                 </div>
                 <div class="text-[10px] font-medium {{ $isAll ? 'text-slate-300' : 'text-slate-400' }}">All Categories</div>
-            </a>
+            </button>
 
             {{-- Category Tab Boxes --}}
             @foreach($tabs as $type => $cfg)
                 @php $isAct = $activeType === $type; @endphp
-                <a href="{{ route('vouchers.ledger.index', ['voucher_type' => $type]) }}"
-                   class="p-3.5 rounded-2xl border transition-all duration-200 block space-y-1 group
+                <button type="button" onclick="document.getElementById('voucher_type').value = '{{ $type }}'; document.getElementById('filterForm').submit();"
+                   class="text-left p-3.5 rounded-2xl border transition-all duration-200 block space-y-1 group cursor-pointer
                           {{ $isAct
                              ? $cfg['bg'].' '.$cfg['border'].' '.$cfg['text'].' shadow-md ring-2 '.$cfg['ring']
                              : 'bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs' }}">
@@ -134,10 +134,14 @@
                         <span class="w-2 h-2 rounded-full {{ $cfg['dot'] }}"></span>
                     </div>
                     <div class="text-base font-black font-mono {{ $isAct ? $cfg['text'] : 'text-slate-900' }}">
-                        ₹{{ number_format(($totals[$type] ?? 0)/100000, 1) }}L
+                        @if(($totals[$type] ?? 0) >= 100000)
+                            ₹{{ number_format(($totals[$type] ?? 0)/100000, 1) }}L
+                        @else
+                            ₹{{ number_format(($totals[$type] ?? 0)/1000, 1) }}K
+                        @endif
                     </div>
                     <div class="text-[10px] font-medium {{ $isAct ? $cfg['text'] : 'text-slate-400' }} truncate">{{ $cfg['sub'] }}</div>
-                </a>
+                </button>
             @endforeach
 
         </div>
