@@ -477,12 +477,15 @@
                     </a>
                 </div>
                 
-                <div class="space-y-3.5">
+                <div class="space-y-3.5 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                     @forelse($pendingEmiAlerts as $alert)
-                        <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-between shadow-sm">
+                        @php
+                            $bankColors = ['bg-rose-700', 'bg-indigo-700', 'bg-emerald-700', 'bg-amber-600', 'bg-purple-700', 'bg-teal-700', 'bg-blue-800'];
+                        @endphp
+                        <div class="p-3 bg-slate-50 border border-slate-150 rounded-2xl flex items-center justify-between shadow-sm">
                             <div class="flex items-center gap-3">
-                                <!-- Bank Logo abbreviation box -->
-                                <div class="w-8 h-8 rounded-xl bg-[#0B1E36] text-white flex items-center justify-center font-bold text-[9px] shrink-0 uppercase">
+                                <!-- Bank Mini Logo/Placeholder Box -->
+                                <div class="w-9 h-9 rounded-xl {{ $bankColors[$loop->index % count($bankColors)] }} text-white flex items-center justify-center font-bold text-[10px] shrink-0 uppercase">
                                     {{ substr($alert->provider, 0, 2) }}
                                 </div>
                                 <div>
@@ -494,9 +497,9 @@
                             </div>
                             <div class="text-right flex flex-col items-end gap-1">
                                 <span class="font-mono font-bold text-slate-900 text-xs">₹{{ number_format($alert->emi_amount, 2) }}</span>
-                                <span class="inline-block px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase {{ $alert->is_overdue ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-amber-50 text-amber-700 border border-amber-100' }}">
-                                    {{ $alert->status }}
-                                </span>
+                                <a href="{{ route('loans.index') }}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-250 transition tracking-wider">
+                                    Pay Now
+                                </a>
                             </div>
                         </div>
                     @empty
@@ -508,6 +511,23 @@
                         </div>
                     @endforelse
                 </div>
+                <style>
+                    /* Custom Scrollbar for Notifications */
+                    .custom-scrollbar::-webkit-scrollbar {
+                        width: 4px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-track {
+                        background: #f1f5f9;
+                        border-radius: 4px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb {
+                        background: #cbd5e1;
+                        border-radius: 4px;
+                    }
+                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                        background: #94a3b8;
+                    }
+                </style>
             </div>
         </div>
     </div>
