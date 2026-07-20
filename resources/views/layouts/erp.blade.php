@@ -366,21 +366,23 @@
         <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
             @php
                 $reportLinks = [
-                    'activity_statements' => '📊 Activity Statements',
-                    'dashboard'  => 'Dashboard & MIS',
-                    'availability' => 'Availability Report',
-                    'sales' => 'Sales Report',
-                    'sales_return' => 'Sales Return Report',
-                    'exchange_report' => 'Exchange Report',
-                    'emi_collections' => 'EMI & Collections',
-                    'customer_ledger' => 'Customer Ledger/Stmt',
-                    'cash_book' => 'Consolidated Cash Book',
-                    'bank_reports' => 'Bank Reports',
-                    'partner_statements' => 'Partner Statements',
-                    'loan_schedules' => 'Bank Loan EMI',
-                    'profit_loss' => 'Profit & Loss',
+                    'trial_balance'       => 'Trial Balance',
+                    'profit_loss'         => 'Profit & Loss',
+                    'balance_sheet'       => 'Balance Sheet',
+                    'dashboard'           => 'Dashboard & MIS',
+                    'availability'        => 'Availability Report',
+                    'sales'               => 'Sales Report',
+                    'sales_return'        => 'Sales Return Report',
+                    'exchange_report'     => 'Exchange Report',
+                    'emi_collections'     => 'EMI & Collections',
+                    'customer_ledger'     => 'Customer Ledger/Stmt',
+                    'activity_statements' => 'Activity Statements',
+                    'cash_book'           => 'Consolidated Cash Book',
+                    'bank_reports'        => 'Bank Reports',
+                    'partner_statements'  => 'Partner Statements',
+                    'loan_schedules'      => 'Bank Loan EMI',
                 ];
-                $currentReport = request('report', 'activity_statements');
+                $currentReport = request('report', 'trial_balance');
             @endphp
             @foreach($reportLinks as $key => $label)
                 <a href="{{ route('reports.index', ['report' => $key]) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ $currentReport === $key ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">

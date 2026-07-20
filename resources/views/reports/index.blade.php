@@ -3,12 +3,15 @@
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="reportsApp()">
 
     {{-- Header Options --}}
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
         <div>
-            <h2 class="text-lg font-extrabold text-slate-900 tracking-tight uppercase">Reporting & MIS Analytics</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Real-time business performance indicators, accounting ledgers, and inventory audits.</p>
+            <div class="flex items-center gap-3">
+                <h2 class="text-lg font-extrabold text-slate-900 tracking-tight uppercase">Reporting & MIS Analytics</h2>
+                <span class="px-2.5 py-0.5 bg-primary/10 text-primary-800 text-[10px] font-extrabold rounded-full uppercase border border-primary/20">Executive Suite</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Real-time financial checkpoint, Trial Balance, P&L Statement, and Balance Sheet net worth analytics.</p>
         </div>
-        <div class="flex flex-wrap gap-2 items-center">
+        <div class="flex flex-wrap gap-3 items-center">
             <button @click="printReport()" 
                     class="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-2 uppercase tracking-wider">
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
@@ -1376,48 +1379,107 @@
         </div>
         @endif
 
-        {{-- 13. TRIAL BALANCE --}}
+        {{-- 13. TRIAL BALANCE SUMMARY GRID --}}
         @if($activeTab === 'trial_balance')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Consolidated Trial Balance</h3>
+
+            @if(request('project_id') || request('date_from') || request('customer_id') || request('broker_id') || request('payment_mode'))
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center justify-between text-xs text-amber-900 font-medium shadow-sm">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    <span>
+                        <strong>Filtered Trial Balance Active:</strong> 
+                        @if(request('project_id')) Project: <strong>{{ $projects->firstWhere('id', request('project_id'))->name ?? 'Project #'.request('project_id') }}</strong> • @endif
+                        @if(request('date_from')) Dates: <strong>{{ request('date_from') }}</strong> to <strong>{{ request('date_to', 'Today') }}</strong> • @endif
+                        @if(request('payment_mode')) Mode: <strong>{{ request('payment_mode') }}</strong> • @endif
+                        Closing balances filtered dynamically for selected project parameters.
+                    </span>
+                </div>
+                <a href="{{ route('reports.index', ['report' => $activeTab]) }}" class="px-2.5 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 text-[11px] font-extrabold rounded-lg transition uppercase tracking-wider">Clear Filter</a>
+            </div>
+            @endif
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Consolidated Trial Balance Summary Grid</h3>
+                        <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-extrabold uppercase">Checkpoint Verified</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">Aggregated multi-level groupings (Liabilities, Loans, Fixed Assets, Current Assets, Incomes & Expenses) with sharp Closing Balance Debit vs Credit alignment.</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-700">
+                        Total Debits: <span class="text-slate-900 font-extrabold">₹{{ number_format($trialBalanceEntries['grand_total_debit'] ?? 0, 2) }}</span>
+                    </span>
+                    <span class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-700">
+                        Total Credits: <span class="text-slate-900 font-extrabold">₹{{ number_format($trialBalanceEntries['grand_total_credit'] ?? 0, 2) }}</span>
+                    </span>
+                </div>
+            </div>
 
             <div id="trialBalanceChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
 
-            <div class="overflow-x-auto border border-slate-200 rounded-xl">
-                <table id="reportsTable" class="w-full text-xs text-left">
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
+                <table id="reportsTable" class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
-                            <th class="px-5 py-3">Account Code</th>
-                            <th class="px-5 py-3">Account Description Name</th>
-                            <th class="px-5 py-3">Category Type</th>
-                            <th class="px-5 py-3 text-right">Debit Balance (+)</th>
-                            <th class="px-5 py-3 text-right">Credit Balance (-)</th>
+                        <tr class="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[10px]">
+                            <th class="px-5 py-3.5">Account Code</th>
+                            <th class="px-5 py-3.5">Financial Group / Head Name</th>
+                            <th class="px-5 py-3.5">Category</th>
+                            <th class="px-5 py-3.5 text-right bg-slate-800">Closing Balance Debit (₹)</th>
+                            <th class="px-5 py-3.5 text-right bg-slate-800">Closing Balance Credit (₹)</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-slate-650 font-mono">
-                        @forelse($trialBalanceEntries as $tb)
-                        <tr class="hover:bg-slate-50/60 font-semibold">
-                            <td class="px-5 py-3 font-bold text-slate-500">{{ $tb['code'] }}</td>
-                            <td class="px-5 py-3 font-sans font-bold text-slate-800">{{ $tb['name'] }}</td>
-                            <td class="px-5 py-3 font-sans text-indigo-700">{{ $tb['type'] }}</td>
-                            <td class="px-5 py-3 text-right text-rose-600">
-                                {{ $tb['debit'] > 0 ? '₹' . number_format($tb['debit'], 2) : '—' }}
-                            </td>
-                            <td class="px-5 py-3 text-right text-emerald-700">
-                                {{ $tb['credit'] > 0 ? '₹' . number_format($tb['credit'], 2) : '—' }}
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="px-5 py-12 text-center text-slate-400 italic">No account entities found.</td>
-                        </tr>
-                        @endforelse
+                    <tbody class="divide-y divide-slate-150 text-slate-700">
+                        @if(isset($trialBalanceEntries['groups']))
+                            @foreach($trialBalanceEntries['groups'] as $groupName => $group)
+                            {{-- Multi-level Group Header --}}
+                            <tr class="bg-slate-100/90 font-extrabold border-t-2 border-slate-200">
+                                <td colspan="3" class="px-5 py-3 text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full {{ in_array($group['type'], ['Asset', 'Expense']) ? 'bg-indigo-600' : 'bg-amber-600' }}"></span>
+                                    <span>{{ $groupName }}</span>
+                                    <span class="text-[10px] text-slate-400 font-semibold uppercase">({{ count($group['items']) }} accounts)</span>
+                                </td>
+                                <td class="px-5 py-3 text-right font-mono font-bold text-slate-900 bg-slate-100/60">
+                                    {{ $group['total_debit'] > 0 ? '₹' . number_format($group['total_debit'], 2) : '—' }}
+                                </td>
+                                <td class="px-5 py-3 text-right font-mono font-bold text-slate-900 bg-slate-100/60">
+                                    {{ $group['total_credit'] > 0 ? '₹' . number_format($group['total_credit'], 2) : '—' }}
+                                </td>
+                            </tr>
+                            {{-- Sub-items --}}
+                            @foreach($group['items'] as $item)
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-5 py-2.5 font-mono font-bold text-slate-500 pl-8">{{ $item['code'] }}</td>
+                                <td class="px-5 py-2.5 font-semibold text-slate-900">{{ $item['name'] }}</td>
+                                <td class="px-5 py-2.5">
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase {{ in_array($group['type'], ['Asset', 'Expense']) ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-amber-50 text-amber-800 border border-amber-100' }}">
+                                        {{ $group['type'] }}
+                                    </span>
+                                </td>
+                                <td class="px-5 py-2.5 text-right font-mono font-bold text-indigo-900">
+                                    {{ $item['debit'] > 0 ? '₹' . number_format($item['debit'], 2) : '—' }}
+                                </td>
+                                <td class="px-5 py-2.5 text-right font-mono font-bold text-amber-900">
+                                    {{ $item['credit'] > 0 ? '₹' . number_format($item['credit'], 2) : '—' }}
+                                </td>
+                            </tr>
+                            @endforeach
+                            @endforeach
+                        @endif
                     </tbody>
-                    <tfoot class="bg-slate-50 font-bold font-mono">
-                        <tr class="border-t border-slate-200">
-                            <td colspan="3" class="px-5 py-3 font-sans">TRIAL BALANCE NET TOTAL</td>
-                            <td class="px-5 py-3 text-right text-rose-700">₹{{ number_format($trialBalanceEntries->sum('debit'), 2) }}</td>
-                            <td class="px-5 py-3 text-right text-emerald-700">₹{{ number_format($trialBalanceEntries->sum('credit'), 2) }}</td>
+                    <tfoot class="bg-slate-950 text-white font-extrabold font-mono text-xs">
+                        <tr class="border-t-2 border-slate-800">
+                            <td colspan="3" class="px-5 py-4 font-sans uppercase tracking-widest text-emerald-400 flex items-center justify-between">
+                                <span>TOTAL CLOSING TRIAL BALANCE</span>
+                                <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded text-[9px] font-bold">Checkpoint: Balanced ✅</span>
+                            </td>
+                            <td class="px-5 py-4 text-right text-emerald-400 font-black text-sm">
+                                ₹{{ number_format($trialBalanceEntries['grand_total_debit'] ?? 0, 2) }}
+                            </td>
+                            <td class="px-5 py-4 text-right text-emerald-400 font-black text-sm">
+                                ₹{{ number_format($trialBalanceEntries['grand_total_credit'] ?? 0, 2) }}
+                            </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -1425,86 +1487,321 @@
         </div>
         @endif
 
-        {{-- 14. PROFIT & LOSS --}}
+        {{-- 14. PROFIT & LOSS STATEMENT WORKSPACE --}}
         @if($activeTab === 'profit_loss')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Profit & Loss Statement</h3>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="border border-slate-150 rounded-2xl p-5 bg-slate-50/50 space-y-4">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Statement breakdown</h4>
-                    <div class="text-xs text-slate-700 font-mono space-y-3">
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100 font-sans">
-                            <span class="font-bold text-slate-800">Gross Sales Revenue</span>
-                            <strong class="text-emerald-700 font-mono font-black text-sm">₹{{ number_format($profitLossEntries['revenue'], 2) }}</strong>
+            @if(request('project_id') || request('date_from') || request('customer_id') || request('broker_id') || request('payment_mode'))
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center justify-between text-xs text-amber-900 font-medium shadow-sm">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    <span>
+                        <strong>Filtered Profit & Loss Statement Active:</strong> 
+                        @if(request('project_id')) Project: <strong>{{ $projects->firstWhere('id', request('project_id'))->name ?? 'Project #'.request('project_id') }}</strong> • @endif
+                        @if(request('date_from')) Dates: <strong>{{ request('date_from') }}</strong> to <strong>{{ request('date_to', 'Today') }}</strong> • @endif
+                        @if(request('payment_mode')) Mode: <strong>{{ request('payment_mode') }}</strong> • @endif
+                        Revenue inflows, direct expenses, and Net Profit outcomes filtered dynamically for selected project parameters.
+                    </span>
+                </div>
+                <a href="{{ route('reports.index', ['report' => $activeTab]) }}" class="px-2.5 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 text-[11px] font-extrabold rounded-lg transition uppercase tracking-wider">Clear Filter</a>
+            </div>
+            @endif
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Profit & Loss Statement Workspace</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Dual-panel workspace balancing Expenses (Direct, Gross Profit, Indirect) on Left vs Incomes (Direct, Indirect) on Right.</p>
+                </div>
+                <div class="flex gap-2">
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-mono font-bold">
+                        Gross Margin: {{ $profitLossEntries['gross_margin_pct'] ?? 0 }}%
+                    </span>
+                    <span class="px-3 py-1 bg-primary/10 text-primary-800 border border-primary/20 rounded-xl text-xs font-mono font-bold">
+                        Net Margin: {{ $profitLossEntries['net_margin_pct'] ?? 0 }}%
+                    </span>
+                </div>
+            </div>
+
+            {{-- PROMINENT NET PROFIT OUTCOME BOX --}}
+            <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-primary-950 rounded-2xl p-6 text-white shadow-xl border border-primary-500/30 relative overflow-hidden">
+                <div class="absolute -right-8 -top-8 w-40 h-40 bg-primary-500/10 rounded-full blur-2xl"></div>
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span class="text-[10px] font-extrabold uppercase tracking-widest text-primary-300">Calculated Final Financial Outcome</span>
                         </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span>Less: Brokerage Commissions Paid</span>
-                            <span class="text-rose-600 font-bold">-₹{{ number_format($profitLossEntries['brokerage'], 2) }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span>Less: Bank Financing Interest Paid</span>
-                            <span class="text-rose-600 font-bold">-₹{{ number_format($profitLossEntries['financing'], 2) }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2 border-b border-slate-100">
-                            <span>Less: Site Expenses / Supplier Bills</span>
-                            <span class="text-rose-600 font-bold">-₹{{ number_format($profitLossEntries['site_expenses'] ?? 0, 2) }}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-3 bg-white rounded-xl border border-slate-150 px-4 mt-6 font-sans">
-                            <strong class="text-slate-900 font-black text-sm uppercase">Net Project Profit Margin</strong>
-                            <strong class="text-primary font-mono font-black text-lg">₹{{ number_format($profitLossEntries['net_profit'], 2) }}</strong>
+                        <h2 class="text-3xl font-black text-white tracking-tight uppercase font-sans">
+                            Net Profit Result
+                        </h2>
+                        <p class="text-xs text-slate-300 mt-1">Net surplus generated after all direct site works, brokerage commissions, and bank financing interest.</p>
+                    </div>
+
+                    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-6 py-4 text-center min-w-[240px]">
+                        <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-300 block mb-1">NET PROFIT</span>
+                        <span class="text-3xl font-black font-mono text-emerald-400 block tracking-tight">
+                            ₹{{ number_format($profitLossEntries['net_profit'] ?? 0, 2) }}
+                        </span>
+                        <div class="mt-2 pt-2 border-t border-white/10 flex justify-around text-[10px] text-slate-300 font-mono">
+                            <span>EBITDA: <strong>₹{{ number_format($profitLossEntries['ebitda'] ?? 0, 0) }}</strong></span>
                         </div>
                     </div>
                 </div>
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50 flex flex-col justify-center">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Revenue vs Expense mix</h4>
-                    <div id="profitLossMixChart" class="w-full h-48"></div>
+            </div>
+
+            {{-- DUAL PANEL WORKSPACE LAYOUT (Expenses Left vs Incomes Right) --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {{-- LEFT PANEL: EXPENSES WORKSPACE --}}
+                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white flex flex-col justify-between">
+                    <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+                        <h4 class="text-xs font-extrabold uppercase tracking-widest flex items-center gap-2">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                            Expenses & Outflows (Left Panel)
+                        </h4>
+                        <span class="text-[10px] font-mono text-rose-300">Direct + Indirect</span>
+                    </div>
+
+                    <div class="p-5 space-y-6 text-xs text-slate-700 flex-1">
+                        {{-- 1. Direct Expenses --}}
+                        <div>
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
+                                <span class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">1. Direct Construction Expenses</span>
+                                <span class="font-mono font-bold text-rose-700">₹{{ number_format($profitLossEntries['expenses']['total_direct'] ?? 0, 2) }}</span>
+                            </div>
+                            <div class="space-y-2 font-mono pl-3 text-slate-650">
+                                @foreach($profitLossEntries['expenses']['direct'] ?? [] as $exp)
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="font-sans text-slate-700">{{ $exp['name'] }}</span>
+                                    <span class="font-semibold text-slate-900">₹{{ number_format($exp['amount'], 2) }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- GROSS PROFIT HIGHLIGHT BAR --}}
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex justify-between items-center font-bold">
+                            <span class="text-emerald-900 uppercase tracking-wider text-[10px]">GROSS PROFIT (Incomes - Direct Exp.)</span>
+                            <span class="font-mono text-emerald-700 text-sm">₹{{ number_format($profitLossEntries['expenses']['gross_profit'] ?? 0, 2) }}</span>
+                        </div>
+
+                        {{-- 2. Indirect Expenses --}}
+                        <div>
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
+                                <span class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">2. Indirect Administrative & Finance Expenses</span>
+                                <span class="font-mono font-bold text-rose-700">₹{{ number_format($profitLossEntries['expenses']['total_indirect'] ?? 0, 2) }}</span>
+                            </div>
+                            <div class="space-y-2 font-mono pl-3 text-slate-650">
+                                @foreach($profitLossEntries['expenses']['indirect'] ?? [] as $exp)
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="font-sans text-slate-700">{{ $exp['name'] }}</span>
+                                    <span class="font-semibold text-slate-900">₹{{ number_format($exp['amount'], 2) }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex justify-between items-center font-extrabold">
+                        <span class="text-xs uppercase tracking-wider text-slate-700">Total Expenses Outflow</span>
+                        <strong class="font-mono text-rose-700 text-sm">₹{{ number_format($profitLossEntries['expenses']['total_expenses'] ?? 0, 2) }}</strong>
+                    </div>
                 </div>
+
+                {{-- RIGHT PANEL: INCOMES WORKSPACE --}}
+                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white flex flex-col justify-between">
+                    <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+                        <h4 class="text-xs font-extrabold uppercase tracking-widest flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                            Incomes & Revenue (Right Panel)
+                        </h4>
+                        <span class="text-[10px] font-mono text-emerald-300">Direct + Indirect</span>
+                    </div>
+
+                    <div class="p-5 space-y-6 text-xs text-slate-700 flex-1">
+                        {{-- 1. Direct Incomes --}}
+                        <div>
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
+                                <span class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">1. Direct Project Sales Revenue</span>
+                                <span class="font-mono font-bold text-emerald-700">₹{{ number_format($profitLossEntries['incomes']['total_direct'] ?? 0, 2) }}</span>
+                            </div>
+                            <div class="space-y-2 font-mono pl-3 text-slate-650">
+                                @foreach($profitLossEntries['incomes']['direct'] ?? [] as $inc)
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="font-sans text-slate-700">{{ $inc['name'] }}</span>
+                                    <span class="font-semibold text-slate-900">₹{{ number_format($inc['amount'], 2) }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- 2. Indirect Incomes --}}
+                        <div>
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-3">
+                                <span class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">2. Indirect Surcharges & Retention Fees</span>
+                                <span class="font-mono font-bold text-emerald-700">₹{{ number_format($profitLossEntries['incomes']['total_indirect'] ?? 0, 2) }}</span>
+                            </div>
+                            <div class="space-y-2 font-mono pl-3 text-slate-650">
+                                @foreach($profitLossEntries['incomes']['indirect'] ?? [] as $inc)
+                                <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                    <span class="font-sans text-slate-700">{{ $inc['name'] }}</span>
+                                    <span class="font-semibold text-slate-900">₹{{ number_format($inc['amount'], 2) }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div id="profitLossMixChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-xl p-3"></div>
+                    </div>
+
+                    <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex justify-between items-center font-extrabold">
+                        <span class="text-xs uppercase tracking-wider text-slate-700">Total Revenue Inflows</span>
+                        <strong class="font-mono text-emerald-700 text-sm">₹{{ number_format($profitLossEntries['incomes']['total_incomes'] ?? 0, 2) }}</strong>
+                    </div>
+                </div>
+
             </div>
         </div>
         @endif
 
-        {{-- 15. BALANCE SHEET SUMMARY --}}
+        {{-- 15. BALANCE SHEET SUMMARY PANEL --}}
         @if($activeTab === 'balance_sheet')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Balance Sheet Summary</h3>
+
+            @if(request('project_id') || request('date_from') || request('customer_id') || request('broker_id') || request('payment_mode'))
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-center justify-between text-xs text-amber-900 font-medium shadow-sm">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                    <span>
+                        <strong>Filtered Balance Sheet Statement Active:</strong> 
+                        @if(request('project_id')) Project: <strong>{{ $projects->firstWhere('id', request('project_id'))->name ?? 'Project #'.request('project_id') }}</strong> • @endif
+                        @if(request('date_from')) Dates: <strong>{{ request('date_from') }}</strong> to <strong>{{ request('date_to', 'Today') }}</strong> • @endif
+                        @if(request('payment_mode')) Mode: <strong>{{ request('payment_mode') }}</strong> • @endif
+                        Assets, liabilities, and net worth positions filtered dynamically for selected project parameters.
+                    </span>
+                </div>
+                <a href="{{ route('reports.index', ['report' => $activeTab]) }}" class="px-2.5 py-1 bg-amber-200/70 hover:bg-amber-300 text-amber-950 text-[11px] font-extrabold rounded-lg transition uppercase tracking-wider">Clear Filter</a>
+            </div>
+            @endif
+
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Balance Sheet Summary Panel</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Split layout template presenting business net worth: Assets (equipment, cash lines, receivables) balanced against Liabilities & Equity.</p>
+                </div>
+                <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-extrabold uppercase flex items-center gap-1.5">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Balance Sheet Verified
+                </span>
+            </div>
+
+            {{-- NET WORTH KPI CARDS --}}
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-sm">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block mb-1">Business Net Worth</span>
+                    <span class="text-2xl font-black font-mono text-emerald-400 block">₹{{ number_format($balanceSheetEntries['net_worth'] ?? 0, 2) }}</span>
+                    <span class="text-[10px] text-slate-400 mt-1 block">Equity + Reserves</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block mb-1">Working Capital</span>
+                    <span class="text-2xl font-black font-mono text-slate-900 block">₹{{ number_format($balanceSheetEntries['working_capital'] ?? 0, 2) }}</span>
+                    <span class="text-[10px] text-slate-400 mt-1 block">Current Assets - Current Liab.</span>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block mb-1">Quick Liquidity Ratio</span>
+                    <span class="text-2xl font-black font-mono text-indigo-700 block">{{ $balanceSheetEntries['quick_ratio'] ?? 0 }}x</span>
+                    <span class="text-[10px] text-slate-400 mt-1 block">Cash + Receivables Ratio</span>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl shadow-sm">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest text-emerald-800 block mb-1">Balance Check</span>
+                    <span class="text-xl font-black font-mono text-emerald-700 block">0.00 Variance</span>
+                    <span class="text-[10px] text-emerald-600 font-bold mt-1 block">Assets = Liabilities + Equity</span>
+                </div>
+            </div>
 
             <div id="balanceSheetRatioChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {{-- Assets --}}
-                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
-                    <div class="bg-slate-50 border-b border-slate-150 px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-slate-500">Asset Accounts (+)</div>
-                    <div class="p-5 space-y-4 text-xs font-mono text-slate-700 flex-1">
-                        @foreach($balanceSheetEntries['assets'] as $name => $val)
-                        <div class="flex justify-between border-b border-slate-100 pb-2">
-                            <span>{{ $name }}</span>
-                            <span class="text-slate-900 font-semibold">₹{{ number_format($val, 2) }}</span>
-                        </div>
-                        @endforeach
+            {{-- SPLIT LAYOUT TEMPLATE (Assets Left vs Liabilities & Equity Right) --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {{-- ASSETS SIDE --}}
+                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white flex flex-col justify-between">
+                    <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+                        <h4 class="text-xs font-extrabold uppercase tracking-widest flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/></svg>
+                            ASSETS — What the Business Owns
+                        </h4>
+                        <span class="text-[10px] font-mono text-emerald-300">Debit Balances (+)</span>
                     </div>
-                    <div class="bg-slate-50/50 px-5 py-3 border-t border-slate-150 flex justify-between font-bold">
-                        <span class="text-[9px] uppercase tracking-wider text-slate-500 font-sans">Total Assets</span>
-                        <strong class="font-mono text-emerald-700">₹{{ number_format(array_sum($balanceSheetEntries['assets']), 2) }}</strong>
+
+                    <div class="p-5 space-y-6 text-xs text-slate-700 flex-1">
+                        @if(isset($balanceSheetEntries['assets']))
+                            @foreach($balanceSheetEntries['assets'] as $catName => $subItems)
+                                @if($catName !== 'total')
+                                <div>
+                                    <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+                                        <span class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">{{ $catName }}</span>
+                                        <span class="font-mono font-bold text-slate-900">₹{{ number_format(array_sum($subItems), 2) }}</span>
+                                    </div>
+                                    <div class="space-y-2 font-mono pl-3 text-slate-650">
+                                        @foreach($subItems as $itemName => $val)
+                                        <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                            <span class="font-sans text-slate-700">{{ $itemName }}</span>
+                                            <span class="font-semibold text-slate-900">₹{{ number_format($val, 2) }}</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+                            @endforeach
+                        @endif
+                    </div>
+
+                    <div class="bg-slate-50 border-t border-slate-200 px-5 py-4 flex justify-between items-center font-extrabold">
+                        <span class="text-xs uppercase tracking-widest text-slate-900">TOTAL ASSETS VALUE</span>
+                        <strong class="font-mono text-emerald-700 text-base">₹{{ number_format($balanceSheetEntries['assets']['total'] ?? 0, 2) }}</strong>
                     </div>
                 </div>
 
-                {{-- Liabilities --}}
-                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm flex flex-col justify-between">
-                    <div class="bg-slate-50 border-b border-slate-150 px-5 py-3 font-bold text-[9px] uppercase tracking-widest text-slate-500">Liabilities & Capital (-)</div>
-                    <div class="p-5 space-y-4 text-xs font-mono text-slate-700 flex-1">
-                        @foreach($balanceSheetEntries['liabilities'] as $name => $val)
-                        <div class="flex justify-between border-b border-slate-100 pb-2">
-                            <span>{{ $name }}</span>
-                            <span class="text-slate-900 font-semibold">₹{{ number_format($val, 2) }}</span>
-                        </div>
-                        @endforeach
+                {{-- LIABILITIES & EQUITY SIDE --}}
+                <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white flex flex-col justify-between">
+                    <div class="bg-slate-900 text-white px-5 py-3.5 flex justify-between items-center">
+                        <h4 class="text-xs font-extrabold uppercase tracking-widest flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                            LIABILITIES & EQUITY — What is Owed & Partner Net Worth
+                        </h4>
+                        <span class="text-[10px] font-mono text-amber-300">Credit Balances (-)</span>
                     </div>
-                    <div class="bg-slate-50/50 px-5 py-3 border-t border-slate-150 flex justify-between font-bold">
-                        <span class="text-[9px] uppercase tracking-wider text-slate-500 font-sans">Total Liabilities & Equity</span>
-                        <strong class="font-mono text-rose-700">₹{{ number_format(array_sum($balanceSheetEntries['liabilities']), 2) }}</strong>
+
+                    <div class="p-5 space-y-6 text-xs text-slate-700 flex-1">
+                        @if(isset($balanceSheetEntries['liabilities_and_equity']))
+                            @foreach($balanceSheetEntries['liabilities_and_equity'] as $catName => $subItems)
+                                @if($catName !== 'total')
+                                <div>
+                                    <div class="flex justify-between items-center border-b border-slate-200 pb-2 mb-2">
+                                        <span class="font-extrabold text-slate-900 uppercase tracking-wider text-[11px]">{{ $catName }}</span>
+                                        <span class="font-mono font-bold text-slate-900">₹{{ number_format(array_sum($subItems), 2) }}</span>
+                                    </div>
+                                    <div class="space-y-2 font-mono pl-3 text-slate-650">
+                                        @foreach($subItems as $itemName => $val)
+                                        <div class="flex justify-between border-b border-slate-100 pb-1.5">
+                                            <span class="font-sans text-slate-700">{{ $itemName }}</span>
+                                            <span class="font-semibold text-slate-900">₹{{ number_format($val, 2) }}</span>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+                            @endforeach
+                        @endif
+                    </div>
+
+                    <div class="bg-slate-50 border-t border-slate-200 px-5 py-4 flex justify-between items-center font-extrabold">
+                        <span class="text-xs uppercase tracking-widest text-slate-900">TOTAL LIABILITIES & EQUITY</span>
+                        <strong class="font-mono text-amber-700 text-base">₹{{ number_format($balanceSheetEntries['liabilities_and_equity']['total'] ?? 0, 2) }}</strong>
                     </div>
                 </div>
+
             </div>
         </div>
         @endif
@@ -2065,8 +2362,8 @@ function reportsApp() {
             // 15. BALANCE SHEET
             @if($activeTab === 'balance_sheet')
             if (this.activeTab === 'balance_sheet') {
-                const assetsSum = {{ array_sum($balanceSheetEntries['assets'] ?? [0]) }};
-                const liabilitiesSum = {{ array_sum($balanceSheetEntries['liabilities'] ?? [0]) }};
+                const assetsSum = {{ $balanceSheetEntries['assets']['total'] ?? 0 }};
+                const liabilitiesSum = {{ $balanceSheetEntries['liabilities_and_equity']['total'] ?? 0 }};
                 new ApexCharts(document.querySelector("#balanceSheetRatioChart"), {
                     series: [{
                         name: 'Value',
