@@ -43,6 +43,7 @@ class ReportController extends Controller
             $suppliers = Payee::orderBy('name')->get();
         }
         $unitTypes = UnitType::where('is_active', true)->orderBy('name')->get();
+        $floors = Floor::orderBy('floor_number')->get();
         $bankAccounts = Account::where('type', 'Asset')->where('name', 'like', '%bank%')->get();
 
         $activeTab = $request->query('report', 'dashboard');
@@ -952,7 +953,8 @@ class ReportController extends Controller
             'flats',
             'parkings',
             'others',
-            'groupedSummary'
+            'groupedSummary',
+            'floors'
         ));
     }
 }

@@ -28,13 +28,22 @@
     {{-- Global Filters --}}
     <form method="GET" action="" class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
         <input type="hidden" name="report" value="{{ $activeTab }}">
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             <div>
                 <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Project</label>
                 <select name="project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
                     <option value="">All Projects</option>
                     @foreach($projects as $p)
                         <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Floor</label>
+                <select name="floor_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                    <option value="">All Floors</option>
+                    @foreach($floors ?? [] as $fl)
+                        <option value="{{ $fl->id }}" {{ request('floor_id') == $fl->id ? 'selected' : '' }}>{{ $fl->name }}</option>
                     @endforeach
                 </select>
             </div>
