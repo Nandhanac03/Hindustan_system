@@ -221,6 +221,8 @@
                     @forelse($commissionEntries as $entry)
                         @php
                             $sale = $entry->sale;
+                            if (!$sale) continue;
+
                             $broker = $entry->broker ?? null;
                             $status = $entry->status ?? 'pending';
                             $commAmount = $entry->commission_amount ?? 0;

@@ -248,7 +248,8 @@ class LoanController extends Controller
         });
 
         $loan->load(['project', 'ledgerAccount', 'interestAccount', 'emiSchedules', 'prepayments']);
-        return view('loans.schedule', compact('loan'));
+        $assetAccounts = \App\Models\Account::where('type', 'Asset')->where('is_active', true)->get();
+        return view('loans.schedule', compact('loan', 'assetAccounts'));
     }
 
     public function payEmi(Request $request, Loan $loan, EmiSchedule $installment): JsonResponse
@@ -256,10 +257,12 @@ class LoanController extends Controller
         $validated = $request->validate([
             'amount'    => ['required', 'numeric', 'min:0.01'],
             'paid_date' => ['required', 'date'],
+            'bank_account_id' => ['required', 'exists:accounts,id'],
         ]);
 
         $amount   = (float)$validated['amount'];
         $paidDate = $validated['paid_date'];
+        $bankAccountId = $validated['bank_account_id'];
 
         if ($installment->loan_id !== $loan->id) {
             return response()->json(['error' => 'Invalid installment for this loan.'], 400);
@@ -272,7 +275,9 @@ class LoanController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($loan, $installment, $paidDate) {
+        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId) {
+            $systemId = Auth::user()->system_id ?? 1;
+
             $installment->amount_paid = (float)$installment->emi_amount;
             $installment->paid_date   = $paidDate;
             $installment->status      = 'Paid';
@@ -285,6 +290,82 @@ class LoanController extends Controller
             $loan->refresh();
             if ((float)$loan->outstanding_balance <= 0.01) {
                 $loan->update(['status' => 'Closed']);
+            }
+
+            // Create Payment Voucher
+            $voucherNumber = 'PAY-LOAN-' . $loan->id . '-' . time();
+            $voucher = \App\Models\Voucher::create([
+                'system_id' => $systemId,
+                'voucher_number' => $voucherNumber,
+                'type' => 'Payment',
+                'date' => $paidDate,
+                'narration' => 'Bank Loan EMI Payment - Inst #' . $installment->installment_no,
+                'status' => 'Posted',
+                'created_by' => Auth::id() ?? 1,
+            ]);
+
+            // Credit Bank Account
+            $bankLine = \App\Models\VoucherLine::create([
+                'voucher_id' => $voucher->id,
+                'account_id' => $bankAccountId,
+                'debit' => 0.00,
+                'credit' => (float)$installment->emi_amount,
+                'line_narration' => 'Paid Loan EMI',
+            ]);
+
+            \App\Models\LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $bankAccountId,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $bankLine->id,
+                'date' => $paidDate,
+                'debit' => 0.00,
+                'credit' => (float)$installment->emi_amount,
+                'running_balance' => 0.00,
+            ]);
+
+            // Debit Loan Principal
+            if ($loan->ledger_account_id) {
+                $principalLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $loan->ledger_account_id,
+                    'debit' => (float)$installment->principal_component,
+                    'credit' => 0.00,
+                    'line_narration' => 'Loan Principal Repayment',
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $loan->ledger_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $principalLine->id,
+                    'date' => $paidDate,
+                    'debit' => (float)$installment->principal_component,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+            }
+
+            // Debit Interest Expense
+            if ($loan->interest_account_id && (float)$installment->interest_component > 0) {
+                $interestLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $loan->interest_account_id,
+                    'debit' => (float)$installment->interest_component,
+                    'credit' => 0.00,
+                    'line_narration' => 'Loan Interest Expense',
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $loan->interest_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $interestLine->id,
+                    'date' => $paidDate,
+                    'debit' => (float)$installment->interest_component,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
             }
         });
 

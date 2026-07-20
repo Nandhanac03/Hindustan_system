@@ -397,6 +397,8 @@
                     @forelse($deals as $brokerage)
                         @php
                             $sale = $brokerage->sale;
+                            if (!$sale) continue;
+
                             $status = $brokerage->status ?? 'pending';
                             $commAmount = $brokerage->commission_amount ?? 0;
                             
