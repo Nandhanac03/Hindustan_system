@@ -120,7 +120,7 @@
                         <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Sale Total</th>
                         <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Receipts Paid</th>
                         <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Outstanding</th>
-                        <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Aging</th>
+                        <!-- <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Aging</th> -->
                         <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Actions</th>
                     </tr>
                 </thead>
@@ -143,11 +143,11 @@
                             <td class="px-6 py-4 text-right font-mono font-semibold text-slate-800">₹{{ number_format($sale->total_amount, 0) }}</td>
                             <td class="px-6 py-4 text-right font-mono font-semibold text-emerald-600">₹{{ number_format($row['total_paid'], 0) }}</td>
                             <td class="px-6 py-4 text-right font-mono font-extrabold text-rose-600">₹{{ number_format($row['outstanding'], 0) }}</td>
-                            <td class="px-6 py-4">
+                            <!-- <td class="px-6 py-4">
                                 <span class="text-[9px] font-bold px-2 py-1 rounded-lg {{ $agingColors[$bracketKey] }}">
                                     {{ $row['days_aged'] }}d
                                 </span>
-                            </td>
+                            </td> -->
                             <td class="px-6 py-4">
                                 <a href="{{ route('emi-collections.ledger', $sale) }}"
                                    class="text-[10px] font-bold text-primary hover:underline">View Ledger</a>

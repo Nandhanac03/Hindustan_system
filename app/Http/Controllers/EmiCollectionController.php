@@ -32,9 +32,11 @@ class EmiCollectionController extends Controller
 
     public function index(Request $request): View
     {
-        $sales = Sale::with(['customer', 'project', 'unit', 'receipts'])
+        $sales = Sale::with(['customer', 'project', 'unit', 'receipts' => function($q) {
+                $q->latest();
+            }])
             ->where('status', 'active')
-            ->latest('sale_date')
+            ->latest()
             ->paginate(15);
 
         $totalReceived  = Receipt::sum('amount');
@@ -45,13 +47,13 @@ class EmiCollectionController extends Controller
         $recentBookings = Sale::with(['customer', 'project', 'unit'])
             ->where('status', 'active')
             ->where('remaining_balance', '>', 0)
-            ->latest('sale_date')
+            ->latest()
             ->take(5)
             ->get();
 
         $activeSales = Sale::with(['customer', 'project', 'unit'])
             ->where('status', 'active')
-            ->orderBy('sale_number')
+            ->latest()
             ->get();
 
         foreach ($activeSales as $sale) {
