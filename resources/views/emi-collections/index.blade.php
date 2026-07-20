@@ -200,7 +200,7 @@
                             <div>
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-750 rounded border border-blue-200 font-mono" x-text="selectedSale.sale_number"></span>
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1"
-                                      x-text="selectedSale.payment_plan === 'emi' ? (selectedSale.emi_installment_count + '-Mo ' + (selectedSale.emi_frequency ? selectedSale.emi_frequency.charAt(0).toUpperCase() + selectedSale.emi_frequency.slice(1) : 'Monthly')) : 'Lump Sum'">
+                                      x-text="selectedSale.payment_plan === 'emi' ? (selectedSale.emi_installment_count + ' ' + (selectedSale.emi_frequency ? selectedSale.emi_frequency.charAt(0).toUpperCase() + selectedSale.emi_frequency.slice(1) : 'Monthly')) : 'Lump Sum'">
                                 </span>
                                 <h3 class="text-xs font-bold text-slate-900 mt-2" x-text="selectedSale.customer ? selectedSale.customer.name : 'Unknown Customer'"></h3>
                                 <p class="text-[10px] text-slate-400 mt-0.5" x-text="(selectedSale.project ? selectedSale.project.name : '') + ' · Unit: ' + (selectedSale.unit ? selectedSale.unit.door_no : 'No Unit')"></p>
@@ -230,7 +230,7 @@
                                         <span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded border border-primary-100 font-mono">{{ $booking->sale_number }}</span>
                                         @if($booking->payment_plan === 'emi')
                                             <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1">
-                                                {{ $booking->emi_installment_count ?? 12 }}-Mo {{ ucfirst($booking->emi_frequency ?? 'Monthly') }}
+                                                {{ $booking->emi_installment_count ?? 12 }} {{ ucfirst($booking->emi_frequency ?? 'Monthly') }}
                                             </span>
                                         @else
                                             <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-50 text-slate-600 border-slate-100 rounded border ml-1">
