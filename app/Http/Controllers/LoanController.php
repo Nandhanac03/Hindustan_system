@@ -92,7 +92,7 @@ class LoanController extends Controller
             'start_date' => ['required', 'date'],
             'schedule_type' => ['required', 'in:reducing_balance,flat'],
             'ledger_account_id' => ['nullable', 'exists:accounts,id'],
-            'interest_account_id' => ['required', 'exists:accounts,id'],
+            'interest_account_id' => ['nullable', 'exists:accounts,id'],
         ]);
 
         $loan = null;
@@ -110,6 +110,22 @@ class LoanController extends Controller
                     'is_active' => true,
                 ]);
                 $validated['ledger_account_id'] = $loanAcc->id;
+            }
+
+            if (empty($validated['interest_account_id'])) {
+                // Find or create a generic Interest Expense account
+                $interestAcc = Account::firstOrCreate(
+                    [
+                        'system_id' => $systemId,
+                        'name' => 'Bank Loan Interest Expense',
+                        'type' => 'expense',
+                    ],
+                    [
+                        'code' => 'EXP-LOAN-INT',
+                        'is_active' => true,
+                    ]
+                );
+                $validated['interest_account_id'] = $interestAcc->id;
             }
 
             $principal = (float)$validated['principal_amount'];

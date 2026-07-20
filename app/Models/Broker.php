@@ -43,4 +43,9 @@ class Broker extends Model
     {
         return $this->hasManyThrough(CommissionEntry::class, Deal::class);
     }
+
+    public function brokerages(): HasMany
+    {
+        return $this->hasMany(Brokerage::class);
+    }
 }

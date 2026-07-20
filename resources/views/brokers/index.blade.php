@@ -112,43 +112,46 @@
     {{-- Key Metrics KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {{-- Card 1: Accrued (Locked) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-amber-500/5 rounded-full pointer-events-none"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-400 rounded-l-2xl group-hover:w-2 transition-all"></div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Accrued Commission (Locked)</span>
-                <div class="text-2xl font-black text-amber-600 font-mono mt-1">₹{{ number_format($totalAccrued, 2) }}</div>
+                <div class="text-2xl font-black text-slate-800 font-mono mt-1 group-hover:text-amber-600 transition-colors">₹{{ number_format($totalAccrued, 2) }}</div>
             </div>
-            <div class="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 inline-block"></span>
+            <div class="mt-3 text-[10px] text-slate-500 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block shadow-sm"></span>
                 <span>Payable only after full payment or EMI completion</span>
             </div>
         </div>
 
         {{-- Card 2: Payable (Unlocked) --}}
-        <div class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl border border-slate-800 p-5 shadow-lg relative overflow-hidden text-white flex flex-col justify-between">
-            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full pointer-events-none"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-l-2xl group-hover:w-2 transition-all"></div>
             <div>
                 <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Unlocked & Payable Commission</span>
-                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[9px] font-bold uppercase tracking-wide">Ready for Disbursement</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unlocked & Payable Commission</span>
+                    <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold uppercase tracking-wide border border-emerald-100">Ready for Disbursement</span>
                 </div>
-                <div class="text-2xl font-black text-white font-mono mt-1">₹{{ number_format($totalPayable, 2) }}</div>
+                <div class="text-2xl font-black text-slate-800 font-mono mt-1 group-hover:text-emerald-600 transition-colors">₹{{ number_format($totalPayable, 2) }}</div>
             </div>
             <div class="mt-3 flex items-center justify-between">
-                <span class="text-[10px] text-slate-300">100% payment / EMI cleared</span>
-                <a href="{{ route('brokers.payable-report') }}" class="text-[10px] text-[#a38c29] hover:text-[#d0b855] font-bold underline">View Payable Report →</a>
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shadow-sm animate-pulse"></span>
+                    <span>100% payment / EMI cleared</span>
+                </div>
+                <a href="{{ route('brokers.payable-report') }}" class="text-[10px] text-emerald-600 hover:text-emerald-700 font-bold underline transition-colors">View Payable Report →</a>
             </div>
         </div>
 
         {{-- Card 3: Paid Commission --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
-            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-indigo-500/5 rounded-full pointer-events-none"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-l-2xl group-hover:w-2 transition-all"></div>
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Disbursed Commission</span>
-                <div class="text-2xl font-black text-indigo-700 font-mono mt-1">₹{{ number_format($totalPaid, 2) }}</div>
+                <div class="text-2xl font-black text-slate-800 font-mono mt-1 group-hover:text-indigo-600 transition-colors">₹{{ number_format($totalPaid, 2) }}</div>
             </div>
-            <div class="mt-3 text-[10px] text-slate-500 flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block"></span>
+            <div class="mt-3 text-[10px] text-slate-500 flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block shadow-sm"></span>
                 <span>Successfully settled across all broker accounts</span>
             </div>
         </div>
@@ -164,33 +167,38 @@
             <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-2xs self-start sm:self-auto">{{ $brokers->count() }} Broker(s) Active</span>
         </div>
         
+        <style>
+            .broker-table thead th { border-color: #8a7522 !important; }
+            .broker-tbody tr:nth-child(even) { background-color: #F6F3E9 !important; }
+            .broker-tbody tr:hover { background-color: #ebe5d0 !important; }
+        </style>
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left min-w-[1000px]">
+            <table class="w-full text-xs text-left min-w-[1000px] broker-table border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-100">
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Broker & Ledger Info</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Default Commission %</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Total Sales Handled</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Accrued (Locked)</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Payable (Unlocked)</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Paid Out</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Actions</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-3 py-3 border">Broker & Ledger Info</th>
+                        <th class="px-3 py-3 border">Default Commission %</th>
+                        <th class="px-3 py-3 border">Total Sales Handled</th>
+                        <th class="px-3 py-3 border">Accrued (Locked)</th>
+                        <th class="px-3 py-3 border">Payable (Unlocked)</th>
+                        <th class="px-3 py-3 border">Paid Out</th>
+                        <th class="px-3 py-3 border text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-100 broker-tbody">
                     @forelse($brokers as $broker)
                         <tr class="hover:bg-slate-50/70 transition-colors" x-data="{ openEdit: false, openView: false }">
-                            <td class="px-5 py-4">
-                                <div class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                            <td class="px-3 py-4 border text-center">
+                                <div class="font-bold text-slate-900 text-sm flex items-center justify-center gap-1.5">
                                     <span>{{ $broker->name }}</span>
                                 </div>
-                                <div class="text-[9px] text-slate-400 font-mono mt-0.5 flex items-center gap-1">
-                                    <span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 font-bold">A/C: {{ $broker->linkedAccount->code ?? 'N/A' }}</span>
+                                <div class="text-[9px] text-slate-500 font-mono mt-0.5 flex items-center justify-center gap-1">
+                                    <span class="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-bold shadow-sm">A/C: {{ $broker->linkedAccount->code ?? 'N/A' }}</span>
                                     <span>{{ $broker->linkedAccount->name ?? '' }}</span>
                                 </div>
                             </td>
-                            <td class="px-5 py-4">
-                                <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/70 text-amber-900 font-bold font-mono text-xs shadow-2xs">
+                            <td class="px-3 py-4 border text-center">
+                                <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-amber-200/70 text-amber-900 font-bold font-mono text-xs shadow-2xs">
                                     <span>{{ number_format($broker->default_commission_pct, 2) }}%</span>
                                 </div>
                                 @if(abs($broker->default_commission_pct - 2.00) < 0.01)
@@ -199,22 +207,22 @@
                                     <span class="text-[9px] text-indigo-600 font-semibold block mt-0.5">Custom Rate</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-3 py-4 border text-center">
                                 <div class="font-bold text-slate-800">{{ $broker->total_deals }} Deal(s)</div>
                                 <div class="text-[10px] text-slate-500 font-mono mt-0.5">₹{{ number_format($broker->total_sale_value, 2) }}</div>
                             </td>
-                            <td class="px-5 py-4 font-mono font-semibold text-amber-700">
+                            <td class="px-3 py-4 border text-center font-mono font-semibold text-amber-700">
                                 ₹{{ number_format($broker->accrued_commission, 2) }}
                             </td>
-                            <td class="px-5 py-4">
-                                <span class="font-mono font-bold text-sm {{ $broker->payable_commission > 0 ? 'text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-200' : 'text-slate-500' }}">
+                            <td class="px-3 py-4 border text-center">
+                                <span class="font-mono font-bold text-sm {{ $broker->payable_commission > 0 ? 'text-emerald-700 bg-white px-2 py-1 rounded-md border border-emerald-200 shadow-sm' : 'text-slate-600' }}">
                                     ₹{{ number_format($broker->payable_commission, 2) }}
                                 </span>
                             </td>
-                            <td class="px-5 py-4 font-mono font-semibold text-indigo-700">
+                            <td class="px-3 py-4 border text-center font-mono font-semibold text-indigo-700">
                                 ₹{{ number_format($broker->paid_commission, 2) }}
                             </td>
-                            <td class="px-5 py-4 text-right">
+                            <td class="px-3 py-4 border text-right">
                                 <div class="inline-flex items-center justify-end gap-1.5">
                                     <button @click="openView = true" title="View Broker Details" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -341,7 +349,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center text-slate-450 italic">No brokers registered yet. Click "Register Broker Profile" above to get started.</td>
+                            <td colspan="7" class="px-3 py-12 border text-center text-slate-500 italic">No brokers registered yet. Click "Register Broker Profile" above to get started.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -373,99 +381,100 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left min-w-[1100px]">
+            <table class="w-full text-xs text-left min-w-[1100px] broker-table border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-100">
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Booking & Date</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Property / Project</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Broker / Agent</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Net Sale Value</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Commission Calc</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Payment Progress</th>
-                        <th class="px-5 py-3.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Commission Status</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-3 py-3 border">Booking & Date</th>
+                        <th class="px-3 py-3 border">Property / Project</th>
+                        <th class="px-3 py-3 border">Broker / Agent</th>
+                        <th class="px-3 py-3 border">Net Sale Value</th>
+                        <th class="px-3 py-3 border">Commission Calc</th>
+                        <th class="px-3 py-3 border">Payment Progress</th>
+                        <th class="px-3 py-3 border">Commission Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @forelse($deals as $deal)
+                <tbody class="divide-y divide-slate-100 broker-tbody">
+                    @forelse($deals as $brokerage)
                         @php
-                            $booking = $deal->booking;
-                            $entry = $deal->commissionEntries->first();
-                            $status = $entry->status ?? 'Accrued';
-                            $commAmount = $entry->amount ?? round(($deal->sale_value * ($deal->commission_pct_override / 100)), 2);
+                            $sale = $brokerage->sale;
+                            $status = $brokerage->status ?? 'pending';
+                            $commAmount = $brokerage->commission_amount ?? 0;
                             
                             $badgeClass = match($status) {
-                                'Payable' => 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs font-bold',
-                                'Paid' => 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold',
+                                'payable', 'partial' => 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs font-bold',
+                                'paid' => 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold',
                                 default => 'bg-amber-50 text-amber-700 border-amber-200 font-semibold'
                             };
 
                             $statusLabel = match($status) {
-                                'Payable' => 'Payable (Unlocked)',
-                                'Paid' => 'Paid Out',
+                                'payable', 'partial' => 'Payable (Unlocked)',
+                                'paid' => 'Paid Out',
                                 default => 'Accrued (Locked)'
                             };
                         @endphp
                         <tr class="hover:bg-slate-50/70 transition-colors">
-                            <td class="px-5 py-4">
-                                <div class="font-bold text-[#a38c29] font-mono">{{ $booking->booking_number ?? 'N/A' }}</div>
-                                <div class="text-[9px] text-slate-400 mt-0.5">{{ $deal->created_at->format('d M Y') }}</div>
-                                <div class="text-[10px] font-semibold text-slate-700 mt-0.5">{{ $booking->customer->name ?? 'Customer' }}</div>
+                            <td class="px-3 py-4 border text-center">
+                                <div class="font-bold text-[#a38c29] font-mono">{{ $sale->sale_number ?? 'N/A' }}</div>
+                                <div class="text-[9px] text-slate-500 mt-0.5">{{ $sale->sale_date ? $sale->sale_date->format('d M Y') : 'N/A' }}</div>
+                                <div class="text-[10px] font-semibold text-slate-800 mt-0.5">{{ $sale->customer->name ?? 'Customer' }}</div>
                             </td>
-                            <td class="px-5 py-4">
-                                <div class="font-bold text-slate-900">{{ $deal->project->name ?? 'N/A' }}</div>
-                                <div class="text-[10px] text-slate-500 mt-0.5">Unit: <span class="font-bold text-slate-700 font-mono">{{ $booking->unit->door_no ?? 'N/A' }}</span></div>
+                            <td class="px-3 py-4 border text-center">
+                                <div class="font-bold text-slate-900">{{ $sale->project->name ?? 'N/A' }}</div>
+                                <div class="text-[10px] text-slate-600 mt-0.5">Unit: <span class="font-bold text-slate-800 font-mono">{{ $sale->unit->door_no ?? 'N/A' }}</span></div>
                             </td>
-                            <td class="px-5 py-4">
-                                <div class="font-bold text-slate-800">{{ $deal->broker->name ?? 'Direct' }}</div>
-                                <div class="text-[9px] text-slate-400 font-mono">Rate: {{ number_format($deal->commission_pct_override ?? $deal->broker->default_commission_pct, 2) }}%</div>
+                            <td class="px-3 py-4 border text-center">
+                                <div class="font-bold text-slate-800">{{ $brokerage->broker->name ?? 'Direct' }}</div>
+                                <div class="text-[9px] text-slate-500 font-mono mt-0.5">Rate: {{ number_format($brokerage->commission_percent ?? $brokerage->broker->default_commission_pct ?? 0, 2) }}%</div>
                             </td>
-                            <td class="px-5 py-4 font-mono font-bold text-slate-900">
-                                ₹{{ number_format($deal->sale_value, 2) }}
+                            <td class="px-3 py-4 border text-center font-mono font-bold text-slate-900">
+                                ₹{{ number_format($sale->total_amount ?? 0, 2) }}
                             </td>
-                            <td class="px-5 py-4">
+                            <td class="px-3 py-4 border text-center">
                                 <div class="font-mono font-black text-slate-900 text-sm">₹{{ number_format($commAmount, 2) }}</div>
-                                <div class="text-[9px] text-slate-400 uppercase mt-0.5">@ {{ number_format($deal->commission_pct_override ?? 2.00, 2) }}% of sale</div>
+                                @if($brokerage->commission_percent)
+                                <div class="text-[9px] text-slate-500 uppercase mt-0.5">@ {{ number_format($brokerage->commission_percent, 2) }}% of sale</div>
+                                @endif
                             </td>
-                            <td class="px-5 py-4">
-                                @if($booking)
-                                    @if($booking->outstanding <= 0)
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                            <td class="px-3 py-4 border text-center">
+                                @if($sale)
+                                    @if($sale->remaining_balance <= 0)
+                                        <span class="inline-flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                             100% Paid / EMI Complete
                                         </span>
                                     @else
-                                        <div class="space-y-1">
+                                        <div class="space-y-1 mx-auto max-w-[120px]">
                                             <div class="flex justify-between text-[10px]">
-                                                <span class="text-slate-500 font-semibold">Pending EMI</span>
-                                                <span class="font-mono font-bold text-rose-600">₹{{ number_format($booking->outstanding, 2) }}</span>
+                                                <span class="text-slate-600 font-semibold">Pending Bal.</span>
+                                                <span class="font-mono font-bold text-rose-700">₹{{ number_format($sale->remaining_balance, 2) }}</span>
                                             </div>
-                                            <div class="w-28 bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden border border-slate-300">
                                                 @php
-                                                    $pctPaid = $booking->amount > 0 ? (($booking->amount - $booking->outstanding) / $booking->amount) * 100 : 0;
+                                                    $pctPaid = $sale->total_amount > 0 ? (($sale->total_amount - $sale->remaining_balance) / $sale->total_amount) * 100 : 0;
                                                 @endphp
-                                                <div class="bg-amber-500 h-full rounded-full" style="width: {{ min(100, max(0, $pctPaid)) }}%;"></div>
+                                                <div class="bg-[#a38c29] h-full rounded-full" style="width: {{ min(100, max(0, $pctPaid)) }}%;"></div>
                                             </div>
-                                            <span class="text-[9px] text-slate-400 block">{{ number_format($pctPaid, 0) }}% collected</span>
+                                            <span class="text-[9px] text-slate-500 block text-center">{{ number_format($pctPaid, 0) }}% collected</span>
                                         </div>
                                     @endif
                                 @else
-                                    <span class="text-slate-400 italic text-[10px]">N/A</span>
+                                    <span class="text-slate-500 italic text-[10px]">N/A</span>
                                 @endif
                             </td>
-                            <td class="px-5 py-4">
-                                <span class="badge-pill border px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase {{ $badgeClass }} inline-block">
+                            <td class="px-3 py-4 border text-center">
+                                <span class="badge-pill border px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase {{ $badgeClass }} inline-block shadow-sm">
                                     {{ $statusLabel }}
                                 </span>
-                                @if($status === 'Accrued')
-                                    <span class="text-[9px] text-slate-400 block mt-1 italic">Unlocks on full payment</span>
-                                @elseif($status === 'Payable')
-                                    <a href="{{ route('brokers.payable-report') }}" class="text-[9px] text-[#a38c29] hover:underline font-bold block mt-1">Disburse Now →</a>
+                                @if($status === 'pending')
+                                    <span class="text-[9px] text-slate-400 block mt-1.5 italic">Unlocks on full payment</span>
+                                @elseif($status === 'payable' || $status === 'partial')
+                                    <a href="{{ route('brokers.payable-report') }}" class="text-[9px] text-[#a38c29] hover:text-[#78661e] transition-colors font-bold block mt-1.5 flex items-center gap-1">Disburse Now <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                                 @endif
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-5 py-12 text-center text-slate-450 italic">No broker sales or transactions recorded yet. When bookings are registered with a broker, commission entries will appear here automatically.</td>
+                            <td colspan="7" class="px-3 py-12 border text-center text-slate-500 italic">No broker sales or transactions recorded yet. When sales are registered with a broker, commission entries will appear here automatically.</td>
                         </tr>
                     @endforelse
                 </tbody>

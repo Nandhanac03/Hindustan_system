@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\Broker;
-use App\Models\Deal;
-use App\Models\CommissionEntry;
+use App\Models\Brokerage;
+use App\Models\Sale;
 use App\Models\Account;
 use App\Models\Booking;
 use App\Models\Project;
@@ -25,27 +25,25 @@ class BrokerController extends Controller
         $this->syncCommissions($systemId);
 
         $brokers = Broker::where('system_id', $systemId)
-            ->with(['linkedAccount', 'deals.commissionEntries', 'deals.booking.customer', 'deals.project'])
+            ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.project'])
             ->orderBy('name')
             ->get();
 
         foreach ($brokers as $broker) {
-            $broker->total_deals = $broker->deals->count();
-            $broker->total_sale_value = $broker->deals->sum('sale_value');
+            $broker->total_deals = $broker->brokerages->count();
+            $broker->total_sale_value = $broker->brokerages->sum(fn($b) => $b->sale->total_amount ?? 0);
             
             $accrued = 0.0;
             $payable = 0.0;
             $paid = 0.0;
 
-            foreach ($broker->deals as $deal) {
-                foreach ($deal->commissionEntries as $entry) {
-                    if ($entry->status === 'Accrued') {
-                        $accrued += (float)$entry->amount;
-                    } elseif ($entry->status === 'Payable') {
-                        $payable += (float)$entry->amount;
-                    } elseif ($entry->status === 'Paid') {
-                        $paid += (float)$entry->amount;
-                    }
+            foreach ($broker->brokerages as $entry) {
+                if ($entry->status === 'pending') {
+                    $accrued += (float)$entry->commission_amount;
+                } elseif ($entry->status === 'payable' || $entry->status === 'partial') {
+                    $payable += (float)$entry->commission_amount;
+                } elseif ($entry->status === 'paid') {
+                    $paid += (float)$entry->commission_amount;
                 }
             }
 
@@ -61,14 +59,18 @@ class BrokerController extends Controller
         $totalPaid = $brokers->sum('paid_commission');
 
         // Fetch recent deals/transactions with broker visibility
-        $dealsQuery = Deal::where('system_id', $systemId)
-            ->with(['broker', 'project', 'booking.customer', 'booking.unit', 'commissionEntries']);
+        $dealsQuery = Brokerage::whereHas('broker', function ($q) use ($systemId) {
+                $q->where('system_id', $systemId);
+            })
+            ->with(['broker', 'sale.project', 'sale.customer', 'sale.unit']);
 
         if ($request->filled('broker_id')) {
             $dealsQuery->where('broker_id', $request->broker_id);
         }
         if ($request->filled('project_id')) {
-            $dealsQuery->where('project_id', $request->project_id);
+            $dealsQuery->whereHas('sale', function ($q) use ($request) {
+                $q->where('project_id', $request->project_id);
+            });
         }
 
         $deals = $dealsQuery->latest()->paginate(15);
@@ -152,7 +154,7 @@ class BrokerController extends Controller
         $this->syncCommissions($systemId);
 
         $brokers = Broker::where('system_id', $systemId)
-            ->with(['linkedAccount', 'deals.commissionEntries', 'deals.booking.customer', 'deals.booking.unit', 'deals.project'])
+            ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.unit', 'brokerages.sale.project'])
             ->orderBy('name')
             ->get();
 
@@ -167,17 +169,15 @@ class BrokerController extends Controller
             $paid = 0.0;
             $pendingDealsCount = 0;
 
-            foreach ($broker->deals as $deal) {
-                foreach ($deal->commissionEntries as $entry) {
-                    if ($entry->status === 'Accrued') {
-                        $accrued += (float)$entry->amount;
-                        $pendingDealsCount++;
-                    } elseif ($entry->status === 'Payable') {
-                        $payable += (float)$entry->amount;
-                        $pendingDealsCount++;
-                    } elseif ($entry->status === 'Paid') {
-                        $paid += (float)$entry->amount;
-                    }
+            foreach ($broker->brokerages as $entry) {
+                if ($entry->status === 'pending') {
+                    $accrued += (float)$entry->commission_amount;
+                    $pendingDealsCount++;
+                } elseif ($entry->status === 'payable' || $entry->status === 'partial') {
+                    $payable += (float)$entry->commission_amount;
+                    $pendingDealsCount++;
+                } elseif ($entry->status === 'paid') {
+                    $paid += (float)$entry->commission_amount;
                 }
             }
 
@@ -196,24 +196,24 @@ class BrokerController extends Controller
         }
 
         // Detailed entries query for table
-        $entriesQuery = CommissionEntry::where('system_id', $systemId)
-            ->with(['deal.broker', 'deal.project', 'deal.booking.customer', 'deal.booking.unit']);
+        $entriesQuery = Brokerage::whereHas('broker', function ($q) use ($systemId) {
+                $q->where('system_id', $systemId);
+            })
+            ->with(['broker', 'sale.project', 'sale.customer', 'sale.unit']);
 
         if ($request->filled('broker_id')) {
-            $entriesQuery->whereHas('deal', function ($q) use ($request) {
-                $q->where('broker_id', $request->broker_id);
-            });
+            $entriesQuery->where('broker_id', $request->broker_id);
         }
         if ($request->filled('project_id')) {
-            $entriesQuery->whereHas('deal', function ($q) use ($request) {
+            $entriesQuery->whereHas('sale', function ($q) use ($request) {
                 $q->where('project_id', $request->project_id);
             });
         }
         if ($request->filled('status')) {
             $entriesQuery->where('status', $request->status);
         } else {
-            // Default show Accrued and Payable in the payable report
-            $entriesQuery->whereIn('status', ['Accrued', 'Payable', 'Paid']);
+            // Default show pending and payable in the payable report
+            $entriesQuery->whereIn('status', ['pending', 'payable', 'paid']);
         }
 
         $commissionEntries = $entriesQuery->latest()->paginate(20);
@@ -233,7 +233,7 @@ class BrokerController extends Controller
     public function recordPayout(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'commission_entry_id' => ['nullable', 'exists:commission_entries,id'],
+            'commission_entry_id' => ['nullable', 'exists:brokerages,id'],
             'broker_id' => ['nullable', 'exists:brokers,id'],
         ]);
 
@@ -247,30 +247,31 @@ class BrokerController extends Controller
             $narration = '';
 
             if (!empty($validated['commission_entry_id'])) {
-                $entry = CommissionEntry::where('system_id', $systemId)
-                    ->where('id', $validated['commission_entry_id'])
-                    ->where('status', 'Payable')
+                $entry = Brokerage::where('id', $validated['commission_entry_id'])
+                    ->whereIn('status', ['payable', 'partial'])
                     ->firstOrFail();
 
-                $entry->update(['status' => 'Paid', 'triggered_at' => now()]);
+                // Validate system_id ownership via Broker
+                if ($entry->broker->system_id !== $systemId) abort(403);
+
+                $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount, 'paid_date' => now()]);
                 $count = 1;
-                $totalPaid = (float)$entry->amount;
-                $broker = $entry->deal->broker;
+                $totalPaid = (float)$entry->commission_amount;
+                $broker = $entry->broker;
                 $brokerName = $broker->name ?? 'Broker';
-                $narration = "Commission payout to broker '{$brokerName}' for Booking #{$entry->deal->booking->booking_number}.";
+                $narration = "Commission payout to broker '{$brokerName}' for Sale #{$entry->sale->sale_number}.";
 
                 ActivityLog::record('broker.payout', $narration);
             } elseif (!empty($validated['broker_id'])) {
                 $broker = Broker::where('system_id', $systemId)->findOrFail($validated['broker_id']);
-                $entries = CommissionEntry::where('system_id', $systemId)
-                    ->whereHas('deal', fn($q) => $q->where('broker_id', $broker->id))
-                    ->where('status', 'Payable')
+                $entries = Brokerage::where('broker_id', $broker->id)
+                    ->whereIn('status', ['payable', 'partial'])
                     ->get();
 
                 foreach ($entries as $entry) {
-                    $entry->update(['status' => 'Paid', 'triggered_at' => now()]);
+                    $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount, 'paid_date' => now()]);
                     $count++;
-                    $totalPaid += (float)$entry->amount;
+                    $totalPaid += (float)$entry->commission_amount;
                 }
 
                 if ($count > 0) {
@@ -347,61 +348,18 @@ class BrokerController extends Controller
 
     private function syncCommissions(int $systemId): void
     {
-        // 1. If there are no deals at all in the system, let's link the first booking to the first broker as seed demo
-        if (Deal::where('system_id', $systemId)->count() === 0) {
-            $broker = Broker::where('system_id', $systemId)->first();
-            $booking = Booking::with('project')->first();
-            if ($broker && $booking && !$booking->broker_id) {
-                $booking->update(['broker_id' => $broker->id]);
-                $saleVal = (float)$booking->amount;
-                $deal = Deal::create([
-                    'system_id' => $systemId,
-                    'broker_id' => $broker->id,
-                    'project_id' => $booking->project_id,
-                    'booking_id' => $booking->id,
-                    'sale_value' => $saleVal,
-                    'commission_pct_override' => $broker->default_commission_pct,
-                    'trigger_condition' => 'full_collection',
-                ]);
-                $isPaid = $booking->outstanding <= 0;
-                CommissionEntry::create([
-                    'system_id' => $systemId,
-                    'deal_id' => $deal->id,
-                    'amount' => round(($saleVal * ((float)$broker->default_commission_pct / 100)), 2),
-                    'status' => $isPaid ? 'Payable' : 'Accrued',
-                    'triggered_at' => $isPaid ? now() : null,
-                ]);
-            }
-        }
-
-        // 2. Ensure every deal has a commission entry
-        $deals = Deal::where('system_id', $systemId)->with(['commissionEntries', 'broker', 'booking'])->get();
-        foreach ($deals as $deal) {
-            if ($deal->commissionEntries->isEmpty()) {
-                $pct = (float)($deal->commission_pct_override ?? ($deal->broker->default_commission_pct ?? 2.00));
-                $commAmount = round(((float)$deal->sale_value * ($pct / 100)), 2);
-                $isPaid = $deal->booking && $deal->booking->outstanding <= 0;
-                CommissionEntry::create([
-                    'system_id' => $systemId,
-                    'deal_id' => $deal->id,
-                    'amount' => $commAmount,
-                    'status' => $isPaid ? 'Payable' : 'Accrued',
-                    'triggered_at' => $isPaid ? now() : null,
-                ]);
-            }
-        }
-
-        // 3. Check if any 'Accrued' commissions should transition to 'Payable' (if full payment or EMI completed)
-        $accruedEntries = CommissionEntry::where('system_id', $systemId)
-            ->where('status', 'Accrued')
-            ->with('deal.booking')
+        // Transition 'pending' commissions to 'payable' if the sale's remaining_balance <= 0
+        $pendingBrokerages = Brokerage::where('status', 'pending')
+            ->whereHas('broker', function($q) use($systemId) {
+                $q->where('system_id', $systemId);
+            })
+            ->with('sale')
             ->get();
 
-        foreach ($accruedEntries as $entry) {
-            if ($entry->deal && $entry->deal->booking && $entry->deal->booking->outstanding <= 0) {
+        foreach ($pendingBrokerages as $entry) {
+            if ($entry->sale && $entry->sale->remaining_balance <= 0) {
                 $entry->update([
-                    'status' => 'Payable',
-                    'triggered_at' => now(),
+                    'status' => 'payable',
                 ]);
             }
         }

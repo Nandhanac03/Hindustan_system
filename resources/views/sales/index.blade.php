@@ -985,15 +985,15 @@
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between">
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">Agreement Details</span>
-                            <span class="badge-pill text-[9px]" :class="getStatusBadgeClass(activeSale.status)" x-text="activeSale.status"></span>
+                <div class="relative z-10 flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Agreement Details</span>
+                            <span class="badge-pill text-[9px] whitespace-nowrap" :class="getStatusBadgeClass(activeSale.status)" x-text="activeSale.status"></span>
                         </div>
-                        <h2 class="text-xl font-extrabold text-white tracking-tight" x-text="activeSale.sale_number"></h2>
+                        <h2 class="text-xl font-extrabold text-white tracking-tight truncate break-all" x-text="activeSale.sale_number"></h2>
                     </div>
-                    <button @click="closeViewModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none">✕</button>
+                    <button @click="closeViewModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
             </div>
             {{-- Scrollable Container --}}
@@ -1035,30 +1035,32 @@
                 {{-- Multi Unit Details Table --}}
                 <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3" x-show="activeSale.sale_units && activeSale.sale_units.length > 0">
                     <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">🏢 Booked Inventory / Units</p>
-                    <table class="w-full text-left text-[11px] border-collapse">
-                        <thead>
-                            <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="py-2">Unit</th>
-                                <th class="py-2">Floor</th>
-                                <th class="py-2">Area (Sq.Ft)</th>
-                                <th class="py-2">Rate/Sq.Ft</th>
-                                <th class="py-2">GST</th>
-                                <th class="py-2 text-right">Line Total</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
-                            <template x-for="su in activeSale.sale_units" :key="su.id">
-                                <tr>
-                                    <td class="py-2 font-bold text-indigo-700" x-text="su.unit ? su.unit.door_no : '—'"></td>
-                                    <td class="py-2" x-text="su.unit && su.unit.floor ? su.unit.floor.name : '—'"></td>
-                                    <td class="py-2 font-mono" x-text="Number(su.area_sqft).toLocaleString()"></td>
-                                    <td class="py-2 font-mono" x-text="'₹' + Number(su.rate_per_sqft).toLocaleString()"></td>
-                                    <td class="py-2" x-text="su.gst_type !== 'none' ? '₹' + Number(su.gst_amount).toLocaleString() + ' (' + su.gst_type + ')' : 'None'"></td>
-                                    <td class="py-2 text-right font-mono text-slate-900" x-text="'₹' + Number(su.line_total).toLocaleString()"></td>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px] border-collapse min-w-[500px]">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-2 px-2">Unit</th>
+                                    <th class="py-2 px-2">Floor</th>
+                                    <th class="py-2 px-2">Area (Sq.Ft)</th>
+                                    <th class="py-2 px-2">Rate/Sq.Ft</th>
+                                    <th class="py-2 px-2">GST</th>
+                                    <th class="py-2 px-2 text-right">Line Total</th>
                                 </tr>
-                            </template>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                                <template x-for="su in activeSale.sale_units" :key="su.id">
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="py-2 px-2 font-bold text-indigo-700" x-text="su.unit ? su.unit.door_no : '—'"></td>
+                                        <td class="py-2 px-2" x-text="su.unit && su.unit.floor ? su.unit.floor.name : '—'"></td>
+                                        <td class="py-2 px-2 font-mono" x-text="Number(su.area_sqft).toLocaleString()"></td>
+                                        <td class="py-2 px-2 font-mono" x-text="'₹' + Number(su.rate_per_sqft).toLocaleString()"></td>
+                                        <td class="py-2 px-2 whitespace-nowrap" x-text="su.gst_type !== 'none' ? '₹' + Number(su.gst_amount).toLocaleString() + ' (' + su.gst_type + ')' : 'None'"></td>
+                                        <td class="py-2 px-2 text-right font-mono text-slate-900" x-text="'₹' + Number(su.line_total).toLocaleString()"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 {{-- Row 1.5: Extra Works Details --}}
                 <template x-if="activeSale.extra_works && activeSale.extra_works.length > 0">
@@ -1126,9 +1128,7 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Selected Plan</span>
-                            <!-- <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_plan_type || 'Custom') + ')' : 'Lump Sum'"></span> -->
-                        <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_installment_count || 12) + '-Mo ' + (activeSale.emi_frequency || 'Monthly') + ')' : 'Lump Sum'"></span>
-                        </div>
+                            <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_installment_count || 12) + '-Mo ' + (activeSale.emi_frequency || 'Monthly') + ')' : 'Lump Sum'"></span>
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-455 font-bold uppercase block tracking-wider">Remaining Balance</span>
