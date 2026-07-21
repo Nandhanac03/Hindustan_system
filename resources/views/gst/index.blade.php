@@ -86,6 +86,9 @@
         </div>
     </div>
 
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
+
     {{-- GST Add Modal --}}
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="addModalOpen = false"></div>
@@ -238,6 +241,9 @@
             </div>
         </div>
     </div>
+    
+    </div>
+
 </div>
 
 <script>

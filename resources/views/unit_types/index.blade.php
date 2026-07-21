@@ -161,6 +161,9 @@
         </div>
     </div>
 
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
+
     {{-- Add Modal --}}
     <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 relative" @click.away="showAddModal = false">
@@ -321,6 +324,8 @@
                 </a>
             </div>
         </div>
+    </div>
+
     </div>
 
 </div>

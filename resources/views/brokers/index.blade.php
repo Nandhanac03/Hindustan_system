@@ -187,7 +187,7 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 broker-tbody">
                     @forelse($brokers as $broker)
-                        <tr class="hover:bg-slate-50/70 transition-colors" x-data="{ openEdit: false, openView: false }">
+                        <tr class="hover:bg-slate-50/70 transition-colors" x-data="{ openEdit: false, openView: false, openDelete: false }">
                             <td class="px-3 py-4 border text-center">
                                 <div class="font-bold text-slate-900 text-sm flex items-center justify-center gap-1.5">
                                     <span>{{ $broker->name }}</span>
@@ -229,6 +229,9 @@
                                     </button>
                                     <button @click="openEdit = true" title="Edit Broker Rate" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
+                                    <button @click="openDelete = true" title="Delete Broker" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm">
+                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                     </button>
                                 </div>
 
@@ -340,6 +343,37 @@
                                                   <button type="submit" 
                                                           class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md">
                                                       Update Changes
+                                                  </button>
+                                              </div>
+                                          </form>
+                                     </div>
+                                </div>
+
+                                {{-- Delete Modal --}}
+                                <div x-show="openDelete" 
+                                     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
+                                     style="display: none;">
+                                     <div @click.away="openDelete = false" 
+                                          class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5">
+                                          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                              <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Delete Broker: {{ $broker->name }}</h3>
+                                              <button @click="openDelete = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                          </div>
+                                          
+                                          <form method="POST" action="{{ route('brokers.destroy', $broker->id) }}">
+                                              @csrf
+                                              @method('DELETE')
+                                              
+                                              <p class="text-sm text-slate-700">Are you sure you want to delete this broker? This action cannot be undone.</p>
+
+                                              <div class="pt-5 flex justify-end gap-2.5">
+                                                  <button type="button" @click="openDelete = false" 
+                                                          class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-550 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                                                      Cancel
+                                                  </button>
+                                                  <button type="submit" 
+                                                          class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md">
+                                                      Delete
                                                   </button>
                                               </div>
                                           </form>

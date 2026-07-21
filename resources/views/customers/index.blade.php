@@ -114,6 +114,9 @@
         </div>
     </div>
 
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
+
     {{-- ═══════════════════════════════════════════
          ADD CUSTOMER MODAL
     ═══════════════════════════════════════════ --}}
@@ -296,6 +299,8 @@
                 <button type="button" @click="modals.view.open = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
             </div>
         </div>
+    </div>
+
     </div>
 
 </div>

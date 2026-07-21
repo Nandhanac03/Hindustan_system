@@ -107,12 +107,12 @@
                                 <span class="badge-pill" :class="getStatusBadgeClass(sale.status)" x-text="sale.status"></span>
                             </td>
                             <td class="px-4 py-4 text-right border-b border-slate-100">
-                                <div class="flex items-center justify-end gap-2">
-                                    <button @click="openViewModal(sale.id)" class="p-1.5 hover:bg-slate-100 text-slate-400 hover:text-slate-700 rounded transition-colors" title="View">
+                                <div class="inline-flex items-center justify-end gap-1.5">
+                                    <button @click="openViewModal(sale.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Sale">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
-                                    <button @click="openEditModal(sale.id)" class="p-1.5 hover:bg-primary-50 text-slate-400 hover:text-primary-600 rounded transition-colors" title="Edit">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    <button @click="openEditModal(sale.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Sale">
+                                        <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
                                 </div>
                             </td>
@@ -125,6 +125,10 @@
             </table>
         </div>
     </div>
+
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
+
     {{-- ═══════════════════════════════════════════
          ADD SALE MODAL — 6 Sections with Repeatable Alpine Rows
     ═══════════════════════════════════════════ --}}
@@ -1231,6 +1235,9 @@
         </div>
     </div>
     @endif
+
+    </div>
+
 </div>
 {{-- ═══════════════════════════════════════════
      ALPINE.JS LOGIC

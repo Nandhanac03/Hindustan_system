@@ -247,7 +247,7 @@
                                         </button>
                                     @endif
                                     <button @click="openInterestLogsModal('{{ $loan->loan_account_no }}')" 
-                                            class="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all inline-flex items-center justify-center shadow-sm border border-blue-200" title="Interest Edit Logs">
+                                            class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] hover:text-[#2d249f] transition inline-flex items-center justify-center shadow-sm" title="Interest Edit Logs">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </button>
                                 </div>
@@ -268,6 +268,9 @@
             </div>
         @endif
     </div>
+
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
 
     {{-- Prepayment Logs Modal --}}
     <div x-show="logsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
@@ -495,6 +498,8 @@
                 </div>
             </form>
         </div>
+    </div>
+    
     </div>
 </div>
 

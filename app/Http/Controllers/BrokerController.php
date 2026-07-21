@@ -148,6 +148,29 @@ class BrokerController extends Controller
             ->with('status', "Broker '{$broker->name}' updated successfully.");
     }
 
+    public function destroy(Broker $broker): RedirectResponse
+    {
+        $systemId = Auth::user()->system_id;
+        if ($broker->system_id !== $systemId) {
+            abort(403);
+        }
+
+        if ($broker->brokerages()->count() > 0) {
+            return redirect()->back()->withErrors(['delete' => "Cannot delete broker '{$broker->name}' because they have associated brokerages/sales."]);
+        }
+
+        $brokerName = $broker->name;
+        $broker->delete();
+
+        ActivityLog::record(
+            'broker.deleted',
+            "Deleted broker '{$brokerName}'."
+        );
+
+        return redirect()->back()
+            ->with('status', "Broker '{$brokerName}' deleted successfully.");
+    }
+
     public function payableReport(Request $request): View
     {
         $systemId = Auth::user()->system_id;

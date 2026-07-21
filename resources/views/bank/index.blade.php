@@ -114,6 +114,9 @@
         </div>
     </div>
 
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
+
     {{-- Bank Add Modal --}}
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
         <div class="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="addModalOpen = false">
@@ -222,6 +225,9 @@
             </div>
         </div>
     </div>
+    
+    </div>
+
 </div>
 
 <script>

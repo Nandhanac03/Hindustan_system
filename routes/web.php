@@ -131,6 +131,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::put('/brokers/{broker}', [\App\Http\Controllers\BrokerController::class, 'update'])->name('brokers.update');
     Route::get('/brokers/payable-report', [\App\Http\Controllers\BrokerController::class, 'payableReport'])->name('brokers.payable-report');
     Route::post('/brokers/payout', [\App\Http\Controllers\BrokerController::class, 'recordPayout'])->name('brokers.payout');
+    Route::delete('/brokers/{broker}', [\App\Http\Controllers\BrokerController::class, 'destroy'])->name('brokers.destroy');
 
     // Customers
     Route::get('/customers', [\App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');

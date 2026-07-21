@@ -270,6 +270,9 @@
         </div>
     </div>
 
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
+
     {{-- ═══════════════════════════════════════════
          MODAL 1: ADD UNIT MODAL
     ═══════════════════════════════════════════ --}}
@@ -289,8 +292,7 @@
              @click.stop>
             
             {{-- Dark Header --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative overflow-hidden rounded-t-2xl bg-[#4a4224] px-6 py-5 flex-shrink-0">
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
                         <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Single Unit Setup</p>
@@ -1215,6 +1217,8 @@
                 <button type="button" @click="modals.rateHistory.open = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
             </div>
         </div>
+    </div>
+
     </div>
 
 </div>
