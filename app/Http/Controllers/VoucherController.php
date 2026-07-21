@@ -818,6 +818,10 @@ class VoucherController extends Controller
         }
         $voucherNumber = 'PV-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
         $payees = Payee::all();
+        $projects = Project::where('system_id', $systemId)->get();
+        if ($projects->isEmpty()) {
+            $projects = Project::all();
+        }
         
         $pendingBills = DB::table('bills')
             ->join('payees', 'bills.payee_id', '=', 'payees.id')
@@ -835,7 +839,7 @@ class VoucherController extends Controller
             ->where('status', 'unpaid')
             ->get();
 
-        return view('vouchers.payment', compact('debitAccounts', 'creditAccounts', 'voucherNumber', 'payees', 'pendingBills', 'pendingLoans', 'pendingBrokerages'));
+        return view('vouchers.payment', compact('projects', 'debitAccounts', 'creditAccounts', 'voucherNumber', 'payees', 'pendingBills', 'pendingLoans', 'pendingBrokerages'));
     }
 
     public function storePayment(Request $request)
@@ -1261,27 +1265,29 @@ class VoucherController extends Controller
             $customer->ledger_account_id = $customerAcc->id;
         }
 
-        // Generate voucher number
+        // Generate unique sales & purchase voucher numbers
         $currentYear = date('Y');
-        $lastVoucher = Voucher::where('system_id', $systemId)
-            ->whereIn('type', ['Sales', 'Purchase'])
-            ->where('voucher_number', 'LIKE', "SP-{$currentYear}-%")
-            ->where('voucher_number', 'NOT LIKE', '%.%')
-            ->where('voucher_number', 'NOT LIKE', '%E%')
-            ->orderBy('id', 'desc')
-            ->first();
         
-        $nextNum = 1;
-        if ($lastVoucher) {
-            $parts = explode('-', $lastVoucher->voucher_number);
-            $lastSegment = end($parts);
-            if (is_numeric($lastSegment)) {
-                $nextNum = (int)$lastSegment + 1;
-            }
-        }
-        $voucherNumber = 'SP-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+        $getUniqueVoucherNumber = function($prefix) use ($systemId, $currentYear) {
+            $maxNum = 0;
+            $vouchers = Voucher::where('system_id', $systemId)
+                ->where('voucher_number', 'LIKE', "{$prefix}%")
+                ->get();
 
-        return view('vouchers.sales_purchase', compact('accounts', 'customers', 'voucherNumber'));
+            foreach ($vouchers as $v) {
+                $parts = explode('-', $v->voucher_number);
+                $last = end($parts);
+                if (is_numeric($last) && (int)$last > $maxNum) {
+                    $maxNum = (int)$last;
+                }
+            }
+            return $prefix . '-' . $currentYear . '-' . str_pad((string)($maxNum + 1), 5, '0', STR_PAD_LEFT);
+        };
+
+        $voucherNumber = $getUniqueVoucherNumber('SL');
+        $purchaseVoucherNumber = $getUniqueVoucherNumber('PR');
+
+        return view('vouchers.sales_purchase', compact('accounts', 'customers', 'voucherNumber', 'purchaseVoucherNumber'));
     }
 
     public function storeSalesPurchase(Request $request)
@@ -1296,30 +1302,36 @@ class VoucherController extends Controller
             'debit_account_id' => 'required|exists:accounts,id',
             'credit_account_id' => 'required|exists:accounts,id',
             'amount' => 'required|numeric|min:0.01',
-            'gst_behavior' => 'required|in:inclusive,exclusive',
+            'gst_behavior' => 'nullable|in:inclusive,exclusive',
+            'gst_rate' => 'nullable|numeric',
             'narration' => 'nullable|string',
         ]);
 
         DB::transaction(function () use ($request, $systemId, $user) {
             $baseAmount = (float)$request->amount;
-            $gstBehavior = $request->gst_behavior;
+            $gstBehavior = $request->gst_behavior ?? 'inclusive';
+            $gstPct = (float)($request->gst_rate ?? 5.0);
             $type = ucfirst($request->transaction_type);
 
             $cgst = 0.0;
             $sgst = 0.0;
             $totalAmount = $baseAmount;
 
-            if ($gstBehavior === 'inclusive') {
-                $base = $baseAmount / 1.05;
-                $cgst = $base * 0.025;
-                $sgst = $base * 0.025;
+            if ($gstBehavior === 'inclusive' && $gstPct > 0) {
+                $base = $baseAmount / (1 + ($gstPct / 100.0));
+                $cgst = round(($baseAmount - $base) / 2.0, 2);
+                $sgst = round(($baseAmount - $base) / 2.0, 2);
                 $debitVal = $baseAmount;
-                $creditVal = $base;
-            } else {
-                $cgst = $baseAmount * 0.025;
-                $sgst = $baseAmount * 0.025;
+                $creditVal = round($base, 2);
+            } elseif ($gstBehavior === 'exclusive' && $gstPct > 0) {
+                $totalTax = round($baseAmount * ($gstPct / 100.0), 2);
+                $cgst = round($totalTax / 2.0, 2);
+                $sgst = round($totalTax / 2.0, 2);
                 $totalAmount = $baseAmount + $cgst + $sgst;
                 $debitVal = $totalAmount;
+                $creditVal = $baseAmount;
+            } else {
+                $debitVal = $baseAmount;
                 $creditVal = $baseAmount;
             }
 
@@ -1327,10 +1339,33 @@ class VoucherController extends Controller
             $requiresApproval = $baseAmount >= 50000;
             $status = $requiresApproval ? 'pending' : 'Posted';
 
+            // Auto-resolve duplicate voucher number collisions
+            $finalVoucherNumber = $request->voucher_number;
+            $exists = Voucher::where('system_id', $systemId)
+                ->where('voucher_number', $finalVoucherNumber)
+                ->exists();
+
+            if ($exists) {
+                $prefix = ($request->transaction_type === 'sales') ? 'SL' : 'PR';
+                $currentYear = date('Y');
+                $maxNum = 0;
+                $existingVouchers = Voucher::where('system_id', $systemId)
+                    ->where('voucher_number', 'LIKE', "{$prefix}%")
+                    ->get();
+                foreach ($existingVouchers as $v) {
+                    $parts = explode('-', $v->voucher_number);
+                    $last = end($parts);
+                    if (is_numeric($last) && (int)$last > $maxNum) {
+                        $maxNum = (int)$last;
+                    }
+                }
+                $finalVoucherNumber = $prefix . '-' . $currentYear . '-' . str_pad((string)($maxNum + 1), 5, '0', STR_PAD_LEFT);
+            }
+
             // Create Voucher
             $voucher = Voucher::create([
                 'system_id' => $systemId,
-                'voucher_number' => $request->voucher_number,
+                'voucher_number' => $finalVoucherNumber,
                 'type' => $type,
                 'date' => $request->date,
                 'narration' => $request->narration,
