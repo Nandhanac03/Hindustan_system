@@ -166,7 +166,7 @@
                     </button>
                 @endif
                 <button
-                    @click.stop="openPayModal('', '{{ addslashes($row['description']) }}')"
+                    @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
                     type="button"
                     class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
                     Pay Remaining
@@ -176,14 +176,14 @@
                     Overdue
                 </span>
                 <button
-                    @click.stop="openPayModal('', '{{ addslashes($row['description']) }}')"
+                    @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
                     type="button"
                     class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
                     Pay Installment
                 </button>
             @else
                 <button
-                    @click.stop="openPayModal('', '{{ addslashes($row['description']) }}')"
+                    @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
                     type="button"
                     class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
                     Pay Installment

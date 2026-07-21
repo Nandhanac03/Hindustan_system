@@ -12,7 +12,7 @@
          x-transition:leave="transition ease-in duration-250"
          x-transition:leave-start="opacity-100 transform translate-y-0"
          x-transition:leave-end="opacity-0 transform translate-y-2"
-         class="fixed bottom-5 right-5 z-50 p-4 rounded-xl shadow-lg border text-xs font-bold uppercase tracking-wide flex items-center gap-2"
+         class="fixed bottom-5 right-5 z-[100] p-4 rounded-xl shadow-lg border text-xs font-bold uppercase tracking-wide flex items-center gap-2"
          :class="toast.type === 'success' ? 'bg-emerald-50 border-emerald-250 text-emerald-800' : 'bg-rose-50 border-rose-250 text-rose-800'"
          style="display: none;">
         <span x-text="toast.message"></span>
@@ -2123,6 +2123,14 @@ function salesApp() {
         },
         closeAddModal() { this.modals.add.open = false; },
         submitAddSale() {
+            if (!this.forms.add.project_id || !this.forms.add.customer_id || !this.forms.add.agreement_date) {
+                this.showToast('Please fill all required fields (Project, Customer, Date).', 'error');
+                return;
+            }
+            if (!this.forms.add.units || this.forms.add.units.length === 0 || this.forms.add.units.some(u => !u.unit_id || !u.sale_amount)) {
+                this.showToast('Please select at least one unit and ensure its details (e.g. amount) are filled.', 'error');
+                return;
+            }
             fetch('{{ route('sales.store') }}', {
                 method: 'POST',
                 headers: {
