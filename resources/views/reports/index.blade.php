@@ -3,22 +3,22 @@
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="reportsApp()">
 
     {{-- Header Options --}}
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-white via-slate-50/50 to-white border border-slate-200/90 rounded-2xl p-5 shadow-sm">
         <div>
             <div class="flex items-center gap-3">
-                <h2 class="text-lg font-extrabold text-slate-900 tracking-tight uppercase">Reporting & MIS Analytics</h2>
-                <span class="px-2.5 py-0.5 bg-primary/10 text-primary-800 text-[10px] font-extrabold rounded-full uppercase border border-primary/20">Executive Suite</span>
+                <h2 class="text-lg font-black text-slate-900 tracking-tight uppercase">Reporting & MIS Analytics</h2>
+                <span class="px-3 py-1 bg-amber-500/10 text-amber-800 text-[10px] font-black rounded-full uppercase border border-amber-500/20 shadow-2xs">Executive Suite</span>
             </div>
-            <p class="text-xs text-slate-400 mt-0.5">Real-time financial checkpoint, Trial Balance, P&L Statement, and Balance Sheet net worth analytics.</p>
+            <p class="text-xs text-slate-500 mt-1 font-medium">Real-time financial checkpoint, Trial Balance, P&L Statement, and Balance Sheet net worth analytics.</p>
         </div>
-        <div class="flex flex-wrap gap-3 items-center">
+        <div class="flex flex-wrap gap-2.5 items-center">
             <button @click="printReport()" 
-                    class="px-3.5 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-2 uppercase tracking-wider">
+                    class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                 Print Report
             </button>
             <button @click="exportCurrentTable()" 
-                    class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-2 uppercase tracking-wider shadow-sm">
+                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 Export Excel
             </button>
@@ -26,12 +26,12 @@
     </div>
 
     {{-- Global Filters --}}
-    <form method="GET" action="" class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm space-y-4">
+    <form method="GET" action="" class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-4">
         <input type="hidden" name="report" value="{{ $activeTab }}">
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Project</label>
-                <select name="project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Project</label>
+                <select name="project_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
                     <option value="">All Projects</option>
                     @foreach($projects as $p)
                         <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
@@ -39,8 +39,8 @@
                 </select>
             </div>
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Floor</label>
-                <select name="floor_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Floor</label>
+                <select name="floor_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
                     <option value="">All Floors</option>
                     @foreach($floors ?? [] as $fl)
                         <option value="{{ $fl->id }}" {{ request('floor_id') == $fl->id ? 'selected' : '' }}>{{ $fl->name }}</option>
@@ -48,8 +48,8 @@
                 </select>
             </div>
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Unit Type</label>
-                <select name="unit_type_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Unit Type</label>
+                <select name="unit_type_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
                     <option value="">All Types</option>
                     @foreach($unitTypes as $ut)
                         <option value="{{ $ut->id }}" {{ request('unit_type_id') == $ut->id ? 'selected' : '' }}>{{ $ut->name }}</option>
@@ -57,8 +57,8 @@
                 </select>
             </div>
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Customer</label>
-                <select name="customer_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Customer</label>
+                <select name="customer_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
                     <option value="">All Customers</option>
                     @foreach($customers as $c)
                         <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
@@ -66,8 +66,8 @@
                 </select>
             </div>
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Broker</label>
-                <select name="broker_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Broker</label>
+                <select name="broker_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
                     <option value="">All Brokers</option>
                     @foreach($brokers as $b)
                         <option value="{{ $b->id }}" {{ request('broker_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
@@ -75,8 +75,8 @@
                 </select>
             </div>
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Payment Mode</label>
-                <select name="payment_mode" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Payment Mode</label>
+                <select name="payment_mode" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
                     <option value="">All Modes</option>
                     <option value="Cash" {{ request('payment_mode') == 'Cash' ? 'selected' : '' }}>Cash</option>
                     <option value="Bank Transfer" {{ request('payment_mode') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
@@ -85,17 +85,22 @@
                 </select>
             </div>
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Date From</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Date From</label>
+                <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full px-3 py-1.5 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
             </div>
             <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Date To</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 transition">
+                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Date To</label>
+                <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full px-3 py-1.5 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
             </div>
         </div>
-        <div class="flex justify-end gap-2">
-            <button type="submit" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider">Apply Filters</button>
-            <a href="?report={{ $activeTab }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Reset Filters</a>
+        <div class="flex justify-end gap-2.5 pt-1 border-t border-slate-100">
+            <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black rounded-xl transition shadow hover:shadow-md uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                Apply Filters
+            </button>
+            <a href="?report={{ $activeTab }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold rounded-xl transition uppercase tracking-wider flex items-center gap-1.5">
+                Reset Filters
+            </a>
         </div>
     </form>
 
@@ -298,73 +303,144 @@
 
         {{-- 16. DASHBOARD & MIS --}}
         @if($activeTab === 'dashboard')
-        <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Dashboard Analytics & Profitability</h3>
+        <div class="space-y-8">
+            {{-- Dashboard Header --}}
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-150 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-slate-900 text-white rounded-xl shadow-md flex items-center justify-center">
+                        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 012-2h2a2 2 0 012 2v6m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900 tracking-tight uppercase">Dashboard Analytics & Profitability</h3>
+                        <p class="text-xs text-slate-400">High-level financial KPIs, property metrics, and profitability breakdown</p>
+                    </div>
+                </div>
+                <span class="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-slate-200 shadow-2xs">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Live Data
+                </span>
+            </div>
             
-            {{-- KPI Cards --}}
-            <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                <div class="bg-slate-50 border border-slate-150 rounded-2xl p-4">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Projects</span>
-                    <span class="text-xl font-black text-slate-900 mt-1 block font-mono">{{ $dashboardData['total_projects'] }}</span>
+            {{-- Executive KPI Cards --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {{-- Card 1 --}}
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-slate-800"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Total Projects</span>
+                        <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-slate-800 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H9"/></svg>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block">{{ $dashboardData['total_projects'] }}</span>
                 </div>
-                <div class="bg-slate-50 border border-slate-150 rounded-2xl p-4">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Units (Sold / Total)</span>
-                    <span class="text-xl font-black text-slate-900 mt-1 block font-mono">{{ $dashboardData['sold_units'] }} / {{ $dashboardData['total_units'] }}</span>
+
+                {{-- Card 2 --}}
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Units (Sold / Total)</span>
+                        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block">{{ $dashboardData['sold_units'] }} <span class="text-slate-400 text-lg">/ {{ $dashboardData['total_units'] }}</span></span>
                 </div>
-                <div class="bg-slate-50 border border-slate-150 rounded-2xl p-4">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Collections</span>
-                    <span class="text-xl font-black text-emerald-700 mt-1 block font-mono">₹{{ number_format($dashboardData['collections'], 0) }}</span>
+
+                {{-- Card 3 --}}
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Total Collections</span>
+                        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-black text-emerald-700 font-mono tracking-tight block">₹{{ number_format($dashboardData['collections'], 0) }}</span>
                 </div>
-                <div class="bg-slate-50 border border-slate-150 rounded-2xl p-4">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Outstanding Receivable</span>
-                    <span class="text-xl font-black text-rose-700 mt-1 block font-mono">₹{{ number_format($dashboardData['outstanding'], 0) }}</span>
+
+                {{-- Card 4 --}}
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Outstanding Receivable</span>
+                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block">₹{{ number_format($dashboardData['outstanding'], 0) }}</span>
                 </div>
-                <div class="bg-slate-50 border border-slate-150 rounded-2xl p-4">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Net Calculated Profit</span>
-                    <span class="text-xl font-black text-primary mt-1 block font-mono">₹{{ number_format($dashboardData['profit'], 0) }}</span>
+
+                {{-- Card 5 --}}
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
+                    <div class="absolute top-0 left-0 right-0 h-1 bg-amber-400"></div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Net Calculated Profit</span>
+                        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        </div>
+                    </div>
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block">₹{{ number_format($dashboardData['profit'], 0) }}</span>
                 </div>
             </div>
 
-            {{-- Dashboard Charts --}}
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Sold vs Unsold Units</h4>
-                    <div id="soldUnsoldChart" class="w-full h-52"></div>
+            {{-- Dashboard Charts (2 Columns: Sold vs Unsold, Collections vs Expected) --}}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Sold vs Unsold Units</h4>
+                            <p class="text-[11px] text-slate-400">Inventory allocation ratio</p>
+                        </div>
+                        <span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg uppercase">Property Units</span>
+                    </div>
+                    <div id="soldUnsoldChart" class="w-full h-60"></div>
                 </div>
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Collections vs Expected</h4>
-                    <div id="collectionsExpectedChart" class="w-full h-52"></div>
-                </div>
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Project Cash Flow</h4>
-                    <div id="projectCashFlowChart" class="w-full h-52"></div>
+
+                <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Collections vs Expected</h4>
+                            <p class="text-[11px] text-slate-400">Received vs pending receivables</p>
+                        </div>
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-lg uppercase">Financials</span>
+                    </div>
+                    <div id="collectionsExpectedChart" class="w-full h-60"></div>
                 </div>
             </div>
 
             {{-- Bank Loan EMI alerts --}}
             @if($dashboardData['loan_emi_alerts']->isNotEmpty())
-            <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 space-y-2">
-                <h4 class="text-xs font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    Bank Loan EMI Alerts (Upcoming 30 Days)
-                </h4>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left text-rose-900 font-semibold font-mono">
+            <div class="bg-gradient-to-r from-rose-50 to-rose-100/50 border border-rose-200 rounded-2xl p-5 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-extrabold text-rose-900 uppercase tracking-wider flex items-center gap-2">
+                        <div class="p-1 bg-rose-200 rounded-lg text-rose-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        Bank Loan EMI Alerts (Upcoming 30 Days)
+                    </h4>
+                    <span class="px-2.5 py-0.5 bg-rose-200 text-rose-900 text-[10px] font-extrabold rounded-full uppercase">Action Required</span>
+                </div>
+                <div class="overflow-x-auto rounded-xl border border-rose-200/80 bg-white">
+                    <table class="w-full text-xs text-left">
                         <thead>
-                            <tr class="text-[9px] uppercase tracking-wider text-rose-700">
-                                <th class="py-1">Project</th>
-                                <th class="py-1">Lender</th>
-                                <th class="py-1">Due Date</th>
-                                <th class="py-1 text-right">EMI Amount</th>
+                            <tr class="bg-rose-50/80 text-[10px] uppercase tracking-wider text-rose-800 border-b border-rose-150 font-bold">
+                                <th class="px-4 py-2.5">Project</th>
+                                <th class="px-4 py-2.5">Lender</th>
+                                <th class="px-4 py-2.5">Due Date</th>
+                                <th class="px-4 py-2.5 text-right">EMI Amount</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-rose-100 font-semibold font-mono text-slate-800">
                             @foreach($dashboardData['loan_emi_alerts'] as $alert)
-                            <tr>
-                                <td class="py-1">{{ $alert->loan?->project?->name }}</td>
-                                <td class="py-1 font-sans">{{ $alert->loan?->lender_name }}</td>
-                                <td class="py-1">{{ $alert->due_date?->format('d M Y') }}</td>
-                                <td class="py-1 text-right">₹{{ number_format($alert->emi_amount, 2) }}</td>
+                            <tr class="hover:bg-rose-50/50 transition-colors">
+                                <td class="px-4 py-2.5 font-sans font-bold text-slate-900">{{ $alert->loan?->project?->name }}</td>
+                                <td class="px-4 py-2.5 font-sans text-slate-700">{{ $alert->loan?->lender_name }}</td>
+                                <td class="px-4 py-2.5 text-rose-700">{{ $alert->due_date?->format('d M Y') }}</td>
+                                <td class="px-4 py-2.5 text-right text-rose-700 font-bold">₹{{ number_format($alert->emi_amount, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -374,55 +450,52 @@
             @endif
 
             {{-- Project Profitability Grid --}}
-            <div class="space-y-3">
-                <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Project Profitability Analysis</h4>
-                <div class="overflow-x-auto border border-slate-150 rounded-2xl">
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Project Profitability Analysis</h4>
+                        <p class="text-[11px] text-slate-400">Detailed breakdown of expected vs actual revenue, costs, and profit margin per project</p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-sm">
                     <table id="reportsTable" class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-150 text-slate-500 font-bold uppercase tracking-wider">
-                                <th class="px-4 py-3">Project</th>
+                            <tr class="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[10px]">
+                                <th class="px-4 py-3 rounded-tl-2xl">Project</th>
                                 <th class="px-4 py-3 text-right">Expected Revenue</th>
-                                <th class="px-4 py-3 text-right">Actual Sales Revenue</th>
+                                <th class="px-4 py-3 text-right">Actual Revenue</th>
                                 <th class="px-4 py-3 text-right">Partner Payouts</th>
                                 <th class="px-4 py-3 text-right">Brokerage</th>
                                 <th class="px-4 py-3 text-right">Material Costs</th>
                                 <th class="px-4 py-3 text-right">Contractor Payments</th>
                                 <th class="px-4 py-3 text-right">Total Cost</th>
                                 <th class="px-4 py-3 text-right">Net Profit</th>
-                                <th class="px-4 py-3 text-right">Margin %</th>
+                                <th class="px-4 py-3 text-right rounded-tr-2xl">Margin %</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-mono text-slate-700">
                             @foreach($dashboardData['project_profitability'] as $row)
-                            <tr class="hover:bg-slate-50/50">
-                                <td class="px-4 py-3 font-sans font-bold text-slate-900">{{ $row['project']->name }}</td>
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-4 py-3 font-sans font-extrabold text-slate-900">{{ $row['project']->name }}</td>
                                 <td class="px-4 py-3 text-right">₹{{ number_format($row['expected_revenue'], 0) }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-emerald-800">₹{{ number_format($row['actual_revenue'], 0) }}</td>
-                                <td class="px-4 py-3 text-right text-rose-700">₹{{ number_format($row['partner_payouts'], 0) }}</td>
-                                <td class="px-4 py-3 text-right text-rose-700">₹{{ number_format($row['brokerage_costs'], 0) }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-emerald-700">₹{{ number_format($row['actual_revenue'], 0) }}</td>
+                                <td class="px-4 py-3 text-right text-rose-600">₹{{ number_format($row['partner_payouts'], 0) }}</td>
+                                <td class="px-4 py-3 text-right text-rose-600">₹{{ number_format($row['brokerage_costs'], 0) }}</td>
                                 <td class="px-4 py-3 text-right text-rose-600">₹{{ number_format($row['material_costs'], 0) }}</td>
                                 <td class="px-4 py-3 text-right text-rose-600">₹{{ number_format($row['contractor_payments'], 0) }}</td>
-                                <td class="px-4 py-3 text-right text-rose-800">₹{{ number_format($row['total_cost'], 0) }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-primary">₹{{ number_format($row['profit'], 0) }}</td>
-                                <td class="px-4 py-3 text-right font-bold" :class="{{ $row['margin'] }} > 15 ? 'text-emerald-700' : 'text-amber-700'">{{ number_format($row['margin'], 1) }}%</td>
+                                <td class="px-4 py-3 text-right font-bold text-rose-700">₹{{ number_format($row['total_cost'], 0) }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-slate-900">₹{{ number_format($row['profit'], 0) }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <span class="inline-block px-2 py-0.5 rounded font-sans font-extrabold text-[10px] uppercase {{ $row['margin'] > 15 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                                        {{ number_format($row['margin'], 1) }}%
+                                    </span>
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
             </div>
-
-            <!-- {{-- Profitability Charts --}}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Revenue vs Cost comparison</h4>
-                    <div id="revenueCostChart" class="w-full h-64"></div>
-                </div>
-                <div class="border border-slate-150 rounded-2xl p-4 bg-slate-50/50">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Profit Margins breakdown</h4>
-                    <div id="profitMarginsChart" class="w-full h-64"></div>
-                </div>
-            </div> -->
         </div>
         @endif
 
@@ -1944,36 +2017,76 @@ function reportsApp() {
             if (this.activeTab === 'dashboard') {
                 const sold = {{ $dashboardData['sold_units'] ?? 0 }};
                 const unsold = {{ $dashboardData['unsold_units'] ?? 0 }};
-                new ApexCharts(document.querySelector("#soldUnsoldChart"), {
-                    series: [sold, unsold],
-                    labels: ['Sold Units', 'Unsold Units'],
-                    chart: { type: 'donut', height: 200 },
-                    colors: ['#a38c29', '#3b82f6'],
-                    legend: { position: 'bottom' }
-                }).render();
 
-                new ApexCharts(document.querySelector("#collectionsExpectedChart"), {
-                    series: [{
-                        name: 'Amount',
-                        data: [{{ $dashboardData['collections'] ?? 0 }}, {{ $dashboardData['outstanding'] ?? 0 }}]
-                    }],
-                    chart: { type: 'bar', height: 200, toolbar: { show: false } },
-                    colors: ['#10b981', '#f59e0b'],
-                    plotOptions: { bar: { columnWidth: '50%', borderRadius: 4 } },
-                    xaxis: { categories: ['Total Collections', 'Outstanding'] }
-                }).render();
+                if (document.querySelector("#soldUnsoldChart")) {
+                    new ApexCharts(document.querySelector("#soldUnsoldChart"), {
+                        series: [sold, unsold],
+                        labels: ['Sold Units', 'Unsold Units'],
+                        chart: { type: 'donut', height: 230, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#059669', '#3b82f6'],
+                        legend: { position: 'bottom', fontSize: '12px', fontWeight: 600, labels: { colors: '#64748b' } },
+                        stroke: { width: 2, colors: ['#ffffff'] },
+                        dataLabels: { enabled: true, style: { fontSize: '11px', fontWeight: 'bold' } },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '65%',
+                                    labels: {
+                                        show: true,
+                                        total: {
+                                            show: true,
+                                            label: 'Total Units',
+                                            fontSize: '12px',
+                                            fontWeight: 700,
+                                            color: '#64748b'
+                                        },
+                                        value: {
+                                            color: '#0f172a'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
 
-                // Project cash flow trend
-                new ApexCharts(document.querySelector("#projectCashFlowChart"), {
-                    series: [{
-                        name: 'Cash Flow',
-                        data: [35, 41, 62, 42, 13, 18, 29, 37, 52, 44, 61, 78]
-                    }],
-                    chart: { type: 'area', height: 200, toolbar: { show: false } },
-                    colors: ['#3b82f6'],
-                    stroke: { curve: 'smooth', width: 2 },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] }
-                }).render();
+                if (document.querySelector("#collectionsExpectedChart")) {
+                    new ApexCharts(document.querySelector("#collectionsExpectedChart"), {
+                        series: [{
+                            name: 'Amount (₹)',
+                            data: [{{ $dashboardData['collections'] ?? 0 }}, {{ $dashboardData['outstanding'] ?? 0 }}]
+                        }],
+                        chart: { type: 'bar', height: 230, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#10b981', '#f59e0b'],
+                        plotOptions: {
+                            bar: {
+                                columnWidth: '45%',
+                                borderRadius: 6,
+                                distributed: true
+                            }
+                        },
+                        legend: { show: false },
+                        dataLabels: {
+                            enabled: true,
+                            formatter: function (val) {
+                                return '₹' + new Intl.NumberFormat('en-IN').format(val);
+                            },
+                            style: { fontSize: '10px', fontWeight: 'bold' }
+                        },
+                        xaxis: {
+                            categories: ['Total Collections', 'Outstanding'],
+                            labels: { style: { colors: '#64748b', fontSize: '11px', fontWeight: '700' } }
+                        },
+                        yaxis: {
+                            labels: {
+                                style: { colors: '#64748b' },
+                                formatter: function(val) {
+                                    return '₹' + (val / 100000).toFixed(1) + 'L';
+                                }
+                            }
+                        }
+                    }).render();
+                }
 
                 // Profitability charts
                 const projNames = [
