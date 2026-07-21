@@ -88,14 +88,14 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
         {{-- Partners List --}}
-        <div x-data="{ selectedPartner: null }" class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div x-data="{ selectedPartner: null }" class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col h-full">
             <div class="p-4 border-b border-slate-100 bg-slate-50/50">
                 <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Registered Partners & Current Balances</h2>
             </div>
             
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto flex-1">
                 <table class="w-full text-xs text-left">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100">
@@ -204,15 +204,15 @@
         </div>
 
         {{-- Projects Share Settings Side Panel --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 space-y-4 flex flex-col h-full">
             <div>
                 <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Project Share Percentages</h3>
                 <p class="text-[10px] text-slate-450 mt-1">Configure how booking payment collections are divided among project partners.</p>
             </div>
 
-            <div class="divide-y divide-slate-100">
+            <div class="divide-y divide-slate-100 flex-1">
                 @forelse($projects as $project)
-                    <div class="py-3 flex items-center justify-between">
+                    <div class="py-3 flex items-center justify-between" x-data="{ shareModal: false }">
                         <div>
                             <div class="font-bold text-slate-900 text-xs">{{ $project->name }}</div>
                             <div class="text-[9px] text-slate-450 mt-0.5">
@@ -225,9 +225,84 @@
                             </div>
                         </div>
                         
-                        <a href="{{ route('partners.shares', $project->id) }}" title="Configure Project Shares" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
+                        <button @click.prevent="shareModal = true" title="Configure Project Shares" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </a>
+                        </button>
+                        
+                        {{-- Settings Modal --}}
+                        <div x-show="shareModal" x-cloak class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity" style="display: none;">
+                            <div @click.away="shareModal = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-2xl space-y-5 relative" x-data="{
+                                total: 0,
+                                init() { this.calculateTotal(); },
+                                calculateTotal() {
+                                    let sum = 0;
+                                    this.$el.querySelectorAll('.share-input-{{ $project->id }}').forEach(input => {
+                                        sum += parseFloat(input.value) || 0;
+                                    });
+                                    this.total = sum;
+                                }
+                            }">
+                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                                    <div>
+                                        <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Configure Shares - {{ $project->name }}</h3>
+                                        <p class="text-[11px] text-slate-500 mt-0.5">Assign collection share percentages to partners for this project.</p>
+                                    </div>
+                                    <button @click="shareModal = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                </div>
+                                
+                                <form action="{{ route('partners.shares.update', $project->id) }}" method="POST" class="space-y-6">
+                                    @csrf
+                                    
+                                    <div class="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                                        @forelse($partners as $partner)
+                                            @php
+                                                $existingShare = $project->partnerShares->firstWhere('partner_id', $partner->id);
+                                            @endphp
+                                            <div class="flex items-center justify-between p-3 bg-slate-50/50 border border-slate-150 rounded-xl">
+                                                <div>
+                                                    <div class="font-bold text-slate-900 text-xs">{{ $partner->name }}</div>
+                                                    <div class="text-[9px] text-slate-400 font-mono mt-0.5">A/C: {{ $partner->linkedAccount->code ?? 'N/A' }}</div>
+                                                </div>
+
+                                                <div class="flex items-center gap-2 w-32">
+                                                    <input type="number" 
+                                                           step="0.01" 
+                                                           min="0" 
+                                                           max="100" 
+                                                           name="shares[{{ $partner->id }}]" 
+                                                           value="{{ old('shares.' . $partner->id, $existingShare ? $existingShare->share_pct : '0') }}"
+                                                           x-on:input="calculateTotal()"
+                                                           class="share-input-{{ $project->id }} w-full px-3 py-2 bg-white border border-slate-250 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 text-right focus:outline-none transition-all">
+                                                    <span class="text-xs font-bold text-slate-500">%</span>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <div class="text-center py-8 text-slate-450 italic">No partners registered yet.</div>
+                                        @endforelse
+                                    </div>
+                                    
+                                    <div class="p-4 bg-slate-50 rounded-xl flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600 uppercase">Total Allocated Shares</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="text-sm font-bold font-mono" 
+                                                  x-text="total.toFixed(2)"
+                                                  x-bind:class="total > 100 ? 'text-rose-600' : (total === 100 ? 'text-emerald-700' : 'text-[#a38c29]')">0.00</span>
+                                            <span class="text-xs font-bold text-slate-500">% / 100.00%</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="pt-3 flex justify-end items-center gap-2 border-t border-slate-100">
+                                        <button type="button" @click="shareModal = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
+                                        <button type="submit" 
+                                                x-bind:disabled="total > 100"
+                                                x-bind:class="total > 100 ? 'opacity-50 cursor-not-allowed' : ''"
+                                                class="px-4 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md">
+                                            Save Shares
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 @empty
                     <div class="text-center py-6 text-slate-450 italic">No active projects found.</div>
@@ -268,11 +343,6 @@
                             </a>
                         @endforeach
                     </div>
-                </div>
-                
-                <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
-                    <img class="w-8 h-8 rounded-full border border-[#a38c29] shadow-sm" src="https://ui-avatars.com/api/?name=Admin+Profile&background=a38c29&color=fff" alt="Profile">
-                    <span class="text-xs font-bold text-slate-700">Profile</span>
                 </div>
             </div>
         </div>
@@ -714,23 +784,26 @@
         </div>
 
         <!-- FLOOR MATRIX GRID -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 relative">
+        <div class="bg-gradient-to-br from-white to-slate-50/80 border border-slate-200/80 rounded-3xl p-6 shadow-md shadow-slate-200/30 space-y-6 relative">
             
             <!-- Header with Title and Legend -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-[#2e7d32] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                    </svg>
-                    <h3 class="text-sm font-extrabold text-[#1b5e20] uppercase tracking-wider">Floor Matrix – Unit Availability</h3>
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-[#a38c29]/15 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5 text-[#a38c29]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest">Floor Matrix – Unit Availability</h3>
                 </div>
                 
                 <!-- Status Legends -->
-                <div class="flex items-center gap-4 text-[9px] font-extrabold uppercase tracking-wider">
-                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#2e7d32] border border-[#1b5e20]"></span> Available</span>
-                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#bbdefb] border border-[#90caf9]"></span> Booked</span>
-                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#ffe082] border border-[#ffd54f]"></span> Pending</span>
-                    <span class="flex items-center gap-1.5"><span class="w-5 h-3.5 rounded bg-[#e53935] border border-[#d32f2f]"></span> Sold</span>
+                <div class="flex flex-wrap items-center gap-3 sm:gap-5 text-[9px] font-black uppercase tracking-wider text-slate-600">
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-emerald-500 shadow-sm border border-emerald-600"></span> Available</span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-blue-500 shadow-sm border border-blue-600"></span> Booked</span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-amber-500 shadow-sm border border-amber-600"></span> Pending</span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-rose-600 shadow-sm border border-rose-700"></span> Sold</span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-slate-700 shadow-sm border border-slate-800"></span> Parking</span>
                 </div>
             </div>
 
@@ -778,124 +851,154 @@
                     <p class="text-[10px] text-slate-400 mt-1">Add floors and units to see the property matrix.</p>
                 </div>
             @else
+                <!-- Calculate Max Columns needed -->
+                @php
+                    $maxFloorUnits = 0;
+                    foreach ($floorMatrix as $row) {
+                        $count = collect($row['columns'])->filter()->count();
+                        if ($count > $maxFloorUnits) $maxFloorUnits = $count;
+                    }
+                    $maxParkingUnits = empty($parkingRows) ? 0 : collect($parkingRows)->max(fn($p) => $p['units']->count());
+                    $totalGridCols = max($maxFloorUnits, $maxParkingUnits);
+                @endphp
+
                 <!-- Table Matrix Container -->
-                <div class="overflow-x-auto relative">
+                <div class="overflow-x-auto relative rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)] bg-white">
                     <table class="border-collapse w-full" style="min-width: max-content;">
                         <thead>
-                            <tr class="border-b border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                            <tr class="border-b border-[#a38c29]/30 bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-widest shadow-[0_1px_2px_0_rgba(0,0,0,0.02)]">
                                 <!-- Floor label column -->
-                                <th class="p-3 text-left sticky left-0 bg-slate-50 z-10 min-w-[120px] border-r border-slate-200">
-                                    Floor \ Unit
+                                <th class="p-3.5 text-left sticky left-0 bg-[#a38c29] backdrop-blur-md z-10 min-w-[130px] border-r border-[#a38c29]/30 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                                    Floor / Unit
                                 </th>
                                 <!-- Dynamic Unit Column Headers -->
-                                @foreach ($matrixColumns as $doorNo)
-                                    <th class="p-3 text-center min-w-[90px]">
-                                        <span class="block">{{ $doorNo }}</span>
+                                @for($i = 1; $i <= $totalGridCols; $i++)
+                                    <th class="p-3.5 text-center min-w-[90px]">
+                                        <span class="block text-white/90">{{ $i }}</span>
                                     </th>
-                                @endforeach
-                                @if(!empty($parkingRows))
-                                    <!-- Parking columns header -->
-                                    @php $maxParkingUnits = collect($parkingRows)->max(fn($p) => $p['units']->count()); @endphp
-                                    @for($pc = 1; $pc <= $maxParkingUnits; $pc++)
-                                        <th class="p-3 text-center min-w-[80px]">
-                                            <span>P-{{ $pc }}</span>
-                                        </th>
-                                    @endfor
-                                @endif
+                                @endfor
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 bg-white">
-                            <!-- Regular Floor Rows -->
-                            @foreach ($floorMatrix as $row)
-                                <tr class="hover:bg-slate-50/50 transition-colors duration-100">
+                        <tbody class="divide-y divide-slate-100 bg-white/40">
+                            @php
+                                $reversedFloors = array_reverse($floorMatrix);
+                                $combinedFloors = [];
+                                
+                                $validParking = [];
+                                foreach($parkingRows as $pRow) {
+                                    if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
+                                    
+                                    $dName = $pRow['display_name'];
+                                    if ($dName === 'P1') $dName = 'Floor 4';
+                                    if ($dName === 'P2') $dName = 'Floor 5';
+                                    
+                                    $validParking[] = [
+                                        'display_name' => $dName,
+                                        'is_parking_row' => true,
+                                        'columns' => collect($pRow['units'])->sortBy('door_no', SORT_NATURAL | SORT_FLAG_CASE)->values()->all()
+                                    ];
+                                }
+                                
+                                foreach($reversedFloors as $row) {
+                                    $row['is_parking_row'] = false;
+                                    $combinedFloors[] = $row;
+                                    if (strtolower(trim($row['display_name'])) === 'floor 3') {
+                                        foreach($validParking as $vp) {
+                                            $combinedFloors[] = $vp;
+                                        }
+                                    }
+                                }
+                                
+                                $hasAddedParking = false;
+                                foreach($combinedFloors as $cf) {
+                                    if(isset($cf['is_parking_row']) && $cf['is_parking_row']) {
+                                        $hasAddedParking = true;
+                                    }
+                                }
+                                if (!$hasAddedParking) {
+                                    $combinedFloors = array_merge($combinedFloors, $validParking);
+                                }
+                            @endphp
+
+                            <!-- Combined Floor Rows -->
+                            @foreach ($combinedFloors as $row)
+                                @php
+                                    $isParkingRow = $row['is_parking_row'] ?? false;
+                                    $validUnits = collect($row['columns'])->filter()->values();
+                                    
+                                    $isParkingFloor = $isParkingRow;
+                                    if (!$isParkingFloor) {
+                                        $firstUnit = $validUnits->first();
+                                        if ($firstUnit) {
+                                            $isParkingFloor = ($firstUnit->unitType && stripos($firstUnit->unitType->name, 'park') !== false) 
+                                                              || stripos($firstUnit->door_no, 'P') === 0;
+                                        }
+                                    }
+                                @endphp
+                                <tr class="hover:bg-[#a38c29]/5 transition-colors duration-200 group">
                                     <!-- Floor Label -->
-                                    <td class="p-3 sticky left-0 bg-white z-10 border-r border-slate-150 flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                        </svg>
-                                        <div>
-                                            <span class="block text-[9px] font-extrabold text-slate-800 uppercase tracking-wider">{{ $row['display_name'] }}</span>
-                                            <span class="block text-[8px] text-slate-400 font-bold mt-0.5">{{ collect($row['columns'])->filter()->count() }} Unit(s)</span>
+                                    <td class="p-3.5 sticky left-0 bg-white/95 group-hover:bg-[#FAF8F2] backdrop-blur-md z-10 border-l-2 border-l-[#a38c29] border-r-2 border-r-[#a38c29] border-b-2 border-b-[#a38c29]/20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)] transition-colors duration-200">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-xl bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center shrink-0 border border-[#a38c29]/20">
+                                                @if($isParkingFloor)
+                                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 16a2 2 0 11-4 0 2 2 0 014 0zm12 0a2 2 0 11-4 0 2 2 0 014 0zM4 16h-.5A1.5 1.5 0 012 14.5v-2c0-.5.2-1 .5-1.3l2-3.4A3 3 0 017 6.5h10a3 3 0 012.5 1.3l2 3.4c.3.3.5.8.5 1.3v2a1.5 1.5 0 01-1.5 1.5H20m-4-10v3m-8-3v3m12 1.5H4" />
+                                                    </svg>
+                                                @else
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                                    </svg>
+                                                @endif
+                                            </div>
+                                            <div>
+                                                <span class="block text-[10px] font-black text-slate-800 uppercase tracking-wide">{{ $row['display_name'] }}</span>
+                                                <span class="block text-[9px] text-slate-400 font-bold mt-0.5">{{ collect($row['columns'])->filter()->count() }} {{ $isParkingRow ? 'Slot(s)' : 'Unit(s)' }}</span>
+                                            </div>
                                         </div>
                                     </td>
 
                                     <!-- Unit Cells -->
-                                    @foreach ($matrixColumns as $doorNo)
-                                        @php $unit = $row['columns'][$doorNo] ?? null; @endphp
-                                        <td class="p-1.5">
-                                            @if ($unit)
-                                                @php
-                                                    $status = strtolower($unit->status);
-                                                    $isSold     = in_array($status, ['sold']);
-                                                    $isBooked   = ($status === 'booked');
-                                                    $isBlocked  = ($status === 'blocked');
-                                                    $isAvailable= ($status === 'available');
-                                                @endphp
-                                                <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}' }; hoveredEl = $el"
-                                                     @mouseleave="hoveredUnit = null"
-                                                     class="w-full min-w-[85px] py-1.5 px-2 flex flex-col items-center justify-center rounded-lg shadow-sm border transition-all hover:scale-105 hover:shadow-md cursor-pointer duration-150
-                                                     @if ($isSold) bg-[#e53935] border-[#d32f2f] text-white
-                                                     @elseif ($isBooked) bg-[#bbdefb] border-[#90caf9] text-[#0d47a1]
-                                                     @elseif ($isBlocked) bg-[#ffe082] border-[#ffd54f] text-[#e65100]
-                                                     @else bg-[#2e7d32] border-[#1b5e20] text-white @endif">
+                                    @for ($i = 0; $i < $totalGridCols; $i++)
+                                        <td class="p-2.5">
+                                            @if ($i < $validUnits->count())
+                                                @php $unit = $validUnits[$i]; @endphp
+                                                
+                                                @if ($isParkingRow)
+                                                    @php 
+                                                        $isOccupied = in_array(strtolower($unit->status), ['sold', 'booked']); 
+                                                    @endphp
+                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: '{{ $isOccupied ? 'Reserved' : 'Available' }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
+                                                         @mouseleave="hoveredUnit = null"
+                                                         class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer duration-200
+                                                         @if($isOccupied) bg-[#0B1E36] text-white shadow-slate-300/50 hover:shadow-slate-400/50 hover:border-slate-500 @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
+                                                        <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-sm">{{ $unit->door_no }}</span>
+                                                        <span class="text-[8.5px] font-bold mt-1 font-mono leading-none opacity-90 drop-shadow-sm">Parking</span>
+                                                    </div>
+                                                @else
+                                                    @php
+                                                        $status = strtolower($unit->status);
+                                                        $isSold     = in_array($status, ['sold']);
+                                                        $isBooked   = ($status === 'booked');
+                                                        $isBlocked  = ($status === 'blocked');
+                                                    @endphp
+                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}' }; hoveredEl = $el"
+                                                         @mouseleave="hoveredUnit = null"
+                                                         class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_6px_-2px_rgba(0,0,0,0.1)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-200/40 cursor-pointer duration-200
+                                                         @if ($isSold) bg-rose-600 text-white shadow-rose-200/50 hover:shadow-rose-300/50 hover:border-rose-400
+                                                         @elseif ($isBooked) bg-blue-500 text-white shadow-blue-200/50 hover:shadow-blue-300/50 hover:border-blue-400
+                                                         @elseif ($isBlocked) bg-amber-500 text-white shadow-amber-200/50 hover:shadow-amber-300/50 hover:border-amber-400
+                                                         @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
 
-                                                    <span class="text-[9px] font-extrabold uppercase font-sans leading-tight">
-                                                        {{ $unit->door_no }}
-                                                    </span>
-                                                    <span class="text-[7.5px] font-bold mt-0.5 font-mono leading-none opacity-90">
-                                                        {{ $unit->built_up_area ? number_format((float)$unit->built_up_area, 2) . ' Sq.ft' : 'N/A' }}
-                                                    </span>
-                                                </div>
+                                                        <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-sm">
+                                                            {{ $unit->door_no }}
+                                                        </span>
+                                                        <span class="text-[8.5px] font-bold mt-1 font-mono leading-none opacity-90 drop-shadow-sm">
+                                                            {{ $unit->built_up_area ? number_format((float)$unit->built_up_area, 2) . ' Sq.ft' : 'N/A' }}
+                                                        </span>
+                                                    </div>
+                                                @endif
                                             @else
-                                                <div class="w-full min-w-[85px] h-9"></div>
-                                            @endif
-                                        </td>
-                                    @endforeach
-
-                                    @if(!empty($parkingRows))
-                                        @php $maxParkingUnits = collect($parkingRows)->max(fn($p) => $p['units']->count()); @endphp
-                                        @for($pc = 1; $pc <= $maxParkingUnits; $pc++)
-                                            <td class="p-1.5"><div class="w-full min-w-[80px] h-9"></div></td>
-                                        @endfor
-                                    @endif
-                                </tr>
-                            @endforeach
-
-                            <!-- PARKING ROWS -->
-                            @foreach ($parkingRows as $pRow)
-                                <tr>
-                                    <!-- Parking Label -->
-                                    <td class="p-3 sticky left-0 z-10 border-r border-slate-150 flex items-center gap-2 bg-slate-50/50">
-                                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/>
-                                        </svg>
-                                        <div>
-                                            <span class="block text-[9px] font-extrabold text-[#7E6A1B] uppercase tracking-wider">{{ $pRow['display_name'] }}</span>
-                                            <span class="block text-[8px] text-slate-400 font-bold mt-0.5">{{ $pRow['units']->count() }} Slot(s)</span>
-                                        </div>
-                                    </td>
-
-                                    <!-- Blank cells under regular unit columns -->
-                                    @foreach($matrixColumns as $doorNo)
-                                        <td class="p-1.5"><div class="w-full min-w-[85px] h-9"></div></td>
-                                    @endforeach
-
-                                    <!-- Parking Unit Cells -->
-                                    @php $maxParkingUnits = collect($parkingRows)->max(fn($p) => $p['units']->count()); @endphp
-                                    @for($pc = 1; $pc <= $maxParkingUnits; $pc++)
-                                        @php $pUnit = $pRow['units']->get($pc - 1); @endphp
-                                        <td class="p-1.5">
-                                            @if($pUnit)
-                                                @php $isOccupied = in_array(strtolower($pUnit->status), ['sold', 'booked']); @endphp
-                                                <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($pUnit->door_no) }}', floor: '{{ addslashes($pRow['display_name']) }}', area: 'Car Parking Space', status: '{{ $isOccupied ? 'Reserved' : 'Available' }}', price: '₹{{ number_format($pUnit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
-                                                     @mouseleave="hoveredUnit = null"
-                                                     class="w-full min-w-[80px] py-1.5 px-2 flex flex-col items-center justify-center rounded-lg shadow-sm border transition-all hover:scale-105 hover:shadow-md cursor-pointer duration-150
-                                                     @if($isOccupied) bg-[#B08968] border-[#9C6D3B] text-white @else bg-slate-100 border-slate-200 text-slate-700 hover:border-[#a38c29]/50 @endif">
-                                                    <span class="text-[9px] font-extrabold uppercase font-sans leading-tight">{{ $pUnit->door_no }}</span>
-                                                    <span class="text-[7.5px] font-bold mt-0.5 font-mono leading-none opacity-80">Parking</span>
-                                                </div>
-                                            @else
-                                                <div class="w-full min-w-[80px] h-9"></div>
+                                                <div class="w-full min-w-[85px] h-12 border-2 border-dashed border-slate-100/80 rounded-xl bg-slate-50/30"></div>
                                             @endif
                                         </td>
                                     @endfor
@@ -914,10 +1017,10 @@
                     <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
                         <div>
                             <span class="text-[8px] text-slate-400 font-bold uppercase tracking-wider block" x-text="hoveredUnit?.floor"></span>
-                            <span class="text-xs font-extrabold text-slate-800 uppercase tracking-wider" x-text="hoveredUnit?.door_no"></span>
+                            <span class="text-xs font-black text-slate-800 uppercase tracking-wider" x-text="hoveredUnit?.door_no"></span>
                         </div>
-                        <span class="text-[8px] font-bold text-white px-2 py-0.5 rounded-full uppercase tracking-wider"
-                              :class="{'bg-[#e53935]': hoveredUnit?.status === 'Sold', 'bg-[#bbdefb] text-[#0d47a1]': hoveredUnit?.status === 'Booked', 'bg-[#ffe082] text-[#e65100]': hoveredUnit?.status === 'Blocked', 'bg-[#2e7d32]': hoveredUnit?.status === 'Available', 'bg-[#B08968]': hoveredUnit?.status === 'Reserved'}"
+                        <span class="text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm"
+                              :class="{'bg-rose-600': hoveredUnit?.status === 'Sold', 'bg-blue-500': hoveredUnit?.status === 'Booked', 'bg-amber-500': hoveredUnit?.status === 'Blocked', 'bg-emerald-500': hoveredUnit?.status === 'Available', 'bg-slate-700': hoveredUnit?.status === 'Reserved'}"
                               x-text="hoveredUnit?.status"></span>
                     </div>
 
@@ -952,7 +1055,7 @@
 
                     <!-- Available -->
                     <div class="flex items-center gap-2">
-                        <span class="w-3.5 h-3.5 rounded bg-[#2e7d32] border border-[#1b5e20] shrink-0"></span>
+                        <span class="w-4 h-4 rounded-md bg-emerald-500 border border-emerald-600 shadow-sm shrink-0"></span>
                         <div>
                             <span class="block text-[8px] text-slate-400 font-bold">Available</span>
                             <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $availableCount }}</span>
@@ -961,7 +1064,7 @@
 
                     <!-- Booked -->
                     <div class="flex items-center gap-2">
-                        <span class="w-3.5 h-3.5 rounded bg-[#bbdefb] border border-[#90caf9] shrink-0"></span>
+                        <span class="w-4 h-4 rounded-md bg-blue-500 border border-blue-600 shadow-sm shrink-0"></span>
                         <div>
                             <span class="block text-[8px] text-slate-400 font-bold">Booked</span>
                             <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $bookedCount }}</span>
@@ -970,7 +1073,7 @@
 
                     <!-- Pending -->
                     <div class="flex items-center gap-2">
-                        <span class="w-3.5 h-3.5 rounded bg-[#ffe082] border border-[#ffd54f] shrink-0"></span>
+                        <span class="w-4 h-4 rounded-md bg-amber-500 border border-amber-600 shadow-sm shrink-0"></span>
                         <div>
                             <span class="block text-[8px] text-slate-400 font-bold">Pending</span>
                             <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $pendingCount }}</span>
@@ -979,7 +1082,7 @@
 
                     <!-- Sold -->
                     <div class="flex items-center gap-2">
-                        <span class="w-3.5 h-3.5 rounded bg-[#e53935] border border-[#d32f2f] shrink-0"></span>
+                        <span class="w-4 h-4 rounded-md bg-rose-600 border border-rose-700 shadow-sm shrink-0"></span>
                         <div>
                             <span class="block text-[8px] text-slate-400 font-bold">Sold</span>
                             <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $soldCount }}</span>
