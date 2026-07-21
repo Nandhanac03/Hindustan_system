@@ -28,6 +28,11 @@
                 this.editProject.expected_completion_date = this.editProject.expected_completion_date.substring(0, 10);
             }
             this.editModalOpen = true;
+            this.$nextTick(() => {
+                if (window['ckEditor_ck_edit_project_description']) {
+                    window['ckEditor_ck_edit_project_description'].setData(project.description || '');
+                }
+            });
         }
     }" class="space-y-6">
         
@@ -351,12 +356,12 @@
 
                     <!-- Description -->
                     <div class="space-y-1.5">
-                        <label for="edit_description" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Description / Notes</label>
-                        <textarea id="edit_description" 
+                        <label for="ck_edit_project_description" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Description / Project Specifications</label>
+                        <textarea id="ck_edit_project_description" 
                                   name="description" 
-                                  x-model="editProject.description"
-                                  rows="3" 
-                                  class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition"></textarea>
+                                  rows="4" 
+                                  placeholder="Enter detailed project specifications, structural details, amenities & notes..."
+                                  class="ck-editor-field w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition"></textarea>
                     </div>
 
                     <!-- Image Upload -->
