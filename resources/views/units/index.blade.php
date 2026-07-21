@@ -292,7 +292,8 @@
              @click.stop>
             
             {{-- Dark Header --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-[#4a4224] px-6 py-5 flex-shrink-0">
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
                         <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Single Unit Setup</p>
@@ -927,7 +928,7 @@
          MODAL 4: DELETE CONFIRMATION
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.delete.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-rose-600 uppercase tracking-widest">Delete Unit</h3>
                 <button @click="closeDeleteModal()" class="text-slate-400 hover:text-slate-650">✕</button>
@@ -949,7 +950,7 @@
          VIEW UNIT MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
-        <div class="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
@@ -1043,7 +1044,7 @@
          RATE HISTORY MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.rateHistory.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
-        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="modals.rateHistory.open = false">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="modals.rateHistory.open = false">
             {{-- Modal Header --}}
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/70">
                 <div class="space-y-1">

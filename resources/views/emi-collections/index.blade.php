@@ -281,7 +281,7 @@
 
     {{-- COLLECTION RECEIPT Modal --}}
     <div x-show="modal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition>
-        <div @click.away="closeCollectModal()" class="w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+        <div @click.away="closeCollectModal()" class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div>
                     <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Collection Receipt</h3>

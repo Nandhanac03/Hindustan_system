@@ -165,7 +165,7 @@
 
             <!-- Modal Content Wrapper -->
             <div class="flex items-center justify-center min-h-screen p-4">
-                <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden max-w-lg w-full relative z-10">
+                <div class="bg-white rounded-3xl shadow-xl overflow-hidden max-w-lg w-full relative z-10">
                     <div class="px-6 py-5 bg-white border-b border-slate-100 flex items-center justify-between">
                         <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Edit Supplier Details</h3>
                         <button type="button" @click="showEditModal = false" class="text-slate-400 hover:text-slate-650 focus:outline-none">

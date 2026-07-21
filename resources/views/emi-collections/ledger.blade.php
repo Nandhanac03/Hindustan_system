@@ -226,7 +226,7 @@
          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
          style="display: none;" x-transition>
          <div @click.away="modalOpen = false" 
-              class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-4">
+              class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
               
               <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Payment for <span x-text="form.label" class="text-primary font-bold"></span></h3>
@@ -308,7 +308,7 @@
          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
          style="display: none;" x-transition>
          <div @click.away="emiModalOpen = false" 
-              class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-2xl space-y-4">
+              class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl space-y-4">
               
               <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Manage EMI Schedule</h3>
@@ -414,7 +414,7 @@
          class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
          style="display: none;" x-transition>
          <div @click.away="receiptModalOpen = false" 
-              class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-4">
+              class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
               
               <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Receipt Details</h3>

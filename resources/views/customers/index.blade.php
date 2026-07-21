@@ -121,7 +121,7 @@
          ADD CUSTOMER MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Customer</h3>
                 <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -171,7 +171,7 @@
          EDIT CUSTOMER MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit Customer</h3>
                 <button @click="closeEditModal()" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -231,7 +231,7 @@
          DELETE CUSTOMER CONFIRMATION MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.delete.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Delete Customer</h3>
                 <button @click="closeDeleteModal()" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -253,7 +253,7 @@
          VIEW CUSTOMER MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">

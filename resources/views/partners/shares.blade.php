@@ -1,6 +1,6 @@
 <x-erp-layout title="Configure Shares" headerTitle="Configure Partner Shares">
 
-<div class="max-w-2xl mx-auto bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-6" x-data="shareFormApp()">
+<div class="max-w-2xl mx-auto bg-white rounded-2xl/80 shadow-sm p-6 space-y-6" x-data="shareFormApp()">
     
     {{-- Header --}}
     <div class="border-b border-slate-100 pb-4">

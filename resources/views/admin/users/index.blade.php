@@ -119,7 +119,7 @@
 
                                     {{-- View Modal --}}
                                     <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left" style="display: none;">
-                                        <div @click.away="openView = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5 whitespace-normal">
+                                        <div @click.away="openView = false" class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5 whitespace-normal">
                                             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                                                 <div class="flex items-center gap-2">
                                                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">

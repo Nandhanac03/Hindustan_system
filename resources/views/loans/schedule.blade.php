@@ -193,10 +193,15 @@
     {{-- Pay EMI Modal --}}
     <div x-show="payModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="payModalOpen = false"></div>
-        <div class="relative w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest" x-text="'Record Payment: Installment #' + activeInst.installment_no"></h3>
-                <button @click="payModalOpen = false" class="text-slate-400 hover:text-slate-650">✕</button>
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="'Record Payment: Installment #' + activeInst.installment_no"></h3>
+                    <button @click="payModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
             <form @submit.prevent="submitPayForm">
                 <div class="p-6 space-y-4">
@@ -246,10 +251,15 @@
     {{-- Prepayment & Reschedule Modal --}}
     <div x-show="prepayModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="prepayModalOpen = false"></div>
-        <div class="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Lump Sum Prepayment & Rescheduling</h3>
-                <button @click="prepayModalOpen = false" class="text-slate-400 hover:text-slate-650">✕</button>
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest">Lump Sum Prepayment & Rescheduling</h3>
+                    <button @click="prepayModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
             <form @submit.prevent="submitPrepayForm">
                 <div class="p-6 space-y-4">

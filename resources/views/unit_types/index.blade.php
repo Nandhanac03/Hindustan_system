@@ -166,7 +166,7 @@
 
     {{-- Add Modal --}}
     <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 relative" @click.away="showAddModal = false">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative" @click.away="showAddModal = false">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Add New Unit Type</h3>
                 <button @click="showAddModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -225,7 +225,7 @@
 
     {{-- Edit Modal --}}
     <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 relative" @click.away="showEditModal = false">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative" @click.away="showEditModal = false">
             <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                 <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Edit Unit Type</h3>
                 <button @click="showEditModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
@@ -274,7 +274,7 @@
 
     {{-- View Modal --}}
     <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div @click.away="showViewModal = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5">
+        <div @click.away="showViewModal = false" class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">

@@ -363,7 +363,7 @@
     <div x-show="openNewReturnModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openNewReturnModal = false"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full border border-slate-200 overflow-hidden animate-fade-in">
+            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
                 
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
                     <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider"
@@ -496,7 +496,7 @@
     <div x-show="openNewExchangeModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openNewExchangeModal = false"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full border border-slate-200 overflow-hidden animate-fade-in">
+            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
                 
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
                     <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider"
@@ -1118,7 +1118,7 @@
     <div x-show="openViewExchangeModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
         <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openViewExchangeModal = false"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full border border-slate-200 overflow-hidden animate-fade-in">
+            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
                 
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
                     <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Exchange Details</h3>

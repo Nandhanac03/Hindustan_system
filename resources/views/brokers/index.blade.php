@@ -35,7 +35,7 @@
                  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity"
                  style="display: none;">
                  <div @click.away="openRegister = false" 
-                      class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5 transform transition-all">
+                      class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5 transform transition-all">
                       <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                           <div class="flex items-center gap-2">
                               <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
@@ -240,7 +240,7 @@
                                      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
                                      style="display: none;">
                                      <div @click.away="openView = false" 
-                                          class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-lg space-y-5">
+                                          class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg space-y-5">
                                           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                                               <div class="flex items-center gap-2">
                                                   <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
@@ -311,7 +311,7 @@
                                      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
                                      style="display: none;">
                                      <div @click.away="openEdit = false" 
-                                          class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5">
+                                          class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
                                           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                                               <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Edit Broker Rate: {{ $broker->name }}</h3>
                                               <button @click="openEdit = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
@@ -354,7 +354,7 @@
                                      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
                                      style="display: none;">
                                      <div @click.away="openDelete = false" 
-                                          class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5">
+                                          class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
                                           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                                               <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Delete Broker: {{ $broker->name }}</h3>
                                               <button @click="openDelete = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>

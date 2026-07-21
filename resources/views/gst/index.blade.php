@@ -92,7 +92,7 @@
     {{-- GST Add Modal --}}
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="addModalOpen = false"></div>
-        <div class="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add GST Tax Slab</h3>
                 <button @click="addModalOpen = false" class="text-slate-400 hover:text-slate-655">✕</button>
@@ -138,7 +138,7 @@
     {{-- GST Edit Modal --}}
     <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="editModalOpen = false"></div>
-        <div class="relative w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit GST Tax Slab</h3>
                 <button @click="editModalOpen = false" class="text-slate-400 hover:text-slate-655">✕</button>
@@ -183,7 +183,7 @@
 
     {{-- View Modal --}}
     <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 transition-opacity text-left" style="display: none;">
-        <div @click.away="viewModalOpen = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5">
+        <div @click.away="viewModalOpen = false" class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2">
                     <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">

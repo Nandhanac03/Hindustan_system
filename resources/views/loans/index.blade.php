@@ -275,10 +275,15 @@
     {{-- Prepayment Logs Modal --}}
     <div x-show="logsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="logsModalOpen = false"></div>
-        <div class="relative w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest" x-text="'Prepayment Logs: ' + activeAccountNo"></h3>
-                <button @click="logsModalOpen = false" class="text-slate-400 hover:text-slate-650">✕</button>
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="'Prepayment Logs: ' + activeAccountNo"></h3>
+                    <button @click="logsModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
             <div class="p-6 max-h-[60vh] overflow-y-auto">
                 <table class="w-full text-xs text-left border-collapse">
@@ -313,13 +318,18 @@
     {{-- Interest Edit Logs Modal --}}
     <div x-show="interestLogsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="interestLogsModalOpen = false"></div>
-        <div class="relative w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up flex flex-col max-h-[85vh]">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50 shrink-0">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                    <svg class="w-4 h-4 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span x-text="activeInterestLogAccount ? 'Interest Rate Modification Log: ' + activeInterestLogAccount : 'Interest Rate Modification Log'"></span>
-                </h3>
-                <button @click="interestLogsModalOpen = false" class="text-slate-400 hover:text-slate-650">✕</button>
+        <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up flex flex-col max-h-[85vh]">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl shrink-0">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span x-text="activeInterestLogAccount ? 'Interest Rate Modification Log: ' + activeInterestLogAccount : 'Interest Rate Modification Log'"></span>
+                    </h3>
+                    <button @click="interestLogsModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
             <div class="p-6 overflow-y-auto grow">
                 @if($interestLogs->isEmpty())
@@ -364,10 +374,15 @@
     {{-- Edit Interest Rate Modal --}}
     <div x-show="editInterestModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="editInterestModalOpen = false"></div>
-        <div class="relative w-full max-w-md bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest" x-text="editLoan ? 'Edit Interest Rate: A/C ' + editLoan.loan_account_no : 'Edit Interest Rate'"></h3>
-                <button @click="editInterestModalOpen = false" class="text-slate-400 hover:text-slate-650">✕</button>
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="editLoan ? 'Edit Interest Rate: A/C ' + editLoan.loan_account_no : 'Edit Interest Rate'"></h3>
+                    <button @click="editInterestModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
             <form @submit.prevent="submitEditInterestForm">
                 <div class="p-6 space-y-4">
@@ -408,10 +423,15 @@
     {{-- Create Loan Modal --}}
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="addModalOpen = false"></div>
-        <div class="relative w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Create New Project Loan Account</h3>
-                <button @click="addModalOpen = false" class="text-slate-400 hover:text-slate-650">✕</button>
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest">Create New Project Loan Account</h3>
+                    <button @click="addModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
             <form @submit.prevent="submitAddForm">
                 <div class="p-6 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">

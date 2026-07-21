@@ -133,7 +133,7 @@
          ADD SALE MODAL — 6 Sections
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-3xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
+        <div class="w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Sale</h3>
                 <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -389,7 +389,7 @@
          QUICK ADD CUSTOMER MODAL (nested)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.quickCustomer.open" class="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-sm bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.quickCustomer.open = false">
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.quickCustomer.open = false">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Quick Add Customer</h3>
                 <button @click="modals.quickCustomer.open = false" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -418,7 +418,7 @@
          EDIT SALE MODAL (includes status transitions)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit Sale — <span x-text="activeSale.sale_number"></span></h3>
                 <button @click="closeEditModal()" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -522,7 +522,7 @@
          VIEW SALE MODAL (read-only)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
+        <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">

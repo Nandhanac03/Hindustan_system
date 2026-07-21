@@ -133,7 +133,7 @@
          ADD SALE MODAL — 6 Sections with Repeatable Alpine Rows
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="if (!modals.quickCustomer.open) closeAddModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="if (!modals.quickCustomer.open) closeAddModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Sale (Multi-Unit Contract)</h3>
                 <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -568,7 +568,7 @@
          QUICK ADD CUSTOMER MODAL (nested)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.quickCustomer.open" @click.self.stop="modals.quickCustomer.open = false" class="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-sm bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.stop>
+        <div class="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.stop>
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Quick Add Customer</h3>
                 <button @click="modals.quickCustomer.open = false" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -595,7 +595,7 @@
          EDIT SALE MODAL (legacy single-unit fields kept for backward-compatible edits)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit Sale — <span x-text="activeSale.sale_number"></span></h3>
                 <button @click="closeEditModal()" class="text-slate-400 hover:text-slate-600">✕</button>
@@ -985,7 +985,7 @@
          VIEW SALE MODAL (read-only)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeViewModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>

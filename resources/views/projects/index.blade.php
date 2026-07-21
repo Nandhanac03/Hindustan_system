@@ -223,7 +223,7 @@
              x-transition:leave-end="opacity-0">
             
             <div @click.away="editModalOpen = false" 
-                 class="bg-white rounded-3xl border border-slate-200 shadow-xl max-w-2xl w-full overflow-hidden flex flex-col transform transition-all max-h-[90vh]"
+                 class="bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden flex flex-col transform transition-all max-h-[90vh]"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-95"
                  x-transition:enter-end="opacity-100 scale-100"
@@ -407,7 +407,7 @@
              x-transition:leave-end="opacity-0">
             
             <div @click.away="createModalOpen = false" 
-                 class="bg-white rounded-3xl border border-slate-200 shadow-xl max-w-2xl w-full overflow-hidden flex flex-col transform transition-all max-h-[90vh]"
+                 class="bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden flex flex-col transform transition-all max-h-[90vh]"
                  x-transition:enter="transition ease-out duration-300"
                  x-transition:enter-start="opacity-0 scale-95"
                  x-transition:enter-end="opacity-100 scale-100"

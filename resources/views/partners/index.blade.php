@@ -20,13 +20,18 @@
             <div x-show="open" 
                  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
                  style="display: none;">
-                 <div @click.away="open = false" 
-                      class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-4">
-                      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                          <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Register New Partner</h3>
-                          <button @click="open = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
-                      </div>
-
+                 <div @click.away="open = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col relative z-10 animate-fade-in-up">
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl shrink-0">
+                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="relative z-10 flex items-center justify-between">
+                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Register New Partner</h3>
+                            <button @click="open = false" class="text-slate-400 hover:text-white transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6">
                       <form action="{{ route('partners.store') }}" method="POST" class="space-y-4">
                           @csrf
                           <div class="space-y-1.5">
@@ -75,6 +80,7 @@
                               </button>
                           </div>
                       </form>
+                    </div>
                  </div>
             </div>
         </div>
@@ -152,18 +158,23 @@
             {{-- Partner Modals (placed outside overflow-x-auto to prevent clipping) --}}
             @foreach($partners as $partner)
                 <div x-show="selectedPartner === {{ $partner->id }}" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left" style="display: none;">
-                    <div @click.away="selectedPartner = null" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-md space-y-5 whitespace-normal">
-                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <div @click.away="selectedPartner = null" class="bg-white rounded-2xl shadow-2xl w-full max-w-lg text-left animate-fade-in-up flex flex-col">
+                        <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl shrink-0">
+                            <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                            <div class="relative z-10 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    </div>
+                                    <h3 class="text-sm font-bold text-white uppercase tracking-wide">Partner Ledger Profile</h3>
                                 </div>
-                                <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Partner Ledger Profile</h3>
+                                <button @click="selectedPartner = null" class="text-slate-400 hover:text-white transition">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
                             </div>
-                            <button @click="selectedPartner = null" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
                         </div>
 
-                        <div class="space-y-4">
+                        <div class="p-6 space-y-5">
                             <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
                                 <div>
                                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Partner / Firm Name</span>
@@ -191,7 +202,7 @@
                             </div>
                         </div>
 
-                        <div class="pt-3 flex justify-between items-center border-t border-slate-100">
+                        <div class="p-6 pt-0 flex justify-between items-center">
                             <button type="button" @click="selectedPartner = null" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
                             <a href="{{ route('partners.statement', $partner->id) }}" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
                                 <span>View Statement Ledger</span>
@@ -231,7 +242,7 @@
                         
                         {{-- Settings Modal --}}
                         <div x-show="shareModal" x-cloak class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity" style="display: none;">
-                            <div @click.away="shareModal = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 w-full max-w-2xl space-y-5 relative" x-data="{
+                            <div @click.away="shareModal = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col relative animate-fade-in-up" x-data="{
                                 total: 0,
                                 init() { this.calculateTotal(); },
                                 calculateTotal() {
@@ -242,13 +253,20 @@
                                     this.total = sum;
                                 }
                             }">
-                                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                    <div>
-                                        <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Configure Shares - {{ $project->name }}</h3>
-                                        <p class="text-[11px] text-slate-500 mt-0.5">Assign collection share percentages to partners for this project.</p>
+                                <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl shrink-0">
+                                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                                    <div class="relative z-10 flex items-center justify-between">
+                                        <div>
+                                            <h3 class="text-sm font-bold text-white uppercase tracking-wide">Configure Shares - {{ $project->name }}</h3>
+                                            <p class="text-[11px] text-slate-300 mt-0.5">Assign collection share percentages to partners for this project.</p>
+                                        </div>
+                                        <button @click="shareModal = false" class="text-slate-400 hover:text-white transition">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
                                     </div>
-                                    <button @click="shareModal = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
                                 </div>
+                                
+                                <div class="p-6 space-y-5">
                                 
                                 <form action="{{ route('partners.shares.update', $project->id) }}" method="POST" class="space-y-6">
                                     @csrf

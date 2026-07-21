@@ -277,7 +277,7 @@ class BrokerController extends Controller
                 // Validate system_id ownership via Broker
                 if ($entry->broker->system_id !== $systemId) abort(403);
 
-                $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount, 'paid_date' => now()]);
+                $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount]);
                 $count = 1;
                 $totalPaid = (float)$entry->commission_amount;
                 $broker = $entry->broker;
@@ -292,7 +292,7 @@ class BrokerController extends Controller
                     ->get();
 
                 foreach ($entries as $entry) {
-                    $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount, 'paid_date' => now()]);
+                    $entry->update(['status' => 'paid', 'paid_amount' => $entry->commission_amount]);
                     $count++;
                     $totalPaid += (float)$entry->commission_amount;
                 }
@@ -380,10 +380,15 @@ class BrokerController extends Controller
             ->get();
 
         foreach ($pendingBrokerages as $entry) {
-            if ($entry->sale && $entry->sale->remaining_balance <= 0) {
-                $entry->update([
-                    'status' => 'payable',
-                ]);
+            if ($entry->sale) {
+                // If the customer has paid anything (advance/downpayment), commission becomes payable
+                $totalPaid = $entry->sale->total_amount - $entry->sale->remaining_balance;
+                
+                if ($totalPaid > 0) {
+                    $entry->update([
+                        'status' => 'payable',
+                    ]);
+                }
             }
         }
     }
