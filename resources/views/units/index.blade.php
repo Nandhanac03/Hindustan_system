@@ -382,7 +382,7 @@
     {{-- ═══════════════════════════════════════════
          MODAL 2: EDIT UNIT & ACTIONS MODAL
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+    <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
         {{-- Backdrop --}}
         <div x-show="modals.edit.open"
              x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
@@ -946,7 +946,7 @@
     {{-- ═══════════════════════════════════════════
          VIEW UNIT MODAL
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
         <div class="w-full max-w-lg bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -1010,7 +1010,7 @@
                         <div class="flex items-center justify-between border-b border-amber-200/60 pb-1.5">
                             <span class="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Active Sale & GST Handling</span>
                             <span class="text-[9px] font-mono px-2 py-0.5 rounded-full font-bold uppercase"
-                                  :class="viewTarget?.gst_behavior === 'inclusive' ? 'bg-amber-100 text-amber-800' : (viewTarget?.gst_behavior === 'exclusive' ? 'bg-purple-100 text-purple-800' : 'bg-slate-200 text-slate-700')"
+                                  :class="viewTarget?.gst_behavior === 'inclusive' ? 'bg-amber-100 text-amber-800' : (viewTarget?.gst_behavior === 'exclusive' ? 'bg-purple-100 text-purple-800' : 'bg-[#a38c29] text-white')"
                                   x-text="viewTarget?.gst_behavior === 'inclusive' ? 'GST Included (18%)' : (viewTarget?.gst_behavior === 'exclusive' ? 'GST Additional (+18%)' : 'No GST')"></span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1022,7 +1022,7 @@
                                 <span class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold">Total Sale Value</span>
                                 <strong class="text-emerald-700 font-mono" x-text="viewTarget?.sale_amount ? '₹' + Number(viewTarget.sale_amount).toLocaleString() : 'N/A'"></strong>
                             </div>
-                            <div class="col-span-2 pt-1 border-t border-amber-200/50 flex justify-between items-center">
+                            <div class="col-span-2 pt-1 border-t border-amber-200/50 flex justify-between items-center" x-show="viewTarget?.gst_behavior !== 'none'">
                                 <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">GST Amount Payable (18%)</span>
                                 <strong class="text-indigo-700 font-mono text-xs" x-text="viewTarget?.gst_amount ? '₹' + Number(viewTarget.gst_amount).toLocaleString() : '₹0.00'"></strong>
                             </div>
@@ -1040,7 +1040,7 @@
     {{-- ═══════════════════════════════════════════
          RATE HISTORY MODAL
     ═══════════════════════════════════════════ --}}
-    <div x-show="modals.rateHistory.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="modals.rateHistory.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
         <div class="w-full max-w-4xl bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="modals.rateHistory.open = false">
             {{-- Modal Header --}}
             <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/70">
@@ -1087,7 +1087,7 @@
                                 <span class="text-slate-500 font-medium">Floor:</span>
                                 <strong class="text-slate-900 ml-1 font-bold" x-text="rateHistoryTarget?.floor?.name || 'N/A'"></strong>
                             </div>
-                            <div class="px-3 py-1.5 rounded-xl bg-white border border-[#a38c29]/20 shadow-2xs">
+                            <div class="px-3 py-1.5 rounded-xl bg-white border border-[#a38c29]/20 shadow-2xs" x-show="!isParking(rateHistoryTarget?.unit_type_id)">
                                 <span class="text-slate-500 font-medium">Built-up Area:</span>
                                 <strong class="text-slate-900 ml-1 font-mono font-bold" x-text="rateHistoryTarget?.built_up_area != null ? Number(rateHistoryTarget.built_up_area).toLocaleString('en-IN', {minimumFractionDigits: 1, maximumFractionDigits: 2}) + ' Sq.Ft' : 'N/A'"></strong>
                             </div>
@@ -1109,7 +1109,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29] animate-pulse"></span>
                                 Current Rate
                             </span>
-                            <span class="text-sm font-black text-slate-950 mt-1 block font-mono" x-text="rateHistoryTarget?.expected_rate_per_sqft != null ? '₹' + Number(rateHistoryTarget.expected_rate_per_sqft).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '/Sq.Ft' : '₹0.00/Sq.Ft'"></span>
+                            <span class="text-sm font-black text-slate-950 mt-1 block font-mono" x-text="rateHistoryTarget?.expected_rate_per_sqft != null ? '₹' + Number(rateHistoryTarget.expected_rate_per_sqft).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + (isParking(rateHistoryTarget?.unit_type_id) ? '' : '/Sq.Ft') : (isParking(rateHistoryTarget?.unit_type_id) ? '₹0.00' : '₹0.00/Sq.Ft')"></span>
                         </div>
                         <div class="p-3 rounded-xl bg-gradient-to-br from-emerald-500/15 via-emerald-500/10 to-white border border-emerald-500/40 shadow-sm">
                             <span class="text-[9px] font-extrabold text-emerald-700 uppercase tracking-widest block flex items-center gap-1">
@@ -1155,8 +1155,8 @@
                                 <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                     <th class="px-3.5 py-3 w-12 text-center">#</th>
                                     <th class="px-4 py-3">Changed At</th>
-                                    <th class="px-4 py-3 text-right">Old Rate (₹/Sq.Ft)</th>
-                                    <th class="px-4 py-3 text-right">New Rate (₹/Sq.Ft)</th>
+                                    <th class="px-4 py-3 text-right">Old Rate <span x-show="!isParking(rateHistoryTarget?.unit_type_id)">(₹/Sq.Ft)</span></th>
+                                    <th class="px-4 py-3 text-right">New Rate <span x-show="!isParking(rateHistoryTarget?.unit_type_id)">(₹/Sq.Ft)</span></th>
                                     <th class="px-4 py-3 text-right">Change</th>
                                     <th class="px-4 py-3">Changed By</th>
                                     <th class="px-4 py-3">Reason</th>
@@ -1169,11 +1169,7 @@
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
-                                                <span x-text="formatDateIST(log)"></span>
-                                            </div>
-                                            <div class="text-[10px] text-slate-500 font-medium flex items-center gap-1.5 mt-0.5">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span>
-                                                <span x-text="formatDateUAE(log)"></span>
+                                                <span x-text="formatDate(log)"></span>
                                             </div>
                                         </td>
                                         <td class="px-4 py-3 text-right font-mono font-medium text-slate-500 whitespace-nowrap"
@@ -1204,7 +1200,7 @@
                                             </div>
                                         </td>
                                         <td class="px-4 py-3 text-slate-700">
-                                            <span class="inline-block px-2.5 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-medium max-w-xs break-words" x-text="log.reason || 'Initial rate set'"></span>
+                                            <span class="inline-block px-2.5 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-medium whitespace-nowrap" x-text="log.reason || 'Initial rate set'"></span>
                                         </td>
                                     </tr>
                                 </template>
@@ -1573,19 +1569,19 @@ function unitsApp() {
         },
 
         parseLogDate(log) {
-            const raw = log.created_at || log.effective_from;
+            let raw = log.created_at || log.effective_from;
             if (!raw) return new Date();
+            
+            if (typeof raw === 'string' && !raw.includes('Z') && !raw.match(/[+-]\d{2}:?\d{2}$/)) {
+                // Replace space with T and append Z to force UTC parsing for Laravel timestamps
+                raw = raw.replace(' ', 'T') + 'Z';
+            }
+            
             let dt = new Date(raw);
-            if (isNaN(dt.getTime()) && typeof raw === 'string') {
-                dt = new Date(raw.replace(' ', 'T') + (raw.includes('Z') || raw.includes('+') ? '' : 'Z'));
-            }
-            if (isNaN(dt.getTime()) && typeof raw === 'string') {
-                dt = new Date(raw.replace(' ', 'T'));
-            }
             return isNaN(dt.getTime()) ? new Date() : dt;
         },
 
-        formatDateIST(log) {
+        formatDate(log) {
             try {
                 const dt = this.parseLogDate(log);
                 return new Intl.DateTimeFormat('en-IN', {
@@ -1596,26 +1592,9 @@ function unitsApp() {
                     hour: '2-digit',
                     minute: '2-digit',
                     hour12: true
-                }).format(dt) + ' (IST)';
+                }).format(dt);
             } catch (e) {
-                return (log.created_at || log.effective_from || '') + ' (IST)';
-            }
-        },
-
-        formatDateUAE(log) {
-            try {
-                const dt = this.parseLogDate(log);
-                return new Intl.DateTimeFormat('en-IN', {
-                    timeZone: 'Asia/Dubai',
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                }).format(dt) + ' (UAE)';
-            } catch (e) {
-                return (log.created_at || log.effective_from || '') + ' (UAE)';
+                return (log.created_at || log.effective_from || '');
             }
         },
 
@@ -1796,9 +1775,9 @@ function unitsApp() {
                     this.showToast(data.error || 'Server error occurred.', 'error');
                 } else {
                     this.showToast('Unit details updated successfully.');
-                    // Update table & active item state
+                    // Update table & close modal
                     this.fetchUnits();
-                    this.openEditModal(this.activeUnit.id);
+                    this.closeEditModal();
                 }
             })
             .catch(err => {
@@ -1946,7 +1925,7 @@ function unitsApp() {
                 } else {
                     this.showToast('Base rate updated successfully.');
                     this.fetchUnits();
-                    this.openEditModal(this.activeUnit.id);
+                    this.closeEditModal();
                 }
             })
             .catch(err => {
