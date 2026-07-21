@@ -78,15 +78,17 @@ class ProjectController extends Controller
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
 
-        // Owner must supply system_id. Others use their system_id
-        if ($user->hasMultiSystemAccess()) {
-            $rules['system_id'] = ['required', 'exists:systems,id'];
+        // Default system_id to logged-in user's system_id if not present
+        if (!$request->filled('system_id')) {
+            $request->merge(['system_id' => $user->system_id ?? 1]);
         }
+
+        $rules['system_id'] = ['nullable', 'exists:systems,id'];
 
         $validated = $request->validate($rules);
 
-        if (!$user->hasMultiSystemAccess()) {
-            $validated['system_id'] = $user->system_id;
+        if (empty($validated['system_id'])) {
+            $validated['system_id'] = $user->system_id ?? 1;
         }
 
         // Upload image
