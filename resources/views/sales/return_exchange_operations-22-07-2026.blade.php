@@ -499,17 +499,12 @@
             <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
                 
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-                    <div>
-                        <span class="text-[9px] font-bold text-blue-800 uppercase tracking-widest block" x-show="newExchangeStep === 2">ACTIVE PLAN</span>
-                        <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider"
-                            x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'EXECUTE EXCHANGE PLAN'"></h3>
-                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5" x-show="newExchangeStep === 2 && selectedExchangeSale"
-                           x-text="selectedExchangeSale ? 'Old Unit: ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
-                    </div>
+                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider"
+                        x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'Process Exchange Details'"></h3>
                     <button type="button" @click="openNewExchangeModal = false" class="text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
                 </div>
                 
-                <div class="p-6 max-h-[85vh] overflow-y-auto">
+                <div class="p-6">
                     {{-- STEP 1: SELECT SALE --}}
                     <div x-show="newExchangeStep === 1" class="space-y-4">
                         <div class="space-y-2">
@@ -538,7 +533,12 @@
                     
                     {{-- STEP 2: FORM DETAILS --}}
                     <div x-show="newExchangeStep === 2" class="space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
+                        <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-3 text-xs font-bold text-slate-600">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5">Selected Sale</span>
+                            <span class="text-slate-800" x-text="selectedExchangeSale ? 'Sale No: ' + selectedExchangeSale.sale_number + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Project *</label>
                                 <select x-model="exchangeForm.new_project_id" @change="loadExchangeUnits()"
@@ -551,24 +551,13 @@
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Unit Type</label>
-                                <select x-model="exchangeForm.new_unit_type" @change="exchangeForm.new_unit_id = ''; exchangeForm.new_unit_value = 0;" :disabled="!exchangeForm.new_project_id"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
-                                    <option value="">All Types</option>
-                                    <template x-for="ut in exchangeUnitTypes" :key="ut.id">
-                                        <option :value="ut.id" x-text="ut.name"></option>
-                                    </template>
-                                </select>
-                            </div>
-
-                            <div class="space-y-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Available Unit *</label>
                                 <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                     <button type="button" 
                                             @click="if (exchangeForm.new_project_id) { open = !open; if (open) $nextTick(() => $refs.modalTargetUnitSearchInput.focus()); }" 
                                             :disabled="!exchangeForm.new_project_id"
                                             class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-[38px]">
-                                        <span x-text="exchangeForm.new_unit_id ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id) ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).door_no + ' — ' + getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).floor_name) : '— Select Target Unit —') : '— Select Target Unit —'"
+                                        <span x-text="exchangeForm.new_unit_id ? (exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id) ? (exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).door_no + ' — ' + exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).floor_name) : '— Select Target Unit —') : '— Select Target Unit —'"
                                               :class="!exchangeForm.new_unit_id ? 'text-slate-400' : 'text-slate-800 font-semibold'"></span>
                                         <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -604,7 +593,7 @@
                                         </button>
 
                                         <div class="overflow-y-auto flex-1 divide-y divide-slate-50">
-                                            <template x-for="unit in getFilteredExchangeAvailableUnits().filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase())))" :key="unit.id">
+                                            <template x-for="unit in exchangeAvailableUnits.filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase())))" :key="unit.id">
                                                 <button type="button"
                                                         @click="exchangeForm.new_unit_id = unit.id; onExchangeUnitSelect(); open = false; search = ''"
                                                         class="w-full px-3 py-2 text-left text-xs hover:bg-blue-50 transition-colors flex items-center justify-between gap-2"
@@ -617,7 +606,7 @@
                                                 </button>
                                             </template>
 
-                                            <div x-show="getFilteredExchangeAvailableUnits().filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase()))).length === 0"
+                                            <div x-show="exchangeAvailableUnits.filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase()))).length === 0"
                                                  class="px-4 py-4 text-center text-xs text-slate-400 italic">
                                                 No matching units found
                                             </div>
@@ -644,7 +633,7 @@
                         </div>
 
                         {{-- Financial Balance Grid --}}
-                        <div class="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-100">
+                        <div class="bg-slate-50/50 border border-slate-200 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-200">
                             <div class="text-center">
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Equity Applied</p>
                                 <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.equity_applied)"></p>
@@ -654,12 +643,10 @@
                                 <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.new_unit_value)"></p>
                             </div>
                             <div class="text-center">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Differential Due (Receivable)</p>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Differential Due</p>
                                 <p class="text-sm font-extrabold text-blue-700 font-mono mt-0.5" x-text="fmt(calculateDifferentialDue())"></p>
                             </div>
                         </div>
-
-
 
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Exchange Reason / Notes *</label>
@@ -673,7 +660,7 @@
                                 Back
                             </button>
                             <button type="button" @click="submitExchangePlan()"
-                                    class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
+                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
                                 Finalize Exchange & New EMI
                             </button>
                         </div>
@@ -1055,7 +1042,7 @@
                                 <td class="px-3 py-2.5 text-right">
                                     <div class="flex items-center justify-end gap-1.5">
                                         <template x-if="sale.status === 'active' || sale.status === 'cancelled'">
-                                            <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;"
+                                            <button type="button" @click="selectExchangeSale(sale)"
                                                     class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[9px] uppercase transition-all tracking-wide">
                                                 Process Exchange
                                             </button>
@@ -1065,7 +1052,7 @@
                                                 <button type="button" @click="viewExchangeSale = sale; openViewExchangeModal = true;" class="text-slate-450 hover:text-slate-700 transition-colors" title="View Details">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                 </button>
-                                                <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;" class="text-primary hover:text-primary-700 transition-colors" title="Edit Exchange">
+                                                <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2;" class="text-primary hover:text-primary-700 transition-colors" title="Edit Exchange">
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                 </button>
                                                 <!-- <button type="button" class="text-slate-400 hover:text-slate-650 transition-colors" title="More Options">
@@ -1086,7 +1073,7 @@
         </div>
 
         {{-- EXECUTE EXCHANGE PLAN PANEL --}}
-        <template x-if="selectedExchangeSale && !openNewExchangeModal">
+        <template x-if="selectedExchangeSale">
             <div class="bg-blue-50/60 border border-blue-150 rounded-2xl p-4 space-y-4 animate-fade-in">
                 <div class="flex items-center justify-between border-b border-blue-200/50 pb-2">
                     <div>
@@ -1239,10 +1226,10 @@
         </template>
 
         {{-- ACTIVE RETURNS vs. EXCHANGES (Monthly) CHART --}}
-        <!-- <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-3 font-sans">
+        <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-3 font-sans">
             <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Active Returns vs. Exchanges (Monthly)</h4>
             <div id="returnsExchangesChart" class="w-full" style="height: 180px;"></div>
-        </div> -->
+        </div>
     </div>
     @endif
 
