@@ -50,7 +50,7 @@ class CustomerInstallment extends Model
             return;
         }
 
-        $totalPaid = (float)\App\Models\Receipt::where('sale_id', $saleId)->sum('amount');
+        $totalPaid = round((float)\App\Models\Receipt::where('sale_id', $saleId)->sum('amount'), 2);
         $allocatedPayment = $totalPaid;
         
         $installments = self::where('sale_id', $saleId)
@@ -58,11 +58,11 @@ class CustomerInstallment extends Model
             ->get();
 
         foreach ($installments as $inst) {
-            $instAmount = (float)$inst->amount;
-            if ($allocatedPayment >= $instAmount) {
+            $instAmount = round((float)$inst->amount, 2);
+            if (round($allocatedPayment - $instAmount, 2) >= -0.01) {
                 $inst->update(['status' => 'paid']);
-                $allocatedPayment -= $instAmount;
-            } elseif ($allocatedPayment > 0) {
+                $allocatedPayment = max(0, round($allocatedPayment - $instAmount, 2));
+            } elseif (round($allocatedPayment, 2) > 0.01) {
                 $inst->update(['status' => 'partial']);
                 $allocatedPayment = 0;
             } else {

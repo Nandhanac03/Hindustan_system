@@ -144,7 +144,7 @@
         {{-- Installment Status / Button --}}
         @if(isset($row['status']) && $row['type'] === 'installment')
 
-            @if($row['status'] === 'paid')
+            @if($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
                 <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
                     Paid
                 </span>
