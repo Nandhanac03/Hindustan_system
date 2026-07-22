@@ -550,7 +550,7 @@
                             <select x-model="newExchangeSaleId" 
                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-750 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                                 <option value="">— Select an Active/Cancelled Booking to Exchange —</option>
-                                <template x-for="sale in sales.filter(s => s.status === 'active' || s.status === 'cancelled')" :key="sale.id">
+                                <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && (!s.sale_units || s.sale_units.length <= 1))" :key="sale.id">
                                     <option :value="sale.id" 
                                             x-text="sale.sale_number + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + (sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'N/A') + ')'"></option>
                                 </template>

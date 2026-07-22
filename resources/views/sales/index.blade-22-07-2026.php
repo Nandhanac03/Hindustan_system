@@ -435,7 +435,7 @@
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
-                                        <div class="space-y-1.5" x-show="row.gst_type !== 'none'">
+                                        <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'add')" placeholder="18"
                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
@@ -470,36 +470,27 @@
                         </div>
                     </div>
                     {{-- ── Section 4 — Initial Payment ── --}}
-                    <div class="border-t border-slate-100 pt-5 mt-2">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm shadow-sm border border-primary/20">
-                                💼
-                            </div>
-                            <div>
-                                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Initial Payment</h3>
-                                <p class="text-[9px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Record the first payment details for this contract</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
-                            <div class="space-y-1.5 flex-1 w-full">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
-                                <div class="grid grid-cols-2 gap-3">
+                    <div class="border-t border-slate-100 pt-4">
+                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💼 Initial Payment</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Initial Payment</label>
+                                <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <input type="number" step="0.01" x-model="forms.add.initial_payment_amount" @input="updateInitialPaymentFromAmount('add')" placeholder="Amount (₹)"
-                                               class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     </div>
                                     <div>
                                         <input type="number" step="0.01" min="0" max="100" x-model="forms.add.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('add')" placeholder="Percentage (%)"
-                                               class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     </div>
                                 </div>
-                                <p class="text-[9px] text-slate-400 font-medium">Enter amount or percentage (0 if none)</p>
+                                <p class="text-[9px] text-slate-400">Enter amount or percentage (0 if none)</p>
                             </div>
-                            <div class="space-y-1.5 w-full md:w-40">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Mode</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</label>
                                 <select x-model="forms.add.payment_mode"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="Cash">Cash</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                     <option value="Cheque">Cheque</option>
@@ -507,23 +498,20 @@
                                     <option value="Credit Card">Credit Card</option>
                                 </select>
                             </div>
-                            <div class="space-y-1.5 w-full md:w-40">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Date</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Date</label>
                                 <input type="date" x-model="forms.add.initial_payment_date"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                             </div>
-                        </div>
-
-                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.add.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Reference / Cheque No</label>
+                            <div x-show="['Bank Transfer', 'Cheque'].includes(forms.add.payment_mode)" class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Cheque No</label>
                                 <input type="text" x-model="forms.add.reference_no" placeholder="e.g. UTR / Cheque number"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Bank Name</label>
+                            <div x-show="['Bank Transfer', 'Cheque'].includes(forms.add.payment_mode)" class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Name</label>
                                 <select x-model="forms.add.bank_id"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="">Select Bank Account</option>
                                     <template x-for="bank in bankAccountsList" :key="bank.id">
                                         <option :value="bank.id" x-text="bank.name"></option>
@@ -801,7 +789,7 @@
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
-                                        <div class="space-y-1.5" x-show="row.gst_type !== 'none'">
+                                        <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'edit')" placeholder="18"
                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
@@ -899,36 +887,27 @@
                         </div>
                     </div>
                     {{-- ── Section 5 — Initial Payment ── --}}
-                    <div class="border-t border-slate-100 pt-5 mt-2">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm shadow-sm border border-primary/20">
-                                💼
-                            </div>
-                            <div>
-                                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Initial Payment</h3>
-                                <p class="text-[9px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Record the first payment details for this contract</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
-                            <div class="space-y-1.5 flex-1 w-full">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
-                                <div class="grid grid-cols-2 gap-3">
+                    <div class="border-t border-slate-100 pt-4">
+                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💼 Initial Payment</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Initial Payment</label>
+                                <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <input type="number" step="0.01" x-model="forms.edit.initial_payment_amount" @input="updateInitialPaymentFromAmount('edit')" placeholder="Amount (₹)"
-                                               class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     </div>
                                     <div>
                                         <input type="number" step="0.01" min="0" max="100" x-model="forms.edit.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('edit')" placeholder="Percentage (%)"
-                                               class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
+                                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     </div>
                                 </div>
-                                <p class="text-[9px] text-slate-400 font-medium">Enter amount or percentage (0 if none)</p>
+                                <p class="text-[9px] text-slate-400">Enter amount or percentage (0 if none)</p>
                             </div>
-                            <div class="space-y-1.5 w-full md:w-40">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Mode</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</label>
                                 <select x-model="forms.edit.payment_mode"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="Cash">Cash</option>
                                     <option value="Bank Transfer">Bank Transfer</option>
                                     <option value="Cheque">Cheque</option>
@@ -936,23 +915,20 @@
                                     <option value="Credit Card">Credit Card</option>
                                 </select>
                             </div>
-                            <div class="space-y-1.5 w-full md:w-40">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Date</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Date</label>
                                 <input type="date" x-model="forms.edit.initial_payment_date"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                             </div>
-                        </div>
-
-                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Reference / Cheque No</label>
+                            <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Cheque No</label>
                                 <input type="text" x-model="forms.edit.reference_no" placeholder="e.g. UTR / Cheque number"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Bank Name</label>
+                            <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Name</label>
                                 <select x-model="forms.edit.bank_id"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="">Select Bank Account</option>
                                     <template x-for="bank in bankAccountsList" :key="bank.id">
                                         <option :value="bank.id" x-text="bank.name"></option>
@@ -1824,9 +1800,6 @@ function salesApp() {
         },
         filteredExchangeSales() {
             return this.sales.filter(sale => {
-                // Only single-unit sales are eligible for exchange
-                if (sale.sale_units && sale.sale_units.length > 1) return false;
-
                 if (this.exchangeFilters.search) {
                     const q = this.exchangeFilters.search.toLowerCase();
                     const cust = sale.customer ? sale.customer.name.toLowerCase() : '';
@@ -2064,16 +2037,10 @@ function salesApp() {
         recalculateExtraWorkRowGst(index, mode = 'add') {
             const row = this.forms[mode].extra_works[index];
             const entered = parseFloat(row.amount) || 0;
-            let pct = parseFloat(row.gst_percentage) || 0;
+            const pct = parseFloat(row.gst_percentage) || 0;
             const type = row.gst_type || 'none';
             let gst = 0;
             let total = 0;
-
-            if (type === 'none') {
-                pct = 0;
-                row.gst_percentage = 0;
-            }
-
             if (type === 'exclusive') {
                 gst = Math.round(entered * (pct / 100) * 100) / 100;
                 total = Math.round((entered + gst) * 100) / 100;
