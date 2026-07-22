@@ -87,7 +87,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">
-                    <template x-for="sale in sales" :key="sale.id">
+                    <template x-for="sale in paginatedSales()" :key="sale.id">
                         <tr class="hover:bg-slate-50/50 transition-colors text-center text-xs font-semibold text-slate-700">
                             <td class="px-4 py-4 font-bold text-slate-900 border-b border-slate-100" x-text="sale.sale_number"></td>
                             <td class="px-4 py-4 text-left border-b border-slate-100">
@@ -119,10 +119,44 @@
                         </tr>
                     </template>
                     <tr x-show="sales.length === 0">
-                        <td colspan="10" class="px-6 py-10 text-center text-slate-400 italic bg-white">No sales match the query filters.</td>
+                        <td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">No sales records found.</td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        {{-- Sales Register Table Pagination --}}
+        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl" x-show="sales.length > 0">
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                SHOWING <span class="text-slate-900" x-text="(currentPage - 1) * perPage + 1"></span> TO 
+                <span class="text-slate-900" x-text="Math.min(currentPage * perPage, sales.length)"></span> OF 
+                <span class="text-slate-900" x-text="sales.length"></span> SALES
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button type="button" @click="if(currentPage > 1) currentPage--" 
+                        :disabled="currentPage <= 1"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                    PREV
+                </button>
+                
+                {{-- Page Numbers --}}
+                <template x-for="p in getPageNumbers()" :key="p">
+                    <span class="inline-flex items-center gap-1">
+                        <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                        <button type="button" x-show="p !== '...'"
+                                @click="currentPage = p"
+                                x-text="p"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                                :class="currentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                    </span>
+                </template>
+                
+                <button type="button" @click="if(currentPage < getTotalPages()) currentPage++" 
+                        :disabled="currentPage >= getTotalPages()"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                    NEXT
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1246,6 +1280,8 @@
 function salesApp() {
     return {
         sales: [],
+        currentPage: 1,
+        perPage: 10,
         filters: { search: '', project_id: '{{ request('project_id') }}', status: '', date_from: '', date_to: '' },
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
         availableUnits: { add: [], edit: [] },
@@ -1284,7 +1320,11 @@ function salesApp() {
         toast: { open: false, message: '', type: 'success' },
         // Return & Exchange State
         returnFilters: { search: '', project_id: '{{ request('project_id') }}', type: '', status: '{{ request('tab') === 'cancellations' ? 'cancelled' : (request('tab') === 'returns' ? 'returned' : '') }}' },
+        returnCurrentPage: 1,
+        returnPerPage: 10,
         exchangeFilters: { search: '', project_id: '', type: '', status: '' },
+        exchangeCurrentPage: 1,
+        exchangePerPage: 50,
         selectedReturnSale: null,
         targetReturnStatus: '',
         selectedExchangeSale: null,
@@ -1306,6 +1346,12 @@ function salesApp() {
         viewExchangeSale: null,
         init() {
             this.fetchSales();
+            this.$watch('returnFilters', () => {
+                this.returnCurrentPage = 1;
+            }, { deep: true });
+            this.$watch('exchangeFilters', () => {
+                this.exchangeCurrentPage = 1;
+            }, { deep: true });
             const urlParams = new URLSearchParams(window.location.search);
             const viewSaleId = urlParams.get('view_sale_id');
             if (viewSaleId) {
@@ -1355,11 +1401,44 @@ function salesApp() {
             .then(res => res.json())
             .then(data => { 
                 this.sales = data.sales; 
+                this.currentPage = 1;
                 this.$nextTick(() => {
                     this.renderExchangeChart();
                 });
             })
             .catch(err => { console.error(err); this.showToast('Failed to fetch sales.', 'error'); });
+        },
+        paginatedSales() {
+            const start = (this.currentPage - 1) * this.perPage;
+            return this.sales.slice(start, start + this.perPage);
+        },
+        getTotalPages() {
+            return Math.ceil(this.sales.length / this.perPage) || 1;
+        },
+        getPageNumbers() {
+            const totalPages = this.getTotalPages();
+            const current = this.currentPage;
+            const pages = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                if (current <= 4) {
+                    for (let i = 1; i <= 5; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (current >= totalPages - 3) {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            return pages;
         },
         resetFilters() {
             this.filters = { search: '', project_id: '', status: '', date_from: '', date_to: '' };
@@ -1686,6 +1765,39 @@ function salesApp() {
                 return true;
             });
         },
+        paginatedReturnSales() {
+            const filtered = this.filteredReturnSales();
+            const start = (this.returnCurrentPage - 1) * this.returnPerPage;
+            return filtered.slice(start, start + this.returnPerPage);
+        },
+        getReturnTotalPages() {
+            return Math.ceil(this.filteredReturnSales().length / this.returnPerPage) || 1;
+        },
+        getReturnPageNumbers() {
+            const totalPages = this.getReturnTotalPages();
+            const current = this.returnCurrentPage;
+            const pages = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                if (current <= 4) {
+                    for (let i = 1; i <= 5; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (current >= totalPages - 3) {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            return pages;
+        },
         filteredExchangeSales() {
             return this.sales.filter(sale => {
                 if (this.exchangeFilters.search) {
@@ -1709,6 +1821,39 @@ function salesApp() {
                 }
                 return true;
             });
+        },
+        paginatedExchangeSales() {
+            const filtered = this.filteredExchangeSales();
+            const start = (this.exchangeCurrentPage - 1) * this.exchangePerPage;
+            return filtered.slice(start, start + this.exchangePerPage);
+        },
+        getExchangeTotalPages() {
+            return Math.ceil(this.filteredExchangeSales().length / this.exchangePerPage) || 1;
+        },
+        getExchangePageNumbers() {
+            const totalPages = this.getExchangeTotalPages();
+            const current = this.exchangeCurrentPage;
+            const pages = [];
+            if (totalPages <= 7) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                if (current <= 4) {
+                    for (let i = 1; i <= 5; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                } else if (current >= totalPages - 3) {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            }
+            return pages;
         },
         renderExchangeChart() {
             const chartEl = document.querySelector("#returnsExchangesChart");

@@ -181,7 +181,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-705">
-                        <template x-for="sale in filteredReturnSales()" :key="sale.id">
+                        <template x-for="sale in paginatedReturnSales()" :key="sale.id">
                             <tr class="hover:bg-slate-50/50 transition-colors">
                                 <td class="px-3 py-2.5 text-primary font-bold text-left">
                                     <span x-text="'RET-' + new Date(sale.cancelled_at || sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')"></span>
@@ -250,6 +250,40 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Return Table Pagination Controls --}}
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl" x-show="filteredReturnSales().length > 0">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    SHOWING <span class="text-slate-900" x-text="(returnCurrentPage - 1) * returnPerPage + 1"></span> TO 
+                    <span class="text-slate-900" x-text="Math.min(returnCurrentPage * returnPerPage, filteredReturnSales().length)"></span> OF 
+                    <span class="text-slate-900" x-text="filteredReturnSales().length"></span> RETURNS
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" @click="if(returnCurrentPage > 1) returnCurrentPage--" 
+                            :disabled="returnCurrentPage <= 1"
+                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                        PREV
+                    </button>
+                    
+                    {{-- Page Numbers --}}
+                    <template x-for="p in getReturnPageNumbers()" :key="p">
+                        <span class="inline-flex items-center gap-1">
+                            <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                            <button type="button" x-show="p !== '...'"
+                                    @click="returnCurrentPage = p"
+                                    x-text="p"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                                    :class="returnCurrentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                        </span>
+                    </template>
+                    
+                    <button type="button" @click="if(returnCurrentPage < getReturnTotalPages()) returnCurrentPage++" 
+                            :disabled="returnCurrentPage >= getReturnTotalPages()"
+                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                        NEXT
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1025,7 +1059,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
-                        <template x-for="sale in filteredExchangeSales()" :key="sale.id">
+                        <template x-for="sale in paginatedExchangeSales()" :key="sale.id">
                             <tr class="hover:bg-slate-50/50 transition-colors">
                                 <td class="px-3 py-2.5 font-bold text-primary text-left" x-text="sale.status === 'exchanged' ? ('EXC-' + new Date(sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')) : '—'"></td>
                                 <td class="px-3 py-2.5 text-slate-500 text-left" x-text="formatDate(sale.status === 'exchanged' ? sale.updated_at : sale.sale_date)"></td>
@@ -1076,6 +1110,40 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            {{-- Exchange Table Pagination Controls --}}
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl" x-show="filteredExchangeSales().length > 0">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    SHOWING <span class="text-slate-900" x-text="(exchangeCurrentPage - 1) * exchangePerPage + 1"></span> TO 
+                    <span class="text-slate-900" x-text="Math.min(exchangeCurrentPage * exchangePerPage, filteredExchangeSales().length)"></span> OF 
+                    <span class="text-slate-900" x-text="filteredExchangeSales().length"></span> EXCHANGES
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" @click="if(exchangeCurrentPage > 1) exchangeCurrentPage--" 
+                            :disabled="exchangeCurrentPage <= 1"
+                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                        PREV
+                    </button>
+                    
+                    {{-- Page Numbers --}}
+                    <template x-for="p in getExchangePageNumbers()" :key="p">
+                        <span class="inline-flex items-center gap-1">
+                            <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                            <button type="button" x-show="p !== '...'"
+                                    @click="exchangeCurrentPage = p"
+                                    x-text="p"
+                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                                    :class="exchangeCurrentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                        </span>
+                    </template>
+                    
+                    <button type="button" @click="if(exchangeCurrentPage < getExchangeTotalPages()) exchangeCurrentPage++" 
+                            :disabled="exchangeCurrentPage >= getExchangeTotalPages()"
+                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                        NEXT
+                    </button>
+                </div>
             </div>
         </div>
 
