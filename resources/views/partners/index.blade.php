@@ -322,6 +322,7 @@
                             </div>
                         </div>
                     </div>
+                    </div> <!-- Closing flex row for project -->
                 @empty
                     <div class="text-center py-6 text-slate-450 italic">No active projects found.</div>
                 @endforelse
@@ -367,8 +368,8 @@
 
         <!-- Project Profile Card -->
         @if($dashboardProject)
-        <div class="bg-white border border-[#EFECE1] rounded-2xl p-5 shadow-sm flex flex-col lg:flex-row gap-6 items-center" x-data="{ editProjectModal: false, imagePreview: null }">
-            <div class="w-full lg:w-48 h-32 rounded-xl overflow-hidden shadow-md flex-shrink-0 bg-slate-100 relative">
+        <div class="bg-white border border-[#EFECE1] rounded-2xl p-4 shadow-sm flex flex-col lg:flex-row gap-6 items-stretch" x-data="{ editProjectModal: false, imagePreview: null }">
+            <div class="w-full lg:w-[300px] h-[240px] rounded-xl overflow-hidden shadow-sm border border-slate-150 flex-shrink-0 bg-slate-100 relative">
                 @if($dashboardProject->image_url)
                     <img src="{{ asset('storage/' . $dashboardProject->image_url) }}" alt="Project Image" class="w-full h-full object-cover">
                 @else
@@ -376,40 +377,44 @@
                         <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                 @endif
-                <div class="absolute top-2 right-2 bg-emerald-600 text-white text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                <div class="absolute top-3 right-3 bg-emerald-600 text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-widest shadow-sm">
                     {{ $dashboardProject->status }}
                 </div>
             </div>
             
-            <div class="flex-1 space-y-3">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                        <h3 class="text-lg font-extrabold text-slate-900 leading-tight uppercase">{{ $dashboardProject->name }}</h3>
-                        <div class="flex items-center gap-1 text-slate-450 mt-1">
-                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            <span class="text-xs font-semibold text-slate-500">{{ $dashboardProject->location }}, {{ $dashboardProject->city }}, {{ $dashboardProject->state_or_emirate }}, India</span>
+            <div class="flex-1 flex flex-col justify-between py-1">
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div>
+                            <h3 class="text-xl font-black text-slate-900 leading-tight uppercase tracking-wide">{{ $dashboardProject->name }}</h3>
+                            <div class="flex items-center gap-1.5 text-slate-500 mt-1.5">
+                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span class="text-sm font-semibold text-slate-500">{{ $dashboardProject->location }}, {{ $dashboardProject->city }}, {{ $dashboardProject->state_or_emirate }}, India</span>
+                            </div>
                         </div>
+                        <button @click="editProjectModal = true" class="inline-flex items-center gap-1.5 rounded-xl border border-[#a38c29]/50 hover:bg-[#a38c29]/5 px-4 py-2 text-xs font-bold text-[#7E6A1B] uppercase tracking-wider transition shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            Edit Project
+                        </button>
                     </div>
-                    <button @click="editProjectModal = true" class="inline-flex items-center gap-1.5 rounded-xl border border-[#a38c29]/50 hover:bg-[#a38c29]/5 px-3 py-1.5 text-[10px] font-extrabold text-[#7E6A1B] uppercase tracking-wider transition">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                        Edit Project
-                    </button>
+                    
+                    <div class="text-[13px] text-slate-900 font-medium leading-relaxed">
+                        {!! $dashboardProject->description !!}
+                    </div>
                 </div>
                 
-                <p class="text-xs text-slate-500 font-medium leading-relaxed">{!! $dashboardProject->description !!}</p>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                    <div class="bg-[#FAF8F2] border border-[#EFECE1] rounded-xl p-3 flex flex-col justify-center">
-                        <span class="text-[9px] font-extrabold text-slate-455 uppercase tracking-wider">Total Floors/Units</span>
-                        <span class="text-xs font-bold text-slate-800 mt-1 uppercase">{{ $dashboardProject->total_floors }} Floors / {{ $floors->flatMap->units->count() }} Units</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 mt-auto">
+                    <div class="bg-[#FAF8F2] border border-[#EFECE1] rounded-xl p-4 flex flex-col justify-center">
+                        <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-1">Total Floors/Units</span>
+                        <span class="text-sm font-bold text-slate-900 uppercase">{{ $dashboardProject->total_floors }} Floors / {{ $floors->flatMap->units->count() }} Units</span>
                     </div>
-                    <div class="bg-[#FAF8F2] border border-[#EFECE1] rounded-xl p-3 flex flex-col justify-center">
-                        <span class="text-[9px] font-extrabold text-slate-455 uppercase tracking-wider">Start Date</span>
-                        <span class="text-xs font-bold text-slate-800 mt-1 uppercase">{{ $dashboardProject->start_date ? \Carbon\Carbon::parse($dashboardProject->start_date)->format('d-M-Y') : 'N/A' }}</span>
+                    <div class="bg-[#FAF8F2] border border-[#EFECE1] rounded-xl p-4 flex flex-col justify-center">
+                        <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-1">Start Date</span>
+                        <span class="text-sm font-bold text-slate-900 uppercase">{{ $dashboardProject->start_date ? \Carbon\Carbon::parse($dashboardProject->start_date)->format('d-M-Y') : 'N/A' }}</span>
                     </div>
-                    <div class="bg-[#FAF8F2] border border-[#EFECE1] rounded-xl p-3 flex flex-col justify-center">
-                        <span class="text-[9px] font-extrabold text-slate-455 uppercase tracking-wider">Target Completion</span>
-                        <span class="text-xs font-bold text-slate-800 mt-1 uppercase">{{ $dashboardProject->expected_completion_date ? \Carbon\Carbon::parse($dashboardProject->expected_completion_date)->format('d-M-Y') : 'N/A' }}</span>
+                    <div class="bg-[#FAF8F2] border border-[#EFECE1] rounded-xl p-4 flex flex-col justify-center">
+                        <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest mb-1">Target Completion</span>
+                        <span class="text-sm font-bold text-slate-900 uppercase">{{ $dashboardProject->expected_completion_date ? \Carbon\Carbon::parse($dashboardProject->expected_completion_date)->format('d-M-Y') : 'N/A' }}</span>
                     </div>
                 </div>
             </div>
@@ -1210,6 +1215,7 @@
         });
     </script>
 
-</div>
+</div> <!-- END Executive Dashboard -->
+</div> <!-- END Main Container -->
 
 </x-erp-layout>

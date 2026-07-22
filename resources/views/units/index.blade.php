@@ -76,9 +76,9 @@
         ? asset('storage/' . $project->image_url)
         : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80';
 @endphp
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row gap-6 p-5">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row gap-6 p-3">
         {{-- Project Image --}}
-        <div class="w-full md:w-[240px] h-[160px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150">
+        <div class="w-full md:w-[300px] h-[240px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150">
             <img src="{{ $projectImage }}" alt="{{ $project->name }}" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
             <!-- <div class="absolute bottom-3 left-3">
