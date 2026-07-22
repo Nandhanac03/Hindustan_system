@@ -542,7 +542,7 @@
                     <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
                 </div>
                 
-                <div class="p-6 max-h-[85vh] overflow-y-auto">
+                <div class="p-6 max-h-[85vh] overflow-y-auto" x-ref="exchangeModalScroll">
                     {{-- STEP 1: SELECT SALE --}}
                     <div x-show="newExchangeStep === 1" class="space-y-4">
                         <div class="space-y-2">
@@ -575,12 +575,14 @@
                             <div class="space-y-1">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Project *</label>
                                 <select x-model="exchangeForm.new_project_id" @change="loadExchangeUnits()"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        :class="errors.new_project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-white'"
+                                        class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all">
                                     <option value="">Select Target Project...</option>
                                     @foreach($projects as $proj)
                                         <option value="{{ $proj->id }}">{{ $proj->name }}</option>
                                     @endforeach
                                 </select>
+                                <template x-if="errors.new_project_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.new_project_id) ? errors.new_project_id[0] : errors.new_project_id"></p></template>
                             </div>
 
                             <div class="space-y-1">
@@ -600,7 +602,8 @@
                                     <button type="button" 
                                             @click="if (exchangeForm.new_project_id) { open = !open; if (open) $nextTick(() => $refs.modalTargetUnitSearchInput.focus()); }" 
                                             :disabled="!exchangeForm.new_project_id"
-                                            class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-[38px]">
+                                            :class="errors.new_unit_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-white'"
+                                            class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-[38px]">
                                         <span x-text="exchangeForm.new_unit_id ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id) ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).door_no + ' — ' + getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).floor_name) : '— Select Target Unit —') : '— Select Target Unit —'"
                                               :class="!exchangeForm.new_unit_id ? 'text-slate-400' : 'text-slate-800 font-semibold'"></span>
                                         <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -657,6 +660,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                <template x-if="errors.new_unit_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.new_unit_id) ? errors.new_unit_id[0] : errors.new_unit_id"></p></template>
                             </div>
                         </div>
 
@@ -695,7 +699,9 @@
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Exchange Reason / Notes *</label>
                             <textarea x-model="exchangeForm.reason" rows="2" placeholder="Write internal memo for the unit exchange..."
-                                      class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition resize-none"></textarea>
+                                      :class="errors.reason ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-white'"
+                                      class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition resize-none"></textarea>
+                            <template x-if="errors.reason"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.reason) ? errors.reason[0] : errors.reason"></p></template>
                         </div>
 
                         <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">

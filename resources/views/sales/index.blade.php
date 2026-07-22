@@ -1749,14 +1749,37 @@ function salesApp() {
             return Math.round((parseFloat(this.exchangeForm.new_unit_value || 0) - parseFloat(this.exchangeForm.equity_applied || 0)) * 100) / 100;
         },
         submitExchangePlan() {
+            this.errors = {};
+            let hasError = false;
+
+            if (!this.exchangeForm.new_project_id) {
+                this.errors.new_project_id = ['Please select a target project.'];
+                hasError = true;
+            }
             if (!this.exchangeForm.new_unit_id) {
-                this.showToast('Please select a target unit for exchange.', 'error');
-                return;
+                this.errors.new_unit_id = ['Please select a target available unit.'];
+                hasError = true;
             }
             if (!this.exchangeForm.reason) {
-                this.showToast('Notes/Reason is required for unit exchange.', 'error');
+                this.errors.reason = ['Please enter exchange reason / notes.'];
+                hasError = true;
+            }
+
+            if (hasError) {
+                this.showToast('Please fill all required fields highlighted below.', 'error');
+                this.$nextTick(() => {
+                    if (this.$refs.exchangeModalScroll) {
+                        this.$refs.exchangeModalScroll.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                    const firstErrInput = document.querySelector('[x-ref="exchangeModalScroll"] .border-rose-500');
+                    if (firstErrInput) {
+                        firstErrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if (typeof firstErrInput.focus === 'function') firstErrInput.focus();
+                    }
+                });
                 return;
             }
+
             fetch(`{{ url('sales') }}/${this.selectedExchangeSale.id}/status`, {
                 method: 'POST',
                 headers: {
@@ -1773,7 +1796,21 @@ function salesApp() {
             })
             .then(async res => {
                 let data = await res.json();
-                if (!res.ok) {
+                if (res.status === 422) {
+                    this.errors = data.errors || {};
+                    this.showToast('Please resolve validation errors.', 'error');
+                    this.$nextTick(() => {
+                        if (this.$refs.exchangeModalScroll) {
+                            this.$refs.exchangeModalScroll.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                        const firstErrInput = document.querySelector('[x-ref="exchangeModalScroll"] .border-rose-500');
+                        if (firstErrInput) {
+                            firstErrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            if (typeof firstErrInput.focus === 'function') firstErrInput.focus();
+                        }
+                    });
+                }
+                else if (!res.ok) {
                     this.showToast(data.error || data.message || 'Failed to process exchange.', 'error');
                 } else {
                     this.showToast('Unit exchange processed successfully.');
