@@ -44,7 +44,7 @@
             </button>
         @elseif(request('tab') === 'exchange')
             <button type="button" @click="openNewExchangeModal = true; newExchangeStep = 1; newExchangeSaleId = '';" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-blue-700 hover:shadow-md">
+                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span> New Exchange</span>
             </button>
@@ -489,24 +489,23 @@
             </div>
         </div>
     </div>
-
     @endif
 
     {{-- INITIATE NEW EXCHANGE MODAL POPUP --}}
     <div x-show="openNewExchangeModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openNewExchangeModal = false"></div>
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openNewExchangeModal = false; selectedExchangeSale = null;"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
             <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
                 
                 <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
                     <div>
-                        <span class="text-[9px] font-bold text-blue-800 uppercase tracking-widest block" x-show="newExchangeStep === 2">ACTIVE PLAN</span>
+                        <span class="text-[9px] font-bold text-primary uppercase tracking-widest block" x-show="newExchangeStep === 2">ACTIVE PLAN</span>
                         <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider"
                             x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'EXECUTE EXCHANGE PLAN'"></h3>
                         <p class="text-[10px] text-slate-500 font-semibold mt-0.5" x-show="newExchangeStep === 2 && selectedExchangeSale"
                            x-text="selectedExchangeSale ? 'Old Unit: ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
-                    <button type="button" @click="openNewExchangeModal = false" class="text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
+                    <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
                 </div>
                 
                 <div class="p-6 max-h-[85vh] overflow-y-auto">
@@ -525,12 +524,12 @@
                         </div>
                         
                         <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                            <button type="button" @click="openNewExchangeModal = false"
+                            <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;"
                                     class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
                                 Cancel
                             </button>
                             <button type="button" @click="selectNewExchangeSale()"
-                                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
+                                    class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
                                 Next
                             </button>
                         </div>
@@ -607,8 +606,8 @@
                                             <template x-for="unit in getFilteredExchangeAvailableUnits().filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase())))" :key="unit.id">
                                                 <button type="button"
                                                         @click="exchangeForm.new_unit_id = unit.id; onExchangeUnitSelect(); open = false; search = ''"
-                                                        class="w-full px-3 py-2 text-left text-xs hover:bg-blue-50 transition-colors flex items-center justify-between gap-2"
-                                                        :class="exchangeForm.new_unit_id == unit.id ? 'bg-blue-50/80 text-blue-700 font-bold' : 'text-slate-700'">
+                                                        class="w-full px-3 py-2 text-left text-xs hover:bg-primary/10 transition-colors flex items-center justify-between gap-2"
+                                                        :class="exchangeForm.new_unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
                                                     <div>
                                                         <span class="font-semibold" x-text="unit.door_no"></span>
                                                         <span class="text-[10px] text-slate-400 ml-1.5" x-text="unit.floor_name ? '(' + unit.floor_name + ')' : ''"></span>
@@ -644,7 +643,7 @@
                         </div>
 
                         {{-- Financial Balance Grid --}}
-                        <div class="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-100">
+                        <div class="bg-white border border-primary/20 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-100">
                             <div class="text-center">
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Equity Applied</p>
                                 <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.equity_applied)"></p>
@@ -655,11 +654,9 @@
                             </div>
                             <div class="text-center">
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Differential Due (Receivable)</p>
-                                <p class="text-sm font-extrabold text-blue-700 font-mono mt-0.5" x-text="fmt(calculateDifferentialDue())"></p>
+                                <p class="text-sm font-extrabold text-primary font-mono mt-0.5" x-text="fmt(calculateDifferentialDue())"></p>
                             </div>
                         </div>
-
-
 
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Exchange Reason / Notes *</label>
@@ -668,12 +665,12 @@
                         </div>
 
                         <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                            <button type="button" @click="newExchangeStep = 1"
+                            <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;"
                                     class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
                                 Back
                             </button>
                             <button type="button" @click="submitExchangePlan()"
-                                    class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
+                                    class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
                                 Finalize Exchange & New EMI
                             </button>
                         </div>
@@ -1056,7 +1053,7 @@
                                     <div class="flex items-center justify-end gap-1.5">
                                         <template x-if="sale.status === 'active' || sale.status === 'cancelled'">
                                             <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;"
-                                                    class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[9px] uppercase transition-all tracking-wide">
+                                                    class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[9px] uppercase transition-all tracking-wide shadow-sm">
                                                 Process Exchange
                                             </button>
                                         </template>
