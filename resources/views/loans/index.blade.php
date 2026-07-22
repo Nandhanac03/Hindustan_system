@@ -262,9 +262,80 @@
             </table>
         </div>
 
-        @if($loans->hasPages())
-            <div class="px-6 py-4 border-t border-slate-100">
-                {{ $loans->links() }}
+        {{-- Pagination Controls --}}
+        @if($loans instanceof \Illuminate\Pagination\AbstractPaginator && $loans->hasPages())
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    Showing <span class="text-slate-900">{{ $loans->firstItem() }}</span> to 
+                    <span class="text-slate-900">{{ $loans->lastItem() }}</span> of 
+                    <span class="text-slate-900">{{ number_format($loans->total()) }}</span> Loans
+                </div>
+                <div class="flex items-center gap-1.5">
+                    {{-- Previous Page Link --}}
+                    @if ($loans->onFirstPage())
+                        <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                            Prev
+                        </span>
+                    @else
+                        <a href="{{ $loans->previousPageUrl() }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                            Prev
+                        </a>
+                    @endif
+
+                    {{-- Page Numbers --}}
+                    @php
+                        $currentPage = $loans->currentPage();
+                        $lastPage = $loans->lastPage();
+                        $start = max(1, $currentPage - 2);
+                        $end = min($lastPage, $currentPage + 2);
+                    @endphp
+
+                    @if ($start > 1)
+                        <a href="{{ $loans->url(1) }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                            1
+                        </a>
+                        @if ($start > 2)
+                            <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                        @endif
+                    @endif
+
+                    @for ($page = $start; $page <= $end; $page++)
+                        @if ($page == $currentPage)
+                            <span class="px-2.5 py-1 bg-primary text-white border border-primary rounded-lg text-[10px] font-bold">
+                                {{ $page }}
+                            </span>
+                        @else
+                            <a href="{{ $loans->url($page) }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                {{ $page }}
+                            </a>
+                        @endif
+                    @endfor
+
+                    @if ($end < $lastPage)
+                        @if ($end < $lastPage - 1)
+                            <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                        @endif
+                        <a href="{{ $loans->url($lastPage) }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                            {{ $lastPage }}
+                        </a>
+                    @endif
+
+                    {{-- Next Page Link --}}
+                    @if ($loans->hasMorePages())
+                        <a href="{{ $loans->nextPageUrl() }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                            Next
+                        </a>
+                    @else
+                        <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                            Next
+                        </span>
+                    @endif
+                </div>
             </div>
         @endif
     </div>
