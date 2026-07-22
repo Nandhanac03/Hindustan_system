@@ -173,25 +173,27 @@
                 <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <form @submit.prevent="submitAddSale()">
-                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto" x-ref="addModalScroll">
                     {{-- ── Section 1 — Basics ── --}}
                     <div class="grid grid-cols-3 gap-4">
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Project *</label>
                             <select x-model="forms.add.project_id" @change="loadUnitsForProject('add')"
-                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                    :class="errors.project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                    class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                 <option value="">Select Project...</option>
                                 @foreach($projects as $project)
                                     <option value="{{ $project->id }}">{{ $project->name }}</option>
                                 @endforeach
                             </select>
-                            <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.project_id[0]"></p></template>
+                            <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
                         </div>
                         <div class="space-y-1.5 col-span-2">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer *</label>
                             <div class="flex gap-2">
                                 <select x-model="forms.add.customer_id"
-                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        :class="errors.customer_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                        class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="">— Select Customer —</option>
                                     <template x-for="customer in customerList" :key="customer.id">
                                         <option :value="customer.id" x-text="customer.name + ' (' + customer.email + ')'"></option>
@@ -202,13 +204,14 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                                 </button>
                             </div>
-                            <template x-if="errors.customer_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.customer_id[0]"></p></template>
+                            <template x-if="errors.customer_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.customer_id) ? errors.customer_id[0] : errors.customer_id"></p></template>
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement Date *</label>
                             <input type="date" x-model="forms.add.agreement_date"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.agreement_date"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.agreement_date[0]"></p></template>
+                                   :class="errors.agreement_date ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            <template x-if="errors.agreement_date"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.agreement_date) ? errors.agreement_date[0] : errors.agreement_date"></p></template>
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registration Date</label>
@@ -227,7 +230,7 @@
                         </div>
                         <div class="space-y-3">
                             <template x-for="(row, index) in forms.add.units" :key="index">
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative">
+                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative" :x-ref="'unitRow_' + index">
                                     <button type="button" @click="removeUnitRow(index)" x-show="forms.add.units.length > 1"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
@@ -236,7 +239,8 @@
                                             <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                                 <!-- Trigger Button -->
                                                 <button type="button" @click="open = !open" :disabled="!forms.add.project_id"
-                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8">
+                                                        :class="errors['units.' + index + '.unit_id'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
+                                                        class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8">
                                                     <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.add.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
                                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
@@ -281,6 +285,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            <template x-if="errors['units.' + index + '.unit_id']">
+                                                <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.unit_id']) ? errors['units.' + index + '.unit_id'][0] : errors['units.' + index + '.unit_id']"></p>
+                                            </template>
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
@@ -296,7 +303,11 @@
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
                                             <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index)" placeholder="Base Amount"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                                   :class="errors['units.' + index + '.sale_amount'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
+                                                   class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                            <template x-if="errors['units.' + index + '.sale_amount']">
+                                                <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.sale_amount']) ? errors['units.' + index + '.sale_amount'][0] : errors['units.' + index + '.sale_amount']"></p>
+                                            </template>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
@@ -2308,14 +2319,52 @@ function salesApp() {
         },
         closeAddModal() { this.modals.add.open = false; },
         submitAddSale() {
-            if (!this.forms.add.project_id || !this.forms.add.customer_id || !this.forms.add.agreement_date) {
-                this.showToast('Please fill all required fields (Project, Customer, Date).', 'error');
+            this.errors = {};
+            let hasError = false;
+
+            if (!this.forms.add.project_id) {
+                this.errors.project_id = ['The project field is required.'];
+                hasError = true;
+            }
+            if (!this.forms.add.customer_id) {
+                this.errors.customer_id = ['Please select a customer.'];
+                hasError = true;
+            }
+            if (!this.forms.add.agreement_date) {
+                this.errors.agreement_date = ['Please enter agreement date.'];
+                hasError = true;
+            }
+            if (!this.forms.add.units || this.forms.add.units.length === 0) {
+                this.showToast('Please add at least one unit row.', 'error');
+                hasError = true;
+            } else {
+                this.forms.add.units.forEach((u, idx) => {
+                    if (!u.unit_id) {
+                        this.errors['units.' + idx + '.unit_id'] = ['Please select a unit.'];
+                        hasError = true;
+                    }
+                    if (!u.sale_amount || parseFloat(u.sale_amount) <= 0) {
+                        this.errors['units.' + idx + '.sale_amount'] = ['Please enter agreed sale amount.'];
+                        hasError = true;
+                    }
+                });
+            }
+
+            if (hasError) {
+                this.showToast('Please fill all required fields highlighted below.', 'error');
+                this.$nextTick(() => {
+                    if (this.$refs.addModalScroll) {
+                        this.$refs.addModalScroll.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                    const firstErrInput = document.querySelector('[x-ref="addModalScroll"] .border-rose-500');
+                    if (firstErrInput) {
+                        firstErrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        if (typeof firstErrInput.focus === 'function') firstErrInput.focus();
+                    }
+                });
                 return;
             }
-            if (!this.forms.add.units || this.forms.add.units.length === 0 || this.forms.add.units.some(u => !u.unit_id || !u.sale_amount)) {
-                this.showToast('Please select at least one unit and ensure its details (e.g. amount) are filled.', 'error');
-                return;
-            }
+
             fetch('{{ route('sales.store') }}', {
                 method: 'POST',
                 headers: {
@@ -2327,7 +2376,20 @@ function salesApp() {
             })
             .then(async res => {
                 let data = await res.json();
-                if (res.status === 422) { this.errors = data.errors || {}; }
+                if (res.status === 422) { 
+                    this.errors = data.errors || {}; 
+                    this.showToast('Please resolve validation errors.', 'error');
+                    this.$nextTick(() => {
+                        if (this.$refs.addModalScroll) {
+                            this.$refs.addModalScroll.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                        const firstErrInput = document.querySelector('[x-ref="addModalScroll"] .border-rose-500');
+                        if (firstErrInput) {
+                            firstErrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            if (typeof firstErrInput.focus === 'function') firstErrInput.focus();
+                        }
+                    });
+                }
                 else if (!res.ok) { this.showToast(data.error || 'Server error.', 'error'); }
                 else { this.showToast('Sale recorded successfully.'); this.closeAddModal(); this.fetchSales(); }
             })
