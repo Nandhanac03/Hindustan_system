@@ -280,12 +280,12 @@
                                             <p class="font-extrabold text-indigo-700 mt-1 font-mono" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
                                         </div>
                                         {{-- Row-level commission details --}}
-                                        <div class="flex items-center gap-2 h-9" x-show="forms.add.broker_involved">
+                                        <!-- <div class="flex items-center gap-2 h-9" x-show="forms.add.broker_involved">
                                             <label class="flex items-center gap-1.5 text-xs font-bold text-slate-650 cursor-pointer">
                                                 <input type="checkbox" x-model="row.broker_involved" @change="recalculateRowBrokerage(index)" class="rounded text-primary focus:ring-primary/20">
                                                 <span>Commission Row?</span>
                                             </label>
-                                        </div>
+                                        </div> -->
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50" x-show="forms.add.broker_involved && row.broker_involved">
                                         <div class="space-y-1.5">
