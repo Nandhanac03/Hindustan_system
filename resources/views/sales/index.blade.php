@@ -3,7 +3,7 @@
     $pageTitle = request('tab') === 'exchange' ? 'Unit Exchange Operations' : (request('tab') === 'cancellations' ? 'Sales Cancellations' : (request('tab') === 'sale-return' ? 'Sales Return / Cancellation' : ($isReturnExchange ? 'Sales Returns' : 'Sales Register')));
 @endphp
 <x-erp-layout :title="$pageTitle" :headerTitle="$pageTitle">
-<div class="max-w-[1500px] mx-auto space-y-6" x-data="salesApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="salesApp()">
     {{-- Toast --}}
     <div x-show="toast.open"
          x-transition:enter="transition ease-out duration-300"
