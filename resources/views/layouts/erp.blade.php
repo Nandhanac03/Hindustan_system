@@ -662,13 +662,50 @@
         document.addEventListener('click', () => setTimeout(window.updateAllAmountInWords, 100));
 
         // Auto-clear 0 default values on focus, and restore 0 on empty blur
+        window.isAutoClearTargetField = function(el) {
+            const xModel = (el.getAttribute('x-model') || '').toLowerCase();
+            const name = (el.getAttribute('name') || '').toLowerCase();
+            const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
+            const id = (el.getAttribute('id') || '').toLowerCase();
+            
+            // Exclude sqft rates
+            if (xModel.includes('sqft') || name.includes('sqft') || placeholder.includes('sqft')) {
+                return false;
+            }
+            
+            // Matches amount fields
+            if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                return true;
+            }
+            
+            // Matches percentage/rate/gst fields
+            if (
+                xModel.includes('gst') ||
+                xModel.includes('percentage') ||
+                xModel.includes('rate') ||
+                xModel.includes('value') ||
+                name.includes('gst') ||
+                name.includes('rate') ||
+                name.includes('percentage') ||
+                placeholder.includes('gst') ||
+                placeholder.includes('percentage') ||
+                placeholder.includes('%') ||
+                placeholder.includes('e.g. 7.50') ||
+                placeholder.includes('e.g. 18') ||
+                id.includes('gst') ||
+                id.includes('percentage') ||
+                id.includes('rate')
+            ) {
+                return true;
+            }
+            
+            return false;
+        };
+
         document.addEventListener('focusin', function(e) {
             const el = e.target;
             if (el && el.tagName === 'INPUT' && (el.type === 'number' || el.type === 'text')) {
-                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
-                const name = (el.getAttribute('name') || '').toLowerCase();
-                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
-                if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                if (window.isAutoClearTargetField(el)) {
                     const val = el.value.trim();
                     if (val === '0' || val === '0.00' || parseFloat(val) === 0) {
                         el.value = '';
@@ -681,10 +718,7 @@
         document.addEventListener('focusout', function(e) {
             const el = e.target;
             if (el && el.tagName === 'INPUT' && (el.type === 'number' || el.type === 'text')) {
-                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
-                const name = (el.getAttribute('name') || '').toLowerCase();
-                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
-                if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                if (window.isAutoClearTargetField(el)) {
                     const val = el.value.trim();
                     if (val === '') {
                         el.value = '0';
