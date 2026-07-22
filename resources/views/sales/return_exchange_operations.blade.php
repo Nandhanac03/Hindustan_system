@@ -1009,7 +1009,7 @@
                             <th class="px-3 py-3 text-left">Date</th>
                             <th class="px-3 py-3 text-left">Project</th>
                             <th class="px-3 py-3 text-left bg-slate-100/50" colspan="2">Old Unit (Cancelled)</th>
-                            <th class="px-3 py-3 text-left bg-blue-50/30" colspan="2">New Unit (Booked)</th>
+                            <th class="px-3 py-3 text-left bg-primary/5" colspan="2">New Unit (Booked)</th>
                             <th class="px-3 py-3 text-right">Difference Amount</th>
                             <th class="px-3 py-3 text-left">Payable / Refundable</th>
                             <th class="px-3 py-3 text-center">Status</th>
@@ -1019,8 +1019,8 @@
                             <th class="px-3 py-1 font-normal" colspan="3"></th>
                             <th class="px-3 py-1 bg-slate-100/30 font-semibold border-r border-slate-150">Unit Details</th>
                             <th class="px-3 py-1 bg-slate-100/30 font-semibold border-r border-slate-150">Customer</th>
-                            <th class="px-3 py-1 bg-blue-50/10 font-semibold border-r border-slate-150">Unit Details</th>
-                            <th class="px-3 py-1 bg-blue-50/10 font-semibold border-r border-slate-150">Customer</th>
+                            <th class="px-3 py-1 bg-primary/5 font-semibold border-r border-slate-150">Unit Details</th>
+                            <th class="px-3 py-1 bg-primary/5 font-semibold border-r border-slate-150">Customer</th>
                             <th class="px-3 py-1 font-normal" colspan="4"></th>
                         </tr>
                     </thead>
@@ -1032,8 +1032,8 @@
                                 <td class="px-3 py-2.5 text-left" x-text="sale.project ? sale.project.name : 'N/A'"></td>
                                 <td class="px-3 py-2.5 text-left bg-slate-100/20 border-r border-slate-100" x-text="sale.unit ? sale.unit.door_no : '—'"></td>
                                 <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-slate-100/20 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left bg-blue-50/10 border-r border-slate-100 font-bold text-blue-700" x-text="getNewUnitDoorNo(sale)"></td>
-                                <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-blue-50/10 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+                                <td class="px-3 py-2.5 text-left bg-primary/5 border-r border-slate-100 font-bold text-primary" x-text="getNewUnitDoorNo(sale)"></td>
+                                <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-primary/5 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
                                 <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></td>
                                 <td class="px-3 py-2.5 text-left">
                                     <template x-if="sale.status === 'exchanged'">
@@ -1059,15 +1059,12 @@
                                         </template>
                                         <template x-if="sale.status === 'exchanged'">
                                             <div class="flex items-center gap-1.5 justify-end">
-                                                <button type="button" @click="viewExchangeSale = sale; openViewExchangeModal = true;" class="text-slate-450 hover:text-slate-700 transition-colors" title="View Details">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                <button type="button" @click="viewExchangeSale = sale; openViewExchangeModal = true;" class="w-7 h-7 rounded-xl bg-[#f5f2df] text-[#8a7620] hover:bg-[#eae5cb] flex items-center justify-center transition-all" title="View Details">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                 </button>
-                                                <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;" class="text-primary hover:text-primary-700 transition-colors" title="Edit Exchange">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;" class="w-7 h-7 rounded-xl bg-[#e6f4ee] text-[#107b6e] hover:bg-[#d5ebe2] flex items-center justify-center transition-all" title="Edit Exchange">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                                 </button>
-                                                <!-- <button type="button" class="text-slate-400 hover:text-slate-650 transition-colors" title="More Options">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
-                                                </button> -->
                                             </div>
                                         </template>
                                     </div>
