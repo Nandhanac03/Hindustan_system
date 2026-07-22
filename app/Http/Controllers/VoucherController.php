@@ -1497,16 +1497,20 @@ class VoucherController extends Controller
         $endDate = $request->query('end_date');
         $selectedVoucherType = $request->query('voucher_type');
 
-        $query = LedgerEntry::with(['voucher', 'account', 'voucherLine'])->where('system_id', $systemId);
+        $prefix = DB::getTablePrefix();
+        $ledgerTable = (new LedgerEntry)->getTable();
+        $accountTable = (new Account)->getTable();
+
+        $query = LedgerEntry::with(['voucher', 'account', 'voucherLine'])->where("{$ledgerTable}.system_id", $systemId);
 
         if ($selectedAccount) {
-            $query->where('account_id', $selectedAccount);
+            $query->where("{$ledgerTable}.account_id", $selectedAccount);
         }
         if ($startDate) {
-            $query->where('date', '>=', $startDate);
+            $query->where("{$ledgerTable}.date", '>=', $startDate);
         }
         if ($endDate) {
-            $query->where('date', '<=', $endDate);
+            $query->where("{$ledgerTable}.date", '<=', $endDate);
         }
         if ($selectedVoucherType) {
             $query->whereHas('voucher', function($q) use ($selectedVoucherType) {
@@ -1514,9 +1518,42 @@ class VoucherController extends Controller
             });
         }
 
-        $entries = $query->orderBy('date', 'asc')->orderBy('id', 'asc')->get();
+        $totalQuery = clone $query;
+        $grandTotalDebit = (float)$totalQuery->sum("{$ledgerTable}.debit");
+        $grandTotalCredit = (float)$totalQuery->sum("{$ledgerTable}.credit");
+
+        $entries = $query->orderBy("{$ledgerTable}.date", 'asc')->orderBy("{$ledgerTable}.id", 'asc')->paginate(50)->withQueryString();
 
         $balance = 0.00;
+        if ($entries->currentPage() > 1) {
+            $firstEntry = $entries->first();
+            if ($firstEntry) {
+                $priorQuery = clone $totalQuery;
+                $priorQuery->where(function($q) use ($firstEntry, $ledgerTable) {
+                    $q->where("{$ledgerTable}.date", '<', $firstEntry->date)
+                      ->orWhere(function($sub) use ($firstEntry, $ledgerTable) {
+                          $sub->where("{$ledgerTable}.date", '=', $firstEntry->date)
+                              ->where("{$ledgerTable}.id", '<', $firstEntry->id);
+                      });
+                });
+
+                $priorSums = $priorQuery
+                    ->leftJoin($accountTable, "{$ledgerTable}.account_id", '=', "{$accountTable}.id")
+                    ->select("{$accountTable}.type", DB::raw("SUM({$prefix}{$ledgerTable}.debit) as total_debit"), DB::raw("SUM({$prefix}{$ledgerTable}.credit) as total_credit"))
+                    ->groupBy("{$accountTable}.type")
+                    ->get();
+
+                foreach ($priorSums as $sum) {
+                    $type = strtolower($sum->type ?? 'asset');
+                    if (in_array($type, ['asset', 'expense'])) {
+                        $balance += (float)$sum->total_debit - (float)$sum->total_credit;
+                    } else {
+                        $balance += (float)$sum->total_credit - (float)$sum->total_debit;
+                    }
+                }
+            }
+        }
+
         foreach ($entries as $entry) {
             $type = strtolower($entry->account->type ?? 'asset');
             if (in_array($type, ['asset', 'expense'])) {
@@ -1549,7 +1586,7 @@ class VoucherController extends Controller
 
         return view('vouchers.ledger_directory', compact(
             'accounts', 'entries', 'selectedAccount', 'startDate', 'endDate', 'selectedVoucherType', 'categoryTotals',
-            'latestReceipt', 'latestPurchase', 'latestPayment', 'latestJournal'
+            'latestReceipt', 'latestPurchase', 'latestPayment', 'latestJournal', 'grandTotalDebit', 'grandTotalCredit'
         ));
     }
 

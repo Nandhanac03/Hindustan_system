@@ -116,7 +116,7 @@
                     <span class="w-2 h-2 rounded-full {{ $isAll ? 'bg-white' : 'bg-slate-400' }}"></span>
                 </div>
                 <div class="text-base font-black font-mono {{ $isAll ? 'text-white' : 'text-slate-900' }}">
-                    {{ count($entries) }} <span class="text-[10px] font-normal opacity-70">rows</span>
+                    {{ $entries instanceof \Illuminate\Pagination\AbstractPaginator ? $entries->total() : count($entries) }} <span class="text-[10px] font-normal opacity-70">rows</span>
                 </div>
                 <div class="text-[10px] font-medium {{ $isAll ? 'text-slate-300' : 'text-slate-400' }}">All Categories</div>
             </button>
@@ -213,8 +213,8 @@
 
                         @if($entries->isNotEmpty())
                             @php
-                                $totalDebit = $entries->sum('debit');
-                                $totalCredit = $entries->sum('credit');
+                                $totalDebit = $grandTotalDebit ?? $entries->sum('debit');
+                                $totalCredit = $grandTotalCredit ?? $entries->sum('credit');
                             @endphp
                             <!-- GRAND TOTALS Row -->
                             <tr class="bg-slate-900 text-white font-extrabold border-t-2 border-slate-900">
@@ -233,6 +233,83 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- Pagination Controls --}}
+            @if($entries instanceof \Illuminate\Pagination\AbstractPaginator && $entries->hasPages())
+                <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        Showing <span class="text-slate-900">{{ $entries->firstItem() }}</span> to 
+                        <span class="text-slate-900">{{ $entries->lastItem() }}</span> of 
+                        <span class="text-slate-900">{{ number_format($entries->total()) }}</span> Entries
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        {{-- Previous Page Link --}}
+                        @if ($entries->onFirstPage())
+                            <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-350 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                                Prev
+                            </span>
+                        @else
+                            <a href="{{ $entries->previousPageUrl() }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                                Prev
+                            </a>
+                        @endif
+
+                        {{-- Page Numbers --}}
+                        @php
+                            $currentPage = $entries->currentPage();
+                            $lastPage = $entries->lastPage();
+                            $start = max(1, $currentPage - 2);
+                            $end = min($lastPage, $currentPage + 2);
+                        @endphp
+
+                        @if ($start > 1)
+                            <a href="{{ $entries->url(1) }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                1
+                            </a>
+                            @if ($start > 2)
+                                <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                            @endif
+                        @endif
+
+                        @for ($page = $start; $page <= $end; $page++)
+                            @if ($page == $currentPage)
+                                <span class="px-2.5 py-1 bg-primary text-white border border-primary rounded-lg text-[10px] font-bold">
+                                    {{ $page }}
+                                </span>
+                            @else
+                                <a href="{{ $entries->url($page) }}" 
+                                   class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endfor
+
+                        @if ($end < $lastPage)
+                            @if ($end < $lastPage - 1)
+                                <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                            @endif
+                            <a href="{{ $entries->url($lastPage) }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                {{ $lastPage }}
+                            </a>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($entries->hasMorePages())
+                            <a href="{{ $entries->nextPageUrl() }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                                Next
+                            </a>
+                        @else
+                            <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-350 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                                Next
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
 
     </div>

@@ -38,7 +38,7 @@ class LoanController extends Controller
             $query->where('status', $request->status);
         }
         
-        $loans = $query->latest()->paginate(10);
+        $loans = $query->latest()->paginate(50)->withQueryString();
         
         // Calculate dynamic sums and fetch next pending EMI for the table row listings
         foreach ($loans as $loan) {

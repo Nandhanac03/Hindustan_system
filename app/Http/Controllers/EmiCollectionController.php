@@ -37,7 +37,7 @@ class EmiCollectionController extends Controller
             }])
             ->where('status', 'active')
             ->latest()
-            ->paginate(15);
+            ->paginate(50)->withQueryString();
 
         $totalReceived  = Receipt::sum('amount');
         $totalSales     = Sale::where('status', 'active')->count();
