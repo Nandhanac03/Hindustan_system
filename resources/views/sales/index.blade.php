@@ -302,9 +302,14 @@
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
-                                            <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index)" placeholder="Base Amount"
-                                                   :class="errors['units.' + index + '.sale_amount'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
-                                                   class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                            <div class="relative rounded-xl shadow-sm">
+                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index)" placeholder="0.00"
+                                                       :class="errors['units.' + index + '.sale_amount'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white'"
+                                                       class="block w-full pl-7 pr-3 py-2 border rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                            </div>
                                             <template x-if="errors['units.' + index + '.sale_amount']">
                                                 <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.sale_amount']) ? errors['units.' + index + '.sale_amount'][0] : errors['units.' + index + '.sale_amount']"></p>
                                             </template>
@@ -753,8 +758,13 @@
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
-                                            <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index, 'edit')" placeholder="Base Amount"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                            <div class="relative rounded-xl shadow-sm">
+                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index, 'edit')" placeholder="0.00"
+                                                       class="block w-full pl-7 pr-3 py-2 border border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">

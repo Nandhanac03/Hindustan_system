@@ -291,9 +291,9 @@
                 <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Loan Repayment
                 </a>
-                <a href="{{ route('vouchers.ledger.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <!-- <a href="{{ route('vouchers.ledger.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Chart of Accounts
-                </a>
+                </a> -->
             </div>
         </div>
 
@@ -516,6 +516,183 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+
+        // Limit percentage/GST inputs to 2 digits before decimal and 2 digits after decimal
+        window.limitPercentageInput = function(input) {
+            let value = input.value;
+            // Allow only numbers and a single decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                parts.splice(2); // keep only first two parts
+            }
+            if (parts[0].length > 2) {
+                parts[0] = parts[0].substring(0, 2);
+            }
+            if (parts[1] !== undefined && parts[1].length > 2) {
+                parts[1] = parts[1].substring(0, 2);
+            }
+            const newValue = parts.join('.');
+            if (input.value !== newValue) {
+                input.value = newValue;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        };
+
+        // Indian Numbering System words converter
+        window.convertNumberToWords = function(num) {
+            num = parseFloat(num);
+            if (isNaN(num) || num <= 0) return '';
+            
+            let str = num.toFixed(2);
+            let parts = str.split('.');
+            let integerPart = parseInt(parts[0]);
+            let decimalPart = parseInt(parts[1]);
+            
+            let words = "";
+            
+            function convertInteger(n) {
+                if (n === 0) return "";
+                
+                const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", 
+                               "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+                const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+                
+                if (n < 20) return units[n];
+                if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + units[n % 10] : "");
+                if (n < 1000) return units[Math.floor(n / 100)] + " Hundred" + (n % 100 !== 0 ? " and " + convertInteger(n % 100) : "");
+                if (n < 100000) return convertInteger(Math.floor(n / 1000)) + " Thousand" + (n % 1000 !== 0 ? " " + convertInteger(n % 1000) : "");
+                if (n < 10000000) return convertInteger(Math.floor(n / 100000)) + " Lakh" + (n % 100000 !== 0 ? " " + convertInteger(n % 100000) : "");
+                return convertInteger(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 !== 0 ? " " + convertInteger(n % 10000000) : "");
+            }
+            
+            let rupeeWords = convertInteger(integerPart);
+            if (rupeeWords) {
+                words += rupeeWords + " Rupees";
+            }
+            
+            if (decimalPart > 0) {
+                let paiseWords = convertInteger(decimalPart);
+                if (rupeeWords) {
+                    words += " and " + paiseWords + " Paise";
+                } else {
+                    words += paiseWords + " Paise";
+                }
+            }
+            
+            return words ? words + " Only" : "";
+        };
+
+        // Update all amount inputs with their text representation
+        window.updateAllAmountInWords = function() {
+            document.querySelectorAll('input[type="number"], input[type="text"]').forEach(el => {
+                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
+                const name = (el.getAttribute('name') || '').toLowerCase();
+                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
+                
+                // Exclude rates per sqft and agreed sale amounts
+                if (xModel.includes('sqft') || name.includes('sqft') || placeholder.includes('sqft') || xModel.includes('sale_amount')) {
+                    return;
+                }
+                
+                if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                    let wordsLabel = el.nextElementSibling;
+                    if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
+                        wordsLabel = document.createElement('div');
+                        wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all';
+                        el.parentNode.insertBefore(wordsLabel, el.nextSibling);
+                    }
+                    const words = window.convertNumberToWords(el.value);
+                    wordsLabel.textContent = words ? 'In Words: ' + words : '';
+                }
+            });
+        };
+
+        // Event delegation for text updates and decimal limits
+        document.addEventListener('input', function(e) {
+            const el = e.target;
+            if (el && el.tagName === 'INPUT') {
+                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
+                const name = (el.getAttribute('name') || '').toLowerCase();
+                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
+                const id = (el.getAttribute('id') || '').toLowerCase();
+                
+                // 1. Handle GST & Percentage inputs limit
+                if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount')) {
+                    if (
+                        xModel.includes('gst') ||
+                        xModel.includes('percentage') ||
+                        xModel.includes('rate') ||
+                        xModel.includes('value') ||
+                        name.includes('gst') ||
+                        name.includes('rate') ||
+                        name.includes('percentage') ||
+                        placeholder.includes('gst') ||
+                        placeholder.includes('percentage') ||
+                        placeholder.includes('%') ||
+                        placeholder.includes('e.g. 7.50') ||
+                        placeholder.includes('e.g. 18') ||
+                        id.includes('gst') ||
+                        id.includes('percentage') ||
+                        id.includes('rate')
+                    ) {
+                        window.limitPercentageInput(el);
+                    }
+                }
+                
+                // 2. Handle Amount in Words update
+                if ((el.type === 'number' || el.type === 'text') && !xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('sale_amount')) {
+                    if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                        let wordsLabel = el.nextElementSibling;
+                        if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
+                            wordsLabel = document.createElement('div');
+                            wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all';
+                            el.parentNode.insertBefore(wordsLabel, el.nextSibling);
+                        }
+                        const words = window.convertNumberToWords(el.value);
+                        wordsLabel.textContent = words ? 'In Words: ' + words : '';
+                    }
+                }
+            }
+        });
+
+        // Initialize on load and on DOM updates (e.g. when opening modals)
+        document.addEventListener('DOMContentLoaded', window.updateAllAmountInWords);
+        window.addEventListener('load', window.updateAllAmountInWords);
+        document.addEventListener('click', () => setTimeout(window.updateAllAmountInWords, 100));
+
+        // Auto-clear 0 default values on focus, and restore 0 on empty blur
+        document.addEventListener('focusin', function(e) {
+            const el = e.target;
+            if (el && el.tagName === 'INPUT' && (el.type === 'number' || el.type === 'text')) {
+                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
+                const name = (el.getAttribute('name') || '').toLowerCase();
+                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
+                if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                    const val = el.value.trim();
+                    if (val === '0' || val === '0.00' || parseFloat(val) === 0) {
+                        el.value = '';
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('focusout', function(e) {
+            const el = e.target;
+            if (el && el.tagName === 'INPUT' && (el.type === 'number' || el.type === 'text')) {
+                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
+                const name = (el.getAttribute('name') || '').toLowerCase();
+                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
+                if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                    const val = el.value.trim();
+                    if (val === '') {
+                        el.value = '0';
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                }
+            }
+        });
     </script>
 
     {{-- ═══ GLOBAL CKEDITOR INITIALIZER ═══ --}}
