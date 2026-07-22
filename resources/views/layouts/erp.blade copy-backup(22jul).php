@@ -125,35 +125,32 @@
         {{-- ═══ SALES & CUSTOMERS ═══ --}}
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Sales & Customers</p>
 
-       <div x-data="{ openSales: {{ Request::routeIs('sales.*') || request('tab') === 'sale-return' || request('tab') === 'exchange' ? 'true' : 'false' }} }" class="space-y-1">
-    <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') ? 'bg-slate-800/20' : '' }}">
-        <a href="{{ route('sales.index') }}" class="flex-1 flex items-center gap-3 px-3 py-2.5 text-xs font-semibold hover:text-primary-300 transition-colors {{ Request::routeIs('sales.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            Sales
-        </a>
-        <button @click.prevent="openSales = !openSales" class="p-2.5 text-slate-400 hover:text-primary-300 transition-colors focus:outline-none">
-            <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-        </button>
-    </div>
-    <div x-show="openSales" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-        <a href="{{ route('sales.index') }}"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-            Sales Register
-        </a>
-        <a href="{{ route('sales.index') }}?tab=sale-return"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-            Cancellation / Return
-        </a>
-        <a href="{{ route('sales.index') }}?tab=exchange"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-            Unit Exchange
-        </a>
-    </div>
-</div>
+        <div x-data="{ openSales: {{ Request::routeIs('sales.*') || request('tab') === 'returns' || request('tab') === 'cancellations' ? 'true' : 'false' }} }" class="space-y-1">
+            <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') ? 'bg-slate-800/20' : '' }}">
+                <a href="{{ route('sales.index') }}" class="flex-1 flex items-center gap-3 px-3 py-2.5 text-xs font-semibold hover:text-primary-300 transition-colors {{ Request::routeIs('sales.*') ? 'active text-white' : 'text-slate-300' }}">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Sales
+                </a>
+                <button @click.prevent="openSales = !openSales" class="p-2.5 text-slate-400 hover:text-primary-300 transition-colors focus:outline-none">
+                    <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </div>
+            <div x-show="openSales" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request()->has('tab') ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+                    Sales Register
+                </a>
+                <a href="{{ route('sales.index') }}?tab=sale-return" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+                   Cancellation / Return
+                </a>
+                <a href="{{ route('sales.index') }}?tab=exchange" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29]/20 text-white font-bold border-l-2 border-[#a38c29] pl-2.5' : 'text-slate-300 hover:text-primary-300 hover:bg-slate-800/20' }}">
+                    Unit Exchange
+                </a>
+            </div>
+        </div>
 
         <div x-data="{ openEMI: {{ Request::routeIs('emi-collections.*') ? 'true' : 'false' }} }" class="space-y-1">
             <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('emi-collections.*') ? 'bg-slate-800/20' : '' }}">
@@ -210,21 +207,50 @@
  -->
 
 <!-- Finance & Accounting -->
-{{-- Finance & Accounting --}}
-<p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Finance & Accounting</p>
+<p class="px-3 pt-4 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
+    Finance & Accounting
+</p>
 
-<a href="{{ route('vouchers.receipt.create') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('vouchers.receipt.*') ? 'active text-white' : 'text-slate-300' }}">
-    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14h6M9 10h6M7 3h10a2 2 0 012 2v14l-2-1-2 1-2-1-2 1-2-1-2 1V5a2 2 0 012-2z"/>
+<!-- Receipt Allocation Management -->
+<a href="{{ route('vouchers.receipt.create') }}"
+   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+   {{ Request::routeIs('vouchers.receipt.*')
+        ? 'bg-[#a38c29] text-white shadow-md'
+        : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+
+    <!-- Receipt Icon -->
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="w-4 h-4 flex-shrink-0"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke="currentColor"
+         stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M9 14h6M9 10h6M7 3h10a2 2 0 012 2v14l-2-1-2 1-2-1-2 1-2-1-2 1V5a2 2 0 012-2z"/>
     </svg>
-    Receipt Allocation Management
+
+    <span>Receipt Allocation Management</span>
 </a>
 
-<a href="{{ route('vouchers.ledger.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('vouchers.ledger.*') ? 'active text-white' : 'text-slate-300' }}">
-    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a1 1 0 01-1.447.894L16 18.618l-2.553 1.276a1 1 0 01-.894 0L10 18.618l-2.553 1.276A1 1 0 016 19V5z"/>
+<!-- Ledger Directory -->
+<a href="{{ route('vouchers.ledger.index') }}"
+   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+   {{ Request::routeIs('vouchers.ledger.*')
+        ? 'bg-[#a38c29] text-white shadow-md'
+        : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+
+    <!-- Ledger / Book Icon -->
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="w-4 h-4 flex-shrink-0"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke="currentColor"
+         stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a1 1 0 01-1.447.894L16 18.618l-2.553 1.276a1 1 0 01-.894 0L10 18.618l-2.553 1.276A1 1 0 016 19V5z"/>
     </svg>
-    Ledger Directory
+
+    <span>Ledger Directory</span>
 </a>
 
         <!-- Vouchers -->
