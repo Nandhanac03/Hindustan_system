@@ -583,6 +583,25 @@
             return words ? words + " Only" : "";
         };
 
+        // Sanitize general amount inputs (strip non-numeric except one decimal point and 2 decimal places)
+        window.sanitizeAmountInput = function(input) {
+            let value = input.value;
+            // Allow only numbers and a single decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                parts.splice(2); // keep only first two parts
+            }
+            if (parts[1] !== undefined && parts[1].length > 2) {
+                parts[1] = parts[1].substring(0, 2);
+            }
+            const newValue = parts.join('.');
+            if (input.value !== newValue) {
+                input.value = newValue;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        };
+
         // Update all amount inputs with their text representation
         window.updateAllAmountInWords = function() {
             document.querySelectorAll('input[type="number"], input[type="text"]').forEach(el => {
@@ -640,17 +659,23 @@
                     }
                 }
                 
-                // 2. Handle Amount in Words update
-                if ((el.type === 'number' || el.type === 'text') && !xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('sale_amount')) {
+                // 2. Handle Amount sanitization & In Words update
+                if ((el.type === 'number' || el.type === 'text') && !xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft')) {
                     if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
-                        let wordsLabel = el.nextElementSibling;
-                        if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
-                            wordsLabel = document.createElement('div');
-                            wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all';
-                            el.parentNode.insertBefore(wordsLabel, el.nextSibling);
+                        // Strip invalid characters from the amount input
+                        window.sanitizeAmountInput(el);
+                        
+                        // Render in-words only if it is not the Agreed Sale Amount field
+                        if (!xModel.includes('sale_amount')) {
+                            let wordsLabel = el.nextElementSibling;
+                            if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
+                                wordsLabel = document.createElement('div');
+                                wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all';
+                                el.parentNode.insertBefore(wordsLabel, el.nextSibling);
+                            }
+                            const words = window.convertNumberToWords(el.value);
+                            wordsLabel.textContent = words ? 'In Words: ' + words : '';
                         }
-                        const words = window.convertNumberToWords(el.value);
-                        wordsLabel.textContent = words ? 'In Words: ' + words : '';
                     }
                 }
             }
@@ -724,6 +749,34 @@
                         el.value = '0';
                         el.dispatchEvent(new Event('input', { bubbles: true }));
                     }
+                }
+            }
+        });
+
+        // Block typing of invalid non-numeric/non-dot characters before rendering
+        document.addEventListener('keypress', function(e) {
+            const el = e.target;
+            if (el && el.tagName === 'INPUT') {
+                if (window.isAutoClearTargetField(el)) {
+                    const charCode = (e.which) ? e.which : e.keyCode;
+                    const keyChar = String.fromCharCode(charCode);
+                    
+                    // Allow standard navigation/control keystrokes (like backspace, tab, enter)
+                    if (e.ctrlKey || e.metaKey || charCode < 32) {
+                        return;
+                    }
+                    
+                    // Allow only digits (0-9) and decimal point (.)
+                    if (/[0-9.]/.test(keyChar)) {
+                        // Allow decimal point only if there is not one already
+                        if (keyChar === '.' && el.value.indexOf('.') !== -1) {
+                            e.preventDefault();
+                        }
+                        return;
+                    }
+                    
+                    // Prevent any other characters (letters, mathematical operators like +, -, e)
+                    e.preventDefault();
                 }
             }
         });
