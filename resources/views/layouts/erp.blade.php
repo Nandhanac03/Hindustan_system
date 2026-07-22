@@ -211,27 +211,47 @@
     Finance & Accounting
 </p>
 
+<!-- Receipt Allocation Management -->
 <a href="{{ route('vouchers.receipt.create') }}"
    class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
-   {{ Request::routeIs('vouchers.receipt.create')
+   {{ Request::routeIs('vouchers.receipt.*')
         ? 'bg-[#a38c29] text-white shadow-md'
         : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
 
-    <!-- Optional Icon -->
+    <!-- Receipt Icon -->
     <svg xmlns="http://www.w3.org/2000/svg"
-         class="w-4 h-4"
+         class="w-4 h-4 flex-shrink-0"
          fill="none"
          viewBox="0 0 24 24"
          stroke="currentColor"
          stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round"
-              d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+              d="M9 14h6M9 10h6M7 3h10a2 2 0 012 2v14l-2-1-2 1-2-1-2 1-2-1-2 1V5a2 2 0 012-2z"/>
     </svg>
 
     <span>Receipt Allocation Management</span>
 </a>
 
+<!-- Ledger Directory -->
+<a href="{{ route('vouchers.ledger.index') }}"
+   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200
+   {{ Request::routeIs('vouchers.ledger.*')
+        ? 'bg-[#a38c29] text-white shadow-md'
+        : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
 
+    <!-- Ledger / Book Icon -->
+    <svg xmlns="http://www.w3.org/2000/svg"
+         class="w-4 h-4 flex-shrink-0"
+         fill="none"
+         viewBox="0 0 24 24"
+         stroke="currentColor"
+         stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a1 1 0 01-1.447.894L16 18.618l-2.553 1.276a1 1 0 01-.894 0L10 18.618l-2.553 1.276A1 1 0 016 19V5z"/>
+    </svg>
+
+    <span>Ledger Directory</span>
+</a>
 
         <!-- Vouchers -->
         <!-- <div x-data="{ openVoucher: {{ Request::routeIs('vouchers.*') ? 'true' : 'false' }} }" class="space-y-1">
