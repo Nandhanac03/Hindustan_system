@@ -394,189 +394,220 @@
     </div>
 
     {{-- INITIATE NEW RETURN / CANCELLATION MODAL POPUP --}}
-    <div x-show="openNewReturnModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openNewReturnModal = false"></div>
-        <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
-                
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider"
-                        x-text="newReturnStep === 1 ? (isCancellationTab ? 'Initiate Booking Cancellation' : 'Initiate Sales Return / Cancellation') : (isCancellationTab ? 'Process Cancellation Details' : 'Process Return Details')"></h3>
-                    <button type="button" @click="openNewReturnModal = false" class="text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
+    <div x-show="openNewReturnModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openNewReturnModal = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="isCancellationTab ? 'Cancellation' : 'Return'"></span>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Step <span x-text="newReturnStep"></span> of 2</span>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newReturnStep === 1 ? (isCancellationTab ? 'Initiate Booking Cancellation' : 'Initiate Sales Return / Cancellation') : (isCancellationTab ? 'Process Cancellation Details' : 'Process Return Details')"></h2>
+                    </div>
+                    <button type="button" @click="openNewReturnModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                </div>
+            </div>
+            
+            <div class="p-6 space-y-6 max-h-[78vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                {{-- STEP 1: SELECT SALE --}}
+                <div x-show="newReturnStep === 1" class="space-y-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block" x-text="isCancellationTab ? 'Select Active Booking *' : 'Select Active Sale *'"></label>
+                        <select x-model="newReturnSaleId" 
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800">
+                            <option value="" x-text="isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —'"></option>
+                            <template x-for="sale in sales.filter(s => s.status === 'active')" :key="sale.id">
+                                <option :value="sale.id" 
+                                        x-text="sale.sale_number + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + (sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'N/A') + ')'"></option>
+                            </template>
+                        </select>
+                    </div>
+                    
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+                        <button type="button" @click="openNewReturnModal = false"
+                                class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                            Cancel
+                        </button>
+                        <button type="button" @click="selectNewReturnSale()"
+                                class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
+                            Next
+                        </button>
+                    </div>
                 </div>
                 
-                <div class="p-6">
-                    {{-- STEP 1: SELECT SALE --}}
-                    <div x-show="newReturnStep === 1" class="space-y-4">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block" x-text="isCancellationTab ? 'Select Active Booking *' : 'Select Active Sale *'"></label>
-                            <select x-model="newReturnSaleId" 
-                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-750 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                                <option value="" x-text="isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —'"></option>
-                                <template x-for="sale in sales.filter(s => s.status === 'active')" :key="sale.id">
-                                    <option :value="sale.id" 
-                                            x-text="sale.sale_number + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + (sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'N/A') + ')'"></option>
-                                </template>
-                            </select>
+                {{-- STEP 2: FORM DETAILS --}}
+                <div x-show="newReturnStep === 2" class="space-y-6">
+                    {{-- Selected Info Card --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] flex-shrink-0 shadow-2xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
-                        
-                        <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                            <button type="button" @click="openNewReturnModal = false"
-                                    class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
-                                Cancel
-                            </button>
-                            <button type="button" @click="selectNewReturnSale()"
-                                    class="px-4 py-2 bg-primary hover:bg-primary-600 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
-                                Next
-                            </button>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider" x-text="isCancellationTab ? 'Selected Booking' : 'Selected Sale' "></span>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="newReturnSale ? (isCancellationTab ? 'Booking No: ' : 'Sale No: ') + newReturnSale.sale_number + ' • Customer: ' + (newReturnSale.customer ? newReturnSale.customer.name : 'N/A') : ''"></strong>
                         </div>
                     </div>
                     
-                    {{-- STEP 2: FORM DETAILS --}}
-                    <div x-show="newReturnStep === 2" class="space-y-4">
-                        <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-3 text-xs font-bold text-slate-600">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-0.5" x-text="isCancellationTab ? 'Selected Booking' : 'Selected Sale'"></span>
-                            <span class="text-slate-800" x-text="newReturnSale ? (isCancellationTab ? 'Booking No: ' : 'Sale No: ') + newReturnSale.sale_number + ' • Customer: ' + (newReturnSale.customer ? newReturnSale.customer.name : 'N/A') : ''"></span>
-                        </div>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Select Return/Cancel Date:</label>
+                    {{-- Inputs Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Select Return/Cancel Date *</label>
                                 <input type="date" x-model="returnForm.date"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                             </div>
 
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Revert Unit status to 'Unsold'?</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Revert Unit status to 'Unsold'?</label>
                                 <label class="flex items-center gap-2 h-9 cursor-pointer">
                                     <input type="checkbox" x-model="returnForm.revert_unsold" class="rounded text-primary focus:ring-primary/20">
-                                    <span class="text-xs text-slate-650">Mark Unit as Available</span>
+                                    <span class="text-xs font-semibold text-slate-650">Mark Unit as Available</span>
                                 </label>
                             </div>
                         </div>
+                    </div>
 
-                        {{-- Refund Calculations Grid --}}
-                        <div class="bg-slate-50/50 border border-slate-200 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-200">
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Paid</p>
-                                <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(getPaidTillDate(newReturnSale))"></p>
-                            </div>
-                            <div class="text-center px-2">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Cancellation Fee</p>
-                                <div class="flex items-center justify-center gap-1 mt-0.5">
-                                    <span class="text-slate-400 font-bold">-</span>
-                                    <input type="number" step="1" x-model.number="returnForm.cancellation_fee"
-                                           class="w-24 px-1.5 py-0.5 bg-rose-50/50 border border-rose-200 text-rose-650 font-bold font-mono rounded text-center text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
-                                </div>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Approved Refund Amount</p>
-                                <p class="text-sm font-extrabold text-emerald-700 font-mono mt-0.5" x-text="fmt(calculateApprovedRefund(newReturnSale))"></p>
+                    {{-- Refund Calculations Grid --}}
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                        <div class="absolute -top-12 -left-12 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Paid</span>
+                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="fmt(getPaidTillDate(newReturnSale))"></span>
+                        </div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center items-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cancellation Fee</span>
+                            <div class="flex items-center justify-center gap-1 mt-1">
+                                <span class="text-slate-400 font-bold text-xs">- ₹</span>
+                                <input type="number" step="1" x-model.number="returnForm.cancellation_fee"
+                                       class="w-28 px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-305 font-bold font-mono rounded-lg text-center text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
                             </div>
                         </div>
-
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Reason / Narrative Notes *</label>
-                            <textarea x-model="returnForm.reason" rows="2" placeholder="Explain the rationale for this action..."
-                                      class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition resize-none"></textarea>
-                        </div>
-
-                        <div class="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-3 font-sans">
-                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Return Process Flow</h4>
-                            <div class="flex items-center justify-between text-[11px] font-bold text-slate-650 max-w-sm mx-auto py-2">
-                                <div class="flex flex-col items-center gap-1.5">
-                                    <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center border border-slate-800 shadow shadow-slate-300">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                                    </div>
-                                    <span class="text-[9px]">Return Request</span>
-                                </div>
-                                <div class="h-0.5 bg-slate-300 flex-1 mx-2 -mt-4"></div>
-                                <div class="flex flex-col items-center gap-1.5">
-                                    <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center border border-primary shadow shadow-primary-300">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                    </div>
-                                    <span class="text-[9px]">Admin Approval</span>
-                                </div>
-                                <div class="h-0.5 bg-slate-300 flex-1 mx-2 -mt-4"></div>
-                                <div class="flex flex-col items-center gap-1.5">
-                                    <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center border border-emerald-500 shadow shadow-emerald-250">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    </div>
-                                    <span class="text-[9px]">Customer Ledger</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                            <button type="button" @click="newReturnStep = 1"
-                                    class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
-                                Back
-                            </button>
-                            <button type="button" @click="submitNewReturn()"
-                                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
-                                Confirm Cancellation
-                            </button>
+                        <div class="relative z-10 flex flex-col justify-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Approved Refund Amount</span>
+                            <span class="font-extrabold text-[#d9bf3b] text-base mt-1 block font-mono" x-text="fmt(calculateApprovedRefund(newReturnSale))"></span>
                         </div>
                     </div>
+
+                    {{-- Reason Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            <span>💬 Reason & Narrative Notes *</span>
+                        </p>
+                        <textarea x-model="returnForm.reason" rows="2" placeholder="Explain the rationale for this action..."
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm"></textarea>
+                    </div>
+
+                    {{-- Process Flow Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            <span>🔄 Return Process Flow</span>
+                        </p>
+                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-650 max-w-sm mx-auto py-2">
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center border border-slate-800 shadow-md">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                </div>
+                                <span class="text-[9px] uppercase tracking-wider text-slate-400">Request</span>
+                            </div>
+                            <div class="h-0.5 bg-slate-200 flex-1 mx-2 -mt-4"></div>
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center border border-primary shadow-md">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                </div>
+                                <span class="text-[9px] uppercase tracking-wider text-slate-400">Approval</span>
+                            </div>
+                            <div class="h-0.5 bg-slate-200 flex-1 mx-2 -mt-4"></div>
+                            <div class="flex flex-col items-center gap-1.5">
+                                <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center border border-emerald-500 shadow-md">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <span class="text-[9px] uppercase tracking-wider text-slate-400">Ledger</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+                        <button type="button" @click="newReturnStep = 1"
+                                class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                            Back
+                        </button>
+                        <button type="button" @click="submitNewReturn()"
+                                class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
+                            Confirm Cancellation
+                        </button>
+                    </div>
                 </div>
-                
             </div>
         </div>
     </div>
     @endif
 
     {{-- INITIATE NEW EXCHANGE MODAL POPUP --}}
-    <div x-show="openNewExchangeModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openNewExchangeModal = false; selectedExchangeSale = null;"></div>
-        <div class="relative min-h-screen flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
-                
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+    <div x-show="openNewExchangeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openNewExchangeModal = false; selectedExchangeSale = null;">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
-                        <span class="text-[9px] font-bold text-primary uppercase tracking-widest block" x-show="newExchangeStep === 2">ACTIVE PLAN</span>
-                        <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider"
-                            x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'EXECUTE EXCHANGE PLAN'"></h3>
-                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5" x-show="newExchangeStep === 2 && selectedExchangeSale"
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-show="newExchangeStep === 2">Active Plan</span>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Step <span x-text="newExchangeStep"></span> of 2</span>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'Execute Exchange Plan'"></h2>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="newExchangeStep === 2 && selectedExchangeSale"
                            x-text="selectedExchangeSale ? 'Old Unit: ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
-                    <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
+                    <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
-                
-                <div class="p-6 max-h-[85vh] overflow-y-auto" x-ref="exchangeModalScroll">
-                    {{-- STEP 1: SELECT SALE --}}
-                    <div x-show="newExchangeStep === 1" class="space-y-4">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Select Active/Cancelled Sale *</label>
-                            <select x-model="newExchangeSaleId" 
-                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-750 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                                <option value="">— Select an Active/Cancelled Booking to Exchange —</option>
-                                <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && (!s.sale_units || s.sale_units.length <= 1))" :key="sale.id">
-                                    <option :value="sale.id" 
-                                            x-text="sale.sale_number + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + (sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'N/A') + ')'"></option>
-                                </template>
-                            </select>
-                        </div>
-                        
-                        <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                            <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;"
-                                    class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
-                                Cancel
-                            </button>
-                            <button type="button" @click="selectNewExchangeSale()"
-                                    class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
-                                Next
-                            </button>
-                        </div>
+            </div>
+            
+            <div class="p-6 space-y-6 max-h-[78vh] overflow-y-auto font-sans text-xs bg-slate-50/50" x-ref="exchangeModalScroll">
+                {{-- STEP 1: SELECT SALE --}}
+                <div x-show="newExchangeStep === 1" class="space-y-6">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Select Active/Cancelled Sale *</label>
+                        <select x-model="newExchangeSaleId" 
+                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800">
+                            <option value="">— Select an Active/Cancelled Booking to Exchange —</option>
+                            <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && (!s.sale_units || s.sale_units.length <= 1))" :key="sale.id">
+                                <option :value="sale.id" 
+                                        x-text="sale.sale_number + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + (sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'N/A') + ')'"></option>
+                            </template>
+                        </select>
                     </div>
                     
-                    {{-- STEP 2: FORM DETAILS --}}
-                    <div x-show="newExchangeStep === 2" class="space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Project *</label>
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+                        <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;"
+                                class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                            Cancel
+                        </button>
+                        <button type="button" @click="selectNewExchangeSale()"
+                                class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
+                            Next
+                        </button>
+                    </div>
+                </div>
+                
+                {{-- STEP 2: FORM DETAILS --}}
+                <div x-show="newExchangeStep === 2" class="space-y-6">
+                    {{-- Target selectors card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
+                            <span>🎯 Target Unit Selections</span>
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Project *</label>
                                 <select x-model="exchangeForm.new_project_id" @change="loadExchangeUnits()"
-                                        :class="errors.new_project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-white'"
-                                        class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all">
+                                        :class="errors.new_project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
+                                        class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-4 focus:ring-primary/10 focus:border-primary focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-700">
                                     <option value="">Select Target Project...</option>
                                     @foreach($projects as $proj)
                                         <option value="{{ $proj->id }}">{{ $proj->name }}</option>
@@ -585,10 +616,10 @@
                                 <template x-if="errors.new_project_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.new_project_id) ? errors.new_project_id[0] : errors.new_project_id"></p></template>
                             </div>
 
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Unit Type</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Unit Type</label>
                                 <select x-model="exchangeForm.new_unit_type" @change="exchangeForm.new_unit_id = ''; exchangeForm.new_unit_value = 0;" :disabled="!exchangeForm.new_project_id"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50">
+                                        class="w-full px-3 py-2 bg-white border border-slate-250 focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 shadow-sm cursor-pointer font-semibold text-slate-700">
                                     <option value="">All Types</option>
                                     <template x-for="ut in exchangeUnitTypes" :key="ut.id">
                                         <option :value="ut.id" x-text="ut.name"></option>
@@ -596,14 +627,14 @@
                                 </select>
                             </div>
 
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Available Unit *</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Available Unit *</label>
                                 <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                     <button type="button" 
                                             @click="if (exchangeForm.new_project_id) { open = !open; if (open) $nextTick(() => $refs.modalTargetUnitSearchInput.focus()); }" 
                                             :disabled="!exchangeForm.new_project_id"
-                                            :class="errors.new_unit_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-white'"
-                                            class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-[38px]">
+                                            :class="errors.new_unit_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
+                                            class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-4 focus:ring-primary/10 focus:border-primary focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-[38px] shadow-sm">
                                         <span x-text="exchangeForm.new_unit_id ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id) ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).door_no + ' — ' + getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).floor_name) : '— Select Target Unit —') : '— Select Target Unit —'"
                                               :class="!exchangeForm.new_unit_id ? 'text-slate-400' : 'text-slate-800 font-semibold'"></span>
                                         <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -663,60 +694,67 @@
                                 <template x-if="errors.new_unit_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.new_unit_id) ? errors.new_unit_id[0] : errors.new_unit_id"></p></template>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">New Contract Value:</label>
+                    {{-- Contract values & Options Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">New Contract Value</label>
                                 <input type="text" :value="fmt(exchangeForm.new_unit_value)" disabled
-                                       class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 font-bold font-mono">
+                                       class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-650 font-bold font-mono h-[38px] flex items-center shadow-inner">
                             </div>
 
-                            <div class="space-y-1">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Options:</label>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Options</label>
                                 <label class="flex items-center gap-2 h-9 cursor-pointer">
                                     <input type="checkbox" x-model="exchangeForm.carry_forward" class="rounded text-primary focus:ring-primary/20">
-                                    <span class="text-xs text-slate-650">Carry forward payments to New Unit sale?</span>
+                                    <span class="text-xs font-semibold text-slate-650">Carry forward payments to New Unit sale?</span>
                                 </label>
                             </div>
                         </div>
+                    </div>
 
-                        {{-- Financial Balance Grid --}}
-                        <div class="bg-white border border-primary/20 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-100">
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Equity Applied</p>
-                                <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.equity_applied)"></p>
-                            </div>
-                            <div class="text-center px-2">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">New Contract Value</p>
-                                <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.new_unit_value)"></p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Differential Due (Receivable)</p>
-                                <p class="text-sm font-extrabold text-primary font-mono mt-0.5" x-text="fmt(calculateDifferentialDue())"></p>
-                            </div>
+                    {{-- Financial Balance Grid --}}
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                        <div class="absolute -top-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Equity Applied</span>
+                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="fmt(exchangeForm.equity_applied)"></span>
                         </div>
-
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Exchange Reason / Notes *</label>
-                            <textarea x-model="exchangeForm.reason" rows="2" placeholder="Write internal memo for the unit exchange..."
-                                      :class="errors.reason ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-white'"
-                                      class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition resize-none"></textarea>
-                            <template x-if="errors.reason"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.reason) ? errors.reason[0] : errors.reason"></p></template>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">New Contract Value</span>
+                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="fmt(exchangeForm.new_unit_value)"></span>
                         </div>
-
-                        <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                            <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;"
-                                    class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
-                                Back
-                            </button>
-                            <button type="button" @click="submitExchangePlan()"
-                                    class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase shadow-sm">
-                                Finalize Exchange & New EMI
-                            </button>
+                        <div class="relative z-10 flex flex-col justify-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Differential Due (Receivable)</span>
+                            <span class="font-extrabold text-[#d9bf3b] text-base mt-1 block font-mono" x-text="fmt(calculateDifferentialDue())"></span>
                         </div>
                     </div>
+
+                    {{-- Reason Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            <span>💬 Exchange Reason / Notes *</span>
+                        </p>
+                        <textarea x-model="exchangeForm.reason" rows="2" placeholder="Write internal memo for the unit exchange..."
+                                  :class="errors.reason ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
+                                  class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition resize-none shadow-sm"></textarea>
+                        <template x-if="errors.reason"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.reason) ? errors.reason[0] : errors.reason"></p></template>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
+                        <button type="button" @click="newExchangeStep = 1"
+                                class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                            Back
+                        </button>
+                        <button type="button" @click="submitExchangePlan()"
+                                class="px-4 py-2 bg-[#09876B] hover:bg-[#076852] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
+                            Finalize Exchange & New EMI
+                        </button>
+                    </div>
                 </div>
-                
             </div>
         </div>
     </div>

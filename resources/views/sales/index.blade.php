@@ -164,75 +164,94 @@
     <div>
 
     {{-- ═══════════════════════════════════════════
-         ADD SALE MODAL — 6 Sections with Repeatable Alpine Rows
+         ADD SALE MODAL (Redesigned)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="if (!modals.quickCustomer.open) closeAddModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Sale (Multi-Unit Contract)</h3>
-                <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="if (!modals.quickCustomer.open) closeAddModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sale Registry</span>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">New Agreement</span>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Add New Sale <span class="text-xs font-normal text-slate-450 font-sans">(Multi-Unit Contract)</span></h2>
+                    </div>
+                    <button type="button" @click="closeAddModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                </div>
             </div>
             <form @submit.prevent="submitAddSale()">
-                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto" x-ref="addModalScroll">
+                <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/50" x-ref="addModalScroll">
                     {{-- ── Section 1 — Basics ── --}}
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Project *</label>
-                            <select x-model="forms.add.project_id" @change="loadUnitsForProject('add')"
-                                    :class="errors.project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                    class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                <option value="">Select Project...</option>
-                                @foreach($projects as $project)
-                                    <option value="{{ $project->id }}">{{ $project->name }}</option>
-                                @endforeach
-                            </select>
-                            <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
-                        </div>
-                        <div class="space-y-1.5 col-span-2">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer *</label>
-                            <div class="flex gap-2">
-                                <select x-model="forms.add.customer_id"
-                                        :class="errors.customer_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>📋 Basic Information</span>
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Project *</label>
+                                <select x-model="forms.add.project_id" @change="loadUnitsForProject('add')"
+                                        :class="errors.project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
                                         class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                    <option value="">— Select Customer —</option>
-                                    <template x-for="customer in customerList" :key="customer.id">
-                                        <option :value="customer.id" x-text="customer.name + ' (' + customer.email + ')'"></option>
-                                    </template>
+                                    <option value="">Select Project...</option>
+                                    @foreach($projects as $project)
+                                        <option value="{{ $project->id }}">{{ $project->name }}</option>
+                                    @endforeach
                                 </select>
-                                <button type="button" @click="openQuickAddCustomer()"
-                                        class="flex-shrink-0 w-9 h-9 flex items-center justify-center border border-slate-300 rounded-xl text-slate-500 hover:border-primary hover:text-primary transition">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                </button>
+                                <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
                             </div>
-                            <template x-if="errors.customer_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.customer_id) ? errors.customer_id[0] : errors.customer_id"></p></template>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement Date *</label>
-                            <input type="date" x-model="forms.add.agreement_date"
-                                   :class="errors.agreement_date ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.agreement_date"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.agreement_date) ? errors.agreement_date[0] : errors.agreement_date"></p></template>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registration Date</label>
-                            <input type="date" x-model="forms.add.registration_date"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            <div class="space-y-1.5 md:col-span-2">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer *</label>
+                                <div class="flex gap-2">
+                                    <select x-model="forms.add.customer_id"
+                                            :class="errors.customer_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                            class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        <option value="">— Select Customer —</option>
+                                        <template x-for="customer in customerList" :key="customer.id">
+                                            <option :value="customer.id" x-text="customer.name + ' (' + customer.email + ')'"></option>
+                                        </template>
+                                    </select>
+                                    <button type="button" @click="openQuickAddCustomer()"
+                                            class="flex-shrink-0 w-9 h-9 flex items-center justify-center border border-slate-300 rounded-xl text-slate-500 hover:border-primary hover:text-primary transition">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                    </button>
+                                </div>
+                                <template x-if="errors.customer_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.customer_id) ? errors.customer_id[0] : errors.customer_id"></p></template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement Date *</label>
+                                <input type="date" x-model="forms.add.agreement_date"
+                                       :class="errors.agreement_date ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                       class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                <template x-if="errors.agreement_date"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.agreement_date) ? errors.agreement_date[0] : errors.agreement_date"></p></template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registration Date</label>
+                                <input type="date" x-model="forms.add.registration_date"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                            </div>
                         </div>
                     </div>
                     {{-- ── Section 2 — Repeatable Units / Line Items ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-xs font-bold text-primary uppercase tracking-widest">🏢 Booked Inventory / Units</p>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
+                                <span>🏢 Booked Inventory / Units</span>
+                            </p>
                             <button type="button" @click="addUnitRow()"
                                     class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition shadow-sm">
                                 + Add Unit Row
                             </button>
                         </div>
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                             <template x-for="(row, index) in forms.add.units" :key="index">
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative" :x-ref="'unitRow_' + index">
+                                <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative" :x-ref="'unitRow_' + index">
                                     <button type="button" @click="removeUnitRow(index)" x-show="forms.add.units.length > 1"
-                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
+                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
@@ -240,7 +259,7 @@
                                                 <!-- Trigger Button -->
                                                 <button type="button" @click="open = !open" :disabled="!forms.add.project_id"
                                                         :class="errors['units.' + index + '.unit_id'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
-                                                        class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8">
+                                                        class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8 shadow-sm">
                                                     <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.add.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
                                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
@@ -291,14 +310,14 @@
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
-                                            <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 font-bold h-9 flex items-center">
+                                            <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 font-bold h-9 flex items-center shadow-inner">
                                                 <span x-text="onGetRowArea(index) + ' Sq Ft'"></span>
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
                                             <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index)" placeholder="Expected rate"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
@@ -319,7 +338,7 @@
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index)" placeholder="e.g. 18"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div class="text-xs">
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">GST Amount</p>
@@ -329,13 +348,6 @@
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Payable</p>
                                             <p class="font-extrabold text-indigo-700 mt-1 font-mono" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
                                         </div>
-                                        {{-- Row-level commission details --}}
-                                        <!-- <div class="flex items-center gap-2 h-9" x-show="forms.add.broker_involved">
-                                            <label class="flex items-center gap-1.5 text-xs font-bold text-slate-650 cursor-pointer">
-                                                <input type="checkbox" x-model="row.broker_involved" @change="recalculateRowBrokerage(index)" class="rounded text-primary focus:ring-primary/20">
-                                                <span>Commission Row?</span>
-                                            </label>
-                                        </div> -->
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50" x-show="forms.add.broker_involved && row.broker_involved">
                                         <div class="space-y-1.5">
@@ -362,17 +374,20 @@
                         </div>
                     </div>
                     {{-- ── Section 3 — Broker / Commission ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <label class="flex items-center gap-2 border-b border-slate-100 pb-2 cursor-pointer">
                             <input type="checkbox" x-model="forms.add.broker_involved" class="rounded text-primary focus:ring-primary/20">
-                            <span class="text-xs font-bold text-primary uppercase tracking-widest">Broker / Commission — A broker is involved in this sale</span>
+                            <span class="text-[10px] font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <span>💼 Broker / Commission Details</span>
+                            </span>
                         </label>
-                        <div x-show="forms.add.broker_involved" class="space-y-4">
+                        <div x-show="forms.add.broker_involved" class="space-y-4" x-transition>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
                                     <select x-model="forms.add.broker_id" @change="onBrokerSelect('add')"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         <option value="">— Select Broker —</option>
                                         @foreach($brokers as $broker)
                                             <option value="{{ $broker->id }}">{{ $broker->name }}</option>
@@ -396,7 +411,7 @@
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
                                     <input type="number" step="0.01" x-model="forms.add.brokerage_value" @input="recalculateAllTotals('add')" placeholder="e.g. 2 for 2%"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
@@ -407,7 +422,7 @@
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
                                     <select x-model="forms.add.brokerage_status"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         <option value="pending">Pending</option>
                                         <option value="paid">Paid</option>
                                     </select>
@@ -416,34 +431,37 @@
                         </div>
                     </div>
                     {{-- ── Custom Alterations / Extra Work (add) ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-xs font-bold text-primary uppercase tracking-widest">🛠️ Custom Alterations / Extra Work</p>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>🛠️ Custom Alterations / Extra Work</span>
+                            </p>
                             <button type="button" @click="addExtraWorkRow('add')"
                                     class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition shadow-sm">
                                 + Add Extra Work
                             </button>
                         </div>
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                             <template x-for="(row, index) in forms.add.extra_works" :key="index">
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative">
+                                <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative">
                                     <button type="button" @click="removeExtraWorkRow(index, 'add')"
-                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
+                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                                         <div class="space-y-1.5 sm:col-span-2">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Description / Work Details *</label>
                                             <input type="text" x-model="row.description" placeholder="e.g. Flooring Upgrade, Custom Fittings"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹) *</label>
                                             <input type="number" step="0.01" x-model="row.amount" @input="recalculateExtraWorkRowGst(index, 'add')" placeholder="Enter amount"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Type</label>
                                             <select x-model="row.gst_type" @change="recalculateExtraWorkRowGst(index, 'add')"
-                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                                 <option value="none">None</option>
                                                 <option value="exclusive">Exclusive</option>
                                                 <option value="inclusive">Inclusive</option>
@@ -454,15 +472,15 @@
                                         <div class="space-y-1.5" x-show="row.gst_type !== 'none'">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'add')" placeholder="18"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div></div>
                                         <div class="space-y-1.5">
-                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
                                             <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
                                         </div>
                                         <div class="space-y-1.5">
-                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
                                             <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
                                     </div>
@@ -471,33 +489,29 @@
                         </div>
                     </div>
                     {{-- Aggregated Contract Summary --}}
-                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 grid grid-cols-3 gap-4 text-center">
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total SALE Amount</span>
-                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.add.base_amount || 0).toLocaleString()"></span>
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                        <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Sale Amount</span>
+                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.add.base_amount || 0).toLocaleString()"></span>
                         </div>
-                        <div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total GST Amount</span>
-                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.add.gst_amount || 0).toLocaleString()"></span>
+                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.add.gst_amount || 0).toLocaleString()"></span>
                         </div>
-                        <div>
+                        <div class="relative z-10">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Contract Value</span>
-                            <span class="font-extrabold text-[#a38c29] text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.add.total_amount || 0).toLocaleString()"></span>
+                            <span class="font-extrabold text-[#d9bf3b] text-lg mt-1 block font-mono" x-text="'₹' + Number(forms.add.total_amount || 0).toLocaleString()"></span>
                         </div>
                     </div>
                     {{-- ── Section 4 — Initial Payment ── --}}
-                    <div class="border-t border-slate-100 pt-5 mt-2">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm shadow-sm border border-primary/20">
-                                💼
-                            </div>
-                            <div>
-                                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Initial Payment</h3>
-                                <p class="text-[9px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Record the first payment details for this contract</p>
-                            </div>
-                        </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>💼 Initial Payment Details</span>
+                        </p>
                         
-                        <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
+                        <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm">
                             <div class="space-y-1.5 flex-1 w-full">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
                                 <div class="grid grid-cols-2 gap-3">
@@ -530,7 +544,7 @@
                             </div>
                         </div>
 
-                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.add.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
+                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.add.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm" x-transition>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Reference / Cheque No</label>
                                 <input type="text" x-model="forms.add.reference_no" placeholder="e.g. UTR / Cheque number"
@@ -549,45 +563,47 @@
                         </div>
                     </div>
                     {{-- ── Section 5 — Balance & Payment Plan ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">📊 Balance & Payment Plan</p>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Balance</p>
-                                <p class="text-lg font-extrabold text-primary" x-text="'₹' + Number(forms.add.remaining_balance || 0).toLocaleString()"></p>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span>📊 Balance & Payment Plan</span>
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-slate-55/30 border border-slate-200/85 rounded-xl p-4 flex flex-col justify-center shadow-inner">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Remaining Balance</span>
+                                <span class="text-xl font-extrabold text-primary mt-1 block font-mono" x-text="'₹' + Number(forms.add.remaining_balance || 0).toLocaleString()"></span>
                             </div>
-                            <div class="space-y-1.5 col-span-2">
+                            <div class="space-y-3 md:col-span-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Plan</label>
                                 <div class="flex items-center gap-4 h-9">
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                    <label class="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
                                         <input type="radio" value="lump_sum" x-model="forms.add.payment_plan" class="text-primary focus:ring-primary/20">
-                                        Lump Sum (Full payment)
+                                        <span>Lump Sum (Full payment)</span>
                                     </label>
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                    <label class="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
                                         <input type="radio" value="emi" x-model="forms.add.payment_plan" class="text-primary focus:ring-primary/20">
-                                        EMI / Installment Plan
+                                        <span>EMI / Installment Plan</span>
                                     </label>
                                 </div>
                                 <div x-show="forms.add.payment_plan === 'emi'" class="mt-4 space-y-4" x-transition>
                                     {{-- Equal Installments Fields --}}
-                                    <div class="grid grid-cols-3 gap-3 border border-slate-100 p-3 rounded-xl bg-slate-50/50">
+                                    <div class="grid grid-cols-3 gap-3 border border-slate-200/60 p-3 rounded-xl bg-slate-50/50">
                                         <div class="space-y-1">
                                             <label class="text-[9px] font-bold text-slate-400 uppercase block">No. of Installments</label>
                                             <input type="number" x-model="forms.add.emi_installment_count" min="1" placeholder="e.g. 12"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm">
                                         </div>
                                         <div class="space-y-1">
                                             <label class="text-[9px] font-bold text-slate-400 uppercase block">Frequency</label>
                                             <select x-model="forms.add.emi_frequency"
-                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm">
                                                 <option value="monthly">Monthly</option>
-                                                <!-- <option value="quarterly">Quarterly</option> -->
                                             </select>
                                         </div>
                                         <div class="space-y-1">
                                             <label class="text-[9px] font-bold text-slate-400 uppercase block">First Installment Date</label>
                                             <input type="date" x-model="forms.add.first_installment_date"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm">
                                         </div>
                                     </div>
                                     {{-- Live Preview Block --}}
@@ -613,15 +629,18 @@
                         </div>
                     </div>
                     {{-- ── Section 6 — Remarks ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💬 Remarks</p>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            <span>💬 Remarks / Notes</span>
+                        </p>
                         <textarea x-model="forms.add.notes" rows="3" placeholder="Optional remarks or notes..."
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm"></textarea>
                     </div>
                 </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Create Sale</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Create Sale</button>
                 </div>
             </form>
         </div>
@@ -657,49 +676,80 @@
          EDIT SALE MODAL (legacy single-unit fields kept for backward-compatible edits)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit Sale — <span x-text="activeSale.sale_number"></span></h3>
-                <button @click="closeEditModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#09876B]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-[#09876B]/20 text-[#09876B] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Contract Editing</span>
+                            <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Mode</span>
+                        </div>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Edit Sale — <span class="text-[#d9bf3b] font-mono" x-text="activeSale.sale_number"></span></h2>
+                    </div>
+                    <button type="button" @click="closeEditModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                </div>
             </div>
             <form @submit.prevent="submitEditSale()">
-                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto font-sans">
+                <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                     {{-- ── Section 1 — Basics (Read-Only) ── --}}
-                    <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-                        <div>
-                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project</label>
-                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.project ? activeSale.project.name : '—'"></span>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {{-- Project Card --}}
+                        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] flex-shrink-0 shadow-2xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Project Name</span>
+                                <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.project ? activeSale.project.name : '—'"></strong>
+                            </div>
                         </div>
-                        <div>
-                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unit</label>
-                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.sale_units && activeSale.sale_units.length ? activeSale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (activeSale.unit ? activeSale.unit.door_no : '—')"></span>
+                        {{-- Unit Card --}}
+                        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0 shadow-2xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Unit & Floor</span>
+                                <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.sale_units && activeSale.sale_units.length ? activeSale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—')"></strong>
+                            </div>
                         </div>
-                        <div>
-                            <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer</label>
-                            <span class="font-bold text-slate-800 block mt-0.5" x-text="activeSale.customer ? activeSale.customer.name : '—'"></span>
+                        {{-- Customer Card --}}
+                        <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0 shadow-2xs">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            </div>
+                            <div class="overflow-hidden">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Customer Details</span>
+                                <strong class="text-slate-800 text-xs block mt-1 truncate" x-text="activeSale.customer ? activeSale.customer.name : '—'"></strong>
+                            </div>
                         </div>
                     </div>
-                    {{-- ── Section 2 — Repeatable Units / Line Items ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-xs font-bold text-primary uppercase tracking-widest">🏢 Booked Inventory / Units</p>
+                    {{-- ── Section 2 — Booked Inventory / Units ── --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
+                                <span>🏢 Booked Inventory / Units</span>
+                            </p>
                             <button type="button" @click="addUnitRow('edit')"
                                     class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition shadow-sm">
                                 + Add Unit Row
                             </button>
                         </div>
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                             <template x-for="(row, index) in forms.edit.units" :key="index">
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative">
+                                <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative">
                                     <button type="button" @click="removeUnitRow(index, 'edit')" x-show="forms.edit.units.length > 1"
-                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
+                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                             <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                                 <!-- Trigger Button -->
                                                 <button type="button" @click="open = !open" :disabled="!forms.edit.project_id"
-                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8">
+                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8 shadow-sm">
                                                     <span x-text="row.unit_id ? (availableUnits.edit.find(u => u.id == row.unit_id) ? (availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.edit.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
                                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
@@ -747,14 +797,14 @@
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
-                                            <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-600 font-bold h-9 flex items-center">
+                                            <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-650 font-bold h-9 flex items-center shadow-inner">
                                                 <span x-text="onGetRowArea(index, 'edit') + ' Sq Ft'"></span>
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
                                             <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index, 'edit')" placeholder="Expected rate"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
@@ -771,7 +821,7 @@
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index, 'edit')" placeholder="e.g. 18"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <p class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">GST Amount</p>
@@ -787,34 +837,37 @@
                         </div>
                     </div>
                     {{-- ── Custom Alterations / Extra Work (edit) ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-xs font-bold text-primary uppercase tracking-widest">🛠️ Custom Alterations / Extra Work</p>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>🛠️ Custom Alterations / Extra Work</span>
+                            </p>
                             <button type="button" @click="addExtraWorkRow('edit')"
                                     class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[10px] uppercase tracking-wider transition shadow-sm">
                                 + Add Extra Work
                             </button>
                         </div>
-                        <div class="space-y-3">
+                        <div class="space-y-4">
                             <template x-for="(row, index) in forms.edit.extra_works" :key="index">
-                                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 relative">
+                                <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative">
                                     <button type="button" @click="removeExtraWorkRow(index, 'edit')"
-                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-xs">✕ Remove</button>
+                                            class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                                         <div class="space-y-1.5 sm:col-span-2">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Description / Work Details *</label>
                                             <input type="text" x-model="row.description" placeholder="e.g. Flooring Upgrade, Custom Fittings"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Amount (₹) *</label>
                                             <input type="number" step="0.01" x-model="row.amount" @input="recalculateExtraWorkRowGst(index, 'edit')" placeholder="Enter amount"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Type</label>
                                             <select x-model="row.gst_type" @change="recalculateExtraWorkRowGst(index, 'edit')"
-                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                                 <option value="none">None</option>
                                                 <option value="exclusive">Exclusive</option>
                                                 <option value="inclusive">Inclusive</option>
@@ -825,15 +878,15 @@
                                         <div class="space-y-1.5" x-show="row.gst_type !== 'none'">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'edit')" placeholder="18"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div></div>
                                         <div class="space-y-1.5">
-                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
                                             <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
                                         </div>
                                         <div class="space-y-1.5">
-                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
+                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
                                             <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
                                     </div>
@@ -842,96 +895,105 @@
                         </div>
                     </div>
                     {{-- ── Section 3 — Pricing & Contract Totals Summary ── --}}
-                    <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Sale Amount</span>
-                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.edit.base_amount || 0).toLocaleString()"></span>
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                        <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#09876B]/10 rounded-full blur-2xl pointer-events-none"></div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Sale Amount</span>
+                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.edit.base_amount || 0).toLocaleString()"></span>
                         </div>
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total GST Amount</span>
-                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.edit.gst_amount || 0).toLocaleString()"></span>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total GST Amount</span>
+                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.edit.gst_amount || 0).toLocaleString()"></span>
                         </div>
-                        <div>
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Contract Value</span>
-                            <span class="font-extrabold text-[#a38c29] text-sm mt-1 block font-mono" x-text="'₹' + Number(forms.edit.total_amount || 0).toLocaleString()"></span>
+                        <div class="relative z-10">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Contract Value</span>
+                            <span class="font-extrabold text-[#d9bf3b] text-lg mt-1 block font-mono" x-text="'₹' + Number(forms.edit.total_amount || 0).toLocaleString()"></span>
                         </div>
                     </div>
                     {{-- ── Section 3 — Broker / Commission ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <label class="flex items-center gap-2 border-b border-slate-100 pb-2 cursor-pointer">
                             <input type="checkbox" x-model="forms.edit.broker_involved" class="rounded text-primary focus:ring-primary/20">
-                            <span class="text-xs font-bold text-primary uppercase tracking-widest">Broker / Commission — A broker is involved in this sale</span>
+                            <span class="text-[10px] font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                <span>💼 Broker / Commission Details</span>
+                            </span>
                         </label>
-                        <div x-show="forms.edit.broker_involved" class="grid grid-cols-3 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
-                                <select x-model="forms.edit.broker_id" @change="onBrokerSelect('edit')"
-                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                    <option value="">— Select Broker —</option>
-                                    @foreach($brokers as $broker)
-                                        <option value="{{ $broker->id }}">{{ $broker->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
-                                <div class="flex items-center gap-4 h-9">
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                                        <input type="radio" value="percentage" x-model="forms.edit.brokerage_type" @change="onBrokerageTypeChange('edit')" class="text-primary focus:ring-primary/20">
-                                        Percentage (%)
-                                    </label>
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
-                                        <input type="radio" value="fixed" x-model="forms.edit.brokerage_type" @change="onBrokerageTypeChange('edit')" class="text-primary focus:ring-primary/20">
-                                        Fixed (₹)
-                                    </label>
+                        <div x-show="forms.edit.broker_involved" class="space-y-4" x-transition>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
+                                    <select x-model="forms.edit.broker_id" @change="onBrokerSelect('edit')"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        <option value="">— Select Broker —</option>
+                                        @foreach($brokers as $broker)
+                                            <option value="{{ $broker->id }}">{{ $broker->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
+                                    <div class="flex items-center gap-4 h-9">
+                                        <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
+                                            <input type="radio" value="percentage" x-model="forms.edit.brokerage_type" @change="onBrokerageTypeChange('edit')" class="text-primary focus:ring-primary/20">
+                                            <span>Percentage (%)</span>
+                                        </label>
+                                        <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
+                                            <input type="radio" value="fixed" x-model="forms.edit.brokerage_type" @change="onBrokerageTypeChange('edit')" class="text-primary focus:ring-primary/20">
+                                            <span>Fixed (₹)</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
+                                    <input type="number" step="0.01" x-model="forms.edit.brokerage_value" @input="recalculateBrokerage('edit')"
+                                           :placeholder="forms.edit.brokerage_type === 'fixed' ? '0' : 'e.g. 2 for 2%'"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                 </div>
                             </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
-                                <input type="number" step="0.01" x-model="forms.edit.brokerage_value"  @input="recalculateBrokerage('edit')"
-                                       :placeholder="forms.edit.brokerage_type === 'fixed' ? '0' : 'e.g. 2 for 2%'"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            </div>
-                            <div class="space-y-1.5">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brokerage Amount</p>
-                                <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.edit.brokerage_amount || 0).toLocaleString()"></p>
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
-                                <select x-model="forms.edit.brokerage_status"
-                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                    <option value="pending">Pending</option>
-                                    <option value="paid">Paid</option>
-                                </select>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                                <div class="space-y-1.5">
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brokerage Amount</p>
+                                    <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.edit.brokerage_amount || 0).toLocaleString()"></p>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
+                                    <select x-model="forms.edit.brokerage_status"
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        <option value="pending">Pending</option>
+                                        <option value="paid">Paid</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
                     {{-- ── Section 4 — Dates ── --}}
-                    <div class="border-t border-slate-100 pt-4 grid grid-cols-3 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement / Sale Date *</label>
-                            <input type="date" x-model="forms.edit.sale_date"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registration Date</label>
-                            <input type="date" x-model="forms.edit.registration_date"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>📅 Agreement & Registration Dates</span>
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement / Sale Date *</label>
+                                <input type="date" x-model="forms.edit.sale_date"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registration Date</label>
+                                <input type="date" x-model="forms.edit.registration_date"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                            </div>
                         </div>
                     </div>
                     {{-- ── Section 5 — Initial Payment ── --}}
-                    <div class="border-t border-slate-100 pt-5 mt-2">
-                        <div class="flex items-center gap-3 mb-4">
-                            <div class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm shadow-sm border border-primary/20">
-                                💼
-                            </div>
-                            <div>
-                                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Initial Payment</h3>
-                                <p class="text-[9px] text-slate-400 font-medium uppercase tracking-wider mt-0.5">Record the first payment details for this contract</p>
-                            </div>
-                        </div>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>💼 Initial Payment Details</span>
+                        </p>
                         
-                        <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
+                        <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm">
                             <div class="space-y-1.5 flex-1 w-full">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
                                 <div class="grid grid-cols-2 gap-3">
@@ -964,7 +1026,7 @@
                             </div>
                         </div>
 
-                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50 border border-slate-100 rounded-xl p-4 shadow-sm">
+                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm" x-transition>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Reference / Cheque No</label>
                                 <input type="text" x-model="forms.edit.reference_no" placeholder="e.g. UTR / Cheque number"
@@ -983,45 +1045,47 @@
                         </div>
                     </div>
                     {{-- ── Section 6 — Balance & Payment Plan ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">📊 Balance & Payment Plan</p>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Balance</p>
-                                <p class="text-lg font-extrabold text-primary font-mono" x-text="'₹' + Number(forms.edit.remaining_balance || 0).toLocaleString()"></p>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span>📊 Balance & Payment Plan</span>
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-slate-55/30 border border-slate-200/85 rounded-xl p-4 flex flex-col justify-center shadow-inner">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Remaining Balance</span>
+                                <span class="text-xl font-extrabold text-primary mt-1 block font-mono" x-text="'₹' + Number(forms.edit.remaining_balance || 0).toLocaleString()"></span>
                             </div>
-                            <div class="space-y-1.5 col-span-2">
+                            <div class="space-y-3 md:col-span-2">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Plan</label>
                                 <div class="flex items-center gap-4 h-9">
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                    <label class="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
                                         <input type="radio" value="lump_sum" x-model="forms.edit.payment_plan" class="text-primary focus:ring-primary/20">
-                                        Lump Sum (Full payment)
+                                        <span>Lump Sum (Full payment)</span>
                                     </label>
-                                    <label class="flex items-center gap-1.5 text-xs cursor-pointer">
+                                    <label class="flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
                                         <input type="radio" value="emi" x-model="forms.edit.payment_plan" class="text-primary focus:ring-primary/20">
-                                        EMI / Installment Plan
+                                        <span>EMI / Installment Plan</span>
                                     </label>
                                 </div>
                                 <div x-show="forms.edit.payment_plan === 'emi'" class="mt-4 space-y-4" x-transition>
                                     {{-- Equal Installments Fields --}}
-                                    <div class="grid grid-cols-3 gap-3 border border-slate-100 p-3 rounded-xl bg-slate-50/50">
+                                    <div class="grid grid-cols-3 gap-3 border border-slate-200/60 p-3 rounded-xl bg-slate-50/50">
                                         <div class="space-y-1">
                                             <label class="text-[9px] font-bold text-slate-400 uppercase block">No. of Installments</label>
                                             <input type="number" x-model="forms.edit.emi_installment_count" min="1" placeholder="e.g. 12"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm">
                                         </div>
                                         <div class="space-y-1">
                                             <label class="text-[9px] font-bold text-slate-400 uppercase block">Frequency</label>
                                             <select x-model="forms.edit.emi_frequency"
-                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm">
                                                 <option value="monthly">Monthly</option>
-                                                <!-- <option value="quarterly">Quarterly</option> -->
                                             </select>
                                         </div>
                                         <div class="space-y-1">
                                             <label class="text-[9px] font-bold text-slate-400 uppercase block">First Installment Date</label>
                                             <input type="date" x-model="forms.edit.first_installment_date"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm">
                                         </div>
                                     </div>
                                     {{-- Live Preview Block --}}
@@ -1047,15 +1111,18 @@
                         </div>
                     </div>
                     {{-- ── Section 7 — Remarks ── --}}
-                    <div class="border-t border-slate-100 pt-4">
-                        <p class="text-xs font-bold text-primary uppercase tracking-widest mb-3">💬 Remarks</p>
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+                            <span>💬 Remarks / Notes</span>
+                        </p>
                         <textarea x-model="forms.edit.notes" rows="3" placeholder="Optional remarks or notes..."
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm"></textarea>
                     </div>
                 </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Save Changes</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#09876B] hover:bg-[#076852] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Save Changes</button>
                 </div>
             </form>
         </div>
