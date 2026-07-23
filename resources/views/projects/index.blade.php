@@ -212,374 +212,337 @@
         @endif
 
         <!-- Edit Project Modal -->
-        <div x-show="editModalOpen" 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-955/60 backdrop-blur-sm flex items-center justify-center p-4" 
-             style="display: none;"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0">
-            
-            <div @click.away="editModalOpen = false" 
-                 class="bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden flex flex-col transform transition-all max-h-[90vh]"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95">
-                
-                <!-- Modal Header -->
-                <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900 uppercase tracking-wide">Edit Project Specifications</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Modify structure size, status, and details.</p>
+        <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+            <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="editModalOpen = false">
+                {{-- Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Project Portfolio</span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Edit Project Specifications</h2>
+                        </div>
+                        <button type="button" @click="editModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                     </div>
-                    <button @click="editModalOpen = false" type="button" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
                 </div>
 
-                <!-- Modal Body (Form) -->
-                <form method="POST" :action="'{{ route('projects.update', ['project' => 'PROJECT_ID']) }}'.replace('PROJECT_ID', editProject.id)" enctype="multipart/form-data" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <form method="POST" :action="'{{ route('projects.update', ['project' => 'PROJECT_ID']) }}'.replace('PROJECT_ID', editProject.id)" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+                    
+                    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                            <!-- Name & Total Floors -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="md:col-span-2 space-y-1.5">
+                                    <label for="edit_name" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Project Name</label>
+                                    <input id="edit_name" 
+                                           type="text" 
+                                           name="name" 
+                                           x-model="editProject.name"
+                                           required 
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
 
-                    <!-- Name & Total Floors -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2 space-y-1.5">
-                            <label for="edit_name" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Name</label>
-                            <input id="edit_name" 
-                                   type="text" 
-                                   name="name" 
-                                   x-model="editProject.name"
-                                   required 
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
+                                <div class="space-y-1.5">
+                                    <label for="edit_total_floors" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Floors</label>
+                                    <input id="edit_total_floors" 
+                                           type="number" 
+                                           name="total_floors" 
+                                           x-model="editProject.total_floors"
+                                           required 
+                                           min="1"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
+                            </div>
 
-                        <div class="space-y-1.5">
-                            <label for="edit_total_floors" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Floors</label>
-                            <input id="edit_total_floors" 
-                                   type="number" 
-                                   name="total_floors" 
-                                   x-model="editProject.total_floors"
-                                   required 
-                                   min="1"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
-                    </div>
+                            <!-- Location & City -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <label for="edit_location" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Address / Location</label>
+                                    <input id="edit_location" 
+                                           type="text" 
+                                           name="location" 
+                                           x-model="editProject.location"
+                                           required 
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
 
-                    <!-- Location & City -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="edit_location" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Address / Location</label>
-                            <input id="edit_location" 
-                                   type="text" 
-                                   name="location" 
-                                   x-model="editProject.location"
-                                   required 
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
+                                <div class="space-y-1.5">
+                                    <label for="edit_city" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">City</label>
+                                    <input id="edit_city" 
+                                           type="text" 
+                                           name="city" 
+                                           x-model="editProject.city"
+                                           required 
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
+                            </div>
 
-                        <div class="space-y-1.5">
-                            <label for="edit_city" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">City</label>
-                            <input id="edit_city" 
-                                   type="text" 
-                                   name="city" 
-                                   x-model="editProject.city"
-                                   required 
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
-                    </div>
+                            <!-- State & Country -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <label for="edit_state_or_emirate" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">State / Emirate</label>
+                                    <input id="edit_state_or_emirate" 
+                                           type="text" 
+                                           name="state_or_emirate" 
+                                           x-model="editProject.state_or_emirate"
+                                           required 
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
 
-                    <!-- State & Country -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="edit_state_or_emirate" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">State / Emirate</label>
-                            <input id="edit_state_or_emirate" 
-                                   type="text" 
-                                   name="state_or_emirate" 
-                                   x-model="editProject.state_or_emirate"
-                                   required 
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
+                                <div class="space-y-1.5">
+                                    <label for="edit_country" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Country</label>
+                                    <input id="edit_country" 
+                                           type="text" 
+                                           name="country" 
+                                           x-model="editProject.country"
+                                           required 
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
+                            </div>
 
-                        <div class="space-y-1.5">
-                            <label for="edit_country" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Country</label>
-                            <input id="edit_country" 
-                                   type="text" 
-                                   name="country" 
-                                   x-model="editProject.country"
-                                   required 
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
-                    </div>
+                            <!-- Dates & Status -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="space-y-1.5">
+                                    <label for="edit_start_date" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Start Date</label>
+                                    <input id="edit_start_date" 
+                                           type="date" 
+                                           name="start_date" 
+                                           x-model="editProject.start_date"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm cursor-pointer" />
+                                </div>
 
-                    <!-- Dates & Status -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="edit_start_date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Start Date</label>
-                            <input id="edit_start_date" 
-                                   type="date" 
-                                   name="start_date" 
-                                   x-model="editProject.start_date"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer" />
-                        </div>
+                                <div class="space-y-1.5">
+                                    <label for="edit_expected_completion_date" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Expected Completion</label>
+                                    <input id="edit_expected_completion_date" 
+                                           type="date" 
+                                           name="expected_completion_date" 
+                                           x-model="editProject.expected_completion_date"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm cursor-pointer" />
+                                </div>
 
-                        <div class="space-y-1.5">
-                            <label for="edit_expected_completion_date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Expected Completion</label>
-                            <input id="edit_expected_completion_date" 
-                                   type="date" 
-                                   name="expected_completion_date" 
-                                   x-model="editProject.expected_completion_date"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer" />
-                        </div>
+                                <div class="space-y-1.5">
+                                    <label for="edit_status" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Project Status</label>
+                                    <select id="edit_status" 
+                                            name="status" 
+                                            x-model="editProject.status"
+                                            required 
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                        <option value="planning">Planning</option>
+                                        <option value="ongoing">Ongoing</option>
+                                        <option value="completed">Completed</option>
+                                        <option value="on_hold">On Hold</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                        <div class="space-y-1.5">
-                            <label for="edit_status" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Status</label>
-                            <select id="edit_status" 
-                                    name="status" 
-                                    x-model="editProject.status"
-                                    required 
-                                    class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer">
-                                <option value="planning">Planning</option>
-                                <option value="ongoing">Ongoing</option>
-                                <option value="completed">Completed</option>
-                                <option value="on_hold">On Hold</option>
-                            </select>
-                        </div>
-                    </div>
+                            <!-- Description -->
+                            <div class="space-y-1.5">
+                                <label for="ck_edit_project_description" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Description / Specifications</label>
+                                <textarea id="ck_edit_project_description" 
+                                          name="description" 
+                                          rows="4" 
+                                          placeholder="Enter detailed project specifications, structural details, amenities & notes..."
+                                          class="ck-editor-field w-full bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none shadow-sm font-semibold"></textarea>
+                            </div>
 
-                    <!-- Description -->
-                    <div class="space-y-1.5">
-                        <label for="ck_edit_project_description" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Description / Project Specifications</label>
-                        <textarea id="ck_edit_project_description" 
-                                  name="description" 
-                                  rows="4" 
-                                  placeholder="Enter detailed project specifications, structural details, amenities & notes..."
-                                  class="ck-editor-field w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition"></textarea>
-                    </div>
-
-                    <!-- Image Upload -->
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Cover Image</label>
-                        <div class="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                            <template x-if="editProject.image_url">
-                                <img :src="'{{ asset('storage') }}/' + editProject.image_url" alt="Current Image" class="w-16 h-16 object-cover rounded-lg border border-slate-200 shadow-sm" />
-                            </template>
-                            <div class="flex-1 space-y-1">
-                                <input id="edit_image" 
-                                       type="file" 
-                                       name="image" 
-                                       accept="image/*"
-                                       class="text-xs text-slate-650 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
-                                <p class="text-[9px] text-slate-400">Upload a new image to replace the current one. Max size: 2MB.</p>
+                            <!-- Image Upload -->
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Project Cover Image</label>
+                                <div class="flex items-center gap-4 bg-slate-50 border border-slate-250 rounded-xl p-4 shadow-sm">
+                                    <template x-if="editProject.image_url">
+                                        <img :src="'{{ asset('storage') }}/' + editProject.image_url" alt="Current Image" class="w-16 h-16 object-cover rounded-lg border border-slate-200 shadow-sm" />
+                                    </template>
+                                    <div class="flex-1 space-y-1">
+                                        <input id="edit_image" 
+                                               type="file" 
+                                               name="image" 
+                                               accept="image/*"
+                                               class="text-xs text-slate-650 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
+                                        <p class="text-[9px] text-slate-400">Upload a new image to replace the current one. Max size: 2MB.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Modal Actions Footer -->
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
-                        <button type="button" @click="editModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition uppercase tracking-wider">
+                    <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                        <button type="button" @click="editModalOpen = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                             Cancel
                         </button>
-                        <button type="submit" class="px-6 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold transition shadow-md shadow-primary/10 tracking-wide uppercase">
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md uppercase transition tracking-wider">
                             Save Changes
                         </button>
                     </div>
                 </form>
             </div>
-        </div>
-
-        <!-- New Project Modal -->
-        <div x-show="createModalOpen" 
-             class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4" 
-             style="display: none;"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0">
-            
-            <div @click.away="createModalOpen = false" 
-                 class="bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden flex flex-col transform transition-all max-h-[90vh]"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95">
-                
-                <!-- Modal Header -->
-                <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900 uppercase tracking-wide">Register New Project</h3>
-                        <p class="text-[11px] text-slate-500 mt-0.5">Define geographical parameters, total structures, and dates.</p>
+        </div>        <!-- New Project Modal -->
+        <div x-show="createModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+            <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="createModalOpen = false">
+                {{-- Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Project Portfolio</span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Register New Project</h2>
+                        </div>
+                        <button type="button" @click="createModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                     </div>
-                    <button @click="createModalOpen = false" type="button" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-200 hover:text-slate-650 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
                 </div>
 
-                <!-- Modal Body (Form) -->
-                <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" class="flex-1 overflow-y-auto p-6 space-y-4">
+                <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data">
                     @csrf
+                    
+                    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                            <!-- Name & Total Floors -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="md:col-span-2 space-y-1.5">
+                                    <label for="create_name" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Project Name</label>
+                                    <input id="create_name" 
+                                           type="text" 
+                                           name="name" 
+                                           value="{{ old('name') }}" 
+                                           required 
+                                           placeholder="e.g. Hindustan Emerald Heights"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
 
-                  
+                                <div class="space-y-1.5">
+                                    <label for="create_total_floors" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Floors</label>
+                                    <input id="create_total_floors" 
+                                           type="number" 
+                                           name="total_floors" 
+                                           value="{{ old('total_floors', 1) }}" 
+                                           required 
+                                           min="1"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
+                            </div>
 
-                    <!-- Name & Total Floors -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="md:col-span-2 space-y-1.5">
-                            <label for="create_name" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Name</label>
-                            <input id="create_name" 
-                                   type="text" 
-                                   name="name" 
-                                   value="{{ old('name') }}" 
-                                   required 
-                                   placeholder="e.g. Hindustan Emerald Heights"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 placeholder-slate-400 focus:outline-none transition" />
-                        </div>
+                            <!-- Location & City -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <label for="create_location" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Address / Location</label>
+                                    <input id="create_location" 
+                                           type="text" 
+                                           name="location" 
+                                           value="{{ old('location') }}" 
+                                           required 
+                                           placeholder="Sector 62"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
 
-                        <div class="space-y-1.5">
-                            <label for="create_total_floors" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Floors</label>
-                            <input id="create_total_floors" 
-                                   type="number" 
-                                   name="total_floors" 
-                                   value="{{ old('total_floors', 1) }}" 
-                                   required 
-                                   min="1"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
-                    </div>
+                                <div class="space-y-1.5">
+                                    <label for="create_city" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">City</label>
+                                    <input id="create_city" 
+                                           type="text" 
+                                           name="city" 
+                                           value="{{ old('city') }}" 
+                                           required 
+                                           placeholder="Noida / Dubai"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
+                            </div>
 
-                    <!-- Location & City -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="create_location" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Address / Location</label>
-                            <input id="create_location" 
-                                   type="text" 
-                                   name="location" 
-                                   value="{{ old('location') }}" 
-                                   required 
-                                   placeholder="Sector 62"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
+                            <!-- State & Country -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <label for="create_state_or_emirate" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">State / Emirate</label>
+                                    <input id="create_state_or_emirate" 
+                                           type="text" 
+                                           name="state_or_emirate" 
+                                           value="{{ old('state_or_emirate') }}" 
+                                           required 
+                                           placeholder="Uttar Pradesh / Dubai"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
 
-                        <div class="space-y-1.5">
-                            <label for="create_city" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">City</label>
-                            <input id="create_city" 
-                                   type="text" 
-                                   name="city" 
-                                   value="{{ old('city') }}" 
-                                   required 
-                                   placeholder="Noida / Dubai"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
-                    </div>
+                                <div class="space-y-1.5">
+                                    <label for="create_country" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Country</label>
+                                    <input id="create_country" 
+                                           type="text" 
+                                           name="country" 
+                                           value="{{ old('country') }}" 
+                                           required 
+                                           placeholder="India / UAE"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
+                            </div>
 
-                    <!-- State & Country -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="create_state_or_emirate" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">State / Emirate</label>
-                            <input id="create_state_or_emirate" 
-                                   type="text" 
-                                   name="state_or_emirate" 
-                                   value="{{ old('state_or_emirate') }}" 
-                                   required 
-                                   placeholder="Uttar Pradesh / Dubai"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
+                            <!-- Dates & Status -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="space-y-1.5">
+                                    <label for="create_start_date" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Start Date</label>
+                                    <input id="create_start_date" 
+                                           type="date" 
+                                           name="start_date" 
+                                           value="{{ old('start_date') }}" 
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm cursor-pointer" />
+                                </div>
 
-                        <div class="space-y-1.5">
-                            <label for="create_country" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Country</label>
-                            <input id="create_country" 
-                                   type="text" 
-                                   name="country" 
-                                   value="{{ old('country') }}" 
-                                   required 
-                                   placeholder="India / UAE"
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition" />
-                        </div>
-                    </div>
+                                <div class="space-y-1.5">
+                                    <label for="create_expected_completion_date" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Expected Completion</label>
+                                    <input id="create_expected_completion_date" 
+                                           type="date" 
+                                           name="expected_completion_date" 
+                                           value="{{ old('expected_completion_date') }}" 
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm cursor-pointer" />
+                                </div>
 
-                    <!-- Dates & Status -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="create_start_date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Start Date</label>
-                            <input id="create_start_date" 
-                                   type="date" 
-                                   name="start_date" 
-                                   value="{{ old('start_date') }}" 
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer" />
-                        </div>
+                                <div class="space-y-1.5">
+                                    <label for="create_status" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Status</label>
+                                    <select id="create_status" 
+                                            name="status" 
+                                            required 
+                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                        <option value="planning" {{ old('status', 'planning') === 'planning' ? 'selected' : '' }}>Planning</option>
+                                        <option value="ongoing" {{ old('status') === 'ongoing' ? 'selected' : '' }}>Ongoing</option>
+                                        <option value="completed" {{ old('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                                        <option value="on_hold" {{ old('status') === 'on_hold' ? 'selected' : '' }}>On Hold</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                        <div class="space-y-1.5">
-                            <label for="create_expected_completion_date" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Expected Completion</label>
-                            <input id="create_expected_completion_date" 
-                                   type="date" 
-                                   name="expected_completion_date" 
-                                   value="{{ old('expected_completion_date') }}" 
-                                   class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer" />
-                        </div>
+                            <!-- Description -->
+                            <div class="space-y-1.5">
+                                <label for="ck_project_create_description" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Description / Notes</label>
+                                <textarea id="ck_project_create_description"
+                                          name="description"
+                                          rows="4"
+                                          placeholder="Brief description of project specifications..."
+                                          class="ck-editor-field w-full bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none shadow-sm font-semibold">{{ old('description') }}</textarea>
+                            </div>
 
-                        <div class="space-y-1.5">
-                            <label for="create_status" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Status</label>
-                            <select id="create_status" 
-                                    name="status" 
-                                    required 
-                                    class="w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition cursor-pointer">
-                                <option value="planning" {{ old('status', 'planning') === 'planning' ? 'selected' : '' }}>Planning</option>
-                                <option value="ongoing" {{ old('status') === 'ongoing' ? 'selected' : '' }}>Ongoing</option>
-                                <option value="completed" {{ old('status') === 'completed' ? 'selected' : '' }}>Completed</option>
-                                <option value="on_hold" {{ old('status') === 'on_hold' ? 'selected' : '' }}>On Hold</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="space-y-1.5">
-                        <label for="create_description" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Description / Notes</label>
-                        <textarea id="ck_project_create_description"
-                                  name="description"
-                                  rows="4"
-                                  placeholder="Brief description of project specifications..."
-                                  class="ck-editor-field w-full bg-slate-50 border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-900 px-4 py-3 focus:outline-none transition">{{ old('description') }}</textarea>
-                    </div>
-
-                    <!-- Image Upload -->
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Project Cover Image</label>
-                        <div class="flex items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl p-4">
-                            <div class="flex-1 space-y-1">
-                                <input id="create_image" 
-                                       type="file" 
-                                       name="image" 
-                                       accept="image/*"
-                                       class="text-xs text-slate-650 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
-                                <p class="text-[9px] text-slate-400">Upload a project cover image. Max size: 2MB.</p>
+                            <!-- Image Upload -->
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Cover Image</label>
+                                <div class="flex items-center gap-4 bg-slate-50 border border-slate-250 rounded-xl p-4 shadow-sm">
+                                    <div class="flex-1 space-y-1">
+                                        <input id="create_image" 
+                                               type="file" 
+                                               name="image" 
+                                               accept="image/*"
+                                               class="text-xs text-slate-650 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
+                                        <p class="text-[9px] text-slate-400">Upload a project cover image. Max size: 2MB.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Modal Actions Footer -->
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
-                        <button type="button" @click="createModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition uppercase tracking-wider">
+                    <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                        <button type="button" @click="createModalOpen = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                             Cancel
                         </button>
-                        <button type="submit" class="px-6 py-2.5 bg-primary hover:bg-primary/95 text-white rounded-xl text-xs font-bold transition shadow-md shadow-primary/10 tracking-wide uppercase">
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md uppercase transition tracking-wider">
                             Create Project
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-
     </div>
 </x-erp-layout>

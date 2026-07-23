@@ -759,33 +759,17 @@
 
 
 {{-- ═══════════════════════ EDIT PROJECT MODAL ═══════════════════════ --}}
-<div x-show="editProjectModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-    {{-- Backdrop --}}
-    <div x-show="editProjectModal"
-         x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-         x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-         @click="editProjectModal = false"
-         class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
-
-    {{-- Modal panel --}}
-    <div x-show="editProjectModal"
-         x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-         x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-         class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col"
-         @click.stop>
-        
+<div x-show="editProjectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+    <div x-show="editProjectModal" class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up" @click.away="editProjectModal = false">
         {{-- Header --}}
-        <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 flex-shrink-0">
-            <div class="absolute -top-10 -right-10 w-36 h-36 bg-[#a38c29]/20 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="relative z-10 flex items-center justify-between">
+        <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative z-10 flex items-center justify-between gap-4">
                 <div>
-                    <p class="text-[#a38c29] text-[9px] font-bold uppercase tracking-widest mb-0.5">Edit Project</p>
-                    <h2 class="text-xs font-extrabold text-white">{{ $project->name }}</h2>
-                    <!-- <p class="text-slate-400 text-[10px] mt-0.5 font-mono">{{ $project->code }}</p> -->
+                    <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Project</span>
+                    <h2 class="text-xs font-extrabold text-white mt-1">{{ $project->name }}</h2>
                 </div>
-                <button @click="editProjectModal = false" class="text-slate-400 hover:text-white transition-colors duration-150 p-1">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+                <button type="button" @click="editProjectModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
             </div>
         </div>
 
@@ -896,13 +880,11 @@
             </div>
 
             {{-- Footer --}}
-            <div class="px-5 py-3.5 border-t border-slate-150 flex items-center justify-end gap-2.5 bg-slate-50 flex-shrink-0">
-                <button type="button" @click="editProjectModal = false"
-                    class="px-3.5 py-1.5 border border-slate-250 hover:bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg transition uppercase tracking-wide">
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50 flex-shrink-0">
+                <button type="button" @click="editProjectModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                     Cancel
                 </button>
-                <button type="submit"
-                    class="px-4 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-bold rounded-lg transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
+                <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md uppercase transition tracking-wider">
                     Save Changes
                 </button>
             </div>
@@ -924,24 +906,28 @@
 
 
 
-    {{-- ═══════════════════════════════════════════
-         MODAL 4: DELETE CONFIRMATION
-    ═══════════════════════════════════════════ --}}
+    <!-- MODAL 4: DELETE CONFIRMATION -->
     <div x-show="modals.delete.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-rose-600 uppercase tracking-widest">Delete Unit</h3>
-                <button @click="closeDeleteModal()" class="text-slate-400 hover:text-slate-650">✕</button>
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-rose-900/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Warning</span>
+                        <h2 class="text-xs font-extrabold text-white uppercase tracking-wider mt-1">Delete Unit</h2>
+                    </div>
+                    <button type="button" @click="closeDeleteModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
-            <div class="p-6 space-y-3">
-                <p class="text-xs text-slate-600 font-medium">
+            <div class="p-6 space-y-3 font-sans text-xs bg-slate-50/50">
+                <p class="text-xs text-slate-655 font-medium">
                     Are you sure you want to delete unit <strong class="text-slate-900" x-text="activeUnit.door_no"></strong>?
                 </p>
-                <p class="text-[10px] text-rose-500 font-bold uppercase tracking-wider">This action cannot be undone.</p>
+                <p class="text-[10px] text-rose-550 font-bold uppercase tracking-wider">This action cannot be undone.</p>
             </div>
-            <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
-                <button type="button" @click="closeDeleteModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                <button type="button" @click="submitDelete()" class="px-4 py-2 bg-rose-600 hover:bg-rose-550 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-sm shadow-rose-600/5">Confirm Delete</button>
+            <div class="px-6 py-4 border-t border-slate-200 flex justify-end gap-2 bg-slate-50">
+                <button type="button" @click="closeDeleteModal()" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                <button type="button" @click="submitDelete()" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md uppercase transition tracking-wider">Confirm Delete</button>
             </div>
         </div>
     </div>
@@ -949,16 +935,24 @@
     {{-- ═══════════════════════════════════════════
          VIEW UNIT MODAL
     ═══════════════════════════════════════════ --}}
+    <!-- VIEW UNIT MODAL -->
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
-        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up" @click.away="modals.view.open = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">View Info</span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-0.5">Unit Details & Specs</h2>
+                        </div>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Unit Details & Specifications</h3>
+                    <button type="button" @click="modals.view.open = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
-                <button @click="modals.view.open = false" class="text-slate-400 hover:text-slate-600 text-base">✕</button>
             </div>
 
             <div class="p-6 space-y-4">
@@ -1034,8 +1028,8 @@
                 </template>
             </div>
 
-            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end bg-slate-50">
-                <button type="button" @click="modals.view.open = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end bg-slate-50">
+                <button type="button" @click="modals.view.open = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
             </div>
         </div>
     </div>
@@ -1043,26 +1037,24 @@
     {{-- ═══════════════════════════════════════════
          RATE HISTORY MODAL
     ═══════════════════════════════════════════ --}}
+    <!-- RATE HISTORY MODAL -->
     <div x-show="modals.rateHistory.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-cloak>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="modals.rateHistory.open = false">
-            {{-- Modal Header --}}
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0 bg-slate-50/70">
-                <div class="space-y-1">
-                    <div class="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        <span>Home</span>
-                        <span>/</span>
-                        <span>All Units</span>
-                        <span>/</span>
-                        <span class="text-[rgb(67,56,212)]" style="color: rgb(67 56 212);">Rate History</span>
-                    </div>
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded-lg bg-[rgb(67,56,212)]/10 flex items-center justify-center text-[rgb(67,56,212)]" style="color: rgb(67 56 212);">
-                            <svg class="w-4 h-4" style="color: rgb(67 56 212);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="modals.rateHistory.open = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <h3 class="text-base font-extrabold text-slate-950 tracking-tight">Rate Change History Register</h3>
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Audit Trail</span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-0.5">Rate Change History Register</h2>
+                        </div>
                     </div>
+                    <button type="button" @click="modals.rateHistory.open = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
-                <button @click="modals.rateHistory.open = false" class="text-slate-400 hover:text-slate-600 text-lg p-1 transition">✕</button>
             </div>
 
             {{-- Modal Body (Scrollable) --}}
@@ -1214,8 +1206,8 @@
             </div>
 
             {{-- Modal Footer --}}
-            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end bg-slate-50 flex-shrink-0">
-                <button type="button" @click="modals.rateHistory.open = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end bg-slate-50 flex-shrink-0">
+                <button type="button" @click="modals.rateHistory.open = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
             </div>
         </div>
     </div>
