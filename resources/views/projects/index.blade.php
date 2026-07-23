@@ -408,7 +408,7 @@
                             <!-- Name & Total Floors -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="md:col-span-2 space-y-1.5">
-                                    <label for="create_name" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Project Name</label>
+                                    <label for="create_name" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-450 uppercase tracking-widest">Project Name <span class="text-red-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_name" 
                                            type="text" 
                                            name="name" 
@@ -419,7 +419,7 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_total_floors" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Floors</label>
+                                    <label for="create_total_floors" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-450 uppercase tracking-widest">Total Floors <span class="text-red-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_total_floors" 
                                            type="number" 
                                            name="total_floors" 
@@ -433,7 +433,7 @@
                             <!-- Location & City -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label for="create_location" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Address / Location</label>
+                                    <label for="create_location" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Address / Location <span class="text-red-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_location" 
                                            type="text" 
                                            name="location" 
@@ -444,7 +444,7 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_city" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">City</label>
+                                    <label for="create_city" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">City <span class="text-red-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_city" 
                                            type="text" 
                                            name="city" 
@@ -458,7 +458,7 @@
                             <!-- State & Country -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label for="create_state_or_emirate" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">State / Emirate</label>
+                                    <label for="create_state_or_emirate" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">State / Emirate <span class="text-red-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_state_or_emirate" 
                                            type="text" 
                                            name="state_or_emirate" 
@@ -469,7 +469,7 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_country" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Country</label>
+                                    <label for="create_country" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Country <span class="text-red-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_country" 
                                            type="text" 
                                            name="country" 
@@ -501,7 +501,7 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_status" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Status</label>
+                                    <label for="create_status" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Project Status <span class="text-red-500 font-extrabold text-xs">*</span></label>
                                     <select id="create_status" 
                                             name="status" 
                                             required 
@@ -524,17 +524,27 @@
                                           class="ck-editor-field w-full bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none shadow-sm font-semibold">{{ old('description') }}</textarea>
                             </div>
 
-                            <!-- Image Upload -->
+                            <!-- Image Upload (Required) -->
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Cover Image</label>
-                                <div class="flex items-center gap-4 bg-slate-50 border border-slate-250 rounded-xl p-4 shadow-sm">
+                                <label for="create_image" class="flex items-center gap-1.5 text-[10px] font-bold text-slate-455 uppercase tracking-widest">
+                                    Project Cover Image
+                                    <span class="text-red-500 font-extrabold text-xs">*</span>
+                                 
+                                </label>
+                                <div class="flex items-center gap-4 bg-slate-50 border border-[#a38c29]/30 rounded-xl p-4 shadow-sm ring-1 ring-[#a38c29]/10">
+                                    <div class="w-9 h-9 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/20 flex items-center justify-center shrink-0 text-[#a38c29]">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
                                     <div class="flex-1 space-y-1">
-                                        <input id="create_image" 
-                                               type="file" 
-                                               name="image" 
-                                               accept="image/*"
-                                               class="text-xs text-slate-650 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 cursor-pointer" />
-                                        <p class="text-[9px] text-slate-400">Upload a project cover image. Max size: 2MB.</p>
+                                        <input id="create_image"
+                                               type="file"
+                                               name="image"
+                                               accept="image/jpeg,image/png,image/webp"
+                                               required
+                                               class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-[#a38c29]/10 file:text-[#8a7522] hover:file:bg-[#a38c29]/20 file:uppercase file:tracking-wide cursor-pointer" />
+                                        <p class="text-[9px] text-slate-400">JPG, PNG or WebP · Max 2MB · <span class="text-red-500 font-semibold">Image is required to create a project.</span></p>
                                     </div>
                                 </div>
                             </div>

@@ -678,13 +678,13 @@
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
             {{-- Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#09876B]/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/20">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
                         <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span class="px-2 py-0.5 rounded bg-[#09876B]/20 text-[#09876B] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Contract Editing</span>
-                            <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Mode</span>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Contract Editing</span>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Mode</span>
                         </div>
                         <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Edit Sale — <span class="text-[#d9bf3b] font-mono" x-text="activeSale.sale_number"></span></h2>
                     </div>
@@ -1122,7 +1122,7 @@
                 </div>
                 <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
                     <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-[#09876B] hover:bg-[#076852] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Save Changes</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md shadow-[#a38c29]/20 uppercase transition tracking-wider">Save Changes</button>
                 </div>
             </form>
         </div>

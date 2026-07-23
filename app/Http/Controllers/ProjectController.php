@@ -75,7 +75,7 @@ class ProjectController extends Controller
             'expected_completion_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
             'description' => ['nullable', 'string'],
-            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
         ];
 
         // Default system_id to logged-in user's system_id if not present

@@ -499,9 +499,134 @@
         <!-- Main Body Content -->
         <main class="flex-1 p-6">
             @if (session('status'))
-                <div class="mb-6 p-4 bg-primary-50 border border-primary-200 text-primary-800 text-xs font-bold rounded-xl shadow-sm">
-                    {{ session('status') }}
+            @php
+                $statusText = session('status');
+                $modalTitle = 'Success!';
+                $modalBadge = 'Action Completed';
+                $modalSubtitle = 'Operation completed successfully.';
+
+                if (str_contains(strtolower($statusText), 'project')) {
+                    if (str_contains(strtolower($statusText), 'create') || str_contains(strtolower($statusText), 'add')) {
+                        $modalTitle = 'Project Added!';
+                        $modalBadge = 'New Project Created';
+                        $modalSubtitle = 'The new project has been added successfully.';
+                    } elseif (str_contains(strtolower($statusText), 'delete')) {
+                        $modalTitle = 'Project Deleted!';
+                        $modalBadge = 'Project Removed';
+                        $modalSubtitle = 'The project has been deleted successfully.';
+                    } elseif (str_contains(strtolower($statusText), 'update') || str_contains(strtolower($statusText), 'edit')) {
+                        $modalTitle = 'Project Updated!';
+                        $modalBadge = 'Project Modified';
+                        $modalSubtitle = 'Project specifications updated successfully.';
+                    }
+                }
+            @endphp
+            {{-- ═══════ PROFESSIONAL SUCCESS MODAL ═══════ --}}
+            <div id="statusSuccessModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(15,23,42,0.55); backdrop-filter: blur(4px);">
+                <div id="statusModalCard" class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden"
+                    style="animation: successModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">
+                    {{-- Gold shimmer top stripe --}}
+                    <div class="h-1 w-full bg-gradient-to-r from-[#a38c29] via-[#d9bf3b] to-[#a38c29]"></div>
+
+                    {{-- Dark header --}}
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5">
+                        <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute -bottom-8 -left-8 w-24 h-24 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                        <div class="relative z-10 flex items-start justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                {{-- Animated Checkmark Icon --}}
+                                <div class="w-12 h-12 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/40 flex items-center justify-center shadow-lg shadow-[#a38c29]/20 ring-1 ring-[#d9bf3b]/20 shrink-0"
+                                    style="animation: iconPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;">
+                                    <svg class="w-6 h-6 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"
+                                            style="stroke-dasharray:30; stroke-dashoffset:30; animation: drawCheck 0.5s ease-out 0.4s forwards;"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">
+                                        <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                        {{ $modalBadge }}
+                                    </span>
+                                    <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">{{ $modalTitle }}</h2>
+                                    <p class="text-[10px] text-slate-400 mt-0.5 font-medium">{{ $modalSubtitle }}</p>
+                                </div>
+                            </div>
+                            {{-- Close Button --}}
+                            <button onclick="closeStatusModal()" title="Close"
+                                class="w-8 h-8 rounded-full bg-white/10 hover:bg-[#a38c29]/30 text-white hover:text-[#d9bf3b] flex items-center justify-center transition-all focus:outline-none shrink-0 border border-white/10 hover:border-[#a38c29]/40 text-sm font-bold">
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Body --}}
+                    <div class="px-6 py-5 bg-gradient-to-b from-slate-50/80 to-white space-y-3">
+                        {{-- Message Card --}}
+                        <div class="flex items-center gap-3 bg-white border border-[#a38c29]/25 rounded-xl px-4 py-3.5 shadow-sm ring-1 ring-[#a38c29]/10">
+                            <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/20 flex items-center justify-center shrink-0">
+                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-[9px] font-bold text-[#a38c29]/70 uppercase tracking-widest">System Message</p>
+                                <p class="text-xs font-extrabold text-slate-900 mt-0.5">{{ session('status') }}</p>
+                            </div>
+                        </div>
+
+                        {{-- Auto-close progress bar --}}
+                        <div class="flex items-center gap-2.5">
+                            <div class="flex-1 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="statusProgressBar" class="h-full bg-gradient-to-r from-[#a38c29] to-[#d9bf3b] rounded-full"
+                                    style="width: 100%; animation: drainBar 4s linear 0.5s forwards;"></div>
+                            </div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider whitespace-nowrap">Auto-close</span>
+                        </div>
+                    </div>
+
+                    {{-- Footer --}}
+                    <div class="px-6 py-4 border-t border-slate-100 bg-white flex items-center justify-end">
+                        <button onclick="closeStatusModal()"
+                            class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#7a6920] text-white text-xs font-bold shadow-md shadow-[#a38c29]/25 uppercase tracking-wider transition-all ring-1 ring-[#a38c29]/30 flex items-center gap-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Got it
+                        </button>
+                    </div>
                 </div>
+            </div>
+
+            <style>
+                @keyframes successModalIn {
+                    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+                    to   { opacity: 1; transform: scale(1) translateY(0); }
+                }
+                @keyframes iconPop {
+                    from { opacity: 0; transform: scale(0.4); }
+                    to   { opacity: 1; transform: scale(1); }
+                }
+                @keyframes drawCheck {
+                    to { stroke-dashoffset: 0; }
+                }
+                @keyframes drainBar {
+                    from { width: 100%; }
+                    to   { width: 0%; }
+                }
+            </style>
+            <script>
+                function closeStatusModal() {
+                    var modal = document.getElementById('statusSuccessModal');
+                    if (modal) {
+                        modal.style.transition = 'opacity 0.25s ease';
+                        modal.style.opacity = '0';
+                        setTimeout(function() { modal.remove(); }, 260);
+                    }
+                }
+                // Auto close after 4.5s
+                setTimeout(closeStatusModal, 4500);
+            </script>
             @endif
 
             {{ $slot }}
