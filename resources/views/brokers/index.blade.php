@@ -28,58 +28,63 @@
                     class="inline-flex items-center gap-2 rounded-xl bg-[#a38c29] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition-all duration-200 hover:bg-[#8d7923] hover:shadow-lg">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Register Broker Profile
-            </button>
-
-            {{-- Register Modal --}}
+            </button>            {{-- Register Modal --}}
             <div x-show="openRegister" 
-                 class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity"
-                 style="display: none;">
-                 <div @click.away="openRegister = false" 
-                      class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5 transform transition-all">
-                      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                          <div class="flex items-center gap-2">
-                              <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
-                              <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Register New Broker Profile</h3>
+                 class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"
+                 style="display: none;" x-transition.opacity>
+                 <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openRegister = false">
+                      {{-- Header --}}
+                      <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                          <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                          <div class="relative z-10 flex items-center justify-between gap-4">
+                              <div>
+                                  <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Brokerage Directory</span>
+                                  <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Register Broker</h2>
+                              </div>
+                              <button type="button" @click="openRegister = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                           </div>
-                          <button @click="openRegister = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
                       </div>
 
-                      <form action="{{ route('brokers.store') }}" method="POST" class="space-y-4">
+                      <form action="{{ route('brokers.store') }}" method="POST">
                           @csrf
-                          <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name *</label>
-                              <input type="text" name="name" required placeholder="e.g. Apex Realty Brokers"
-                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
-                          </div>
+                          <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                              <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name *</label>
+                                      <input type="text" name="name" required placeholder="e.g. Apex Realty Brokers"
+                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                                  </div>
 
-                          <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
-                                  <span>Default Commission % *</span>
-                                  <span class="text-slate-400 font-normal text-[9px]">(Typically 2% per sale)</span>
-                              </label>
-                              <div class="relative">
-                                  <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" value="2.00" required
-                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold">
-                                  <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
+                                          <span>Default Commission % *</span>
+                                          <span class="text-slate-400 font-normal text-[9px]">(Typically 2% per sale)</span>
+                                      </label>
+                                      <div class="relative">
+                                          <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" value="2.00" required
+                                                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
+                                          <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                                      </div>
+                                      <p class="text-[9px] text-slate-400">This percentage is applied by default to all project sales handled by this broker.</p>
+                                  </div>
+
+                                  <div class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-[10px] text-amber-800 space-y-1">
+                                      <span class="font-bold flex items-center gap-1">
+                                          <svg class="w-3 h-3 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                          Automated Accounting Integration:
+                                      </span>
+                                      <p>A dedicated liability ledger account will be automatically created in the accounts master for tracking commissions payable.</p>
+                                  </div>
                               </div>
-                              <p class="text-[9px] text-slate-400">This percentage is applied by default to all project sales handled by this broker.</p>
                           </div>
 
-                          <div class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-[10px] text-amber-800 space-y-1">
-                              <span class="font-bold flex items-center gap-1">
-                                  <svg class="w-3 h-3 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                                  Automated Accounting Integration:
-                              </span>
-                              <p>A dedicated liability ledger account will be automatically created in the accounts master for tracking commissions payable.</p>
-                          </div>
-
-                          <div class="pt-3 flex justify-end gap-2.5">
+                          <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
                               <button type="button" @click="openRegister = false" 
-                                      class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-550 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                                      class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                   Cancel
                               </button>
                               <button type="submit" 
-                                      class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md">
+                                      class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
                                   Save Profile
                               </button>
                           </div>
@@ -236,149 +241,169 @@
                                 </div>
 
                                 {{-- View Modal --}}
-                                <div x-show="openView" 
-                                     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
-                                     style="display: none;">
-                                     <div @click.away="openView = false" 
-                                          class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg space-y-5">
-                                          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                              <div class="flex items-center gap-2">
-                                                  <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                 <div x-show="openView" 
+                                      class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+                                      style="display: none;" x-transition.opacity>
+                                      <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openView = false">
+                                          {{-- Header --}}
+                                          <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                                              <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                                              <div class="relative z-10 flex items-center justify-between gap-4">
+                                                  <div>
+                                                      <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Broker Profile</span>
+                                                      <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Profile & Ledger Details</h2>
                                                   </div>
-                                                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Broker Profile & Ledger Details</h3>
+                                                  <button type="button" @click="openView = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                                               </div>
-                                              <button @click="openView = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
                                           </div>
 
-                                          <div class="space-y-4">
-                                              <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+                                          <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                                              <div class="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
                                                   <div>
-                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker / Agency Name</span>
-                                                      <span class="text-base font-extrabold text-slate-900">{{ $broker->name }}</span>
+                                                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Broker / Agency Name</span>
+                                                      <span class="text-sm font-extrabold text-slate-900">{{ $broker->name }}</span>
                                                   </div>
                                                   <div class="text-right">
-                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Commission Structure</span>
-                                                      <span class="px-2.5 py-1 rounded-lg bg-[#a38c29]/10 text-[#a38c29] font-mono font-bold text-xs inline-block mt-0.5">{{ number_format($broker->default_commission_pct, 2) }}% Default</span>
+                                                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Commission Structure</span>
+                                                      <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-0.5 bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20">{{ number_format($broker->default_commission_pct, 2) }}% Default</span>
                                                   </div>
                                               </div>
 
                                               <div class="grid grid-cols-2 gap-3">
-                                                  <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Linked Ledger Account</span>
-                                                      <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $broker->linkedAccount->name ?? 'Unlinked' }}</span>
-                                                      <span class="text-[10px] font-mono text-slate-500 block">Code: {{ $broker->linkedAccount->code ?? 'N/A' }}</span>
+                                                  <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                                                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Linked Ledger Account</span>
+                                                      <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate">{{ $broker->linkedAccount->name ?? 'Unlinked' }}</span>
+                                                      <span class="text-[9px] font-mono text-slate-500 block">Code: {{ $broker->linkedAccount->code ?? 'N/A' }}</span>
                                                   </div>
-                                                  <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                                                      <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Deals & Sales</span>
+                                                  <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                                                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Deals & Sales</span>
                                                       <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $broker->total_deals }} Closed Deal(s)</span>
-                                                      <span class="text-[10px] font-mono text-slate-500 block">Value: ₹{{ number_format($broker->total_sale_value, 2) }}</span>
+                                                      <span class="text-[9px] font-mono text-slate-500 block">Value: ₹{{ number_format($broker->total_sale_value, 2) }}</span>
                                                   </div>
                                               </div>
 
-                                              <div class="grid grid-cols-3 gap-3 pt-2">
-                                                  <div class="p-3 rounded-xl bg-amber-50/60 border border-amber-200/60 text-center">
+                                              <div class="grid grid-cols-3 gap-3">
+                                                  <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center shadow-2xs">
                                                       <span class="text-[9px] font-bold text-amber-800 uppercase block">Accrued (Locked)</span>
                                                       <span class="text-xs font-bold font-mono text-amber-900 mt-1 block">₹{{ number_format($broker->accrued_commission, 2) }}</span>
                                                   </div>
-                                                  <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/60 text-center">
+                                                  <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center shadow-2xs">
                                                       <span class="text-[9px] font-bold text-emerald-800 uppercase block">Payable (Ready)</span>
                                                       <span class="text-xs font-bold font-mono text-emerald-900 mt-1 block">₹{{ number_format($broker->payable_commission, 2) }}</span>
                                                   </div>
-                                                  <div class="p-3 rounded-xl bg-indigo-50/60 border border-indigo-200/60 text-center">
+                                                  <div class="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-center shadow-2xs">
                                                       <span class="text-[9px] font-bold text-indigo-800 uppercase block">Total Paid Out</span>
                                                       <span class="text-xs font-bold font-mono text-indigo-900 mt-1 block">₹{{ number_format($broker->paid_commission, 2) }}</span>
                                                   </div>
                                               </div>
                                           </div>
 
-                                          <div class="pt-3 flex justify-between items-center border-t border-slate-100">
+                                          <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
                                               <button type="button" @click="openView = false" 
-                                                      class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                                                      class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                                   Close
                                               </button>
                                               <a href="{{ route('brokers.payable-report', ['broker_id' => $broker->id]) }}" 
-                                                 class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
+                                                 class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md inline-flex items-center gap-1.5">
                                                   <span>Full Ledger Statement</span>
                                                   <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                                               </a>
                                           </div>
-                                     </div>
-                                </div>
-
-                                {{-- Edit Modal --}}
-                                <div x-show="openEdit" 
-                                     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
-                                     style="display: none;">
-                                     <div @click.away="openEdit = false" 
-                                          class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
-                                          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                              <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Edit Broker Rate: {{ $broker->name }}</h3>
-                                              <button @click="openEdit = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                      </div>
+                                 </div>
+                                        {{-- Edit Modal --}}
+                                 <div x-show="openEdit" 
+                                      class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+                                      style="display: none;" x-transition.opacity>
+                                      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openEdit = false">
+                                          {{-- Header --}}
+                                          <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                                              <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                                              <div class="relative z-10 flex items-center justify-between gap-4">
+                                                  <div>
+                                                      <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Profile</span>
+                                                      <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1" x-text="'Rate: ' + '{{ $broker->name }}'"></h2>
+                                                  </div>
+                                                  <button type="button" @click="openEdit = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                                              </div>
                                           </div>
 
-                                          <form action="{{ route('brokers.update', $broker->id) }}" method="POST" class="space-y-4">
+                                          <form action="{{ route('brokers.update', $broker->id) }}" method="POST">
                                               @csrf
                                               @method('PUT')
-                                              <div class="space-y-1.5">
-                                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name *</label>
-                                                  <input type="text" name="name" value="{{ $broker->name }}" required
-                                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
-                                              </div>
+                                              <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                                                  <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                                                      <div class="space-y-1.5">
+                                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name *</label>
+                                                          <input type="text" name="name" value="{{ $broker->name }}" required
+                                                                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                                                      </div>
 
-                                              <div class="space-y-1.5">
-                                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Default Commission % *</label>
-                                                  <div class="relative">
-                                                      <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" value="{{ $broker->default_commission_pct }}" required
-                                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold">
-                                                      <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                                                      <div class="space-y-1.5">
+                                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Default Commission % *</label>
+                                                          <div class="relative">
+                                                              <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" value="{{ $broker->default_commission_pct }}" required
+                                                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
+                                                              <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                                                          </div>
+                                                      </div>
                                                   </div>
                                               </div>
 
-                                              <div class="pt-3 flex justify-end gap-2.5">
+                                              <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
                                                   <button type="button" @click="openEdit = false" 
-                                                          class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-550 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                                                          class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                                       Cancel
                                                   </button>
                                                   <button type="submit" 
-                                                          class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md">
+                                                          class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
                                                       Update Changes
                                                   </button>
                                               </div>
                                           </form>
-                                     </div>
-                                </div>
+                                      </div>
+                                 </div>
 
-                                {{-- Delete Modal --}}
-                                <div x-show="openDelete" 
-                                     class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left"
-                                     style="display: none;">
-                                     <div @click.away="openDelete = false" 
-                                          class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
-                                          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                              <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Delete Broker: {{ $broker->name }}</h3>
-                                              <button @click="openDelete = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+                                 {{-- Delete Modal --}}
+                                 <div x-show="openDelete" 
+                                      class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+                                      style="display: none;" x-transition.opacity>
+                                      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openDelete = false">
+                                          {{-- Header --}}
+                                          <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-rose-500/10">
+                                              <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                                              <div class="relative z-10 flex items-center justify-between gap-4">
+                                                  <div>
+                                                      <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Safety Check</span>
+                                                      <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1" x-text="'Delete Broker: ' + '{{ $broker->name }}'"></h2>
+                                                  </div>
+                                                  <button type="button" @click="openDelete = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                                              </div>
                                           </div>
                                           
                                           <form method="POST" action="{{ route('brokers.destroy', $broker->id) }}">
                                               @csrf
                                               @method('DELETE')
-                                              
-                                              <p class="text-sm text-slate-700">Are you sure you want to delete this broker? This action cannot be undone.</p>
+                                              <div class="p-6 bg-slate-50/50 text-xs font-sans space-y-4">
+                                                  <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                                                      <p class="text-sm text-slate-700">Are you sure you want to delete this broker? This action cannot be undone.</p>
+                                                      <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wide">This action will remove the broker profile record.</p>
+                                                  </div>
+                                              </div>
 
-                                              <div class="pt-5 flex justify-end gap-2.5">
+                                              <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
                                                   <button type="button" @click="openDelete = false" 
-                                                          class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-550 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                                                          class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                                       Cancel
                                                   </button>
                                                   <button type="submit" 
-                                                          class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md">
+                                                          class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
                                                       Delete
                                                   </button>
                                               </div>
                                           </form>
-                                     </div>
-                                </div>
+                                      </div>
+                                 </div>
                             </td>
                         </tr>
                     @empty

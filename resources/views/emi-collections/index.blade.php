@@ -351,137 +351,151 @@
     </div>
 
     {{-- COLLECTION RECEIPT Modal --}}
-    <div x-show="modal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition>
-        <div @click.away="closeCollectModal()" class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <div>
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Collection Receipt</h3>
-                    <p class="text-[10px] text-slate-450 mt-0.5 font-medium">Collections must be linked to an active Sale. Select the Sale first.</p>
+    <div x-show="modal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeCollectModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">EMI & Payments</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Collection Receipt</h2>
+                    </div>
+                    <button type="button" @click="closeCollectModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
-                <button @click="closeCollectModal()" class="text-slate-450 hover:text-slate-700">✕</button>
             </div>
             
-            <form @submit.prevent="submitCollection()" class="p-6 space-y-4">
-                {{-- Active Sale --}}
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Active Sale *</label>
-                    <select x-model="form.booking_id" @change="onModalSaleSelect()" required
-                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
-                        <option value="">-- Select Sale --</option>
-                        <template x-for="s in activeSales" :key="s.id">
-                            <option :value="s.id" x-text="(s.customer ? s.customer.name : '—') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
-                        </template>
-                    </select>
+            <form @submit.prevent="submitCollection()">
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    {{-- Active Sale Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Active Sale *</label>
+                            <select x-model="form.booking_id" @change="onModalSaleSelect()" required
+                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                <option value="">-- Select Sale --</option>
+                                <template x-for="s in activeSales" :key="s.id">
+                                    <option :value="s.id" x-text="(s.customer ? s.customer.name : '—') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        {{-- Info Box --}}
+                        <div x-show="form.booking_id && form.project_name" class="p-3.5 bg-slate-50 border border-slate-200/60 rounded-xl space-y-1.5 text-[11px] font-semibold text-slate-600" x-transition>
+                            <div class="flex justify-between border-b border-slate-200/40 pb-1.5">
+                                <span>Project / Unit</span>
+                                <strong class="text-slate-800" x-text="form.project_name + ' / Unit ' + form.unit_number"></strong>
+                            </div>
+                            <div class="flex justify-between border-b border-slate-200/40 pb-1.5">
+                                <span>Sale Total</span>
+                                <strong class="text-slate-800 font-mono" x-text="'₹' + Number(form.total_amount).toLocaleString('en-IN')"></strong>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Remaining Balance</span>
+                                <strong class="text-rose-600 font-mono" x-text="'₹' + Number(form.outstanding).toLocaleString('en-IN')"></strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Action Type Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Action Type *</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" @click="form.collection_type = 'regular'" 
+                                        :class="form.collection_type === 'regular' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-250 hover:border-[#a38c29]/40'" 
+                                        class="px-2 py-2 border rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all">Regular</button>
+                                <button type="button" @click="form.collection_type = 'prepayment'" 
+                                        :class="form.collection_type === 'prepayment' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-250 hover:border-[#a38c29]/40'" 
+                                        class="px-2 py-2 border rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all">Prepayment</button>
+                            </div>
+                        </div>
+
+                        {{-- Prepayment Options --}}
+                        <div class="space-y-1.5" x-show="form.collection_type === 'prepayment'" x-cloak x-transition>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Prepayment Option *</label>
+                            <select x-model="form.prepayment_option" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all font-semibold">
+                                <option value="reduce_emi">Reduce EMI amount (keep tenure the same)</option>
+                                <option value="reduce_tenure">Reduce Tenure (keep monthly EMI the same)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {{-- Amount & Date & Payment Mode Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4" x-show="form.collection_type !== 'reschedule'">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Amount (₹) *</label>
+                                <input type="number" step="0.01" x-model.number="form.amount" :required="form.collection_type !== 'reschedule'" min="0.01"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold focus:outline-none transition-all shadow-sm">
+                                <template x-if="errors.amount">
+                                    <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.amount[0]"></span>
+                                </template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Receipt Date</label>
+                                <input type="date" x-model="form.receipt_date"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="errors.receipt_date">
+                                    <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.receipt_date[0]"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Payment Mode *</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
+                                    <button type="button" @click="form.payment_mode = mode"
+                                            :class="form.payment_mode === mode ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm shadow-[#a38c29]/20' : 'bg-slate-50 text-slate-600 border-slate-250 hover:border-[#a38c29]/40'"
+                                            class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
+                                            x-text="mode">
+                                    </button>
+                                </template>
+                            </div>
+                            <template x-if="errors.payment_mode">
+                                <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.payment_mode[0]"></span>
+                            </template>
+                        </div>
+                    </div>
+
+                    {{-- Ref & Bank & Remarks Card --}}
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4" x-show="form.collection_type !== 'reschedule'">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Ref / Cheque No.</label>
+                                <input type="text" x-model="form.reference_no" placeholder="Optional"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Bank Name</label>
+                                <select x-model="form.bank_name"
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-750 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                    <option value="">-- Optional --</option>
+                                    @foreach($banks as $bank)
+                                    <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Remarks</label>
+                            <textarea x-model="form.remarks" rows="2"
+                                      class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold"></textarea>
+                        </div>
+                    </div>
                 </div>
 
-                {{-- Info Box --}}
-                <div x-show="form.booking_id && form.project_name" class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] font-semibold text-slate-650" x-transition>
-                    <div class="flex justify-between">
-                        <span>Project / Unit:</span>
-                        <strong class="text-slate-900" x-text="form.project_name + ' / Unit ' + form.unit_number"></strong>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Sale Total:</span>
-                        <strong class="text-slate-700 font-mono" x-text="'₹' + Number(form.total_amount).toLocaleString('en-IN')"></strong>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Remaining Balance:</span>
-                        <strong class="text-rose-600 font-mono" x-text="'₹' + Number(form.outstanding).toLocaleString('en-IN')"></strong>
-                    </div>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                    <button type="button" @click="closeCollectModal()" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider shadow-md flex items-center justify-center gap-2">
+                        Collect Receipt
+                    </button>
                 </div>
-
-                {{-- Collection Type Field --}}
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Action Type *</label>
-                    <div class="grid grid-cols-2 gap-1.5">
-                        <button type="button" @click="form.collection_type = 'regular'" :class="form.collection_type === 'regular' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'" class="px-2 py-2 border rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all">Regular</button>
-                        <button type="button" @click="form.collection_type = 'prepayment'" :class="form.collection_type === 'prepayment' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'" class="px-2 py-2 border rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all">Prepayment</button>
-                    </div>
-                </div>
-
-                {{-- Prepayment Options --}}
-                <div class="space-y-1.5" x-show="form.collection_type === 'prepayment'" x-cloak>
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Prepayment Option *</label>
-                    <select x-model="form.prepayment_option" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
-                        <option value="reduce_emi">Reduce EMI amount (keep tenure the same)</option>
-                        <option value="reduce_tenure">Reduce Tenure (keep monthly EMI the same)</option>
-                    </select>
-                </div>
-
-
-                {{-- Amount & Date --}}
-                <div class="grid grid-cols-2 gap-3" x-show="form.collection_type !== 'reschedule'">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) *</label>
-                        <input type="number" step="0.01" x-model.number="form.amount" :required="form.collection_type !== 'reschedule'" min="0.01"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs font-bold focus:outline-none transition-all">
-                        <template x-if="errors.amount">
-                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.amount[0]"></span>
-                        </template>
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date</label>
-                        <input type="date" x-model="form.receipt_date"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all">
-                        <template x-if="errors.receipt_date">
-                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.receipt_date[0]"></span>
-                        </template>
-                    </div>
-                </div>
-
-                {{-- Payment Mode Toggles --}}
-                <div class="space-y-1.5" x-show="form.collection_type !== 'reschedule'">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode *</label>
-                    <div class="grid grid-cols-2 gap-1.5">
-                        <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
-                            <button type="button" @click="form.payment_mode = mode"
-                                    :class="form.payment_mode === mode ? 'bg-primary text-white border-primary shadow-sm shadow-primary-650/20' : 'bg-slate-50 text-slate-655 border-slate-200 hover:border-primary/40'"
-                                    class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
-                                    x-text="mode">
-                            </button>
-                        </template>
-                    </div>
-                    <template x-if="errors.payment_mode">
-                        <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.payment_mode[0]"></span>
-                    </template>
-                </div>
-
-                {{-- Reference & Bank --}}
-                <div class="grid grid-cols-2 gap-3" x-show="form.collection_type !== 'reschedule'">
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No.</label>
-                        <input type="text" x-model="form.reference_no" placeholder="Optional"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                    </div>
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
-                        <select x-model="form.bank_name"
-                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
-                            <option value="">-- Optional --</option>
-                            @foreach($banks as $bank)
-                            <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                {{-- Remarks --}}
-                <div class="space-y-1.5" x-show="form.collection_type !== 'reschedule'">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks</label>
-                    <textarea x-model="form.remarks" rows="2"
-                              class="w-full px-3 py-2 bg-slate-50 border border-slate-200/80 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
-                </div>
-
-                {{-- Submit Button --}}
-                <button type="submit"
-                        class="w-full py-3 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition-all uppercase tracking-wider flex items-center justify-center gap-2 shadow-md shadow-primary-600/10 active:scale-98">
-                    COLLECTION RECEIPT
-                </button>
-
-                <p class="text-[10px] text-slate-400 text-center">
-                    To register a new sale, go to
-                    <a href="{{ route('sales.index') }}" class="text-primary font-bold hover:underline">Sales Module &rarr;</a>
-                </p>
             </form>
         </div>
     </div>

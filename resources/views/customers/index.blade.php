@@ -115,53 +115,58 @@
     </div>
 
     {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
-    <div>
-
-    {{-- ═══════════════════════════════════════════
+    <div>    {{-- ═══════════════════════════════════════════
          ADD CUSTOMER MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Add New Customer</h3>
-                <button @click="closeAddModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Directory</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Add New Customer</h2>
+                    </div>
+                    <button type="button" @click="closeAddModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
             <form @submit.prevent="submitAddCustomer()">
-                <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Name</label>
-                        <input type="text" x-model="forms.add.name" placeholder="Enter name"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                        <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.name[0]"></p></template>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</label>
-                            <input type="email" x-model="forms.add.email" placeholder="Enter email"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.email[0]"></p></template>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Name *</label>
+                            <input type="text" x-model="forms.add.name" required placeholder="Enter name"
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.name[0]"></p></template>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</label>
+                                <input type="email" x-model="forms.add.email" placeholder="Enter email"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="errors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.email[0]"></p></template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</label>
+                                <input type="text" x-model="forms.add.phone" placeholder="Enter phone number"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="errors.phone"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.phone[0]"></p></template>
+                            </div>
+                        </div>
+
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</label>
-                            <input type="text" x-model="forms.add.phone" placeholder="Enter phone number"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="errors.phone"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.phone[0]"></p></template>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address</label>
+                            <textarea x-model="forms.add.address" rows="2" placeholder="Enter address..."
+                                      class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold"></textarea>
+                            <template x-if="errors.address"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.address[0]"></p></template>
                         </div>
                     </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address</label>
-                        <textarea x-model="forms.add.address" rows="2" placeholder="Enter address..."
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
-                        <template x-if="errors.address"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.address[0]"></p></template>
-                    </div>
-
                 </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Add Customer</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-255 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Add Customer</button>
                 </div>
             </form>
         </div>
@@ -171,57 +176,64 @@
          EDIT CUSTOMER MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Edit Customer</h3>
-                <button @click="closeEditModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+        <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Profile</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Edit Customer Details</h2>
+                    </div>
+                    <button type="button" @click="closeEditModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
             <form @submit.prevent="submitEditCustomer()">
-                <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Name</label>
-                        <input type="text" x-model="forms.edit.name" placeholder="Enter name"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                        <template x-if="editErrors.name"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.name[0]"></p></template>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</label>
-                            <input type="email" x-model="forms.edit.email" placeholder="Enter email"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="editErrors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.email[0]"></p></template>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Name *</label>
+                            <input type="text" x-model="forms.edit.name" placeholder="Enter name" required
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="editErrors.name"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.name[0]"></p></template>
                         </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</label>
+                                <input type="email" x-model="forms.edit.email" placeholder="Enter email"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="editErrors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.email[0]"></p></template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</label>
+                                <input type="text" x-model="forms.edit.phone" placeholder="Enter phone number"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="editErrors.phone"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.phone[0]"></p></template>
+                            </div>
+                        </div>
+
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</label>
-                            <input type="text" x-model="forms.edit.phone" placeholder="Enter phone number"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <template x-if="editErrors.phone"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.phone[0]"></p></template>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address</label>
+                            <textarea x-model="forms.edit.address" rows="2" placeholder="Enter address..."
+                                      class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold"></textarea>
+                            <template x-if="editErrors.address"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.address[0]"></p></template>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</label>
+                            <select x-model="forms.edit.is_active"
+                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold text-slate-700 cursor-pointer">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                            <template x-if="editErrors.is_active"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.is_active[0]"></p></template>
                         </div>
                     </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address</label>
-                        <textarea x-model="forms.edit.address" rows="2" placeholder="Enter address..."
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none"></textarea>
-                        <template x-if="editErrors.address"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.address[0]"></p></template>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</label>
-                        <select x-model="forms.edit.is_active"
-                                class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                            <option value="1">Active</option>
-                            <option value="0">Inactive</option>
-                        </select>
-                        <template x-if="editErrors.is_active"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.is_active[0]"></p></template>
-                    </div>
-
                 </div>
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                    <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Update Customer</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-255 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Update Customer</button>
                 </div>
             </form>
         </div>
@@ -231,20 +243,29 @@
          DELETE CUSTOMER CONFIRMATION MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.delete.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Delete Customer</h3>
-                <button @click="closeDeleteModal()" class="text-slate-400 hover:text-slate-600">✕</button>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-rose-500/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Safety Check</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Delete Customer</h2>
+                    </div>
+                    <button type="button" @click="closeDeleteModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
-            <div class="p-6 space-y-2">
-                <p class="text-sm text-slate-700">
-                    Are you sure you want to delete customer <span class="font-bold" x-text="deleteTarget?.name"></span>?
-                </p>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wide">This action cannot be undone.</p>
+            <div class="p-6 bg-slate-50/50 text-xs font-sans space-y-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                    <p class="text-sm text-slate-700">
+                        Are you sure you want to delete customer <span class="font-bold text-slate-900" x-text="deleteTarget?.name"></span>?
+                    </p>
+                    <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wide">This action cannot be undone and will remove the record.</p>
+                </div>
             </div>
-            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
-                <button type="button" @click="closeDeleteModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Cancel</button>
-                <button type="button" @click="confirmDeleteCustomer()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide">Confirm Delete</button>
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                <button type="button" @click="closeDeleteModal()" class="px-4 py-2 border border-slate-255 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                <button type="button" @click="confirmDeleteCustomer()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Confirm Delete</button>
             </div>
         </div>
     </div>
@@ -253,44 +274,46 @@
          VIEW CUSTOMER MODAL
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.view.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="modals.view.open = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Profile</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Profile Overview</h2>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Customer Profile</h3>
+                    <button type="button" @click="modals.view.open = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
-                <button @click="modals.view.open = false" class="text-slate-400 hover:text-slate-600 text-base">✕</button>
             </div>
 
-            <div class="p-6 space-y-4">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+            <div class="p-6 space-y-4 bg-slate-50/50 text-xs font-sans">
+                <div class="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer Name</span>
-                        <span class="text-base font-extrabold text-slate-900" x-text="viewTarget?.name"></span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer Name</span>
+                        <span class="text-sm font-extrabold text-slate-900" x-text="viewTarget?.name"></span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold font-mono uppercase inline-block mt-0.5"
-                              :class="viewTarget?.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'"
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-0.5"
+                              :class="viewTarget?.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200'"
                               x-text="viewTarget?.is_active ? 'Active' : 'Inactive'"></span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email Address</span>
-                        <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewTarget?.email || 'N/A'"></span>
+                    <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Email Address</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate" x-text="viewTarget?.email || 'N/A'"></span>
                     </div>
-                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone Number</span>
+                    <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Phone Number</span>
                         <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewTarget?.phone || 'N/A'"></span>
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address Details</span>
+                <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Address Details</span>
                     <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewTarget?.address || 'No address provided'"></span>
                 </div>
             </div>

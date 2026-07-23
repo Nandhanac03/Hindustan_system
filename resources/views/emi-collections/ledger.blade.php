@@ -221,175 +221,185 @@
         <a href="{{ route('emi-collections.outstanding') }}" class="font-bold text-slate-500 hover:text-primary transition-colors">&larr; Outstanding Summary</a>
         <a href="{{ route('sales.index') }}" class="font-bold text-slate-500 hover:text-primary transition-colors">&larr; Sales Register</a>
     </div>
+
     {{-- Direct Pay Installment Modal --}}
     <div x-show="modalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
-         style="display: none;" x-transition>
-         <div @click.away="modalOpen = false" 
-              class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
-              
-              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Payment for <span x-text="form.label" class="text-primary font-bold"></span></h3>
-                  <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+         style="display: none;" x-transition.opacity>
+         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="modalOpen = false">
+              {{-- Header --}}
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                  <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                  <div class="relative z-10 flex items-center justify-between gap-4">
+                      <div>
+                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Installment Payment</span>
+                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Payment for <span x-text="form.label"></span></h2>
+                      </div>
+                      <button type="button" @click="modalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                  </div>
               </div>
 
-              <div x-show="error" class="p-3 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="error"></div>
+              <div x-show="error" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="error"></div>
 
-              <form @submit.prevent="submitPayment()" class="space-y-4">
-                  <div class="space-y-1.5">
-                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) *</label>
-                      <input type="number" step="0.01" required x-model.number="form.amount"
-                             class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+              <form @submit.prevent="submitPayment()">
+                  <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                          <div class="space-y-1.5">
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) *</label>
+                              <input type="number" step="0.01" required x-model.number="form.amount"
+                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm">
+                          </div>
+
+                          <div class="grid grid-cols-2 gap-4">
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date *</label>
+                                  <input type="date" required x-model="form.receipt_date"
+                                         class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold text-slate-700">
+                              </div>
+
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode *</label>
+                                  <select x-model="form.payment_mode" required
+                                          class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs cursor-pointer focus:outline-none transition-all shadow-sm font-semibold text-slate-700">
+                                      <option value="Cash">Cash</option>
+                                      <option value="Cheque">Cheque</option>
+                                      <option value="Bank Transfer">Bank Transfer</option>
+                                      <option value="Online">Online</option>
+                                      <option value="UPI">UPI</option>
+                                  </select>
+                              </div>
+                          </div>
+
+                          <div class="grid grid-cols-2 gap-4">
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Reference / Chq No.</label>
+                                  <input type="text" x-model="form.reference_no" placeholder="e.g. TXN-12345"
+                                         class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold text-slate-700">
+                              </div>
+
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
+                                  <select x-model="form.bank_name"
+                                          class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs cursor-pointer focus:outline-none transition-all shadow-sm font-semibold text-slate-700">
+                                      <option value="">-- Optional --</option>
+                                      @foreach($banks as $bank)
+                                          <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
+                                      @endforeach
+                                  </select>
+                              </div>
+                          </div>
+
+                          <div class="space-y-1.5">
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks / Notes</label>
+                              <textarea x-model="form.remarks" rows="2" placeholder="Internal notes..."
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold text-slate-700"></textarea>
+                          </div>
+                      </div>
                   </div>
 
-                  <div class="grid grid-cols-2 gap-4">
-                      <div class="space-y-1.5">
-                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date *</label>
-                          <input type="date" required x-model="form.receipt_date"
-                                 class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]">
-                      </div>
-
-                      <div class="space-y-1.5">
-                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode *</label>
-                          <select x-model="form.payment_mode" required
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]">
-                              <option value="Cash">Cash</option>
-                              <option value="Cheque">Cheque</option>
-                              <option value="Bank Transfer">Bank Transfer</option>
-                              <option value="Online">Online</option>
-                              <option value="UPI">UPI</option>
-                          </select>
-                      </div>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-4">
-                      <div class="space-y-1.5">
-                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Reference / Chq No.</label>
-                          <input type="text" x-model="form.reference_no" placeholder="e.g. TXN-12345"
-                                 class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]">
-                      </div>
-
-                      <div class="space-y-1.5">
-                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
-                          <select x-model="form.bank_name"
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]">
-                              <option value="">-- Optional --</option>
-                              @foreach($banks as $bank)
-                                  <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
-                              @endforeach
-                          </select>
-                      </div>
-                  </div>
-
-
-
-                  <div class="space-y-1.5">
-                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Remarks / Notes</label>
-                      <textarea x-model="form.remarks" rows="2" placeholder="Internal notes..."
-                                class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] resize-none"></textarea>
-                  </div>
-
-                  <div class="pt-4 flex justify-end gap-2 border-t border-slate-100">
+                  <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
                       <button type="button" @click="modalOpen = false" 
-                              class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-550 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                              class="px-4 py-2 border border-slate-255 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                           Cancel
                       </button>
                       <button type="submit" x-bind:disabled="submitting"
-                              class="px-4 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md flex items-center gap-1.5">
+                              class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md flex items-center gap-1.5">
                           <span x-text="submitting ? 'Recording...' : 'Collect Payment'"></span>
                       </button>
-                  </div>
-              </form>
-         </div>
-    </div>
-
-    {{-- Manage EMI Schedule Modal --}}
+                  <    {{-- Manage EMI Schedule Modal --}}
     <div x-show="emiModalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
-         style="display: none;" x-transition>
-         <div @click.away="emiModalOpen = false" 
-              class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-2xl space-y-4">
-              
-              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Manage EMI Schedule</h3>
-                  <button @click="emiModalOpen = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
-              </div>
-
-              <div x-show="emiError" class="p-3 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="emiError"></div>
-
-              {{-- Dynamic Summary Stats --}}
-              <div class="grid grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl text-xs">
-                  <div>
-                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Sale Amount</span>
-                      <strong class="text-slate-800 text-sm font-mono">₹<span x-text="totalSaleAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
-                  </div>
-                  <div>
-                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocated Schedule</span>
-                      <strong class="text-slate-800 text-sm font-mono">₹<span x-text="calculateTotalAllocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
-                  </div>
-                  <div>
-                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unallocated Balance</span>
-                      <div class="flex items-center gap-1.5 mt-0.5">
-                          <strong class="text-sm font-mono" :class="calculateUnallocated() === 0 ? 'text-emerald-600' : 'text-rose-600'">
-                              ₹<span x-text="calculateUnallocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
-                          </strong>
-                          <template x-if="calculateUnallocated() !== 0">
-                              <button type="button" @click="distributeRemaining()" class="px-1.5 py-0.5 bg-primary/10 hover:bg-primary/20 text-primary text-[8px] font-bold uppercase rounded transition-colors">
-                                  Auto-Distribute
-                              </button>
-                          </template>
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+         style="display: none;" x-transition.opacity>
+         <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="emiModalOpen = false">
+              {{-- Header --}}
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                  <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                  <div class="relative z-10 flex items-center justify-between gap-4">
+                      <div>
+                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Schedule Customization</span>
+                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Manage EMI Schedule</h2>
                       </div>
+                      <button type="button" @click="emiModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                   </div>
               </div>
 
-              {{-- Scrollable List of Rows --}}
-              <div class="overflow-y-auto max-h-[350px] space-y-2.5 pr-1">
-                  <template x-for="(inst, index) in editInstallments" :key="index">
-                      <div class="flex items-center gap-3 p-3 rounded-xl border transition-all"
-                           :class="inst.status === 'paid' ? 'bg-emerald-50/20 border-emerald-100' : 'bg-white border-slate-200/80'">
-                          
-                          {{-- Label Input --}}
-                          <div class="w-1/4 space-y-1">
-                              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Label</span>
-                              <input type="text" x-model="inst.label" :disabled="inst.status === 'paid'"
-                                     class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-semibold focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100">
-                          </div>
+              <div x-show="emiError" class="p-4 mx-6 mt-4 bg-rose-50 border border-rose-150 rounded-xl text-xs font-bold text-rose-800 uppercase tracking-wide" x-text="emiError"></div>
 
-                          {{-- Due Date Input --}}
-                          <div class="w-1/3 space-y-1">
-                              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Due Date</span>
-                              <input type="date" x-model="inst.due_date" :disabled="inst.status === 'paid'"
-                                     class="w-full px-2 py-1 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-semibold focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100">
-                          </div>
-
-                          {{-- Amount Input --}}
-                          <div class="w-1/3 space-y-1">
-                              <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Amount (₹)</span>
-                              <input type="number" step="0.01" x-model.number="inst.amount" :disabled="inst.status === 'paid'"
-                                     class="w-full px-2 py-1 bg-slate-50 border border-slate-200 focus:bg-white rounded-lg text-xs font-bold text-slate-800 font-mono focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100">
-                          </div>
-
-                          {{-- Action / Status --}}
-                          <div class="pt-4">
-                              <template x-if="inst.status === 'paid'">
-                                  <span class="px-2 py-1 rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700">Paid</span>
-                              </template>
-                              <template x-if="inst.status !== 'paid'">
-                                  <button type="button" @click="removeInstallment(index)" class="text-rose-600 hover:text-rose-800 transition-colors" title="Delete Row">
-                                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                      </svg>
+              <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                  {{-- Dynamic Summary Stats --}}
+                  <div class="grid grid-cols-3 gap-3 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 rounded-xl text-xs text-white border border-[#a38c29]/20">
+                      <div>
+                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Sale Amount</span>
+                          <strong class="text-white text-sm font-mono mt-0.5 block">₹<span x-text="totalSaleAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                      </div>
+                      <div>
+                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Allocated Schedule</span>
+                          <strong class="text-[#d9bf3b] text-sm font-mono mt-0.5 block">₹<span x-text="calculateTotalAllocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                      </div>
+                      <div>
+                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unallocated Balance</span>
+                          <div class="flex items-center gap-1.5 mt-0.5">
+                              <strong class="text-sm font-mono" :class="calculateUnallocated() === 0 ? 'text-emerald-400' : 'text-rose-400'">
+                                  ₹<span x-text="calculateUnallocated().toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                              </strong>
+                              <template x-if="calculateUnallocated() !== 0">
+                                  <button type="button" @click="distributeRemaining()" class="px-1.5 py-0.5 bg-[#a38c29]/20 hover:bg-[#a38c29]/40 text-[#d9bf3b] text-[8px] font-bold uppercase rounded transition-colors border border-[#a38c29]/30">
+                                      Auto-Distribute
                                   </button>
                               </template>
                           </div>
                       </div>
-                  </template>
+                  </div>
+
+                  {{-- Scrollable List of Rows --}}
+                  <div class="space-y-2.5 pr-1 max-h-[300px] overflow-y-auto">
+                      <template x-for="(inst, index) in editInstallments" :key="index">
+                          <div class="flex items-center gap-3 p-3 rounded-xl border transition-all bg-white border-slate-200/85 shadow-sm"
+                               :class="inst.status === 'paid' ? 'bg-emerald-50/20 border-emerald-100 shadow-none' : ''">
+                              
+                              {{-- Label Input --}}
+                              <div class="w-1/4 space-y-1">
+                                  <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Label</span>
+                                  <input type="text" x-model="inst.label" :disabled="inst.status === 'paid'"
+                                         class="w-full px-2 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white rounded-lg text-xs font-semibold focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100 text-slate-700">
+                              </div>
+
+                              {{-- Due Date Input --}}
+                              <div class="w-1/3 space-y-1">
+                                  <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Due Date</span>
+                                  <input type="date" x-model="inst.due_date" :disabled="inst.status === 'paid'"
+                                         class="w-full px-2 py-1 bg-slate-50 border border-slate-255 focus:bg-white rounded-lg text-xs font-semibold focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100 text-slate-700">
+                              </div>
+
+                              {{-- Amount Input --}}
+                              <div class="w-1/3 space-y-1">
+                                  <span class="text-[8px] font-bold text-slate-400 uppercase tracking-wider">Amount (₹)</span>
+                                  <input type="number" step="0.01" x-model.number="inst.amount" :disabled="inst.status === 'paid'"
+                                         class="w-full px-2 py-1 bg-slate-50 border border-slate-255 focus:bg-white rounded-lg text-xs font-bold text-slate-800 font-mono focus:outline-none transition-all disabled:opacity-50 disabled:bg-slate-100">
+                              </div>
+
+                              {{-- Action / Status --}}
+                              <div class="pt-4 shrink-0">
+                                  <template x-if="inst.status === 'paid'">
+                                      <span class="px-2 py-1 rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700">Paid</span>
+                                  </template>
+                                  <template x-if="inst.status !== 'paid'">
+                                      <button type="button" @click="removeInstallment(index)" class="text-rose-600 hover:text-rose-800 transition-colors" title="Delete Row">
+                                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                          </svg>
+                                      </button>
+                                  </template>
+                              </div>
+                          </div>
+                      </template>
+                  </div>
               </div>
 
               {{-- Footer Actions --}}
-              <div class="pt-4 flex justify-between items-center border-t border-slate-100">
+              <div class="px-6 py-4 border-t border-slate-200 flex justify-between items-center bg-slate-50">
                   <button type="button" @click="addInstallment()"
-                          class="px-4 py-2 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wide flex items-center gap-1.5">
+                          class="px-4 py-2 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider flex items-center gap-1.5 border border-slate-200">
                       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                       </svg>
@@ -397,11 +407,11 @@
                   </button>
                   <div class="flex gap-2">
                       <button type="button" @click="emiModalOpen = false" 
-                              class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-550 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                              class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                           Cancel
                       </button>
                       <button type="button" @click="submitEmiSchedule()" x-bind:disabled="emiSubmitting"
-                              class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md flex items-center gap-1.5">
+                              class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md flex items-center gap-1.5">
                           <span x-text="emiSubmitting ? 'Saving...' : 'Save Schedule'"></span>
                       </button>
                   </div>
@@ -411,52 +421,57 @@
 
     {{-- View Receipt Modal --}}
     <div x-show="receiptModalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm"
-         style="display: none;" x-transition>
-         <div @click.away="receiptModalOpen = false" 
-              class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-4">
-              
-              <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Receipt Details</h3>
-                  <button @click="receiptModalOpen = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left"
+         style="display: none;" x-transition.opacity>
+         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="receiptModalOpen = false">
+              {{-- Header --}}
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                  <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                  <div class="relative z-10 flex items-center justify-between gap-4">
+                      <div>
+                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Receipt Log</span>
+                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Receipt Details</h2>
+                      </div>
+                      <button type="button" @click="receiptModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                  </div>
               </div>
 
               <template x-if="viewReceiptData">
-                  <div class="space-y-4 pt-2">
-                      <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl">
+                  <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                      <div class="grid grid-cols-2 gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm">
                           <div>
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Receipt Date</span>
-                              <strong class="text-slate-800 text-sm" x-text="new Date(viewReceiptData.receipt_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })"></strong>
+                              <strong class="text-slate-800 text-xs font-bold block mt-1" x-text="new Date(viewReceiptData.receipt_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })"></strong>
                           </div>
                           <div>
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Amount Paid</span>
-                              <strong class="text-emerald-700 text-lg font-mono">₹<span x-text="Number(viewReceiptData.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
+                              <strong class="text-emerald-700 text-sm font-mono font-extrabold block mt-1">₹<span x-text="Number(viewReceiptData.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span></strong>
                           </div>
                       </div>
 
-                      <div class="grid grid-cols-2 gap-4">
+                      <div class="grid grid-cols-2 gap-4 bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm">
                           <div>
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Payment Mode</span>
-                              <span class="text-slate-700 text-xs font-semibold uppercase bg-slate-100 px-2 py-1 rounded" x-text="viewReceiptData.payment_mode"></span>
+                              <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-1 bg-slate-100 text-slate-600 border border-slate-200" x-text="viewReceiptData.payment_mode"></span>
                           </div>
                           <div>
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Transaction ID</span>
-                              <span class="text-slate-800 text-xs font-mono font-bold" x-text="viewReceiptData.reference_no || 'N/A'"></span>
+                              <span class="text-slate-800 text-xs font-mono font-bold mt-1 block" x-text="viewReceiptData.reference_no || 'N/A'"></span>
                           </div>
                       </div>
                       
                       <template x-if="viewReceiptData.remarks">
-                          <div class="pt-2 border-t border-slate-100">
+                          <div class="p-5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
                               <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Remarks</span>
-                              <p class="text-slate-600 text-xs bg-amber-50/50 p-3 rounded-lg border border-amber-100/50 italic" x-text="viewReceiptData.remarks"></p>
+                              <p class="text-slate-600 text-xs bg-amber-50/50 p-3 rounded-lg border border-amber-100/50 italic font-medium" x-text="viewReceiptData.remarks"></p>
                           </div>
                       </template>
                   </div>
               </template>
               
-              <div class="pt-4 flex justify-end border-t border-slate-100">
+              <div class="px-6 py-4 border-t border-slate-200 flex justify-end bg-slate-50">
                   <button type="button" @click="receiptModalOpen = false" 
-                          class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wide">
+                          class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                       Close
                   </button>
               </div>
