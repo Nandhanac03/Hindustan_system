@@ -161,170 +161,191 @@
         </div>
     </div>
 
-    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
     <div>
-
     {{-- Add Modal --}}
-    <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative" @click.away="showAddModal = false">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Add New Unit Type</h3>
-                <button @click="showAddModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+    <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showAddModal = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Unit Type Master</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Add New Unit Type</h2>
+                    </div>
+                    <button type="button" @click="showAddModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
 
-            <form action="{{ route('unit-types.store') }}" method="POST" class="space-y-4 mt-4">
+            <form action="{{ route('unit-types.store') }}" method="POST">
                 @csrf
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Project Scope <span class="text-xs font-normal text-slate-400">(Optional - leave blank for Global)</span></label>
-                    <select name="project_id" x-model="addForm.project_id" class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                        <option value="">Global (Available to All Projects)</option>
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 font-sans">Project Scope <span class="text-[9px] font-normal text-slate-400 normal-case">(Optional - leave blank for Global)</span></label>
+                            <select name="project_id" x-model="addForm.project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                <option value="">Global (Available to All Projects)</option>
+                                @foreach($projects as $p)
+                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Quick Presets</label>
-                    <div class="flex flex-wrap gap-1.5">
-                        <button type="button" @click="setPreset('Apartment', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Apartment</button>
-                        <button type="button" @click="setPreset('Villa', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Villa</button>
-                        <button type="button" @click="setPreset('Penthouse', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Penthouse</button>
-                        <button type="button" @click="setPreset('Shop / Commercial', 'commercial')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Shop / Commercial</button>
-                        <button type="button" @click="setPreset('Office Space', 'commercial')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Office Space</button>
-                        <button type="button" @click="setPreset('Parking Slot', 'parking')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Parking Slot</button>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Quick Presets</label>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" @click="setPreset('Apartment', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Apartment</button>
+                                <button type="button" @click="setPreset('Villa', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Villa</button>
+                                <button type="button" @click="setPreset('Penthouse', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Penthouse</button>
+                                <button type="button" @click="setPreset('Shop / Commercial', 'commercial')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Shop / Commercial</button>
+                                <button type="button" @click="setPreset('Office Space', 'commercial')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Office Space</button>
+                                <button type="button" @click="setPreset('Parking Slot', 'parking')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Parking Slot</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Unit Type Name *</label>
+                            <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Apartment, Parking, Shop" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Category *</label>
+                            <select name="category" x-model="addForm.category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="parking">Parking</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-2">
+                            <input type="checkbox" name="is_active" value="1" x-model="addForm.is_active" id="add_active" class="rounded border-slate-350 text-[#a38c29] focus:ring-[#a38c29] w-4 h-4 cursor-pointer">
+                            <label for="add_active" class="text-[11px] font-bold text-slate-600 cursor-pointer select-none">Active Status (Enabled for new units)</label>
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Unit Type Name <span class="text-rose-500">*</span></label>
-                    <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Apartment, Parking, Shop" class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Category <span class="text-rose-500">*</span></label>
-                    <select name="category" x-model="addForm.category" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                        <option value="residential">Residential</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="parking">Parking</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" name="is_active" value="1" x-model="addForm.is_active" id="add_active" class="rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
-                    <label for="add_active" class="text-xs font-bold text-slate-700">Active Status (Enabled for new units)</label>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                    <button type="button" @click="showAddModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold shadow-md uppercase transition">Save Unit Type</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="showAddModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md uppercase transition tracking-wider">Save Unit Type</button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- Edit Modal --}}
-    <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative" @click.away="showEditModal = false">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Edit Unit Type</h3>
-                <button @click="showEditModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+    <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showEditModal = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Type</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Edit Unit Type</h2>
+                    </div>
+                    <button type="button" @click="showEditModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
 
-            <form :action="editForm.action" method="POST" class="space-y-4 mt-4">
+            <form :action="editForm.action" method="POST">
                 @csrf
                 @method('PUT')
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Project Scope</label>
+                            <select name="project_id" x-model="editForm.project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                <option value="">Global (Available to All Projects)</option>
+                                @foreach($projects as $p)
+                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Project Scope</label>
-                    <select name="project_id" x-model="editForm.project_id" class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                        <option value="">Global (Available to All Projects)</option>
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Unit Type Name *</label>
+                            <input type="text" name="name" x-model="editForm.name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Category *</label>
+                            <select name="category" x-model="editForm.category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="parking">Parking</option>
+                            </select>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-2">
+                            <input type="checkbox" name="is_active" value="1" x-model="editForm.is_active" id="edit_active" class="rounded border-slate-350 text-[#a38c29] focus:ring-[#a38c29] w-4 h-4 cursor-pointer">
+                            <label for="edit_active" class="text-[11px] font-bold text-slate-600 cursor-pointer select-none">Active Status</label>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Unit Type Name <span class="text-rose-500">*</span></label>
-                    <input type="text" name="name" x-model="editForm.name" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Category <span class="text-rose-500">*</span></label>
-                    <select name="category" x-model="editForm.category" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                        <option value="residential">Residential</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="parking">Parking</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" name="is_active" value="1" x-model="editForm.is_active" id="edit_active" class="rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
-                    <label for="edit_active" class="text-xs font-bold text-slate-700">Active Status</label>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                    <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold shadow-md uppercase transition">Update Unit Type</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="showEditModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md uppercase transition tracking-wider">Update Unit Type</button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- View Modal --}}
-    <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div @click.away="showViewModal = false" class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+    <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop text-left" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showViewModal = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Type Profile</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Unit Type Details</h2>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Unit Type Details</h3>
+                    <button type="button" @click="showViewModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
-                <button @click="showViewModal = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
             </div>
 
-            <div class="space-y-4">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+            <div class="p-6 space-y-4 bg-slate-50/50 text-xs font-sans">
+                <div class="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit Type Name</span>
-                        <span class="text-base font-extrabold text-slate-900" x-text="viewData.name"></span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Unit Type Name</span>
+                        <span class="text-sm font-extrabold text-slate-900" x-text="viewData.name"></span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold font-mono uppercase inline-block mt-0.5"
-                              :class="viewData.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'"
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-0.5"
+                              :class="viewData.is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60' : 'bg-slate-100 text-slate-500'"
                               x-text="viewData.is_active ? 'Active' : 'Inactive'"></span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Category</span>
+                    <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Category</span>
                         <span class="text-xs font-bold text-slate-800 uppercase mt-0.5 block" x-text="viewData.category"></span>
                     </div>
-                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Associated Project</span>
-                        <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewData.project_name"></span>
+                    <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Associated Project</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate" x-text="viewData.project_name"></span>
                     </div>
                 </div>
 
-                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs flex justify-between items-center">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Configured Units</span>
-                    <span class="text-xs font-bold text-[#a38c29] font-mono" x-text="viewData.units_count + ' Unit(s)'"></span>
+                <div class="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Total Configured Units</span>
+                    <span class="text-xs font-mono font-bold text-[#a38c29]" x-text="viewData.units_count + ' Unit(s)'"></span>
                 </div>
             </div>
 
-            <div class="pt-3 flex justify-between items-center border-t border-slate-100">
-                <button type="button" @click="showViewModal = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
-                <a :href="viewData.units_url" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                <button type="button" @click="showViewModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
+                <a :href="viewData.units_url" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md inline-flex items-center gap-1.5">
                     <span>View Type Units</span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
         </div>
-    </div>
+    </div>    </div>
 
     </div>
 

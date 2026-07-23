@@ -146,134 +146,155 @@
         </div>
     </div>
 
-    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
     <div>
-
     {{-- Add Floor Modal --}}
-    <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative" @click.away="showAddModal = false">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Add New Floor Level</h3>
-                <button @click="showAddModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+    <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showAddModal = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Floor Master</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Add New Floor Level</h2>
+                    </div>
+                    <button type="button" @click="showAddModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
 
-            <form action="{{ route('floors.store') }}" method="POST" class="space-y-4 mt-4">
+            <form action="{{ route('floors.store') }}" method="POST">
                 @csrf
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Project <span class="text-rose-500">*</span></label>
-                    <select name="project_id" x-model="addForm.project_id" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Project *</label>
+                            <select name="project_id" x-model="addForm.project_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                                @foreach($projects as $p)
+                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Quick Presets</label>
-                    <div class="flex flex-wrap gap-1.5">
-                        <button type="button" @click="setPreset(-2, 'Basement 2')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Basement 2 (-2)</button>
-                        <button type="button" @click="setPreset(-1, 'Basement 1')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Basement 1 (-1)</button>
-                        <button type="button" @click="setPreset(0, 'Ground Floor')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Ground Floor (0)</button>
-                        <button type="button" @click="setPreset(1, 'Floor 1')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Floor 1 (1)</button>
-                        <button type="button" @click="setPreset(2, 'Floor 2')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[11px] font-bold transition">Floor 2 (2)</button>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Quick Presets</label>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button type="button" @click="setPreset(-2, 'Basement 2')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Basement 2 (-2)</button>
+                                <button type="button" @click="setPreset(-1, 'Basement 1')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Basement 1 (-1)</button>
+                                <button type="button" @click="setPreset(0, 'Ground Floor')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Ground (0)</button>
+                                <button type="button" @click="setPreset(1, 'Floor 1')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Floor 1 (1)</button>
+                                <button type="button" @click="setPreset(2, 'Floor 2')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200">Floor 2 (2)</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number *</label>
+                            <input type="number" name="floor_number" x-model="addForm.floor_number" @input="autoName()" required placeholder="e.g. 0 for Ground, -1 for Basement" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <p class="text-[9px] text-slate-400 mt-1.5">Use negative numbers for basements (-1, -2) and 0 for Ground Floor.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label *</label>
+                            <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Ground Floor, Basement 1, Floor 1" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                        </div>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Floor Number <span class="text-rose-500">*</span></label>
-                    <input type="number" name="floor_number" x-model="addForm.floor_number" @input="autoName()" required placeholder="e.g. 0 for Ground, -1 for Basement" class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                    <p class="text-[10px] text-slate-400 mt-1">Use negative numbers for basements (-1, -2) and 0 for Ground Floor.</p>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Floor Name / Label <span class="text-rose-500">*</span></label>
-                    <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Ground Floor, Basement 1, Floor 1" class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                    <button type="button" @click="showAddModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold shadow-md uppercase transition">Save Floor Level</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="showAddModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md uppercase transition tracking-wider">Save Floor Level</button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- Edit Floor Modal --}}
-    <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative" @click.away="showEditModal = false">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                <h3 class="text-sm font-bold uppercase tracking-wider text-slate-900">Edit Floor Level</h3>
-                <button @click="showEditModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
+    <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showEditModal = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Floor</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Edit Floor Level</h2>
+                    </div>
+                    <button type="button" @click="showEditModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
             </div>
 
-            <form :action="editForm.action" method="POST" class="space-y-4 mt-4">
+            <form :action="editForm.action" method="POST">
                 @csrf
                 @method('PUT')
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number *</label>
+                            <input type="number" name="floor_number" x-model="editForm.floor_number" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                        </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Floor Number <span class="text-rose-500">*</span></label>
-                    <input type="number" name="floor_number" x-model="editForm.floor_number" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label *</label>
+                            <input type="text" name="name" x-model="editForm.name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                        </div>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Floor Name / Label <span class="text-rose-500">*</span></label>
-                    <input type="text" name="name" x-model="editForm.name" required class="w-full px-3 py-2 text-xs font-semibold rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#a38c29]/50">
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-                    <button type="button" @click="showEditModal = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">Cancel</button>
-                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold shadow-md uppercase transition">Update Floor Level</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                    <button type="button" @click="showEditModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md uppercase transition tracking-wider">Update Floor Level</button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- View Modal --}}
-    <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div @click.away="showViewModal = false" class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+    <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop text-left" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showViewModal = false">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Floor Profile</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Floor Level Details</h2>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">Floor Level Details</h3>
+                    <button type="button" @click="showViewModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
-                <button @click="showViewModal = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
             </div>
 
-            <div class="space-y-4">
-                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
+            <div class="p-6 space-y-4 bg-slate-50/50 text-xs font-sans">
+                <div class="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Floor Level Name</span>
-                        <span class="text-base font-extrabold text-slate-900" x-text="viewData.name"></span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Floor Level Name</span>
+                        <span class="text-sm font-extrabold text-slate-900" x-text="viewData.name"></span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Floor Index Number</span>
-                        <span class="px-2.5 py-1 rounded-lg bg-[#a38c29]/10 text-[#a38c29] font-mono font-bold text-xs inline-block mt-0.5" x-text="'Floor ' + viewData.number"></span>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Floor Index Number</span>
+                        <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-0.5 bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20" x-text="'Floor ' + viewData.number"></span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
-                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Associated Project</span>
-                        <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewData.project_name"></span>
+                    <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Associated Project</span>
+                        <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate" x-text="viewData.project_name"></span>
                     </div>
-                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Units</span>
+                    <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Units</span>
                         <span class="text-xs font-bold text-slate-800 mt-0.5 block" x-text="viewData.units_count + ' Configured Unit(s)'"></span>
                     </div>
                 </div>
             </div>
 
-            <div class="pt-3 flex justify-between items-center border-t border-slate-100">
-                <button type="button" @click="showViewModal = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
-                <a :href="viewData.units_url" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                <button type="button" @click="showViewModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
+                <a :href="viewData.units_url" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md inline-flex items-center gap-1.5">
                     <span>View Floor Units</span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
         </div>
-    </div>
+    </div>    </div>
 
     </div>
 

@@ -158,83 +158,81 @@
         </div>
 
         <!-- Edit Popup Modal Wrapper -->
-        <div>
-        <div class="fixed inset-0 z-50 overflow-y-auto" x-show="showEditModal" style="display: none;" x-transition>
-            <!-- Backdrop -->
-            <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-2xs" @click="showEditModal = false"></div>
+        <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+             <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showEditModal = false">
+                  {{-- Header --}}
+                  <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                      <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                      <div class="relative z-10 flex items-center justify-between gap-4">
+                          <div>
+                              <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Supplier Management</span>
+                              <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Edit Supplier Details</h2>
+                          </div>
+                          <button type="button" @click="showEditModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                      </div>
+                  </div>
 
-            <!-- Modal Content Wrapper -->
-            <div class="flex items-center justify-center min-h-screen p-4">
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden max-w-lg w-full relative z-10">
-                    <div class="px-6 py-5 bg-white border-b border-slate-100 flex items-center justify-between">
-                        <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Edit Supplier Details</h3>
-                        <button type="button" @click="showEditModal = false" class="text-slate-400 hover:text-slate-650 focus:outline-none">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
-                    </div>
+                  <form :action="'/suppliers/' + editForm.id" method="POST">
+                      @csrf
+                      @method('PUT')
+                      
+                      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                              <!-- Supplier Name -->
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Supplier Name <span class="text-rose-500">*</span></label>
+                                  <input type="text" name="name" required x-model="editForm.name"
+                                         class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm">
+                              </div>
 
-                    <form :action="'/suppliers/' + editForm.id" method="POST" class="p-6 space-y-4">
-                        @csrf
-                        @method('PUT')
-                        
-                        <div class="space-y-4">
-                            <!-- Supplier Name -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Supplier Name <span class="text-rose-500">*</span></label>
-                                <input type="text" name="name" required x-model="editForm.name"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
-                            </div>
+                              <!-- Phone & Email -->
+                              <div class="grid grid-cols-2 gap-4">
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Phone Number</label>
+                                      <input type="text" name="phone" x-model="editForm.phone"
+                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700">
+                                  </div>
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Email Address</label>
+                                      <input type="email" name="email" x-model="editForm.email"
+                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700">
+                                  </div>
+                              </div>
 
-                            <!-- Phone & Email -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Phone Number</label>
-                                    <input type="text" name="phone" x-model="editForm.phone"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Email Address</label>
-                                    <input type="email" name="email" x-model="editForm.email"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
-                                </div>
-                            </div>
+                              <!-- GSTIN & PAN -->
+                              <div class="grid grid-cols-2 gap-4">
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier GSTIN</label>
+                                      <input type="text" name="gstin" x-model="editForm.gstin"
+                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700 font-mono">
+                                  </div>
+                                  <div class="space-y-1.5">
+                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier PAN</label>
+                                      <input type="text" name="pan" x-model="editForm.pan"
+                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700 font-mono">
+                                  </div>
+                              </div>
 
-                            <!-- GSTIN & PAN -->
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier GSTIN</label>
-                                    <input type="text" name="gstin" x-model="editForm.gstin"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier PAN</label>
-                                    <input type="text" name="pan" x-model="editForm.pan"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
-                                </div>
-                            </div>
+                              <!-- Address -->
+                              <div class="space-y-1.5">
+                                  <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Office Address</label>
+                                  <textarea name="address" rows="2" x-model="editForm.address"
+                                            class="w-full bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none shadow-sm font-semibold"></textarea>
+                              </div>
+                          </div>
+                      </div>
 
-                            <!-- Address -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Office Address</label>
-                                <textarea name="address" rows="2" x-model="editForm.address"
-                                          class="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- Footer Actions -->
-                        <div class="pt-4 flex justify-end gap-3 border-t border-slate-100">
-                            <button type="button" @click="showEditModal = false"
-                                    class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
-                                Cancel
-                            </button>
-                            <button type="submit" class="px-5 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
-                                Save Changes
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+                      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                          <button type="button" @click="showEditModal = false"
+                                  class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                              Cancel
+                          </button>
+                          <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wider">
+                              Save Changes
+                          </button>
+                      </div>
+                  </form>
+             </div>
         </div>
     </div>
 

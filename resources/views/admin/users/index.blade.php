@@ -34,7 +34,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-600">
                         @forelse($users as $user)
-                            <tr class="table-row-hover hover:bg-slate-50/50 transition" x-data="{ openView: false }">
+                            <tr class="table-row-hover hover:bg-slate-50/50 transition" x-data="{ openView: false, showConfirmStatus: false }">
                                 <!-- Employee & Name -->
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
@@ -102,79 +102,108 @@
                                             <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </a>
 
-                                        <!-- Toggle Status -->
-                                        <form method="POST" action="{{ route('admin.users.toggle-status', $user->id) }}" class="inline" onsubmit="return confirm('Change status for {{ addslashes($user->name) }}?');">
-                                            @csrf
+                                        <!-- Toggle Status Trigger -->
+                                        <button type="button" @click="showConfirmStatus = true"
+                                                class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm"
+                                                title="{{ $user->status === 'active' ? 'Suspend Account' : 'Activate Account' }}">
                                             @if($user->status === 'active')
-                                                <button type="submit" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Suspend Account">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                                                </button>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                                             @else
-                                                <button type="submit" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="Activate Account">
-                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                </button>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             @endif
-                                        </form>
+                                        </button>
                                     </div>
 
-                                    {{-- View Modal --}}
-                                    <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity text-left" style="display: none;">
-                                        <div @click.away="openView = false" class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md space-y-5 whitespace-normal">
-                                            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
-                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                                    </div>
-                                                    <h3 class="text-sm font-bold text-slate-950 uppercase tracking-wide">User Profile Details</h3>
-                                                </div>
-                                                <button @click="openView = false" class="text-slate-400 hover:text-slate-650 text-base">✕</button>
-                                            </div>
+                                     {{-- View Modal --}}
+                                     <div x-show="openView" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left whitespace-normal" style="display: none;" x-transition.opacity>
+                                         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openView = false">
+                                              {{-- Header --}}
+                                              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                                                  <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                                                  <div class="relative z-10 flex items-center justify-between gap-4">
+                                                      <div>
+                                                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">User Profile</span>
+                                                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">User Profile Details</h2>
+                                                      </div>
+                                                      <button type="button" @click="openView = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                                                  </div>
+                                              </div>
 
-                                            <div class="space-y-4">
-                                                <div class="p-4 rounded-xl bg-slate-50 border border-slate-150 flex items-center justify-between">
-                                                    <div>
-                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Employee / Name</span>
-                                                        <span class="text-base font-extrabold text-slate-900">{{ $user->name }}</span>
-                                                        <span class="text-xs text-slate-500 block mt-0.5">{{ $user->email }}</span>
-                                                    </div>
-                                                    <div class="text-right">
-                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Employee Code</span>
-                                                        <span class="px-2 py-1 rounded bg-[#a38c29]/10 text-[#a38c29] font-mono font-bold text-xs inline-block mt-0.5">{{ $user->employee_code ?? 'N/A' }}</span>
-                                                    </div>
-                                                </div>
+                                              <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                                                  <div class="p-4 rounded-xl bg-white border border-slate-200/80 shadow-sm flex items-center justify-between">
+                                                      <div>
+                                                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Employee / Name</span>
+                                                          <span class="text-sm font-extrabold text-slate-900 block mt-0.5">{{ $user->name }}</span>
+                                                          <span class="text-xs text-slate-500 block mt-0.5 font-semibold">{{ $user->email }}</span>
+                                                      </div>
+                                                      <div class="text-right">
+                                                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Employee Code</span>
+                                                          <span class="px-2.5 py-0.5 rounded text-[10px] font-bold font-mono uppercase inline-block mt-0.5 bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/25">{{ $user->employee_code ?? 'N/A' }}</span>
+                                                      </div>
+                                                  </div>
 
-                                                <div class="grid grid-cols-2 gap-3">
-                                                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">System Node</span>
-                                                        <span class="text-xs font-bold text-slate-800 mt-0.5 block">{{ $user->system ? $user->system->name : 'Global Admin' }}</span>
-                                                    </div>
-                                                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                                                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Account Status</span>
-                                                        <span class="text-xs font-bold uppercase mt-0.5 block {{ $user->status === 'active' ? 'text-emerald-600' : 'text-rose-600' }}">{{ ucfirst($user->status) }}</span>
-                                                    </div>
-                                                </div>
+                                                  <div class="grid grid-cols-2 gap-3">
+                                                      <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                                                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">System Node</span>
+                                                          <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate">{{ $user->system ? $user->system->name : 'Global Admin' }}</span>
+                                                      </div>
+                                                      <div class="p-3.5 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                                                          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Account Status</span>
+                                                          <span class="text-xs font-bold uppercase mt-0.5 block {{ $user->status === 'active' ? 'text-emerald-600' : 'text-rose-600' }}">{{ ucfirst($user->status) }}</span>
+                                                      </div>
+                                                  </div>
 
-                                                <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-2xs">
-                                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Assigned Roles</span>
-                                                    <div class="flex flex-wrap gap-1 mt-1.5">
-                                                        @forelse($user->roles as $role)
-                                                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $role->name }}</span>
-                                                        @empty
-                                                            <span class="text-xs text-slate-400 italic">No roles assigned</span>
-                                                        @endforelse
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                  <div class="p-4 rounded-xl border border-slate-200/80 bg-white shadow-sm">
+                                                      <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Assigned Roles</span>
+                                                      <div class="flex flex-wrap gap-1 mt-1.5">
+                                                          @forelse($user->roles as $role)
+                                                              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">{{ $role->name }}</span>
+                                                          @empty
+                                                              <span class="text-xs text-slate-455 italic font-semibold">No roles assigned</span>
+                                                          @endforelse
+                                                      </div>
+                                                  </div>
+                                              </div>
 
-                                            <div class="pt-3 flex justify-between items-center border-t border-slate-100">
-                                                <button type="button" @click="openView = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wide">Close</button>
-                                                <a href="{{ route('admin.users.edit', $user->id) }}" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-bold rounded-xl transition uppercase tracking-wide shadow-md inline-flex items-center gap-1.5">
-                                                    <span>Edit User Profile</span>
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
+                                              <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                                                  <div class="flex items-center gap-2">
+                                                      <button type="button" @click="openView = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
+                                                      <button type="button" @click="openView = false; showConfirmStatus = true"
+                                                              class="px-4 py-2 border {{ $user->status === 'active' ? 'border-rose-200 hover:bg-rose-50 text-rose-600' : 'border-emerald-250 hover:bg-emerald-50 text-emerald-600' }} text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                                                          {{ $user->status === 'active' ? 'Suspend' : 'Activate' }}
+                                                      </button>
+                                                  </div>
+                                                  <a href="{{ route('admin.users.edit', $user->id) }}" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md inline-flex items-center gap-1.5">
+                                                      <span>Edit Profile</span>
+                                                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                  </a>
+                                              </div>
+                                         </div>
+                                     </div>
+
+                                     {{-- Confirm Status Modal --}}
+                                     <div x-show="showConfirmStatus" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop transition-opacity text-left" style="display: none;" x-transition.opacity>
+                                         <div class="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showConfirmStatus = false">
+                                             <div class="p-6 text-center space-y-4">
+                                                 <div class="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 text-[#a38c29] flex items-center justify-center mx-auto text-lg">
+                                                     ⚠️
+                                                 </div>
+                                                 <div class="space-y-1">
+                                                     <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Confirm Status Change</h3>
+                                                     <p class="text-xs text-slate-500">Are you sure you want to change the status for <strong class="text-slate-800">{{ $user->name }}</strong>?</p>
+                                                 </div>
+                                             </div>
+                                             <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2 bg-slate-50">
+                                                 <button type="button" @click="showConfirmStatus = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">Cancel</button>
+                                                 <form method="POST" action="{{ route('admin.users.toggle-status', $user->id) }}" class="inline">
+                                                     @csrf
+                                                     <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
+                                                         Confirm
+                                                     </button>
+                                                 </form>
+                                             </div>
+                                         </div>
+                                     </div>
                                 </td>
                             </tr>
                         @empty

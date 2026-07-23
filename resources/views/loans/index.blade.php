@@ -241,7 +241,7 @@
                                     </a>
                                     @if($loan->status === 'Active')
                                         <button @click="openEditInterestModal({{ json_encode($loan) }})" 
-                                                class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all inline-flex items-center justify-center shadow-sm hover:shadow-md whitespace-nowrap" title="Edit Interest Rate">
+                                                class="px-2.5 py-1.5 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white transition-all inline-flex items-center justify-center shadow-sm hover:shadow-md whitespace-nowrap shadow-[#a38c29]/20" title="Edit Interest Rate">
                                             <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                             <span class="text-[10px] font-bold uppercase tracking-wider">Edit Rate</span>
                                         </button>
@@ -485,7 +485,7 @@
                 </div>
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
                     <button type="button" @click="editInterestModalOpen = false" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-indigo-650/20">Update Interest Rate</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-[#a38c29]/20">Update Interest Rate</button>
                 </div>
             </form>
         </div>

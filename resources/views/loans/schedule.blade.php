@@ -138,7 +138,7 @@
                             </td>
                             <td class="px-4 py-3.5 border text-right">
                                 @if($inst->status !== 'Paid' && $loan->status === 'Active')
-                                    <button @click="openPayModal({{ $inst }})" class="px-3 py-1 {{ $isPartial ? 'bg-amber-500 hover:bg-amber-600' : 'bg-primary hover:bg-primary-700' }} text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition shadow-sm">
+                                    <button @click="openPayModal({{ $inst }})" class="px-3 py-1 {{ $isPartial ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#a38c29] hover:bg-[#8e7a23]' }} text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition shadow-sm shadow-[#a38c29]/10">
                                         {{ $isPartial ? 'Pay Balance' : 'Pay Installment' }}
                                     </button>
                                     @if($isPartial)
@@ -242,7 +242,7 @@
                 </div>
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
                     <button type="button" @click="payModalOpen = false" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-emerald-650/20">Submit Payment</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-[#a38c29]/20">Submit Payment</button>
                 </div>
             </form>
         </div>
