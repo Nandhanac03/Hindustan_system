@@ -551,74 +551,97 @@
                     </div>
                 </form>
             </div>
-        </div>
-        {{-- ═══════════ DELETE PROJECT CONFIRMATION MODAL ═══════════ --}}
+        </div>        {{-- ═══════════ DELETE PROJECT CONFIRMATION MODAL ═══════════ --}}
         <div x-show="deleteModalOpen" class="fixed inset-0 z-[60] flex items-center justify-center p-4 modal-backdrop" style="display:none;" x-cloak x-transition.opacity>
             <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="deleteModalOpen = false">
 
                 {{-- Header --}}
-                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
-                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/20">
+                    <div class="absolute -top-12 -right-12 w-36 h-36 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="absolute -bottom-10 -left-10 w-28 h-28 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#a38c29]/60 to-transparent"></div>
                     <div class="relative z-10 flex items-start justify-between gap-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/30 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30 shrink-0">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            <div class="w-11 h-11 rounded-xl bg-[#a38c29]/25 border border-[#a38c29]/40 flex items-center justify-center shadow-lg shadow-[#a38c29]/20 shrink-0 ring-1 ring-[#d9bf3b]/20">
+                                <svg class="w-5 h-5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                 </svg>
                             </div>
                             <div>
-                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">Irreversible Action</span>
-                                <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-0.5">Delete Project</h2>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                                    Irreversible Action
+                                </span>
+                                <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Delete Project?</h2>
+                                <p class="text-[10px] text-slate-400 mt-0.5 font-medium">This will permanently remove all project data.</p>
                             </div>
                         </div>
-                        <button type="button" @click="deleteModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs mt-0.5">✕</button>
+                        <button type="button" @click="deleteModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-[#a38c29]/30 text-white hover:text-[#d9bf3b] flex items-center justify-center transition focus:outline-none shrink-0 text-xs mt-0.5 border border-white/10 hover:border-[#a38c29]/40">✕</button>
                     </div>
                 </div>
 
                 {{-- Body --}}
-                <div class="p-6 space-y-4 bg-slate-50/60">
+                <div class="p-6 space-y-4 bg-gradient-to-b from-slate-50/80 to-white">
+
                     {{-- Project Name Card --}}
-                    <div class="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-sm">
-                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] shrink-0">
+                    <div class="flex items-center gap-3 bg-white border border-[#a38c29]/25 rounded-xl px-4 py-3 shadow-sm shadow-[#a38c29]/5 ring-1 ring-[#a38c29]/10">
+                        <div class="w-9 h-9 rounded-lg bg-[#a38c29]/10 border border-[#a38c29]/20 flex items-center justify-center text-[#a38c29] shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                             </svg>
                         </div>
-                        <div class="min-w-0">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Project to be Deleted</p>
-                            <p class="text-xs font-extrabold text-slate-900 truncate" x-text="deleteTarget.name"></p>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[9px] font-bold text-[#a38c29]/70 uppercase tracking-widest">Project to be Deleted</p>
+                            <p class="text-xs font-extrabold text-slate-900 truncate mt-0.5" x-text="deleteTarget.name"></p>
                         </div>
+                        <span class="px-2 py-0.5 rounded-full bg-[#a38c29]/10 text-[#8a7522] text-[9px] font-bold uppercase tracking-wider border border-[#a38c29]/20 shrink-0">Target</span>
                     </div>
 
-                    {{-- Warning card --}}
-                    <div class="bg-rose-50 border border-rose-200 rounded-xl px-4 py-3.5 space-y-1.5">
-                        <p class="text-xs font-bold text-rose-700 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    {{-- Warning card — fully themed in gold/amber --}}
+                    <div class="rounded-xl border border-[#a38c29]/30 overflow-hidden" style="background: linear-gradient(135deg, rgba(163,140,41,0.06) 0%, rgba(163,140,41,0.03) 100%);">
+                        <div class="px-4 py-2.5 border-b border-[#a38c29]/20 flex items-center gap-2" style="background: rgba(163,140,41,0.08);">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                             </svg>
-                            This action is permanent and cannot be reversed.
-                        </p>
-                        <ul class="text-[10px] text-rose-600 font-semibold space-y-0.5 pl-5 list-disc">
-                            <li>All floors and units will be permanently removed</li>
-                            <li>All rate logs and unit history will be deleted</li>
-                            <li>Active sales linked to units may be affected</li>
-                        </ul>
+                            <span class="text-[10px] font-extrabold text-[#7a6920] uppercase tracking-wider">Warning — This action cannot be undone</span>
+                        </div>
+                        <div class="px-4 py-3">
+                            <ul class="text-[10px] text-[#8a7522] font-semibold space-y-1.5">
+                                <li class="flex items-start gap-2">
+                                    <span class="mt-0.5 w-3.5 h-3.5 rounded-full bg-[#a38c29]/15 border border-[#a38c29]/25 flex items-center justify-center shrink-0">
+                                        <svg class="w-2 h-2 text-[#a38c29]" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"/></svg>
+                                    </span>
+                                    All floors and units will be permanently removed
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="mt-0.5 w-3.5 h-3.5 rounded-full bg-[#a38c29]/15 border border-[#a38c29]/25 flex items-center justify-center shrink-0">
+                                        <svg class="w-2 h-2 text-[#a38c29]" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"/></svg>
+                                    </span>
+                                    All rate logs and unit history will be deleted
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="mt-0.5 w-3.5 h-3.5 rounded-full bg-[#a38c29]/15 border border-[#a38c29]/25 flex items-center justify-center shrink-0">
+                                        <svg class="w-2 h-2 text-[#a38c29]" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3"/></svg>
+                                    </span>
+                                    Active sales linked to units may be affected
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
                 {{-- Footer --}}
-                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2.5 bg-white">
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-white">
                     <form x-ref="deleteForm" :action="deleteTarget.url" method="POST" class="hidden">
                         @csrf
                         @method('DELETE')
                     </form>
                     <button type="button" @click="deleteModalOpen = false"
-                        class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                        class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                         Cancel
                     </button>
                     <button type="button" @click="submitDelete()"
-                        class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md uppercase transition tracking-wider flex items-center gap-2">
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#7a6920] text-white text-xs font-bold shadow-md shadow-[#a38c29]/30 uppercase transition tracking-wider flex items-center gap-2 ring-1 ring-[#a38c29]/30">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
