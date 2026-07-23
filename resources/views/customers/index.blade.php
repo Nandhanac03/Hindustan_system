@@ -136,31 +136,43 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Name *</label>
-                            <input type="text" x-model="forms.add.name" required placeholder="Enter name"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
-                            <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.name[0]"></p></template>
+                            <input type="text" x-model="forms.add.name"
+                                   @input="if (errors.name) delete errors.name"
+                                   :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   placeholder="Enter name"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</label>
-                                <input type="email" x-model="forms.add.email" placeholder="Enter email"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
-                                <template x-if="errors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.email[0]"></p></template>
+                                <input type="email" x-model="forms.add.email"
+                                       @input="if (errors.email) delete errors.email"
+                                       :class="errors.email ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                       placeholder="Enter email"
+                                       class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="errors.email"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.email) ? errors.email[0] : errors.email"></p></template>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</label>
-                                <input type="text" x-model="forms.add.phone" placeholder="Enter phone number"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
-                                <template x-if="errors.phone"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.phone[0]"></p></template>
+                                <input type="text" x-model="forms.add.phone"
+                                       @input="if (errors.phone) delete errors.phone"
+                                       :class="errors.phone ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                       placeholder="Enter phone number"
+                                       class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="errors.phone"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.phone) ? errors.phone[0] : errors.phone"></p></template>
                             </div>
                         </div>
 
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address</label>
-                            <textarea x-model="forms.add.address" rows="2" placeholder="Enter address..."
-                                      class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold"></textarea>
-                            <template x-if="errors.address"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.address[0]"></p></template>
+                            <textarea x-model="forms.add.address" rows="2"
+                                      @input="if (errors.address) delete errors.address"
+                                      :class="errors.address ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                      placeholder="Enter address..."
+                                      class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold"></textarea>
+                            <template x-if="errors.address"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.address) ? errors.address[0] : errors.address"></p></template>
                         </div>
                     </div>
                 </div>
@@ -193,31 +205,39 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Full Name *</label>
-                            <input type="text" x-model="forms.edit.name" placeholder="Enter name" required
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
-                            <template x-if="editErrors.name"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.name[0]"></p></template>
+                            <input type="text" x-model="forms.edit.name" placeholder="Enter name"
+                                   @input="if (editErrors.name) delete editErrors.name"
+                                   :class="editErrors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="editErrors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(editErrors.name) ? editErrors.name[0] : editErrors.name"></p></template>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Email</label>
                                 <input type="email" x-model="forms.edit.email" placeholder="Enter email"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
-                                <template x-if="editErrors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.email[0]"></p></template>
+                                       @input="if (editErrors.email) delete editErrors.email"
+                                       :class="editErrors.email ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                       class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="editErrors.email"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(editErrors.email) ? editErrors.email[0] : editErrors.email"></p></template>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Phone</label>
                                 <input type="text" x-model="forms.edit.phone" placeholder="Enter phone number"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
-                                <template x-if="editErrors.phone"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.phone[0]"></p></template>
+                                       @input="if (editErrors.phone) delete editErrors.phone"
+                                       :class="editErrors.phone ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                       class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                <template x-if="editErrors.phone"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(editErrors.phone) ? editErrors.phone[0] : editErrors.phone"></p></template>
                             </div>
                         </div>
 
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address</label>
                             <textarea x-model="forms.edit.address" rows="2" placeholder="Enter address..."
-                                      class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold"></textarea>
-                            <template x-if="editErrors.address"><p class="text-[10px] text-rose-600 font-semibold" x-text="editErrors.address[0]"></p></template>
+                                      @input="if (editErrors.address) delete editErrors.address"
+                                      :class="editErrors.address ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                      class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm font-semibold"></textarea>
+                            <template x-if="editErrors.address"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(editErrors.address) ? editErrors.address[0] : editErrors.address"></p></template>
                         </div>
 
                         <div class="space-y-1.5">
@@ -417,6 +437,35 @@ function customersApp() {
         },
 
         submitAddCustomer() {
+            this.errors = {};
+            let hasError = false;
+
+            if (!this.forms.add.name || !this.forms.add.name.trim()) {
+                this.errors.name = ['Please enter customer name.'];
+                hasError = true;
+            } else if (this.forms.add.name.trim().length < 2) {
+                this.errors.name = ['Full Name must be at least 2 characters.'];
+                hasError = true;
+            }
+
+            if (this.forms.add.email && this.forms.add.email.trim()) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(this.forms.add.email.trim())) {
+                    this.errors.email = ['Please enter a valid email address.'];
+                    hasError = true;
+                }
+            }
+
+            if (this.forms.add.phone && this.forms.add.phone.trim()) {
+                const phoneRegex = /^[+]*[0-9\s\-()]{7,20}$/;
+                if (!phoneRegex.test(this.forms.add.phone.trim())) {
+                    this.errors.phone = ['Please enter a valid phone number format.'];
+                    hasError = true;
+                }
+            }
+
+            if (hasError) return;
+
             fetch('{{ route('customers.store') }}', {
                 method: 'POST',
                 headers: {
@@ -498,6 +547,35 @@ function customersApp() {
         },
 
         submitEditCustomer() {
+            this.editErrors = {};
+            let hasError = false;
+
+            if (!this.forms.edit.name || !this.forms.edit.name.trim()) {
+                this.editErrors.name = ['Please enter full name.'];
+                hasError = true;
+            } else if (this.forms.edit.name.trim().length < 2) {
+                this.editErrors.name = ['Full Name must be at least 2 characters.'];
+                hasError = true;
+            }
+
+            if (this.forms.edit.email && this.forms.edit.email.trim()) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(this.forms.edit.email.trim())) {
+                    this.editErrors.email = ['Please enter a valid email address.'];
+                    hasError = true;
+                }
+            }
+
+            if (this.forms.edit.phone && this.forms.edit.phone.trim()) {
+                const phoneRegex = /^[+]*[0-9\s\-()]{7,20}$/;
+                if (!phoneRegex.test(this.forms.edit.phone.trim())) {
+                    this.editErrors.phone = ['Please enter a valid phone number format.'];
+                    hasError = true;
+                }
+            }
+
+            if (hasError) return;
+
             let customerId = this.forms.edit.id;
             fetch(`{{ url('customers') }}/${customerId}`, {
                 method: 'PUT',
