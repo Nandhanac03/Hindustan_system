@@ -365,19 +365,23 @@
                 </div>
             </div>
             
-            <form @submit.prevent="submitCollection()">
+            <form @submit.prevent="submitCollection()" novalidate>
                 <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                     {{-- Active Sale Card --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Active Sale *</label>
-                            <select x-model="form.booking_id" @change="onModalSaleSelect()" required
-                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                            <select x-model="form.booking_id" @change="onModalSaleSelect(); if(errors.booking_id) delete errors.booking_id;"
+                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold"
+                                    :class="errors.booking_id ? 'border-rose-500 bg-rose-50/20' : ''">
                                 <option value="">-- Select Sale --</option>
                                 <template x-for="s in activeSales" :key="s.id">
                                     <option :value="s.id" x-text="(s.customer ? s.customer.name : '—') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
                                 </template>
                             </select>
+                            <template x-if="errors.booking_id">
+                                <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.booking_id) ? errors.booking_id[0] : errors.booking_id"></span>
+                            </template>
                         </div>
 
                         {{-- Info Box --}}
@@ -414,10 +418,15 @@
                         {{-- Prepayment Options --}}
                         <div class="space-y-1.5" x-show="form.collection_type === 'prepayment'" x-cloak x-transition>
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Prepayment Option *</label>
-                            <select x-model="form.prepayment_option" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all font-semibold">
+                            <select x-model="form.prepayment_option" @change="if(errors.prepayment_option) delete errors.prepayment_option;"
+                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all font-semibold"
+                                    :class="errors.prepayment_option ? 'border-rose-500 bg-rose-50/20' : ''">
                                 <option value="reduce_emi">Reduce EMI amount (keep tenure the same)</option>
                                 <option value="reduce_tenure">Reduce Tenure (keep monthly EMI the same)</option>
                             </select>
+                            <template x-if="errors.prepayment_option">
+                                <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.prepayment_option) ? errors.prepayment_option[0] : errors.prepayment_option"></span>
+                            </template>
                         </div>
                     </div>
 
@@ -426,18 +435,22 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Amount (₹) *</label>
-                                <input type="number" step="0.01" x-model.number="form.amount" :required="form.collection_type !== 'reschedule'" min="0.01"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold focus:outline-none transition-all shadow-sm">
+                                <input type="number" step="0.01" x-model.number="form.amount" min="0.01"
+                                       @input="if(errors.amount) delete errors.amount;"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold focus:outline-none transition-all shadow-sm"
+                                       :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
                                 <template x-if="errors.amount">
-                                    <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.amount[0]"></span>
+                                    <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                                 </template>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Receipt Date</label>
+                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Receipt Date *</label>
                                 <input type="date" x-model="form.receipt_date"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold">
+                                       @input="if(errors.receipt_date) delete errors.receipt_date;"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold"
+                                       :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
                                 <template x-if="errors.receipt_date">
-                                    <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.receipt_date[0]"></span>
+                                    <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
                                 </template>
                             </div>
                         </div>
@@ -446,7 +459,7 @@
                             <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Payment Mode *</label>
                             <div class="grid grid-cols-2 gap-2">
                                 <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
-                                    <button type="button" @click="form.payment_mode = mode"
+                                    <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"
                                             :class="form.payment_mode === mode ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm shadow-[#a38c29]/20' : 'bg-slate-50 text-slate-600 border-slate-250 hover:border-[#a38c29]/40'"
                                             class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all"
                                             x-text="mode">
@@ -454,7 +467,7 @@
                                 </template>
                             </div>
                             <template x-if="errors.payment_mode">
-                                <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="errors.payment_mode[0]"></span>
+                                <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
                             </template>
                         </div>
                     </div>
@@ -564,7 +577,29 @@ function emiApp() {
 
         openCollectModal(item) {
             this.errors = {};
-            this.form.booking_id = item.id;
+            if (item && item.id) {
+                this.form.booking_id = item.id;
+                this.form.customer_name = item.customer_name;
+                this.form.unit_number = item.door_no;
+                this.form.outstanding = item.outstanding;
+                
+                const sale = this.activeSales.find(s => s.id == item.id);
+                if (sale) {
+                    this.form.project_name = sale.project ? sale.project.name : '';
+                    this.form.total_amount = sale.total_amount;
+                } else {
+                    this.form.project_name = '';
+                    this.form.total_amount = 0;
+                }
+            } else {
+                this.form.booking_id = '';
+                this.form.customer_name = '';
+                this.form.unit_number = '';
+                this.form.outstanding = 0;
+                this.form.project_name = '';
+                this.form.total_amount = 0;
+            }
+
             this.form.amount = ''; // Leave blank
             this.form.payment_mode = 'Cash';
             this.form.receipt_date = new Date().toISOString().split('T')[0];
@@ -575,18 +610,6 @@ function emiApp() {
             this.form.prepayment_option = 'reduce_emi';
             this.form.reschedule_option = 'extend_tenure';
             this.form.reschedule_reason = '';
-            this.form.customer_name = item.customer_name;
-            this.form.unit_number = item.door_no;
-            this.form.outstanding = item.outstanding;
-            
-            const sale = this.activeSales.find(s => s.id == item.id);
-            if (sale) {
-                this.form.project_name = sale.project ? sale.project.name : '';
-                this.form.total_amount = sale.total_amount;
-            } else {
-                this.form.project_name = '';
-                this.form.total_amount = 0;
-            }
             this.modal.open = true;
         },
 
@@ -596,13 +619,34 @@ function emiApp() {
 
         submitCollection() {
             this.errors = {};
-            
-            if (this.form.collection_type !== 'reschedule' && (!this.form.amount || !this.form.payment_mode)) {
-                this.showToast('Please enter amount and choose payment mode.', 'error');
-                return;
+            let hasError = false;
+
+            if (!this.form.booking_id) {
+                this.errors.booking_id = ['please select active sale'];
+                hasError = true;
             }
-            if (this.form.collection_type === 'reschedule' && !this.form.reschedule_reason) {
-                this.showToast('Please enter a reason for rescheduling.', 'error');
+
+            if (this.form.collection_type !== 'reschedule') {
+                if (this.form.amount === '' || this.form.amount === null || this.form.amount === undefined || parseFloat(this.form.amount) <= 0 || isNaN(parseFloat(this.form.amount))) {
+                    this.errors.amount = ['please enter amount'];
+                    hasError = true;
+                }
+                if (!this.form.payment_mode) {
+                    this.errors.payment_mode = ['please select payment mode'];
+                    hasError = true;
+                }
+                if (!this.form.receipt_date) {
+                    this.errors.receipt_date = ['please select receipt date'];
+                    hasError = true;
+                }
+            } else {
+                if (!this.form.reschedule_reason) {
+                    this.errors.reschedule_reason = ['please enter reschedule reason'];
+                    hasError = true;
+                }
+            }
+
+            if (hasError) {
                 return;
             }
             
@@ -629,9 +673,9 @@ function emiApp() {
                     shift_months: this.form.shift_months
                 })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
+            .then(res => res.json().then(data => ({ ok: res.ok, status: res.status, data })))
+            .then(({ ok, status, data }) => {
+                if (ok && data.success) {
                     this.showToast(data.message, 'success');
                     this.closeCollectModal();
                     setTimeout(() => {
@@ -639,8 +683,8 @@ function emiApp() {
                     }, 1000);
                 } else if (data.errors) {
                     this.errors = data.errors;
-                } else if (data.error) {
-                    this.showToast(data.error, 'error');
+                } else if (data.error || data.message) {
+                    this.showToast(data.error || data.message, 'error');
                 }
             })
             .catch(err => {
