@@ -767,7 +767,7 @@
                         <h3 class="text-xs font-extrabold text-[#0B1E36] uppercase tracking-wider">Bank Loan EMI Repayment Notifications</h3>
                     </div>
                     
-                    <div class="space-y-3">
+                    <div class="space-y-3 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
                         @if(isset($bankEmiAlerts) && $bankEmiAlerts->isNotEmpty())
                             @php
                                 $bankColors = ['bg-rose-700', 'bg-indigo-700', 'bg-emerald-700', 'bg-amber-600', 'bg-purple-700', 'bg-teal-700', 'bg-blue-800'];

@@ -393,11 +393,9 @@ class PartnerController extends Controller
             return $pRow;
         }, $parkingRows, array_keys($parkingRows));
 
-        // Bank EMI Alerts - only this month list of emi which is expiring
+        // Bank EMI Alerts - all pending emis
         $bankEmiAlerts = \App\Models\EmiSchedule::with(['loan.project'])
             ->where('status', 'Due')
-            ->whereMonth('due_date', Carbon::now()->month)
-            ->whereYear('due_date', Carbon::now()->year)
             ->orderBy('due_date')
             ->get();
 

@@ -422,6 +422,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
                                 @foreach($interestLogs as $log)
+                                    @if(floatval($log->old_interest_rate) !== floatval($log->new_interest_rate))
                                     <tr class="hover:bg-slate-50/60 transition-colors" x-show="!activeInterestLogAccount || activeInterestLogAccount === '{{ $log->loan ? $log->loan->loan_account_no : '' }}'">
                                         <td class="px-4 py-3 border-r text-slate-500 font-mono text-[11px] whitespace-nowrap">{{ $log->created_at->format('d M Y, h:i A') }}</td>
                                         <td class="px-4 py-3 border-r font-bold text-slate-900">{{ $log->loan ? $log->loan->loan_account_no : '—' }}</td>
@@ -430,6 +431,7 @@
                                         <td class="px-4 py-3 border-r text-slate-600 capitalize">{{ $log->interest_period }}</td>
                                         <td class="px-4 py-3 text-slate-500 text-[11px]">{{ $log->reason ?? '—' }}</td>
                                     </tr>
+                                    @endif
                                 @endforeach
                             </tbody>
                         </table>
@@ -472,7 +474,12 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">New Interest Rate *</label>
-                            <input type="number" step="0.01" x-model="editInterestForm.interest_rate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                            <input type="number" step="0.01" x-model="editInterestForm.interest_rate" required 
+                                   :class="editInterestError ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                            <template x-if="editInterestError">
+                                <p class="text-[10px] text-rose-600 font-semibold mt-1.5 leading-tight" x-text="editInterestError"></p>
+                            </template>
                         </div>
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">Interest Period *</label>
@@ -673,6 +680,7 @@ function loanApp() {
         },
         editInterestModalOpen: false,
         editLoan: {},
+        editInterestError: '',
         editInterestForm: {
             interest_rate: '',
             interest_period: 'annual'
@@ -681,10 +689,18 @@ function loanApp() {
             this.editLoan = loan;
             this.editInterestForm.interest_rate = loan.interest_rate;
             this.editInterestForm.interest_period = 'annual';
+            this.editInterestError = '';
             this.editInterestModalOpen = true;
         },
         submitEditInterestForm() {
             if (!this.editLoan) return;
+            this.editInterestError = '';
+            
+            if (parseFloat(this.editInterestForm.interest_rate) === parseFloat(this.editLoan.interest_rate)) {
+                this.editInterestError = 'Please specify a different interest rate. The new rate cannot be the same as the current rate.';
+                return;
+            }
+            
             const url = `/loans/${this.editLoan.id}/update-interest`;
             fetch(url, {
                 method: 'POST',
