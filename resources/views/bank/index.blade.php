@@ -129,20 +129,28 @@
                     </button>
                 </div>
             </div>
-            <form action="{{ route('bank.store') }}" method="POST">
+            <form action="{{ route('bank.store') }}" method="POST" @submit="submitAddBank($event)" novalidate>
                 @csrf
                 <div class="p-6 space-y-4 text-left">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bank Name</label>
-                        <input type="text" name="bank_name" x-model="addForm.bank_name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bank Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="bank_name" x-model="addForm.bank_name" required
+                               :class="errors.bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.bank_name) ? errors.bank_name[0] : errors.bank_name"></p></template>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">IFSC Code</label>
-                        <input type="text" name="ifsc_code" x-model="addForm.ifsc_code" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-mono uppercase">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">IFSC Code <span class="text-rose-500">*</span></label>
+                        <input type="text" name="ifsc_code" x-model="addForm.ifsc_code" required
+                               :class="errors.ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-mono uppercase">
+                        <template x-if="errors.ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.ifsc_code) ? errors.ifsc_code[0] : errors.ifsc_code"></p></template>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
-                        <select name="status" x-model="addForm.status" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status <span class="text-rose-500">*</span></label>
+                        <select name="status" x-model="addForm.status" required
+                                :class="errors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
@@ -168,21 +176,29 @@
                     </button>
                 </div>
             </div>
-            <form :action="editForm.action" method="POST">
+            <form :action="editForm.action" method="POST" @submit="submitEditBank($event)" novalidate>
                 @csrf
                 @method('PUT')
                 <div class="p-6 space-y-4 text-left">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bank Name</label>
-                        <input type="text" name="bank_name" x-model="editForm.bank_name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bank Name <span class="text-rose-500">*</span></label>
+                        <input type="text" name="bank_name" x-model="editForm.bank_name" required
+                               :class="errors.edit_bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.edit_bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_bank_name) ? errors.edit_bank_name[0] : errors.edit_bank_name"></p></template>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">IFSC Code</label>
-                        <input type="text" name="ifsc_code" x-model="editForm.ifsc_code" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-mono uppercase">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">IFSC Code <span class="text-rose-500">*</span></label>
+                        <input type="text" name="ifsc_code" x-model="editForm.ifsc_code" required
+                               :class="errors.edit_ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all font-mono uppercase">
+                        <template x-if="errors.edit_ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_ifsc_code) ? errors.edit_ifsc_code[0] : errors.edit_ifsc_code"></p></template>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
-                        <select name="status" x-model="editForm.status" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status <span class="text-rose-500">*</span></label>
+                        <select name="status" x-model="editForm.status" required
+                                :class="errors.edit_status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
@@ -251,6 +267,7 @@
 <script>
 function bankApp() {
     return {
+        errors: {},
         addModalOpen: false,
         editModalOpen: false,
         viewModalOpen: false,
@@ -297,6 +314,42 @@ function bankApp() {
                 status: status
             };
             this.editModalOpen = true;
+        },
+        submitAddBank(e) {
+            let clientErrors = {};
+            if (!this.addForm.bank_name || !String(this.addForm.bank_name).trim()) {
+                clientErrors.bank_name = ['The bank name field is required.'];
+            }
+            if (!this.addForm.ifsc_code || !String(this.addForm.ifsc_code).trim()) {
+                clientErrors.ifsc_code = ['The IFSC code field is required.'];
+            }
+            if (!this.addForm.status) {
+                clientErrors.status = ['The status field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                e.preventDefault();
+                this.errors = clientErrors;
+                return false;
+            }
+            this.errors = {};
+        },
+        submitEditBank(e) {
+            let clientErrors = {};
+            if (!this.editForm.bank_name || !String(this.editForm.bank_name).trim()) {
+                clientErrors.edit_bank_name = ['The bank name field is required.'];
+            }
+            if (!this.editForm.ifsc_code || !String(this.editForm.ifsc_code).trim()) {
+                clientErrors.edit_ifsc_code = ['The IFSC code field is required.'];
+            }
+            if (!this.editForm.status) {
+                clientErrors.edit_status = ['The status field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                e.preventDefault();
+                this.errors = clientErrors;
+                return false;
+            }
+            this.errors = {};
         }
     }
 }

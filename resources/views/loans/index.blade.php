@@ -504,68 +504,96 @@
                     </button>
                 </div>
             </div>
-            <form @submit.prevent="submitAddForm">
+
+            <form @submit.prevent="submitAddForm($event)" novalidate>
                 <div class="p-6 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
                     <div class="col-span-2">
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Associated Project *</label>
-                        <select x-model="addForm.project_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Associated Project <span class="text-rose-500">*</span></label>
+                        <select x-model="addForm.project_id" required
+                                :class="errors.project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
                             <option value="">Select Project...</option>
                             @foreach($projects as $p)
                                 <option value="{{ $p->id }}">{{ $p->name }}</option>
                             @endforeach
                         </select>
+                        <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Loan Account No *</label>
-                        <input type="text" x-model="addForm.loan_account_no" required placeholder="e.g. LN-897937402" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Loan Account No <span class="text-rose-500">*</span></label>
+                        <input type="text" x-model="addForm.loan_account_no" required placeholder="e.g. LN-897937402"
+                               :class="errors.loan_account_no ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.loan_account_no"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.loan_account_no) ? errors.loan_account_no[0] : errors.loan_account_no"></p></template>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Lending Bank *</label>
-                        <select x-model="addForm.lender_name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Lending Bank <span class="text-rose-500">*</span></label>
+                        <select x-model="addForm.lender_name" required
+                                :class="errors.lender_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
                             <option value="">Select Lending Bank...</option>
                             @foreach($banks as $b)
                                 <option value="{{ $b->bank_name }}">{{ $b->bank_name }}</option>
                             @endforeach
                         </select>
+                        <template x-if="errors.lender_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.lender_name) ? errors.lender_name[0] : errors.lender_name"></p></template>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Total Sanctioned Principal (₹) *</label>
-                        <input type="number" step="0.01" x-model="addForm.principal_amount" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Total Sanctioned Principal (₹) <span class="text-rose-500">*</span></label>
+                        <input type="number" step="0.01" x-model="addForm.principal_amount" required
+                               :class="errors.principal_amount ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.principal_amount"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.principal_amount) ? errors.principal_amount[0] : errors.principal_amount"></p></template>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Rate *</label>
-                            <input type="number" step="0.01" x-model="addForm.interest_rate" required placeholder="e.g. 7.50" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Rate <span class="text-rose-500">*</span></label>
+                            <input type="number" step="0.01" x-model="addForm.interest_rate" required placeholder="e.g. 7.50"
+                                   :class="errors.interest_rate ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                            <template x-if="errors.interest_rate"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.interest_rate) ? errors.interest_rate[0] : errors.interest_rate"></p></template>
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Period *</label>
-                            <select x-model="addForm.interest_period" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Period <span class="text-rose-500">*</span></label>
+                            <select x-model="addForm.interest_period" required
+                                    :class="errors.interest_period ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                    class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
                                 <option value="annual">Per Annum (Yearly)</option>
                                 <option value="monthly">Per Month (Monthly)</option>
                             </select>
+                            <template x-if="errors.interest_period"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.interest_period) ? errors.interest_period[0] : errors.interest_period"></p></template>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Loan Tenure (Months) *</label>
-                        <input type="number" x-model="addForm.tenure_months" required placeholder="e.g. 120" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Loan Tenure (Months) <span class="text-rose-500">*</span></label>
+                        <input type="number" x-model="addForm.tenure_months" required placeholder="e.g. 120"
+                               :class="errors.tenure_months ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.tenure_months"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.tenure_months) ? errors.tenure_months[0] : errors.tenure_months"></p></template>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Repayment Start Date *</label>
-                        <input type="date" x-model="addForm.start_date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Repayment Start Date <span class="text-rose-500">*</span></label>
+                        <input type="date" x-model="addForm.start_date" required
+                               :class="errors.start_date ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.start_date"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.start_date) ? errors.start_date[0] : errors.start_date"></p></template>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Schedule Type *</label>
-                        <select x-model="addForm.schedule_type" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Schedule Type <span class="text-rose-500">*</span></label>
+                        <select x-model="addForm.schedule_type" required
+                                :class="errors.schedule_type ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
                             <option value="reducing_balance">Reducing Balance</option>
                             <option value="flat">Flat Rate</option>
                         </select>
+                        <template x-if="errors.schedule_type"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.schedule_type) ? errors.schedule_type[0] : errors.schedule_type"></p></template>
                     </div>
 
 
@@ -597,6 +625,7 @@
 <script>
 function loanApp() {
     return {
+        errors: {},
         addModalOpen: false,
         logsModalOpen: false,
         activeLogs: [],
@@ -620,6 +649,7 @@ function loanApp() {
             type: 'success'
         },
         openAddModal() {
+            this.errors = {};
             this.addForm = {
                 project_id: '{{ request('project_id') ?? ($projects->first()->id ?? '') }}',
                 loan_account_no: '',
@@ -691,7 +721,42 @@ function loanApp() {
             this.toast.open = true;
             setTimeout(() => { this.toast.open = false; }, 4000);
         },
-        submitAddForm() {
+        submitAddForm(e) {
+            if (e) e.preventDefault();
+            let clientErrors = {};
+            if (!this.addForm.project_id) {
+                clientErrors.project_id = ['The project field is required.'];
+            }
+            if (!this.addForm.loan_account_no || !String(this.addForm.loan_account_no).trim()) {
+                clientErrors.loan_account_no = ['The loan account number field is required.'];
+            }
+            if (!this.addForm.lender_name || !String(this.addForm.lender_name).trim()) {
+                clientErrors.lender_name = ['The lending bank field is required.'];
+            }
+            if (!this.addForm.principal_amount) {
+                clientErrors.principal_amount = ['The principal amount field is required.'];
+            }
+            if (!this.addForm.interest_rate) {
+                clientErrors.interest_rate = ['The interest rate field is required.'];
+            }
+            if (!this.addForm.interest_period) {
+                clientErrors.interest_period = ['The interest period field is required.'];
+            }
+            if (!this.addForm.tenure_months) {
+                clientErrors.tenure_months = ['The tenure field is required.'];
+            }
+            if (!this.addForm.start_date) {
+                clientErrors.start_date = ['The start date field is required.'];
+            }
+            if (!this.addForm.schedule_type) {
+                clientErrors.schedule_type = ['The schedule type field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                this.errors = clientErrors;
+                return;
+            }
+            this.errors = {};
+
             fetch('{{ route('loans.store') }}', {
                 method: 'POST',
                 headers: {
@@ -704,6 +769,9 @@ function loanApp() {
             .then(async res => {
                 let data = await res.json();
                 if (!res.ok) {
+                    if (data.errors) {
+                        this.errors = data.errors;
+                    }
                     this.showToast(data.message || 'Validation error. Please verify input data.', 'error');
                 } else {
                     this.showToast('Project loan and repayment schedule created successfully.');

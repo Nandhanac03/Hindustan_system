@@ -312,31 +312,37 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor <span class="text-rose-500">*</span></label>
-                            <select x-model="forms.add.floor_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                            <select x-model="forms.add.floor_id"
+                                    :class="errors.floor_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                    class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                 <option value="">Select Floor...</option>
                                 @foreach($floors as $floor)
                                     <option value="{{ $floor->id }}">{{ $floor->name }}</option>
                                 @endforeach
                             </select>
-                            <template x-if="errors.floor_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.floor_id[0]"></p></template>
+                            <template x-if="errors.floor_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.floor_id) ? errors.floor_id[0] : errors.floor_id"></p></template>
                         </div>
 
                         <div class="space-y-1.5">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type <span class="text-rose-500">*</span></label>
-                            <select x-model="forms.add.unit_type_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                            <select x-model="forms.add.unit_type_id"
+                                    :class="errors.unit_type_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                    class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                 <option value="">Select Type...</option>
                                 @foreach($unitTypes as $type)
                                     <option value="{{ $type->id }}">{{ $type->name }}</option>
                                 @endforeach
                             </select>
-                            <template x-if="errors.unit_type_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_type_id[0]"></p></template>
+                            <template x-if="errors.unit_type_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.unit_type_id) ? errors.unit_type_id[0] : errors.unit_type_id"></p></template>
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No (e.g. A-404) <span class="text-rose-500">*</span></label>
-                        <input type="text" x-model="forms.add.door_no" placeholder="Enter door number..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
+                        <input type="text" x-model="forms.add.door_no" placeholder="Enter door number..."
+                               :class="errors.door_no ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                               class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.door_no) ? errors.door_no[0] : errors.door_no"></p></template>
                     </div>
 
                     {{-- Area fields: hidden for Parking type --}}
@@ -344,13 +350,17 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Built Up Area (Sq Ft)</label>
-                                <input type="number" step="0.01" x-model="forms.add.built_up_area" placeholder="e.g. 1200" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                                <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.built_up_area[0]"></p></template>
+                                <input type="number" step="0.01" x-model="forms.add.built_up_area" placeholder="e.g. 1200"
+                                       :class="errors.built_up_area ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                                       class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                <template x-if="errors.built_up_area"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.built_up_area) ? errors.built_up_area[0] : errors.built_up_area"></p></template>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carpet Area (Sq Ft)</label>
-                                <input type="number" step="0.01" x-model="forms.add.carpet_area" placeholder="e.g. 1000" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                                <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.carpet_area[0]"></p></template>
+                                <input type="number" step="0.01" x-model="forms.add.carpet_area" placeholder="e.g. 1000"
+                                       :class="errors.carpet_area ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                                       class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                <template x-if="errors.carpet_area"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.carpet_area) ? errors.carpet_area[0] : errors.carpet_area"></p></template>
                             </div>
                         </div>
                     </template>
@@ -359,8 +369,10 @@
                     <template x-if="!isParking(forms.add.unit_type_id)">
                         <div class="space-y-1.5">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Rate per Sq Ft (₹) <span class="text-rose-500">*</span></label>
-                            <input type="number" step="0.01" x-model="forms.add.expected_rate_per_sqft" placeholder="e.g. 4500" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                            <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_rate_per_sqft[0]"></p></template>
+                            <input type="number" step="0.01" x-model="forms.add.expected_rate_per_sqft" placeholder="e.g. 4500"
+                                   :class="errors.expected_rate_per_sqft ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                                   class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                            <template x-if="errors.expected_rate_per_sqft"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.expected_rate_per_sqft) ? errors.expected_rate_per_sqft[0] : errors.expected_rate_per_sqft"></p></template>
                         </div>
                     </template>
 
@@ -368,9 +380,11 @@
                     <template x-if="isParking(forms.add.unit_type_id)">
                         <div class="space-y-1.5">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expected Sale Amount (₹) <span class="text-rose-500">*</span></label>
-                            <input type="number" step="0.01" x-model="forms.add.expected_sale_amount" placeholder="e.g. 300000" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                            <input type="number" step="0.01" x-model="forms.add.expected_sale_amount" placeholder="e.g. 300000"
+                                   :class="errors.expected_sale_amount ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                                   class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <p class="text-[10px] text-slate-400 italic">Auto-calculation not applicable for Parking.</p>
-                            <template x-if="errors.expected_sale_amount"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.expected_sale_amount[0]"></p></template>
+                            <template x-if="errors.expected_sale_amount"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.expected_sale_amount) ? errors.expected_sale_amount[0] : errors.expected_sale_amount"></p></template>
                         </div>
                     </template>
                 </div>
@@ -430,30 +444,35 @@
                             <div class="space-y-4">
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="space-y-1.5">
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor</label>
-                                        <select x-model="forms.edit.floor_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Floor <span class="text-rose-500">*</span></label>
+                                        <select x-model="forms.edit.floor_id"
+                                                :class="errors.floor_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                                class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                             @foreach($floors as $floor)
                                                 <option value="{{ $floor->id }}">{{ $floor->name }}</option>
                                             @endforeach
                                         </select>
-                                        <template x-if="errors.floor_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.floor_id[0]"></p></template>
+                                        <template x-if="errors.floor_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.floor_id) ? errors.floor_id[0] : errors.floor_id"></p></template>
                                     </div>
                                     <div class="space-y-1.5">
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type</label>
-                                        <select x-model="forms.edit.unit_type_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type <span class="text-rose-500">*</span></label>
+                                        <select x-model="forms.edit.unit_type_id"
+                                                :class="errors.unit_type_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                                class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                             @foreach($unitTypes as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
                                             @endforeach
                                         </select>
-                                        <template x-if="errors.unit_type_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_type_id[0]"></p></template>
+                                        <template x-if="errors.unit_type_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.unit_type_id) ? errors.unit_type_id[0] : errors.unit_type_id"></p></template>
                                     </div>
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No</label>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Door No <span class="text-rose-500">*</span></label>
                                     <input type="text" x-model="forms.edit.door_no"
-                                        class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                                    <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.door_no[0]"></p></template>
+                                           :class="errors.door_no ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                                           class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                                    <template x-if="errors.door_no"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.door_no) ? errors.door_no[0] : errors.door_no"></p></template>
                                 </div>
 
                                 {{-- Area fields: hidden for Parking --}}
@@ -674,25 +693,29 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target Floor</label>
-                            <select x-model="forms.bulk.floor_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Target Floor <span class="text-rose-500">*</span></label>
+                            <select x-model="forms.bulk.floor_id"
+                                    :class="errors.floor_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                    class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                 <option value="">Select Floor...</option>
                                 @foreach($floors as $floor)
                                     <option value="{{ $floor->id }}">{{ $floor->name }}</option>
                                 @endforeach
                             </select>
-                            <template x-if="errors.floor_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.floor_id[0]"></p></template>
+                            <template x-if="errors.floor_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.floor_id) ? errors.floor_id[0] : errors.floor_id"></p></template>
                         </div>
 
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type</label>
-                            <select x-model="forms.bulk.unit_type_id" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Unit Type <span class="text-rose-500">*</span></label>
+                            <select x-model="forms.bulk.unit_type_id"
+                                    :class="errors.unit_type_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                    class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                 <option value="">Select Type...</option>
                                 @foreach($unitTypes as $type)
                                     <option value="{{ $type->id }}">{{ $type->name }}</option>
                                 @endforeach
                             </select>
-                            <template x-if="errors.unit_type_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_type_id[0]"></p></template>
+                            <template x-if="errors.unit_type_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.unit_type_id) ? errors.unit_type_id[0] : errors.unit_type_id"></p></template>
                         </div>
                     </div>
 
@@ -700,17 +723,21 @@
                         <div class="space-y-1.5">
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Prefix (e.g. A-)</label>
                             <input type="text" x-model="forms.bulk.unit_prefix" placeholder="A-" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                            <template x-if="errors.unit_prefix"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.unit_prefix[0]"></p></template>
+                            <template x-if="errors.unit_prefix"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.unit_prefix) ? errors.unit_prefix[0] : errors.unit_prefix"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Starting Num</label>
-                            <input type="number" x-model="forms.bulk.start_number" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                            <template x-if="errors.start_number"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.start_number[0]"></p></template>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Starting Num <span class="text-rose-500">*</span></label>
+                            <input type="number" x-model="forms.bulk.start_number"
+                                   :class="errors.start_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                                   class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                            <template x-if="errors.start_number"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.start_number) ? errors.start_number[0] : errors.start_number"></p></template>
                         </div>
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Count</label>
-                            <input type="number" x-model="forms.bulk.count" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                            <template x-if="errors.count"><p class="text-[10px] text-rose-600 font-semibold" x-text="errors.count[0]"></p></template>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Count <span class="text-rose-500">*</span></label>
+                            <input type="number" x-model="forms.bulk.count"
+                                   :class="errors.count ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300'"
+                                   class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                            <template x-if="errors.count"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.count) ? errors.count[0] : errors.count"></p></template>
                         </div>
                     </div>
 

@@ -45,26 +45,30 @@
                           </div>
                       </div>
 
-                      <form action="{{ route('brokers.store') }}" method="POST">
+                      <form action="{{ route('brokers.store') }}" method="POST" x-data="{ errors: {}, name: '', default_commission_pct: '2.00', submitRegister(e) { let errs = {}; if(!this.name || !String(this.name).trim()) errs.name = ['The broker name field is required.']; if(!this.default_commission_pct) errs.default_commission_pct = ['The commission % field is required.']; if(Object.keys(errs).length > 0) { e.preventDefault(); this.errors = errs; return false; } } }" @submit="submitRegister($event)" novalidate>
                           @csrf
                           <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                               <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                                   <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name *</label>
-                                      <input type="text" name="name" required placeholder="e.g. Apex Realty Brokers"
-                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name <span class="text-rose-500">*</span></label>
+                                      <input type="text" name="name" x-model="name" required placeholder="e.g. Apex Realty Brokers"
+                                             :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                             class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                                      <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                                   </div>
 
                                   <div class="space-y-1.5">
                                       <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
-                                          <span>Default Commission % *</span>
+                                          <span>Default Commission % <span class="text-rose-500">*</span></span>
                                           <span class="text-slate-400 font-normal text-[9px]">(Typically 2% per sale)</span>
                                       </label>
                                       <div class="relative">
-                                          <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" value="2.00" required
-                                                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
+                                          <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" x-model="default_commission_pct" required
+                                                 :class="errors.default_commission_pct ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                                 class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
                                           <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
                                       </div>
+                                      <template x-if="errors.default_commission_pct"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.default_commission_pct) ? errors.default_commission_pct[0] : errors.default_commission_pct"></p></template>
                                       <p class="text-[9px] text-slate-400">This percentage is applied by default to all project sales handled by this broker.</p>
                                   </div>
 
@@ -328,24 +332,28 @@
                                               </div>
                                           </div>
 
-                                          <form action="{{ route('brokers.update', $broker->id) }}" method="POST">
+                                          <form action="{{ route('brokers.update', $broker->id) }}" method="POST" x-data="{ errors: {}, edit_name: '{{ addslashes($broker->name) }}', edit_commission_pct: '{{ $broker->default_commission_pct }}', submitEdit(e) { let errs = {}; if(!this.edit_name || !String(this.edit_name).trim()) errs.edit_name = ['The broker name field is required.']; if(!this.edit_commission_pct) errs.edit_commission_pct = ['The commission % field is required.']; if(Object.keys(errs).length > 0) { e.preventDefault(); this.errors = errs; return false; } } }" @submit="submitEdit($event)" novalidate>
                                               @csrf
                                               @method('PUT')
                                               <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                                                   <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                                                       <div class="space-y-1.5">
-                                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name *</label>
-                                                          <input type="text" name="name" value="{{ $broker->name }}" required
-                                                                 class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name <span class="text-rose-500">*</span></label>
+                                                          <input type="text" name="name" x-model="edit_name" required
+                                                                 :class="errors.edit_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                                                 class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                                                          <template x-if="errors.edit_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_name) ? errors.edit_name[0] : errors.edit_name"></p></template>
                                                       </div>
 
                                                       <div class="space-y-1.5">
-                                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Default Commission % *</label>
+                                                          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Default Commission % <span class="text-rose-500">*</span></label>
                                                           <div class="relative">
-                                                              <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" value="{{ $broker->default_commission_pct }}" required
-                                                                     class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
+                                                              <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" x-model="edit_commission_pct" required
+                                                                     :class="errors.edit_commission_pct ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                                                     class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
                                                               <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
                                                           </div>
+                                                          <template x-if="errors.edit_commission_pct"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_commission_pct) ? errors.edit_commission_pct[0] : errors.edit_commission_pct"></p></template>
                                                       </div>
                                                   </div>
                                               </div>

@@ -177,7 +177,7 @@
                 </div>
             </div>
 
-            <form action="{{ route('unit-types.store') }}" method="POST">
+            <form action="{{ route('unit-types.store') }}" method="POST" @submit="submitAddUnitType($event)" novalidate>
                 @csrf
                 <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
@@ -204,17 +204,23 @@
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Unit Type Name *</label>
-                            <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Apartment, Parking, Shop" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Unit Type Name <span class="text-rose-500">*</span></label>
+                            <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Apartment, Parking, Shop"
+                                   :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Category *</label>
-                            <select name="category" x-model="addForm.category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Category <span class="text-rose-500">*</span></label>
+                            <select name="category" x-model="addForm.category" required
+                                    :class="errors.category ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                    class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
                                 <option value="residential">Residential</option>
                                 <option value="commercial">Commercial</option>
                                 <option value="parking">Parking</option>
                             </select>
+                            <template x-if="errors.category"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.category) ? errors.category[0] : errors.category"></p></template>
                         </div>
 
                         <div class="flex items-center gap-2 pt-2">
@@ -247,7 +253,7 @@
                 </div>
             </div>
 
-            <form :action="editForm.action" method="POST">
+            <form :action="editForm.action" method="POST" @submit="submitEditUnitType($event)" novalidate>
                 @csrf
                 @method('PUT')
                 <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
@@ -263,17 +269,23 @@
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Unit Type Name *</label>
-                            <input type="text" name="name" x-model="editForm.name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Unit Type Name <span class="text-rose-500">*</span></label>
+                            <input type="text" name="name" x-model="editForm.name" required
+                                   :class="errors.edit_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.edit_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_name) ? errors.edit_name[0] : errors.edit_name"></p></template>
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Category *</label>
-                            <select name="category" x-model="editForm.category" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Category <span class="text-rose-500">*</span></label>
+                            <select name="category" x-model="editForm.category" required
+                                    :class="errors.edit_category ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                    class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
                                 <option value="residential">Residential</option>
                                 <option value="commercial">Commercial</option>
                                 <option value="parking">Parking</option>
                             </select>
+                            <template x-if="errors.edit_category"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_category) ? errors.edit_category[0] : errors.edit_category"></p></template>
                         </div>
 
                         <div class="flex items-center gap-2 pt-2">
@@ -354,6 +366,7 @@
 <script>
 function unitTypeMasterApp() {
     return {
+        errors: {},
         showAddModal: false,
         showEditModal: false,
         showViewModal: false,
@@ -398,15 +411,44 @@ function unitTypeMasterApp() {
             this.editForm.is_active = isActive;
             this.showEditModal = true;
         },
-        openViewModal(id, name, category, unitsCount, projectName, isActive, unitsUrl) {
+        openViewModal(id, name, category, projectScope, unitsCount, unitsUrl) {
             this.viewData.id = id;
             this.viewData.name = name;
             this.viewData.category = category;
+            this.viewData.project_scope = projectScope;
             this.viewData.units_count = unitsCount;
-            this.viewData.project_name = projectName;
-            this.viewData.is_active = isActive;
             this.viewData.units_url = unitsUrl;
             this.showViewModal = true;
+        },
+        submitAddUnitType(e) {
+            let clientErrors = {};
+            if (!this.addForm.name || !String(this.addForm.name).trim()) {
+                clientErrors.name = ['The unit type name field is required.'];
+            }
+            if (!this.addForm.category) {
+                clientErrors.category = ['The category field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                e.preventDefault();
+                this.errors = clientErrors;
+                return false;
+            }
+            this.errors = {};
+        },
+        submitEditUnitType(e) {
+            let clientErrors = {};
+            if (!this.editForm.name || !String(this.editForm.name).trim()) {
+                clientErrors.edit_name = ['The unit type name field is required.'];
+            }
+            if (!this.editForm.category) {
+                clientErrors.edit_category = ['The category field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                e.preventDefault();
+                this.errors = clientErrors;
+                return false;
+            }
+            this.errors = {};
         }
     }
 }

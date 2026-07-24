@@ -400,7 +400,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" x-data="{ createName: '{{ old('name') }}', createTotalFloors: '{{ old('total_floors', 1) }}', createLocation: '{{ old('location') }}', createCity: '{{ old('city') }}', createState: '{{ old('state_or_emirate') }}', createCountry: '{{ old('country') }}', createStatus: '{{ old('status', 'planning') }}', errors: {}, submitCreate(e) { let errs = {}; if(!this.createName || !String(this.createName).trim()) errs.name = ['The project name field is required.']; if(!this.createTotalFloors) errs.total_floors = ['The total floors field is required.']; if(!this.createLocation || !String(this.createLocation).trim()) errs.location = ['The address / location field is required.']; if(!this.createCity || !String(this.createCity).trim()) errs.city = ['The city field is required.']; if(!this.createState || !String(this.createState).trim()) errs.state_or_emirate = ['The state / emirate field is required.']; if(!this.createStatus) errs.status = ['The status field is required.']; if(Object.keys(errs).length > 0) { e.preventDefault(); this.errors = errs; return false; } } }" @submit="submitCreate($event)" novalidate>
                     @csrf
                     
                     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
@@ -408,75 +408,87 @@
                             <!-- Name & Total Floors -->
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div class="md:col-span-2 space-y-1.5">
-                                    <label for="create_name" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-450 uppercase tracking-widest">Project Name <span class="text-red-500 font-extrabold text-xs">*</span></label>
+                                    <label for="create_name" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-450 uppercase tracking-widest">Project Name <span class="text-rose-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_name" 
                                            type="text" 
                                            name="name" 
-                                           value="{{ old('name') }}" 
+                                           x-model="createName" 
                                            required 
                                            placeholder="e.g. Hindustan Emerald Heights"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                           :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                           class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                    <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_total_floors" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-450 uppercase tracking-widest">Total Floors <span class="text-red-500 font-extrabold text-xs">*</span></label>
+                                    <label for="create_total_floors" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-450 uppercase tracking-widest">Total Floors <span class="text-rose-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_total_floors" 
                                            type="number" 
                                            name="total_floors" 
-                                           value="{{ old('total_floors', 1) }}" 
+                                           x-model="createTotalFloors" 
                                            required 
                                            min="1"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                           :class="errors.total_floors ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                           class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                    <template x-if="errors.total_floors"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.total_floors) ? errors.total_floors[0] : errors.total_floors"></p></template>
                                 </div>
                             </div>
 
                             <!-- Location & City -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label for="create_location" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Address / Location <span class="text-red-500 font-extrabold text-xs">*</span></label>
+                                    <label for="create_location" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Address / Location <span class="text-rose-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_location" 
                                            type="text" 
                                            name="location" 
-                                           value="{{ old('location') }}" 
+                                           x-model="createLocation" 
                                            required 
                                            placeholder="Sector 62"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                           :class="errors.location ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                           class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                    <template x-if="errors.location"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.location) ? errors.location[0] : errors.location"></p></template>
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_city" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">City <span class="text-red-500 font-extrabold text-xs">*</span></label>
+                                    <label for="create_city" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">City <span class="text-rose-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_city" 
                                            type="text" 
                                            name="city" 
-                                           value="{{ old('city') }}" 
+                                           x-model="createCity" 
                                            required 
                                            placeholder="Noida / Dubai"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                           :class="errors.city ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                           class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                    <template x-if="errors.city"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.city) ? errors.city[0] : errors.city"></p></template>
                                 </div>
                             </div>
 
                             <!-- State & Country -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
-                                    <label for="create_state_or_emirate" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">State / Emirate <span class="text-red-500 font-extrabold text-xs">*</span></label>
+                                    <label for="create_state_or_emirate" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">State / Emirate <span class="text-rose-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_state_or_emirate" 
                                            type="text" 
                                            name="state_or_emirate" 
-                                           value="{{ old('state_or_emirate') }}" 
+                                           x-model="createState" 
                                            required 
                                            placeholder="Uttar Pradesh / Dubai"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                           :class="errors.state_or_emirate ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                           class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                    <template x-if="errors.state_or_emirate"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.state_or_emirate) ? errors.state_or_emirate[0] : errors.state_or_emirate"></p></template>
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_country" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Country <span class="text-red-500 font-extrabold text-xs">*</span></label>
+                                    <label for="create_country" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Country <span class="text-rose-500 font-extrabold text-xs">*</span></label>
                                     <input id="create_country" 
                                            type="text" 
                                            name="country" 
-                                           value="{{ old('country') }}" 
+                                           x-model="createCountry" 
                                            required 
                                            placeholder="India / UAE"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                           :class="errors.country ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                           class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                    <template x-if="errors.country"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.country) ? errors.country[0] : errors.country"></p></template>
                                 </div>
                             </div>
 

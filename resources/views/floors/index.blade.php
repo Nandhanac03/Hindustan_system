@@ -162,17 +162,20 @@
                 </div>
             </div>
 
-            <form action="{{ route('floors.store') }}" method="POST">
+            <form action="{{ route('floors.store') }}" method="POST" @submit="submitAddFloor($event)" novalidate>
                 @csrf
                 <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Project *</label>
-                            <select name="project_id" x-model="addForm.project_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Project <span class="text-rose-500">*</span></label>
+                            <select name="project_id" x-model="addForm.project_id" required
+                                    :class="errors.project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                    class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
                                 @foreach($projects as $p)
                                     <option value="{{ $p->id }}">{{ $p->name }}</option>
                                 @endforeach
                             </select>
+                            <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
                         </div>
 
                         <div>
@@ -187,14 +190,20 @@
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number *</label>
-                            <input type="number" name="floor_number" x-model="addForm.floor_number" @input="autoName()" required placeholder="e.g. 0 for Ground, -1 for Basement" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number <span class="text-rose-500">*</span></label>
+                            <input type="number" name="floor_number" x-model="addForm.floor_number" @input="autoName()" required placeholder="e.g. 0 for Ground, -1 for Basement"
+                                   :class="errors.floor_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.floor_number"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.floor_number) ? errors.floor_number[0] : errors.floor_number"></p></template>
                             <p class="text-[9px] text-slate-400 mt-1.5">Use negative numbers for basements (-1, -2) and 0 for Ground Floor.</p>
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label *</label>
-                            <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Ground Floor, Basement 1, Floor 1" class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label <span class="text-rose-500">*</span></label>
+                            <input type="text" name="name" x-model="addForm.name" required placeholder="e.g. Ground Floor, Basement 1, Floor 1"
+                                   :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                         </div>
                     </div>
                 </div>
@@ -222,19 +231,25 @@
                 </div>
             </div>
 
-            <form :action="editForm.action" method="POST">
+            <form :action="editForm.action" method="POST" @submit="submitEditFloor($event)" novalidate>
                 @csrf
                 @method('PUT')
                 <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number *</label>
-                            <input type="number" name="floor_number" x-model="editForm.floor_number" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Number <span class="text-rose-500">*</span></label>
+                            <input type="number" name="floor_number" x-model="editForm.floor_number" required
+                                   :class="errors.edit_floor_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.edit_floor_number"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_floor_number) ? errors.edit_floor_number[0] : errors.edit_floor_number"></p></template>
                         </div>
 
                         <div>
-                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label *</label>
-                            <input type="text" name="name" x-model="editForm.name" required class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Floor Name / Label <span class="text-rose-500">*</span></label>
+                            <input type="text" name="name" x-model="editForm.name" required
+                                   :class="errors.edit_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                            <template x-if="errors.edit_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_name) ? errors.edit_name[0] : errors.edit_name"></p></template>
                         </div>
                     </div>
                 </div>
@@ -303,6 +318,7 @@
 <script>
 function floorMasterApp() {
     return {
+        errors: {},
         showAddModal: false,
         showEditModal: false,
         showViewModal: false,
@@ -355,6 +371,39 @@ function floorMasterApp() {
             this.viewData.project_name = projectName;
             this.viewData.units_url = unitsUrl;
             this.showViewModal = true;
+        },
+        submitAddFloor(e) {
+            let clientErrors = {};
+            if (!this.addForm.project_id) {
+                clientErrors.project_id = ['The project field is required.'];
+            }
+            if (this.addForm.floor_number === '' || this.addForm.floor_number === null || this.addForm.floor_number === undefined) {
+                clientErrors.floor_number = ['The floor number field is required.'];
+            }
+            if (!this.addForm.name || !String(this.addForm.name).trim()) {
+                clientErrors.name = ['The floor name field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                e.preventDefault();
+                this.errors = clientErrors;
+                return false;
+            }
+            this.errors = {};
+        },
+        submitEditFloor(e) {
+            let clientErrors = {};
+            if (this.editForm.floor_number === '' || this.editForm.floor_number === null || this.editForm.floor_number === undefined) {
+                clientErrors.edit_floor_number = ['The floor number field is required.'];
+            }
+            if (!this.editForm.name || !String(this.editForm.name).trim()) {
+                clientErrors.edit_name = ['The floor name field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                e.preventDefault();
+                this.errors = clientErrors;
+                return false;
+            }
+            this.errors = {};
         }
     }
 }

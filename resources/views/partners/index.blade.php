@@ -32,12 +32,14 @@
                     </div>
                     
                     <div class="p-6">
-                      <form action="{{ route('partners.store') }}" method="POST" class="space-y-4">
+                      <form action="{{ route('partners.store') }}" method="POST" class="space-y-4" x-data="{ errors: {}, name: '', submitPartner(e) { if(!this.name || !String(this.name).trim()){ e.preventDefault(); this.errors = { name: ['The partner name field is required.'] }; return false; } } }" @submit="submitPartner($event)" novalidate>
                           @csrf
                           <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Partner / Firm Name *</label>
-                              <input type="text" name="name" required placeholder="e.g. John Doe & Sons"
-                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Partner / Firm Name <span class="text-rose-500">*</span></label>
+                              <input type="text" name="name" x-model="name" required placeholder="e.g. John Doe & Sons"
+                                     :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                     class="w-full px-3 py-2.5 border focus:bg-white focus:ring-2 focus:ring-indigo-500/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                              <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
                           </div>
 
                           <div class="grid grid-cols-2 gap-3">
