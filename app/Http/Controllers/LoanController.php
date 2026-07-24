@@ -524,12 +524,7 @@ class LoanController extends Controller
     public function reports(Request $request): View
     {
         $projects = Project::orderBy('name')->get();
-        
-        if (!$request->has('project_id')) {
-            $selectedProjectId = $projects->first()->id ?? null;
-        } else {
-            $selectedProjectId = $request->project_id;
-        }
+        $selectedProjectId = $request->project_id;
 
         $loansQuery = Loan::with('project');
         if ($selectedProjectId) {

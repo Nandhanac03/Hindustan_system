@@ -745,7 +745,7 @@
                 
                 // Search & filters for step 1
                 searchQuery: '',
-                filterProject: '{{ $projects->first()?->id ?? "" }}',
+                filterProject: '{{ request('project_id') ?: ($projects->first()?->id ?? "") }}',
                 filterCustomer: '',
 
                 // Step 2 allocations builder rows array

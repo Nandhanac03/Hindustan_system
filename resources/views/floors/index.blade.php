@@ -1,6 +1,6 @@
 <x-erp-layout title="Floor Master" headerTitle="Floor Master Directory">
 
-<div class="max-w-[1400px] mx-auto space-y-6" x-data="floorMasterApp()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="floorMasterApp()">
 
     {{-- Alert Messages --}}
     @if(session('success'))

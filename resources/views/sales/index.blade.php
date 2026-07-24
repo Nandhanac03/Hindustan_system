@@ -1392,9 +1392,7 @@
 function salesApp() {
     return {
         sales: [],
-        currentPage: 1,
-        perPage: 10,
-        filters: { search: '', project_id: '{{ request('project_id') }}', status: '', date_from: '', date_to: '' },
+        filters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', status: '', date_from: '', date_to: '' },
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
         availableUnits: { add: [], edit: [] },
         selectedUnit: { add: null, edit: null },
@@ -1405,7 +1403,7 @@ function salesApp() {
         quickCustomerErrors: {},
         forms: {
             add: {
-                project_id: '{{ request('project_id') }}', customer_id: '', broker_id: '',
+                project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', customer_id: '', broker_id: '',
                 agreement_date: new Date().toISOString().split('T')[0], registration_date: '',
                 gst_amount: 0, base_amount: '', total_amount: '',
                 broker_involved: false, brokerage_amount: 0, brokerage_status: 'pending',
@@ -1431,17 +1429,17 @@ function salesApp() {
         errors: {},
         toast: { open: false, message: '', type: 'success' },
         // Return & Exchange State
-        returnFilters: { search: '', project_id: '{{ request('project_id') }}', type: '', status: '{{ request('tab') === 'cancellations' ? 'cancelled' : (request('tab') === 'returns' ? 'returned' : '') }}' },
+        returnFilters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', type: '', status: '{{ request('tab') === 'cancellations' ? 'cancelled' : (request('tab') === 'returns' ? 'returned' : '') }}' },
         returnCurrentPage: 1,
         returnPerPage: 10,
-        exchangeFilters: { search: '', project_id: '', type: '', status: '' },
+        exchangeFilters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', type: '', status: '' },
         exchangeCurrentPage: 1,
         exchangePerPage: 50,
         selectedReturnSale: null,
         targetReturnStatus: '',
         selectedExchangeSale: null,
         returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: 100000, reason: '', revert_unsold: true },
-        exchangeForm: { new_project_id: '', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '' },
+        exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '' },
         exchangeAvailableUnits: [],
         exchangeUnitTypes: [],
         exchangeSelectedUnit: null,

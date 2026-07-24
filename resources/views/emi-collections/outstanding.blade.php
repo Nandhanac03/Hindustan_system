@@ -99,13 +99,13 @@
                 <form method="GET" action="{{ route('emi-collections.outstanding') }}" class="flex gap-2">
                     <select name="project_id" onchange="this.form.submit()"
                             class="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none cursor-pointer">
-                        <option value="">All Projects</option>
                         @foreach($projects as $proj)
-                            <option value="{{ $proj->id }}" {{ request('project_id') == $proj->id ? 'selected' : '' }}>{{ $proj->name }}</option>
+                            <option value="{{ $proj->id }}" {{ (string)$selectedProjectId === (string)$proj->id ? 'selected' : '' }}>{{ $proj->name }}</option>
                         @endforeach
+                        <option value="" {{ $selectedProjectId === '' ? 'selected' : '' }}>All Projects</option>
                     </select>
                     <button type="submit" class="px-3 py-2 bg-primary text-white text-[10px] font-bold rounded-xl uppercase tracking-wide">Filter</button>
-                    <a href="{{ route('emi-collections.outstanding') }}" class="px-3 py-2 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-xl uppercase tracking-wide">Clear</a>
+                    <a href="{{ route('emi-collections.outstanding', ['project_id' => '']) }}" class="px-3 py-2 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-xl uppercase tracking-wide">Clear</a>
                 </form>
             </div>
         </div>

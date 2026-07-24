@@ -446,10 +446,16 @@ class EmiCollectionController extends Controller
 
     public function outstanding(Request $request): View
     {
+        $projects = Project::orderBy('name')->get();
+
+        $selectedProjectId = $request->filled('project_id')
+            ? $request->input('project_id')
+            : (string)($projects->first()?->id ?? '');
+
         $sales = Sale::with(['customer', 'project', 'unit', 'receipts'])
             ->where('status', 'active')
             ->where('remaining_balance', '>', 0)
-            ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+            ->when(!empty($selectedProjectId), fn($q) => $q->where('project_id', $selectedProjectId))
             ->get();
 
         // Compute aging brackets based on sale_date
@@ -482,9 +488,7 @@ class EmiCollectionController extends Controller
             '61+'     => collect($brackets['61+'])->sum('outstanding'),
         ];
 
-        $projects = Project::where('is_active', true)->orderBy('name')->get();
-
-        return view('emi-collections.outstanding', compact('brackets', 'totals', 'projects'));
+        return view('emi-collections.outstanding', compact('brackets', 'totals', 'projects', 'selectedProjectId'));
     }
 
     // ──────────────────────────────────────────────────────────────────
