@@ -60,13 +60,14 @@
                 <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Collections must be linked to an active Sale. Select the Sale first.</p>
             </div>
 
-            <form @submit.prevent="submitReceipt()" class="space-y-4">
+            <form @submit.prevent="submitReceipt()" class="space-y-4" novalidate>
 
                 {{-- Select Active Sale --}}
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Active Sale <span class="text-rose-500">*</span></label>
-                    <select x-model="form.sale_id" required @change="updateSaleDetail()"
-                            class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap">
+                    <select x-model="form.sale_id" @change="updateSaleDetail(); if(errors.sale_id) delete errors.sale_id;"
+                            class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap"
+                            :class="errors.sale_id ? 'border-rose-500 bg-rose-50/20' : ''">
                         <option value="">-- Select Sale --</option>
                         @foreach($sales as $sale)
                         <option value="{{ $sale->id }}"
@@ -80,6 +81,9 @@
                         </option>
                         @endforeach
                     </select>
+                    <template x-if="errors.sale_id">
+                        <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.sale_id) ? errors.sale_id[0] : errors.sale_id"></span>
+                    </template>
                 </div>
 
                 {{-- Sale Info Card --}}
@@ -102,13 +106,23 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) <span class="text-rose-500">*</span></label>
-                        <input type="number" x-model.number="form.amount" required min="0.01" step="0.01"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold focus:outline-none transition-all">
+                        <input type="number" x-model.number="form.amount" min="0.01" step="0.01"
+                               @input="if(errors.amount) delete errors.amount;"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold focus:outline-none transition-all"
+                               :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                        <template x-if="errors.amount">
+                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
+                        </template>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date</label>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
                         <input type="date" x-model="form.receipt_date"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all">
+                               @input="if(errors.receipt_date) delete errors.receipt_date;"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all"
+                               :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
+                        <template x-if="errors.receipt_date">
+                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
+                        </template>
                     </div>
                 </div>
 
@@ -117,13 +131,16 @@
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
                     <div class="grid grid-cols-2 gap-1.5">
                         @foreach(['Cash','Cheque','Bank Transfer','Online'] as $mode)
-                        <button type="button" @click="form.payment_mode = '{{ $mode }}'"
+                        <button type="button" @click="form.payment_mode = '{{ $mode }}'; if(errors.payment_mode) delete errors.payment_mode;"
                                 :class="form.payment_mode === '{{ $mode }}' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'"
                                 class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">
                             {{ $mode }}
                         </button>
                         @endforeach
                     </div>
+                    <template x-if="errors.payment_mode">
+                        <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
+                    </template>
                 </div>
 
                 {{-- Reference & Bank --}}
@@ -242,6 +259,7 @@ function receiptsApp() {
         selectedSale: null,
         submitting: false,
         error: '',
+        errors: {},
         success: '',
         init() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -277,10 +295,30 @@ function receiptsApp() {
         async submitReceipt() {
             this.error = '';
             this.success = '';
-            if (!this.form.sale_id || !this.form.amount || !this.form.payment_mode) {
-                this.error = 'Please select a Sale, enter amount, and choose payment mode.';
+            this.errors = {};
+            let hasError = false;
+
+            if (!this.form.sale_id) {
+                this.errors.sale_id = ['please select active sale'];
+                hasError = true;
+            }
+            if (this.form.amount === '' || this.form.amount === null || this.form.amount === undefined || parseFloat(this.form.amount) <= 0 || isNaN(parseFloat(this.form.amount))) {
+                this.errors.amount = ['please enter amount'];
+                hasError = true;
+            }
+            if (!this.form.receipt_date) {
+                this.errors.receipt_date = ['please select receipt date'];
+                hasError = true;
+            }
+            if (!this.form.payment_mode) {
+                this.errors.payment_mode = ['please select payment mode'];
+                hasError = true;
+            }
+
+            if (hasError) {
                 return;
             }
+
             this.submitting = true;
             try {
                 const res = await fetch('{{ route('emi-collections.store') }}', {
@@ -295,6 +333,8 @@ function receiptsApp() {
                     this.form.amount  = '';
                     this.selectedSale = null;
                     setTimeout(() => window.location.reload(), 1400);
+                } else if (json.errors) {
+                    this.errors = json.errors;
                 } else {
                     this.error = json.error || json.message || 'An error occurred.';
                 }
