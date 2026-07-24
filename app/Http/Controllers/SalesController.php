@@ -862,8 +862,24 @@ class SalesController extends Controller
         $unitTypeName = 'FLAT';
         $doorNo = '00';
         if ($unit) {
-            if ($unit->unitType && !empty($unit->unitType->name)) {
-                $unitTypeName = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $unit->unitType->name));
+            if ($unit->unitType) {
+                $rawName  = strtolower($unit->unitType->name ?? '');
+                $category = strtolower($unit->unitType->category ?? '');
+
+                if (str_contains($rawName, 'park') || $category === 'parking') {
+                    $unitTypeName = 'PARK';
+                } elseif (str_contains($rawName, 'apart')) {
+                    $unitTypeName = 'APART';
+                } elseif (str_contains($rawName, 'flat') || str_contains($rawName, 'bhk')) {
+                    $unitTypeName = 'FLAT';
+                } elseif (str_contains($rawName, 'shop')) {
+                    $unitTypeName = 'SHOP';
+                } elseif (str_contains($rawName, 'office')) {
+                    $unitTypeName = 'OFFIC';
+                } else {
+                    $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $unit->unitType->name));
+                    $unitTypeName = (strlen($clean) > 5) ? substr($clean, 0, 5) : $clean;
+                }
             }
             if (!empty($unit->door_no)) {
                 $doorNo = strtoupper(preg_replace('/[^A-Za-z0-9\-]/', '', $unit->door_no));

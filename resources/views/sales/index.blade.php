@@ -260,16 +260,16 @@
                                                 <button type="button" @click="open = !open" :disabled="!forms.add.project_id"
                                                         :class="errors['units.' + index + '.unit_id'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
                                                         class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8 shadow-sm">
-                                                    <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.add.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
+                                                    <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).floor_name + ' — Door ' + availableUnits.add.find(u => u.id == row.unit_id).door_no + (availableUnits.add.find(u => u.id == row.unit_id).unit_type_name ? ' (' + availableUnits.add.find(u => u.id == row.unit_id).unit_type_name + ')' : '')) : '— Select Unit —') : '— Select Unit —'"></span>
                                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
                                                 <!-- Dropdown Content -->
                                                 <div x-show="open" x-transition
-                                                     class="absolute z-50 w-64 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
+                                                     class="absolute z-50 w-72 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
                                                     <!-- Search Input -->
                                                     <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5">
                                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-                                                        <input type="text" x-model="search" placeholder="Search floor or unit..."
+                                                        <input type="text" x-model="search" placeholder="Search floor, door no, or type..."
                                                                class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0" x-ref="searchInput">
                                                     </div>
                                                     <!-- Clear option -->
@@ -288,10 +288,13 @@
                                                                     <button type="button"
                                                                             @click="row.unit_id = unit.id; onRowUnitSelect(index); open = false; search = ''"
                                                                             :disabled="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)"
-                                                                            class="w-full px-4 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
+                                                                            class="w-full px-3.5 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
                                                                             :class="row.unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
-                                                                        <span class="font-semibold" x-text="unit.door_no"></span>
-                                                                        <span class="text-[9px] text-slate-400 font-mono" x-text="unit.unit_type_name"></span>
+                                                                        <div class="flex items-center gap-1.5">
+                                                                            <span class="font-semibold" x-text="unit.door_no"></span>
+                                                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 font-bold uppercase tracking-wider" x-text="unit.unit_type_name"></span>
+                                                                        </div>
+                                                                        <span class="text-[9px] text-slate-400 font-mono" x-text="unit.floor_name"></span>
                                                                     </button>
                                                                 </template>
                                                             </div>
