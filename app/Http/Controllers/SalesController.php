@@ -222,7 +222,7 @@ class SalesController extends Controller
             // Populating first unit's info in main table to prevent backward compatibility issues
             $firstLine = $processedUnits[0];
             $sale = Sale::create([
-                'sale_number'            => 'SL-' . strtoupper(uniqid()),
+                'sale_number'            => $this->generateSaleNumber($validated['project_id'], $firstLine['unit_id'], $validated['customer_id']),
                 'project_id'             => $validated['project_id'],
                 'unit_id'                => $firstLine['unit_id'], // fallback
                 'customer_id'            => $validated['customer_id'],
@@ -659,7 +659,7 @@ class SalesController extends Controller
             $baseAmount = $gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount;
             $totalAmount = $gstType === 'exclusive' ? round($newAmount + $gstAmount, 2) : $newAmount;
             $newSale = Sale::create([
-                'sale_number'       => 'SL-' . strtoupper(uniqid()),
+                'sale_number'       => $this->generateSaleNumber($newUnit->project_id, $newUnit->id, $sale->customer_id),
                 'project_id'        => $newUnit->project_id,
                 'unit_id'           => $newUnit->id,
                 'customer_id'       => $sale->customer_id,
@@ -839,5 +839,57 @@ class SalesController extends Controller
                 }
             }
         }
+    }
+
+    protected function generateSaleNumber($projectId, $unitId, $customerId): string
+    {
+        $project = Project::find($projectId);
+        $projectCode = 'PRJ';
+        if ($project) {
+            if (!empty($project->code)) {
+                $projectCode = strtoupper(preg_replace('/[^A-Za-z0-9\-]/', '', $project->code));
+            } else {
+                $words = explode(' ', trim($project->name));
+                if (count($words) >= 2) {
+                    $projectCode = strtoupper(substr($words[0], 0, 3) . '-' . sprintf('%02d', $project->id));
+                } else {
+                    $projectCode = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $project->name), 0, 4));
+                }
+            }
+        }
+
+        $unit = Unit::with('unitType')->find($unitId);
+        $unitTypeName = 'FLAT';
+        $doorNo = '00';
+        if ($unit) {
+            if ($unit->unitType && !empty($unit->unitType->name)) {
+                $unitTypeName = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $unit->unitType->name));
+            }
+            if (!empty($unit->door_no)) {
+                $doorNo = strtoupper(preg_replace('/[^A-Za-z0-9\-]/', '', $unit->door_no));
+            }
+        }
+
+        $customer = Customer::find($customerId);
+        $custSnippet = 'CUST';
+        if ($customer && !empty($customer->name)) {
+            $cleanName = strtoupper(preg_replace('/[^A-Za-z]/', '', $customer->name));
+            if (strlen($cleanName) >= 4) {
+                $custSnippet = substr($cleanName, 0, 4);
+            } elseif (strlen($cleanName) > 0) {
+                $custSnippet = $cleanName;
+            }
+        }
+
+        $baseSaleNo = "{$projectCode}-{$unitTypeName}-{$doorNo}-{$custSnippet}";
+
+        $saleNo = $baseSaleNo;
+        $counter = 1;
+        while (Sale::where('sale_number', $saleNo)->exists()) {
+            $saleNo = "{$baseSaleNo}-{$counter}";
+            $counter++;
+        }
+
+        return $saleNo;
     }
 }

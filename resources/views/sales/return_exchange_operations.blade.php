@@ -305,7 +305,7 @@
                             </div>
                             <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="!isEditReturn ? 'View Return Details' : (targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Return Details')"></h2>
                             <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="selectedReturnSale"
-                               x-text="selectedReturnSale ? 'Sale No: ' + selectedReturnSale.sale_number + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') : ''"></p>
+                               x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • Sale No: ' + selectedReturnSale.sale_number : ''"></p>
                         </div>
                         <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                     </div>
@@ -319,7 +319,7 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Selected Booking' : 'Selected Sale'"></span>
-                            <strong class="text-slate-800 text-xs block mt-1" x-text="selectedReturnSale ? (selectedReturnSale.status === 'cancelled' ? 'Booking No: ' : 'Sale No: ') + selectedReturnSale.sale_number + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') : ''"></strong>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • ' + (selectedReturnSale.status === 'cancelled' ? 'Booking No: ' : 'Sale No: ') + selectedReturnSale.sale_number : ''"></strong>
                         </div>
                     </div>
                     
@@ -446,7 +446,7 @@
                             <option value="" x-text="isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —'"></option>
                             <template x-for="sale in sales.filter(s => s.status === 'active')" :key="sale.id">
                                 <option :value="sale.id" 
-                                        x-text="sale.sale_number + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + (sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'N/A') + ')'"></option>
+                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.unit ? sale.unit.door_no : (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
                             </template>
                         </select>
                     </div>
@@ -472,7 +472,7 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider" x-text="isCancellationTab ? 'Selected Booking' : 'Selected Sale' "></span>
-                            <strong class="text-slate-800 text-xs block mt-1" x-text="newReturnSale ? (isCancellationTab ? 'Booking No: ' : 'Sale No: ') + newReturnSale.sale_number + ' • Customer: ' + (newReturnSale.customer ? newReturnSale.customer.name : 'N/A') : ''"></strong>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="newReturnSale ? (newReturnSale.project ? (newReturnSale.project.code || newReturnSale.project.name) : 'N/A') + ' - ' + (newReturnSale.unit ? newReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (newReturnSale.customer ? newReturnSale.customer.name : 'N/A') + ' • ' + (isCancellationTab ? 'Booking No: ' : 'Sale No: ') + newReturnSale.sale_number : ''"></strong>
                         </div>
                     </div>
                     
@@ -586,7 +586,7 @@
                         </div>
                         <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'Execute Exchange Plan'"></h2>
                         <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="newExchangeStep === 2 && selectedExchangeSale"
-                           x-text="selectedExchangeSale ? 'Old Unit: ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
+                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
                     <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
@@ -602,7 +602,7 @@
                             <option value="">— Select an Active/Cancelled Booking to Exchange —</option>
                             <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && (!s.sale_units || s.sale_units.length <= 1))" :key="sale.id">
                                 <option :value="sale.id" 
-                                        x-text="sale.sale_number + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + (sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'N/A') + ')'"></option>
+                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.unit ? sale.unit.door_no : (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
                             </template>
                         </select>
                     </div>
@@ -1224,7 +1224,7 @@
                         <span class="text-[9px] font-bold text-blue-800 uppercase tracking-widest">Active Plan</span>
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Execute Exchange Plan</h4>
                         <p class="text-[10px] text-slate-500 font-semibold"
-                           x-text="'Old Unit: ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A')"></p>
+                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
                     <button type="button" @click="selectedExchangeSale = null" class="text-blue-700 hover:text-blue-900 font-bold">✕</button>
                 </div>
@@ -1394,7 +1394,7 @@
                             </div>
                             <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Exchange Details</h2>
                             <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="viewExchangeSale"
-                               x-text="viewExchangeSale ? 'Sale No: ' + viewExchangeSale.sale_number + ' • Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') : ''"></p>
+                               x-text="viewExchangeSale ? (viewExchangeSale.project ? (viewExchangeSale.project.code || viewExchangeSale.project.name) : 'N/A') + ' - Door ' + (viewExchangeSale.unit ? viewExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') + ' • Sale No: ' + viewExchangeSale.sale_number : ''"></p>
                         </div>
                         <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                     </div>
