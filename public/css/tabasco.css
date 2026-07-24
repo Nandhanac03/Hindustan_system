@@ -309,7 +309,7 @@ body {
 
 /* login page */
 .absolute.inset-0.overflow-hidden.pointer-events-none {
-    background: black;
+    background: transparent;
 }
 
 .w-full.bg-slate-900\/80.border.border-slate-800.p-8.rounded-2xl.shadow-2xl.backdrop-blur-2xl {

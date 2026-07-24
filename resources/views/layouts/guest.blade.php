@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-950">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-white">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -67,14 +67,8 @@
             }
         </style>
     </head>
-    <body class="font-sans text-slate-300 antialiased min-h-screen flex items-center justify-center p-4 bg-slate-950 relative overflow-hidden">
+    <body class="font-sans text-slate-300 antialiased min-h-screen flex items-center justify-center p-4 bg-white relative overflow-hidden">
 
-        <!-- Background decoration -->
-        <div class="absolute inset-0 overflow-hidden pointer-events-none">
-            <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl"></div>
-            <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-primary-900/20 rounded-full blur-3xl"></div>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary-950/30 rounded-full blur-3xl"></div>
-        </div>
 
         <!-- Main Content Container -->
         <div class="relative z-10 w-full max-w-5xl mx-auto">
@@ -100,7 +94,7 @@
             <div class="flex justify-center fade-in-delay">
 
                 <!-- Login / Auth Card -->
-                <div class="w-full max-w-md bg-slate-900/80 border border-slate-800 p-8 rounded-2xl shadow-2xl backdrop-blur-2xl">
+                <div class="w-full max-w-md bg-black border border-slate-800 p-8 rounded-2xl backdrop-blur-2xl">
                     {{ $slot }}
                 </div>
 
