@@ -1392,6 +1392,8 @@
 function salesApp() {
     return {
         sales: [],
+        currentPage: 1,
+        perPage: 10,
         filters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', status: '', date_from: '', date_to: '' },
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
         availableUnits: { add: [], edit: [] },
@@ -1519,11 +1521,14 @@ function salesApp() {
             .catch(err => { console.error(err); this.showToast('Failed to fetch sales.', 'error'); });
         },
         paginatedSales() {
-            const start = (this.currentPage - 1) * this.perPage;
-            return this.sales.slice(start, start + this.perPage);
+            const perPage = this.perPage || 10;
+            const currentPage = this.currentPage || 1;
+            const start = (currentPage - 1) * perPage;
+            return (this.sales || []).slice(start, start + perPage);
         },
         getTotalPages() {
-            return Math.ceil(this.sales.length / this.perPage) || 1;
+            const perPage = this.perPage || 10;
+            return Math.ceil((this.sales || []).length / perPage) || 1;
         },
         getPageNumbers() {
             const totalPages = this.getTotalPages();
