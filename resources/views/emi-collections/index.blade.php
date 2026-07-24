@@ -285,7 +285,7 @@
                             </button>
                             <a :href="'/emi-collections/ledger/' + selectedSale.id"
                                class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
-                                Ledger &rarr;
+                                EMI &rarr;
                             </a>
                         </div>
                     </div>
@@ -320,7 +320,7 @@
                                     </button>
                                     <a href="{{ route('emi-collections.ledger', $booking->id) }}"
                                        class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
-                                        Ledger &rarr;
+                                        EMI &rarr;
                                     </a>
                                 </div>
                             </div>
