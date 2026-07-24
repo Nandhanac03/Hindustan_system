@@ -113,6 +113,9 @@
                         <template x-if="errors.amount">
                             <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                         </template>
+                        <template x-if="form.amount && amountInWords(form.amount)">
+                            <span class="text-[10px] text-[#a38c29] font-extrabold block mt-1 uppercase tracking-wide" x-text="amountInWords(form.amount)"></span>
+                        </template>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
@@ -343,6 +346,34 @@ function receiptsApp() {
             } finally {
                 this.submitting = false;
             }
+        },
+
+        amountInWords(amount) {
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return '';
+            const num = Math.floor(parseFloat(amount));
+            const paise = Math.round((parseFloat(amount) - num) * 100);
+
+            const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+                           'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+            function convert(n) {
+                if (n < 20) return units[n];
+                if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + units[n % 10] : '');
+                if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
+                if (n < 100000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
+                if (n < 10000000) return convert(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + convert(n % 100000) : '');
+                return convert(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + convert(n % 10000000) : '');
+            }
+
+            let words = convert(num);
+            if (!words) return '';
+            let result = 'IN WORDS: ' + words.toUpperCase() + ' RUPEES';
+            if (paise > 0) {
+                result += ' AND ' + convert(paise).toUpperCase() + ' PAISE';
+            }
+            result += ' ONLY';
+            return result;
         }
     }
 }
