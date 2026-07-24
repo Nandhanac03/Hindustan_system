@@ -256,7 +256,7 @@
                   <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                       <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                           <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) *</label>
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount to Collect (₹) <span class="text-rose-500">*</span></label>
                               <input type="number" step="0.01" x-model.number="form.amount"
                                      @input="if(errors.amount) delete errors.amount;"
                                      class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-sm"
@@ -267,7 +267,7 @@
                           </div>
 
                           <div class="space-y-1.5">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date *</label>
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
                               <input type="date" x-model="form.receipt_date"
                                      @input="if(errors.receipt_date) delete errors.receipt_date;"
                                      class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
@@ -278,7 +278,7 @@
                           </div>
 
                           <div class="space-y-2">
-                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode *</label>
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
                               <div class="grid grid-cols-2 gap-2">
                                   <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
                                       <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"

@@ -64,7 +64,7 @@
 
                 {{-- Select Active Sale --}}
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Active Sale *</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Active Sale <span class="text-rose-500">*</span></label>
                     <select x-model="form.sale_id" required @change="updateSaleDetail()"
                             class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap">
                         <option value="">-- Select Sale --</option>
@@ -101,7 +101,7 @@
                 {{-- Amount & Date --}}
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) *</label>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) <span class="text-rose-500">*</span></label>
                         <input type="number" x-model.number="form.amount" required min="0.01" step="0.01"
                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold focus:outline-none transition-all">
                     </div>
@@ -114,7 +114,7 @@
 
                 {{-- Intake Mode Field (4 modes) --}}
                 <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode *</label>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
                     <div class="grid grid-cols-2 gap-1.5">
                         @foreach(['Cash','Cheque','Bank Transfer','Online'] as $mode)
                         <button type="button" @click="form.payment_mode = '{{ $mode }}'"

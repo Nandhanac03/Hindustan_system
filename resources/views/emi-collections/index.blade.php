@@ -370,7 +370,7 @@
                     {{-- Active Sale Card --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Active Sale *</label>
+                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Active Sale <span class="text-rose-500">*</span></label>
                             <select x-model="form.booking_id" @change="onModalSaleSelect(); if(errors.booking_id) delete errors.booking_id;"
                                     class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold"
                                     :class="errors.booking_id ? 'border-rose-500 bg-rose-50/20' : ''">
@@ -404,7 +404,7 @@
                     {{-- Action Type Card --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Action Type *</label>
+                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Action Type <span class="text-rose-500">*</span></label>
                             <div class="grid grid-cols-2 gap-2">
                                 <button type="button" @click="form.collection_type = 'regular'" 
                                         :class="form.collection_type === 'regular' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-250 hover:border-[#a38c29]/40'" 
@@ -417,7 +417,7 @@
 
                         {{-- Prepayment Options --}}
                         <div class="space-y-1.5" x-show="form.collection_type === 'prepayment'" x-cloak x-transition>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Prepayment Option *</label>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Prepayment Option <span class="text-rose-500">*</span></label>
                             <select x-model="form.prepayment_option" @change="if(errors.prepayment_option) delete errors.prepayment_option;"
                                     class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all font-semibold"
                                     :class="errors.prepayment_option ? 'border-rose-500 bg-rose-50/20' : ''">
@@ -434,7 +434,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4" x-show="form.collection_type !== 'reschedule'">
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Amount (₹) *</label>
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Amount (₹) <span class="text-rose-500">*</span></label>
                                 <input type="number" step="0.01" x-model.number="form.amount" min="0.01"
                                        @input="if(errors.amount) delete errors.amount;"
                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-bold focus:outline-none transition-all shadow-sm"
@@ -444,7 +444,7 @@
                                 </template>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Receipt Date *</label>
+                                <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Receipt Date <span class="text-rose-500">*</span></label>
                                 <input type="date" x-model="form.receipt_date"
                                        @input="if(errors.receipt_date) delete errors.receipt_date;"
                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-semibold"
@@ -456,7 +456,7 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Payment Mode *</label>
+                            <label class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Payment Mode <span class="text-rose-500">*</span></label>
                             <div class="grid grid-cols-2 gap-2">
                                 <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
                                     <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"
