@@ -271,26 +271,29 @@
                         </div>
                     </div>
 
-                    <!-- Table Footer with Pagination -->
-                    <div class="px-6 py-4 bg-gradient-to-r from-slate-50 to-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <!-- Left Info -->
-                        <div class="flex flex-wrap items-center gap-3 text-slate-500">
-                            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider"
-                                  x-text="activeTab === 'unallocated' 
-                                    ? (filteredReceipts().filter(r => !r.is_allocated).length === 0 ? 'Showing 0 - 0 of 0' : 'Showing ' + (((unallocatedPage - 1) * perPage) + 1) + ' - ' + Math.min(unallocatedPage * perPage, filteredReceipts().filter(r => !r.is_allocated).length) + ' of ' + filteredReceipts().filter(r => !r.is_allocated).length)
-                                    : (filteredReceipts().filter(r => r.is_allocated).length === 0 ? 'Showing 0 - 0 of 0' : 'Showing ' + (((allocatedPage - 1) * perPage) + 1) + ' - ' + Math.min(allocatedPage * perPage, filteredReceipts().filter(r => r.is_allocated).length) + ' of ' + filteredReceipts().filter(r => r.is_allocated).length)"></span>
+                    <!-- Table Footer with Pagination matching Units Directory -->
+                    <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between" x-show="filteredReceipts().filter(r => activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated).length > 0">
+                        <div class="flex items-center gap-3 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                            <span>
+                                SHOWING 
+                                <span class="text-slate-900" x-text="((activeTab === 'unallocated' ? unallocatedPage - 1 : allocatedPage - 1) * perPage) + 1"></span> 
+                                TO 
+                                <span class="text-slate-900" x-text="Math.min((activeTab === 'unallocated' ? unallocatedPage : allocatedPage) * perPage, filteredReceipts().filter(r => activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated).length)"></span> 
+                                OF 
+                                <span class="text-slate-900" x-text="filteredReceipts().filter(r => activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated).length"></span> 
+                                RECEIPTS
+                            </span>
                             <span class="text-slate-300">|</span>
-                            <span class="text-[10px] font-extrabold text-[#a38c29] uppercase tracking-wider"
-                                  x-text="'Total: ₹' + formatCurrency(filteredReceipts().filter(r => activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated).reduce((sum, r) => sum + parseFloat(r.amount || 0), 0))"></span>
+                            <span class="text-[#a38c29] font-extrabold"
+                                  x-text="'TOTAL: ₹' + formatCurrency(filteredReceipts().filter(r => activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated).reduce((sum, r) => sum + parseFloat(r.amount || 0), 0))"></span>
                         </div>
 
-                        <!-- Pagination Controls -->
-                        <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3">
                             <!-- Page Size Selector -->
                             <div class="flex items-center gap-1.5 text-xs text-slate-500">
                                 <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Show:</span>
                                 <select x-model.number="perPage" @change="unallocatedPage = 1; allocatedPage = 1;"
-                                        class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#a38c29]/30 cursor-pointer transition">
+                                        class="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#a38c29]/30 cursor-pointer transition shadow-2xs">
                                     <option value="5">5</option>
                                     <option value="10">10</option>
                                     <option value="25">25</option>
@@ -298,31 +301,31 @@
                                 </select>
                             </div>
 
-                            <!-- Page Navigation Buttons -->
-                            <div class="flex items-center gap-1">
-                                <!-- Prev Button -->
+                            <div class="flex items-center gap-1.5">
                                 <button type="button" 
-                                        @click="activeTab === 'unallocated' ? (unallocatedPage > 1 && unallocatedPage--) : (allocatedPage > 1 && allocatedPage--)"
-                                        :disabled="activeTab === 'unallocated' ? unallocatedPage === 1 : allocatedPage === 1"
-                                        class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition text-slate-650 font-bold disabled:opacity-40 disabled:cursor-not-allowed">
-                                    ‹
+                                        @click="activeTab === 'unallocated' ? (unallocatedPage > 1 && unallocatedPage--) : (allocatedPage > 1 && allocatedPage--)" 
+                                        :disabled="activeTab === 'unallocated' ? unallocatedPage <= 1 : allocatedPage <= 1"
+                                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                                    Prev
                                 </button>
-
-                                <!-- Page Info -->
-                                <span class="px-3 text-xs font-bold text-slate-700" 
-                                      x-text="activeTab === 'unallocated' 
-                                        ? unallocatedPage + ' / ' + Math.max(1, Math.ceil(filteredReceipts().filter(r => !r.is_allocated).length / perPage))
-                                        : allocatedPage + ' / ' + Math.max(1, Math.ceil(filteredReceipts().filter(r => r.is_allocated).length / perPage))">
-                                </span>
-
-                                <!-- Next Button -->
+                                
+                                {{-- Page Numbers --}}
+                                <template x-for="p in getPageNumbers()" :key="p">
+                                    <span class="inline-flex items-center gap-1">
+                                        <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                                        <button type="button" x-show="p !== '...'"
+                                                @click="setPage(p)"
+                                                x-text="p"
+                                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                                                :class="(activeTab === 'unallocated' ? unallocatedPage : allocatedPage) === p ? 'bg-[#a38c29] text-white border border-[#a38c29]' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                                    </span>
+                                </template>
+                                
                                 <button type="button" 
-                                        @click="activeTab === 'unallocated' ? (unallocatedPage < Math.ceil(filteredReceipts().filter(r => !r.is_allocated).length / perPage) && unallocatedPage++) : (allocatedPage < Math.ceil(filteredReceipts().filter(r => r.is_allocated).length / perPage) && allocatedPage++)"
-                                        :disabled="activeTab === 'unallocated' 
-                                            ? unallocatedPage >= Math.max(1, Math.ceil(filteredReceipts().filter(r => !r.is_allocated).length / perPage)) 
-                                            : allocatedPage >= Math.max(1, Math.ceil(filteredReceipts().filter(r => r.is_allocated).length / perPage))"
-                                        class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition text-slate-650 font-bold disabled:opacity-40 disabled:cursor-not-allowed">
-                                    ›
+                                        @click="activeTab === 'unallocated' ? (unallocatedPage < getTotalPages() && unallocatedPage++) : (allocatedPage < getTotalPages() && allocatedPage++)" 
+                                        :disabled="activeTab === 'unallocated' ? unallocatedPage >= getTotalPages() : allocatedPage >= getTotalPages()"
+                                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                                    Next
                                 </button>
                             </div>
                         </div>
@@ -1098,6 +1101,49 @@
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
+                },
+                getPageNumbers() {
+                    let list = this.filteredReceipts().filter(r => this.activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated);
+                    let totalItems = list.length;
+                    let last = Math.max(1, Math.ceil(totalItems / (this.perPage || 10)));
+                    let current = this.activeTab === 'unallocated' ? this.unallocatedPage : this.allocatedPage;
+                    let delta = 2;
+                    let left = current - delta;
+                    let right = current + delta + 1;
+                    let range = [];
+                    let rangeWithDots = [];
+                    let l;
+
+                    for (let i = 1; i <= last; i++) {
+                        if (i === 1 || i === last || (i >= left && i < right)) {
+                            range.push(i);
+                        }
+                    }
+
+                    for (let i of range) {
+                        if (l) {
+                            if (i - l === 2) {
+                                rangeWithDots.push(l + 1);
+                            } else if (i - l !== 1) {
+                                rangeWithDots.push('...');
+                            }
+                        }
+                        rangeWithDots.push(i);
+                        l = i;
+                    }
+
+                    return rangeWithDots;
+                },
+                getTotalPages() {
+                    let list = this.filteredReceipts().filter(r => this.activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated);
+                    return Math.max(1, Math.ceil(list.length / (this.perPage || 10)));
+                },
+                setPage(p) {
+                    if (this.activeTab === 'unallocated') {
+                        this.unallocatedPage = p;
+                    } else {
+                        this.allocatedPage = p;
+                    }
                 }
             }
         }
