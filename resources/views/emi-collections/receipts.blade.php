@@ -60,13 +60,14 @@
                 <p class="text-[11px] text-slate-400 mt-0.5 font-medium">Collections must be linked to an active Sale. Select the Sale first.</p>
             </div>
 
-            <form @submit.prevent="submitReceipt()" class="space-y-4">
+            <form @submit.prevent="submitReceipt()" class="space-y-4" novalidate>
 
                 {{-- Select Active Sale --}}
                 <div class="space-y-1.5">
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Active Sale <span class="text-rose-500">*</span></label>
-                    <select x-model="form.sale_id" required @change="updateSaleDetail()"
-                            class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap">
+                    <select x-model="form.sale_id" @change="updateSaleDetail(); if(errors.sale_id) delete errors.sale_id;"
+                            class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none transition-all text-ellipsis overflow-hidden whitespace-nowrap"
+                            :class="errors.sale_id ? 'border-rose-500 bg-rose-50/20' : ''">
                         <option value="">-- Select Sale --</option>
                         @foreach($sales as $sale)
                         <option value="{{ $sale->id }}"
@@ -80,6 +81,9 @@
                         </option>
                         @endforeach
                     </select>
+                    <template x-if="errors.sale_id">
+                        <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.sale_id) ? errors.sale_id[0] : errors.sale_id"></span>
+                    </template>
                 </div>
 
                 {{-- Sale Info Card --}}
@@ -102,13 +106,26 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Amount (₹) <span class="text-rose-500">*</span></label>
-                        <input type="number" x-model.number="form.amount" required min="0.01" step="0.01"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold focus:outline-none transition-all">
+                        <input type="number" x-model.number="form.amount" min="0.01" step="0.01"
+                               @input="if(errors.amount) delete errors.amount;"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold focus:outline-none transition-all"
+                               :class="errors.amount ? 'border-rose-500 bg-rose-50/20' : ''">
+                        <template x-if="errors.amount">
+                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
+                        </template>
+                        <template x-if="form.amount && amountInWords(form.amount)">
+                            <span class="text-[10px] text-[#a38c29] font-extrabold block mt-1 uppercase tracking-wide" x-text="amountInWords(form.amount)"></span>
+                        </template>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date</label>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Receipt Date <span class="text-rose-500">*</span></label>
                         <input type="date" x-model="form.receipt_date"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all">
+                               @input="if(errors.receipt_date) delete errors.receipt_date;"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all"
+                               :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20' : ''">
+                        <template x-if="errors.receipt_date">
+                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
+                        </template>
                     </div>
                 </div>
 
@@ -117,13 +134,16 @@
                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Payment Mode <span class="text-rose-500">*</span></label>
                     <div class="grid grid-cols-2 gap-1.5">
                         @foreach(['Cash','Cheque','Bank Transfer','Online'] as $mode)
-                        <button type="button" @click="form.payment_mode = '{{ $mode }}'"
+                        <button type="button" @click="form.payment_mode = '{{ $mode }}'; if(errors.payment_mode) delete errors.payment_mode;"
                                 :class="form.payment_mode === '{{ $mode }}' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'"
                                 class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">
                             {{ $mode }}
                         </button>
                         @endforeach
                     </div>
+                    <template x-if="errors.payment_mode">
+                        <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
+                    </template>
                 </div>
 
                 {{-- Reference & Bank --}}
@@ -242,6 +262,7 @@ function receiptsApp() {
         selectedSale: null,
         submitting: false,
         error: '',
+        errors: {},
         success: '',
         init() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -277,10 +298,30 @@ function receiptsApp() {
         async submitReceipt() {
             this.error = '';
             this.success = '';
-            if (!this.form.sale_id || !this.form.amount || !this.form.payment_mode) {
-                this.error = 'Please select a Sale, enter amount, and choose payment mode.';
+            this.errors = {};
+            let hasError = false;
+
+            if (!this.form.sale_id) {
+                this.errors.sale_id = ['please select active sale'];
+                hasError = true;
+            }
+            if (this.form.amount === '' || this.form.amount === null || this.form.amount === undefined || parseFloat(this.form.amount) <= 0 || isNaN(parseFloat(this.form.amount))) {
+                this.errors.amount = ['please enter amount'];
+                hasError = true;
+            }
+            if (!this.form.receipt_date) {
+                this.errors.receipt_date = ['please select receipt date'];
+                hasError = true;
+            }
+            if (!this.form.payment_mode) {
+                this.errors.payment_mode = ['please select payment mode'];
+                hasError = true;
+            }
+
+            if (hasError) {
                 return;
             }
+
             this.submitting = true;
             try {
                 const res = await fetch('{{ route('emi-collections.store') }}', {
@@ -295,6 +336,8 @@ function receiptsApp() {
                     this.form.amount  = '';
                     this.selectedSale = null;
                     setTimeout(() => window.location.reload(), 1400);
+                } else if (json.errors) {
+                    this.errors = json.errors;
                 } else {
                     this.error = json.error || json.message || 'An error occurred.';
                 }
@@ -303,6 +346,34 @@ function receiptsApp() {
             } finally {
                 this.submitting = false;
             }
+        },
+
+        amountInWords(amount) {
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return '';
+            const num = Math.floor(parseFloat(amount));
+            const paise = Math.round((parseFloat(amount) - num) * 100);
+
+            const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+                           'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+            const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+            function convert(n) {
+                if (n < 20) return units[n];
+                if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + units[n % 10] : '');
+                if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
+                if (n < 100000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
+                if (n < 10000000) return convert(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + convert(n % 100000) : '');
+                return convert(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + convert(n % 10000000) : '');
+            }
+
+            let words = convert(num);
+            if (!words) return '';
+            let result = 'IN WORDS: ' + words.toUpperCase() + ' RUPEES';
+            if (paise > 0) {
+                result += ' AND ' + convert(paise).toUpperCase() + ' PAISE';
+            }
+            result += ' ONLY';
+            return result;
         }
     }
 }
