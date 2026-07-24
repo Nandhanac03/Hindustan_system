@@ -1383,12 +1383,24 @@
         <div class="relative min-h-screen flex items-center justify-center p-4">
             <div class="relative bg-white rounded-3xl shadow-xl max-w-2xl w-full overflow-hidden animate-fade-in">
                 
-                <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
-                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Exchange Details</h3>
-                    <button type="button" @click="openViewExchangeModal = false" class="text-slate-400 hover:text-slate-700 font-bold text-lg">✕</button>
+                {{-- Header Combo --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/10">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Exchanged</span>
+                                <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Exchange Details</span>
+                            </div>
+                            <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Exchange Details</h2>
+                            <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="viewExchangeSale"
+                               x-text="viewExchangeSale ? 'Sale No: ' + viewExchangeSale.sale_number + ' • Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') : ''"></p>
+                        </div>
+                        <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                    </div>
                 </div>
                 
-                <div class="p-6 space-y-4">
+                <div class="p-6 space-y-4 max-h-[78vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                     <div class="bg-slate-50 border border-slate-200/50 rounded-xl p-3 text-xs font-bold text-slate-650 space-y-1">
                         <div>
                             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Customer Name</span>
@@ -1440,10 +1452,15 @@
                              x-text="viewExchangeSale ? (viewExchangeSale.cancellation_reason || 'No notes entered.') : ''"></div>
                     </div>
 
-                    <div class="flex justify-end pt-4 border-t border-slate-100">
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100">
                         <button type="button" @click="openViewExchangeModal = false"
                                 class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase">
                             Close
+                        </button>
+                        <button type="button" @click="openViewExchangeModal = false; selectExchangeSale(viewExchangeSale); newExchangeStep = 2; openNewExchangeModal = true;"
+                                class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            <span>Edit Execute Exchange Plan</span>
                         </button>
                     </div>
                 </div>
