@@ -42,8 +42,9 @@ class SystemSeeder extends Seeder
 
         // 2. Create the Owner user in India system
         $ownerUser = User::updateOrCreate(
-            ['email' => 'owner@hindustan.com'],
+            ['employee_code' => 'EMP-001'],
             [
+                'email' => 'owner@hindustan.com',
                 'name' => 'Owner',
                 'password' => Hash::make('password'),
                 'system_id' => $india->id,
