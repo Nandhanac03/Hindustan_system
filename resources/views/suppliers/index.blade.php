@@ -97,8 +97,19 @@
                     <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Registered Suppliers Directory</h3>
                     
                     <!-- Search Input -->
-                    <input type="text" x-model="searchQuery" placeholder="Search by name, GSTIN, or account..."
-                           class="w-64 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:bg-white focus:border-blue-500 transition">
+                    <div class="relative group w-72">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" x-model="searchQuery" placeholder="Search by name, GSTIN, or account..."
+                               class="w-full pl-9 pr-7 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                        <button type="button" x-show="searchQuery" @click="searchQuery = ''"
+                                class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-rose-600 transition">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">

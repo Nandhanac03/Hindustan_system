@@ -235,9 +235,10 @@
                     </div>
                     
                     <div x-show="searchOpen" x-transition class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 flex flex-col overflow-hidden" style="display: none;">
-                        <div class="p-2 border-b border-slate-100 bg-slate-50/50">
+                        <div class="p-2 border-b border-slate-100 bg-slate-50/50 relative group">
                             <input type="text" x-model="searchString" placeholder="Search name or sale no..." 
-                                   class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50">
+                                   class="w-full pl-8 pr-7 py-2 bg-white border border-slate-250 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                            <svg class="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
                         <ul class="overflow-y-auto flex-1 p-1">
                             <li @click="selectedSaleId = ''; onSaleSelect(); searchOpen = false; searchString = ''" 
