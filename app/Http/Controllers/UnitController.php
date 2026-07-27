@@ -73,12 +73,15 @@ class UnitController extends Controller
                 $query->where("{$table}.unit_type_id", $request->unit_type_id);
             }
 
-            // Sort by floor number (asc), then naturally by door number (length, then lexicographically)
-            $query->orderBy('floors.floor_number', 'asc')
-                  ->orderByRaw("LENGTH(door_no) asc")
-                  ->orderBy("{$table}.door_no", 'asc');
-
-            $units = $query->get();
+            $query->orderBy('floors.floor_number', 'asc');
+            
+            $units = $query->get()->sort(function($a, $b) {
+                $floorDiff = $a->floor->floor_number <=> $b->floor->floor_number;
+                if ($floorDiff !== 0) {
+                    return $floorDiff;
+                }
+                return strnatcasecmp($a->door_no, $b->door_no);
+            })->values();
 
             return response()->json([
                 'units' => $units,
@@ -121,6 +124,14 @@ class UnitController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        $floor = \App\Models\Floor::find($validated['floor_id']);
+        if ($floor) {
+            $prefix = \App\Models\Floor::getDoorPrefix($floor->floor_number);
+            if ($prefix && !str_starts_with(strtoupper(trim($validated['door_no'])), strtoupper($prefix))) {
+                $validated['door_no'] = $prefix . ' ' . trim($validated['door_no']);
+            }
+        }
 
         // Check unique door_no per project + floor + unit type
         $exists = Unit::where('project_id', $validated['project_id'])
@@ -216,6 +227,14 @@ class UnitController extends Controller
         }
 
         $validated = $request->validate($rules);
+
+        $floor = \App\Models\Floor::find($validated['floor_id']);
+        if ($floor) {
+            $prefix = \App\Models\Floor::getDoorPrefix($floor->floor_number);
+            if ($prefix && !str_starts_with(strtoupper(trim($validated['door_no'])), strtoupper($prefix))) {
+                $validated['door_no'] = $prefix . ' ' . trim($validated['door_no']);
+            }
+        }
 
         // Check unique door_no per project + floor + unit type (excluding current unit)
         $exists = Unit::where('project_id', $unit->project_id)
