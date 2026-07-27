@@ -28,7 +28,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,7 +42,21 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $login = $this->input('email');
+        $password = $this->input('password');
+        $remember = $this->boolean('remember');
+
+        // Determine if login input is email, name/username, or employee code
+        $fieldType = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'name';
+
+        $authenticated = Auth::attempt([$fieldType => $login, 'password' => $password], $remember);
+
+        // Fallback checks for username or employee_code if initial attempt fails
+        if (!$authenticated && $fieldType === 'name') {
+            $authenticated = Auth::attempt(['employee_code' => $login, 'password' => $password], $remember);
+        }
+
+        if (!$authenticated) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
