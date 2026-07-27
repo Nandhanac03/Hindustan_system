@@ -24,7 +24,7 @@
         <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#a38c29] via-amber-400 to-[#a38c29]"></div>
 
         {{-- Project Image --}}
-        <div class="w-full md:w-[260px] h-[170px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150 shadow-inner">
+        <div class="w-full md:w-[500px] h-[300px] rounded-xl overflow-hidden relative flex-shrink-0 bg-slate-100 border border-slate-150 shadow-inner">
             <img src="{{ $projectImage }}" alt="{{ $activeProject->name }}" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent"></div>
             <div class="absolute top-3 left-3">
