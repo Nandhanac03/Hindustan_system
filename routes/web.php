@@ -12,13 +12,109 @@ use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SalesController;
 
-// Fallback routes to serve storage files directly if public/storage symlink is not created or accessible
+// Helper route to trigger, repair, sync, and diagnose storage link on live server
+Route::get('/run-storage-link', function () {
+    $target = storage_path('app/public');
+    $shortcut = public_path('storage');
+    $messages = [];
+
+    // Ensure target storage directory exists
+    if (!file_exists($target)) {
+        @mkdir($target, 0755, true);
+        $messages[] = "Created storage target directory: {$target}";
+    }
+
+    $symlinkSuccess = false;
+
+    // Try to remove broken link or empty dir to make room for symlink
+    if (is_link($shortcut)) {
+        @unlink($shortcut);
+        $messages[] = "Removed old symlink.";
+    } elseif (is_dir($shortcut)) {
+        $items = @scandir($shortcut);
+        if ($items === false || count($items) <= 2) {
+            @rmdir($shortcut);
+            $messages[] = "Removed empty public/storage directory.";
+        }
+    }
+
+    // 1. Attempt symlink creation
+    if (!file_exists($shortcut) && !is_link($shortcut)) {
+        if (@symlink($target, $shortcut)) {
+            $symlinkSuccess = true;
+            $messages[] = "SUCCESS: Created symlink via PHP symlink()!";
+        } else {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('storage:link');
+                if (is_link($shortcut) || file_exists($shortcut)) {
+                    $symlinkSuccess = true;
+                    $messages[] = "SUCCESS: Created symlink via Artisan storage:link!";
+                }
+            } catch (\Exception $e) {
+                $messages[] = "Artisan storage:link error: " . $e->getMessage();
+            }
+        }
+    } else {
+        $symlinkSuccess = is_link($shortcut);
+    }
+
+    // 2. Fallback for Shared Hosting without symlink support: Copy files directly into public/storage
+    if (!$symlinkSuccess || is_dir($shortcut) && !is_link($shortcut)) {
+        $messages[] = "Symlink disabled or public/storage is directory. Performing direct file sync...";
+        if (!file_exists($shortcut)) {
+            @mkdir($shortcut, 0755, true);
+        }
+        
+        // Recursive copy function
+        $copyDir = function ($src, $dst) use (&$copyDir) {
+            $dir = opendir($src);
+            @mkdir($dst, 0755, true);
+            while (false !== ($file = readdir($dir))) {
+                if (($file != '.') && ($file != '..')) {
+                    if (is_dir($src . '/' . $file)) {
+                        $copyDir($src . '/' . $file, $dst . '/' . $file);
+                    } else {
+                        @copy($src . '/' . $file, $dst . '/' . $file);
+                    }
+                }
+            }
+            closedir($dir);
+        };
+
+        if (file_exists($target)) {
+            $copyDir($target, $shortcut);
+            $messages[] = "SUCCESS: Copied all storage files to public/storage!";
+        }
+    }
+
+    // Count uploaded project images
+    $projectFiles = [];
+    $checkDir = is_dir($shortcut) ? $shortcut . '/projects' : $target . '/projects';
+    if (file_exists($checkDir)) {
+        $projectFiles = array_map('basename', glob($checkDir . '/*') ?: []);
+    }
+
+    return response()->json([
+        'status' => 'completed',
+        'target_path' => $target,
+        'shortcut_path' => $shortcut,
+        'is_symlink' => is_link($shortcut),
+        'uploaded_projects_images' => $projectFiles,
+        'messages' => $messages,
+    ]);
+});
+
+// Fallback route to serve storage files directly if public/storage symlink is bypassed or inaccessible
 Route::get('/storage/{path}', function ($path) {
     $file = storage_path('app/public/' . $path);
     if (!file_exists($file)) {
-        abort(404);
+        $file = base_path('storage/app/public/' . $path);
     }
-    return response()->file($file);
+    if (!file_exists($file)) {
+        abort(404, 'Storage file not found');
+    }
+    $mime = mime_content_type($file) ?: 'image/jpeg';
+    return response()->file($file, ['Content-Type' => $mime]);
 })->where('path', '.*')->name('storage.local');
 
 Route::get('/{any}/storage/{path}', function ($any, $path) {
