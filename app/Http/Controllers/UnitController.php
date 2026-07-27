@@ -78,15 +78,15 @@ class UnitController extends Controller
                   ->orderByRaw("LENGTH(door_no) asc")
                   ->orderBy("{$table}.door_no", 'asc');
 
-            $units = $query->paginate(50);
+            $units = $query->get();
 
             return response()->json([
-                'units' => $units->items(),
+                'units' => $units,
                 'pagination' => [
-                    'current_page' => $units->currentPage(),
-                    'last_page' => $units->lastPage(),
-                    'total' => $units->total(),
-                    'per_page' => $units->perPage(),
+                    'current_page' => 1,
+                    'last_page' => 1,
+                    'total' => $units->count(),
+                    'per_page' => $units->count() > 0 ? $units->count() : 1,
                 ]
             ]);
         }

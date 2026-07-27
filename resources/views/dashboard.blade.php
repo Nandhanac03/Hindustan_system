@@ -110,7 +110,7 @@
 @endif
 
     {{-- KPI Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
        
 
@@ -174,7 +174,7 @@
         </div>
 
         {{-- Pending Approvals --}}
-        <div class="kpi-card anim-5 bg-white rounded-2xl p-5 border {{ $pendingApprovals > 0 ? 'border-rose-200' : 'border-slate-200/80' }} shadow-sm">
+        <!-- <div class="kpi-card anim-5 bg-white rounded-2xl p-5 border {{ $pendingApprovals > 0 ? 'border-rose-200' : 'border-slate-200/80' }} shadow-sm">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-9 h-9 rounded-xl {{ $pendingApprovals > 0 ? 'bg-rose-50' : 'bg-slate-50' }} flex items-center justify-center">
                     <svg style="width:18px;height:18px" class="{{ $pendingApprovals > 0 ? 'text-rose-600' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,7 +190,7 @@
             <div class="mt-2 text-[10px] font-bold {{ $pendingApprovals > 0 ? 'text-rose-500' : 'text-slate-400' }} uppercase tracking-wider">
                 {{ $pendingApprovals > 0 ? 'Action Required' : 'All Clear' }}
             </div>
-        </div>
+        </div> -->
     </div>
 
     {{-- REVENUE CHART + UNIT STATUS DONUT --}}
