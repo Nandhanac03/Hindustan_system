@@ -93,7 +93,14 @@ class ProjectController extends Controller
 
         // Upload image
         if ($request->hasFile('image')) {
-            $validated['image_url'] = $request->file('image')->store('projects', 'public');
+            $path = $request->file('image')->store('projects', 'public');
+            $validated['image_url'] = $path;
+
+            // Sync copy to public/storage if public/storage is a physical directory (shared hosting fallback)
+            if (is_dir(public_path('storage')) && !is_link(public_path('storage'))) {
+                @mkdir(public_path('storage/projects'), 0755, true);
+                @copy(storage_path('app/public/' . $path), public_path('storage/' . $path));
+            }
         }
 
         // Generate short code
@@ -154,10 +161,20 @@ public function update(Request $request, Project $project): RedirectResponse
         // Delete old image
         if (!empty($project->image_url) && Storage::disk('public')->exists($project->image_url)) {
             Storage::disk('public')->delete($project->image_url);
+            if (is_dir(public_path('storage')) && !is_link(public_path('storage'))) {
+                @unlink(public_path('storage/' . $project->image_url));
+            }
         }
 
         // Store new image
-        $validated['image_url'] = $request->file('image')->store('projects', 'public');
+        $path = $request->file('image')->store('projects', 'public');
+        $validated['image_url'] = $path;
+
+        // Sync copy to public/storage if public/storage is a physical directory (shared hosting fallback)
+        if (is_dir(public_path('storage')) && !is_link(public_path('storage'))) {
+            @mkdir(public_path('storage/projects'), 0755, true);
+            @copy(storage_path('app/public/' . $path), public_path('storage/' . $path));
+        }
     }
 
     // Update project
