@@ -204,8 +204,11 @@ Route::middleware(['auth', 'system.active'])->group(function () {
 
     Route::get('/units', [UnitController::class, 'index'])->name('units.index');
     Route::post('/units', [UnitController::class, 'store'])->name('units.store');
-    Route::put('/units/{unit}', [UnitController::class, 'update'])->name('units.update');
+    Route::match(['put', 'post'], '/units/{unit}', [UnitController::class, 'update'])->name('units.update');
+    Route::match(['put', 'post'], '/units/{unit}/update', [UnitController::class, 'update'])->name('units.update.post');
     Route::delete('/units/{unit}', [UnitController::class, 'destroy'])->name('units.destroy');
+    Route::match(['get', 'post', 'delete'], '/units/{unit}/delete', [UnitController::class, 'destroy'])->name('units.destroy.post');
+    Route::match(['get', 'post', 'delete'], '/units/{unit}/remove', [UnitController::class, 'destroy'])->name('units.destroy.remove');
     Route::post('/units/bulk', [UnitController::class, 'bulkStore'])->name('units.bulk-store');
 
     // EMI & Collections Module (linked to Sales → Receipts workflow)
