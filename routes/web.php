@@ -248,7 +248,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/bank', [\App\Http\Controllers\BankController::class, 'index'])->name('bank.index');
     Route::post('/bank', [\App\Http\Controllers\BankController::class, 'store'])->name('bank.store');
     Route::match(['put', 'post'], '/bank/{bank}', [\App\Http\Controllers\BankController::class, 'update'])->name('bank.update');
+    Route::match(['put', 'post'], '/bank/{bank}/update', [\App\Http\Controllers\BankController::class, 'update'])->name('bank.update.post');
     Route::match(['get', 'post', 'delete'], '/bank/{bank}', [\App\Http\Controllers\BankController::class, 'destroy'])->name('bank.destroy');
+    Route::match(['get', 'post', 'delete'], '/bank/{bank}/delete', [\App\Http\Controllers\BankController::class, 'destroy'])->name('bank.destroy.post');
 
     // GST Master
     Route::get('/gst', function() {

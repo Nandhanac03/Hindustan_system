@@ -146,7 +146,7 @@
                                             </button>
                                             
                                             <!-- Delete -->
-                                            <form :action="'/suppliers/' + sup.id" method="POST" onsubmit="return confirm('Are you sure you want to remove this supplier?');" class="inline">
+                                            <form :action="'{{ url('/suppliers') }}/' + sup.id" method="POST" onsubmit="return confirm('Are you sure you want to remove this supplier?');" class="inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" title="Delete Supplier">
@@ -183,7 +183,7 @@
                       </div>
                   </div>
 
-                  <form :action="'/suppliers/' + editForm.id" method="POST">
+                  <form :action="'{{ url('/suppliers') }}/' + editForm.id" method="POST">
                       @csrf
                       @method('PUT')
                       
