@@ -28,23 +28,44 @@ body {
     letter-spacing: -0.01em;
 }
 
-/* Scrollbar Customization */
+/* Scrollbar Customization - Premium Tabasco Gold Styling */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #a38c29 transparent;
+}
+
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(241, 245, 249, 0.6);
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #d7d4ce;
-    border-radius: 3px;
+    background: linear-gradient(180deg, #a38c29 0%, #c9b458 100%);
+    border-radius: 10px;
+    transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #a59d92;
+    background: linear-gradient(180deg, #8a7522 0%, #a38c29 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(163, 140, 41, 0.5);
+    border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(163, 140, 41, 0.9);
 }
 
 /* Glassmorphism utility */

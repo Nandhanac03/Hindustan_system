@@ -47,13 +47,18 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // ── Top Customers (by total payment amount) ───────────────────────────
+        // ── Top Customers (by total payment amount / sales volume) ───────────────
         $topCustomers = Customer::withSum(
                 ['receipts' => fn ($q) => $activeProject ? $q->where('project_id', $activeProject->id) : $q],
                 'amount'
             )
+            ->withSum(
+                ['sales' => fn ($q) => $activeProject ? $q->where('status', 'active')->where('project_id', $activeProject->id) : $q->where('status', 'active')],
+                'total_amount'
+            )
             ->withCount(['sales' => fn ($q) => $activeProject ? $q->where('status', 'active')->where('project_id', $activeProject->id) : $q->where('status', 'active')])
             ->orderByDesc('receipts_sum_amount')
+            ->orderByDesc('sales_sum_total_amount')
             ->take(5)
             ->get();
 
