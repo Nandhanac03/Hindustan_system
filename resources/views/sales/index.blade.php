@@ -203,24 +203,112 @@
                                 </select>
                                 <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
                             </div>
-                            <div class="space-y-1.5 md:col-span-2">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer *</label>
-                                <div class="flex gap-2">
-                                    <select x-model="forms.add.customer_id"
-                                            :class="errors.customer_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                            class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
-                                        <option value="">— Select Customer —</option>
-                                        <template x-for="customer in customerList" :key="customer.id">
-                                            <option :value="customer.id" x-text="customer.name + ' (' + customer.email + ')'"></option>
-                                        </template>
-                                    </select>
-                                    <button type="button" @click="openQuickAddCustomer()"
-                                            class="flex-shrink-0 w-9 h-9 flex items-center justify-center border border-slate-300 rounded-xl text-slate-500 hover:border-primary hover:text-primary transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                    </button>
-                                </div>
-                                <template x-if="errors.customer_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.customer_id) ? errors.customer_id[0] : errors.customer_id"></p></template>
-                            </div>
+                            <div class="space-y-1.5 md:col-span-2 relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
+                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer *</label>
+                                 <div class="flex gap-2">
+                                     <div class="relative flex-1">
+                                         <!-- Main Selector Button -->
+                                         <button type="button" 
+                                                 @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
+                                                 :class="errors.customer_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : (open ? 'border-primary ring-4 ring-primary/10 bg-white shadow-sm' : 'border-slate-250 bg-white hover:bg-slate-50 hover:border-slate-300')"
+                                                 class="w-full h-9 px-2.5 py-1.5 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-sm">
+                                             <template x-if="getSelectedCustomer()">
+                                                 <div class="flex items-center gap-2 overflow-hidden min-w-0">
+                                                     <div class="w-5 h-5 rounded-full bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center shrink-0" x-text="getSelectedCustomer().name.charAt(0).toUpperCase()"></div>
+                                                     <span class="font-extrabold text-slate-800 truncate" x-text="getSelectedCustomer().name"></span>
+                                                     <span class="text-[10px] text-slate-400 font-mono shrink-0" x-show="getSelectedCustomer().phone" x-text="'(' + getSelectedCustomer().phone + ')'"></span>
+                                                 </div>
+                                             </template>
+                                             <template x-if="!getSelectedCustomer()">
+                                                 <span class="text-slate-400 font-medium">— Select Customer —</span>
+                                             </template>
+                                             <div class="flex items-center gap-1 shrink-0 ml-1">
+                                                 <template x-if="getSelectedCustomer()">
+                                                     <span @click.stop="selectCustomer(null); search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear customer">
+                                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                     </span>
+                                                 </template>
+                                                 <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-primary' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                             </div>
+                                         </button>
+
+                                         <!-- Dropdown Menu -->
+                                         <div x-show="open"
+                                              x-transition:enter="transition ease-out duration-200"
+                                              x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                                              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                              x-transition:leave="transition ease-in duration-150"
+                                              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                              x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                                              class="absolute left-0 top-full mt-1.5 w-80 bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50"
+                                              style="display: none;">
+                                             
+                                             <!-- Search Input Header -->
+                                             <div class="p-2 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                                                 <div class="relative">
+                                                     <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                     <input type="text"
+                                                            x-model="search"
+                                                            x-ref="customerSearchInput"
+                                                            placeholder="Type name or phone number..."
+                                                            @keydown.escape="open = false"
+                                                            class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                                     <template x-if="search">
+                                                         <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                                     </template>
+                                                 </div>
+                                             </div>
+
+                                             <!-- Clear Option -->
+                                             <button type="button" @click="selectCustomer(null); open = false; search = ''"
+                                                     class="w-full px-3.5 py-1.5 text-left text-[11px] font-bold text-slate-400 hover:bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 transition">
+                                                 <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                 <span>Clear Selected Customer</span>
+                                             </button>
+
+                                             <!-- Customer List Options -->
+                                             <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
+                                                 <template x-for="customer in getFilteredCustomersList(search)" :key="customer.id">
+                                                     <button type="button"
+                                                             @click="selectCustomer(customer); open = false; search = ''"
+                                                             :class="forms.add.customer_id == customer.id ? 'bg-primary/10 border-primary/20 text-primary shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                                             class="w-full p-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer">
+                                                         <div class="flex items-center gap-2.5 min-w-0">
+                                                             <div :class="forms.add.customer_id == customer.id ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-primary/10 group-hover:text-primary'"
+                                                                  class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-colors"
+                                                                  x-text="(customer.name || '?').charAt(0).toUpperCase()"></div>
+                                                             <div class="min-w-0">
+                                                                 <p class="font-bold text-xs truncate leading-snug" :class="forms.add.customer_id == customer.id ? 'text-primary' : 'text-slate-800'" x-text="customer.name"></p>
+                                                                 <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5" x-show="customer.phone">
+                                                                     <span class="flex items-center gap-1">
+                                                                         <svg class="w-2.5 h-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                                         <span x-text="customer.phone"></span>
+                                                                     </span>
+                                                                 </div>
+                                                             </div>
+                                                         </div>
+                                                         <template x-if="forms.add.customer_id == customer.id">
+                                                             <svg class="w-4 h-4 text-primary shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                         </template>
+                                                     </button>
+                                                 </template>
+                                                 <!-- Empty State -->
+                                                 <div x-show="getFilteredCustomersList(search).length === 0"
+                                                      class="py-6 px-4 text-center">
+                                                     <p class="text-xs text-slate-400 italic">No matching customers found</p>
+                                                     <button type="button" @click="open = false; openQuickAddCustomer()" class="mt-2 text-[11px] text-primary font-bold hover:underline uppercase tracking-wider">+ Add New Customer</button>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <button type="button" @click="openQuickAddCustomer()"
+                                             title="Quick Add Customer"
+                                             class="flex-shrink-0 w-9 h-9 flex items-center justify-center border border-slate-300 rounded-xl text-slate-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition shadow-xs">
+                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                     </button>
+                                 </div>
+                                 <template x-if="errors.customer_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.customer_id) ? errors.customer_id[0] : errors.customer_id"></p></template>
+                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement Date *</label>
                                 <input type="date" x-model="forms.add.agreement_date"
@@ -257,56 +345,95 @@
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                             <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
-                                                <!-- Trigger Button -->
-                                                <button type="button" @click="open = !open" :disabled="!forms.add.project_id"
-                                                        :class="errors['units.' + index + '.unit_id'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
-                                                        class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-9 shadow-sm">
-                                                    <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).floor_name + ' — Door ' + availableUnits.add.find(u => u.id == row.unit_id).door_no + (availableUnits.add.find(u => u.id == row.unit_id).unit_type_name ? ' (' + availableUnits.add.find(u => u.id == row.unit_id).unit_type_name + ')' : '')) : '— Select Unit —') : '— Select Unit —'"></span>
-                                                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                                </button>
-                                                <!-- Dropdown Content -->
-                                                <div x-show="open" x-transition
-                                                     class="absolute z-50 w-72 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
-                                                    <!-- Search Input -->
-                                                    <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5">
-                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-                                                        <input type="text" x-model="search" placeholder="Search floor, door no, or type..."
-                                                               class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0" x-ref="searchInput">
-                                                    </div>
-                                                    <!-- Clear option -->
-                                                    <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index); open = false; search = ''"
-                                                            class="w-full px-3 py-2 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic">
-                                                        — Clear Selection —
-                                                    </button>
-                                                    <!-- Grouped Options List -->
-                                                    <div class="overflow-y-auto flex-1">
-                                                        <template x-for="floorGroup in getFloorGroups('add', search)" :key="floorGroup.floor">
-                                                            <div>
-                                                                <!-- Floor Header -->
-                                                                <div class="px-3 py-1 bg-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500" x-text="floorGroup.floor"></div>
-                                                                <!-- Units in this floor -->
-                                                                <template x-for="unit in floorGroup.units" :key="unit.id">
-                                                                    <button type="button"
-                                                                            @click="row.unit_id = unit.id; onRowUnitSelect(index); open = false; search = ''"
-                                                                            :disabled="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)"
-                                                                            class="w-full px-3.5 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
-                                                                            :class="row.unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
-                                                                        <div class="flex items-center gap-1.5">
-                                                                            <span class="font-semibold" x-text="unit.door_no"></span>
-                                                                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-600 font-bold uppercase tracking-wider" x-text="unit.unit_type_name"></span>
-                                                                        </div>
-                                                                        <span class="text-[9px] text-slate-400 font-mono" x-text="unit.floor_name"></span>
-                                                                    </button>
-                                                                </template>
-                                                            </div>
-                                                        </template>
-                                                        <!-- No results -->
-                                                        <div x-show="getFloorGroups('add', search).length === 0"
-                                                             class="px-4 py-6 text-center text-xs text-slate-400">
-                                                            No units match your search.
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                 <button type="button" 
+                                                         @click="open = !open; if (open) { $nextTick(() => $refs.unitSearchInput?.focus()); }"
+                                                         :disabled="!forms.add.project_id"
+                                                         :class="errors['units.' + index + '.unit_id'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : (open ? 'border-primary ring-4 ring-primary/10 bg-white shadow-sm' : 'border-slate-250 bg-white hover:bg-slate-50 hover:border-slate-300')"
+                                                         class="w-full h-9 px-2.5 py-1.5 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-sm disabled:opacity-50">
+                                                     <template x-if="row.unit_id && availableUnits.add.find(u => u.id == row.unit_id)">
+                                                         <div class="flex items-center gap-2 overflow-hidden min-w-0">
+                                                             <span class="font-extrabold text-slate-800 truncate text-xs" x-text="availableUnits.add.find(u => u.id == row.unit_id).door_no"></span>
+                                                             <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="'(' + availableUnits.add.find(u => u.id == row.unit_id).floor_name + ')'"></span>
+                                                         </div>
+                                                     </template>
+                                                     <template x-if="!row.unit_id || !availableUnits.add.find(u => u.id == row.unit_id)">
+                                                         <span class="text-slate-400 font-medium">— Select Unit —</span>
+                                                     </template>
+                                                     <div class="flex items-center gap-1 shrink-0 ml-1">
+                                                         <template x-if="row.unit_id">
+                                                             <span @click.stop="row.unit_id = ''; onRowUnitSelect(index, 'add'); search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear unit">
+                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                             </span>
+                                                         </template>
+                                                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-primary' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                     </div>
+                                                 </button>
+
+                                                 <!-- Dropdown Menu -->
+                                                 <div x-show="open"
+                                                      x-transition:enter="transition ease-out duration-200"
+                                                      x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                                                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                      x-transition:leave="transition ease-in duration-150"
+                                                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                      x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                                                      class="absolute left-0 top-full mt-1.5 w-80 bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50"
+                                                      style="display: none;">
+                                                     
+                                                     <!-- Search Input Header -->
+                                                     <div class="p-2 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                                                         <div class="relative">
+                                                             <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                             <input type="text"
+                                                                    x-model="search"
+                                                                    x-ref="unitSearchInput"
+                                                                    placeholder="Type floor, door no, or unit type..."
+                                                                    @keydown.escape="open = false"
+                                                                    class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                                             <template x-if="search">
+                                                                 <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                                             </template>
+                                                         </div>
+                                                     </div>
+
+                                                     <!-- Clear Option -->
+                                                     <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index, 'add'); open = false; search = ''"
+                                                             class="w-full px-3.5 py-1.5 text-left text-[11px] font-bold text-slate-400 hover:bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 transition">
+                                                         <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                         <span>Clear Selected Unit</span>
+                                                     </button>
+
+                                                     <!-- Unit List Options -->
+                                                     <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
+                                                         <template x-for="unit in getFilteredUnits('add', search)" :key="unit.id">
+                                                             <button type="button"
+                                                                     @click="row.unit_id = unit.id; onRowUnitSelect(index, 'add'); open = false; search = ''"
+                                                                     :disabled="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)"
+                                                                     :class="row.unit_id == unit.id ? 'bg-primary/10 border-primary/20 text-primary shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                                                     class="w-full px-3 py-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                                                 <div class="flex items-center gap-2 min-w-0">
+                                                                     <span class="font-extrabold text-xs truncate" :class="row.unit_id == unit.id ? 'text-primary' : 'text-slate-800'" x-text="unit.door_no"></span>
+                                                                     <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0"
+                                                                           x-text="unit.unit_type_name || 'Unit'"></span>
+                                                                 </div>
+                                                                 <div class="flex items-center gap-2 shrink-0">
+                                                                     <span class="text-[10px] text-slate-400 font-mono" x-text="unit.floor_name"></span>
+                                                                     <template x-if="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)">
+                                                                         <span class="text-[9px] font-bold text-rose-500 uppercase tracking-wider bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 shrink-0">Selected</span>
+                                                                     </template>
+                                                                     <template x-if="row.unit_id == unit.id">
+                                                                         <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                                     </template>
+                                                                 </div>
+                                                             </button>
+                                                         </template>
+                                                         <!-- Empty State -->
+                                                         <div x-show="getFilteredUnits('add', search).length === 0"
+                                                              class="py-6 px-4 text-center text-xs text-slate-400 italic">
+                                                             No matching units found
+                                                         </div>
+                                                     </div>
+                                                 </div>
                                             </div>
                                             <template x-if="errors['units.' + index + '.unit_id']">
                                                 <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.unit_id']) ? errors['units.' + index + '.unit_id'][0] : errors['units.' + index + '.unit_id']"></p>
@@ -806,48 +933,92 @@
                                              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                              <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                                  <!-- Trigger Button -->
-                                                 <button type="button" @click="open = !open" :disabled="!forms.edit.project_id"
-                                                         class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-9 shadow-sm">
-                                                     <span x-text="row.unit_id ? (availableUnits.edit.find(u => u.id == row.unit_id) ? (availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.edit.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
-                                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                                 </button>
-                                                 <!-- Dropdown Content -->
-                                                 <div x-show="open" x-transition
-                                                      class="absolute z-50 w-64 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
-                                                     <!-- Search Input -->
-                                                     <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5">
-                                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-                                                         <input type="text" x-model="search" placeholder="Search floor or unit..."
-                                                                class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0">
-                                                     </div>
-                                                     <!-- Clear option -->
-                                                     <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index, 'edit'); open = false; search = ''"
-                                                             class="w-full px-3 py-2 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic">
-                                                         — Clear Selection —
-                                                     </button>
-                                                     <!-- Grouped Options List -->
-                                                     <div class="overflow-y-auto flex-1">
-                                                         <template x-for="floorGroup in getFloorGroups('edit', search)" :key="floorGroup.floor">
-                                                             <div>
-                                                                 <!-- Floor Header -->
-                                                                 <div class="px-3 py-1 bg-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500" x-text="floorGroup.floor"></div>
-                                                                 <!-- Units in this floor -->
-                                                                 <template x-for="unit in floorGroup.units" :key="unit.id">
-                                                                     <button type="button"
-                                                                             @click="row.unit_id = unit.id; onRowUnitSelect(index, 'edit'); open = false; search = ''"
-                                                                             :disabled="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)"
-                                                                             class="w-full px-4 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
-                                                                             :class="row.unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
-                                                                         <span class="font-semibold" x-text="unit.door_no"></span>
-                                                                         <span class="text-[9px] text-slate-400 font-mono" x-text="unit.unit_type_name"></span>
-                                                                     </button>
-                                                                 </template>
-                                                             </div>
+                                                 <button type="button" 
+                                                         @click="open = !open; if (open) { $nextTick(() => $refs.unitEditSearchInput?.focus()); }" 
+                                                         :disabled="!forms.edit.project_id"
+                                                         :class="open ? 'border-primary ring-4 ring-primary/10 bg-white shadow-sm' : 'border-slate-250 bg-white hover:bg-slate-50 hover:border-slate-300'"
+                                                         class="w-full px-2.5 py-1.5 border rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-9 shadow-sm cursor-pointer">
+                                                     <template x-if="row.unit_id && availableUnits.edit.find(u => u.id == row.unit_id)">
+                                                         <div class="flex items-center gap-2 overflow-hidden min-w-0">
+                                                             <span class="font-extrabold text-slate-800 truncate text-xs" x-text="availableUnits.edit.find(u => u.id == row.unit_id).door_no"></span>
+                                                             <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="'(' + availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ')'"></span>
+                                                         </div>
+                                                     </template>
+                                                     <template x-if="!row.unit_id || !availableUnits.edit.find(u => u.id == row.unit_id)">
+                                                         <span class="text-slate-400 font-medium">— Select Unit —</span>
+                                                     </template>
+                                                     <div class="flex items-center gap-1 shrink-0 ml-1">
+                                                         <template x-if="row.unit_id">
+                                                             <span @click.stop="row.unit_id = ''; onRowUnitSelect(index, 'edit'); search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear unit">
+                                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                             </span>
                                                          </template>
-                                                         <!-- No results -->
-                                                         <div x-show="getFloorGroups('edit', search).length === 0"
-                                                              class="px-4 py-6 text-center text-xs text-slate-400">
-                                                             No units match your search.
+                                                         <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-primary' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                     </div>
+                                                 </button>
+
+                                                 <!-- Dropdown Menu -->
+                                                 <div x-show="open" 
+                                                      x-transition:enter="transition ease-out duration-200"
+                                                      x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                                                      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                                      x-transition:leave="transition ease-in duration-150"
+                                                      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                                      x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                                                      class="absolute z-50 left-0 top-full mt-1.5 w-80 bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col"
+                                                      style="display: none;">
+                                                     
+                                                     <!-- Search Input Header -->
+                                                     <div class="p-2 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                                                         <div class="relative">
+                                                             <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                             <input type="text"
+                                                                    x-model="search"
+                                                                    x-ref="unitEditSearchInput"
+                                                                    placeholder="Type floor, door no, or unit type..."
+                                                                    @keydown.escape="open = false"
+                                                                    class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                                             <template x-if="search">
+                                                                 <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                                             </template>
+                                                         </div>
+                                                     </div>
+
+                                                     <!-- Clear Option -->
+                                                     <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index, 'edit'); open = false; search = ''"
+                                                             class="w-full px-3.5 py-1.5 text-left text-[11px] font-bold text-slate-400 hover:bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 transition">
+                                                         <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                         <span>Clear Selected Unit</span>
+                                                     </button>
+
+                                                     <!-- Unit List Options -->
+                                                     <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
+                                                         <template x-for="unit in getFilteredUnits('edit', search)" :key="unit.id">
+                                                             <button type="button"
+                                                                     @click="row.unit_id = unit.id; onRowUnitSelect(index, 'edit'); open = false; search = ''"
+                                                                     :disabled="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)"
+                                                                     :class="row.unit_id == unit.id ? 'bg-primary/10 border-primary/20 text-primary shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                                                     class="w-full px-3 py-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                                                 <div class="flex items-center gap-2 min-w-0">
+                                                                     <span class="font-extrabold text-xs truncate" :class="row.unit_id == unit.id ? 'text-primary' : 'text-slate-800'" x-text="unit.door_no"></span>
+                                                                     <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0"
+                                                                           x-text="unit.unit_type_name || 'Unit'"></span>
+                                                                 </div>
+                                                                 <div class="flex items-center gap-2 shrink-0">
+                                                                     <span class="text-[10px] text-slate-400 font-mono" x-text="unit.floor_name"></span>
+                                                                     <template x-if="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)">
+                                                                         <span class="text-[9px] font-bold text-rose-500 uppercase tracking-wider bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 shrink-0">Selected</span>
+                                                                     </template>
+                                                                     <template x-if="row.unit_id == unit.id">
+                                                                         <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                                     </template>
+                                                                 </div>
+                                                             </button>
+                                                         </template>
+                                                         <!-- Empty State -->
+                                                         <div x-show="getFilteredUnits('edit', search).length === 0"
+                                                              class="py-6 px-4 text-center text-xs text-slate-400 italic">
+                                                             No matching units found
                                                          </div>
                                                      </div>
                                                  </div>
@@ -1515,11 +1686,13 @@ function salesApp() {
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
         availableUnits: { add: [], edit: [] },
         selectedUnit: { add: null, edit: null },
-        customerList: @json($customers->map(fn($c) => ['id' => $c->id, 'name' => $c->name, 'email' => $c->email])),
-        brokerList: @json($brokers->map(fn($b) => ['id' => $b->id, 'name' => $b->name, 'default_commission_pct' => $b->default_commission_pct ?? null])),
-        bankAccountsList: @json($bankAccounts->map(fn($ba) => ['id' => $ba->id, 'name' => $ba->bank_name])),
+        customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone]; })) !!},
+        brokerList: {!! json_encode($brokers->map(function($b) { return ['id' => $b->id, 'name' => $b->name, 'default_commission_pct' => $b->default_commission_pct ?? null]; })) !!},
+        bankAccountsList: {!! json_encode($bankAccounts->map(function($ba) { return ['id' => $ba->id, 'name' => $ba->bank_name]; })) !!},
         quickCustomer: { name: '', email: '', phone: '' },
         quickCustomerErrors: {},
+        customerSearch: '',
+        customerDropdownOpen: false,
         forms: {
             add: {
                 project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', customer_id: '', broker_id: '',
@@ -2261,20 +2434,32 @@ function salesApp() {
             const unit = this.availableUnits[mode].find(u => u.id == row.unit_id);
             return unit ? (unit.built_up_area || '—') : '—';
         },
+        getFilteredUnits(mode, search = '') {
+            const s = (search || '').toLowerCase().trim();
+            const unitsList = this.availableUnits[mode] || [];
+            if (!s) return unitsList;
+            const searchWords = s.split(/\s+/).filter(Boolean);
+            return unitsList.filter(u => {
+                const combined = ((u.door_no || '') + ' ' + (u.floor_name || '') + ' ' + (u.unit_type_name || '') + ' ' + (u.unit_type_category || '')).toLowerCase();
+                return searchWords.every(word => combined.includes(word));
+            });
+        },
         getFloorGroups(mode, search = '') {
-            const s = (search || '').toLowerCase();
-            const filtered = (this.availableUnits[mode] || []).filter(u =>
-                (u.floor_name + ' ' + u.door_no).toLowerCase().includes(s)
-            );
+            const s = (search || '').toLowerCase().trim();
+            const unitsList = this.availableUnits[mode] || [];
+            const filtered = !s ? unitsList : unitsList.filter(u => {
+                const text = ((u.floor_name || '') + ' ' + (u.door_no || '') + ' ' + (u.unit_type_name || '') + ' ' + (u.unit_type_category || '')).toLowerCase();
+                return text.includes(s);
+            });
             const groups = [];
-            const seen = {};
+            const map = {};
             filtered.forEach(u => {
                 const key = u.floor_name || 'Other';
-                if (!seen[key]) {
-                    seen[key] = true;
-                    groups.push({ floor: key, units: [] });
+                if (!map[key]) {
+                    map[key] = { floor: key, units: [] };
+                    groups.push(map[key]);
                 }
-                groups[groups.length - 1].units.push(u);
+                map[key].units.push(u);
             });
             return groups;
         },
@@ -2583,13 +2768,32 @@ function salesApp() {
                 } else if (!res.ok) {
                     this.showToast(data.error || 'Failed to add customer.', 'error');
                 } else {
-                    this.customerList.push({ id: data.customer.id, name: data.customer.name, email: data.customer.email });
+                    this.customerList.push({ id: data.customer.id, name: data.customer.name, email: data.customer.email, phone: data.customer.phone });
                     this.forms.add.customer_id = data.customer.id;
                     this.modals.quickCustomer.open = false;
                     this.showToast('Customer added and selected.');
                 }
             })
             .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
+        },
+        getFilteredCustomersList(search = '') {
+            const q = (search || '').toLowerCase().trim();
+            if (!q) return this.customerList;
+            return this.customerList.filter(c => 
+                (c.name && c.name.toLowerCase().includes(q)) || 
+                (c.phone && c.phone.toLowerCase().includes(q))
+            );
+        },
+        getSelectedCustomer() {
+            if (!this.forms.add || !this.forms.add.customer_id) return null;
+            return this.customerList.find(c => c.id == this.forms.add.customer_id) || null;
+        },
+        selectCustomer(customer) {
+            if (this.forms.add) {
+                this.forms.add.customer_id = customer ? customer.id : '';
+            }
+            this.customerDropdownOpen = false;
+            this.customerSearch = '';
         },
         recalculateGst(mode) {
             const form = this.forms[mode];
