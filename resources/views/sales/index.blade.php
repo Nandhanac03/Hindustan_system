@@ -252,14 +252,15 @@
                                 <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative" :x-ref="'unitRow_' + index">
                                     <button type="button" @click="removeUnitRow(index)" x-show="forms.add.units.length > 1"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
-                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                    <!-- First row: 3 fields (Unit, Built Up Area, Agreed Sale Amount) -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                             <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                                 <!-- Trigger Button -->
                                                 <button type="button" @click="open = !open" :disabled="!forms.add.project_id"
                                                         :class="errors['units.' + index + '.unit_id'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
-                                                        class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8 shadow-sm">
+                                                        class="w-full px-2.5 py-1.5 border focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-9 shadow-sm">
                                                     <span x-text="row.unit_id ? (availableUnits.add.find(u => u.id == row.unit_id) ? (availableUnits.add.find(u => u.id == row.unit_id).floor_name + ' — Door ' + availableUnits.add.find(u => u.id == row.unit_id).door_no + (availableUnits.add.find(u => u.id == row.unit_id).unit_type_name ? ' (' + availableUnits.add.find(u => u.id == row.unit_id).unit_type_name + ')' : '')) : '— Select Unit —') : '— Select Unit —'"></span>
                                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </button>
@@ -318,38 +319,74 @@
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
-                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index)" placeholder="Expected rate"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                        </div>
-                                        <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
                                             <div class="relative rounded-xl shadow-sm">
                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
                                                 </div>
-                                                <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index)" placeholder="0.00"
+                                                <input type="number" step="0.01" x-model="row.sale_amount" @input="onRowSaleAmountChange(index)" placeholder="0.00"
                                                        :class="errors['units.' + index + '.sale_amount'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white'"
-                                                       class="block w-full pl-7 pr-3 py-2 border rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                                       class="block w-full pl-7 pr-3 py-2 border rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
                                             </div>
                                             <template x-if="errors['units.' + index + '.sale_amount']">
                                                 <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.sale_amount']) ? errors['units.' + index + '.sale_amount'][0] : errors['units.' + index + '.sale_amount']"></p>
                                             </template>
                                         </div>
                                     </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
+                                    <!-- Second row: Rate fields (standard unit) OR Expected Sale Amount (Parking unit) -->
+                                    <div class="pt-1">
+                                        <div x-show="!isRowParking(index, 'add')" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                                            <div class="space-y-1.5">
+                                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
+                                                <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
+                                                       class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            </div>
+                                            <div class="space-y-1.5">
+                                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
+                                                <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index)" placeholder="Sale rate"
+                                                       class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            </div>
+                                        </div>
+                                        <div x-show="isRowParking(index, 'add')" class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
+                                            <div class="relative rounded-xl shadow-sm">
+                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'add')" placeholder="Enter parking expected sale amount"
+                                                       class="block w-full pl-7 pr-3 py-2 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Third row: GST and Payable calculations -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-start pt-2 border-t border-slate-200/50">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index)" placeholder="e.g. 18"
                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
-                                        <div class="text-xs">
-                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">GST Amount</p>
-                                            <p class="font-bold text-slate-800 mt-1 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
+                                        <div class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Amount (₹)</label>
+                                            <div class="relative rounded-xl shadow-sm">
+                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="row.gst_amount" @input="recalculateRowGstFromAmount(index)" placeholder="0.00"
+                                                       class="block w-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                            </div>
+                                            <template x-if="row.gst_amount && parseFloat(row.gst_amount) > 0">
+                                                <p class="text-[9px] font-bold text-amber-700 uppercase tracking-wider mt-1.5 leading-snug break-words" x-text="'IN WORDS: ' + numberToWords(row.gst_amount)"></p>
+                                            </template>
                                         </div>
-                                        <div class="text-xs">
+                                        <div class="space-y-1.5">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Difference</p>
+                                            <p class="font-extrabold font-mono text-xs h-9 flex items-center"
+                                               :class="getRowDifference(index, 'add') > 0 ? 'text-emerald-600' : (getRowDifference(index, 'add') < 0 ? 'text-rose-600' : 'text-slate-500')"
+                                               x-text="(getRowDifference(index, 'add') >= 0 ? '₹' : '-₹') + Math.abs(getRowDifference(index, 'add')).toLocaleString()"></p>
+                                        </div>
+                                        <div class="space-y-1.5">
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Payable</p>
-                                            <p class="font-extrabold text-indigo-700 mt-1 font-mono" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
+                                            <p class="font-extrabold text-indigo-700 font-mono text-sm h-9 flex items-center" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50" x-show="forms.add.broker_involved && row.broker_involved">
@@ -746,95 +783,132 @@
                                 <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative">
                                     <button type="button" @click="removeUnitRow(index, 'edit')" x-show="forms.edit.units.length > 1"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
-                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
-                                        <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
-                                            <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
-                                                <!-- Trigger Button -->
-                                                <button type="button" @click="open = !open" :disabled="!forms.edit.project_id"
-                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-8 shadow-sm">
-                                                    <span x-text="row.unit_id ? (availableUnits.edit.find(u => u.id == row.unit_id) ? (availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.edit.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
-                                                    <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                                </button>
-                                                <!-- Dropdown Content -->
-                                                <div x-show="open" x-transition
-                                                     class="absolute z-50 w-64 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
-                                                    <!-- Search Input -->
-                                                    <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5">
-                                                        <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
-                                                        <input type="text" x-model="search" placeholder="Search floor or unit..."
-                                                               class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0">
-                                                    </div>
-                                                    <!-- Clear option -->
-                                                    <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index, 'edit'); open = false; search = ''"
-                                                            class="w-full px-3 py-2 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic">
-                                                        — Clear Selection —
-                                                    </button>
-                                                    <!-- Grouped Options List -->
-                                                    <div class="overflow-y-auto flex-1">
-                                                        <template x-for="floorGroup in getFloorGroups('edit', search)" :key="floorGroup.floor">
-                                                            <div>
-                                                                <!-- Floor Header -->
-                                                                <div class="px-3 py-1 bg-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500" x-text="floorGroup.floor"></div>
-                                                                <!-- Units in this floor -->
-                                                                <template x-for="unit in floorGroup.units" :key="unit.id">
-                                                                    <button type="button"
-                                                                            @click="row.unit_id = unit.id; onRowUnitSelect(index, 'edit'); open = false; search = ''"
-                                                                            :disabled="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)"
-                                                                            class="w-full px-4 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
-                                                                            :class="row.unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
-                                                                        <span class="font-semibold" x-text="unit.door_no"></span>
-                                                                        <span class="text-[9px] text-slate-400 font-mono" x-text="unit.unit_type_name"></span>
-                                                                    </button>
-                                                                </template>
-                                                            </div>
-                                                        </template>
-                                                        <!-- No results -->
-                                                        <div x-show="getFloorGroups('edit', search).length === 0"
-                                                             class="px-4 py-6 text-center text-xs text-slate-400">
-                                                            No units match your search.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
-                                            <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-650 font-bold h-9 flex items-center shadow-inner">
-                                                <span x-text="onGetRowArea(index, 'edit') + ' Sq Ft'"></span>
-                                            </div>
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
-                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" @input="onRowRateChange(index, 'edit')" placeholder="Expected rate"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
-                                            <div class="relative rounded-xl shadow-sm">
-                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                    <span class="text-slate-400 font-bold text-xs">₹</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="row.sale_amount" @input="recalculateRowGst(index, 'edit')" placeholder="0.00"
-                                                       class="block w-full pl-7 pr-3 py-2 border border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
-                                        <div class="space-y-1.5">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
-                                            <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index, 'edit')" placeholder="e.g. 18"
-                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            <p class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">GST Amount</p>
-                                            <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            <p class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
-                                            <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
-                                        </div>
-                                    </div>
+                                     <!-- First row: 3 fields (Unit, Built Up Area, Agreed Sale Amount) -->
+                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                                         <div class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
+                                             <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
+                                                 <!-- Trigger Button -->
+                                                 <button type="button" @click="open = !open" :disabled="!forms.edit.project_id"
+                                                         class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-9 shadow-sm">
+                                                     <span x-text="row.unit_id ? (availableUnits.edit.find(u => u.id == row.unit_id) ? (availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ' — ' + availableUnits.edit.find(u => u.id == row.unit_id).door_no) : '— Select Unit —') : '— Select Unit —'"></span>
+                                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                                 </button>
+                                                 <!-- Dropdown Content -->
+                                                 <div x-show="open" x-transition
+                                                      class="absolute z-50 w-64 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-72 flex flex-col">
+                                                     <!-- Search Input -->
+                                                     <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-1.5">
+                                                         <svg class="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                                                         <input type="text" x-model="search" placeholder="Search floor or unit..."
+                                                                class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0">
+                                                     </div>
+                                                     <!-- Clear option -->
+                                                     <button type="button" @click="row.unit_id = ''; onRowUnitSelect(index, 'edit'); open = false; search = ''"
+                                                             class="w-full px-3 py-2 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic">
+                                                         — Clear Selection —
+                                                     </button>
+                                                     <!-- Grouped Options List -->
+                                                     <div class="overflow-y-auto flex-1">
+                                                         <template x-for="floorGroup in getFloorGroups('edit', search)" :key="floorGroup.floor">
+                                                             <div>
+                                                                 <!-- Floor Header -->
+                                                                 <div class="px-3 py-1 bg-slate-100 text-[9px] font-bold uppercase tracking-widest text-slate-500" x-text="floorGroup.floor"></div>
+                                                                 <!-- Units in this floor -->
+                                                                 <template x-for="unit in floorGroup.units" :key="unit.id">
+                                                                     <button type="button"
+                                                                             @click="row.unit_id = unit.id; onRowUnitSelect(index, 'edit'); open = false; search = ''"
+                                                                             :disabled="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)"
+                                                                             class="w-full px-4 py-2 text-left text-xs hover:bg-primary/5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-between gap-2"
+                                                                             :class="row.unit_id == unit.id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'">
+                                                                         <span class="font-semibold" x-text="unit.door_no"></span>
+                                                                         <span class="text-[9px] text-slate-400 font-mono" x-text="unit.unit_type_name"></span>
+                                                                     </button>
+                                                                 </template>
+                                                             </div>
+                                                         </template>
+                                                         <!-- No results -->
+                                                         <div x-show="getFloorGroups('edit', search).length === 0"
+                                                              class="px-4 py-6 text-center text-xs text-slate-400">
+                                                             No units match your search.
+                                                         </div>
+                                                     </div>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                         <div class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
+                                             <div class="w-full px-2.5 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-650 font-bold h-9 flex items-center shadow-inner">
+                                                 <span x-text="onGetRowArea(index, 'edit') + ' Sq Ft'"></span>
+                                             </div>
+                                         </div>
+                                         <div class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
+                                             <div class="relative rounded-xl shadow-sm h-9">
+                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                 </div>
+                                                 <input type="number" step="0.01" x-model="row.sale_amount" @input="onRowSaleAmountChange(index, 'edit')" placeholder="0.00"
+                                                        class="block w-full pl-7 pr-3 py-2 border border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <!-- Second row: Rate fields (standard unit) OR Expected Sale Amount (Parking unit) -->
+                                     <div class="pt-1">
+                                         <div x-show="!isRowParking(index, 'edit')" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                                             <div class="space-y-1.5">
+                                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
+                                                 <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
+                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                             </div>
+                                             <div class="space-y-1.5">
+                                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
+                                                 <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index, 'edit')" placeholder="Sale rate"
+                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                             </div>
+                                         </div>
+                                         <div x-show="isRowParking(index, 'edit')" class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
+                                             <div class="relative h-9 rounded-xl shadow-sm">
+                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                 </div>
+                                                 <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'edit')" placeholder="Enter parking expected sale amount"
+                                                        class="block w-full pl-7 pr-3 py-2 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
+                                             </div>
+                                         </div>
+                                     </div>
+                                     <!-- Third row: GST and Payable calculations -->
+                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-start pt-2 border-t border-slate-200/50">
+                                         <div class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
+                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index, 'edit')" placeholder="e.g. 18"
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                         </div>
+                                         <div class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Amount (₹)</label>
+                                             <div class="relative h-9 rounded-xl shadow-sm">
+                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                 </div>
+                                                 <input type="number" step="0.01" x-model="row.gst_amount" @input="recalculateRowGstFromAmount(index, 'edit')" placeholder="0.00"
+                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                             </div>
+                                             <template x-if="row.gst_amount && parseFloat(row.gst_amount) > 0">
+                                                 <p class="text-[9px] font-bold text-amber-700 uppercase tracking-wider mt-1.5 leading-snug break-words" x-text="'IN WORDS: ' + numberToWords(row.gst_amount)"></p>
+                                             </template>
+                                         </div>
+                                         <div class="space-y-1.5">
+                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Difference</p>
+                                             <p class="font-extrabold font-mono text-xs h-9 flex items-center"
+                                                :class="getRowDifference(index, 'edit') > 0 ? 'text-emerald-600' : (getRowDifference(index, 'edit') < 0 ? 'text-rose-600' : 'text-slate-500')"
+                                                x-text="(getRowDifference(index, 'edit') >= 0 ? '₹' : '-₹') + Math.abs(getRowDifference(index, 'edit')).toLocaleString()"></p>
+                                         </div>
+                                         <div class="space-y-1.5">
+                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
+                                             <p class="font-bold text-emerald-800 text-sm font-mono flex items-center h-8" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
+                                         </div>
+                                     </div>
                                 </div>
                             </template>
                         </div>
@@ -2085,7 +2159,7 @@ function salesApp() {
         addUnitRow(mode = 'add') {
             this.forms[mode].units.push({
                 id: null,
-                unit_id: '', wing: '', rate_per_sqft: '', sale_amount: '', gst_type: 'exclusive', gst_percentage: '',
+                unit_id: '', wing: '', rate_per_sqft: '', sale_rate_per_sqft: '', sale_amount: '', gst_type: 'exclusive', gst_percentage: '',
                 gst_amount: 0, base_amount: 0, total_amount: 0
             });
             this.recalculateAllTotals(mode);
@@ -2094,24 +2168,47 @@ function salesApp() {
             this.forms[mode].units.splice(index, 1);
             this.recalculateAllTotals(mode);
         },
+        isRowParking(index, mode = 'add') {
+            const row = this.forms[mode].units[index];
+            if (!row || !row.unit_id) return false;
+            const unit = (this.availableUnits[mode] || []).find(u => u.id == row.unit_id);
+            if (!unit) return false;
+            return (unit.unit_type_name || '').toLowerCase() === 'parking'
+                || (unit.unit_type_category || '').toLowerCase() === 'parking';
+        },
         onRowUnitSelect(index, mode = 'add') {
             const row = this.forms[mode].units[index];
             const unit = this.availableUnits[mode].find(u => u.id == row.unit_id);
             if (unit) {
-                const isParking = (unit.unit_type_name || '').toLowerCase() === 'parking'
-                               || (unit.unit_type_category || '').toLowerCase() === 'parking';
+                const isParking = this.isRowParking(index, mode);
                 if (isParking) {
-                    // Parking: no rate per sqft — use expected_sale_amount directly
                     row.rate_per_sqft = 0;
-                    row.sale_amount   = unit.expected_sale_amount || '';
+                    row.sale_rate_per_sqft = 0;
+                    row.expected_sale_amount = unit.expected_sale_amount || '';
+                    row.sale_amount = unit.expected_sale_amount || '';
                     this.recalculateRowGst(index, mode);
                 } else {
                     row.rate_per_sqft = unit.expected_rate_per_sqft || '';
-                    this.onRowRateChange(index, mode);
+                    row.sale_rate_per_sqft = unit.expected_rate_per_sqft || '';
+                    row.expected_sale_amount = unit.expected_sale_amount || '';
+                    
+                    const area = parseFloat(unit.built_up_area) || 0;
+                    const rate = parseFloat(row.sale_rate_per_sqft) || 0;
+                    if (rate > 0 && area > 0) {
+                        row.sale_amount = Math.round(rate * area * 100) / 100;
+                    } else if (unit.expected_sale_amount) {
+                        row.sale_amount = parseFloat(unit.expected_sale_amount) || '';
+                        if (area > 0 && row.sale_amount) {
+                            row.sale_rate_per_sqft = Math.round((row.sale_amount / area) * 100) / 100;
+                        }
+                    }
+                    this.recalculateRowGst(index, mode);
                 }
             } else {
                 // Cleared selection — reset row fields
                 row.rate_per_sqft = '';
+                row.sale_rate_per_sqft = '';
+                row.expected_sale_amount = '';
                 row.sale_amount   = '';
                 row.gst_amount    = 0;
                 row.base_amount   = 0;
@@ -2142,18 +2239,38 @@ function salesApp() {
             return groups;
         },
         onRowRateChange(index, mode = 'add') {
+            // Expected Rate change handler (if user explicitly modifies Expected Rate)
+            const row = this.forms[mode].units[index];
+            if (!row.sale_rate_per_sqft) {
+                row.sale_rate_per_sqft = row.rate_per_sqft;
+                this.onRowSaleRateChange(index, mode);
+            }
+        },
+        onRowSaleRateChange(index, mode = 'add') {
             const row = this.forms[mode].units[index];
             const unit = this.availableUnits[mode].find(u => u.id == row.unit_id);
-            const rate = parseFloat(row.rate_per_sqft) || 0;
+            const rate = parseFloat(row.sale_rate_per_sqft) || 0;
             const area = unit ? parseFloat(unit.built_up_area) || 0 : 0;
             row.sale_amount = Math.round(rate * area * 100) / 100;
+            this.recalculateRowGst(index, mode);
+        },
+        onRowSaleAmountChange(index, mode = 'add') {
+            const row = this.forms[mode].units[index];
+            const unit = this.availableUnits[mode].find(u => u.id == row.unit_id);
+            const amount = parseFloat(row.sale_amount) || 0;
+            const area = unit ? parseFloat(unit.built_up_area) || 0 : 0;
+            if (area > 0) {
+                row.sale_rate_per_sqft = Math.round((amount / area) * 100) / 100;
+            }
             this.recalculateRowGst(index, mode);
         },
         recalculateRowGst(index, mode = 'add') {
             const row = this.forms[mode].units[index];
             const entered = parseFloat(row.sale_amount) || 0;
+            const pctStr = (row.gst_percentage !== null && row.gst_percentage !== undefined) ? String(row.gst_percentage).trim() : '';
             const pct = parseFloat(row.gst_percentage) || 0;
-            if (pct > 0) {
+
+            if (pctStr !== '' && pct > 0 && entered > 0) {
                 const gst = Math.round(entered * (pct / 100) * 100) / 100;
                 row.base_amount = entered;
                 row.gst_amount = gst;
@@ -2161,7 +2278,28 @@ function salesApp() {
                 row.gst_type = 'exclusive';
             } else {
                 row.base_amount = entered;
-                row.gst_amount = 0;
+                row.gst_percentage = (pctStr === '' || pct === 0) ? '' : row.gst_percentage;
+                row.gst_amount = (pctStr === '' || pct === 0) ? '' : (row.gst_amount || '');
+                row.total_amount = Math.round((entered + (parseFloat(row.gst_amount) || 0)) * 100) / 100;
+                row.gst_type = (row.gst_amount && parseFloat(row.gst_amount) > 0) ? 'exclusive' : 'none';
+            }
+            this.recalculateAllTotals(mode);
+        },
+        recalculateRowGstFromAmount(index, mode = 'add') {
+            const row = this.forms[mode].units[index];
+            const entered = parseFloat(row.sale_amount) || 0;
+            const gstAmtStr = (row.gst_amount !== null && row.gst_amount !== undefined) ? String(row.gst_amount).trim() : '';
+            const gstAmt = parseFloat(row.gst_amount) || 0;
+
+            if (gstAmtStr !== '' && gstAmt > 0 && entered > 0) {
+                row.gst_percentage = Math.round((gstAmt / entered * 100) * 100) / 100;
+                row.base_amount = entered;
+                row.total_amount = Math.round((entered + gstAmt) * 100) / 100;
+                row.gst_type = 'exclusive';
+            } else {
+                row.gst_percentage = '';
+                row.base_amount = entered;
+                row.gst_amount = (gstAmtStr === '' || gstAmt === 0) ? '' : row.gst_amount;
                 row.total_amount = entered;
                 row.gst_type = 'none';
             }
@@ -2306,6 +2444,23 @@ function salesApp() {
             const expected = unit ? parseFloat(unit.expected_sale_amount) || 0 : 0;
             const agreed = parseFloat(this.forms[mode].sale_amount) || 0;
             return Math.round((agreed - expected) * 100) / 100;
+        },
+        getRowDifference(index, mode = 'add') {
+            const row = (this.forms[mode].units || [])[index];
+            if (!row) return 0;
+            
+            let expectedAmt = 0;
+            if (this.isRowParking(index, mode)) {
+                expectedAmt = parseFloat(row.expected_sale_amount) || 0;
+            } else {
+                const unit = (this.availableUnits[mode] || []).find(u => u.id == row.unit_id);
+                const area = unit ? (parseFloat(unit.built_up_area) || 0) : (parseFloat(row.built_up_area) || 0);
+                const expectedRate = parseFloat(row.rate_per_sqft) || 0;
+                expectedAmt = Math.round(expectedRate * area * 100) / 100;
+            }
+            
+            const agreedAmt = parseFloat(row.sale_amount) || 0;
+            return Math.round((agreedAmt - expectedAmt) * 100) / 100;
         },
         recalculateBrokerage(mode) {
             const form = this.forms[mode];
@@ -2592,7 +2747,9 @@ function salesApp() {
                             id: su.id,
                             unit_id: su.unit_id,
                             wing: su.wing || '',
-                            rate_per_sqft: su.rate_per_sqft,
+                            rate_per_sqft: su.unit ? su.unit.expected_rate_per_sqft : su.rate_per_sqft,
+                            sale_rate_per_sqft: su.rate_per_sqft,
+                            expected_sale_amount: su.unit ? su.unit.expected_sale_amount : su.base_amount,
                             sale_amount: su.base_amount,
                             gst_type: su.gst_type,
                             gst_percentage: su.gst_percentage,
@@ -2610,7 +2767,9 @@ function salesApp() {
                         id: null,
                         unit_id: this.activeSale.unit_id,
                         wing: '',
-                        rate_per_sqft: this.activeSale.rate_per_sqft,
+                        rate_per_sqft: this.activeSale.unit ? this.activeSale.unit.expected_rate_per_sqft : this.activeSale.rate_per_sqft,
+                        sale_rate_per_sqft: this.activeSale.rate_per_sqft,
+                        expected_sale_amount: this.activeSale.unit ? this.activeSale.unit.expected_sale_amount : this.activeSale.sale_amount,
                         sale_amount: this.activeSale.sale_amount,
                         gst_type: this.activeSale.gst_applicable ? 'exclusive' : 'none',
                         gst_percentage: this.activeSale.gst_applicable ? (this.activeSale.gst_percentage || '') : 0,

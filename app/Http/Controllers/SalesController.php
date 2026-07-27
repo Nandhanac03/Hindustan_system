@@ -119,6 +119,7 @@ class SalesController extends Controller
             'units.*.unit_id'        => ['required', 'exists:hindustan_units,id'],
             'units.*.wing'           => ['nullable', 'string'],
             'units.*.rate_per_sqft'  => ['nullable', 'numeric', 'min:0'],
+            'units.*.sale_rate_per_sqft' => ['nullable', 'numeric', 'min:0'],
             'units.*.sale_amount'    => ['required', 'numeric', 'min:0'],
             'units.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
             'broker_involved'        => ['nullable', 'boolean'],
@@ -142,6 +143,7 @@ class SalesController extends Controller
             'extra_works.*.gst_type'    => ['required', Rule::in(['exclusive', 'inclusive', 'none'])],
             'extra_works.*.gst_percentage' => ['required', 'numeric', 'min:0'],
         ]);
+
         return DB::transaction(function () use ($validated) {
             $unitsData = $validated['units'];
             // Compute aggregated totals
@@ -188,7 +190,9 @@ class SalesController extends Controller
                 $unitModel = Unit::findOrFail($item['unit_id']);
                 $area = (float)$unitModel->built_up_area ?: 1.0;
                 $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
-                $rate = $isUnitParking ? 0.0 : (float)($item['rate_per_sqft'] ?? 0.0);
+                $expectedRate = (float)($item['rate_per_sqft'] ?? $unitModel->expected_rate_per_sqft ?? 0.0);
+                $saleRate = (float)($item['sale_rate_per_sqft'] ?? $item['rate_per_sqft'] ?? 0.0);
+                $rate = $isUnitParking ? 0.0 : ($saleRate > 0 ? $saleRate : $expectedRate);
                 $amount = (float)$item['sale_amount'];
                 $gstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : 0.0;
                 $gstAmount = 0.0;
@@ -350,6 +354,7 @@ class SalesController extends Controller
             'units.*.unit_id'        => ['required', 'exists:hindustan_units,id'],
             'units.*.wing'           => ['nullable', 'string'],
             'units.*.rate_per_sqft'  => ['nullable', 'numeric', 'min:0'],
+            'units.*.sale_rate_per_sqft' => ['nullable', 'numeric', 'min:0'],
             'units.*.sale_amount'    => ['required', 'numeric', 'min:0'],
             'units.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
             'broker_involved'        => ['nullable', 'boolean'],
@@ -423,7 +428,9 @@ class SalesController extends Controller
                 $unitModel = Unit::findOrFail($item['unit_id']);
                 $area = (float)$unitModel->built_up_area ?: 1.0;
                 $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
-                $rate = $isUnitParking ? 0.0 : (float)($item['rate_per_sqft'] ?? 0.0);
+                $expectedRate = (float)($item['rate_per_sqft'] ?? $unitModel->expected_rate_per_sqft ?? 0.0);
+                $saleRate = (float)($item['sale_rate_per_sqft'] ?? $item['rate_per_sqft'] ?? 0.0);
+                $rate = $isUnitParking ? 0.0 : ($saleRate > 0 ? $saleRate : $expectedRate);
                 $amount = (float)$item['sale_amount'];
                 $gstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : 0.0;
                 $gstAmount = 0.0;
