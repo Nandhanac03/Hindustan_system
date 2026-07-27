@@ -368,7 +368,9 @@
             <div class="space-y-3">
                 @forelse($topCustomers as $idx => $customer)
                     @php
-                        $sv = $customer->payments_sum_amount ?? 0;
+                        $sv = ($customer->receipts_sum_amount > 0 ? $customer->receipts_sum_amount : null)
+                            ?? ($customer->payments_sum_amount > 0 ? $customer->payments_sum_amount : null)
+                            ?? ($customer->sales_sum_total_amount ?? 0);
                         $sdFmt = $sv >= 10000000 ? $currencySymbol.number_format($sv/10000000,2).'Cr' : ($sv >= 100000 ? $currencySymbol.number_format($sv/100000,2).'L' : $currencySymbol.number_format($sv));
                         
                         // Dynamic rank badge styling
