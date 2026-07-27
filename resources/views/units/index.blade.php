@@ -212,7 +212,7 @@
                 background-color: #ebe5d0 !important;
             }
         </style>
-        <div class="overflow-auto max-h-[70vh]">
+        <div class="overflow-auto max-h-[100vh]">
             <table id="units-table" class="w-full text-xs text-left">
                 <thead class="sticky top-0 z-10">
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
