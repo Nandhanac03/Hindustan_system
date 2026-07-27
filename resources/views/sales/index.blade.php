@@ -523,26 +523,43 @@
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
                                             <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
+                                        <template x-if="row.line_total && parseFloat(row.line_total) > 0">
+                                            <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
+                                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
+                                                <div class="text-[10px] leading-tight">
+                                                    <span class="font-extrabold text-[#8a7522] uppercase tracking-wider">In Words: </span>
+                                                    <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.line_total)"></span>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </template>
                         </div>
                     </div>
                     {{-- Aggregated Contract Summary --}}
-                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 relative overflow-hidden shadow-md space-y-3">
                         <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Sale Amount</span>
-                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.add.base_amount || 0).toLocaleString()"></span>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative z-10">
+                            <div class="border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Sale Amount</span>
+                                <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.add.base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <div class="border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total GST Amount</span>
+                                <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.add.gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Contract Value</span>
+                                <span class="font-extrabold text-[#d9bf3b] text-lg mt-1 block font-mono" x-text="'₹' + Number(forms.add.total_amount || 0).toLocaleString()"></span>
+                            </div>
                         </div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total GST Amount</span>
-                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.add.gst_amount || 0).toLocaleString()"></span>
-                        </div>
-                        <div class="relative z-10">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Contract Value</span>
-                            <span class="font-extrabold text-[#d9bf3b] text-lg mt-1 block font-mono" x-text="'₹' + Number(forms.add.total_amount || 0).toLocaleString()"></span>
-                        </div>
+                        <template x-if="forms.add.total_amount && parseFloat(forms.add.total_amount) > 0">
+                            <div class="relative z-10 pt-2.5 border-t border-slate-700/60 text-center">
+                                <span class="text-[9px] font-extrabold text-[#d9bf3b] uppercase tracking-widest">Total Contract Value in Words: </span>
+                                <span class="text-xs font-bold text-slate-200 uppercase tracking-wide ml-1" x-text="numberToWords(forms.add.total_amount)"></span>
+                            </div>
+                        </template>
                     </div>
                     {{-- ── Section 4 — Initial Payment ── --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
@@ -894,9 +911,6 @@
                                                  <input type="number" step="0.01" x-model="row.gst_amount" @input="recalculateRowGstFromAmount(index, 'edit')" placeholder="0.00"
                                                         class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                              </div>
-                                             <template x-if="row.gst_amount && parseFloat(row.gst_amount) > 0">
-                                                 <p class="text-[9px] font-bold text-amber-700 uppercase tracking-wider mt-1.5 leading-snug break-words" x-text="'IN WORDS: ' + numberToWords(row.gst_amount)"></p>
-                                             </template>
                                          </div>
                                          <div class="space-y-1.5">
                                              <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Difference</p>
@@ -908,6 +922,15 @@
                                              <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
                                              <p class="font-bold text-emerald-800 text-sm font-mono flex items-center h-8" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
                                          </div>
+                                         <template x-if="row.total_amount && parseFloat(row.total_amount) > 0">
+                                             <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
+                                                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
+                                                 <div class="text-[10px] leading-tight">
+                                                     <span class="font-extrabold text-[#8a7522] uppercase tracking-wider">In Words: </span>
+                                                     <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.total_amount)"></span>
+                                                 </div>
+                                             </div>
+                                         </template>
                                      </div>
                                 </div>
                             </template>
@@ -966,26 +989,43 @@
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
                                             <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
+                                        <template x-if="row.line_total && parseFloat(row.line_total) > 0">
+                                            <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
+                                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
+                                                <div class="text-[10px] leading-tight">
+                                                    <span class="font-extrabold text-[#8a7522] uppercase tracking-wider">In Words: </span>
+                                                    <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.line_total)"></span>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             </template>
                         </div>
                     </div>
                     {{-- ── Section 3 — Pricing & Contract Totals Summary ── --}}
-                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 relative overflow-hidden shadow-md space-y-3">
                         <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#09876B]/10 rounded-full blur-2xl pointer-events-none"></div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Sale Amount</span>
-                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.edit.base_amount || 0).toLocaleString()"></span>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative z-10">
+                            <div class="border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Sale Amount</span>
+                                <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.edit.base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <div class="border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total GST Amount</span>
+                                <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.edit.gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <div>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Contract Value</span>
+                                <span class="font-extrabold text-[#d9bf3b] text-lg mt-1 block font-mono" x-text="'₹' + Number(forms.edit.total_amount || 0).toLocaleString()"></span>
+                            </div>
                         </div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total GST Amount</span>
-                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="'₹' + Number(forms.edit.gst_amount || 0).toLocaleString()"></span>
-                        </div>
-                        <div class="relative z-10">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Contract Value</span>
-                            <span class="font-extrabold text-[#d9bf3b] text-lg mt-1 block font-mono" x-text="'₹' + Number(forms.edit.total_amount || 0).toLocaleString()"></span>
-                        </div>
+                        <template x-if="forms.edit.total_amount && parseFloat(forms.edit.total_amount) > 0">
+                            <div class="relative z-10 pt-2.5 border-t border-slate-700/60 text-center">
+                                <span class="text-[9px] font-extrabold text-[#d9bf3b] uppercase tracking-widest">Total Contract Value in Words: </span>
+                                <span class="text-xs font-bold text-slate-200 uppercase tracking-wide ml-1" x-text="numberToWords(forms.edit.total_amount)"></span>
+                            </div>
+                        </template>
                     </div>
                     {{-- ── Section 3 — Broker / Commission ── --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
@@ -2874,7 +2914,14 @@ function salesApp() {
             .then(data => { this.activeSale = data.sale; this.modals.view.open = true; })
             .catch(err => { console.error(err); this.showToast('Failed to load sale.', 'error'); });
         },
-        closeViewModal() { this.modals.view.open = false; }
+        closeViewModal() { this.modals.view.open = false; },
+        numberToWords(num) {
+            if (!num || isNaN(num) || parseFloat(num) <= 0) return '';
+            if (typeof window.convertNumberToWords === 'function') {
+                return window.convertNumberToWords(num);
+            }
+            return '';
+        }
     };
 }
 </script>
