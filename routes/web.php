@@ -104,6 +104,48 @@ Route::get('/run-storage-link', function () {
     ]);
 });
 
+// Helper route to clear all compiled view, route, config, and application caches on live server
+Route::get('/clear-cache', function () {
+    $results = [];
+    try {
+        \Illuminate\Support\Facades\Artisan::call('view:clear');
+        $results['view_clear'] = 'SUCCESS';
+    } catch (\Exception $e) {
+        $results['view_clear'] = 'ERROR: ' . $e->getMessage();
+    }
+    
+    try {
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        $results['cache_clear'] = 'SUCCESS';
+    } catch (\Exception $e) {
+        $results['cache_clear'] = 'ERROR: ' . $e->getMessage();
+    }
+    
+    try {
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        $results['config_clear'] = 'SUCCESS';
+    } catch (\Exception $e) {
+        $results['config_clear'] = 'ERROR: ' . $e->getMessage();
+    }
+    
+    try {
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        $results['route_clear'] = 'SUCCESS';
+    } catch (\Exception $e) {
+        $results['route_clear'] = 'ERROR: ' . $e->getMessage();
+    }
+
+    if (function_exists('opcache_reset')) {
+        @opcache_reset();
+        $results['opcache_reset'] = 'SUCCESS';
+    }
+
+    return response()->json([
+        'status' => 'Cache cleared successfully!',
+        'details' => $results
+    ]);
+});
+
 // Fallback route to serve storage files directly if public/storage symlink is bypassed or inaccessible
 Route::get('/storage/{path}', function ($path) {
     $file = storage_path('app/public/' . $path);
