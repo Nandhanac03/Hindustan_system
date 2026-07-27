@@ -212,22 +212,22 @@
                 background-color: #ebe5d0 !important;
             }
         </style>
-        <div class="overflow-x-auto">
+        <div class="overflow-auto max-h-[70vh]">
             <table id="units-table" class="w-full text-xs text-left">
-                <thead>
+                <thead class="sticky top-0 z-10">
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border">FLOOR</th>
-                        <th class="px-3 py-3 border">TYPE</th>
-                        <th class="px-3 py-3 border">DOOR NO</th>
-                        <th class="px-3 py-3 border">BUILT UP AREA (In Sq Ft)</th>
-                        <th class="px-3 py-3 border">CARPET AREA (In Sq Ft)</th>
-                        <th class="px-3 py-3 border">₹ EXPECTED / SQ.FT</th>
-                        <th class="px-3 py-3 border">₹ EXPECTED SALE</th>
-                        <th class="px-3 py-3 border">₹ SALE PER SQ.FT</th>
-                        <th class="px-3 py-3 border">₹ SALE AMOUNT</th>
-                        <th class="px-3 py-3 border">DIFFERENCE</th>
-                        <th class="px-3 py-3 border">STATUS</th>
-                        <th class="px-3 py-3 border text-right">Actions</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">FLOOR</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">TYPE</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">DOOR NO</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">BUILT UP AREA (In Sq Ft)</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">CARPET AREA (In Sq Ft)</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ EXPECTED / SQ.FT</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ EXPECTED SALE</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ SALE PER SQ.FT</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">₹ SALE AMOUNT</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">DIFFERENCE</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">STATUS</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="units-tbody" x-effect="renderUnitsTable()">
@@ -569,7 +569,7 @@
                                     <div class="grid grid-cols-2 gap-3">
                                         <div class="space-y-1.5">
                                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">New Rate (₹)</label>
-                                            <input type="number" step="0.01" x-model="forms.rate.rate" placeholder="e.g. 5000"
+                                            <input type="number" step="0.01" name="amount" x-model="forms.rate.rate" placeholder="e.g. 5000"
                                                 class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                                         </div>
                                         <div class="space-y-1.5">
