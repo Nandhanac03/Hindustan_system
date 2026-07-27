@@ -1748,24 +1748,37 @@ function unitsApp() {
                 return;
             }
 
-            fetch(`{{ url('units') }}/${this.activeUnit.id}`, {
-                method: 'PUT',
+            let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            let payload = {
+                ...this.forms.edit,
+                _token: csrfToken,
+                _method: 'PUT'
+            };
+
+            fetch(`{{ url('units') }}/${this.activeUnit.id}/update`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'X-CSRF-TOKEN': csrfToken,
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify(this.forms.edit)
+                body: JSON.stringify(payload)
             })
             .then(async res => {
-                let data = await res.json();
+                let text = await res.text();
+                let data = {};
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error('Non-JSON response:', text);
+                }
+
                 if (res.status === 422) {
                     this.errors = data.errors || {};
                 } else if (!res.ok) {
-                    this.showToast(data.error || 'Server error occurred.', 'error');
+                    this.showToast(data.error || data.message || ('Server error when updating unit (HTTP ' + res.status + ').'), 'error');
                 } else {
                     this.showToast('Unit details updated successfully.');
-                    // Update table & close modal
                     this.fetchUnits();
                     this.closeEditModal();
                 }
@@ -1841,17 +1854,29 @@ function unitsApp() {
         },
 
         submitDelete() {
-            fetch(`{{ url('units') }}/${this.activeUnit.id}`, {
-                method: 'DELETE',
+            let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            fetch(`{{ url('units') }}/${this.activeUnit.id}/remove`, {
+                method: 'POST',
                 headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify({
+                    _token: csrfToken
+                })
             })
             .then(async res => {
-                let data = await res.json();
+                let text = await res.text();
+                let data = {};
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error('Non-JSON response from server:', text);
+                }
+
                 if (!res.ok) {
-                    this.showToast(data.error || 'Failed to delete unit.', 'error');
+                    this.showToast(data.error || data.message || ('Server error (HTTP ' + res.status + ').'), 'error');
                 } else {
                     this.showToast('Unit deleted successfully.');
                     this.closeDeleteModal();
@@ -1860,7 +1885,7 @@ function unitsApp() {
             })
             .catch(err => {
                 console.error(err);
-                this.showToast('Network error occurred.', 'error');
+                this.showToast('Network error occurred while connecting to server.', 'error');
             });
         },
 
