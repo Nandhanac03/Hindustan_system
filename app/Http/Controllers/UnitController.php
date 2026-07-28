@@ -80,6 +80,30 @@ class UnitController extends Controller
                 if ($floorDiff !== 0) {
                     return $floorDiff;
                 }
+                // Within the same floor, sort door numbers correctly:
+                // Units whose suffix (after floor prefix) starts with a letter come before
+                // those whose suffix starts with a digit (e.g. "E A1" before "E1").
+                $floorPrefix = \App\Models\Floor::getDoorPrefix($a->floor->floor_number);
+                $getSuffix = function(string $doorNo) use ($floorPrefix): string {
+                    $upper = strtoupper(trim($doorNo));
+                    $prefixUpper = strtoupper($floorPrefix);
+                    if (str_starts_with($upper, $prefixUpper)) {
+                        return ltrim(substr($upper, strlen($prefixUpper)));
+                    }
+                    return $upper;
+                };
+                $suffixA = $getSuffix($a->door_no);
+                $suffixB = $getSuffix($b->door_no);
+                // If one suffix starts with a digit and the other starts with a letter,
+                // push the digit-starting suffix to the end (it represents e.g. "E1" → after "E D1")
+                $aStartsWithDigit = isset($suffixA[0]) && ctype_digit($suffixA[0]);
+                $bStartsWithDigit = isset($suffixB[0]) && ctype_digit($suffixB[0]);
+                if ($aStartsWithDigit && !$bStartsWithDigit) {
+                    return 1;
+                }
+                if (!$aStartsWithDigit && $bStartsWithDigit) {
+                    return -1;
+                }
                 return strnatcasecmp($a->door_no, $b->door_no);
             })->values();
 
@@ -128,7 +152,8 @@ class UnitController extends Controller
         $floor = \App\Models\Floor::find($validated['floor_id']);
         if ($floor) {
             $prefix = \App\Models\Floor::getDoorPrefix($floor->floor_number);
-            if ($prefix && !str_starts_with(strtoupper(trim($validated['door_no'])), strtoupper($prefix))) {
+            // Use prefix + ' ' to avoid partial match: e.g. "E1" should NOT match prefix "E" alone
+            if ($prefix && !str_starts_with(strtoupper(trim($validated['door_no'])), strtoupper($prefix) . ' ')) {
                 $validated['door_no'] = $prefix . ' ' . trim($validated['door_no']);
             }
         }
@@ -233,7 +258,8 @@ class UnitController extends Controller
         $floor = \App\Models\Floor::find($validated['floor_id']);
         if ($floor) {
             $prefix = \App\Models\Floor::getDoorPrefix($floor->floor_number);
-            if ($prefix && !str_starts_with(strtoupper(trim($validated['door_no'])), strtoupper($prefix))) {
+            // Use prefix + ' ' to avoid partial match: e.g. "E1" should NOT match prefix "E" alone
+            if ($prefix && !str_starts_with(strtoupper(trim($validated['door_no'])), strtoupper($prefix) . ' ')) {
                 $validated['door_no'] = $prefix . ' ' . trim($validated['door_no']);
             }
         }

@@ -35,6 +35,10 @@ class Floor extends Model
         if ($floorNumber < 0) {
             return 'B' . abs($floorNumber);
         }
+        // Floors above 10 use the floor number itself as prefix (e.g., 14 → "14 A1")
+        if ($floorNumber > 10) {
+            return (string)$floorNumber;
+        }
         return match ($floorNumber) {
             0 => 'G',
             1 => 'F',
@@ -46,7 +50,7 @@ class Floor extends Model
             7 => 'SE',
             8 => 'E',
             9 => 'N',
-            14 => 'FOR',
+            10 => 'TE',
             default => (string)$floorNumber,
         };
     }
