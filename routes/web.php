@@ -338,6 +338,12 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/vouchers/cash-book', [\App\Http\Controllers\VoucherController::class, 'cashBook'])->name('vouchers.cash-book');
     Route::get('/vouchers/bank-book', [\App\Http\Controllers\VoucherController::class, 'bankBook'])->name('vouchers.bank-book');
     Route::get('/vouchers/entity-ledger', [\App\Http\Controllers\VoucherController::class, 'entityLedger'])->name('vouchers.entity-ledger');
+    // Payment Mode Master Module
+    Route::get('/payment-modes', [\App\Http\Controllers\PaymentModeController::class, 'index'])->name('payment-modes.index');
+    Route::post('/payment-modes', [\App\Http\Controllers\PaymentModeController::class, 'store'])->name('payment-modes.store');
+    Route::post('/payment-modes/{id}/update', [\App\Http\Controllers\PaymentModeController::class, 'update'])->name('payment-modes.update');
+    Route::post('/payment-modes/{id}/delete', [\App\Http\Controllers\PaymentModeController::class, 'destroy'])->name('payment-modes.destroy');
+    Route::post('/payment-modes/{id}/toggle-status', [\App\Http\Controllers\PaymentModeController::class, 'toggleStatus'])->name('payment-modes.toggle-status');
 });
 
 require __DIR__ . '/auth.php';

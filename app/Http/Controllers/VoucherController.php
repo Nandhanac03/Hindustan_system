@@ -1075,10 +1075,6 @@ class VoucherController extends Controller
 
         DB::transaction(function () use ($request, $systemId, $user) {
             $amount = (float)$request->amount;
-            
-            // High-Value Approval Threshold
-            $requiresApproval = $amount >= 50000;
-            $status = $requiresApproval ? 'pending' : 'Posted';
 
             // Create Voucher
             $voucher = Voucher::create([
@@ -1088,7 +1084,7 @@ class VoucherController extends Controller
                 'date' => $request->date,
                 'narration' => $request->narration,
                 'created_by' => $user->id,
-                'status' => $status,
+                'status' => 'Posted',
                 'reference_no' => $request->reference_no ?? null,
             ]);
 
@@ -1110,32 +1106,30 @@ class VoucherController extends Controller
                 'line_narration' => 'Credit to Source Account',
             ]);
 
-            if (!$requiresApproval) {
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $request->destination_account_id,
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $debitLine->id,
-                    'date' => $request->date,
-                    'debit' => $amount,
-                    'credit' => 0.00,
-                    'running_balance' => 0.00,
-                ]);
+            LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $request->destination_account_id,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $debitLine->id,
+                'date' => $request->date,
+                'debit' => $amount,
+                'credit' => 0.00,
+                'running_balance' => 0.00,
+            ]);
 
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $request->credit_account_id,
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $creditLine->id,
-                    'date' => $request->date,
-                    'debit' => 0.00,
-                    'credit' => $amount,
-                    'running_balance' => 0.00,
-                ]);
-            }
+            LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $request->credit_account_id,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $creditLine->id,
+                'date' => $request->date,
+                'debit' => 0.00,
+                'credit' => $amount,
+                'running_balance' => 0.00,
+            ]);
         });
 
-        return redirect()->route('vouchers.ledger.index')->with('status', 'Contra Voucher created successfully. Note: Vouchers >= ₹50,000 require approval.');
+        return redirect()->route('vouchers.ledger.index')->with('status', 'Contra Voucher posted successfully.');
     }
 
     public function createJournal()
@@ -1198,10 +1192,6 @@ class VoucherController extends Controller
                 throw new \Exception('Journal entries must be balanced (Total Debits must equal Total Credits).');
             }
 
-            // High-Value Approval Threshold
-            $requiresApproval = $totalDebit >= 50000;
-            $status = $requiresApproval ? 'pending' : 'Posted';
-
             // Create Voucher
             $voucher = Voucher::create([
                 'system_id' => $systemId,
@@ -1210,7 +1200,7 @@ class VoucherController extends Controller
                 'date' => $request->date,
                 'narration' => $request->narration,
                 'created_by' => $user->id,
-                'status' => $status,
+                'status' => 'Posted',
             ]);
 
             foreach ($request->lines as $line) {
@@ -1229,22 +1219,20 @@ class VoucherController extends Controller
                     'line_narration' => $line['line_narration'] ?? 'Journal Line Item',
                 ]);
 
-                if (!$requiresApproval) {
-                    LedgerEntry::create([
-                        'system_id' => $systemId,
-                        'account_id' => $line['account_id'],
-                        'voucher_id' => $voucher->id,
-                        'voucher_line_id' => $vl->id,
-                        'date' => $request->date,
-                        'debit' => $debit,
-                        'credit' => $credit,
-                        'running_balance' => 0.00,
-                    ]);
-                }
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $line['account_id'],
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $vl->id,
+                    'date' => $request->date,
+                    'debit' => $debit,
+                    'credit' => $credit,
+                    'running_balance' => 0.00,
+                ]);
             }
         });
 
-        return redirect()->route('vouchers.ledger.index')->with('status', 'Journal Voucher created successfully. Note: Vouchers >= ₹50,000 require approval.');
+        return redirect()->route('vouchers.ledger.index')->with('status', 'Journal Voucher posted successfully.');
     }
 
     public function createSalesPurchase()
@@ -1335,10 +1323,6 @@ class VoucherController extends Controller
                 $creditVal = $baseAmount;
             }
 
-            // High-Value Approval Threshold
-            $requiresApproval = $baseAmount >= 50000;
-            $status = $requiresApproval ? 'pending' : 'Posted';
-
             // Auto-resolve duplicate voucher number collisions
             $finalVoucherNumber = $request->voucher_number;
             $exists = Voucher::where('system_id', $systemId)
@@ -1370,7 +1354,7 @@ class VoucherController extends Controller
                 'date' => $request->date,
                 'narration' => $request->narration,
                 'created_by' => $user->id,
-                'status' => $status,
+                'status' => 'Posted',
                 'reference_no' => $request->reference_no ?? null,
             ]);
 
@@ -1383,18 +1367,16 @@ class VoucherController extends Controller
                 'line_narration' => 'Debit Account',
             ]);
 
-            if (!$requiresApproval) {
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $request->debit_account_id,
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $debitLine->id,
-                    'date' => $request->date,
-                    'debit' => $debitVal,
-                    'credit' => 0.00,
-                    'running_balance' => 0.00,
-                ]);
-            }
+            LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $request->debit_account_id,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $debitLine->id,
+                'date' => $request->date,
+                'debit' => $debitVal,
+                'credit' => 0.00,
+                'running_balance' => 0.00,
+            ]);
 
             // 2. Credit Line
             $creditLine = VoucherLine::create([
@@ -1405,18 +1387,16 @@ class VoucherController extends Controller
                 'line_narration' => 'Credit Account',
             ]);
 
-            if (!$requiresApproval) {
-                LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $request->credit_account_id,
-                    'voucher_id' => $voucher->id,
-                    'voucher_line_id' => $creditLine->id,
-                    'date' => $request->date,
-                    'debit' => 0.00,
-                    'credit' => $creditVal,
-                    'running_balance' => 0.00,
-                ]);
-            }
+            LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $request->credit_account_id,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $creditLine->id,
+                'date' => $request->date,
+                'debit' => 0.00,
+                'credit' => $creditVal,
+                'running_balance' => 0.00,
+            ]);
 
             // 3. Taxes
             if ($cgst > 0 || $sgst > 0) {
@@ -1446,18 +1426,16 @@ class VoucherController extends Controller
                     'line_narration' => $taxNamePrefix . ' CGST 2.5%',
                 ]);
 
-                if (!$requiresApproval) {
-                    LedgerEntry::create([
-                        'system_id' => $systemId,
-                        'account_id' => $cgstAccount->id,
-                        'voucher_id' => $voucher->id,
-                        'voucher_line_id' => $cgstLine->id,
-                        'date' => $request->date,
-                        'debit' => $cgstDeb,
-                        'credit' => $cgstCred,
-                        'running_balance' => 0.00,
-                    ]);
-                }
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $cgstAccount->id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $cgstLine->id,
+                    'date' => $request->date,
+                    'debit' => $cgstDeb,
+                    'credit' => $cgstCred,
+                    'running_balance' => 0.00,
+                ]);
 
                 $sgstLine = VoucherLine::create([
                     'voucher_id' => $voucher->id,
@@ -1467,22 +1445,20 @@ class VoucherController extends Controller
                     'line_narration' => $taxNamePrefix . ' SGST 2.5%',
                 ]);
 
-                if (!$requiresApproval) {
-                    LedgerEntry::create([
-                        'system_id' => $systemId,
-                        'account_id' => $sgstAccount->id,
-                        'voucher_id' => $voucher->id,
-                        'voucher_line_id' => $sgstLine->id,
-                        'date' => $request->date,
-                        'debit' => $sgstDeb,
-                        'credit' => $sgstCred,
-                        'running_balance' => 0.00,
-                    ]);
-                }
+                LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $sgstAccount->id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $sgstLine->id,
+                    'date' => $request->date,
+                    'debit' => $sgstDeb,
+                    'credit' => $sgstCred,
+                    'running_balance' => 0.00,
+                ]);
             }
         });
 
-        return redirect()->route('vouchers.ledger.index')->with('status', ($request->transaction_type === 'sales' ? 'Sales Invoice' : 'Purchase Voucher') . ' posted successfully. Note: Vouchers >= ₹50,000 require approval.');
+        return redirect()->route('vouchers.ledger.index')->with('status', ($request->transaction_type === 'sales' ? 'Sales Invoice' : 'Purchase Voucher') . ' posted successfully.');
     }
 
     public function ledgerIndex(Request $request)
@@ -1647,6 +1623,35 @@ class VoucherController extends Controller
                 ['system_id' => $systemId, 'code' => $code],
                 ['name' => $cb->bank_name . ' Account', 'type' => 'Asset', 'is_active' => true]
             );
+        }
+
+        // Auto-post and backfill any vouchers stuck in 'pending' status or missing ledger entries
+        $unpostedVouchers = Voucher::where('system_id', $systemId)
+            ->with('lines')
+            ->get();
+
+        foreach ($unpostedVouchers as $v) {
+            if ($v->status === 'pending') {
+                $v->update(['status' => 'Posted']);
+            }
+            foreach ($v->lines as $line) {
+                $entryExists = LedgerEntry::where('voucher_id', $v->id)
+                    ->where('voucher_line_id', $line->id)
+                    ->exists();
+
+                if (!$entryExists) {
+                    LedgerEntry::create([
+                        'system_id' => $systemId,
+                        'account_id' => $line->account_id,
+                        'voucher_id' => $v->id,
+                        'voucher_line_id' => $line->id,
+                        'date' => $v->date,
+                        'debit' => $line->debit,
+                        'credit' => $line->credit,
+                        'running_balance' => 0.00,
+                    ]);
+                }
+            }
         }
     }
 
