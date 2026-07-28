@@ -211,16 +211,27 @@ class VoucherController extends Controller
             ->orderBy('bills.bill_number')
             ->get();
  
-        // 3. Fetch Cancelled Sales with refund payable
-        $cancelledSales = Sale::whereIn('project_id', Project::where('system_id', $systemId)->pluck('id'))
-            ->where('status', 'cancelled')
+        // 3. Fetch Pending Cancelled Sales with refund payable
+        $projectIds = Project::where('system_id', $systemId)->pluck('id');
+        $cancelledSales = Sale::where('status', 'cancelled')
+            ->where(function($q) use ($projectIds) {
+                $q->whereIn('project_id', $projectIds)
+                  ->orWhereNull('project_id');
+            })
             ->with(['customer', 'unit'])
             ->get()
             ->map(function ($sale) {
-                $totalPaid = $sale->receipts()->sum('amount');
-                $refundPayable = max(0.00, $totalPaid - (float)($sale->cancellation_fee ?? 0.00));
-                $remainingRefund = max(0.00, $refundPayable - (float)($sale->refund_amount ?? 0.00));
-                $sale->remaining_refund = $remainingRefund;
+                $refundPayable = (float)($sale->refund_amount ?? 0.00);
+                if ($refundPayable <= 0) {
+                    $totalPaid = (float)$sale->total_amount - (float)($sale->remaining_balance ?? 0.00);
+                    if ($totalPaid <= 0) {
+                        $totalPaid = (float)$sale->receipts()->sum('amount');
+                    }
+                    $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
+                    $refundPayable = max(0.00, $totalPaid - $cancellationFee);
+                }
+
+                $sale->remaining_refund = $refundPayable;
                 return $sale;
             })
             ->filter(fn($sale) => $sale->remaining_refund > 0)
@@ -320,19 +331,41 @@ class VoucherController extends Controller
             ->orderBy('bills.bill_number')
             ->get();
 
-        // Filter cancelled sales by the selected project
+        // Filter pending cancelled sales by project or system
+        $projectIds = Project::where('system_id', $systemId)->pluck('id');
         $cancelledSales = Sale::where('status', 'cancelled')
-            ->when($projectId, fn($q) => $q->where('project_id', $projectId))
+            ->when($projectId, function ($q) use ($projectId) {
+                $q->where(function ($sub) use ($projectId) {
+                    $sub->where('project_id', $projectId)
+                        ->orWhereNull('project_id');
+                });
+            }, function ($q) use ($projectIds) {
+                $q->where(function ($sub) use ($projectIds) {
+                    $sub->whereIn('project_id', $projectIds)
+                        ->orWhereNull('project_id');
+                });
+            })
             ->with(['customer', 'unit'])
             ->get()
             ->map(function ($sale) {
-                $totalPaid       = $sale->receipts()->sum('amount');
-                $refundPayable   = max(0.00, $totalPaid - (float)($sale->cancellation_fee ?? 0.00));
-                $remainingRefund = max(0.00, $refundPayable - (float)($sale->refund_amount ?? 0.00));
+                $refundPayable = (float)($sale->refund_amount ?? 0.00);
+                if ($refundPayable <= 0) {
+                    $totalPaid = (float)$sale->total_amount - (float)($sale->remaining_balance ?? 0.00);
+                    if ($totalPaid <= 0) {
+                        $totalPaid = (float)$sale->receipts()->sum('amount');
+                    }
+                    $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
+                    $refundPayable = max(0.00, $totalPaid - $cancellationFee);
+                }
+
+                $remainingRefund = $refundPayable;
+                $customerName = $sale->customer->name ?? ('Customer #' . $sale->customer_id);
+                $unitCode = $sale->unit->door_no ?? ($sale->unit->unit_number ?? 'Unit');
+
                 return [
-                    'id'             => $sale->id,
-                    'label'          => ($sale->customer->name ?? 'N/A') . ' — ' . $sale->sale_number . ' (Bal: ₹' . number_format($remainingRefund, 2) . ')',
-                    'remaining'      => $remainingRefund,
+                    'id'        => $sale->id,
+                    'label'     => $customerName . ' — ' . $sale->sale_number . ' (' . $unitCode . ') [Refund Bal: ₹' . number_format($remainingRefund, 2) . ']',
+                    'remaining' => $remainingRefund,
                 ];
             })
             ->filter(fn($s) => $s['remaining'] > 0)
