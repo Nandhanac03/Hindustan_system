@@ -621,12 +621,12 @@
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Amount (₹)</label>
-                                            <div class="relative rounded-xl shadow-sm">
+                                            <div class="relative h-9 rounded-xl shadow-sm">
                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
                                                 </div>
                                                 <input type="number" step="0.01" x-model="row.gst_amount" @input="recalculateRowGstFromAmount(index)" placeholder="0.00"
-                                                       class="block w-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                                       class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
