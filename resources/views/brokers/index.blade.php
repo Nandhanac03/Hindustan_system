@@ -156,7 +156,7 @@
         <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group overflow-hidden">
             <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-l-2xl group-hover:w-2 transition-all"></div>
             <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Disbursed Commission</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Paid Commission</span>
                 <div class="text-2xl font-black text-slate-800 font-mono mt-1 group-hover:text-indigo-600 transition-colors">₹{{ number_format($totalPaid, 2) }}</div>
             </div>
             <div class="mt-3 text-[10px] text-slate-500 flex items-center gap-1.5">
@@ -537,7 +537,7 @@
                                 @if($status === 'pending')
                                     <span class="text-[9px] text-slate-400 block mt-1.5 italic">Unlocks on full payment</span>
                                 @elseif($status === 'payable' || $status === 'partial')
-                                    <a href="{{ route('brokers.payable-report') }}" class="text-[9px] text-[#a38c29] hover:text-[#78661e] transition-colors font-bold block mt-1.5 flex items-center gap-1">Disburse Now <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                    <a href="{{ route('brokers.payable-report') }}" class="text-[9px] text-[#a38c29] hover:text-[#78661e] transition-colors font-bold block mt-1.5 flex items-center gap-1">Settle Commission <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
                                 @endif
                             </td>
                         </tr>
