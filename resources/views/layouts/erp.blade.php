@@ -502,26 +502,70 @@
 
         <!-- Main Body Content -->
         <main class="flex-1 p-6">
-            @if (session('status'))
+            @if (session('status') || session('success'))
             @php
-                $statusText = session('status');
+                $statusText = session('status') ?? session('success');
                 $modalTitle = 'Success!';
                 $modalBadge = 'Action Completed';
                 $modalSubtitle = 'Operation completed successfully.';
 
-                if (str_contains(strtolower($statusText), 'project')) {
-                    if (str_contains(strtolower($statusText), 'create') || str_contains(strtolower($statusText), 'add')) {
+                $lowerText = strtolower($statusText);
+
+                if (str_contains($lowerText, 'project')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
                         $modalTitle = 'Project Added!';
                         $modalBadge = 'New Project Created';
                         $modalSubtitle = 'The new project has been added successfully.';
-                    } elseif (str_contains(strtolower($statusText), 'delete')) {
+                    } elseif (str_contains($lowerText, 'delete')) {
                         $modalTitle = 'Project Deleted!';
                         $modalBadge = 'Project Removed';
                         $modalSubtitle = 'The project has been deleted successfully.';
-                    } elseif (str_contains(strtolower($statusText), 'update') || str_contains(strtolower($statusText), 'edit')) {
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
                         $modalTitle = 'Project Updated!';
                         $modalBadge = 'Project Modified';
                         $modalSubtitle = 'Project specifications updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'broker')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'register') || str_contains($lowerText, 'add') || str_contains($lowerText, 'save')) {
+                        $modalTitle = 'Broker Registered!';
+                        $modalBadge = 'Broker Profile Created';
+                        $modalSubtitle = 'Broker profile registered successfully.';
+                    } elseif (str_contains($lowerText, 'delete')) {
+                        $modalTitle = 'Broker Deleted!';
+                        $modalBadge = 'Broker Profile Removed';
+                        $modalSubtitle = 'Broker profile deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Broker Updated!';
+                        $modalBadge = 'Broker Profile Modified';
+                        $modalSubtitle = 'Broker profile updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'bank')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'Bank Account Added!';
+                        $modalBadge = 'Bank Configured';
+                        $modalSubtitle = 'Corporate bank account added successfully.';
+                    } elseif (str_contains($lowerText, 'delete')) {
+                        $modalTitle = 'Bank Account Deleted!';
+                        $modalBadge = 'Bank Account Removed';
+                        $modalSubtitle = 'Corporate bank account deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit')) {
+                        $modalTitle = 'Bank Account Updated!';
+                        $modalBadge = 'Bank Account Modified';
+                        $modalSubtitle = 'Corporate bank account updated successfully.';
+                    }
+                } elseif (str_contains($lowerText, 'payment mode')) {
+                    if (str_contains($lowerText, 'create') || str_contains($lowerText, 'add')) {
+                        $modalTitle = 'Payment Mode Created!';
+                        $modalBadge = 'Payment Mode Added';
+                        $modalSubtitle = 'Payment mode registered successfully.';
+                    } elseif (str_contains($lowerText, 'delete')) {
+                        $modalTitle = 'Payment Mode Deleted!';
+                        $modalBadge = 'Payment Mode Removed';
+                        $modalSubtitle = 'Payment mode deleted successfully.';
+                    } elseif (str_contains($lowerText, 'update') || str_contains($lowerText, 'edit') || str_contains($lowerText, 'status')) {
+                        $modalTitle = 'Payment Mode Updated!';
+                        $modalBadge = 'Payment Mode Modified';
+                        $modalSubtitle = 'Payment mode updated successfully.';
                     }
                 }
             @endphp
@@ -575,7 +619,7 @@
                             </div>
                             <div class="min-w-0 flex-1">
                                 <p class="text-[9px] font-bold text-[#a38c29]/70 uppercase tracking-widest">System Message</p>
-                                <p class="text-xs font-extrabold text-slate-900 mt-0.5">{{ session('status') }}</p>
+                                <p class="text-xs font-extrabold text-slate-900 mt-0.5">{{ $statusText }}</p>
                             </div>
                         </div>
 
