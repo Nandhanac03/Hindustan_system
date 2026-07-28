@@ -29,23 +29,11 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-            <select x-model="filters.status" @change="fetchUnits()"
-                    class="px-3.5 py-2.5 bg-slate-100 border-0 hover:bg-slate-200/80 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
-                <option value="">All Statuses</option>
-                <option value="recently_added">Recently Added</option>
-                <option value="available">Available</option>
-                <option value="blocked">Blocked</option>
-                <option value="booked">Booked</option>
-                <option value="sold">Sold</option>
-                <option value="on_hold">On Hold</option>
-            </select>
+
 
             <template x-if="permissions.manage">
                 <div class="flex items-center gap-2">
-                     <button @click="openBulkModal()" class="btn-ripple inline-flex items-center gap-2 px-3 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wide">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                        Bulk Add
-                    </button> 
+
                     <button @click="openAddModal()" class="btn-ripple inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         Add Unit
@@ -213,12 +201,12 @@
                 <select x-model="filters.status" @change="fetchUnits()"
                         class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
                     <option value="">All Statuses</option>
-                    <option value="recently_added">Recently Added</option>
+                    <!-- <option value="recently_added">Recently Added</option> -->
                     <option value="available">Available</option>
                     <option value="blocked">Blocked</option>
-                    <option value="booked">Booked</option>
+                    <!-- <option value="booked">Booked</option> -->
                     <option value="sold">Sold</option>
-                    <option value="on_hold">On Hold</option>
+                    <!-- <option value="on_hold">On Hold</option> -->
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -565,19 +553,31 @@
                     {{-- Status Transitions --}}
                     <div class="space-y-3">
                         <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Status Transitions</p>
+
+                        {{-- Inline error shown inside the modal (not behind it) --}}
+                        <template x-if="statusError">
+                            <div class="px-3 py-2 bg-rose-50 border border-rose-200 rounded-lg text-[11px] font-bold text-rose-700 flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span x-text="statusError"></span>
+                            </div>
+                        </template>
+
                         <div class="flex flex-wrap gap-2">
-                            <template x-if="['available', 'blocked'].includes(activeUnit.status)">
-                                <a :href="'{{ route('bookings.create') }}?unit_id=' + activeUnit.id"
-                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition uppercase tracking-wider shadow-sm">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
-                                    Book Unit
-                                </a>
+                            {{-- Block Unit button — only shown when unit is available --}}
+                            <template x-if="activeUnit.status === 'available'">
+                                <button type="button" @click="transitionStatus('blocked')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg text-xs transition uppercase tracking-wider shadow-sm">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                    Block Unit
+                                </button>
                             </template>
                             <template x-for="state in allowedTransitions" :key="state">
-                                <button type="button" @click="transitionStatus(state)"
-                                        class="px-3 py-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition">
-                                    Move to <span class="capitalize font-bold" x-text="state"></span>
-                                </button>
+                                <template x-if="!(activeUnit.status === 'available' && state === 'blocked')">
+                                    <button type="button" @click="transitionStatus(state)"
+                                            class="px-3 py-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition">
+                                        Move to <span class="capitalize font-bold" x-text="state"></span>
+                                    </button>
+                                </template>
                             </template>
                             <template x-if="activeUnit.status === 'sold' && allowedTransitions.includes('available')">
                                 <label class="inline-flex items-center gap-1.5 text-xs text-slate-500 ml-1 cursor-pointer">
@@ -585,11 +585,11 @@
                                     <span class="font-bold">Resale Flag</span>
                                 </label>
                             </template>
-                            <template x-if="allowedTransitions.length === 0">
+                            <template x-if="allowedTransitions.length === 0 && activeUnit.status !== 'available'">
                                 <p class="text-xs text-slate-400 italic">No transitions available.</p>
                             </template>
                         </div>
-                        <div x-show="allowedTransitions.length > 0">
+                        <div x-show="allowedTransitions.length > 0 || activeUnit.status === 'available'">
                             <input type="text" x-model="forms.status.reason" placeholder="Reason for transition (optional)..."
                                 class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         </div>
@@ -1332,6 +1332,7 @@ function unitsApp() {
             message: '',
             type: 'success'
         },
+        statusError: '',
 
         init() {
             // Pre-populate filters from URL query parameters (e.g. ?status=sold from dashboard)
@@ -1932,6 +1933,7 @@ function unitsApp() {
 
         // Status Transition Handler
         transitionStatus(targetState) {
+            this.statusError = ''; // clear previous inline error
             let payload = {
                 status: targetState,
                 reason: this.forms.status.reason,
@@ -1950,8 +1952,10 @@ function unitsApp() {
             .then(async res => {
                 let data = await res.json();
                 if (!res.ok) {
-                    this.showToast(data.error || 'Failed to update status.', 'error');
+                    // Show error inline inside the modal, not behind it
+                    this.statusError = data.error || 'Failed to update status.';
                 } else {
+                    this.statusError = '';
                     this.showToast(`Transitioned status to ${targetState} successfully.`);
                     this.fetchUnits();
                     this.openEditModal(this.activeUnit.id);
@@ -1959,7 +1963,7 @@ function unitsApp() {
             })
             .catch(err => {
                 console.error(err);
-                this.showToast('Network error occurred.', 'error');
+                this.statusError = 'Network error occurred.';
             });
         },
 
