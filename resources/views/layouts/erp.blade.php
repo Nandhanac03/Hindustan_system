@@ -743,7 +743,7 @@
                     let wordsLabel = el.nextElementSibling;
                     if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
                         wordsLabel = document.createElement('div');
-                        wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all whitespace-nowrap overflow-hidden text-ellipsis';
+                        wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold capitalize mt-1 tracking-wide transition-all leading-tight break-words';
                         el.parentNode.insertBefore(wordsLabel, el.nextSibling);
                     }
                     const words = window.convertNumberToWords(el.value);
@@ -761,6 +761,9 @@
                 const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
                 const id = (el.getAttribute('id') || '').toLowerCase();
                 
+                // Exclude rates per sqft and agreed sale amounts
+                const isExcludedFromWords = xModel.includes('sqft') || name.includes('sqft') || placeholder.includes('sqft') || xModel.includes('sale_amount');
+
                 // 1. Handle GST & Percentage inputs limit
                 if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount')) {
                     if (
@@ -790,12 +793,12 @@
                         // Strip invalid characters from the amount input
                         window.sanitizeAmountInput(el);
                         
-                        // Render in-words only if it is not the Agreed Sale Amount field
-                        if (!xModel.includes('sale_amount')) {
+                        // Render in-words only if it is not excluded
+                        if (!isExcludedFromWords) {
                             let wordsLabel = el.nextElementSibling;
                             if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
                                 wordsLabel = document.createElement('div');
-                                wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all whitespace-nowrap overflow-hidden text-ellipsis';
+                                wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold capitalize mt-1 tracking-wide transition-all leading-tight break-words';
                                 el.parentNode.insertBefore(wordsLabel, el.nextSibling);
                             }
                             const words = window.convertNumberToWords(el.value);

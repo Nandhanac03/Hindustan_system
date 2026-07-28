@@ -738,7 +738,7 @@
                                 <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative">
                                     <button type="button" @click="removeExtraWorkRow(index, 'add')"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
-                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-start">
                                         <div class="space-y-1.5 sm:col-span-2">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Description / Work Details *</label>
                                             <input type="text" x-model="row.description" placeholder="e.g. Flooring Upgrade, Custom Fittings"
@@ -760,28 +760,19 @@
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
-                                        <div class="space-y-1.5" x-show="row.gst_type !== 'none'">
+                                        <div class="space-y-1.5 sm:col-span-1" x-show="row.gst_type !== 'none'">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'add')" placeholder="18"
                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
-                                        <div></div>
-                                        <div class="space-y-1.5">
+                                        <div class="space-y-1.5 sm:col-span-1" x-show="row.gst_type !== 'none'">
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
-                                            <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
+                                            <p class="font-bold text-slate-900 leading-9 font-mono text-xs" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
                                         </div>
-                                        <div class="space-y-1.5">
+                                        <div class="space-y-1.5 ml-auto text-right" :class="row.gst_type !== 'none' ? 'sm:col-span-2' : 'sm:col-span-4'">
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
-                                            <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
+                                            <p class="font-black text-emerald-800 text-sm leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
-                                        <template x-if="row.line_total && parseFloat(row.line_total) > 0">
-                                            <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
-                                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
-                                                <div class="text-[10px] leading-tight">
-                                                    <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.line_total)"></span>
-                                                </div>
-                                            </div>
-                                        </template>
                                     </div>
                                 </div>
                             </template>
@@ -806,7 +797,7 @@
                         </div>
                         <template x-if="forms.add.total_amount && parseFloat(forms.add.total_amount) > 0">
                             <div class="relative z-10 pt-2.5 border-t border-slate-700/60 text-center">
-                                <span class="text-xs font-bold text-slate-200 uppercase tracking-wide ml-1" x-text="numberToWords(forms.add.total_amount)"></span>
+                                <span class="text-xs font-bold text-slate-200 capitalize tracking-wide ml-1" x-text="numberToWords(forms.add.total_amount)"></span>
                             </div>
                         </template>
                     </div>
@@ -982,7 +973,7 @@
          EDIT SALE MODAL (legacy single-unit fields kept for backward-compatible edits)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="if (!modals.quickCustomer.open && !confirmDeleteUnitModal.open) closeEditModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !confirmDeleteUnitModal.open) closeEditModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/20">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -1257,14 +1248,6 @@
                                              <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
                                              <p class="font-bold text-emerald-800 text-sm font-mono flex items-center h-8" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
                                          </div>
-                                         <template x-if="row.total_amount && parseFloat(row.total_amount) > 0">
-                                             <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
-                                                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
-                                                 <div class="text-[10px] leading-tight">
-                                                     <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.total_amount)"></span>
-                                                 </div>
-                                             </div>
-                                         </template>
                                      </div>
                                 </div>
                             </template>
@@ -1287,7 +1270,7 @@
                                 <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative">
                                     <button type="button" @click="removeExtraWorkRow(index, 'edit')"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
-                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-start">
                                         <div class="space-y-1.5 sm:col-span-2">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Description / Work Details *</label>
                                             <input type="text" x-model="row.description" placeholder="e.g. Flooring Upgrade, Custom Fittings"
@@ -1309,28 +1292,19 @@
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50">
-                                        <div class="space-y-1.5" x-show="row.gst_type !== 'none'">
+                                        <div class="space-y-1.5 sm:col-span-1" x-show="row.gst_type !== 'none'">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateExtraWorkRowGst(index, 'edit')" placeholder="18"
                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
-                                        <div></div>
-                                        <div class="space-y-1.5">
+                                        <div class="space-y-1.5 sm:col-span-1" x-show="row.gst_type !== 'none'">
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
-                                            <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
+                                            <p class="font-bold text-slate-900 leading-9 font-mono text-xs" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
                                         </div>
-                                        <div class="space-y-1.5">
+                                        <div class="space-y-1.5 ml-auto text-right" :class="row.gst_type !== 'none' ? 'sm:col-span-2' : 'sm:col-span-4'">
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
-                                            <p class="font-bold text-emerald-800 leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
+                                            <p class="font-black text-emerald-800 text-sm leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
-                                        <template x-if="row.line_total && parseFloat(row.line_total) > 0">
-                                            <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
-                                                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
-                                                <div class="text-[10px] leading-tight">
-                                                    <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.line_total)"></span>
-                                                </div>
-                                            </div>
-                                        </template>
                                     </div>
                                 </div>
                             </template>
@@ -1355,7 +1329,7 @@
                         </div>
                         <template x-if="forms.edit.total_amount && parseFloat(forms.edit.total_amount) > 0">
                             <div class="relative z-10 pt-2.5 border-t border-slate-700/60 text-center">
-                                <span class="text-xs font-bold text-slate-200 uppercase tracking-wide ml-1" x-text="numberToWords(forms.edit.total_amount)"></span>
+                                <span class="text-xs font-bold text-slate-200 capitalize tracking-wide ml-1" x-text="numberToWords(forms.edit.total_amount)"></span>
                             </div>
                         </template>
                     </div>
