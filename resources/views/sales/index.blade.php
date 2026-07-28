@@ -2631,19 +2631,43 @@ function salesApp() {
             const s = (search || '').toLowerCase().trim();
             const unitsList = this.availableUnits[mode] || [];
             if (!s) return unitsList;
+
+            const sClean = s.replace(/[\s\-_]+/g, '');
             const searchWords = s.split(/\s+/).filter(Boolean);
+
             return unitsList.filter(u => {
-                const combined = ((u.door_no || '') + ' ' + (u.floor_name || '') + ' ' + (u.unit_type_name || '') + ' ' + (u.unit_type_category || '')).toLowerCase();
-                return searchWords.every(word => combined.includes(word));
+                const doorNo = (u.door_no || '').toLowerCase();
+                const doorNoClean = doorNo.replace(/[\s\-_]+/g, '');
+                const floorName = (u.floor_name || '').toLowerCase();
+                const floorNameClean = floorName.replace(/[\s\-_]+/g, '');
+                const typeName = (u.unit_type_name || '').toLowerCase();
+                const category = (u.unit_type_category || '').toLowerCase();
+
+                // 1. Direct clean match on door number (e.g., 'g 2' matches 'G 2', 'G-2', 'G2')
+                if (sClean && doorNoClean.includes(sClean)) return true;
+                if (doorNo.includes(s)) return true;
+
+                // 2. Direct clean match on floor name
+                if (sClean && floorNameClean.includes(sClean)) return true;
+                if (floorName.includes(s)) return true;
+
+                // 3. Multi-word search: each search word must match
+                return searchWords.every(word => {
+                    const wClean = word.replace(/[\s\-_]+/g, '');
+                    if (!wClean) return true;
+
+                    // Short words (<= 2 chars like 'g' or '2') match only against door_no or floor_name to prevent false matches inside 'parking'
+                    if (word.length <= 2) {
+                        return doorNoClean.includes(wClean) || doorNo.includes(word) || floorNameClean.includes(wClean) || floorName.includes(word);
+                    }
+
+                    const combined = `${doorNo} ${floorName} ${typeName} ${category}`;
+                    return combined.includes(word);
+                });
             });
         },
         getFloorGroups(mode, search = '') {
-            const s = (search || '').toLowerCase().trim();
-            const unitsList = this.availableUnits[mode] || [];
-            const filtered = !s ? unitsList : unitsList.filter(u => {
-                const text = ((u.floor_name || '') + ' ' + (u.door_no || '') + ' ' + (u.unit_type_name || '') + ' ' + (u.unit_type_category || '')).toLowerCase();
-                return text.includes(s);
-            });
+            const filtered = this.getFilteredUnits(mode, search);
             const groups = [];
             const map = {};
             filtered.forEach(u => {
