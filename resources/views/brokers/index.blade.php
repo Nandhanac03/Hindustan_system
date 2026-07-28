@@ -99,15 +99,6 @@
     </div>
 
     {{-- Feedback Alerts --}}
-    @if(session('status'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs font-bold text-emerald-800 uppercase tracking-wide flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                <span>{{ session('status') }}</span>
-            </div>
-            <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
-        </div>
-    @endif
     @if(session('error'))
         <div class="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-bold text-rose-800 uppercase tracking-wide flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2">
@@ -185,7 +176,7 @@
             <table class="w-full text-xs text-left min-w-[1000px] broker-table border-collapse">
                 <thead>
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border">Broker & Ledger Info</th>
+                        <th class="px-3 py-3 border">Broker Name</th>
                         <th class="px-3 py-3 border">Default Commission %</th>
                         <th class="px-3 py-3 border">Total Sales Handled</th>
                         <th class="px-3 py-3 border">Accrued (Locked)</th>
@@ -201,20 +192,12 @@
                                 <div class="font-bold text-slate-900 text-sm flex items-center justify-center gap-1.5">
                                     <span>{{ $broker->name }}</span>
                                 </div>
-                                <div class="text-[9px] text-slate-500 font-mono mt-0.5 flex items-center justify-center gap-1">
-                                    <span class="px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-bold shadow-sm">A/C: {{ $broker->linkedAccount->code ?? 'N/A' }}</span>
-                                    <span>{{ $broker->linkedAccount->name ?? '' }}</span>
-                                </div>
                             </td>
                             <td class="px-3 py-4 border text-center">
                                 <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-amber-200/70 text-amber-900 font-bold font-mono text-xs shadow-2xs">
                                     <span>{{ number_format($broker->default_commission_pct, 2) }}%</span>
                                 </div>
-                                @if(abs($broker->default_commission_pct - 2.00) < 0.01)
-                                    <span class="text-[9px] text-slate-400 block mt-0.5">Standard Rate</span>
-                                @else
-                                    <span class="text-[9px] text-indigo-600 font-semibold block mt-0.5">Custom Rate</span>
-                                @endif
+
                             </td>
                             <td class="px-3 py-4 border text-center">
                                 <div class="font-bold text-slate-800">{{ $broker->total_deals }} Deal(s)</div>
@@ -537,7 +520,12 @@
                                 @if($status === 'pending')
                                     <span class="text-[9px] text-slate-400 block mt-1.5 italic">Unlocks on full payment</span>
                                 @elseif($status === 'payable' || $status === 'partial')
-                                    <a href="{{ route('brokers.payable-report') }}" class="text-[9px] text-[#a38c29] hover:text-[#78661e] transition-colors font-bold block mt-1.5 flex items-center gap-1">Settle Commission <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a>
+                                    <div class="mt-2.5 flex justify-center">
+                                        <a href="{{ route('brokers.payable-report') }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-[#a38c29]/30 hover:border-[#a38c29] rounded-lg text-[9px] font-extrabold uppercase tracking-widest transition-all shadow-sm group">
+                                            Settle Commission
+                                            <svg class="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                                        </a>
+                                    </div>
                                 @endif
                             </td>
                         </tr>
