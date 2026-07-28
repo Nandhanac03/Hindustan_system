@@ -523,9 +523,6 @@
                                                 <input type="number" step="0.01" x-model="row.gst_amount" @input="recalculateRowGstFromAmount(index)" placeholder="0.00"
                                                        class="block w-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                             </div>
-                                            <template x-if="row.gst_amount && parseFloat(row.gst_amount) > 0">
-                                                <p class="text-[9px] font-bold text-amber-700 uppercase tracking-wider mt-1.5 leading-snug break-words" x-text="'IN WORDS: ' + numberToWords(row.gst_amount)"></p>
-                                            </template>
                                         </div>
                                         <div class="space-y-1.5">
                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Difference</p>
