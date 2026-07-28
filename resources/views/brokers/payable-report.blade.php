@@ -66,7 +66,7 @@
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Payable Commission (Unlocked)</span>
                 <span class="text-2xl font-black text-slate-800 font-mono mt-1 block group-hover:text-emerald-600 transition-colors">₹{{ number_format($totalPayable, 2) }}</span>
-                <span class="text-[9px] text-slate-500 mt-1 block font-bold">Ready for immediate disbursement</span>
+                <span class="text-[9px] text-slate-500 mt-1 block font-bold">Ready for immediate payment</span>
             </div>
             <span class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center font-bold shadow-sm">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -78,7 +78,7 @@
             <div>
                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Settled & Paid</span>
                 <span class="text-2xl font-black text-slate-800 font-mono mt-1 block group-hover:text-indigo-600 transition-colors">₹{{ number_format($totalPaid, 2) }}</span>
-                <span class="text-[9px] text-slate-500 mt-1 block font-semibold">Historical commission disbursements</span>
+                <span class="text-[9px] text-slate-500 mt-1 block font-semibold">Historical commission payments</span>
             </div>
             <span class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center font-bold shadow-sm">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -91,7 +91,7 @@
         <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
                 <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Broker-wise Pending Commission Breakdown</h2>
-                <p class="text-[10px] text-slate-450 mt-0.5">Summary of pending commissions per broker. Disburse unlocked payable balances directly to ledger accounts.</p>
+                <p class="text-[10px] text-slate-450 mt-0.5">Summary of pending commissions per broker. Settle unlocked payable balances directly to ledger accounts.</p>
             </div>
             <span class="text-[10px] font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-2xs">Showing {{ count($brokerReports) }} Registered Broker(s)</span>
         </div>
@@ -111,7 +111,7 @@
                         <th class="px-3 py-3 border">Payable (Unlocked)</th>
                         <th class="px-3 py-3 border">Total Pending</th>
                         <th class="px-3 py-3 border">Total Settled</th>
-                        <th class="px-3 py-3 border text-right">Disbursement Action</th>
+                        <th class="px-3 py-3 border text-right">Settlement Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 broker-tbody">
@@ -147,14 +147,37 @@
                             </td>
                             <td class="px-3 py-4 border text-right">
                                 @if($report->payable > 0)
-                                    <form action="{{ route('brokers.payout') }}" method="POST" onsubmit="return confirm('Disburse total payable commission of ₹{{ number_format($report->payable, 2) }} to {{ $report->broker->name }}?')">
+                                    <form action="{{ route('brokers.payout') }}" method="POST" x-data="{ openConfirm: false }" @submit.prevent="openConfirm = true">
                                         @csrf
                                         <input type="hidden" name="broker_id" value="{{ $report->broker->id }}">
                                         <button type="submit" 
                                                 class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white font-bold rounded-xl text-xs transition-all shadow-md uppercase tracking-wide">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                            Disburse ₹{{ number_format($report->payable, 0) }}
+                                            Record Payment ₹{{ number_format($report->payable, 0) }}
                                         </button>
+
+                                        {{-- Confirmation Modal --}}
+                                        <div x-show="openConfirm" 
+                                             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity text-left whitespace-normal"
+                                             style="display: none;" x-transition.opacity>
+                                            <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-emerald-100 transform transition-all" @click.away="openConfirm = false">
+                                                <div class="p-6 text-center">
+                                                    <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 mx-auto flex items-center justify-center mb-4 shadow-sm border border-emerald-100">
+                                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    </div>
+                                                    <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">Confirm Payment</h3>
+                                                    <p class="text-xs text-slate-500 font-medium">Are you sure you want to settle the total payable commission of <span class="font-bold text-slate-800 font-mono">₹{{ number_format($report->payable, 2) }}</span> to <span class="font-bold text-emerald-700">{{ $report->broker->name }}</span>?</p>
+                                                    
+                                                    <div class="mt-6 flex items-center justify-center gap-3">
+                                                        <button type="button" @click="openConfirm = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
+                                                        <button type="button" @click="$el.closest('form').submit()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                            Yes, Settle Now
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </form>
                                 @else
                                     <span class="text-slate-500 italic text-[10px]">No payable balance</span>
@@ -293,13 +316,36 @@
                             </td>
                             <td class="px-3 py-4 border text-right">
                                 @if($status === 'payable' || $status === 'partial')
-                                    <form action="{{ route('brokers.payout') }}" method="POST" onsubmit="return confirm('Disburse commission of ₹{{ number_format($commAmount, 2) }} for Sale #{{ $sale->sale_number ?? '' }}?')">
+                                    <form action="{{ route('brokers.payout') }}" method="POST" x-data="{ openConfirm: false }" @submit.prevent="openConfirm = true">
                                         @csrf
                                         <input type="hidden" name="commission_entry_id" value="{{ $entry->id }}">
                                         <button type="submit" 
                                                 class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-[10px] transition uppercase tracking-wide shadow-2xs">
                                             Pay ₹{{ number_format($commAmount, 0) }}
                                         </button>
+
+                                        {{-- Confirmation Modal --}}
+                                        <div x-show="openConfirm" 
+                                             class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity text-left whitespace-normal"
+                                             style="display: none;" x-transition.opacity>
+                                            <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-emerald-100 transform transition-all" @click.away="openConfirm = false">
+                                                <div class="p-6 text-center">
+                                                    <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 mx-auto flex items-center justify-center mb-4 shadow-sm border border-emerald-100">
+                                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    </div>
+                                                    <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">Settle Transaction</h3>
+                                                    <p class="text-xs text-slate-500 font-medium leading-relaxed">You are about to record a commission payment of <span class="font-bold text-slate-800 font-mono">₹{{ number_format($commAmount, 2) }}</span> for Sale <span class="font-bold text-emerald-700 font-mono">#{{ $sale->sale_number ?? '' }}</span>.</p>
+                                                    
+                                                    <div class="mt-6 flex items-center justify-center gap-3">
+                                                        <button type="button" @click="openConfirm = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
+                                                        <button type="button" @click="$el.closest('form').submit()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
+                                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                            Yes, Settle Now
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </form>
                                 @elseif($status === 'pending')
                                     <span class="text-[10px] text-slate-400 italic">Locked (Pending Bal.)</span>

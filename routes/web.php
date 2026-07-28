@@ -273,10 +273,11 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     // Brokerage & Commission Management
     Route::get('/brokers', [\App\Http\Controllers\BrokerController::class, 'index'])->name('brokers.index');
     Route::post('/brokers', [\App\Http\Controllers\BrokerController::class, 'store'])->name('brokers.store');
-    Route::match(['put', 'post'], '/brokers/{broker}', [\App\Http\Controllers\BrokerController::class, 'update'])->name('brokers.update');
     Route::get('/brokers/payable-report', [\App\Http\Controllers\BrokerController::class, 'payableReport'])->name('brokers.payable-report');
     Route::post('/brokers/payout', [\App\Http\Controllers\BrokerController::class, 'recordPayout'])->name('brokers.payout');
+    Route::match(['put', 'post'], '/brokers/{broker}', [\App\Http\Controllers\BrokerController::class, 'update'])->name('brokers.update');
     Route::match(['get', 'post', 'delete'], '/brokers/{broker}', [\App\Http\Controllers\BrokerController::class, 'destroy'])->name('brokers.destroy');
+
 
     // Customers
     Route::get('/customers', [\App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');
