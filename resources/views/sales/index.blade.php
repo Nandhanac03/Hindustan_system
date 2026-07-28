@@ -674,11 +674,11 @@
                             </span>
                         </label>
                         <div x-show="forms.add.broker_involved" class="space-y-4" x-transition>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
                                     <select x-model="forms.add.broker_id" @change="onBrokerSelect('add')"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         <option value="">— Select Broker —</option>
                                         @foreach($brokers as $broker)
                                             <option value="{{ $broker->id }}">{{ $broker->name }}</option>
@@ -688,7 +688,7 @@
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
-                                    <div class="flex items-center gap-4 h-9">
+                                    <div class="flex items-center gap-4 h-9 px-3 bg-slate-50 border border-slate-250 rounded-xl shadow-sm">
                                         <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
                                             <input type="radio" value="percentage" x-model="forms.add.brokerage_type" @change="onBrokerageTypeChange('add')" class="text-primary focus:ring-primary/20">
                                             <span>Percentage (%)</span>
@@ -702,18 +702,16 @@
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
                                     <input type="number" step="any" min="0" :max="forms.add.brokerage_type === 'percentage' ? 100 : null" x-model="forms.add.brokerage_value" @input="recalculateAllTotals('add')" :placeholder="forms.add.brokerage_type === 'fixed' ? 'Enter fixed amount (₹)' : 'e.g. 2 for 2%'"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
+                                           class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                                 <div class="space-y-1.5">
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brokerage Amount</p>
-                                    <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.add.brokerage_amount || 0).toLocaleString()"></p>
+                                    <div class="w-full h-9 px-3 bg-slate-100/90 border border-slate-250 rounded-xl font-bold text-slate-900 font-mono text-xs flex items-center shadow-sm" x-text="'₹' + Number(forms.add.brokerage_amount || 0).toLocaleString()"></div>
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
                                     <select x-model="forms.add.brokerage_status"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         <option value="pending">Pending</option>
                                         <option value="paid">Paid</option>
                                     </select>
@@ -1353,11 +1351,11 @@
                             </span>
                         </label>
                         <div x-show="forms.edit.broker_involved" class="space-y-4" x-transition>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Broker</label>
                                     <select x-model="forms.edit.broker_id" @change="onBrokerSelect('edit')"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         <option value="">— Select Broker —</option>
                                         @foreach($brokers as $broker)
                                             <option value="{{ $broker->id }}">{{ $broker->name }}</option>
@@ -1366,7 +1364,7 @@
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Type</label>
-                                    <div class="flex items-center gap-4 h-9">
+                                    <div class="flex items-center gap-4 h-9 px-3 bg-slate-50 border border-slate-250 rounded-xl shadow-sm">
                                         <label class="flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
                                             <input type="radio" value="percentage" x-model="forms.edit.brokerage_type" @change="onBrokerageTypeChange('edit')" class="text-primary focus:ring-primary/20">
                                             <span>Percentage (%)</span>
@@ -1381,18 +1379,16 @@
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
                                     <input type="number" step="any" min="0" :max="forms.edit.brokerage_type === 'percentage' ? 100 : null" x-model="forms.edit.brokerage_value" @input="recalculateBrokerage('edit')"
                                            :placeholder="forms.edit.brokerage_type === 'fixed' ? 'Enter fixed amount (₹)' : 'e.g. 2 for 2%'"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
+                                           class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
                                 <div class="space-y-1.5">
                                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Brokerage Amount</p>
-                                    <p class="font-bold text-slate-900 leading-9 font-mono" x-text="'₹' + Number(forms.edit.brokerage_amount || 0).toLocaleString()"></p>
+                                    <div class="w-full h-9 px-3 bg-slate-100/90 border border-slate-250 rounded-xl font-bold text-slate-900 font-mono text-xs flex items-center shadow-sm" x-text="'₹' + Number(forms.edit.brokerage_amount || 0).toLocaleString()"></div>
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Status</label>
                                     <select x-model="forms.edit.brokerage_status"
-                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                            class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         <option value="pending">Pending</option>
                                         <option value="paid">Paid</option>
                                     </select>
