@@ -202,7 +202,7 @@
                                         <th class="px-5 py-3.5">Customer Name</th>
                                         <th class="px-5 py-3.5">Project / Unit</th>
                                         <th class="px-5 py-3.5 text-right">Intake Amount</th>
-                                        <th class="px-5 py-3.5 text-center">Mode</th>
+                                        <th class="px-5 py-3.5 text-center min-w-[130px] whitespace-nowrap">Mode</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-xs">
@@ -234,12 +234,12 @@
                                                     <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-bold" x-text="r.unit_name"></span>
                                                 </td>
                                                 <td class="px-5 py-4 font-mono font-black text-slate-950 text-right text-sm" x-text="'₹' + formatCurrency(r.amount)"></td>
-                                                <td class="px-5 py-4 text-center">
+                                                <td class="px-5 py-4 text-center whitespace-nowrap min-w-[130px]">
                                                     <span :class="
                                                         r.payment_mode && r.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
                                                         (r.payment_mode && r.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
                                                         'bg-blue-100 text-blue-800 border border-blue-200')
-                                                    " class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">
+                                                    " class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider whitespace-nowrap inline-block">
                                                         <span x-text="r.payment_mode || 'N/A'"></span>
                                                     </span>
                                                 </td>
@@ -273,8 +273,8 @@
                                                     <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold" x-text="r.unit_name"></span>
                                                 </td>
                                                 <td class="px-5 py-4 font-mono font-black text-slate-700 text-right text-sm" x-text="'₹' + formatCurrency(r.amount)"></td>
-                                                <td class="px-5 py-4 text-center">
-                                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                <td class="px-5 py-4 text-center whitespace-nowrap min-w-[130px]">
+                                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 whitespace-nowrap inline-block">
                                                         <span x-text="r.payment_mode || 'N/A'"></span>
                                                     </span>
                                                 </td>
