@@ -206,6 +206,53 @@
             </div>
             <form @submit.prevent="submitAddSale()">
                 <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/50" x-ref="addModalScroll">
+                    {{-- ═══ Sticky Fixed Top Calculation Summary Bar ═══ --}}
+                    <div class="sticky top-0 z-30 -mt-6 -mx-6 mb-4 px-6 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/80 shadow-lg">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[10px] font-extrabold text-[#d9bf3b] uppercase tracking-widest flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>Live Calculation Summary</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono" x-text="'Contract Total: ₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                            <!-- 1. Total Sale Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Total Sale Amount</span>
+                                <span class="font-extrabold text-white text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.unit_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 2. GST Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-amber-400/90 uppercase tracking-wider truncate">GST Amount</span>
+                                <span class="font-extrabold text-amber-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.unit_gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 3. Parking Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-sky-400/90 uppercase tracking-wider truncate">Parking Amount</span>
+                                <span class="font-extrabold text-sky-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.parking_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 4. Parking GST -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-sky-300/90 uppercase tracking-wider truncate">Parking GST</span>
+                                <span class="font-extrabold text-sky-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.parking_gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 5. Additional Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-teal-400/90 uppercase tracking-wider truncate">Additional Amount</span>
+                                <span class="font-extrabold text-teal-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.extra_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 6. Additional GST -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-teal-300/90 uppercase tracking-wider truncate">Additional GST</span>
+                                <span class="font-extrabold text-teal-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.extra_gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 7. Total Contract Value -->
+                            <div class="col-span-2 sm:col-span-4 lg:col-span-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border border-amber-400/60 rounded-xl p-2 flex flex-col justify-between shadow-xs">
+                                <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
+                                <span class="font-black text-[#d9bf3b] text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
+                            </div>
+                        </div>
+                    </div>
                     {{-- ── Section 1 — Basics ── --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
@@ -478,6 +525,16 @@
                                             <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index)" placeholder="Sale rate"
                                                    class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
+                                        <div x-show="isRowParking(index, 'add')" class="space-y-1.5 lg:col-span-2">
+                                            <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
+                                            <div class="relative rounded-xl shadow-sm h-9">
+                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                    <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                </div>
+                                                <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'add')" placeholder="Enter parking expected sale amount"
+                                                       class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                            </div>
+                                        </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
                                             <div class="relative rounded-xl shadow-sm h-9">
@@ -491,16 +548,6 @@
                                             <template x-if="errors['units.' + index + '.sale_amount']">
                                                 <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.sale_amount']) ? errors['units.' + index + '.sale_amount'][0] : errors['units.' + index + '.sale_amount']"></p>
                                             </template>
-                                        </div>
-                                        <div x-show="isRowParking(index, 'add')" class="space-y-1.5 lg:col-span-2">
-                                            <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
-                                            <div class="relative rounded-xl shadow-sm h-9">
-                                                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                    <span class="text-slate-400 font-bold text-xs">₹</span>
-                                                </div>
-                                                <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'add')" placeholder="Enter parking expected sale amount"
-                                                       class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
-                                            </div>
                                         </div>
                                     </div>
                                     
@@ -891,6 +938,53 @@
             </div>
             <form @submit.prevent="submitEditSale()">
                 <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                    {{-- ═══ Sticky Fixed Top Calculation Summary Bar ═══ --}}
+                    <div class="sticky top-0 z-30 -mt-6 -mx-6 mb-4 px-6 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/80 shadow-lg">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[10px] font-extrabold text-[#d9bf3b] uppercase tracking-widest flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                <span>Live Calculation Summary</span>
+                            </span>
+                            <span class="text-[10px] text-slate-400 font-mono" x-text="'Contract Total: ₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                            <!-- 1. Total Sale Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Total Sale Amount</span>
+                                <span class="font-extrabold text-white text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.unit_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 2. GST Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-amber-400/90 uppercase tracking-wider truncate">GST Amount</span>
+                                <span class="font-extrabold text-amber-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.unit_gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 3. Parking Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-sky-400/90 uppercase tracking-wider truncate">Parking Amount</span>
+                                <span class="font-extrabold text-sky-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.parking_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 4. Parking GST -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-sky-300/90 uppercase tracking-wider truncate">Parking GST</span>
+                                <span class="font-extrabold text-sky-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.parking_gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 5. Additional Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-teal-400/90 uppercase tracking-wider truncate">Additional Amount</span>
+                                <span class="font-extrabold text-teal-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.extra_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 6. Additional GST -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-teal-300/90 uppercase tracking-wider truncate">Additional GST</span>
+                                <span class="font-extrabold text-teal-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.extra_gst_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 7. Total Contract Value -->
+                            <div class="col-span-2 sm:col-span-4 lg:col-span-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border border-amber-400/60 rounded-xl p-2 flex flex-col justify-between shadow-xs">
+                                <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
+                                <span class="font-black text-[#d9bf3b] text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
+                            </div>
+                        </div>
+                    </div>
                     {{-- ── Section 1 — Basics (Read-Only) ── --}}
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {{-- Project Card --}}
@@ -2391,7 +2485,17 @@ function salesApp() {
             const row = this.forms[mode].units[index];
             if (!row || !row.unit_id) return false;
             const unit = (this.availableUnits[mode] || []).find(u => u.id == row.unit_id);
-            if (!unit) return false;
+            if (!unit) {
+                if (mode === 'edit' && this.activeSale) {
+                    const activeSU = (this.activeSale.sale_units || []).find(su => su.unit_id == row.unit_id);
+                    const uObj = activeSU?.unit || (this.activeSale.unit_id == row.unit_id ? this.activeSale.unit : null);
+                    if (uObj) {
+                        return (uObj.unit_type?.name || '').toLowerCase() === 'parking'
+                            || (uObj.unit_type?.category || '').toLowerCase() === 'parking';
+                    }
+                }
+                return false;
+            }
             return (unit.unit_type_name || '').toLowerCase() === 'parking'
                 || (unit.unit_type_category || '').toLowerCase() === 'parking';
         },
@@ -2590,16 +2694,33 @@ function salesApp() {
             this.recalculateAllTotals(mode);
         },
         recalculateAllTotals(mode = 'add') {
+            let unitBase = 0;
+            let unitGst = 0;
+            let parkingBase = 0;
+            let parkingGst = 0;
             let totalBase = 0;
             let totalGst = 0;
             let totalVal = 0;
+
             if (this.forms[mode].units) {
-                this.forms[mode].units.forEach((row) => {
-                    totalBase += parseFloat(row.base_amount) || 0;
-                    totalGst += parseFloat(row.gst_amount) || 0;
-                    totalVal += parseFloat(row.total_amount) || 0;
+                this.forms[mode].units.forEach((row, index) => {
+                    const base = parseFloat(row.base_amount || row.sale_amount) || 0;
+                    const gst = parseFloat(row.gst_amount) || 0;
+                    const total = parseFloat(row.total_amount) || (base + gst);
+
+                    if (this.isRowParking(index, mode)) {
+                        parkingBase += base;
+                        parkingGst += gst;
+                    } else {
+                        unitBase += base;
+                        unitGst += gst;
+                    }
+                    totalBase += base;
+                    totalGst += gst;
+                    totalVal += total;
                 });
             }
+
             let extraBase = 0;
             let extraGst = 0;
             let extraVal = 0;
@@ -2607,11 +2728,13 @@ function salesApp() {
                 this.forms[mode].extra_works.forEach((row) => {
                     const line_total = parseFloat(row.line_total) || 0;
                     const gst = parseFloat(row.gst_amount) || 0;
-                    extraBase += (line_total - gst);
+                    const base = line_total > 0 ? (line_total - gst) : (parseFloat(row.amount) || 0);
+                    extraBase += base;
                     extraGst += gst;
-                    extraVal += line_total;
+                    extraVal += (base + gst);
                 });
             }
+
             let totalBrokerage = 0;
             if (this.forms[mode].broker_involved) {
                 const bVal = parseFloat(this.forms[mode].brokerage_value) || 0;
@@ -2622,11 +2745,21 @@ function salesApp() {
                     totalBrokerage = bVal;
                 }
             }
+
+            this.forms[mode].unit_base_amount = Math.round(unitBase * 100) / 100;
+            this.forms[mode].unit_gst_amount = Math.round(unitGst * 100) / 100;
+            this.forms[mode].parking_base_amount = Math.round(parkingBase * 100) / 100;
+            this.forms[mode].parking_gst_amount = Math.round(parkingGst * 100) / 100;
+            this.forms[mode].extra_base_amount = Math.round(extraBase * 100) / 100;
+            this.forms[mode].extra_gst_amount = Math.round(extraGst * 100) / 100;
+
             this.forms[mode].base_amount = Math.round((totalBase + extraBase) * 100) / 100;
             this.forms[mode].gst_amount = Math.round((totalGst + extraGst) * 100) / 100;
             this.forms[mode].total_amount = Math.round((totalVal + extraVal) * 100) / 100;
+            this.forms[mode].total_contract_value = Math.round((totalVal + extraVal) * 100) / 100;
             this.forms[mode].brokerage_amount = Math.round(totalBrokerage * 100) / 100;
             this.forms[mode].sale_amount = Math.round(totalBase * 100) / 100;
+
             const paid = parseFloat(this.forms[mode].initial_payment_amount) || 0;
             this.forms[mode].remaining_balance = Math.round((this.forms[mode].total_amount - paid) * 100) / 100;
             if (this.forms[mode].total_amount > 0) {
@@ -3032,6 +3165,9 @@ function salesApp() {
                         brokerage_amount: this.activeSale.brokerage ? this.activeSale.brokerage.commission_amount : 0
                     });
                 }
+                // Calculate live summary totals immediately upon opening edit modal
+                this.recalculateAllTotals('edit');
+
                 // Load available units for project
                 if (this.forms.edit.project_id) {
                     const projectId = this.forms.edit.project_id;
@@ -3051,16 +3187,21 @@ function salesApp() {
                                 const built_up_area = activeSU?.unit?.built_up_area || this.activeSale.unit?.built_up_area || 0;
                                 const expected_rate_per_sqft = activeSU?.unit?.expected_rate_per_sqft || this.activeSale.unit?.expected_rate_per_sqft || 0;
                                 const expected_sale_amount = activeSU?.unit?.expected_sale_amount || this.activeSale.unit?.expected_sale_amount || 0;
+                                const unit_type_name = activeSU?.unit?.unit_type?.name || this.activeSale.unit?.unit_type?.name || '';
+                                const unit_type_category = activeSU?.unit?.unit_type?.category || this.activeSale.unit?.unit_type?.category || '';
                                 this.availableUnits.edit.push({
                                     id: u.unit_id,
                                     door_no: door_no,
                                     floor_name: floor_name,
                                     built_up_area: built_up_area,
                                     expected_rate_per_sqft: expected_rate_per_sqft,
-                                    expected_sale_amount: expected_sale_amount
+                                    expected_sale_amount: expected_sale_amount,
+                                    unit_type_name: unit_type_name,
+                                    unit_type_category: unit_type_category
                                 });
                             }
                         });
+                        this.recalculateAllTotals('edit');
                     })
                     .catch(err => console.error(err));
                 }
