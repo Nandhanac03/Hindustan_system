@@ -874,15 +874,15 @@ class SalesController extends Controller
                 $category = strtolower($unit->unitType->category ?? '');
 
                 if (str_contains($rawName, 'park') || $category === 'parking') {
-                    $unitTypeName = 'PARK';
+                    $unitTypeName = 'PA';
                 } elseif (str_contains($rawName, 'apart')) {
-                    $unitTypeName = 'APART';
+                    $unitTypeName = 'AP';
                 } elseif (str_contains($rawName, 'flat') || str_contains($rawName, 'bhk')) {
-                    $unitTypeName = 'FLAT';
+                    $unitTypeName = 'FL';
                 } elseif (str_contains($rawName, 'shop')) {
-                    $unitTypeName = 'SHOP';
+                    $unitTypeName = 'SH';
                 } elseif (str_contains($rawName, 'office')) {
-                    $unitTypeName = 'OFFIC';
+                    $unitTypeName = 'OF';
                 } else {
                     $clean = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $unit->unitType->name));
                     $unitTypeName = (strlen($clean) > 5) ? substr($clean, 0, 5) : $clean;
