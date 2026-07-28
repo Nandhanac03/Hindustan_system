@@ -133,7 +133,7 @@
                                     <button @click="openViewModal(sale.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Sale">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
-                                    <button @click="openEditModal(sale.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Sale">
+                                    <button x-show="(sale.status || '').toLowerCase() !== 'cancelled'" @click="openEditModal(sale.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Sale">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
                                 </div>
@@ -186,10 +186,71 @@
     <div>
 
     {{-- ═══════════════════════════════════════════
+         CUSTOM DELETE UNIT CONFIRMATION MODAL
+    ═══════════════════════════════════════════ --}}
+    {{-- ═══════════════════════════════════════════
+         CUSTOM DELETE UNIT CONFIRMATION MODAL
+    ═══════════════════════════════════════════ --}}
+    <div x-show="confirmDeleteUnitModal.open" 
+         @click.stop
+         class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" 
+         style="display: none;" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+        <div class="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80" @click.stop>
+            {{-- Dark Header matching screenshot --}}
+            <div class="bg-[#1c1716] px-6 py-5 text-white flex items-center justify-between relative overflow-hidden">
+                <div class="space-y-1">
+                    <span class="px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-extrabold uppercase tracking-widest inline-block">WARNING</span>
+                </div>
+                <button type="button" @click.stop="confirmDeleteUnitModal.open = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+            </div>
+            
+            {{-- Body matching screenshot --}}
+            <div class="p-6 space-y-4 text-slate-700 text-xs">
+                <p class="font-bold text-slate-900 text-sm">
+                    Are you sure you want to remove unit <span class="font-black text-rose-600 font-mono text-base" x-text="confirmDeleteUnitModal.doorNo"></span>?
+                </p>
+
+                <template x-if="confirmDeleteUnitModal.hasEmis || confirmDeleteUnitModal.isEmiPlan || confirmDeleteUnitModal.hasReceipts">
+                    <div class="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-1.5 text-amber-900 shadow-2xs">
+                        <p class="font-extrabold uppercase tracking-wider text-[10px] text-amber-800 flex items-center gap-1.5">
+                            <span>⚠️ Impact on Active Sale Contract</span>
+                        </p>
+                        <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-700 font-medium leading-relaxed">
+                            <template x-if="confirmDeleteUnitModal.hasEmis || confirmDeleteUnitModal.isEmiPlan">
+                                <li>EMI payment schedules / installments have already been created for this sale.</li>
+                            </template>
+                            <template x-if="confirmDeleteUnitModal.hasReceipts">
+                                <li>Payment receipts have already been generated for this sale.</li>
+                            </template>
+                            <li>Removing this unit will automatically recalculate total contract amounts.</li>
+                        </ul>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Footer matching screenshot --}}
+            <!-- <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 rounded-b-3xl">
+                <button type="button" @click.stop="confirmDeleteUnitModal.open = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                    CANCEL
+                </button>
+                <button type="button" @click.stop="confirmExecuteDeleteUnit()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer">
+                    CONFIRM REMOVE
+                </button>
+            </div> -->
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════
          ADD SALE MODAL (Redesigned)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open) closeAddModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthincrease" @click.away="if (!modals.quickCustomer.open && !confirmDeleteUnitModal.open) closeAddModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -921,7 +982,7 @@
          EDIT SALE MODAL (legacy single-unit fields kept for backward-compatible edits)
     ═══════════════════════════════════════════ --}}
     <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="if (!modals.quickCustomer.open && !confirmDeleteUnitModal.open) closeEditModal()">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/20">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -1784,6 +1845,7 @@ function salesApp() {
         perPage: 10,
         filters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', status: '', date_from: '', date_to: '' },
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
+        confirmDeleteUnitModal: { open: false, index: null, mode: 'add', doorNo: '', hasEmis: false, hasReceipts: false, isEmiPlan: false },
         availableUnits: { add: [], edit: [] },
         selectedUnit: { add: null, edit: null },
         customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone]; })) !!},
@@ -2478,8 +2540,55 @@ function salesApp() {
             this.recalculateAllTotals(mode);
         },
         removeUnitRow(index, mode = 'add') {
-            this.forms[mode].units.splice(index, 1);
-            this.recalculateAllTotals(mode);
+            if (this.forms[mode].units.length <= 1) {
+                this.showToast('At least one unit row is required in the sale contract.', 'error');
+                return;
+            }
+
+            const row = this.forms[mode].units[index];
+            const isExistingSavedUnit = mode === 'edit' && row && row.id && (this.activeSale?.sale_units || []).some(su => su.id == row.id);
+
+            // If it's a newly added unsaved row (e.g. user clicked + ADD UNIT ROW), remove directly without popup
+            if (!isExistingSavedUnit) {
+                this.forms[mode].units.splice(index, 1);
+                this.recalculateAllTotals(mode);
+                return;
+            }
+
+            // For existing saved units in edit mode, show the custom warning confirmation modal
+            let doorNo = 'Unit #' + (index + 1);
+            if (row && row.unit_id) {
+                const u = (this.availableUnits[mode] || []).find(unit => unit.id == row.unit_id);
+                if (u && u.door_no) {
+                    doorNo = u.door_no;
+                } else if (mode === 'edit' && this.activeSale) {
+                    const activeSU = (this.activeSale.sale_units || []).find(su => su.unit_id == row.unit_id);
+                    doorNo = activeSU?.unit?.door_no || this.activeSale.unit?.door_no || doorNo;
+                }
+            }
+
+            this.confirmDeleteUnitModal = {
+                open: true,
+                index: index,
+                mode: mode,
+                doorNo: doorNo,
+                hasEmis: (mode === 'edit' && this.activeSale && this.activeSale.emis && this.activeSale.emis.length > 0),
+                hasReceipts: (mode === 'edit' && this.activeSale && this.activeSale.receipts && this.activeSale.receipts.length > 0),
+                isEmiPlan: (mode === 'edit' && this.forms.edit.payment_plan === 'emi')
+            };
+        },
+        confirmExecuteDeleteUnit() {
+            const { index, mode } = this.confirmDeleteUnitModal;
+            if (index !== null && index !== undefined && this.forms[mode]?.units) {
+                this.forms[mode].units.splice(index, 1);
+                this.recalculateAllTotals(mode);
+                if (mode === 'edit') {
+                    this.showToast('Unit row removed. Please review contract totals & EMI schedule.', 'warning');
+                } else {
+                    this.showToast('Unit row removed.', 'info');
+                }
+            }
+            this.confirmDeleteUnitModal.open = false;
         },
         isRowParking(index, mode = 'add') {
             const row = this.forms[mode].units[index];
