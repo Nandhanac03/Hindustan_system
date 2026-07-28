@@ -151,21 +151,40 @@
                             <!-- Base Amount -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Base Amount (₹) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="bill_amount" required step="0.01" min="0.01" x-model.number="form.amount" @input="calcTotal(); fetchProjectMetrics()"
+                                <input type="number" name="bill_amount" required step="0.01" min="0.01" x-model.number="form.amount" @input="onBaseAmountChange(); fetchProjectMetrics()"
                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
                             </div>
 
-                            <!-- Tax Amount -->
+                            <!-- Tax / GST Rate (%) -->
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Tax / GST (₹)</label>
-                                <input type="number" step="0.01" min="0" x-model.number="form.tax" @input="calcTotal(); fetchProjectMetrics()"
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Tax / GST Rate (%)</label>
+                                    <div class="flex items-center gap-1">
+                                        <button type="button" @click="form.tax_pct = 0; onTaxPctChange(); fetchProjectMetrics()" class="px-1.5 py-0.5 rounded text-[9px] font-bold border transition" :class="form.tax_pct == 0 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">0%</button>
+                                        <button type="button" @click="form.tax_pct = 5; onTaxPctChange(); fetchProjectMetrics()" class="px-1.5 py-0.5 rounded text-[9px] font-bold border transition" :class="form.tax_pct == 5 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">5%</button>
+                                        <button type="button" @click="form.tax_pct = 12; onTaxPctChange(); fetchProjectMetrics()" class="px-1.5 py-0.5 rounded text-[9px] font-bold border transition" :class="form.tax_pct == 12 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">12%</button>
+                                        <button type="button" @click="form.tax_pct = 18; onTaxPctChange(); fetchProjectMetrics()" class="px-1.5 py-0.5 rounded text-[9px] font-bold border transition" :class="form.tax_pct == 18 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">18%</button>
+                                        <button type="button" @click="form.tax_pct = 28; onTaxPctChange(); fetchProjectMetrics()" class="px-1.5 py-0.5 rounded text-[9px] font-bold border transition" :class="form.tax_pct == 28 ? 'bg-slate-900 text-white border-slate-900' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'">28%</button>
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <input type="number" step="0.01" min="0" max="100" x-model.number="form.tax_pct" @input="onTaxPctChange(); fetchProjectMetrics()" placeholder="0.00"
+                                           class="w-full pl-3 pr-8 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                                    <span class="absolute right-3 top-2.5 text-xs font-bold text-slate-400 pointer-events-none">%</span>
+                                </div>
+                            </div>
+
+                            <!-- Tax / GST Amount (₹) -->
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Tax / GST Amount (₹)</label>
+                                <input type="number" step="0.01" min="0" x-model.number="form.tax" @input="onTaxAmountChange(); fetchProjectMetrics()" placeholder="0.00"
                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
                             </div>
 
                             <!-- Total Bill Liability -->
-                            <div class="space-y-1.5 md:col-span-2">
+                            <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Amount (₹) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="final_amount" required step="0.01" min="0.01" x-model.number="form.total_amount" @input="calcBase(); fetchProjectMetrics()"
+                                <input type="number" name="final_amount" required step="0.01" min="0.01" x-model.number="form.total_amount" @input="onTotalAmountChange(); fetchProjectMetrics()"
                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition">
                             </div>
 
@@ -541,6 +560,7 @@
                     invoice_date: '{{ date('Y-m-d') }}',
                     expense_head: 'Cement',
                     amount: 0.00,
+                    tax_pct: 0,
                     tax: 0.00,
                     total_amount: 0.00,
                     project_id: '{{ $projects->first()?->id ?? "" }}',
@@ -561,14 +581,14 @@
                         this.form.pan = supplier.pan || '';
                         // Auto-populate outstanding balance to base amount input
                         this.form.amount = parseFloat(supplier.outstanding_balance) || 0.00;
-                        this.calcTotal();
+                        this.onBaseAmountChange();
                         this.fetchProjectMetrics();
                     } else {
                         this.form.supplier_name = '';
                         this.form.gstin = '';
                         this.form.pan = '';
                         this.form.amount = 0.00;
-                        this.calcTotal();
+                        this.onBaseAmountChange();
                     }
                 },
                 updateProjectName(el) {
@@ -595,15 +615,45 @@
                             console.error('Error fetching project metrics:', err);
                         });
                 },
+                onBaseAmountChange() {
+                    const base = parseFloat(this.form.amount) || 0;
+                    const pct = parseFloat(this.form.tax_pct) || 0;
+                    if (pct > 0) {
+                        this.form.tax = parseFloat((base * (pct / 100)).toFixed(2));
+                    }
+                    this.form.total_amount = parseFloat((base + (parseFloat(this.form.tax) || 0)).toFixed(2));
+                },
+                onTaxPctChange() {
+                    const base = parseFloat(this.form.amount) || 0;
+                    const pct = parseFloat(this.form.tax_pct) || 0;
+                    this.form.tax = parseFloat((base * (pct / 100)).toFixed(2));
+                    this.form.total_amount = parseFloat((base + this.form.tax).toFixed(2));
+                },
+                onTaxAmountChange() {
+                    const base = parseFloat(this.form.amount) || 0;
+                    const tax = parseFloat(this.form.tax) || 0;
+                    if (base > 0) {
+                        this.form.tax_pct = parseFloat(((tax / base) * 100).toFixed(2));
+                    }
+                    this.form.total_amount = parseFloat((base + tax).toFixed(2));
+                },
+                onTotalAmountChange() {
+                    const total = parseFloat(this.form.total_amount) || 0;
+                    const pct = parseFloat(this.form.tax_pct) || 0;
+                    if (pct > 0) {
+                        const base = parseFloat((total / (1 + (pct / 100))).toFixed(2));
+                        this.form.amount = base;
+                        this.form.tax = parseFloat((total - base).toFixed(2));
+                    } else {
+                        const tax = parseFloat(this.form.tax) || 0;
+                        this.form.amount = parseFloat((total - tax).toFixed(2));
+                    }
+                },
                 calcTotal() {
-                    const amt = parseFloat(this.form.amount) || 0;
-                    const tx = parseFloat(this.form.tax) || 0;
-                    this.form.total_amount = parseFloat((amt + tx).toFixed(2));
+                    this.onBaseAmountChange();
                 },
                 calcBase() {
-                    const total = parseFloat(this.form.total_amount) || 0;
-                    const tx = parseFloat(this.form.tax) || 0;
-                    this.form.amount = parseFloat((total - tx).toFixed(2));
+                    this.onTotalAmountChange();
                 },
                 formatCurrency(val) {
                     return Number(val.toFixed(2)).toLocaleString('en-IN', {

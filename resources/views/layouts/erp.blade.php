@@ -775,28 +775,52 @@
             }
         };
 
+        window.updateAmountInWordsForInput = function(el) {
+            if (!el || el.tagName !== 'INPUT') return;
+            const type = (el.type || '').toLowerCase();
+            if (type !== 'number' && type !== 'text') return;
+
+            let xModel = (el.getAttribute('x-model') || el.getAttribute('x-model.number') || '').toLowerCase();
+            const name = (el.getAttribute('name') || '').toLowerCase();
+            const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
+
+            // Exclude sqft and agreed total
+            if (xModel.includes('sqft') || name.includes('sqft') || placeholder.includes('sqft') || xModel.includes('sale_amount')) {
+                return;
+            }
+
+            const isAmount = xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit');
+            if (!isAmount) return;
+
+            // Target the field container directly below the input box
+            let targetParent = el.parentNode;
+            if (targetParent && (targetParent.classList.contains('relative') || targetParent.classList.contains('h-9') || targetParent.classList.contains('h-10') || targetParent.classList.contains('h-11') || targetParent.classList.contains('shadow-sm'))) {
+                targetParent = targetParent.parentElement;
+            }
+
+            let wordsLabel = targetParent ? targetParent.querySelector('.amount-in-words-label') : null;
+            const words = window.convertNumberToWords(el.value);
+
+            if (!wordsLabel && targetParent && words) {
+                wordsLabel = document.createElement('div');
+                wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-800 font-extrabold capitalize mt-1.5 px-2.5 py-1 rounded-lg bg-amber-50/90 border border-amber-200/80 tracking-wide transition-all leading-snug break-words block w-full shadow-xs';
+                targetParent.appendChild(wordsLabel);
+            }
+
+            if (wordsLabel) {
+                if (words) {
+                    wordsLabel.textContent = words;
+                    wordsLabel.style.display = 'block';
+                } else {
+                    wordsLabel.style.display = 'none';
+                }
+            }
+        };
+
         // Update all amount inputs with their text representation
         window.updateAllAmountInWords = function() {
             document.querySelectorAll('input[type="number"], input[type="text"]').forEach(el => {
-                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
-                const name = (el.getAttribute('name') || '').toLowerCase();
-                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
-                
-                // Exclude rates per sqft and agreed sale amounts
-                if (xModel.includes('sqft') || name.includes('sqft') || placeholder.includes('sqft') || xModel.includes('sale_amount')) {
-                    return;
-                }
-                
-                if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
-                    let wordsLabel = el.nextElementSibling;
-                    if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
-                        wordsLabel = document.createElement('div');
-                        wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold capitalize mt-1 tracking-wide transition-all leading-tight break-words';
-                        el.parentNode.insertBefore(wordsLabel, el.nextSibling);
-                    }
-                    const words = window.convertNumberToWords(el.value);
-                    wordsLabel.textContent = words ? words : '';
-                }
+                window.updateAmountInWordsForInput(el);
             });
         };
 
@@ -804,14 +828,11 @@
         document.addEventListener('input', function(e) {
             const el = e.target;
             if (el && el.tagName === 'INPUT') {
-                const xModel = (el.getAttribute('x-model') || '').toLowerCase();
+                let xModel = (el.getAttribute('x-model') || el.getAttribute('x-model.number') || '').toLowerCase();
                 const name = (el.getAttribute('name') || '').toLowerCase();
                 const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
                 const id = (el.getAttribute('id') || '').toLowerCase();
                 
-                // Exclude rates per sqft and agreed sale amounts
-                const isExcludedFromWords = xModel.includes('sqft') || name.includes('sqft') || placeholder.includes('sqft') || xModel.includes('sale_amount');
-
                 // 1. Handle GST & Percentage inputs limit
                 if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount')) {
                     if (
@@ -841,17 +862,8 @@
                         // Strip invalid characters from the amount input
                         window.sanitizeAmountInput(el);
                         
-                        // Render in-words only if it is not excluded
-                        if (!isExcludedFromWords) {
-                            let wordsLabel = el.nextElementSibling;
-                            if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
-                                wordsLabel = document.createElement('div');
-                                wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold capitalize mt-1 tracking-wide transition-all leading-tight break-words';
-                                el.parentNode.insertBefore(wordsLabel, el.nextSibling);
-                            }
-                            const words = window.convertNumberToWords(el.value);
-                            wordsLabel.textContent = words ? words : '';
-                        }
+                        // Update in-words label with full-width grid alignment
+                        window.updateAmountInWordsForInput(el);
                     }
                 }
             }
