@@ -743,11 +743,11 @@
                     let wordsLabel = el.nextElementSibling;
                     if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
                         wordsLabel = document.createElement('div');
-                        wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all';
+                        wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all whitespace-nowrap overflow-hidden text-ellipsis';
                         el.parentNode.insertBefore(wordsLabel, el.nextSibling);
                     }
                     const words = window.convertNumberToWords(el.value);
-                    wordsLabel.textContent = words ? 'In Words: ' + words : '';
+                    wordsLabel.textContent = words ? words : '';
                 }
             });
         };
@@ -795,11 +795,11 @@
                             let wordsLabel = el.nextElementSibling;
                             if (!wordsLabel || !wordsLabel.classList.contains('amount-in-words-label')) {
                                 wordsLabel = document.createElement('div');
-                                wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all';
+                                wordsLabel.className = 'amount-in-words-label text-[10px] text-amber-700 font-extrabold uppercase mt-1 tracking-wide transition-all whitespace-nowrap overflow-hidden text-ellipsis';
                                 el.parentNode.insertBefore(wordsLabel, el.nextSibling);
                             }
                             const words = window.convertNumberToWords(el.value);
-                            wordsLabel.textContent = words ? 'In Words: ' + words : '';
+                            wordsLabel.textContent = words ? words : '';
                         }
                     }
                 }

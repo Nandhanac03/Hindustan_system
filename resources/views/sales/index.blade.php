@@ -362,8 +362,9 @@
                                 <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative" :x-ref="'unitRow_' + index">
                                     <button type="button" @click="removeUnitRow(index)" x-show="forms.add.units.length > 1"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
-                                    <!-- First row: 3 fields (Unit, Built Up Area, Agreed Sale Amount) -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                                    
+                                    <!-- Single row: 5 fields (Unit, Built Up Area, Agreed Sale Amount, Expected Rate/Sqft, Sale Rate/Sqft) -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                             <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
@@ -467,46 +468,42 @@
                                                 <span x-text="onGetRowArea(index) + ' Sq Ft'"></span>
                                             </div>
                                         </div>
+                                        <div x-show="!isRowParking(index, 'add')" class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
+                                            <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
+                                                   class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        </div>
+                                        <div x-show="!isRowParking(index, 'add')" class="space-y-1.5">
+                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
+                                            <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index)" placeholder="Sale rate"
+                                                   class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                        </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
-                                            <div class="relative rounded-xl shadow-sm">
+                                            <div class="relative rounded-xl shadow-sm h-9">
                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
                                                 </div>
                                                 <input type="number" step="0.01" x-model="row.sale_amount" @input="onRowSaleAmountChange(index)" placeholder="0.00"
                                                        :class="errors['units.' + index + '.sale_amount'] ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white'"
-                                                       class="block w-full pl-7 pr-3 py-2 border rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
+                                                       class="block w-full h-full pl-7 pr-3 py-1.5 border rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                             </div>
                                             <template x-if="errors['units.' + index + '.sale_amount']">
                                                 <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.sale_amount']) ? errors['units.' + index + '.sale_amount'][0] : errors['units.' + index + '.sale_amount']"></p>
                                             </template>
                                         </div>
-                                    </div>
-                                    <!-- Second row: Rate fields (standard unit) OR Expected Sale Amount (Parking unit) -->
-                                    <div class="pt-1">
-                                        <div x-show="!isRowParking(index, 'add')" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                                            <div class="space-y-1.5">
-                                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
-                                                <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
-                                                       class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                            </div>
-                                            <div class="space-y-1.5">
-                                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
-                                                <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index)" placeholder="Sale rate"
-                                                       class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                            </div>
-                                        </div>
-                                        <div x-show="isRowParking(index, 'add')" class="space-y-1.5">
+                                        <div x-show="isRowParking(index, 'add')" class="space-y-1.5 lg:col-span-2">
                                             <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
-                                            <div class="relative rounded-xl shadow-sm">
+                                            <div class="relative rounded-xl shadow-sm h-9">
                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
                                                 </div>
                                                 <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'add')" placeholder="Enter parking expected sale amount"
-                                                       class="block w-full pl-7 pr-3 py-2 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
+                                                       class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                             </div>
                                         </div>
                                     </div>
+                                    
                                     <!-- Third row: GST and Payable calculations -->
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-start pt-2 border-t border-slate-200/50">
                                         <div class="space-y-1.5">
@@ -673,7 +670,6 @@
                                             <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
                                                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
                                                 <div class="text-[10px] leading-tight">
-                                                    <span class="font-extrabold text-[#8a7522] uppercase tracking-wider">In Words: </span>
                                                     <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.line_total)"></span>
                                                 </div>
                                             </div>
@@ -702,7 +698,6 @@
                         </div>
                         <template x-if="forms.add.total_amount && parseFloat(forms.add.total_amount) > 0">
                             <div class="relative z-10 pt-2.5 border-t border-slate-700/60 text-center">
-                                <span class="text-[9px] font-extrabold text-[#d9bf3b] uppercase tracking-widest">Total Contract Value in Words: </span>
                                 <span class="text-xs font-bold text-slate-200 uppercase tracking-wide ml-1" x-text="numberToWords(forms.add.total_amount)"></span>
                             </div>
                         </template>
@@ -946,8 +941,8 @@
                                 <div class="p-4 bg-slate-50/50 border border-slate-200/60 rounded-xl space-y-3 relative">
                                     <button type="button" @click="removeUnitRow(index, 'edit')" x-show="forms.edit.units.length > 1"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
-                                     <!-- First row: 3 fields (Unit, Built Up Area, Agreed Sale Amount) -->
-                                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
+                                     <!-- Single row: 5 fields (Unit, Built Up Area, Agreed Sale Amount, Expected Rate/Sqft, Sale Rate/Sqft) -->
+                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
                                          <div class="space-y-1.5">
                                              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                              <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
@@ -1056,32 +1051,27 @@
                                                      <span class="text-slate-400 font-bold text-xs">₹</span>
                                                  </div>
                                                  <input type="number" step="0.01" x-model="row.sale_amount" @input="onRowSaleAmountChange(index, 'edit')" placeholder="0.00"
-                                                        class="block w-full pl-7 pr-3 py-2 border border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
+                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                              </div>
                                          </div>
-                                     </div>
-                                     <!-- Second row: Rate fields (standard unit) OR Expected Sale Amount (Parking unit) -->
-                                     <div class="pt-1">
-                                         <div x-show="!isRowParking(index, 'edit')" class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                                             <div class="space-y-1.5">
-                                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
-                                                 <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
-                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                             </div>
-                                             <div class="space-y-1.5">
-                                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
-                                                 <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index, 'edit')" placeholder="Sale rate"
-                                                        class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                             </div>
+                                         <div x-show="!isRowParking(index, 'edit')" class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
+                                             <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
+                                                    class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                          </div>
-                                         <div x-show="isRowParking(index, 'edit')" class="space-y-1.5">
+                                         <div x-show="!isRowParking(index, 'edit')" class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
+                                             <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index, 'edit')" placeholder="Sale rate"
+                                                    class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                         </div>
+                                         <div x-show="isRowParking(index, 'edit')" class="space-y-1.5 lg:col-span-2">
                                              <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
                                              <div class="relative h-9 rounded-xl shadow-sm">
                                                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                      <span class="text-slate-400 font-bold text-xs">₹</span>
                                                  </div>
                                                  <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'edit')" placeholder="Enter parking expected sale amount"
-                                                        class="block w-full pl-7 pr-3 py-2 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400 h-9">
+                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                              </div>
                                          </div>
                                      </div>
@@ -1116,7 +1106,6 @@
                                              <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
                                                  <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
                                                  <div class="text-[10px] leading-tight">
-                                                     <span class="font-extrabold text-[#8a7522] uppercase tracking-wider">In Words: </span>
                                                      <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.total_amount)"></span>
                                                  </div>
                                              </div>
@@ -1183,7 +1172,6 @@
                                             <div class="col-span-1 sm:col-span-4 mt-1 bg-gradient-to-r from-amber-50 to-yellow-50/60 border border-amber-200/80 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-xs">
                                                 <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#a38c29] text-white font-bold text-[10px] shrink-0">₹</span>
                                                 <div class="text-[10px] leading-tight">
-                                                    <span class="font-extrabold text-[#8a7522] uppercase tracking-wider">In Words: </span>
                                                     <span class="font-bold text-slate-900 uppercase" x-text="numberToWords(row.line_total)"></span>
                                                 </div>
                                             </div>
@@ -1212,7 +1200,6 @@
                         </div>
                         <template x-if="forms.edit.total_amount && parseFloat(forms.edit.total_amount) > 0">
                             <div class="relative z-10 pt-2.5 border-t border-slate-700/60 text-center">
-                                <span class="text-[9px] font-extrabold text-[#d9bf3b] uppercase tracking-widest">Total Contract Value in Words: </span>
                                 <span class="text-xs font-bold text-slate-200 uppercase tracking-wide ml-1" x-text="numberToWords(forms.edit.total_amount)"></span>
                             </div>
                         </template>
