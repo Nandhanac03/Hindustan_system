@@ -320,12 +320,12 @@
                             <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             <span>📋 Basic Information</span>
                         </p>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Project *</label>
                                 <select x-model="forms.add.project_id" @change="loadUnitsForProject('add')"
                                         :class="errors.project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                        class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                        class="w-full h-9 px-3 py-1.5 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                     <option value="">Select Project...</option>
                                     @foreach($projects as $project)
                                         <option value="{{ $project->id }}">{{ $project->name }}</option>
@@ -333,7 +333,7 @@
                                 </select>
                                 <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
                             </div>
-                            <div class="space-y-1.5 md:col-span-2 relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
+                            <div class="space-y-1.5 relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                  <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Customer *</label>
                                  <div class="flex gap-2">
                                      <div class="relative flex-1">
@@ -443,13 +443,13 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreement Date *</label>
                                 <input type="date" x-model="forms.add.agreement_date"
                                        :class="errors.agreement_date ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                       class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                       class="w-full h-9 px-3 py-1.5 border focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                                 <template x-if="errors.agreement_date"><p class="text-[10px] text-rose-600 font-semibold" x-text="Array.isArray(errors.agreement_date) ? errors.agreement_date[0] : errors.agreement_date"></p></template>
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Registration Date</label>
                                 <input type="date" x-model="forms.add.registration_date"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                                       class="w-full h-9 px-3 py-1.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
                             </div>
                         </div>
                     </div>
@@ -621,12 +621,12 @@
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Amount (₹)</label>
-                                            <div class="relative rounded-xl shadow-sm">
+                                            <div class="relative h-9 rounded-xl shadow-sm">
                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
                                                 </div>
                                                 <input type="number" step="0.01" x-model="row.gst_amount" @input="recalculateRowGstFromAmount(index)" placeholder="0.00"
-                                                       class="block w-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                                       class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                             </div>
                                         </div>
                                         <div class="space-y-1.5">
