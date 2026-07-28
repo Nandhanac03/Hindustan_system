@@ -513,20 +513,21 @@
                                     <span class="text-slate-500 italic text-[10px]">N/A</span>
                                 @endif
                             </td>
-                            <td class="px-3 py-4 border text-center">
-                                <span class="badge-pill border px-3 py-1.5 rounded-xl font-bold text-[10px] uppercase {{ $badgeClass }} inline-block shadow-sm">
-                                    {{ $statusLabel }}
-                                </span>
-                                @if($status === 'pending')
-                                    <span class="text-[9px] text-slate-400 block mt-1.5 italic">Unlocks on full payment</span>
-                                @elseif($status === 'payable' || $status === 'partial')
-                                    <div class="mt-2.5 flex justify-center">
-                                        <a href="{{ route('brokers.payable-report') }}" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-[#a38c29]/30 hover:border-[#a38c29] rounded-lg text-[9px] font-extrabold uppercase tracking-widest transition-all shadow-sm group">
-                                            Settle Commission
-                                            <svg class="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                            <td class="px-3 py-4 border text-center align-middle">
+                                <div class="flex flex-col items-center justify-center gap-2 w-[130px] mx-auto">
+                                    <span class="w-full border px-2 py-1.5 rounded-xl font-bold text-[9px] uppercase {{ $badgeClass }} shadow-sm tracking-wide text-center">
+                                        {{ $statusLabel }}
+                                    </span>
+                                    
+                                    @if($status === 'pending')
+                                        <span class="text-[9px] text-slate-400 italic text-center w-full">Unlocks on full payment</span>
+                                    @elseif($status === 'payable' || $status === 'partial')
+                                        <a href="{{ route('brokers.payable-report') }}" class="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-[#a38c29] hover:bg-[#8d7923] text-white rounded-xl text-[9px] font-extrabold uppercase tracking-wide transition-all shadow-sm group">
+                                            Settle Now
+                                            <svg class="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                                         </a>
-                                    </div>
-                                @endif
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
