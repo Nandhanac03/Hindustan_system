@@ -813,15 +813,25 @@
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <input type="number" step="0.01" x-model="forms.add.initial_payment_amount" @input="updateInitialPaymentFromAmount('add')" placeholder="Amount (₹)"
+                                        <input type="number" step="0.01" min="0" x-model="forms.add.initial_payment_amount" @input="updateInitialPaymentFromAmount('add', $event)" placeholder="Amount (₹)"
+                                               :class="{'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20': forms.add.total_amount > 0 && (parseFloat(forms.add.initial_payment_amount) || 0) > parseFloat(forms.add.total_amount)}"
                                                class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
                                     </div>
                                     <div>
-                                        <input type="number" step="0.01" min="0" max="100" x-model="forms.add.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('add')" placeholder="Percentage (%)"
+                                        <input type="number" step="0.01" min="0" max="100" x-model="forms.add.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('add', $event)" placeholder="Percentage (%)"
+                                               :class="{'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20': (parseFloat(forms.add.initial_payment_percentage) || 0) > 100}"
                                                class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
                                     </div>
                                 </div>
-                                <p class="text-[9px] text-slate-400 font-medium">Enter amount or percentage (0 if none)</p>
+                                <p x-show="!((parseFloat(forms.add.total_amount) > 0 && (parseFloat(forms.add.initial_payment_amount) || 0) > parseFloat(forms.add.total_amount)) || (parseFloat(forms.add.initial_payment_percentage) || 0) > 100)"
+                                   class="text-[9px] text-slate-400 font-medium">Enter amount or percentage (0 if none)</p>
+                                <p x-show="(parseFloat(forms.add.total_amount) > 0 && (parseFloat(forms.add.initial_payment_amount) || 0) > parseFloat(forms.add.total_amount)) || (parseFloat(forms.add.initial_payment_percentage) || 0) > 100"
+                                   class="text-[10px] font-semibold text-rose-600 mt-1 flex items-center gap-1" x-cloak>
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.</span>
+                                </p>
                             </div>
                             <div class="space-y-1.5 w-full md:w-40">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Mode</label>
@@ -1421,15 +1431,25 @@
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <input type="number" step="0.01" x-model="forms.edit.initial_payment_amount" @input="updateInitialPaymentFromAmount('edit')" placeholder="Amount (₹)"
+                                        <input type="number" step="0.01" min="0" x-model="forms.edit.initial_payment_amount" @input="updateInitialPaymentFromAmount('edit', $event)" placeholder="Amount (₹)"
+                                               :class="{'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20': forms.edit.total_amount > 0 && (parseFloat(forms.edit.initial_payment_amount) || 0) > parseFloat(forms.edit.total_amount)}"
                                                class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
                                     </div>
                                     <div>
-                                        <input type="number" step="0.01" min="0" max="100" x-model="forms.edit.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('edit')" placeholder="Percentage (%)"
+                                        <input type="number" step="0.01" min="0" max="100" x-model="forms.edit.initial_payment_percentage" @input="updateInitialPaymentFromPercentage('edit', $event)" placeholder="Percentage (%)"
+                                               :class="{'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20': (parseFloat(forms.edit.initial_payment_percentage) || 0) > 100}"
                                                class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
                                     </div>
                                 </div>
-                                <p class="text-[9px] text-slate-400 font-medium">Enter amount or percentage (0 if none)</p>
+                                <p x-show="!((parseFloat(forms.edit.total_amount) > 0 && (parseFloat(forms.edit.initial_payment_amount) || 0) > parseFloat(forms.edit.total_amount)) || (parseFloat(forms.edit.initial_payment_percentage) || 0) > 100)"
+                                   class="text-[9px] text-slate-400 font-medium">Enter amount or percentage (0 if none)</p>
+                                <p x-show="(parseFloat(forms.edit.total_amount) > 0 && (parseFloat(forms.edit.initial_payment_amount) || 0) > parseFloat(forms.edit.total_amount)) || (parseFloat(forms.edit.initial_payment_percentage) || 0) > 100"
+                                   class="text-[10px] font-semibold text-rose-600 mt-1 flex items-center gap-1" x-cloak>
+                                    <svg class="w-3.5 h-3.5 flex-shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.</span>
+                                </p>
                             </div>
                             <div class="space-y-1.5 w-full md:w-40">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Mode</label>
@@ -2868,9 +2888,10 @@ function salesApp() {
             this.forms[mode].sale_amount = Math.round(totalBase * 100) / 100;
 
             const paid = parseFloat(this.forms[mode].initial_payment_amount) || 0;
-            this.forms[mode].remaining_balance = Math.round((this.forms[mode].total_amount - paid) * 100) / 100;
-            if (this.forms[mode].total_amount > 0) {
-                this.forms[mode].initial_payment_percentage = Math.round((paid / this.forms[mode].total_amount * 100) * 100) / 100;
+            const totalContract = this.forms[mode].total_amount || 0;
+            this.forms[mode].remaining_balance = Math.max(0, Math.round((totalContract - paid) * 100) / 100);
+            if (totalContract > 0) {
+                this.forms[mode].initial_payment_percentage = Math.round((paid / totalContract * 100) * 100) / 100;
             }
         },
         loadUnitsForProject(mode) {
@@ -2934,16 +2955,7 @@ function salesApp() {
             return Math.round((agreedAmt - expectedAmt) * 100) / 100;
         },
         recalculateBrokerage(mode) {
-            const form = this.forms[mode];
-            const total = parseFloat(form.total_amount) || parseFloat(form.sale_amount) || 0;
-            const value = parseFloat(form.brokerage_value) || 0;
-            if (!form.broker_involved || !value) {
-                form.brokerage_amount = 0;
-                return;
-            }
-            form.brokerage_amount = form.brokerage_type === 'percentage'
-                ? Math.round(total * (value / 100) * 100) / 100
-                : Math.round(value * 100) / 100;
+            this.recalculateAllTotals(mode);
         },
         onBrokerSelect(mode) {
             const form = this.forms[mode];
@@ -2971,26 +2983,28 @@ function salesApp() {
                 form.initial_payment_amount = Math.round((total * pct / 100) * 100) / 100;
             }
             const paid = parseFloat(form.initial_payment_amount) || 0;
-            form.remaining_balance = Math.round((total - paid) * 100) / 100;
+            form.remaining_balance = Math.max(0, Math.round((total - paid) * 100) / 100);
         },
-        updateInitialPaymentFromPercentage(mode) {
+        updateInitialPaymentFromPercentage(mode, event = null) {
             const form = this.forms[mode];
             const total = parseFloat(form.total_amount) || parseFloat(form.sale_amount) || 0;
             const pct = parseFloat(form.initial_payment_percentage) || 0;
+
             form.initial_payment_amount = Math.round((total * pct / 100) * 100) / 100;
             const paid = parseFloat(form.initial_payment_amount) || 0;
-            form.remaining_balance = Math.round((total - paid) * 100) / 100;
+            form.remaining_balance = Math.max(0, Math.round((total - paid) * 100) / 100);
         },
-        updateInitialPaymentFromAmount(mode) {
+        updateInitialPaymentFromAmount(mode, event = null) {
             const form = this.forms[mode];
             const total = parseFloat(form.total_amount) || parseFloat(form.sale_amount) || 0;
             const paid = parseFloat(form.initial_payment_amount) || 0;
+
             if (total > 0) {
                 form.initial_payment_percentage = Math.round((paid / total * 100) * 100) / 100;
             } else {
                 form.initial_payment_percentage = '';
             }
-            form.remaining_balance = Math.round((total - paid) * 100) / 100;
+            form.remaining_balance = Math.max(0, Math.round((total - paid) * 100) / 100);
         },
         openQuickAddCustomer() {
             this.quickCustomer = { name: '', email: '', phone: '' };
@@ -3086,6 +3100,13 @@ function salesApp() {
         submitAddSale() {
             this.errors = {};
             let hasError = false;
+
+            const paidAdd = parseFloat(this.forms.add.initial_payment_amount) || 0;
+            const totalAdd = parseFloat(this.forms.add.total_amount) || parseFloat(this.forms.add.sale_amount) || 0;
+            if (totalAdd > 0 && paidAdd > totalAdd) {
+                this.showToast('Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.', 'error');
+                hasError = true;
+            }
 
             if (!this.forms.add.project_id) {
                 this.errors.project_id = ['The project field is required.'];
@@ -3318,6 +3339,12 @@ function salesApp() {
         },
         closeEditModal() { this.modals.edit.open = false; this.statusChange.pending = false; },
         submitEditSale() {
+            const paidEdit = parseFloat(this.forms.edit.initial_payment_amount) || 0;
+            const totalEdit = parseFloat(this.forms.edit.total_amount) || parseFloat(this.forms.edit.sale_amount) || 0;
+            if (totalEdit > 0 && paidEdit > totalEdit) {
+                this.showToast('Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.', 'error');
+                return;
+            }
             fetch(`{{ url('sales') }}/${this.activeSale.id}`, {
                 method: 'PUT',
                 headers: {
