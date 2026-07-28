@@ -2955,16 +2955,7 @@ function salesApp() {
             return Math.round((agreedAmt - expectedAmt) * 100) / 100;
         },
         recalculateBrokerage(mode) {
-            const form = this.forms[mode];
-            const total = parseFloat(form.total_amount) || parseFloat(form.sale_amount) || 0;
-            const value = parseFloat(form.brokerage_value) || 0;
-            if (!form.broker_involved || !value) {
-                form.brokerage_amount = 0;
-                return;
-            }
-            form.brokerage_amount = form.brokerage_type === 'percentage'
-                ? Math.round(total * (value / 100) * 100) / 100
-                : Math.round(value * 100) / 100;
+            this.recalculateAllTotals(mode);
         },
         onBrokerSelect(mode) {
             const form = this.forms[mode];
