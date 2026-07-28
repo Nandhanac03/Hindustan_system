@@ -104,7 +104,11 @@
                             $isDueThisMonth = $dueDate && $inst->status !== 'Paid' && $dueDate->between(now()->startOfMonth(), now()->endOfMonth());
                             $isUrgent  = ($isOverdue || $isDueThisMonth) && $loan->status === 'Active';
                         @endphp
-                        <tr class="hover:bg-slate-50/50 transition-colors text-xs font-semibold text-slate-700 {{ $inst->status === 'Paid' ? 'bg-emerald-50/30' : ($isUrgent ? 'bg-rose-50/60' : ($isPartial ? 'bg-amber-50/30' : '')) }}">
+                        @php $firstDueMarked = $firstDueMarked ?? false; @endphp
+                        <tr id="{{ (!$firstDueMarked && $isUrgent) ? 'first-due-installment' : '' }}"
+                            class="hover:bg-slate-50/50 transition-colors text-xs font-semibold text-slate-700 {{ $inst->status === 'Paid' ? 'bg-emerald-50/30' : ($isUrgent ? 'bg-rose-50/60' : ($isPartial ? 'bg-amber-50/30' : '')) }}"
+                            style="{{ (!$firstDueMarked && $isUrgent) ? 'scroll-margin-top: 100px;' : '' }}">
+                        @php if (!$firstDueMarked && $isUrgent) { $firstDueMarked = true; } @endphp
                             <td class="px-4 py-3.5 border font-bold text-slate-400">{{ $inst->installment_no }}</td>
                             <td class="px-4 py-3.5 border {{ $isUrgent ? 'text-rose-700 font-extrabold' : 'text-slate-650' }}">{{ $inst->due_date ? \Carbon\Carbon::parse($inst->due_date)->format('d M Y') : '—' }}</td>
                             <td class="px-4 py-3.5 border font-mono {{ $isUrgent ? 'text-rose-600 font-extrabold text-[13px]' : 'text-slate-900 font-bold' }}">₹{{ number_format($emiAmount, 2) }}</td>
@@ -396,5 +400,25 @@ function scheduleApp() {
         }
     }
 }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const dueRow = document.getElementById('first-due-installment');
+    if (dueRow) {
+        // Scroll to the first due/overdue installment row
+        setTimeout(function () {
+            dueRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add a brief highlight pulse to draw attention
+            dueRow.style.transition = 'outline 0.2s, box-shadow 0.2s';
+            dueRow.style.outline = '2px solid #f87171';
+            dueRow.style.boxShadow = '0 0 0 4px rgba(248,113,113,0.25)';
+            setTimeout(function () {
+                dueRow.style.outline = '';
+                dueRow.style.boxShadow = '';
+            }, 2500);
+        }, 400);
+    }
+});
 </script>
 </x-erp-layout>

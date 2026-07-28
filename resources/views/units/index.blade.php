@@ -1334,6 +1334,12 @@ function unitsApp() {
         },
 
         init() {
+            // Pre-populate filters from URL query parameters (e.g. ?status=sold from dashboard)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('status'))       this.filters.status       = urlParams.get('status');
+            if (urlParams.get('floor_id'))     this.filters.floor_id     = urlParams.get('floor_id');
+            if (urlParams.get('search'))       this.filters.search       = urlParams.get('search');
+            if (urlParams.get('unit_type_id')) this.filters.unit_type_id = urlParams.get('unit_type_id');
             this.fetchUnits();
         },
 

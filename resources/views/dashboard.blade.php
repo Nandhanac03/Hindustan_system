@@ -499,7 +499,7 @@
                             </div>
                             <div class="text-right flex flex-col items-end gap-1">
                                 <span class="font-mono font-bold text-slate-900 text-xs">₹{{ number_format($alert->emi_amount, 2) }}</span>
-                                <a href="{{ route('loans.index') }}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-250 transition tracking-wider">
+                                <a href="{{ $alert->loan ? route('loans.schedule', $alert->loan->id) : route('loans.index') }}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-250 transition tracking-wider">
                                     Pay Now
                                 </a>
                             </div>
