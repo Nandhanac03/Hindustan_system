@@ -268,7 +268,7 @@
             <form @submit.prevent="submitAddSale()">
                 <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/50" x-ref="addModalScroll">
                     {{-- ═══ Sticky Fixed Top Calculation Summary Bar ═══ --}}
-                    <div class="sticky top-0 z-30 -mt-6 -mx-6 mb-4 px-6 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/80 shadow-lg">
+                    <div class="sticky top-0 z-30 -mt-6 -mx-6 mb-4 px-6 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/80 shadow-lg mt-2">
                         <div class="flex items-center justify-between gap-2 mb-2">
                             <span class="text-[10px] font-extrabold text-[#d9bf3b] uppercase tracking-widest flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -701,7 +701,7 @@
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
-                                    <input type="number" step="0.01" x-model="forms.add.brokerage_value" @input="recalculateAllTotals('add')" placeholder="e.g. 2 for 2%"
+                                    <input type="number" step="any" min="0" :max="forms.add.brokerage_type === 'percentage' ? 100 : null" x-model="forms.add.brokerage_value" @input="recalculateAllTotals('add')" :placeholder="forms.add.brokerage_type === 'fixed' ? 'Enter fixed amount (₹)' : 'e.g. 2 for 2%'"
                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
                                 </div>
                             </div>
@@ -1001,7 +1001,7 @@
             <form @submit.prevent="submitEditSale()">
                 <div class="p-6 space-y-6 max-h-[75vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                     {{-- ═══ Sticky Fixed Top Calculation Summary Bar ═══ --}}
-                    <div class="sticky top-0 z-30 -mt-6 -mx-6 mb-4 px-6 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/80 shadow-lg">
+                    <div class="sticky top-0 z-30 -mt-6 -mx-6 mb-4 px-6 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-700/80 shadow-lg mt-2">
                         <div class="flex items-center justify-between gap-2 mb-2">
                             <span class="text-[10px] font-extrabold text-[#d9bf3b] uppercase tracking-widest flex items-center gap-1.5">
                                 <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
@@ -1379,9 +1379,9 @@
                                 </div>
                                 <div class="space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Brokerage Value</label>
-                                    <input type="number" step="0.01" x-model="forms.edit.brokerage_value" @input="recalculateBrokerage('edit')"
-                                           :placeholder="forms.edit.brokerage_type === 'fixed' ? '0' : 'e.g. 2 for 2%'"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                    <input type="number" step="any" min="0" :max="forms.edit.brokerage_type === 'percentage' ? 100 : null" x-model="forms.edit.brokerage_value" @input="recalculateBrokerage('edit')"
+                                           :placeholder="forms.edit.brokerage_type === 'fixed' ? 'Enter fixed amount (₹)' : 'e.g. 2 for 2%'"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all font-mono shadow-sm">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
