@@ -8,7 +8,11 @@
             <p class="text-xs text-slate-500 mt-1">Configure Goods and Services Tax (GST) rates, HSN/SAC codes, and applicability across real estate units.</p>
         </div>
 
-        <div>
+        <div class="flex items-center gap-2">
+            <a href="{{ route('reports.index', ['report' => 'gst_report']) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-md uppercase tracking-wide">
+                <svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/></svg>
+                <span>View Tax Report</span>
+            </a>
             <button @click="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Add GST Slab
@@ -36,16 +40,16 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100 text-center font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                        <th class="px-4 py-3 border">SL NO</th>
-                        <th class="px-4 py-3 border">TAX SLAB NAME</th>
-                        <th class="px-4 py-3 border">HSN / SAC CODE</th>
-                        <th class="px-4 py-3 border">RATE (%)</th>
-                        <th class="px-4 py-3 border">CGST (%)</th>
-                        <th class="px-4 py-3 border">SGST (%)</th>
-                        <th class="px-4 py-3 border">APPLICABILITY</th>
-                        <th class="px-4 py-3 border">STATUS</th>
-                        <th class="px-4 py-3 border text-right">ACTIONS</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-extrabold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">SL NO</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">TAX SLAB NAME</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">HSN / SAC CODE</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">RATE (%)</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">CGST (%)</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">SGST (%)</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">APPLICABILITY</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white">STATUS</th>
+                        <th class="px-4 py-3 border border-[#8a7522] text-white text-right">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50 text-center">
