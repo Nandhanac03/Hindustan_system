@@ -3,7 +3,7 @@
     $currencySymbol = (auth()->user()->system->currency_code ?? 'INR') === 'AED' ? 'AED ' : '₹';
 @endphp
 
-<div class="max-w-[1800px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6 pb-6">
 
   {{-- ACTIVE PROJECT OVERVIEW BANNER (Replaces Welcome Box) --}}
 @if($activeProject)
@@ -178,7 +178,7 @@
     </div>
 
     {{-- REVENUE CHART + UNIT STATUS DONUT --}}
-    <div class="anim-3 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="anim-3 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
 
         {{-- Revenue Area Chart (2/3) --}}
         <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
@@ -220,7 +220,7 @@
     </div>
 
     {{-- MINI STAT PANELS (Outstanding + Customers + Health) --}}
-    <div class="anim-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="anim-4 grid grid-cols-1 sm:grid-cols-3 gap-4 pb-6">
 
         {{-- Outstanding (Ash / Slate Theme) --}}
         <div class="bg-gradient-to-br from-slate-700 to-slate-900 rounded-2xl p-5 text-white shadow-xl">
@@ -278,7 +278,7 @@
     </div>
 
     {{-- RECENT UNITS + TOP CUSTOMERS --}}
-    <div class="anim-6 grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <div class="anim-6 grid grid-cols-1 lg:grid-cols-5 gap-6 pb-6">
 
         {{-- Recent Units Table (3/5) --}}
         <div class="lg:col-span-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
