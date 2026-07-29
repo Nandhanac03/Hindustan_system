@@ -293,7 +293,7 @@ function cashBookApp() {
         activeMode: 'All',
         searchQuery: '',
         currentPage: 1,
-        perPage: 100,
+        perPage: 50,
 
         ledger: @json($ledgerItems),
 
