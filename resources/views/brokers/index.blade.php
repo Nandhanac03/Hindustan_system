@@ -102,49 +102,61 @@
     @endif
 
     {{-- Key Metrics KPI Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {{-- Card 1: Accrued (Locked) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group overflow-hidden">
-            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-amber-400 rounded-l-2xl group-hover:w-2 transition-all"></div>
-            <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Accrued Commission (Locked)</span>
-                <div class="text-2xl font-black text-slate-800 font-mono mt-1 group-hover:text-amber-600 transition-colors">₹{{ number_format($totalAccrued, 2) }}</div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]">
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Accrued (Locked)</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">Pending</span>
             </div>
-            <div class="mt-3 text-[10px] text-slate-500 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block shadow-sm"></span>
-                <span>Payable only after full payment or EMI completion</span>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format($totalAccrued, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Payable only after full payment or EMI completion</p>
             </div>
         </div>
 
         {{-- Card 2: Payable (Unlocked) --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group overflow-hidden">
-            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-l-2xl group-hover:w-2 transition-all"></div>
-            <div>
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unlocked & Payable Commission</span>
-                    <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[9px] font-bold uppercase tracking-wide border border-emerald-100">Ready for Disbursement</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]">
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Payable (Unlocked)</span>
                 </div>
-                <div class="text-2xl font-black text-slate-800 font-mono mt-1 group-hover:text-emerald-600 transition-colors">₹{{ number_format($totalPayable, 2) }}</div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Ready for Disbursement</span>
             </div>
-            <div class="mt-3 flex items-center justify-between">
-                <div class="flex items-center gap-1.5 text-[10px] text-slate-500">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shadow-sm animate-pulse"></span>
-                    <span>100% payment / EMI cleared</span>
-                </div>
-                <a href="{{ route('brokers.payable-report') }}" class="text-[10px] text-emerald-600 hover:text-emerald-700 font-bold underline transition-colors">View Payable Report →</a>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format($totalPayable, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">100% payment / EMI cleared</p>
             </div>
         </div>
 
         {{-- Card 3: Paid Commission --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative flex flex-col justify-between group overflow-hidden">
-            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-indigo-500 rounded-l-2xl group-hover:w-2 transition-all"></div>
-            <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Paid Commission</span>
-                <div class="text-2xl font-black text-slate-800 font-mono mt-1 group-hover:text-indigo-600 transition-colors">₹{{ number_format($totalPaid, 2) }}</div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-indigo-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)]">
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100/60 transition-all duration-300 group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Paid Commission</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-indigo-300 group-hover:text-indigo-700 group-hover:bg-indigo-50/50">Settled</span>
             </div>
-            <div class="mt-3 text-[10px] text-slate-500 flex items-center gap-1.5">
-                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 inline-block shadow-sm"></span>
-                <span>Successfully settled across all broker accounts</span>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-indigo-700 transition-colors duration-300">₹{{ number_format($totalPaid, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Successfully settled across all broker accounts</p>
             </div>
         </div>
     </div>

@@ -79,7 +79,7 @@
     {{-- Executive Metric Cards (4 Cards) --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {{-- Card 1: Sale Value --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 border-t-[#a38c29] shadow-sm p-3.5 sm:p-4 hover:shadow-md transition-all flex items-center justify-between">
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-[#a38c29] shadow-sm p-3.5 sm:p-4 hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] group relative overflow-hidden flex items-center justify-between">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Sale Value</span>
                 <span class="text-lg font-black text-slate-900 mt-0.5 block font-mono">₹{{ number_format($sale->total_amount, 2) }}</span>
@@ -91,7 +91,7 @@
         </div>
 
         {{-- Card 2: Total Instalment Dues --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 border-t-rose-500 shadow-sm p-3.5 sm:p-4 hover:shadow-md transition-all flex items-center justify-between">
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-rose-500 shadow-sm p-3.5 sm:p-4 hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] group relative overflow-hidden flex items-center justify-between">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Instalment Dues</span>
                 <span class="text-lg font-black text-rose-600 mt-0.5 block font-mono">₹{{ number_format($totalDebits, 2) }}</span>
@@ -103,7 +103,7 @@
         </div>
 
         {{-- Card 3: Total Receipts Paid --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 border-t-emerald-500 shadow-sm p-3.5 sm:p-4 hover:shadow-md transition-all flex items-center justify-between">
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-emerald-500 shadow-sm p-3.5 sm:p-4 hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] group relative overflow-hidden flex items-center justify-between">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Receipts Paid</span>
                 <span class="text-lg font-black text-emerald-600 mt-0.5 block font-mono">₹{{ number_format($totalCredits, 2) }}</span>
@@ -115,7 +115,7 @@
         </div>
 
         {{-- Card 4: Net Outstanding --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 {{ $closingBalance > 0 ? 'border-t-rose-500 bg-rose-50/20' : 'border-t-emerald-500 bg-emerald-50/20' }} shadow-sm p-3.5 sm:p-4 hover:shadow-md transition-all flex items-center justify-between">
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] {{ $closingBalance > 0 ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' : 'border-l-emerald-500 hover:border-emerald-200 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] bg-emerald-50/20' }} shadow-sm p-3.5 sm:p-4 transition-all duration-300 hover:-translate-y-1.5 group relative overflow-hidden flex items-center justify-between">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Net Outstanding</span>
                 <span class="text-lg font-black {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-0.5 block font-mono">

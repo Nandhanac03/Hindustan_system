@@ -5,62 +5,59 @@
     {{-- Top Stats Cards with Animated Hover Effects --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {{-- Card 1: Total EMI Collections Received --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#a38c29]"></div>
-            <div>
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total EMI Collections Received</span>
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-1.5 block">
-                    ₹{{ number_format($totalReceived, 2) }}
-                </span>
-                <span class="text-[10px] text-emerald-600 font-extrabold mt-1 inline-flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                    100% Verified Bank & Cash Intake
-                </span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Total Received</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">Verified</span>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] group-hover:bg-[#a38c29] group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">₹{{ number_format($totalReceived, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">100% Verified Bank & Cash Intake</p>
             </div>
         </div>
 
         {{-- Card 2: Pending Receipts --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
-            <div>
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Receipts</span>
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-1.5 block">
-                    {{ $pendingPaymentsCount }} <span class="text-xs font-bold text-slate-400 font-sans">Accounts</span>
-                </span>
-                <span class="text-[10px] text-amber-600 font-extrabold mt-1 inline-flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    Requires Collection Follow-up
-                </span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-pointer">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Pending Receipts</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">Action Req</span>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-600 transition-colors duration-300">{{ $pendingPaymentsCount }} <span class="text-xl font-sans text-slate-500">Accounts</span></span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Requires Collection Follow-up.</p>
             </div>
         </div>
 
         {{-- Card 3: Ledger Status --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
-            <div>
-                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Ledger Status</span>
-                <div class="mt-1.5">
-                    <span class="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 rounded-xl px-3 py-1 inline-flex items-center gap-1.5 shadow-2xs">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Healthy & Balanced
-                    </span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Ledger Status</span>
                 </div>
-                <span class="text-[10px] text-slate-400 font-semibold mt-1 block">Real-time ledger audit sync</span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Synced</span>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-xs">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-emerald-700 font-sans tracking-tight flex items-center gap-3 transition-colors duration-300">
+                    <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50"></span>
+                    Balanced
+                </span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Real-time ledger audit sync.</p>
             </div>
         </div>
     </div>

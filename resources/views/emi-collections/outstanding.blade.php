@@ -14,9 +14,8 @@
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
             {{-- Bracket 1: Current --}}
             <div @click="activeBracket = activeBracket === 'current' ? 'all' : 'current'"
-                 class="bg-white rounded-2xl border p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1 hover:shadow-xl"
-                 :class="activeBracket === 'current' ? 'border-[#a38c29] shadow-lg bg-[#a38c29]/5 ring-2 ring-[#a38c29]/20' : 'border-slate-200/80 shadow-sm hover:border-[#a38c29]/40'">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+                 class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]"
+                 :class="activeBracket === 'current' ? 'shadow-lg bg-emerald-50/40 ring-2 ring-emerald-500/20 border-y-emerald-300 border-r-emerald-300' : 'shadow-sm hover:border-y-emerald-200 hover:border-r-emerald-200'">
                 <div class="flex justify-between items-start">
                     <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider">Current / 0–30 Days</span>
                     <span class="text-[9px] bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2 py-0.5 rounded-full font-extrabold shadow-2xs">Active</span>
@@ -34,9 +33,8 @@
 
             {{-- Bracket 2: 31–60 Days --}}
             <div @click="activeBracket = activeBracket === '1-30' ? 'all' : '1-30'"
-                 class="bg-white rounded-2xl border p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1 hover:shadow-xl"
-                 :class="activeBracket === '1-30' ? 'border-amber-500 shadow-lg bg-amber-50/10 ring-2 ring-amber-500/20' : 'border-slate-200/80 shadow-sm hover:border-amber-400/40'">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+                 class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]"
+                 :class="activeBracket === '1-30' ? 'shadow-lg bg-amber-50/40 ring-2 ring-amber-500/20 border-y-amber-300 border-r-amber-300' : 'shadow-sm hover:border-y-amber-200 hover:border-r-amber-200'">
                 <div class="flex justify-between items-start">
                     <span class="text-[9px] font-extrabold text-slate-400 tracking-wider uppercase">31–60 Days</span>
                     <span class="text-[9px] bg-amber-50 text-amber-700 border border-amber-200/80 px-2 py-0.5 rounded-full font-extrabold shadow-2xs">Mild</span>
@@ -54,9 +52,8 @@
 
             {{-- Bracket 3: 61–90 Days --}}
             <div @click="activeBracket = activeBracket === '31-60' ? 'all' : '31-60'"
-                 class="bg-white rounded-2xl border p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1 hover:shadow-xl"
-                 :class="activeBracket === '31-60' ? 'border-orange-500 shadow-lg bg-orange-50/10 ring-2 ring-orange-500/20' : 'border-slate-200/80 shadow-sm hover:border-orange-400/40'">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-orange-500"></div>
+                 class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-orange-500 p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(249,115,22,0.15)]"
+                 :class="activeBracket === '31-60' ? 'shadow-lg bg-orange-50/40 ring-2 ring-orange-500/20 border-y-orange-300 border-r-orange-300' : 'shadow-sm hover:border-y-orange-200 hover:border-r-orange-200'">
                 <div class="flex justify-between items-start">
                     <span class="text-[9px] font-extrabold text-slate-400 tracking-wider uppercase">61–90 Days</span>
                     <span class="text-[9px] bg-orange-50 text-orange-700 border border-orange-200/80 px-2 py-0.5 rounded-full font-extrabold shadow-2xs">Moderate</span>
@@ -74,9 +71,8 @@
 
             {{-- Bracket 4: 90+ Days --}}
             <div @click="activeBracket = activeBracket === '61+' ? 'all' : '61+'"
-                 class="bg-white rounded-2xl border p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1 hover:shadow-xl"
-                 :class="activeBracket === '61+' ? 'border-rose-500 shadow-lg bg-rose-50/10 ring-2 ring-rose-500/20' : 'border-slate-200/80 shadow-sm hover:border-rose-400/40'">
-                <div class="absolute top-0 left-0 right-0 h-1 bg-rose-500"></div>
+                 class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 cursor-pointer transition-all duration-300 select-none flex flex-col justify-between group relative overflow-hidden hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)]"
+                 :class="activeBracket === '61+' ? 'shadow-lg bg-rose-50/40 ring-2 ring-rose-500/20 border-y-rose-300 border-r-rose-300' : 'shadow-sm hover:border-y-rose-200 hover:border-r-rose-200'">
                 <div class="flex justify-between items-start">
                     <span class="text-[9px] font-extrabold text-slate-400 tracking-wider uppercase">90+ Days</span>
                     <span class="text-[9px] bg-rose-50 text-rose-800 border border-rose-200/80 px-2 py-0.5 rounded-full font-extrabold shadow-2xs">Severe</span>
@@ -96,8 +92,7 @@
 
     {{-- Summary Totals Row --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-rose-500"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 shadow-sm hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] group relative overflow-hidden flex items-center justify-between cursor-pointer">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Outstanding</span>
                 <span class="text-2xl font-black text-rose-600 mt-1 block font-mono tracking-tight">₹{{ number_format(array_sum($totals), 0) }}</span>
@@ -108,8 +103,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 shadow-sm hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] group relative overflow-hidden flex items-center justify-between cursor-pointer">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Receipts (All Time)</span>
                 @php $totalReceived = \App\Models\Receipt::sum('amount'); @endphp
@@ -121,8 +115,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#a38c29]"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 shadow-sm hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] group relative overflow-hidden flex items-center justify-between cursor-pointer">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Active Accounts</span>
                 <span class="text-2xl font-black text-[#a38c29] mt-1 block font-mono tracking-tight">

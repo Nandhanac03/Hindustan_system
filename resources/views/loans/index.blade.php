@@ -60,54 +60,94 @@
 
     {{-- KPI Metrics Grid --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
-        <div class="bg-gradient-to-br from-rose-50 to-rose-100/50 p-5 rounded-2xl border border-rose-200 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
-            <div>
-                <span class="text-[9px] font-extrabold text-rose-800 uppercase tracking-widest block flex items-center gap-1 animate-pulse">🔥 Urgent Due EMIs (Month)</span>
-                <strong class="text-sm font-extrabold text-rose-700 block mt-1 font-mono">₹{{ number_format((float)($pendingEmisAmount ?? 0), 2) }}</strong>
-                <span class="text-[9px] font-bold text-rose-600 block mt-0.5">{{ $pendingEmisCount ?? 0 }} Installment(s) Due</span>
+        
+        {{-- Card 1: Urgent Due EMIs --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Urgent Due</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:text-rose-700 group-hover:bg-rose-50/50">Action</span>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-rose-200/60 text-rose-700 flex items-center justify-center font-bold group-hover:scale-110 transition-transform duration-300">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
-            <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Active Loan Accounts</span>
-                <strong class="text-sm font-extrabold text-slate-900 block mt-1 font-sans">{{ $activeLoansCount ?? 0 }} Accounts</strong>
-            </div>
-            <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-500 flex items-center justify-center font-bold group-hover:scale-110 group-hover:bg-slate-200 transition-all duration-300">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-rose-700 font-mono tracking-tight block group-hover:text-rose-600 transition-colors duration-300">₹{{ number_format((float)($pendingEmisAmount ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">{{ $pendingEmisCount ?? 0 }} Installment(s) Due</p>
             </div>
         </div>
 
-        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
-            <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Net Outstanding Balance</span>
-                <strong class="text-sm font-extrabold text-rose-700 block mt-1 font-mono">₹{{ number_format((float)($totalOutstanding ?? 0), 2) }}</strong>
+        {{-- Card 2: Active Loan Accounts --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-200/60 transition-all duration-300 group-hover:bg-slate-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Active Loans</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100">Live</span>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center group-hover:scale-110 group-hover:bg-rose-100 transition-all duration-300">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-        </div>
-
-        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
-            <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Repaid Principal</span>
-                <strong class="text-sm font-extrabold text-emerald-800 block mt-1 font-mono">₹{{ number_format((float)($totalPaidPrincipal ?? 0), 2) }}</strong>
-            </div>
-            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 group-hover:bg-emerald-100 transition-all duration-300">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-2xl xl:text-3xl font-black text-slate-800 font-sans tracking-tight block group-hover:text-slate-900 transition-colors duration-300">{{ $activeLoansCount ?? 0 }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total active accounts.</p>
             </div>
         </div>
 
-        <div class="bg-gradient-to-br from-white to-slate-50/80 p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-between group">
-            <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Paid Interest Cost</span>
-                <strong class="text-sm font-extrabold text-[#a38c29] block mt-1 font-mono">₹{{ number_format((float)($totalPaidInterest ?? 0), 2) }}</strong>
+        {{-- Card 3: Net Outstanding Balance --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-pink-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-pink-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(236,72,153,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 border border-pink-100/60 transition-all duration-300 group-hover:bg-pink-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Outstanding</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-pink-300 group-hover:text-pink-700 group-hover:bg-pink-50/50">Pending</span>
             </div>
-            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center group-hover:scale-110 group-hover:bg-amber-100 transition-all duration-300">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-pink-700 transition-colors duration-300">₹{{ number_format((float)($totalOutstanding ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Net principal balance.</p>
+            </div>
+        </div>
+
+        {{-- Card 4: Total Repaid Principal --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Repaid</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Cleared</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format((float)($totalPaidPrincipal ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Principal repaid.</p>
+            </div>
+        </div>
+
+        {{-- Card 5: Paid Interest Cost --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Interest</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">Expense</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format((float)($totalPaidInterest ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Interest paid so far.</p>
             </div>
         </div>
     </div>

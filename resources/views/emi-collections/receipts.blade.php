@@ -5,8 +5,7 @@
     {{-- Summary KPIs with Animated Hover Effects --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {{-- Card 1: Total Collected --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 shadow-sm hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] group relative overflow-hidden flex items-center justify-between cursor-pointer">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Collected</span>
                 <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">
@@ -19,8 +18,7 @@
         </div>
 
         {{-- Card 2: Cheque Collections --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 shadow-sm hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] group relative overflow-hidden flex items-center justify-between cursor-pointer">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Cheque Collections</span>
                 <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">
@@ -33,8 +31,7 @@
         </div>
 
         {{-- Card 3: Online / UPI --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-[#a38c29]"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 shadow-sm hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] group relative overflow-hidden flex items-center justify-between cursor-pointer">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Online / UPI</span>
                 <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">
@@ -47,8 +44,7 @@
         </div>
 
         {{-- Card 4: Cash Collected --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
-            <div class="absolute top-0 left-0 right-0 h-1 bg-slate-800"></div>
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] border-l-slate-800 p-5 shadow-sm hover:border-slate-500 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(30,41,59,0.15)] group relative overflow-hidden flex items-center justify-between cursor-pointer">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Cash Collected</span>
                 <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">

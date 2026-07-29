@@ -31,12 +31,12 @@
             $activeType = $selectedVoucherType ?? '';
 
             $tabs = [
-                'Receipt'  => ['label' => 'Receipt Vouchers', 'sub' => 'Customer Collections', 'dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50', 'border' => 'border-emerald-500', 'ring' => 'ring-emerald-500/20'],
-                'Payment'  => ['label' => 'Vendor Payouts',   'sub' => 'Expense & Supplier',   'dot' => 'bg-rose-500',    'text' => 'text-rose-700',    'bg' => 'bg-rose-50',    'border' => 'border-rose-500',    'ring' => 'ring-rose-500/20'],
-                'Contra'   => ['label' => 'Contra Transfers', 'sub' => 'Bank / Cash Moves',    'dot' => 'bg-blue-500',    'text' => 'text-blue-700',    'bg' => 'bg-blue-50',    'border' => 'border-blue-500',    'ring' => 'ring-blue-500/20'],
-                'Journal'  => ['label' => 'Journal Entries',  'sub' => 'Book Adjustments',     'dot' => 'bg-amber-500',   'text' => 'text-amber-700',   'bg' => 'bg-amber-50',   'border' => 'border-amber-500',   'ring' => 'ring-amber-500/20'],
-                'Sales'    => ['label' => 'Sales Invoices',   'sub' => 'Customer Billing',     'dot' => 'bg-purple-500',  'text' => 'text-purple-700',  'bg' => 'bg-purple-50',  'border' => 'border-purple-500',  'ring' => 'ring-purple-500/20'],
-                'Purchase' => ['label' => 'Purchase Bills',   'sub' => 'Vendor Invoices',      'dot' => 'bg-indigo-500',  'text' => 'text-indigo-700',  'bg' => 'bg-indigo-50',  'border' => 'border-indigo-500',  'ring' => 'ring-indigo-500/20'],
+                'Receipt'  => ['label' => 'Receipt Vouchers', 'sub' => 'Customer Collections', 'dot' => 'bg-emerald-500', 'text' => 'text-emerald-700', 'bg' => 'bg-emerald-50/50', 'active_border' => 'border-y-emerald-300 border-r-emerald-300', 'hover_border' => 'hover:border-y-emerald-200 hover:border-r-emerald-200', 'left_border' => 'border-l-emerald-500', 'shadow_class' => 'hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]', 'ring' => 'ring-emerald-500/20'],
+                'Payment'  => ['label' => 'Vendor Payouts',   'sub' => 'Expense & Supplier',   'dot' => 'bg-rose-500',    'text' => 'text-rose-700',    'bg' => 'bg-rose-50/50',    'active_border' => 'border-y-rose-300 border-r-rose-300',       'hover_border' => 'hover:border-y-rose-200 hover:border-r-rose-200',       'left_border' => 'border-l-rose-500',    'shadow_class' => 'hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)]', 'ring' => 'ring-rose-500/20'],
+                'Contra'   => ['label' => 'Contra Transfers', 'sub' => 'Bank / Cash Moves',    'dot' => 'bg-blue-500',    'text' => 'text-blue-700',    'bg' => 'bg-blue-50/50',    'active_border' => 'border-y-blue-300 border-r-blue-300',       'hover_border' => 'hover:border-y-blue-200 hover:border-r-blue-200',       'left_border' => 'border-l-blue-500',    'shadow_class' => 'hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)]', 'ring' => 'ring-blue-500/20'],
+                'Journal'  => ['label' => 'Journal Entries',  'sub' => 'Book Adjustments',     'dot' => 'bg-amber-500',   'text' => 'text-amber-700',   'bg' => 'bg-amber-50/50',   'active_border' => 'border-y-amber-300 border-r-amber-300',     'hover_border' => 'hover:border-y-amber-200 hover:border-r-amber-200',     'left_border' => 'border-l-amber-500',   'shadow_class' => 'hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]', 'ring' => 'ring-amber-500/20'],
+                'Sales'    => ['label' => 'Sales Invoices',   'sub' => 'Customer Billing',     'dot' => 'bg-purple-500',  'text' => 'text-purple-700',  'bg' => 'bg-purple-50/50',  'active_border' => 'border-y-purple-300 border-r-purple-300',   'hover_border' => 'hover:border-y-purple-200 hover:border-r-purple-200',   'left_border' => 'border-l-purple-500',  'shadow_class' => 'hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.15)]', 'ring' => 'ring-purple-500/20'],
+                'Purchase' => ['label' => 'Purchase Bills',   'sub' => 'Vendor Invoices',      'dot' => 'bg-indigo-500',  'text' => 'text-indigo-700',  'bg' => 'bg-indigo-50/50',  'active_border' => 'border-y-indigo-300 border-r-indigo-300',   'hover_border' => 'hover:border-y-indigo-200 hover:border-r-indigo-200',   'left_border' => 'border-l-indigo-500',  'shadow_class' => 'hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)]', 'ring' => 'ring-indigo-500/20'],
             ];
         @endphp
 
@@ -107,28 +107,28 @@
             {{-- All Tab Box --}}
             @php $isAll = !$activeType; @endphp
             <button type="button" onclick="document.getElementById('voucher_type').value = ''; document.getElementById('filterForm').submit();"
-               class="text-left p-3.5 rounded-2xl border transition-all duration-200 block space-y-1 group cursor-pointer
+               class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] transition-all duration-300 block space-y-1 group cursor-pointer hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)]
                       {{ $isAll
-                         ? 'bg-[#a38c29] border-[#a38c29] text-white shadow-md ring-2 ring-[#a38c29]/20'
-                         : 'bg-white border-slate-200/80 hover:border-slate-400 hover:shadow-xs' }}">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest {{ $isAll ? 'text-white' : 'text-slate-500' }}">
+                         ? 'bg-[#a38c29]/10 border-y-[#a38c29] border-r-[#a38c29] text-slate-900 shadow-md ring-2 ring-[#a38c29]/20'
+                         : 'bg-white border-y-slate-200/80 border-r-slate-200/80 hover:border-y-[#a38c29]/40 hover:border-r-[#a38c29]/40' }}">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest {{ $isAll ? 'text-[#a38c29]' : 'text-slate-500' }}">
                     <span>All Entries</span>
-                    <span class="w-2 h-2 rounded-full {{ $isAll ? 'bg-white' : 'bg-slate-400' }}"></span>
+                    <span class="w-2 h-2 rounded-full {{ $isAll ? 'bg-[#a38c29]' : 'bg-slate-400' }}"></span>
                 </div>
-                <div class="text-base font-black font-mono {{ $isAll ? 'text-white' : 'text-slate-900' }}">
+                <div class="text-base font-black font-mono text-slate-900">
                     {{ $entries instanceof \Illuminate\Pagination\AbstractPaginator ? $entries->total() : count($entries) }} <span class="text-[10px] font-normal opacity-70">rows</span>
                 </div>
-                <div class="text-[10px] font-medium {{ $isAll ? 'text-slate-300' : 'text-slate-400' }}">All Categories</div>
+                <div class="text-[10px] font-medium {{ $isAll ? 'text-slate-500' : 'text-slate-400' }}">All Categories</div>
             </button>
 
             {{-- Category Tab Boxes --}}
             @foreach($tabs as $type => $cfg)
                 @php $isAct = $activeType === $type; @endphp
                 <button type="button" onclick="document.getElementById('voucher_type').value = '{{ $type }}'; document.getElementById('filterForm').submit();"
-                   class="text-left p-3.5 rounded-2xl border transition-all duration-200 block space-y-1 group cursor-pointer
+                   class="text-left p-3.5 rounded-2xl border border-l-[6px] {{ $cfg['left_border'] }} transition-all duration-300 block space-y-1 group cursor-pointer hover:-translate-y-1.5 {{ $cfg['shadow_class'] }}
                           {{ $isAct
-                             ? $cfg['bg'].' '.$cfg['border'].' '.$cfg['text'].' shadow-md ring-2 '.$cfg['ring']
-                             : 'bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-xs' }}">
+                             ? $cfg['bg'].' '.$cfg['active_border'].' '.$cfg['text'].' shadow-md ring-2 '.$cfg['ring']
+                             : 'bg-white border-y-slate-200/80 border-r-slate-200/80 '.$cfg['hover_border'] }}">
                     <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest {{ $isAct ? $cfg['text'] : 'text-slate-600' }}">
                         <span>{{ $type }}</span>
                         <span class="w-2 h-2 rounded-full {{ $cfg['dot'] }}"></span>
