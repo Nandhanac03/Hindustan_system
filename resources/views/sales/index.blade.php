@@ -95,17 +95,17 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-center font-bold text-slate-650 uppercase tracking-wider text-[10px]">
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Sale No</th>
-                        <th class="px-4 py-3.5 text-left text-slate-500 font-bold border-b">Project / Unit</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Customer</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Broker</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Sale Amount</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">GST</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Total</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Sale Date</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b">Status</th>
-                        <th class="px-4 py-3.5 text-slate-500 font-bold border-b text-right">Actions</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Sale No</th>
+                        <th class="px-4 py-3.5 text-left text-white font-extrabold border-b border-[#8a7522]">Project / Unit</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Customer</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Broker</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Sale Amount</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">GST</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Total</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Sale Date</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522]">Status</th>
+                        <th class="px-4 py-3.5 text-white font-extrabold border-b border-[#8a7522] text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white">

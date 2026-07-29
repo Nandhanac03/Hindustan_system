@@ -37,40 +37,41 @@
         $totalDebits = $ledger->sum('debit');
         $netBalance = $totalCredits - $totalDebits;
     @endphp
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {{-- Total Credits Card --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center justify-between">
-            <div class="space-y-1">
-                <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Allocated Collections Share</span>
-                <span class="text-lg font-bold text-emerald-700 block">₹{{ number_format($totalCredits, 2) }}</span>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Allocated Collections Share</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
             </div>
-            <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <div class="text-base font-black font-mono text-emerald-700">
+                ₹{{ number_format($totalCredits, 2) }}
             </div>
+            <div class="text-[10px] font-medium text-slate-400">Total Credits</div>
         </div>
 
         {{-- Total Payouts Card --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center justify-between">
-            <div class="space-y-1">
-                <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Total Paid-out (Debits)</span>
-                <span class="text-lg font-bold text-rose-700 block">₹{{ number_format($totalDebits, 2) }}</span>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-rose-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Total Paid-out (Debits)</span>
+                <span class="w-2 h-2 rounded-full bg-rose-500 shadow-xs"></span>
             </div>
-            <div class="p-3 bg-rose-50 rounded-xl text-rose-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="text-base font-black font-mono text-rose-700">
+                ₹{{ number_format($totalDebits, 2) }}
             </div>
+            <div class="text-[10px] font-medium text-slate-400">Total Debits</div>
         </div>
 
         {{-- Running Balance Card --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center justify-between">
-            <div class="space-y-1">
-                <span class="text-[10px] font-bold text-slate-450 uppercase tracking-wider block">Net Capital Balance</span>
-                <span class="text-lg font-bold {{ $netBalance >= 0 ? 'text-emerald-800' : 'text-rose-800' }} block">
-                    ₹{{ number_format($netBalance, 2) }}
-                </span>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Net Capital Balance</span>
+                <span class="w-2 h-2 rounded-full bg-[#a38c29] shadow-xs"></span>
             </div>
-            <div class="p-3 bg-amber-50 rounded-xl text-amber-700">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="text-base font-black font-mono {{ $netBalance >= 0 ? 'text-emerald-800' : 'text-rose-800' }}">
+                ₹{{ number_format($netBalance, 2) }}
             </div>
+            <div class="text-[10px] font-medium text-slate-400">Current Status</div>
         </div>
     </div>
 
@@ -84,13 +85,13 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-100">
-                        <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Date</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Type</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Description</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Credit (+)</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Debit (-)</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Running Balance</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522]">
+                        <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Date</th>
+                        <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Type</th>
+                        <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Description</th>
+                        <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px] text-right">Credit (+)</th>
+                        <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px] text-right">Debit (-)</th>
+                        <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px] text-right">Running Balance</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 font-medium">

@@ -114,12 +114,12 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                <th class="px-5 py-4">Supplier Name / Info</th>
-                                <th class="px-5 py-4">Tax / Legal IDs</th>
-                                <th class="px-5 py-4">Contact details</th>
-                                <th class="px-5 py-4">Office Address</th>
-                                <th class="px-5 py-4 text-center">Actions</th>
+                            <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-extrabold uppercase tracking-widest">
+                                <th class="px-5 py-4 text-white">Supplier Name / Info</th>
+                                <th class="px-5 py-4 text-white">Tax / Legal IDs</th>
+                                <th class="px-5 py-4 text-white">Contact details</th>
+                                <th class="px-5 py-4 text-white">Office Address</th>
+                                <th class="px-5 py-4 text-white text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-xs text-slate-700">

@@ -106,12 +106,12 @@
             <div class="overflow-x-auto flex-1">
                 <table class="w-full text-xs text-left">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100">
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Partner Info</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Total Collected</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Total Payouts</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Net Balance</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Actions</th>
+                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522]">
+                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Partner Info</th>
+                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Total Collected</th>
+                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Total Payouts</th>
+                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Net Balance</th>
+                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px] text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">

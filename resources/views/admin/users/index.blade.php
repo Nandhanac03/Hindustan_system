@@ -23,13 +23,13 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            <th class="px-6 py-4">Employee &amp; Name</th>
-                            <th class="px-6 py-4">Associated System</th>
-                            <th class="px-6 py-4">Role Assignment</th>
-                            <th class="px-6 py-4">Account Status</th>
-                            <th class="px-6 py-4">Registered Date</th>
-                            <th class="px-6 py-4 text-right">Actions</th>
+                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-extrabold uppercase tracking-widest">
+                            <th class="px-6 py-4 text-white">Employee &amp; Name</th>
+                            <th class="px-6 py-4 text-white">Associated System</th>
+                            <th class="px-6 py-4 text-white">Role Assignment</th>
+                            <th class="px-6 py-4 text-white">Account Status</th>
+                            <th class="px-6 py-4 text-white">Registered Date</th>
+                            <th class="px-6 py-4 text-white text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-600">

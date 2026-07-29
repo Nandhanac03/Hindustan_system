@@ -26,14 +26,14 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-55 bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                            <th class="px-6 py-4">Register Date</th>
-                            <th class="px-6 py-4">Bill Number</th>
-                            <th class="px-6 py-4">Supplier / Contractor</th>
-                            <th class="px-6 py-4">Project Allocation</th>
-                            <th class="px-6 py-4 text-right">Base Amount (₹)</th>
-                            <th class="px-6 py-4 text-right">Final Amount (₹)</th>
-                            <th class="px-6 py-4 text-center">Status</th>
+                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-extrabold uppercase tracking-widest">
+                            <th class="px-6 py-4 text-white">Register Date</th>
+                            <th class="px-6 py-4 text-white">Bill Number</th>
+                            <th class="px-6 py-4 text-white">Supplier / Contractor</th>
+                            <th class="px-6 py-4 text-white">Project Allocation</th>
+                            <th class="px-6 py-4 text-white text-right">Base Amount (₹)</th>
+                            <th class="px-6 py-4 text-white text-right">Final Amount (₹)</th>
+                            <th class="px-6 py-4 text-white text-center">Status</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs text-slate-700">

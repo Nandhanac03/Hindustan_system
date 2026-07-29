@@ -59,63 +59,55 @@
     @if(request('tab') === 'returns' || request('tab') === 'sale-return')
     
     {{-- Stats Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <!-- Card 1: Total Returns -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-purple-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span x-text="isCancellationTab ? 'Total Cancellations' : 'Total Returns'">Total Returns</span>
+                <span class="w-2 h-2 rounded-full bg-purple-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" x-text="isCancellationTab ? 'Total Cancellations' : 'Total Returns'"></p>
-                <h4 class="text-xl font-extrabold text-slate-800 mt-0.5" x-text="getReturnStats().totalReturns">0</h4>
-                <p class="text-[9px] text-slate-450 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="getReturnStats().totalReturns">
+                0
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
         <!-- Card 2: Return Amount -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span x-text="isCancellationTab ? 'Cancellation Amount' : 'Return Amount'">Return Amount</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider" x-text="isCancellationTab ? 'Cancellation Amount' : 'Return Amount'"></p>
-                <h4 class="text-xl font-extrabold text-slate-800 mt-0.5" x-text="fmtIndian(getReturnStats().returnAmount)">₹0.00</h4>
-                <p class="text-[9px] text-slate-450 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().returnAmount)">
+                ₹0.00
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
         <!-- Card 3: Payable to Customer -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-orange-50 text-orange-600 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Payable to Customer</span>
+                <span class="w-2 h-2 rounded-full bg-amber-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Payable to Customer</p>
-                <h4 class="text-xl font-extrabold text-slate-800 mt-0.5" x-text="fmtIndian(getReturnStats().payableToCustomer)">₹0.00</h4>
-                <p class="text-[9px] text-slate-450 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().payableToCustomer)">
+                ₹0.00
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
         <!-- Card 4: Receivable from Customer -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-teal-50 text-teal-600 rounded-xl">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-teal-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Receivable from Customer</span>
+                <span class="w-2 h-2 rounded-full bg-teal-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Receivable from Customer</p>
-                <h4 class="text-xl font-extrabold text-slate-800 mt-0.5" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">₹0.00</h4>
-                <p class="text-[9px] text-slate-450 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">
+                ₹0.00
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
-    </div>
+    </div></div>
 
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5">
         
@@ -169,7 +161,7 @@
         <div class="border border-slate-100 rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-[11px] border-collapse">
-                    <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 uppercase tracking-wider text-[10px]">
+                    <thead class="bg-[#a38c29] border-b border-[#8a7522] font-bold text-white uppercase tracking-wider text-[10px]">
                         <tr>
                             <th class="px-3 py-3 text-left">Return No</th>
                             <th class="px-3 py-3 text-left">Date</th>
@@ -965,7 +957,7 @@
         <div class="border border-slate-100 rounded-xl overflow-hidden">
             <div class="overflow-x-auto max-h-60">
                 <table class="w-full text-left text-[11px]">
-                    <thead class="bg-slate-50/80 border-b border-slate-100 font-bold text-slate-600 uppercase tracking-wider">
+                    <thead class="bg-[#a38c29] border-b border-[#8a7522] font-bold text-white uppercase tracking-wider">
                         <tr>
                             <th class="px-3 py-2.5">Customer</th>
                             <th class="px-3 py-2.5">Unit</th>
@@ -1114,75 +1106,65 @@
     {{-- RIGHT COLUMN: UNIT-TO-UNIT EXCHANGE PLAN --}}
     @if(request('tab') === 'exchange')
     {{-- Stats Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
         <!-- Card 1: Total Exchanges -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-purple-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Total Exchanges</span>
+                <span class="w-2 h-2 rounded-full bg-purple-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Total Exchanges</p>
-                <h4 class="text-base font-extrabold text-slate-800 mt-0.5" x-text="getExchangeStats().totalExchanges">0</h4>
-                <p class="text-[8px] text-slate-400 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="getExchangeStats().totalExchanges">
+                0
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
         <!-- Card 2: Total Difference Amount -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Total Difference Amount</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Total Difference Amount</p>
-                <h4 class="text-base font-extrabold text-slate-800 mt-0.5" x-text="fmtIndian(getExchangeStats().totalDiff)">₹0.00</h4>
-                <p class="text-[8px] text-slate-400 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().totalDiff)">
+                ₹0.00
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
         <!-- Card 3: Payable by Customer -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-orange-50 text-orange-600 rounded-xl">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3-3m0 0l3 3m-3-3v8m5-13a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Payable by Customer</span>
+                <span class="w-2 h-2 rounded-full bg-amber-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Payable by Customer</p>
-                <h4 class="text-base font-extrabold text-slate-800 mt-0.5" x-text="fmtIndian(getExchangeStats().payableByCustomer)">₹0.00</h4>
-                <p class="text-[8px] text-slate-400 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().payableByCustomer)">
+                ₹0.00
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
         <!-- Card 4: Refundable to Customer -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-teal-50 text-teal-600 rounded-xl">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13l-3 3m0 0l-3-3m3 3V8m5-13a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-teal-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Refundable to Customer</span>
+                <span class="w-2 h-2 rounded-full bg-teal-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Refundable to Customer</p>
-                <h4 class="text-base font-extrabold text-slate-800 mt-0.5" x-text="fmtIndian(getExchangeStats().refundableToCustomer)">₹0.00</h4>
-                <p class="text-[8px] text-slate-400 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().refundableToCustomer)">
+                ₹0.00
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
         <!-- Card 5: Completed Exchanges -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4">
-            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                </svg>
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-blue-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Completed Exchanges</span>
+                <span class="w-2 h-2 rounded-full bg-blue-500 shadow-xs"></span>
             </div>
-            <div>
-                <p class="text-[9px] font-bold text-slate-450 uppercase tracking-wider">Completed Exchanges</p>
-                <h4 class="text-base font-extrabold text-slate-800 mt-0.5" x-text="getExchangeStats().completedExchanges">0</h4>
-                <p class="text-[8px] text-slate-400 mt-0.5">This Month</p>
+            <div class="text-base font-black font-mono text-slate-900" x-text="getExchangeStats().completedExchanges">
+                0
             </div>
+            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
     </div>
 
@@ -1233,24 +1215,24 @@
         <div class="border border-slate-100 rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-[11px] border-collapse">
-                    <thead class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600 uppercase tracking-wider text-[10px]">
+                    <thead class="bg-[#a38c29] border-b border-[#8a7522] font-bold text-white uppercase tracking-wider text-[10px]">
                         <tr>
                             <th class="px-3 py-3 text-left">Exchange No.</th>
                             <th class="px-3 py-3 text-left">Date</th>
                             <th class="px-3 py-3 text-left">Project</th>
-                            <th class="px-3 py-3 text-left bg-slate-100/50" colspan="2">Old Unit (Cancelled)</th>
-                            <th class="px-3 py-3 text-left bg-primary/5" colspan="2">New Unit (Booked)</th>
+                            <th class="px-3 py-3 text-left bg-[#8f7a23]/60" colspan="2">Old Unit (Cancelled)</th>
+                            <th class="px-3 py-3 text-left bg-[#8f7a23]/80" colspan="2">New Unit (Booked)</th>
                             <th class="px-3 py-3 text-right">Difference Amount</th>
                             <th class="px-3 py-3 text-left">Payable / Refundable</th>
                             <th class="px-3 py-3 text-center">Status</th>
                             <th class="px-3 py-3 text-right">Actions</th>
                         </tr>
-                        <tr class="bg-slate-50/50 border-b border-slate-150 text-[9px] text-slate-500">
+                        <tr class="bg-[#8f7a23]/40 border-b border-[#8a7522] text-[9px] text-amber-100">
                             <th class="px-3 py-1 font-normal" colspan="3"></th>
-                            <th class="px-3 py-1 bg-slate-100/30 font-semibold border-r border-slate-150">Unit Details</th>
-                            <th class="px-3 py-1 bg-slate-100/30 font-semibold border-r border-slate-150">Customer</th>
-                            <th class="px-3 py-1 bg-primary/5 font-semibold border-r border-slate-150">Unit Details</th>
-                            <th class="px-3 py-1 bg-primary/5 font-semibold border-r border-slate-150">Customer</th>
+                            <th class="px-3 py-1 bg-[#8f7a23]/50 font-semibold border-r border-[#8a7522]">Unit Details</th>
+                            <th class="px-3 py-1 bg-[#8f7a23]/50 font-semibold border-r border-[#8a7522]">Customer</th>
+                            <th class="px-3 py-1 bg-[#8f7a23]/70 font-semibold border-r border-[#8a7522]">Unit Details</th>
+                            <th class="px-3 py-1 bg-[#8f7a23]/70 font-semibold border-r border-[#8a7522]">Customer</th>
                             <th class="px-3 py-1 font-normal" colspan="4"></th>
                         </tr>
                     </thead>

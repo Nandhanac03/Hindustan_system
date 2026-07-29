@@ -110,68 +110,52 @@
 @endif
 
     {{-- KPI Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
 
-       
-
-        {{-- Units (Ash / Slate Theme) --}}
-        <div class="kpi-card anim-2 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-9 h-9 rounded-xl bg-slate-100/50 flex items-center justify-center">
-                    <svg style="width:18px;height:18px" class="text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                    </svg>
-                </div>
-                <svg viewBox="0 0 60 30" class="w-16 h-8 text-slate-400">
-                    <polyline class="sparkline-path" style="animation-delay:0.1s" points="0,28 10,20 20,24 30,14 40,18 50,6 60,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+        {{-- Units (Slate Theme) --}}
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-slate-600 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Total Units</span>
+                <span class="w-2 h-2 rounded-full bg-slate-600 shadow-xs"></span>
             </div>
-            <div class="text-2xl font-extrabold text-slate-900 tracking-tight">{{ number_format($totalUnits) }}</div>
-            <div class="text-xs text-slate-500 font-medium mt-0.5">Total Units</div>
-            <div class="mt-2 text-[10px] font-bold text-emerald-500 uppercase tracking-wider">{{ $availableUnits }} Available</div>
+            <div class="text-base font-black font-mono text-slate-900">
+                {{ number_format($totalUnits) }}
+            </div>
+            <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{{ $availableUnits }} Available</div>
         </div>
 
-        {{-- Total Sales (Soft Emerald Profit Theme) --}}
-        <div class="kpi-card anim-3 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <svg style="width:18px;height:18px" class="text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <svg viewBox="0 0 60 30" class="w-16 h-8 text-emerald-400">
-                    <polyline class="sparkline-path" style="animation-delay:0.2s" points="0,26 10,22 20,25 30,12 40,18 50,8 60,12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+        {{-- Total Sales (Emerald Theme) --}}
+        @php
+            $salesFormatted = $totalSales >= 10000000 ? $currencySymbol.number_format($totalSales/10000000,2).'Cr'
+                : ($totalSales >= 100000 ? $currencySymbol.number_format($totalSales/100000,2).'L' : $currencySymbol.number_format($totalSales));
+        @endphp
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Total Sales</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
             </div>
-            @php
-                $salesFormatted = $totalSales >= 10000000 ? $currencySymbol.number_format($totalSales/10000000,2).'Cr'
-                    : ($totalSales >= 100000 ? $currencySymbol.number_format($totalSales/100000,2).'L' : $currencySymbol.number_format($totalSales));
-            @endphp
-            <div class="text-2xl font-extrabold text-slate-900 tracking-tight">{!! $salesFormatted !!}</div>
-            <div class="text-xs text-slate-500 font-medium mt-0.5">Total Sales</div>
-            <div class="mt-2 text-[10px] font-bold text-emerald-500 uppercase tracking-wider">{{ $bookedUnits }} Bookings</div>
+            <div class="text-base font-black font-mono text-slate-900">
+                {!! $salesFormatted !!}
+            </div>
+            <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{{ $bookedUnits }} Bookings</div>
         </div>
 
         {{-- Collections (Gold Theme) --}}
-        <div class="kpi-card anim-4 bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:border-primary-300">
-            <div class="flex items-center justify-between mb-4">
-                <div class="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center">
-                    <svg style="width:18px;height:18px" class="text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                    </svg>
-                </div>
-                <svg viewBox="0 0 60 30" class="w-16 h-8 text-primary-400">
-                    <polyline class="sparkline-path" style="animation-delay:0.3s" points="0,20 10,22 20,16 30,24 40,14 50,18 60,10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+        @php
+            $colFormatted = $totalCollections >= 10000000 ? $currencySymbol.number_format($totalCollections/10000000,2).'Cr'
+                : ($totalCollections >= 100000 ? $currencySymbol.number_format($totalCollections/100000,2).'L' : $currencySymbol.number_format($totalCollections));
+        @endphp
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                <span>Collections</span>
+                <span class="w-2 h-2 rounded-full bg-[#a38c29] shadow-xs"></span>
             </div>
-            @php
-                $colFormatted = $totalCollections >= 10000000 ? $currencySymbol.number_format($totalCollections/10000000,2).'Cr'
-                    : ($totalCollections >= 100000 ? $currencySymbol.number_format($totalCollections/100000,2).'L' : $currencySymbol.number_format($totalCollections));
-            @endphp
-            <div class="text-2xl font-extrabold text-slate-900 tracking-tight">{!! $colFormatted !!}</div>
-            <div class="text-xs text-slate-500 font-medium mt-0.5">Collections</div>
-            <div class="mt-2 text-[10px] font-bold text-primary uppercase tracking-wider">EMI Receipts</div>
+            <div class="text-base font-black font-mono text-slate-900">
+                {!! $colFormatted !!}
+            </div>
+            <div class="text-[10px] font-bold text-[#a38c29] uppercase tracking-wider">EMI Receipts</div>
         </div>
+    </div>
 
         {{-- Pending Approvals --}}
         <!-- <div class="kpi-card anim-5 bg-white rounded-2xl p-5 border {{ $pendingApprovals > 0 ? 'border-rose-200' : 'border-slate-200/80' }} shadow-sm">
