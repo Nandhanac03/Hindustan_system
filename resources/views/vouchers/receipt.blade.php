@@ -932,6 +932,15 @@
                                 });
                             }
 
+                            if (data.pending_brokers && data.pending_brokers.length > 0) {
+                                this.allocations.push({
+                                    type: 'broker',
+                                    target_id: data.pending_brokers[0].id,
+                                    amount: 0.00,
+                                    remarks: 'Broker commission payout'
+                                });
+                            }
+
                             if (data.pending_bills && data.pending_bills.length > 0) {
                                 this.allocations.push({
                                     type: 'supplier',
@@ -993,11 +1002,26 @@
                     this.allocations = [];
                 },
                 addCategoryRow(type) {
+                    let targetId = '';
+                    let remarks = '';
+                    if (type === 'broker' && this.targets.pending_brokers && this.targets.pending_brokers.length > 0) {
+                        targetId = this.targets.pending_brokers[0].id;
+                        remarks = 'Broker commission payout';
+                    } else if (type === 'supplier' && this.targets.pending_bills && this.targets.pending_bills.length > 0) {
+                        targetId = this.targets.pending_bills[0].id;
+                        remarks = 'Supplier liability clearing';
+                    } else if (type === 'refund' && this.targets.cancelled_sales && this.targets.cancelled_sales.length > 0) {
+                        targetId = this.targets.cancelled_sales[0].id;
+                        remarks = 'Customer cancellation refund';
+                    } else if (type === 'partner' && this.targets.partners && this.targets.partners.length > 0) {
+                        targetId = this.targets.partners[0].id;
+                        remarks = 'Partner Share allocation';
+                    }
                     this.allocations.push({
                         type: type,
-                        target_id: '',
+                        target_id: targetId,
                         amount: 0.00,
-                        remarks: ''
+                        remarks: remarks
                     });
                 },
                 fillRemainingBalance(idx) {
@@ -1130,6 +1154,7 @@
                 initChart() {
                     this.$nextTick(() => {
                         const partnerAmt = this.getSummaryAmount('partner');
+                        const brokerAmt = this.getSummaryAmount('broker');
                         const supplierAmt = this.getSummaryAmount('supplier');
                         const refundAmt = this.getSummaryAmount('refund');
                         const generalAmt = this.getSummaryAmount('general');
@@ -1139,9 +1164,9 @@
                                 type: 'donut',
                                 height: 300
                             },
-                            series: [partnerAmt, supplierAmt, refundAmt, generalAmt],
-                            labels: ['Partner Share', 'Supplier Bills', 'Customer Refund', 'General Fund'],
-                            colors: ['#a38c29', '#3b82f6', '#f43f5e', '#10b981'],
+                            series: [partnerAmt, brokerAmt, supplierAmt, refundAmt, generalAmt],
+                            labels: ['Partner Share', 'Broker Commission', 'Supplier Bills', 'Customer Refund', 'General Fund'],
+                            colors: ['#a38c29', '#d97706', '#3b82f6', '#f43f5e', '#10b981'],
                             legend: {
                                 position: 'bottom',
                                 fontSize: '12px',
