@@ -79,38 +79,66 @@
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="cashBookApp()">
     
     {{-- Top Metrics Row --}}
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Counter Cash-In-Hand</span>
-            <div class="flex justify-between items-baseline mt-1">
-                <span class="text-2xl font-extrabold text-slate-900 font-mono">₹{{ number_format($cashInHand, 2) }}</span>
-                <span class="text-[9px] text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 font-mono">Safe Logged</span>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Cash Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-colors">
+            <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-emerald-50/50 to-transparent pointer-events-none"></div>
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Counter Cash</span>
+                </div>
+                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 uppercase tracking-widest shadow-sm">Safe Logged</span>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2 font-medium">Physical currency at main registry desk.</p>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block">₹{{ number_format($cashInHand, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Physical currency at main registry desk.</p>
+            </div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Transit Cheque Vault</span>
-            <div class="flex justify-between items-baseline mt-1">
-                <span class="text-2xl font-extrabold text-slate-900 font-mono">₹{{ number_format($chequeVault, 2) }}</span>
-                <span class="text-[9px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 font-mono">To Clear</span>
+
+        <!-- Cheque Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-colors">
+            <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-amber-50/50 to-transparent pointer-events-none"></div>
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Cheque Vault</span>
+                </div>
+                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100 uppercase tracking-widest shadow-sm">To Clear</span>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2 font-medium">Pending presentation at clearing house.</p>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block">₹{{ number_format($chequeVault, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Pending presentation at clearing house.</p>
+            </div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">ICICI Bank Balance</span>
-            <div class="flex justify-between items-baseline mt-1">
-                <span class="text-2xl font-extrabold text-slate-900 font-mono">₹{{ number_format($bankBalance, 2) }}</span>
-                <span class="text-[9px] text-primary-700 font-bold bg-primary-50 px-1.5 py-0.5 rounded border border-primary-200/40 font-mono">Live Sync</span>
+
+        <!-- Bank & Digital Card -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-colors">
+            <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none"></div>
+            
+            <div class="flex items-center justify-between mb-4 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/50">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Bank & Digital</span>
+                </div>
+                <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 uppercase tracking-widest shadow-sm">Live Sync</span>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2 font-medium">Direct bank reconciliations completed.</p>
-        </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Digital Gateway Escrow</span>
-            <div class="flex justify-between items-baseline mt-1">
-                <span class="text-2xl font-extrabold text-slate-900 font-mono">₹{{ number_format($onlineGateway, 2) }}</span>
-                <span class="text-[9px] text-emerald-650 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100 font-mono">Settled</span>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block">₹{{ number_format($bankBalance + $onlineGateway, 2) }}</span>
+                <p class="text-[10px] text-slate-400 mt-2 font-medium">Consolidated bank transfers and gateways.</p>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2 font-medium">Automated RERA accounts partition.</p>
         </div>
     </div>
 
@@ -143,72 +171,117 @@
     </div> -->
 
     {{-- Book Log Ledger --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-md overflow-hidden flex flex-col mt-4">
+        <style>
+            #ledger-table thead th {
+                border-color: #8a7522 !important;
+                position: sticky;
+                top: 0;
+                z-index: 10;
+            }
+            #ledger-table tbody tr:nth-child(even) {
+                background-color: #F6F3E9;
+            }
+            #ledger-table tbody tr:hover {
+                background-color: #ebe5d0;
+                transition: background-color 0.2s ease;
+            }
+        </style>
         
         {{-- Toolbar --}}
-        <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-slate-50/20">
+        <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-[#FAF8F2]">
             <div>
-                <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Transaction Statement Ledger</h3>
-                <p class="text-[10px] text-slate-400 font-medium mt-0.5">Continuous cash book ledger journal entries.</p>
+                <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">Transaction Statement Ledger</h3>
+                <p class="text-[10px] text-slate-500 font-bold mt-0.5">Continuous cash book ledger journal entries.</p>
             </div>
             
             <div class="flex flex-wrap items-center gap-2">
-                <div class="border rounded-lg p-0.5 bg-slate-100 flex gap-0.5 text-[10px] font-bold uppercase tracking-wider">
+                <div class="border border-[#e0d6b6] rounded-lg p-0.5 bg-white flex gap-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm">
                     <button @click="setLedgerMode('All')" 
-                            class="px-2.5 py-1 rounded transition" 
-                            :class="activeMode === 'All' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'">All</button>
+                            class="px-3 py-1.5 rounded transition font-bold" 
+                            :class="activeMode === 'All' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">All</button>
                     <button @click="setLedgerMode('Cash')" 
-                            class="px-2.5 py-1 rounded transition" 
-                            :class="activeMode === 'Cash' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'">Cash</button>
+                            class="px-3 py-1.5 rounded transition font-bold" 
+                            :class="activeMode === 'Cash' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Cash</button>
                     <button @click="setLedgerMode('Cheque')" 
-                            class="px-2.5 py-1 rounded transition" 
-                            :class="activeMode === 'Cheque' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'">Cheque</button>
+                            class="px-3 py-1.5 rounded transition font-bold" 
+                            :class="activeMode === 'Cheque' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Cheque</button>
                     <button @click="setLedgerMode('Bank/Online')" 
-                            class="px-2.5 py-1 rounded transition" 
-                            :class="activeMode === 'Bank/Online' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'">Bank/Online</button>
+                            class="px-3 py-1.5 rounded transition font-bold" 
+                            :class="activeMode === 'Bank/Online' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Bank/Online</button>
                 </div>
                 
-                <input type="text" x-model="searchQuery" placeholder="Search narrative..."
-                       class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:outline-none w-44">
+                <div class="relative">
+                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input type="text" x-model="searchQuery" @input="currentPage = 1" placeholder="Search narrative..."
+                           class="pl-9 pr-3 py-1.5 bg-white border border-[#e0d6b6] rounded-lg text-xs focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] shadow-sm font-medium focus:outline-none w-56 transition-all">
+                </div>
             </div>
         </div>
 
         {{-- Table --}}
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+        <div class="overflow-x-auto flex-1">
+            <table id="ledger-table" class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-100 text-left">
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Date</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Voucher Ref</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Narrative / Customer</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Project / Unit</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Mode</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest text-right">Debit</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest text-right">Credit</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest text-right">Balance</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Date</th>
+                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Voucher Ref</th>
+                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Narrative / Customer</th>
+                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Project / Unit</th>
+                        <th class="px-5 py-3.5 text-center border-r border-[#8a7522]">Mode</th>
+                        <th class="px-5 py-3.5 text-right border-r border-[#8a7522]">Debit</th>
+                        <th class="px-5 py-3.5 text-right border-r border-[#8a7522]">Credit</th>
+                        <th class="px-5 py-3.5 text-right">Balance</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 font-mono text-slate-650">
-                    <template x-for="(t, idx) in filteredLedger()" :key="idx">
-                        <tr class="hover:bg-slate-50/50 transition-colors">
-                            <td class="px-6 py-3.5 text-slate-600 font-sans" x-text="t.date"></td>
-                            <td class="px-6 py-3.5 text-slate-500 font-sans" x-text="t.ref"></td>
-                            <td class="px-6 py-3.5 font-sans">
-                                <div class="font-bold text-slate-900" x-text="t.narrative"></div>
-                                <div class="text-[10px] text-slate-400 font-medium" x-text="t.customer"></div>
+                <tbody class="divide-y divide-[#EAE3CD] font-mono text-slate-700 bg-white">
+                    <template x-for="(t, idx) in paginatedLedger" :key="idx">
+                        <tr class="transition-colors border-b border-[#e8dfc3]">
+                            <td class="px-5 py-4 text-slate-700 font-sans font-bold" x-text="t.date"></td>
+                            <td class="px-5 py-4 text-slate-500 font-sans" x-text="t.ref"></td>
+                            <td class="px-5 py-4 font-sans">
+                                <div class="font-extrabold text-slate-900" x-text="t.narrative"></div>
+                                <div class="text-[10px] text-[#a38c29] font-bold mt-0.5" x-text="t.customer"></div>
                             </td>
-                            <td class="px-6 py-3.5 font-sans text-slate-600" x-text="t.project_unit"></td>
-                            <td class="px-6 py-3.5 font-sans font-semibold text-slate-700" x-text="t.mode"></td>
-                            <td class="px-6 py-3.5 text-right text-rose-600 font-semibold" x-text="t.debit ? '₹' + Number(t.debit).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '-'"></td>
-                            <td class="px-6 py-3.5 text-right text-emerald-700 font-extrabold" x-text="t.credit ? '₹' + Number(t.credit).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '-'"></td>
-                            <td class="px-6 py-3.5 text-right text-slate-800 font-bold" x-text="'₹' + Number(t.balance).toLocaleString('en-IN', {minimumFractionDigits: 2})"></td>
+                            <td class="px-5 py-4 font-sans text-slate-600 font-semibold" x-text="t.project_unit"></td>
+                            <td class="px-5 py-4 font-sans text-center">
+                                <span class="px-2 py-1 rounded text-[9px] font-bold tracking-wider uppercase border"
+                                      :class="{'bg-[#FAF0D7] text-[#9C6D3B] border-[#EAE3CD]': t.mode === 'Cash', 'bg-blue-50 text-blue-700 border-blue-100': t.mode === 'Cheque', 'bg-emerald-50 text-emerald-700 border-emerald-100': t.mode === 'Online' || t.mode === 'UPI' || t.mode === 'Credit Card', 'bg-purple-50 text-purple-700 border-purple-100': t.mode === 'Bank Transfer' || t.mode === 'Bank'}"
+                                      x-text="t.mode"></span>
+                            </td>
+                            <td class="px-5 py-4 text-right text-rose-600 font-bold" x-text="t.debit ? '₹' + Number(t.debit).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '-'"></td>
+                            <td class="px-5 py-4 text-right text-emerald-700 font-extrabold" x-text="t.credit ? '₹' + Number(t.credit).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '-'"></td>
+                            <td class="px-5 py-4 text-right text-slate-900 font-extrabold" x-text="'₹' + Number(t.balance).toLocaleString('en-IN', {minimumFractionDigits: 2})"></td>
                         </tr>
                     </template>
                     <tr x-show="filteredLedger().length === 0">
-                        <td colspan="8" class="px-6 py-10 text-center text-slate-400 italic font-sans">No transactions match current filters.</td>
+                        <td colspan="8" class="px-6 py-12 text-center text-[#a38c29] font-bold italic font-sans bg-slate-50/50">No transactions match current filters.</td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+        
+        {{-- Pagination Controls --}}
+        <div class="px-6 py-4 border-t border-[#e8dfc3] bg-[#F6F3E9] flex flex-col sm:flex-row items-center justify-between gap-4" x-show="filteredLedger().length > 0">
+            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                Showing <span class="text-slate-900" x-text="startIndex + 1"></span> to 
+                <span class="text-slate-900" x-text="Math.min(endIndex, filteredLedger().length)"></span> of 
+                <span class="text-slate-900" x-text="filteredLedger().length"></span> results
+            </span>
+            <div class="flex items-center gap-1.5">
+                <button @click="prevPage()" :disabled="currentPage === 1" class="px-3 py-1.5 border border-[#e0d6b6] bg-white text-slate-500 hover:text-[#a38c29] rounded-md text-[10px] font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition shadow-sm">Previous</button>
+                <div class="hidden sm:flex items-center gap-1 text-[10px] font-bold font-sans">
+                    <template x-for="page in getPageNumbers()" :key="page">
+                        <button @click="if(page !== '...') goToPage(page)" 
+                                x-text="page" 
+                                :disabled="page === '...'"
+                                class="w-8 py-1.5 border border-[#e0d6b6] rounded-md transition shadow-sm" 
+                                :class="page === currentPage ? 'bg-[#a38c29] text-white border-[#a38c29]' : (page === '...' ? 'bg-transparent border-none shadow-none text-slate-400 cursor-default' : 'bg-white text-slate-500 hover:bg-slate-50 hover:text-[#a38c29]')">
+                        </button>
+                    </template>
+                </div>
+                <button @click="nextPage()" :disabled="currentPage === totalPages" class="px-3 py-1.5 border border-[#e0d6b6] bg-white text-slate-500 hover:text-[#a38c29] rounded-md text-[10px] font-bold uppercase disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition shadow-sm">Next</button>
+            </div>
         </div>
     </div>
 
@@ -219,6 +292,8 @@ function cashBookApp() {
     return {
         activeMode: 'All',
         searchQuery: '',
+        currentPage: 1,
+        perPage: 100,
 
         ledger: @json($ledgerItems),
 
@@ -231,6 +306,7 @@ function cashBookApp() {
 
         setLedgerMode(mode) {
             this.activeMode = mode;
+            this.currentPage = 1;
         },
 
         filteredLedger() {
@@ -252,6 +328,67 @@ function cashBookApp() {
 
                 return matchesMode && matchesQuery;
             });
+        },
+
+        get totalPages() {
+            return Math.max(1, Math.ceil(this.filteredLedger().length / this.perPage));
+        },
+
+        get startIndex() {
+            return (this.currentPage - 1) * this.perPage;
+        },
+
+        get endIndex() {
+            return this.startIndex + this.perPage;
+        },
+
+        get paginatedLedger() {
+            return this.filteredLedger().slice(this.startIndex, this.endIndex);
+        },
+
+        prevPage() {
+            if (this.currentPage > 1) {
+                this.currentPage--;
+            }
+        },
+
+        nextPage() {
+            if (this.currentPage < this.totalPages) {
+                this.currentPage++;
+            }
+        },
+
+        goToPage(page) {
+            if (page >= 1 && page <= this.totalPages) {
+                this.currentPage = page;
+            }
+        },
+
+        getPageNumbers() {
+            const pages = [];
+            const total = this.totalPages;
+            const current = this.currentPage;
+            
+            if (total <= 7) {
+                for (let i = 1; i <= total; i++) pages.push(i);
+            } else {
+                if (current <= 4) {
+                    for (let i = 1; i <= 5; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(total);
+                } else if (current >= total - 3) {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = total - 4; i <= total; i++) pages.push(i);
+                } else {
+                    pages.push(1);
+                    pages.push('...');
+                    for (let i = current - 1; i <= current + 1; i++) pages.push(i);
+                    pages.push('...');
+                    pages.push(total);
+                }
+            }
+            return pages;
         },
 
         renderCharts() {
