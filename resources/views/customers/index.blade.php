@@ -84,10 +84,10 @@
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">Customer</th>
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">Contact Info</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">Properties</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Total Value</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Paid Amount</th>
-                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Balance</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">Units Purchased</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Total Sale Value</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Total Paid</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Outstanding Balance</th>
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">Status</th>
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Actions</th>
                     </tr>
