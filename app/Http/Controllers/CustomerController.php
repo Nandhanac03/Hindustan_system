@@ -37,7 +37,13 @@ class CustomerController extends Controller
             $query->where('is_active', $request->status);
         }
  
-        $customers = $query->orderBy('name')->get();
+        $customers = $query->withCount('sales')
+            ->withSum('sales as total_purchase', 'total_amount')
+            ->withSum(['receipts as total_paid' => function($q) {
+                $q->whereNull('partner_id');
+            }], 'amount')
+            ->orderBy('name')
+            ->get();
     
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['customers' => $customers]);
@@ -113,6 +119,12 @@ class CustomerController extends Controller
     */
     public function destroy(Customer $customer)
     {
+        if ($customer->sales()->count() > 0) {
+            return response()->json([
+                'error' => 'Cannot delete customer with associated properties.',
+            ], 422);
+        }
+
         $customer->delete();
  
         return response()->json([

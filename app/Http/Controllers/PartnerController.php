@@ -418,6 +418,8 @@ class PartnerController extends Controller
                 'amount' => $emi->emi_amount,
                 'status' => $is_overdue ? 'Overdue' : 'Available',
                 'is_overdue' => $is_overdue,
+                'loan_id' => $emi->loan_id,
+                'loan' => $emi->loan,
             ];
         });
 
