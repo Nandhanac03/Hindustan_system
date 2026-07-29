@@ -5,17 +5,17 @@
     {{-- Breadcrumb --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-[11px] text-slate-400 font-semibold">
         <div class="flex items-center gap-2">
-            <a href="{{ route('sales.index') }}" class="hover:text-primary transition-colors">Sales</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <a href="{{ route('emi-collections.outstanding') }}" class="hover:text-primary transition-colors">Outstanding</a>
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            <span class="text-slate-700">Ledger — {{ $sale->sale_number }}</span>
+            <a href="{{ route('sales.index') }}" class="hover:text-[#a38c29] transition-colors">Sales</a>
+            <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <a href="{{ route('emi-collections.outstanding') }}" class="hover:text-[#a38c29] transition-colors">Outstanding</a>
+            <svg class="w-3 h-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-slate-700 font-bold">Ledger — {{ $sale->sale_number }}</span>
         </div>
         
         <div class="flex items-center gap-2">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Select Customer / Unit:</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Customer / Unit:</span>
             <select onchange="window.location.href='/emi-collections/ledger/' + this.value" 
-                    class="px-3 py-1.5 bg-white border border-slate-200 focus:ring-4 focus:ring-primary/10 rounded-xl text-xs text-slate-700 font-bold focus:outline-none transition-all">
+                    class="px-3.5 py-1.5 bg-white border border-slate-200/90 focus:ring-4 focus:ring-[#a38c29]/15 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition-all shadow-xs cursor-pointer">
                 @foreach($allSales as $s)
                     <option value="{{ $s->id }}" {{ $s->id == $sale->id ? 'selected' : '' }}>
                         {{ $s->customer?->name ?? '—' }} — Unit: {{ $s->unit?->door_no ?? '—' }} ({{ $s->sale_number }})
@@ -25,87 +25,156 @@
         </div>
     </div>
 
-    {{-- Sale Summary Card --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Customer</span>
-                <span class="text-sm font-extrabold text-slate-900 mt-1 block">{{ $sale->customer?->name ?? '—' }}</span>
-                <span class="text-[10px] text-slate-400">{{ $sale->customer?->phone ?? '' }}</span>
+    {{-- Hero Sale Summary Banner --}}
+    <div class="relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 rounded-2xl border border-slate-800/80 shadow-xl p-6 text-white">
+        <div class="absolute -top-16 -right-16 w-56 h-56 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-16 -left-16 w-56 h-56 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
+            {{-- Customer Info --}}
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/20 border border-[#a38c29]/30 text-[#d9bf3b] flex items-center justify-center font-extrabold text-base shrink-0 shadow-inner">
+                    {{ strtoupper(substr($sale->customer?->name ?? 'C', 0, 2)) }}
+                </div>
+                <div>
+                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Customer</span>
+                    <h3 class="text-base font-extrabold text-white mt-0.5 tracking-tight">{{ $sale->customer?->name ?? '—' }}</h3>
+                    <span class="text-[10px] text-slate-400 font-medium inline-flex items-center gap-1 mt-0.5">
+                        <svg class="w-3 h-3 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                        {{ $sale->customer?->phone ?? 'N/A' }}
+                    </span>
+                </div>
             </div>
+
+            {{-- Sale Number & Project --}}
             <div>
                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Sale Number / Project</span>
-                <span class="text-sm font-bold text-primary mt-1 block font-mono">{{ $sale->sale_number }}</span>
-                <span class="text-[10px] text-slate-500">{{ $sale->project?->name ?? '—' }} — Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
-            </div>
-            <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Sale Amount (incl. GST)</span>
-                <span class="text-sm font-extrabold text-slate-900 mt-1 block font-mono">₹{{ number_format($sale->total_amount, 2) }}</span>
-                <span class="text-[10px] text-slate-400">Agreement: {{ $sale->agreement_date?->format('d M Y') ?? '—' }}</span>
-            </div>
-            <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Remaining Balance</span>
-                <span class="text-sm font-extrabold {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-1 block font-mono">
-                    ₹{{ number_format(abs($closingBalance), 2) }}
-                    <span class="text-[9px] font-semibold">{{ $closingBalance > 0 ? '(Outstanding)' : '(Fully Paid)' }}</span>
+                <span class="text-sm font-extrabold text-[#d9bf3b] font-mono mt-1 block tracking-wide">{{ $sale->sale_number }}</span>
+                <span class="text-[10px] text-slate-300 font-medium mt-0.5 block truncate" title="{{ $sale->project?->name ?? '—' }} — Unit: {{ $sale->unit?->door_no ?? '—' }}">
+                    {{ $sale->project?->name ?? '—' }} — <span class="text-amber-200 font-bold">Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
                 </span>
             </div>
-        </div>
-    </div>
 
-    {{-- Ledger KPIs --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Sale Value</span>
-            <span class="text-xl font-extrabold text-slate-900 mt-1 block font-mono">₹{{ number_format($sale->total_amount, 2) }}</span>
-            <span class="text-[9px] text-slate-400">Agreed sale price + GST</span>
-        </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Instalment Dues</span>
-            <span class="text-xl font-extrabold text-rose-600 mt-1 block font-mono">₹{{ number_format($totalDebits, 2) }}</span>
-            <span class="text-[9px] text-slate-400">Scheduled installments</span>
-        </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Receipts</span>
-            <span class="text-xl font-extrabold text-emerald-600 mt-1 block font-mono">₹{{ number_format($totalCredits, 2) }}</span>
-            <span class="text-[9px] text-slate-400">Payments received</span>
-        </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
-            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Net Outstanding</span>
-            <span class="text-xl font-extrabold {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-1 block font-mono">
-                ₹{{ number_format(abs($closingBalance), 2) }}
-            </span>
-            <span class="text-[9px] text-slate-400">{{ $closingBalance > 0 ? 'Balance Due' : 'Settled' }}</span>
-        </div>
-    </div>
-
-    {{-- Running Ledger Table --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            {{-- Sale Amount --}}
             <div>
-                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Running Ledger Statement</h2>
-                <p class="text-xs text-slate-400 mt-0.5">Chronological history of installment dues and receipt credits with running balance.</p>
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Contract Value (incl. GST)</span>
+                <span class="text-base font-black text-white font-mono mt-1 block tracking-tight">₹{{ number_format($sale->total_amount, 2) }}</span>
+                <span class="text-[10px] text-slate-400 font-medium mt-0.5 block">Agreement: {{ $sale->agreement_date?->format('d M Y') ?? '—' }}</span>
             </div>
-            <div class="flex gap-3">
-                <button @click="openEmiModal()" class="text-[10px] font-bold text-primary hover:underline bg-transparent border-0 cursor-pointer p-0">↗ Manage EMI Schedule</button>
-                <button @click="openPayModal({{ $closingBalance }}, 'Outstanding Balance')" class="text-[10px] font-bold text-primary hover:underline bg-transparent border-0 cursor-pointer p-0">↗ Add Receipt</button>
-                 <a href="{{ route('sales.index') }}" class="text-[10px] font-bold text-primary hover:underline">↗ Sales Register</a>
+
+            {{-- Remaining Balance Status --}}
+            <div class="lg:text-right">
+                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Remaining Balance</span>
+                <div class="mt-1 inline-flex items-center gap-2">
+                    <span class="text-lg font-black font-mono {{ $closingBalance > 0 ? 'text-rose-400' : 'text-emerald-400' }}">
+                        ₹{{ number_format(abs($closingBalance), 2) }}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border {{ $closingBalance > 0 ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }}">
+                        {{ $closingBalance > 0 ? 'Outstanding' : 'Fully Paid' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Executive Metric Cards (4 Cards) --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {{-- Card 1: Sale Value --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 border-t-[#a38c29] shadow-sm p-5 hover:shadow-md transition-all flex items-center justify-between">
+            <div>
+                <span class="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider block">Sale Value</span>
+                <span class="text-xl font-black text-slate-900 mt-1 block font-mono">₹{{ number_format($sale->total_amount, 2) }}</span>
+                <span class="text-[9.5px] text-slate-400 font-medium mt-0.5 block">Agreed sale price + GST</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-1-4h.01M9 16h.01M9 12h.01M13 12h.01M13 16h.01M17 12h.01M17 16h.01"/></svg>
+            </div>
+        </div>
+
+        {{-- Card 2: Total Instalment Dues --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 border-t-rose-500 shadow-sm p-5 hover:shadow-md transition-all flex items-center justify-between">
+            <div>
+                <span class="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Instalment Dues</span>
+                <span class="text-xl font-black text-rose-600 mt-1 block font-mono">₹{{ number_format($totalDebits, 2) }}</span>
+                <span class="text-[9.5px] text-slate-400 font-medium mt-0.5 block">Scheduled installments</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+        </div>
+
+        {{-- Card 3: Total Receipts Paid --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 border-t-emerald-500 shadow-sm p-5 hover:shadow-md transition-all flex items-center justify-between">
+            <div>
+                <span class="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider block">Total Receipts Paid</span>
+                <span class="text-xl font-black text-emerald-600 mt-1 block font-mono">₹{{ number_format($totalCredits, 2) }}</span>
+                <span class="text-[9.5px] text-slate-400 font-medium mt-0.5 block">Payments received</span>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+        </div>
+
+        {{-- Card 4: Net Outstanding --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-t-4 {{ $closingBalance > 0 ? 'border-t-rose-500 bg-rose-50/20' : 'border-t-emerald-500 bg-emerald-50/20' }} shadow-sm p-5 hover:shadow-md transition-all flex items-center justify-between">
+            <div>
+                <span class="text-[9.5px] font-extrabold text-slate-400 uppercase tracking-wider block">Net Outstanding</span>
+                <span class="text-xl font-black {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-1 block font-mono">
+                    ₹{{ number_format(abs($closingBalance), 2) }}
+                </span>
+                <span class="text-[9.5px] font-bold {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-0.5 block">
+                    {{ $closingBalance > 0 ? 'Balance Due' : 'Fully Settled' }}
+                </span>
+            </div>
+            <div class="w-10 h-10 rounded-xl {{ $closingBalance > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600' }} flex items-center justify-center shrink-0">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 18h12l3-18H3zm12 11H9v-2h6v2zm1-4H8V9h9v4z"/></svg>
+            </div>
+        </div>
+    </div>
+
+    {{-- Running Ledger Table Container --}}
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-1.5 h-10 bg-[#a38c29] rounded-full shrink-0"></div>
+                <div>
+                    <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        Running Ledger Statement
+                        <span class="px-2 py-0.5 rounded-full bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 text-[9px] font-extrabold uppercase tracking-normal">Live Log</span>
+                    </h2>
+                    <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Chronological history of installment dues and receipt credits with running balance.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                <button type="button" @click="openEmiModal()" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 hover:border-slate-300 text-[10px] font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Manage Schedule
+                </button>
+                <button type="button" @click="openPayModal({{ $closingBalance }}, 'Outstanding Balance')" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white border border-[#a38c29] text-[10px] font-black uppercase tracking-wider rounded-xl transition-all shadow-sm hover:shadow inline-flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Add Receipt
+                </button>
+                <a href="{{ route('sales.index') }}" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 hover:border-slate-300 text-[10px] font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    Sales Register
+                </a>
             </div>
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-xs">
+            <table class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-left">
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Date</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Description</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest text-right">Debit (Due)</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest text-right">Credit (Paid)</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest text-right">Running Balance</th>
-                        <th class="px-5 py-3 font-bold text-slate-500 text-[9px] uppercase tracking-widest">Type</th>
+                    <tr class="bg-slate-900 text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-slate-800">
+                        <th class="px-5 py-3.5">Date</th>
+                        <th class="px-5 py-3.5">Description</th>
+                        <th class="px-5 py-3.5 text-right">Debit (Due)</th>
+                        <th class="px-5 py-3.5 text-right">Credit (Paid)</th>
+                        <th class="px-5 py-3.5 text-right">Running Balance</th>
+                        <th class="px-5 py-3.5 text-center">Type & Status</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100">
+                <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
                     @forelse($ledger as $row)
                     @if($row['type'] === 'receipt')
                         @continue
@@ -117,94 +186,85 @@
                         ];
                         $cfg = $typeColors[$row['type']] ?? ['row' => '', 'badge' => 'bg-slate-100 text-slate-600 border-slate-200'];
                     @endphp
-                    <tr class="hover:bg-slate-50/60 transition-colors {{ $cfg['row'] }}">
-                        <td class="px-5 py-3 text-slate-500 text-[10px] font-mono">{{ $row['date'] }}</td>
-                        <td class="px-5 py-3">
-                            <div class="font-semibold text-slate-800">{{ $row['description'] }}</div>
-                           
+                    <tr class="hover:bg-slate-50/80 transition-colors {{ $cfg['row'] }}">
+                        <td class="px-5 py-3.5 text-slate-500 text-[10px] font-mono whitespace-nowrap">{{ $row['date'] }}</td>
+                        <td class="px-5 py-3.5">
+                            <div class="font-extrabold text-slate-900 text-xs">{{ $row['description'] }}</div>
                         </td>
-                        <td class="px-5 py-3 text-right font-mono {{ $row['debit'] > 0 ? 'text-rose-600 font-bold' : 'text-slate-300' }}">
+                        <td class="px-5 py-3.5 text-right font-mono text-xs {{ $row['debit'] > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-300' }}">
                             {{ $row['debit'] > 0 ? '₹' . number_format($row['debit'], 2) : '—' }}
                         </td>
-                        <td class="px-5 py-3 text-right font-mono {{ $row['credit'] > 0 ? 'text-emerald-600 font-bold' : 'text-slate-300' }}">
+                        <td class="px-5 py-3.5 text-right font-mono text-xs {{ $row['credit'] > 0 ? 'text-emerald-600 font-extrabold' : 'text-slate-300' }}">
                             {{ $row['credit'] > 0 ? '₹' . number_format($row['credit'], 2) : '—' }}
                         </td>
-                        <td class="px-5 py-3 text-right font-bold font-mono {{ $row['running_balance'] > 0 ? 'text-rose-600' : 'text-emerald-600' }}">
-                            ₹{{ number_format(abs($row['running_balance']), 2) }}
-                            <span class="text-[8px] font-semibold">{{ $row['running_balance'] > 0 ? 'DR' : 'CR' }}</span>
+                        <td class="px-5 py-3.5 text-right font-mono text-xs font-black">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border {{ $row['running_balance'] > 0 ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100' }}">
+                                ₹{{ number_format(abs($row['running_balance']), 2) }}
+                                <span class="text-[8px] font-extrabold uppercase">{{ $row['running_balance'] > 0 ? 'DR' : 'CR' }}</span>
+                            </span>
                         </td>
-                  <td class="px-5 py-3 align-middle">
-    <div class="flex items-center gap-2 flex-wrap">
+                        <td class="px-5 py-3.5 align-middle text-center">
+                            <div class="flex items-center justify-center gap-2 flex-wrap">
+                                {{-- Type Badge --}}
+                                <span class="inline-flex items-center justify-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md border {{ $cfg['badge'] }}">
+                                    {{ strtoupper($row['type']) }}
+                                </span>
 
-        {{-- Type Badge --}}
-        <span class="inline-flex items-center justify-center px-2 py-1 text-[9px] font-bold uppercase rounded-md border {{ $cfg['badge'] }}">
-            {{ strtoupper($row['type']) }}
-        </span>
-
-        {{-- Installment Status / Button --}}
-        @if(isset($row['status']) && $row['type'] === 'installment')
-
-            @if($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
-                <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
-                    Paid
-                </span>
-                @if(isset($row['receipt_ids']) && count($row['receipt_ids']) > 0)
-                    <button type="button" @click.stop="openReceiptModal('{{ collect($row['receipt_ids'])->last() }}')" title="View Receipt"
-                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    </button>
-                @elseif($sale->receipts->count() > 0)
-                    <button type="button" @click.stop="openReceiptModal('{{ $sale->receipts->last()->id }}')" title="View Receipt"
-                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    </button>
-                @endif
-            @elseif($row['status'] === 'partial')
-                <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
-                    Partial
-                </span>
-                @if(isset($row['receipt_ids']) && count($row['receipt_ids']) > 0)
-                    <button type="button" @click.stop="openReceiptModal('{{ collect($row['receipt_ids'])->last() }}')"
-                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        View Receipt
-                    </button>
-                @elseif($sale->receipts->count() > 0)
-                    <button type="button" @click.stop="openReceiptModal('{{ $sale->receipts->last()->id }}')"
-                            class="inline-flex items-center justify-center gap-1.5 px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                        View Receipt
-                    </button>
-                @endif
-                <button
-                    @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
-                    type="button"
-                    class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
-                    Pay Remaining
-                </button>
-            @elseif($row['status'] === 'overdue')
-                <span class="inline-flex items-center px-2 py-1 text-[9px] font-bold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
-                    Overdue
-                </span>
-                <button
-                    @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
-                    type="button"
-                    class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
-                    Pay Installment
-                </button>
-            @else
-                <button
-                    @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
-                    type="button"
-                    class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8d7923] text-white text-[9px] font-bold uppercase tracking-wider rounded-md transition-all whitespace-nowrap">
-                    Pay Installment
-                </button>
-            @endif
-
-        @endif
-
-    </div>
-</td>
+                                {{-- Installment Status / Button --}}
+                                @if(isset($row['status']) && $row['type'] === 'installment')
+                                    @if($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
+                                        <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                            Paid
+                                        </span>
+                                        @if(isset($row['receipt_ids']) && count($row['receipt_ids']) > 0)
+                                            <button type="button" @click.stop="openReceiptModal('{{ collect($row['receipt_ids'])->last() }}')" title="View Receipt"
+                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
+                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            </button>
+                                        @elseif($sale->receipts->count() > 0)
+                                            <button type="button" @click.stop="openReceiptModal('{{ $sale->receipts->last()->id }}')" title="View Receipt"
+                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
+                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            </button>
+                                        @endif
+                                    @elseif($row['status'] === 'partial')
+                                        <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
+                                            Partial
+                                        </span>
+                                        @if(isset($row['receipt_ids']) && count($row['receipt_ids']) > 0)
+                                            <button type="button" @click.stop="openReceiptModal('{{ collect($row['receipt_ids'])->last() }}')"
+                                                    class="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-[9px] font-bold uppercase rounded-lg transition-all whitespace-nowrap shadow-xs">
+                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                                Receipt
+                                            </button>
+                                        @endif
+                                        <button
+                                            @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
+                                            type="button"
+                                            class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                            Pay Remaining
+                                        </button>
+                                    @elseif($row['status'] === 'overdue')
+                                        <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
+                                            Overdue
+                                        </span>
+                                        <button
+                                            @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
+                                            type="button"
+                                            class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                            Pay Installment
+                                        </button>
+                                    @else
+                                        <button
+                                            @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
+                                            type="button"
+                                            class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                            Pay Installment
+                                        </button>
+                                    @endif
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                     @empty
                     <tr>
@@ -213,12 +273,12 @@
                     @endforelse
                 </tbody>
                 <tfoot>
-                    <tr class="bg-slate-50 border-t-2 border-slate-200 font-bold">
-                        <td colspan="2" class="px-5 py-3 text-[10px] text-slate-600 uppercase">Closing Totals</td>
-                        <td class="px-5 py-3 text-right font-mono text-rose-700">₹{{ number_format($totalDebits, 2) }}</td>
-                        <td class="px-5 py-3 text-right font-mono text-emerald-700">₹{{ number_format($totalCredits, 2) }}</td>
-                        <td class="px-5 py-3 text-right font-mono {{ $closingBalance > 0 ? 'text-rose-700' : 'text-emerald-700' }}">
-                            ₹{{ number_format(abs($closingBalance), 2) }} {{ $closingBalance > 0 ? 'DR' : 'CR' }}
+                    <tr class="bg-slate-900 text-white font-extrabold text-xs border-t-2 border-[#a38c29]">
+                        <td colspan="2" class="px-5 py-4 text-[10px] text-slate-300 uppercase tracking-widest">Closing Totals</td>
+                        <td class="px-5 py-4 text-right font-mono text-rose-400">₹{{ number_format($totalDebits, 2) }}</td>
+                        <td class="px-5 py-4 text-right font-mono text-emerald-400">₹{{ number_format($totalCredits, 2) }}</td>
+                        <td class="px-5 py-4 text-right font-mono {{ $closingBalance > 0 ? 'text-rose-400' : 'text-emerald-400' }}">
+                            ₹{{ number_format(abs($closingBalance), 2) }} <span class="text-[9px] font-extrabold uppercase text-slate-400">{{ $closingBalance > 0 ? 'DR' : 'CR' }}</span>
                         </td>
                         <td></td>
                     </tr>
