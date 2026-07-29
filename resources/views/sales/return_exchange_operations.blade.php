@@ -141,8 +141,11 @@
                 <select x-model="returnFilters.type"
                         class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] cursor-pointer focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     <option value="">All</option>
-                    <option value="Flat">Flat</option>
-                    <option value="Shop">Shop</option>
+                    @if(isset($unitTypes))
+                        @foreach($unitTypes as $ut)
+                            <option value="{{ $ut->id }}">{{ $ut->name }}</option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
             <div>
@@ -822,8 +825,11 @@
                 <select x-model="returnFilters.type"
                         class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] cursor-pointer focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
                     <option value="">All Types</option>
-                    <option value="Flat">Flat</option>
-                    <option value="Shop">Shop</option>
+                    @if(isset($unitTypes))
+                        @foreach($unitTypes as $ut)
+                            <option value="{{ $ut->id }}">{{ $ut->name }}</option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
             <div>

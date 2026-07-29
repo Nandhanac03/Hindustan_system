@@ -26,7 +26,7 @@ class SalesController extends Controller
         if (!$request->ajax() && !$request->wantsJson() && !$request->has('project_id') && !$request->filled('project_id') && $projectsList->isNotEmpty()) {
             $request->merge(['project_id' => (string)$projectsList->first()->id]);
         }
-        $query = Sale::with(['project', 'unit', 'customer', 'broker', 'receipts', 'saleUnits.unit.floor', 'extraWorks']);
+        $query = Sale::with(['project', 'unit.unitType', 'customer', 'broker', 'receipts', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'extraWorks']);
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -80,6 +80,7 @@ class SalesController extends Controller
             'customers' => Customer::orderBy('name')->get(),
             'brokers' => Broker::orderBy('name')->get(),
             'bankAccounts' => Bank::where('status', 'active')->orderBy('bank_name')->get(),
+            'unitTypes' => UnitType::where('is_active', true)->orderBy('name')->get(),
         ]);
     }
     public function availableUnits(int $projectId): JsonResponse

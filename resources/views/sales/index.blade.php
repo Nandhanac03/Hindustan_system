@@ -2375,15 +2375,35 @@ function salesApp() {
                     const q = this.returnFilters.search.toLowerCase();
                     const cust = sale.customer ? sale.customer.name.toLowerCase() : '';
                     const door = sale.unit ? sale.unit.door_no.toLowerCase() : '';
-                    const num = sale.sale_number.toLowerCase();
+                    const num = sale.sale_number ? sale.sale_number.toLowerCase() : '';
                     if (!cust.includes(q) && !door.includes(q) && !num.includes(q)) return false;
                 }
                 if (this.returnFilters.project_id && sale.project_id != this.returnFilters.project_id) return false;
                 if (this.returnFilters.type) {
-                    const door = sale.unit ? sale.unit.door_no.toLowerCase() : '';
-                    const type = this.returnFilters.type.toLowerCase();
-                    if (type === 'flat' && (door.includes('shop') || door.includes('office') || door.includes('comm'))) return false;
-                    if (type === 'shop' && !(door.includes('shop') || door.includes('office') || door.includes('comm'))) return false;
+                    const filterVal = String(this.returnFilters.type);
+                    const unitTypeId = sale.unit ? (sale.unit.unit_type_id || (sale.unit.unit_type ? sale.unit.unit_type.id : null)) : null;
+                    const unitTypeName = sale.unit && sale.unit.unit_type ? (sale.unit.unit_type.name || '').toLowerCase() : '';
+                    
+                    let isMatch = (unitTypeId && String(unitTypeId) === filterVal) ||
+                                  (unitTypeName && unitTypeName === filterVal.toLowerCase());
+
+                    if (!isMatch && sale.sale_units && sale.sale_units.length) {
+                        isMatch = sale.sale_units.some(su => {
+                            const suTypeId = su.unit ? (su.unit.unit_type_id || (su.unit.unit_type ? su.unit.unit_type.id : null)) : null;
+                            const suTypeName = su.unit && su.unit.unit_type ? (su.unit.unit_type.name || '').toLowerCase() : '';
+                            return (suTypeId && String(suTypeId) === filterVal) ||
+                                   (suTypeName && suTypeName === filterVal.toLowerCase());
+                        });
+                    }
+
+                    if (!isMatch) {
+                        const door = sale.unit ? (sale.unit.door_no || '').toLowerCase() : '';
+                        const fLower = filterVal.toLowerCase();
+                        if (fLower === 'flat' && !door.includes('shop') && !door.includes('office') && !door.includes('comm')) isMatch = true;
+                        if (fLower === 'shop' && (door.includes('shop') || door.includes('office') || door.includes('comm'))) isMatch = true;
+                    }
+
+                    if (!isMatch) return false;
                 }
                 if (this.returnFilters.status) {
                     if (sale.status !== this.returnFilters.status) return false;
