@@ -146,6 +146,7 @@ class SalesController extends Controller
             'units.*.sale_rate_per_sqft' => ['nullable', 'numeric', 'min:0'],
             'units.*.sale_amount'    => ['required', 'numeric', 'min:0'],
             'units.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
+            'units.*.gst_amount'     => ['nullable', 'numeric', 'min:0'],
             'broker_involved'        => ['nullable', 'boolean'],
             'broker_id'              => ['nullable', 'required_if:broker_involved,true', 'exists:brokers,id'],
             'brokerage_type'         => ['nullable', Rule::in(['percentage', 'fixed'])],
@@ -218,14 +219,23 @@ class SalesController extends Controller
                 $saleRate = (float)($item['sale_rate_per_sqft'] ?? $item['rate_per_sqft'] ?? 0.0);
                 $rate = $isUnitParking ? 0.0 : ($saleRate > 0 ? $saleRate : $expectedRate);
                 $amount = (float)$item['sale_amount'];
-                $gstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : 0.0;
+                $inputGstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : null;
+                $inputGstAmount = isset($item['gst_amount']) && $item['gst_amount'] !== '' ? (float)$item['gst_amount'] : null;
+
                 $gstAmount = 0.0;
-                if ($gstPct > 0) {
+                $gstPct = 0.0;
+
+                if ($inputGstAmount !== null && $inputGstAmount > 0) {
+                    $gstAmount = round($inputGstAmount, 2);
+                    $gstPct = $amount > 0 ? round(($gstAmount / $amount) * 100, 4) : 0.0;
+                } elseif ($inputGstPct !== null && $inputGstPct > 0 && $amount > 0) {
+                    $gstPct = $inputGstPct;
                     $gstAmount = round($amount * ($gstPct / 100), 2);
                 }
+
                 $baseAmount = $amount;
                 $lineTotal = round($amount + $gstAmount, 2);
-                $gstType = $gstPct > 0 ? 'exclusive' : 'none';
+                $gstType = ($gstAmount > 0 || $gstPct > 0) ? 'exclusive' : 'none';
                 $processedUnits[] = [
                     'unit_id' => $item['unit_id'],
                     'wing' => $item['wing'] ?? null,
@@ -381,6 +391,7 @@ class SalesController extends Controller
             'units.*.sale_rate_per_sqft' => ['nullable', 'numeric', 'min:0'],
             'units.*.sale_amount'    => ['required', 'numeric', 'min:0'],
             'units.*.gst_percentage' => ['nullable', 'numeric', 'min:0'],
+            'units.*.gst_amount'     => ['nullable', 'numeric', 'min:0'],
             'broker_involved'        => ['nullable', 'boolean'],
             'broker_id'              => ['nullable', 'required_if:broker_involved,true', 'exists:brokers,id'],
             'brokerage_type'         => ['nullable', Rule::in(['percentage', 'fixed'])],
@@ -456,14 +467,23 @@ class SalesController extends Controller
                 $saleRate = (float)($item['sale_rate_per_sqft'] ?? $item['rate_per_sqft'] ?? 0.0);
                 $rate = $isUnitParking ? 0.0 : ($saleRate > 0 ? $saleRate : $expectedRate);
                 $amount = (float)$item['sale_amount'];
-                $gstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : 0.0;
+                $inputGstPct = isset($item['gst_percentage']) && $item['gst_percentage'] !== '' ? (float)$item['gst_percentage'] : null;
+                $inputGstAmount = isset($item['gst_amount']) && $item['gst_amount'] !== '' ? (float)$item['gst_amount'] : null;
+
                 $gstAmount = 0.0;
-                if ($gstPct > 0) {
+                $gstPct = 0.0;
+
+                if ($inputGstAmount !== null && $inputGstAmount > 0) {
+                    $gstAmount = round($inputGstAmount, 2);
+                    $gstPct = $amount > 0 ? round(($gstAmount / $amount) * 100, 4) : 0.0;
+                } elseif ($inputGstPct !== null && $inputGstPct > 0 && $amount > 0) {
+                    $gstPct = $inputGstPct;
                     $gstAmount = round($amount * ($gstPct / 100), 2);
                 }
+
                 $baseAmount = $amount;
                 $lineTotal = round($amount + $gstAmount, 2);
-                $gstType = $gstPct > 0 ? 'exclusive' : 'none';
+                $gstType = ($gstAmount > 0 || $gstPct > 0) ? 'exclusive' : 'none';
                 $processedUnits[] = [
                     'unit_id' => $item['unit_id'],
                     'wing' => $item['wing'] ?? null,
