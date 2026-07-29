@@ -241,15 +241,9 @@ class VoucherController extends Controller
             ->with(['customer', 'unit'])
             ->get()
             ->map(function ($sale) use ($refundsPaidBySale) {
-                $totalRefundDue = (float)($sale->refund_amount ?? 0.00);
-                if ($totalRefundDue <= 0) {
-                    $totalPaid = (float)$sale->total_amount - (float)($sale->remaining_balance ?? 0.00);
-                    if ($totalPaid <= 0) {
-                        $totalPaid = (float)$sale->receipts()->sum('amount');
-                    }
-                    $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
-                    $totalRefundDue = max(0.00, $totalPaid - $cancellationFee);
-                }
+                $customerIntake = (float)$sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount');
+                $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
+                $totalRefundDue = max(0.00, $customerIntake - $cancellationFee);
 
                 $alreadyPaid = $refundsPaidBySale[$sale->id] ?? 0.00;
                 $remainingRefund = max(0.00, round($totalRefundDue - $alreadyPaid, 2));
@@ -391,15 +385,9 @@ class VoucherController extends Controller
             ->with(['customer', 'unit'])
             ->get()
             ->map(function ($sale) use ($refundsPaidBySale) {
-                $totalRefundDue = (float)($sale->refund_amount ?? 0.00);
-                if ($totalRefundDue <= 0) {
-                    $totalPaid = (float)$sale->total_amount - (float)($sale->remaining_balance ?? 0.00);
-                    if ($totalPaid <= 0) {
-                        $totalPaid = (float)$sale->receipts()->sum('amount');
-                    }
-                    $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
-                    $totalRefundDue = max(0.00, $totalPaid - $cancellationFee);
-                }
+                $customerIntake = (float)$sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount');
+                $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
+                $totalRefundDue = max(0.00, $customerIntake - $cancellationFee);
 
                 $alreadyPaid = $refundsPaidBySale[$sale->id] ?? 0.00;
                 $remainingRefund = max(0.00, round($totalRefundDue - $alreadyPaid, 2));
@@ -740,7 +728,6 @@ class VoucherController extends Controller
                     }
                     elseif ($type === 'refund') {
                         $sale = Sale::findOrFail($targetId);
-                        $sale->increment('refund_amount', $amount);
  
                         $customerAccCode = 'CUST-REC-' . $sale->customer_id;
                         $customerAcc = Account::where('system_id', $systemId)->where('code', $customerAccCode)->first();

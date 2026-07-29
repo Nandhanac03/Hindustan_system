@@ -2076,11 +2076,9 @@ function salesApp() {
         },
         getRefundDue(sale) {
             if (!sale) return 0;
-            const paid = this.getPaidTillDate(sale);
+            const paidIntake = this.getPaidTillDate(sale);
             const fee = Number(sale.cancellation_fee || 0);
-            const approvedRefund = Number(sale.refund_amount || 0);
-            if (approvedRefund > 0) return approvedRefund;
-            return Math.max(0, paid - fee);
+            return Math.max(0, paidIntake - fee);
         },
         getRemainingRefund(sale) {
             if (!sale) return 0;
