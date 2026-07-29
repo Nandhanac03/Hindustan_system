@@ -788,7 +788,7 @@
                                     </div>
                                     <div class="text-right flex flex-col items-end gap-1">
                                         <span class="font-mono font-bold text-slate-900 text-xs">₹{{ number_format($alert->amount, 2) }}</span>
-                                        <a href="{{ route('loans.index') }}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-250 transition tracking-wider">
+                                        <a href="{{ $alert->loan_id ? route('loans.schedule', $alert->loan_id) : route('loans.index') }}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-250 transition tracking-wider">
                                             Pay Now
                                         </a>
                                     </div>
@@ -858,7 +858,7 @@
                     <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-blue-500 shadow-sm border border-blue-600"></span> Booked</span>
                     <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-amber-500 shadow-sm border border-amber-600"></span> Pending</span>
                     <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-rose-600 shadow-sm border border-rose-700"></span> Sold</span>
-                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-slate-700 shadow-sm border border-slate-800"></span> Parking</span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-[#0B1E36] shadow-sm border border-slate-800"></span> Parking</span>
                 </div>
             </div>
 
