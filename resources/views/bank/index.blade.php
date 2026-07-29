@@ -130,7 +130,7 @@
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="addModalOpen = false">
             <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center mb-4 shadow-sm border border-emerald-100">
+                <div class="w-16 h-16 rounded-full bg-[#a38c29]/10 text-[#a38c29] mx-auto flex items-center justify-center mb-4 shadow-sm border border-[#a38c29]/20">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 </div>
                 <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">ADD BANK ACCOUNT</h3>
@@ -142,21 +142,21 @@
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bank Name <span class="text-rose-500">*</span></label>
                         <input type="text" name="bank_name" x-model="addForm.bank_name" required placeholder="e.g. HDFC Bank, ICICI Bank"
                                :class="errors.bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         <template x-if="errors.bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.bank_name) ? errors.bank_name[0] : errors.bank_name"></p></template>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">IFSC Code <span class="text-rose-500">*</span></label>
                         <input type="text" name="ifsc_code" x-model="addForm.ifsc_code" required placeholder="e.g. HDFC0001234"
                                :class="errors.ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
                         <template x-if="errors.ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.ifsc_code) ? errors.ifsc_code[0] : errors.ifsc_code"></p></template>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status <span class="text-rose-500">*</span></label>
                         <select name="status" x-model="addForm.status" required
                                 :class="errors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all">
+                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
@@ -164,7 +164,7 @@
 
                     <div class="mt-6 flex items-center justify-center gap-3 pt-3 border-t border-slate-100">
                         <button type="button" @click="addModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#a38c29] hover:bg-[#8a7522] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Yes, Add Bank Account
                         </button>
@@ -178,7 +178,7 @@
     <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="editModalOpen = false">
             <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-teal-50 text-teal-600 mx-auto flex items-center justify-center mb-4 shadow-sm border border-teal-100">
+                <div class="w-16 h-16 rounded-full bg-[#a38c29]/10 text-[#a38c29] mx-auto flex items-center justify-center mb-4 shadow-sm border border-[#a38c29]/20">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                 </div>
                 <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">EDIT BANK ACCOUNT</h3>
@@ -191,21 +191,21 @@
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bank Name <span class="text-rose-500">*</span></label>
                         <input type="text" name="bank_name" x-model="editForm.bank_name" required
                                :class="errors.edit_bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-teal-500/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         <template x-if="errors.edit_bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_bank_name) ? errors.edit_bank_name[0] : errors.edit_bank_name"></p></template>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">IFSC Code <span class="text-rose-500">*</span></label>
                         <input type="text" name="ifsc_code" x-model="editForm.ifsc_code" required
                                :class="errors.edit_ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-teal-500/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
                         <template x-if="errors.edit_ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_ifsc_code) ? errors.edit_ifsc_code[0] : errors.edit_ifsc_code"></p></template>
                     </div>
                     <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status <span class="text-rose-500">*</span></label>
                         <select name="status" x-model="editForm.status" required
                                 :class="errors.edit_status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-teal-500/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all">
+                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
@@ -213,7 +213,7 @@
 
                     <div class="mt-6 flex items-center justify-center gap-3 pt-3 border-t border-slate-100">
                         <button type="button" @click="editModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-teal-600 hover:bg-teal-700 shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
+                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#a38c29] hover:bg-[#8a7522] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Save Changes
                         </button>
