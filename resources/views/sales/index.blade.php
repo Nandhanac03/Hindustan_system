@@ -277,43 +277,50 @@
                                 <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <span>Live Calculation Summary</span>
                             </span>
-                            <span class="text-[10px] text-slate-400 font-mono" x-text="'Contract Total: ₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
+                            <span class="text-sm font-black text-amber-300 font-mono" x-text="'Contract Total: ₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                             <!-- 1. Total Sale Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Total Sale Amount</span>
-                                <span class="font-extrabold text-white text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.unit_base_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-white text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.unit_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 2. Difference Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Difference Amount</span>
+                                <span class="font-black text-base sm:text-lg lg:text-xl font-mono mt-1"
+                                      :class="getTotalDifference('add') > 0 ? 'text-emerald-400' : (getTotalDifference('add') < 0 ? 'text-rose-400' : 'text-slate-400')"
+                                      x-text="(getTotalDifference('add') >= 0 ? '₹' : '-₹') + Math.abs(getTotalDifference('add')).toLocaleString()"></span>
                             </div>
                             <!-- 2. GST Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-amber-400/90 uppercase tracking-wider truncate">GST Amount</span>
-                                <span class="font-extrabold text-amber-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.unit_gst_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-amber-400 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.unit_gst_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 3. Parking Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-sky-400/90 uppercase tracking-wider truncate">Parking Amount</span>
-                                <span class="font-extrabold text-sky-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.parking_base_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-sky-400 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.parking_base_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 4. Parking GST -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-sky-300/90 uppercase tracking-wider truncate">Parking GST</span>
-                                <span class="font-extrabold text-sky-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.parking_gst_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-sky-300 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.parking_gst_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 5. Additional Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-teal-400/90 uppercase tracking-wider truncate">Additional Amount</span>
-                                <span class="font-extrabold text-teal-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.extra_base_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-teal-400 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.extra_base_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 6. Additional GST -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-teal-300/90 uppercase tracking-wider truncate">Additional GST</span>
-                                <span class="font-extrabold text-teal-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.extra_gst_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-teal-300 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.extra_gst_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 7. Total Contract Value -->
                             <div class="col-span-2 sm:col-span-4 lg:col-span-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border border-amber-400/60 rounded-xl p-2 flex flex-col justify-between shadow-xs">
                                 <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
-                                <span class="font-black text-[#d9bf3b] text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
+                                <span class="font-black text-[#d9bf3b] text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.add.total_contract_value || 0).toLocaleString()"></span>
                             </div>
                         </div>
                     </div>
@@ -349,7 +356,7 @@
                                                  <div class="flex items-center gap-2 overflow-hidden min-w-0">
                                                      <div class="w-5 h-5 rounded-full bg-primary/10 text-primary font-bold text-[10px] flex items-center justify-center shrink-0" x-text="getSelectedCustomer().name.charAt(0).toUpperCase()"></div>
                                                      <span class="font-extrabold text-slate-800 truncate" x-text="getSelectedCustomer().name"></span>
-                                                     <span class="text-[10px] text-slate-400 font-mono shrink-0" x-show="getSelectedCustomer().phone" x-text="'(' + getSelectedCustomer().phone + ')'"></span>
+                                                     <span class="text-xs font-bold text-slate-300 font-mono shrink-0" x-show="getSelectedCustomer().phone" x-text="'(' + getSelectedCustomer().phone + ')'"></span>
                                                  </div>
                                              </template>
                                              <template x-if="!getSelectedCustomer()">
@@ -412,7 +419,7 @@
                                                                   x-text="(customer.name || '?').charAt(0).toUpperCase()"></div>
                                                              <div class="min-w-0">
                                                                  <p class="font-bold text-xs truncate leading-snug" :class="forms.add.customer_id == customer.id ? 'text-primary' : 'text-slate-800'" x-text="customer.name"></p>
-                                                                 <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5" x-show="customer.phone">
+                                                                 <div class="flex items-center gap-2 text-xs font-bold text-slate-300 font-mono mt-0.5" x-show="customer.phone">
                                                                      <span class="flex items-center gap-1">
                                                                          <svg class="w-2.5 h-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                                                          <span x-text="customer.phone"></span>
@@ -487,7 +494,7 @@
                                                      <template x-if="row.unit_id && availableUnits.add.find(u => u.id == row.unit_id)">
                                                          <div class="flex items-center gap-2 overflow-hidden min-w-0">
                                                              <span class="font-extrabold text-slate-800 truncate text-xs" x-text="availableUnits.add.find(u => u.id == row.unit_id).door_no"></span>
-                                                             <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="'(' + availableUnits.add.find(u => u.id == row.unit_id).floor_name + ')'"></span>
+                                                             <span class="text-xs font-bold text-slate-300 font-mono shrink-0" x-text="'(' + availableUnits.add.find(u => u.id == row.unit_id).floor_name + ')'"></span>
                                                          </div>
                                                      </template>
                                                      <template x-if="!row.unit_id || !availableUnits.add.find(u => u.id == row.unit_id)">
@@ -551,7 +558,7 @@
                                                                            x-text="unit.unit_type_name || 'Unit'"></span>
                                                                  </div>
                                                                  <div class="flex items-center gap-2 shrink-0">
-                                                                     <span class="text-[10px] text-slate-400 font-mono" x-text="unit.floor_name"></span>
+                                                                     <span class="text-xs font-bold text-slate-300 font-mono" x-text="unit.floor_name"></span>
                                                                      <template x-if="forms.add.units.some((r, i) => i !== index && r.unit_id == unit.id)">
                                                                          <span class="text-[9px] font-bold text-rose-500 uppercase tracking-wider bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 shrink-0">Selected</span>
                                                                      </template>
@@ -770,9 +777,9 @@
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
                                             <p class="font-bold text-slate-900 leading-9 font-mono text-xs" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
                                         </div>
-                                        <div class="space-y-1.5 ml-auto text-right" :class="row.gst_type !== 'none' ? 'sm:col-span-2' : 'sm:col-span-4'">
-                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
-                                            <p class="font-black text-emerald-800 text-sm leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
+                                        <div class="space-y-1 ml-auto text-right" :class="row.gst_type !== 'none' ? 'sm:col-span-2' : 'sm:col-span-4'">
+                                            <p class="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Total Payable</p>
+                                            <p class="font-black text-emerald-800 text-lg sm:text-xl font-mono pt-0.5" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -1008,43 +1015,50 @@
                                 <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m-6 4h6m-6 4h6M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 <span>Live Calculation Summary</span>
                             </span>
-                            <span class="text-[10px] text-slate-400 font-mono" x-text="'Contract Total: ₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
+                            <span class="text-sm font-black text-amber-300 font-mono" x-text="'Contract Total: ₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
                             <!-- 1. Total Sale Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Total Sale Amount</span>
-                                <span class="font-extrabold text-white text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.unit_base_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-white text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.unit_base_amount || 0).toLocaleString()"></span>
+                            </div>
+                            <!-- 2. Difference Amount -->
+                            <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider truncate">Difference Amount</span>
+                                <span class="font-black text-base sm:text-lg lg:text-xl font-mono mt-1"
+                                      :class="getTotalDifference('edit') > 0 ? 'text-emerald-400' : (getTotalDifference('edit') < 0 ? 'text-rose-400' : 'text-slate-400')"
+                                      x-text="(getTotalDifference('edit') >= 0 ? '₹' : '-₹') + Math.abs(getTotalDifference('edit')).toLocaleString()"></span>
                             </div>
                             <!-- 2. GST Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-amber-400/90 uppercase tracking-wider truncate">GST Amount</span>
-                                <span class="font-extrabold text-amber-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.unit_gst_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-amber-400 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.unit_gst_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 3. Parking Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-sky-400/90 uppercase tracking-wider truncate">Parking Amount</span>
-                                <span class="font-extrabold text-sky-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.parking_base_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-sky-400 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.parking_base_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 4. Parking GST -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-sky-300/90 uppercase tracking-wider truncate">Parking GST</span>
-                                <span class="font-extrabold text-sky-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.parking_gst_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-sky-300 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.parking_gst_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 5. Additional Amount -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-teal-400/90 uppercase tracking-wider truncate">Additional Amount</span>
-                                <span class="font-extrabold text-teal-400 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.extra_base_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-teal-400 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.extra_base_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 6. Additional GST -->
                             <div class="bg-slate-800/90 border border-slate-700/70 rounded-xl p-2 flex flex-col justify-between shadow-2xs">
                                 <span class="text-[9px] font-bold text-teal-300/90 uppercase tracking-wider truncate">Additional GST</span>
-                                <span class="font-extrabold text-teal-300 text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.extra_gst_amount || 0).toLocaleString()"></span>
+                                <span class="font-black text-teal-300 text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.extra_gst_amount || 0).toLocaleString()"></span>
                             </div>
                             <!-- 7. Total Contract Value -->
                             <div class="col-span-2 sm:col-span-4 lg:col-span-1 bg-gradient-to-r from-amber-500/20 via-yellow-500/25 to-amber-500/20 border border-amber-400/60 rounded-xl p-2 flex flex-col justify-between shadow-xs">
                                 <span class="text-[9px] font-black text-[#d9bf3b] uppercase tracking-widest truncate">Contract Value</span>
-                                <span class="font-black text-[#d9bf3b] text-xs sm:text-sm font-mono mt-1" x-text="'₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
+                                <span class="font-black text-[#d9bf3b] text-base sm:text-lg lg:text-xl font-mono mt-1" x-text="'₹' + Number(forms.edit.total_contract_value || 0).toLocaleString()"></span>
                             </div>
                         </div>
                     </div>
@@ -1112,7 +1126,7 @@
                                                      <template x-if="row.unit_id && availableUnits.edit.find(u => u.id == row.unit_id)">
                                                          <div class="flex items-center gap-2 overflow-hidden min-w-0">
                                                              <span class="font-extrabold text-slate-800 truncate text-xs" x-text="availableUnits.edit.find(u => u.id == row.unit_id).door_no"></span>
-                                                             <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="'(' + availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ')'"></span>
+                                                             <span class="text-xs font-bold text-slate-300 font-mono shrink-0" x-text="'(' + availableUnits.edit.find(u => u.id == row.unit_id).floor_name + ')'"></span>
                                                          </div>
                                                      </template>
                                                      <template x-if="!row.unit_id || !availableUnits.edit.find(u => u.id == row.unit_id)">
@@ -1176,7 +1190,7 @@
                                                                            x-text="unit.unit_type_name || 'Unit'"></span>
                                                                  </div>
                                                                  <div class="flex items-center gap-2 shrink-0">
-                                                                     <span class="text-[10px] text-slate-400 font-mono" x-text="unit.floor_name"></span>
+                                                                     <span class="text-xs font-bold text-slate-300 font-mono" x-text="unit.floor_name"></span>
                                                                      <template x-if="forms.edit.units.some((r, i) => i !== index && r.unit_id == unit.id)">
                                                                          <span class="text-[9px] font-bold text-rose-500 uppercase tracking-wider bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200 shrink-0">Selected</span>
                                                                      </template>
@@ -1310,9 +1324,9 @@
                                             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">GST Amount</p>
                                             <p class="font-bold text-slate-900 leading-9 font-mono text-xs" x-text="'₹' + Number(row.gst_amount || 0).toLocaleString()"></p>
                                         </div>
-                                        <div class="space-y-1.5 ml-auto text-right" :class="row.gst_type !== 'none' ? 'sm:col-span-2' : 'sm:col-span-4'">
-                                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
-                                            <p class="font-black text-emerald-800 text-sm leading-9 font-mono" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
+                                        <div class="space-y-1 ml-auto text-right" :class="row.gst_type !== 'none' ? 'sm:col-span-2' : 'sm:col-span-4'">
+                                            <p class="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Total Payable</p>
+                                            <p class="font-black text-emerald-800 text-lg sm:text-xl font-mono pt-0.5" x-text="'₹' + Number(row.line_total || 0).toLocaleString()"></p>
                                         </div>
                                     </div>
                                 </div>
@@ -3114,6 +3128,13 @@ function salesApp() {
             
             const agreedAmt = parseFloat(row.sale_amount) || 0;
             return Math.round((agreedAmt - expectedAmt) * 100) / 100;
+        },
+        getTotalDifference(mode = 'add') {
+            let totalDiff = 0;
+            (this.forms[mode].units || []).forEach((row, index) => {
+                totalDiff += this.getRowDifference(index, mode);
+            });
+            return Math.round(totalDiff * 100) / 100;
         },
         recalculateBrokerage(mode) {
             this.recalculateAllTotals(mode);
