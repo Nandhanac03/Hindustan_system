@@ -15,15 +15,7 @@
         </div>
 
         <div class="flex items-center gap-3" x-data="{ openRegister: false }">
-            {{-- Link to Payable Report --}}
-            <a href="{{ route('brokers.payable-report') }}"
-               class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition-all duration-200 hover:bg-slate-800 hover:shadow-lg">
-                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m3.293-7.707a1 1 0 111.414 1.414L9 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5a2 2 0 110-4 2 2 0 010 4z"/></svg>
-                Brokerage Payable Report
-                <span class="ml-1 px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">₹{{ number_format($totalPayable, 0) }}</span>
-            </a>
-
-            {{-- Register Broker Button --}}
+            {{-- Removed Payable Report link as per new receipt allocation logic --}}            {{-- Register Broker Button --}}
             <button @click="openRegister = true" 
                     class="inline-flex items-center gap-2 rounded-xl bg-[#a38c29] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition-all duration-200 hover:bg-[#8d7923] hover:shadow-lg">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -522,10 +514,7 @@
                                     @if($status === 'pending')
                                         <span class="text-[9px] text-slate-400 italic text-center w-full">Unlocks on full payment</span>
                                     @elseif($status === 'payable' || $status === 'partial')
-                                        <a href="{{ route('brokers.payable-report') }}" class="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 bg-[#a38c29] hover:bg-[#8d7923] text-white rounded-xl text-[9px] font-extrabold uppercase tracking-wide transition-all shadow-sm group">
-                                            Settle Now
-                                            <svg class="w-3 h-3 transform group-hover:translate-x-0.5 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                                        </a>
+                                        <span class="text-[9px] text-slate-500 italic text-center w-full">Settled via Receipt Allocation</span>
                                     @endif
                                 </div>
                             </td>
