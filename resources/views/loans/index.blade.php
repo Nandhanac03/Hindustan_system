@@ -264,8 +264,9 @@
                             </td>
                             <td class="px-4 py-3.5 border text-right pr-4">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition-all inline-flex items-center justify-center shadow-sm" title="Repayment Schedule Ledger">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="px-3 py-1.5 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-extrabold uppercase tracking-wider transition-all inline-flex items-center gap-1.5 shadow-sm shadow-[#a38c29]/30" title="Repayment Schedule Ledger">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Ledger
                                     </a>
                                     @if($loan->status === 'Active')
                                         <button @click="openEditInterestModal({{ json_encode($loan) }})" 
