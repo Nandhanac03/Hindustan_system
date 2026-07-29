@@ -82,61 +82,58 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Cash Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-colors">
-            <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-emerald-50/50 to-transparent pointer-events-none"></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]">
             
             <div class="flex items-center justify-between mb-4 relative z-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/50">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
-                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Counter Cash</span>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Counter Cash</span>
                 </div>
-                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100 uppercase tracking-widest shadow-sm">Safe Logged</span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Safe Logged</span>
             </div>
             
             <div class="relative z-10 mt-2">
-                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block">₹{{ number_format($cashInHand, 2) }}</span>
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format($cashInHand, 2) }}</span>
                 <p class="text-[10px] text-slate-400 mt-2 font-medium">Physical currency at main registry desk.</p>
             </div>
         </div>
 
         <!-- Cheque Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-colors">
-            <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-amber-50/50 to-transparent pointer-events-none"></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]">
             
             <div class="flex items-center justify-between mb-4 relative z-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/50">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     </div>
-                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Cheque Vault</span>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Cheque Vault</span>
                 </div>
-                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2.5 py-1 rounded-md border border-amber-100 uppercase tracking-widest shadow-sm">To Clear</span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">To Clear</span>
             </div>
             
             <div class="relative z-10 mt-2">
-                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block">₹{{ number_format($chequeVault, 2) }}</span>
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format($chequeVault, 2) }}</span>
                 <p class="text-[10px] text-slate-400 mt-2 font-medium">Pending presentation at clearing house.</p>
             </div>
         </div>
 
         <!-- Bank & Digital Card -->
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-colors">
-            <div class="absolute right-0 top-0 w-32 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none"></div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)]">
             
             <div class="flex items-center justify-between mb-4 relative z-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/50">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                    <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
                     </div>
-                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-widest">Bank & Digital</span>
+                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Bank & Digital</span>
                 </div>
-                <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 uppercase tracking-widest shadow-sm">Live Sync</span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-blue-300 group-hover:text-blue-700 group-hover:bg-blue-50/50">Live Sync</span>
             </div>
             
             <div class="relative z-10 mt-2">
-                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block">₹{{ number_format($bankBalance + $onlineGateway, 2) }}</span>
+                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-blue-700 transition-colors duration-300">₹{{ number_format($bankBalance + $onlineGateway, 2) }}</span>
                 <p class="text-[10px] text-slate-400 mt-2 font-medium">Consolidated bank transfers and gateways.</p>
             </div>
         </div>
