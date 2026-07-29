@@ -1,6 +1,6 @@
 <x-erp-layout title="Customer Ledger" headerTitle="Customer Running Ledger">
 
-<div class="max-w-[1800px] mx-auto space-y-6" x-data="ledgerApp()">
+<div class="max-w-[1800px] mx-auto space-y-2.5" x-data="ledgerApp()">
 
     {{-- Breadcrumb --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-[11px] text-slate-400 font-semibold">
@@ -165,7 +165,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-900 text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-slate-800">
+                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
                         <th class="px-5 py-3.5">Date</th>
                         <th class="px-5 py-3.5">Description</th>
                         <th class="px-5 py-3.5 text-right">Debit (Due)</th>

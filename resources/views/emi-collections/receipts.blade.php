@@ -1,57 +1,68 @@
 <x-erp-layout title="Receipts Entry" headerTitle="Collection Receipts Register">
 
-<div class="max-w-[1800px] mx-auto space-y-6" x-data="receiptsApp()">
+<div class="max-w-[1800px] mx-auto space-y-2.5" x-data="receiptsApp()">
 
-    {{-- Summary KPIs --}}
+    {{-- Summary KPIs with Animated Hover Effects --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex items-center justify-between">
+        {{-- Card 1: Total Collected --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
             <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Collected</span>
-                <span class="text-2xl font-extrabold text-slate-900 mt-1 block font-mono">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Total Collected</span>
+                <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">
                     ₹{{ number_format($recentReceipts->sum('amount'), 0) }}
                 </span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-2xs">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
             </div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex items-center justify-between">
+
+        {{-- Card 2: Cheque Collections --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
             <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Cheque Collections</span>
-                <span class="text-2xl font-extrabold text-slate-900 mt-1 block font-mono">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Cheque Collections</span>
+                <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">
                     ₹{{ number_format($recentReceipts->where('payment_mode','Cheque')->sum('amount'), 0) }}
                 </span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-2xs">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             </div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex items-center justify-between">
+
+        {{-- Card 3: Online / UPI --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-[#a38c29]"></div>
             <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Online / UPI</span>
-                <span class="text-2xl font-extrabold text-slate-900 mt-1 block font-mono">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Online / UPI</span>
+                <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">
                     ₹{{ number_format($recentReceipts->where('payment_mode','Online')->sum('amount'), 0) }}
                 </span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center text-primary">
+            <div class="w-10 h-10 rounded-xl bg-[#a38c29]/10 text-[#a38c29] group-hover:bg-[#a38c29] group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-2xs">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
             </div>
         </div>
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 flex items-center justify-between">
+
+        {{-- Card 4: Cash Collected --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-slate-800"></div>
             <div>
-                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Cash Collected</span>
-                <span class="text-2xl font-extrabold text-slate-900 mt-1 block font-mono">
+                <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Cash Collected</span>
+                <span class="text-2xl font-black text-slate-900 mt-1 block font-mono tracking-tight">
                     ₹{{ number_format($recentReceipts->where('payment_mode','Cash')->sum('amount'), 0) }}
                 </span>
             </div>
-            <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-600">
+            <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 group-hover:bg-slate-800 group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-2xs">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
             </div>
         </div>
-    </div>
+    </div>  </div>
 
     {{-- Main Workspace --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" style="margin-top: 20px;">
 
         {{-- Left: Add Receipt Form (links to Sale) --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5 h-fit">
@@ -135,8 +146,8 @@
                     <div class="grid grid-cols-2 gap-1.5">
                         @foreach(['Cash','Cheque','Bank Transfer','Online'] as $mode)
                         <button type="button" @click="form.payment_mode = '{{ $mode }}'; if(errors.payment_mode) delete errors.payment_mode;"
-                                :class="form.payment_mode === '{{ $mode }}' ? 'bg-primary text-white border-primary' : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-primary/40'"
-                                class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all">
+                                :class="form.payment_mode === '{{ $mode }}' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-xs' : 'bg-slate-50 text-slate-600 border-slate-200/90 hover:border-[#a38c29]/40 hover:text-slate-900'"
+                                class="px-3 py-2 border rounded-xl text-[10px] font-extrabold uppercase tracking-wider transition-all cursor-pointer">
                             {{ $mode }}
                         </button>
                         @endforeach
@@ -178,7 +189,7 @@
 
                 {{-- Submit --}}
                 <button type="submit" :disabled="submitting"
-                        class="w-full py-3 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider flex items-center justify-center gap-2">
+                        class="w-full py-3.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-[0.99] text-white text-xs font-black rounded-xl transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer">
                     <svg x-show="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
                     <span x-text="submitting ? 'Recording...' : 'Collect Receipt'"></span>
                 </button>
@@ -192,25 +203,28 @@
         </div>
 
         {{-- Right: Recent Receipts --}}
-        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-widest">Recent Receipts</h3>
-                    <p class="text-[10px] text-slate-400 font-medium mt-0.5">Latest receipt collections — linked to Sale records.</p>
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col h-fit">
+            <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-8 bg-[#a38c29] rounded-full shrink-0"></div>
+                    <div>
+                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">Recent Receipts</h3>
+                        <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Latest receipt collections — linked to Sale records.</p>
+                    </div>
                 </div>
-                <a href="{{ route('emi-collections.cash-book') }}" class="text-[10px] font-bold text-primary hover:underline uppercase tracking-wide">View Full Cash Book →</a>
+                <a href="{{ route('emi-collections.cash-book') }}" class="px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/90 text-[10px] font-extrabold text-[#a38c29] hover:text-[#8e7a23] rounded-xl transition-all shadow-xs uppercase tracking-wide">View Full Cash Book →</a>
             </div>
 
-            <div class="overflow-x-auto flex-1">
-                <table class="w-full text-xs">
-                    <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-left">
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Sale No.</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Customer</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Project / Unit</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Amount</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Mode</th>
-                            <th class="px-5 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Date</th>
+            <div class="overflow-x-auto overflow-y-auto max-h-[550px] flex-1">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="sticky top-0 z-10">
+                        <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522] shadow-xs">
+                            <th class="px-5 py-3.5">Sale No.</th>
+                            <th class="px-5 py-3.5">Customer</th>
+                            <th class="px-5 py-3.5">Project / Unit</th>
+                            <th class="px-5 py-3.5 text-right">Amount</th>
+                            <th class="px-5 py-3.5 text-center">Mode</th>
+                            <th class="px-5 py-3.5">Date</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">

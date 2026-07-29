@@ -1,74 +1,95 @@
 <x-erp-layout title="EMI Collections" headerTitle="EMI Collections Directory">
 
-<div class="max-w-[1800px] mx-auto space-y-6" x-data="emiApp()">
+<div class="max-w-[1800px] mx-auto space-y-2.5" x-data="emiApp()">
 
-    {{-- Top Stats Card --}}
+    {{-- Top Stats Cards with Animated Hover Effects --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex items-center justify-between">
+        {{-- Card 1: Total EMI Collections Received --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-[#a38c29]"></div>
             <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total EMI Collections Received</span>
-                <span class="text-3xl font-extrabold text-slate-900 mt-2 block">
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Total EMI Collections Received</span>
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-1.5 block">
                     ₹{{ number_format($totalReceived, 2) }}
                 </span>
+                <span class="text-[10px] text-emerald-600 font-extrabold mt-1 inline-flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+                    100% Verified Bank & Cash Intake
+                </span>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
-                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] group-hover:bg-[#a38c29] group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-xs">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex items-center justify-between">
+        {{-- Card 2: Pending Receipts --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
             <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Pending Receipts</span>
-                <span class="text-3xl font-extrabold text-slate-900 mt-2 block">
-                    {{ $pendingPaymentsCount }}
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Pending Receipts</span>
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight mt-1.5 block">
+                    {{ $pendingPaymentsCount }} <span class="text-xs font-bold text-slate-400 font-sans">Accounts</span>
+                </span>
+                <span class="text-[10px] text-amber-600 font-extrabold mt-1 inline-flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Requires Collection Follow-up
                 </span>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
-                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 group-hover:bg-amber-500 group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-xs">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 flex items-center justify-between">
+        {{-- Card 3: Ledger Status --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden flex items-center justify-between cursor-pointer">
+            <div class="absolute top-0 left-0 right-0 h-1.5 bg-emerald-500"></div>
             <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Ledger Status</span>
-                <span class="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1 mt-2 inline-block">
-                    Healthy & Balanced
-                </span>
+                <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block">Ledger Status</span>
+                <div class="mt-1.5">
+                    <span class="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200/80 rounded-xl px-3 py-1 inline-flex items-center gap-1.5 shadow-2xs">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Healthy & Balanced
+                    </span>
+                </div>
+                <span class="text-[10px] text-slate-400 font-semibold mt-1 block">Real-time ledger audit sync</span>
             </div>
-            <div class="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center">
-                <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/>
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 scale-100 group-hover:scale-110 flex items-center justify-center shrink-0 shadow-xs">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
         </div>
     </div>
 
     {{-- Main Two-Column view --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
         {{-- Left side: Customer EMI Accounts Directory (2/3 width) --}}
         <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
-            <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Customer EMI Directory</h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Directory of all active customers with outstanding schedules and payment logs.</p>
+            <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-8 bg-[#a38c29] rounded-full shrink-0"></div>
+                    <div>
+                        <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider">Customer EMI Directory</h2>
+                        <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Directory of all active customers with outstanding schedules and payment logs.</p>
+                    </div>
                 </div>
             </div>
 
             <div class="overflow-x-auto flex-1">
-                <table class="w-full text-xs">
+                <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-left">
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Booking No.</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Customer</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px]">Project & Unit</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Contract Value</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Total Paid</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[10px] text-right">Outstanding</th>
+                        <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
+                            <th class="px-6 py-3.5">Booking No.</th>
+                            <th class="px-6 py-3.5">Customer</th>
+                            <th class="px-6 py-3.5">Project & Unit</th>
+                            <th class="px-6 py-3.5 text-right">Contract Value</th>
+                            <th class="px-6 py-3.5 text-right">Total Paid</th>
+                            <th class="px-6 py-3.5 text-right">Outstanding</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -78,37 +99,37 @@
                             @endphp
                             <tr @click="selectedSaleId = (selectedSaleId == {{ $sale->id }} ? '' : {{ $sale->id }}); onSaleSelect()" 
                                 class="cursor-pointer transition-colors" 
-                                :class="selectedSaleId == {{ $sale->id }} ? 'bg-primary-50 hover:bg-primary-100/50' : 'hover:bg-slate-50'">
-                                <td class="px-6 py-4 font-bold text-primary-700">
+                                :class="selectedSaleId == {{ $sale->id }} ? 'bg-[#a38c29]/10 hover:bg-[#a38c29]/15' : 'hover:bg-slate-50'">
+                                <td class="px-6 py-4 font-bold text-[#a38c29]">
                                     <a href="{{ route('emi-collections.ledger', $sale->id) }}" class="hover:underline" @click.stop>
                                         {{ $sale->sale_number }}
                                     </a>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="font-semibold text-slate-900">{{ $sale->customer?->name ?? 'N/A' }}</div>
-                                    <div class="text-[10px] text-slate-400">{{ $sale->customer?->phone ?? '' }}</div>
+                                    <div class="font-bold text-slate-900">{{ $sale->customer?->name ?? 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-400 font-medium">{{ $sale->customer?->phone ?? '' }}</div>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-slate-800">{{ $sale->project?->name ?? 'N/A' }}</div>
-                                    <span class="text-[9px] bg-slate-100 border px-1.5 py-0.5 rounded text-slate-500 font-mono">Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
+                                    <span class="text-[9px] bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 font-mono font-bold">Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
                                 </td>
-                                <td class="px-6 py-4 font-bold text-slate-900 font-mono text-right">₹{{ number_format($sale->total_amount, 2) }}</td>
-                                <td class="px-6 py-4 font-bold text-emerald-600 font-mono text-right">₹{{ number_format($totalPaid, 2) }}</td>
-                                <td class="px-6 py-4 font-bold text-rose-600 font-mono text-right">₹{{ number_format($sale->remaining_balance, 2) }}</td>
+                                <td class="px-6 py-4 font-extrabold text-slate-900 font-mono text-right">₹{{ number_format($sale->total_amount, 2) }}</td>
+                                <td class="px-6 py-4 font-extrabold text-emerald-600 font-mono text-right">₹{{ number_format($totalPaid, 2) }}</td>
+                                <td class="px-6 py-4 font-extrabold text-rose-600 font-mono text-right">₹{{ number_format($sale->remaining_balance, 2) }}</td>
                             </tr>
                             <tr x-show="selectedSaleId == {{ $sale->id }}" style="display: none;" x-transition>
                                 <td colspan="6" class="p-0 border-b border-slate-100 bg-slate-50/50">
-                                    <div class="px-6 py-4 pl-12 border-l-4 border-primary">
+                                    <div class="px-6 py-4 pl-12 border-l-4 border-[#a38c29]">
                                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-3">Payment Logs</h4>
                                         @if($sale->receipts->count() > 0)
                                             <table class="w-full text-left text-[11px] bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
-                                                <thead class="bg-slate-50 border-b border-slate-200">
-                                                    <tr>
-                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Receipt Date</th>
-                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Payment Mode</th>
-                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Ref / Chq</th>
-                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider">Bank Name</th>
-                                                        <th class="px-4 py-2 font-bold text-slate-500 uppercase tracking-wider text-right">Amount</th>
+                                                <thead>
+                                                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9px] uppercase tracking-widest border-b border-[#8a7522]">
+                                                        <th class="px-4 py-2.5">Receipt Date</th>
+                                                        <th class="px-4 py-2.5">Payment Mode</th>
+                                                        <th class="px-4 py-2.5">Ref / Chq</th>
+                                                        <th class="px-4 py-2.5">Bank Name</th>
+                                                        <th class="px-4 py-2.5 text-right">Amount</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody class="divide-y divide-slate-100">
@@ -281,7 +302,7 @@
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-2">
                             <button @click="openCollectModal({ id: selectedSale.id, outstanding: selectedSale.remaining_balance, customer_name: selectedSale.customer ? selectedSale.customer.name : 'Unknown', door_no: selectedSale.unit ? selectedSale.unit.door_no : 'No Unit' })" 
-                                    class="py-1.5 bg-primary hover:bg-primary-700 active:scale-95 text-white text-[10px] font-bold rounded-lg transition-all uppercase tracking-wide">
+                                    class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
                                 Collect
                             </button>
                             <a :href="'/emi-collections/ledger/' + selectedSale.id"
@@ -316,7 +337,7 @@
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 mt-2">
                                     <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
-                                            class="py-1.5 bg-primary hover:bg-primary-700 active:scale-95 text-white text-[10px] font-bold rounded-lg transition-all uppercase tracking-wide">
+                                            class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
                                         Collect
                                     </button>
                                     <a href="{{ route('emi-collections.ledger', $booking->id) }}"

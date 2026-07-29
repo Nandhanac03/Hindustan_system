@@ -189,48 +189,51 @@
         </style>
         
         {{-- Toolbar --}}
-        <div class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-[#FAF8F2]">
-            <div>
-                <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">Transaction Statement Ledger</h3>
-                <p class="text-[10px] text-slate-500 font-bold mt-0.5">Continuous cash book ledger journal entries.</p>
+        <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200/80 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-1.5 h-8 bg-[#a38c29] rounded-full shrink-0"></div>
+                <div>
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-widest">Transaction Statement Ledger</h3>
+                    <p class="text-[10px] text-slate-500 font-semibold mt-0.5">Continuous cash book ledger journal entries.</p>
+                </div>
             </div>
             
             <div class="flex flex-wrap items-center gap-2">
-                <div class="border border-[#e0d6b6] rounded-lg p-0.5 bg-white flex gap-0.5 text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                <div class="border border-slate-200/90 rounded-xl p-0.5 bg-white flex gap-0.5 text-[10px] font-extrabold uppercase tracking-wider shadow-xs">
                     <button @click="setLedgerMode('All')" 
-                            class="px-3 py-1.5 rounded transition font-bold" 
-                            :class="activeMode === 'All' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">All</button>
+                            class="px-3 py-1.5 rounded-lg transition font-bold" 
+                            :class="activeMode === 'All' ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">All</button>
                     <button @click="setLedgerMode('Cash')" 
-                            class="px-3 py-1.5 rounded transition font-bold" 
-                            :class="activeMode === 'Cash' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Cash</button>
+                            class="px-3 py-1.5 rounded-lg transition font-bold" 
+                            :class="activeMode === 'Cash' ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Cash</button>
                     <button @click="setLedgerMode('Cheque')" 
-                            class="px-3 py-1.5 rounded transition font-bold" 
-                            :class="activeMode === 'Cheque' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Cheque</button>
+                            class="px-3 py-1.5 rounded-lg transition font-bold" 
+                            :class="activeMode === 'Cheque' ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Cheque</button>
                     <button @click="setLedgerMode('Bank/Online')" 
-                            class="px-3 py-1.5 rounded transition font-bold" 
-                            :class="activeMode === 'Bank/Online' ? 'bg-[#a38c29] text-white shadow-sm' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Bank/Online</button>
+                            class="px-3 py-1.5 rounded-lg transition font-bold" 
+                            :class="activeMode === 'Bank/Online' ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-500 hover:text-[#a38c29] hover:bg-slate-50'">Bank/Online</button>
                 </div>
                 
                 <div class="relative">
                     <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                     <input type="text" x-model="searchQuery" @input="currentPage = 1" placeholder="Search narrative..."
-                           class="pl-9 pr-3 py-1.5 bg-white border border-[#e0d6b6] rounded-lg text-xs focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] shadow-sm font-medium focus:outline-none w-56 transition-all">
+                           class="pl-9 pr-3 py-1.5 bg-white border border-slate-200/90 rounded-xl text-xs focus:ring-4 focus:ring-[#a38c29]/15 focus:border-[#a38c29] shadow-xs font-semibold focus:outline-none w-56 transition-all">
                 </div>
             </div>
         </div>
 
         {{-- Table --}}
         <div class="overflow-x-auto flex-1">
-            <table id="ledger-table" class="w-full text-xs text-left">
+            <table id="ledger-table" class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Date</th>
-                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Voucher Ref</th>
-                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Narrative / Customer</th>
-                        <th class="px-5 py-3.5 text-left border-r border-[#8a7522]">Project / Unit</th>
-                        <th class="px-5 py-3.5 text-center border-r border-[#8a7522]">Mode</th>
-                        <th class="px-5 py-3.5 text-right border-r border-[#8a7522]">Debit</th>
-                        <th class="px-5 py-3.5 text-right border-r border-[#8a7522]">Credit</th>
+                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
+                        <th class="px-5 py-3.5">Date</th>
+                        <th class="px-5 py-3.5">Voucher Ref</th>
+                        <th class="px-5 py-3.5">Narrative / Customer</th>
+                        <th class="px-5 py-3.5">Project / Unit</th>
+                        <th class="px-5 py-3.5 text-center">Mode</th>
+                        <th class="px-5 py-3.5 text-right">Debit</th>
+                        <th class="px-5 py-3.5 text-right">Credit</th>
                         <th class="px-5 py-3.5 text-right">Balance</th>
                     </tr>
                 </thead>

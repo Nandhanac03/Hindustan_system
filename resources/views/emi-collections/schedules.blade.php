@@ -109,15 +109,15 @@
             </div>
             
             <div class="overflow-x-auto">
-                <table class="w-full text-xs text-left">
+                <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100">
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">S.No.</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Milestone Name / Stage</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Due Percentage</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Trigger Condition</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Expected Timeline</th>
-                            <th class="px-6 py-3 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Grace Days</th>
+                        <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
+                            <th class="px-6 py-3.5">S.No.</th>
+                            <th class="px-6 py-3.5">Milestone Name / Stage</th>
+                            <th class="px-6 py-3.5">Due Percentage</th>
+                            <th class="px-6 py-3.5">Trigger Condition</th>
+                            <th class="px-6 py-3.5">Expected Timeline</th>
+                            <th class="px-6 py-3.5 text-right">Grace Days</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-650">
@@ -237,15 +237,15 @@
                 </div>
                 
                 <div class="overflow-y-auto max-h-[400px]">
-                    <table class="w-full text-xs text-left">
+                    <table class="w-full text-xs text-left border-collapse">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-100 sticky top-0">
-                                <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Inst. No.</th>
-                                <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Due Date</th>
-                                <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Installment (₹)</th>
-                                <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Principal Portion</th>
-                                <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px]">Interest Portion</th>
-                                <th class="px-6 py-2.5 font-bold text-slate-500 uppercase tracking-widest text-[9px] text-right">Balance Outstanding</th>
+                            <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522] sticky top-0">
+                                <th class="px-6 py-3.5">Inst. No.</th>
+                                <th class="px-6 py-3.5">Due Date</th>
+                                <th class="px-6 py-3.5">Installment (₹)</th>
+                                <th class="px-6 py-3.5">Principal Portion</th>
+                                <th class="px-6 py-3.5">Interest Portion</th>
+                                <th class="px-6 py-3.5 text-right">Balance Outstanding</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-660 font-mono">

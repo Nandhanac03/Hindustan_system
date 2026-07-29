@@ -456,6 +456,7 @@ class EmiCollectionController extends Controller
             ->where('status', 'active')
             ->where('remaining_balance', '>', 0)
             ->when(!empty($selectedProjectId), fn($q) => $q->where('project_id', $selectedProjectId))
+            ->orderBy('created_at', 'desc')
             ->get();
 
         // Compute aging brackets based on sale_date
