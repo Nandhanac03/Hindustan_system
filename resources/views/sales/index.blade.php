@@ -2070,6 +2070,33 @@ function salesApp() {
             })
             .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
         },
+        getRefundPaid(sale) {
+            if (!sale) return 0;
+            return Number(sale.refund_paid || 0);
+        },
+        getRefundDue(sale) {
+            if (!sale) return 0;
+            const paid = this.getPaidTillDate(sale);
+            const fee = Number(sale.cancellation_fee || 0);
+            const approvedRefund = Number(sale.refund_amount || 0);
+            if (approvedRefund > 0) return approvedRefund;
+            return Math.max(0, paid - fee);
+        },
+        getRemainingRefund(sale) {
+            if (!sale) return 0;
+            const due = this.getRefundDue(sale);
+            const paid = this.getRefundPaid(sale);
+            return Math.max(0, due - paid);
+        },
+        getRefundStatus(sale) {
+            if (!sale) return 'Pending';
+            const due = this.getRefundDue(sale);
+            const paid = this.getRefundPaid(sale);
+            if (due <= 0) return 'Completed';
+            if (paid >= due - 0.01) return 'Completed';
+            if (paid > 0) return 'Partially Refunded';
+            return 'Pending';
+        },
         getReturnStats() {
             let salesList = this.sales.filter(s => s.status === 'cancelled' || s.status === 'returned');
             if (this.returnFilters && this.returnFilters.project_id) {
@@ -2080,16 +2107,17 @@ function salesApp() {
             let payableToCustomer = 0;
             let receivableFromCustomer = 0;
             salesList.forEach(s => {
-                let paid = this.getPaidTillDate(s);
+                let remaining = this.getRemainingRefund(s);
+                let paidIntake = this.getPaidTillDate(s);
                 let fee = parseFloat(s.cancellation_fee || 0);
                 if (s.status === 'returned') {
-                    payableToCustomer += parseFloat(s.refund_amount || 0);
+                    payableToCustomer += remaining;
                     receivableFromCustomer += fee;
                 } else {
-                    if (paid > fee) {
-                        payableToCustomer += (paid - fee);
+                    if (paidIntake > fee) {
+                        payableToCustomer += remaining;
                     } else {
-                        receivableFromCustomer += (fee - paid);
+                        receivableFromCustomer += (fee - paidIntake);
                     }
                 }
             });

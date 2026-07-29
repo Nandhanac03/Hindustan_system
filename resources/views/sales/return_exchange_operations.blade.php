@@ -193,37 +193,41 @@
                                 <td class="px-3 py-2.5 text-left" x-text="sale.status === 'cancelled' ? 'Cancellation' : 'Return'"></td>
                                 <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="fmt(sale.total_amount)"></td>
                                 <td class="px-3 py-2.5 text-left">
-                                    <template x-if="sale.status === 'returned'">
+                                    <template x-if="sale.status === 'returned' || sale.status === 'cancelled'">
                                         <div>
-                                            <template x-if="parseFloat(sale.refund_amount) > 0">
-                                                <span class="text-orange-600 font-bold" x-text="'Payable (' + fmt(sale.refund_amount) + ')'"></span>
+                                            <template x-if="getRefundDue(sale) > 0">
+                                                <div>
+                                                    <span class="text-orange-600 font-bold block" x-text="'Payable (' + fmt(getRemainingRefund(sale)) + ')'"></span>
+                                                    <template x-if="getRefundPaid(sale) > 0">
+                                                        <span class="text-[9px] text-slate-400 font-semibold block" x-text="'Paid: ' + fmt(getRefundPaid(sale)) + ' / Total: ' + fmt(getRefundDue(sale))"></span>
+                                                    </template>
+                                                </div>
                                             </template>
-                                            <template x-if="parseFloat(sale.refund_amount) <= 0">
-                                                <span class="text-teal-600 font-bold" x-text="'Receivable (' + fmt(sale.cancellation_fee) + ')'"></span>
-                                            </template>
-                                        </div>
-                                    </template>
-                                    <template x-if="sale.status === 'cancelled'">
-                                        <div>
-                                            <template x-if="getPaidTillDate(sale) > parseFloat(sale.cancellation_fee)">
-                                                <span class="text-orange-600 font-bold" x-text="'Payable (' + fmt(getPaidTillDate(sale) - parseFloat(sale.cancellation_fee)) + ')'"></span>
-                                            </template>
-                                            <template x-if="getPaidTillDate(sale) <= parseFloat(sale.cancellation_fee)">
-                                                <span class="text-teal-600 font-bold" x-text="'Receivable (' + fmt(parseFloat(sale.cancellation_fee) - getPaidTillDate(sale)) + ')'"></span>
+                                            <template x-if="getRefundDue(sale) <= 0">
+                                                <span class="text-teal-600 font-bold" x-text="'Receivable (' + fmt(Math.max(0, parseFloat(sale.cancellation_fee) - getPaidTillDate(sale))) + ')'"></span>
                                             </template>
                                         </div>
                                     </template>
                                 </td>
                                 <td class="px-3 py-2.5 text-center">
-                                    <template x-if="sale.status === 'cancelled'">
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-amber-50 text-amber-700 border border-amber-100">
-                                            Pending
-                                        </span>
-                                    </template>
-                                    <template x-if="sale.status === 'returned'">
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                            Completed
-                                        </span>
+                                    <template x-if="sale.status === 'cancelled' || sale.status === 'returned'">
+                                        <div>
+                                            <template x-if="getRefundStatus(sale) === 'Pending'">
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-amber-50 text-amber-700 border border-amber-100">
+                                                    Pending
+                                                </span>
+                                            </template>
+                                            <template x-if="getRefundStatus(sale) === 'Partially Refunded'">
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">
+                                                    Partially Paid
+                                                </span>
+                                            </template>
+                                            <template x-if="getRefundStatus(sale) === 'Completed'">
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                                    Completed
+                                                </span>
+                                            </template>
+                                        </div>
                                     </template>
                                     <template x-if="sale.status === 'exchanged'">
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">

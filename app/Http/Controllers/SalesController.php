@@ -48,7 +48,30 @@ class SalesController extends Controller
         if ($request->filled('date_to')) {
             $query->whereDate('sale_date', '<=', $request->date_to);
         }
-        $sales = $query->orderByDesc('created_at')->get();
+        $postedVouchers = DB::table('vouchers')
+            ->where('type', 'Receipt')
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->get(['reference_no']);
+
+        $refundsPaidBySale = [];
+        foreach ($postedVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $sId = (int)$alloc['target_id'];
+                        $amt = (float)($alloc['amount'] ?? 0);
+                        $refundsPaidBySale[$sId] = ($refundsPaidBySale[$sId] ?? 0.0) + $amt;
+                    }
+                }
+            }
+        }
+
+        $sales = $query->orderByDesc('created_at')->get()->map(function ($sale) use ($refundsPaidBySale) {
+            $sale->refund_paid = $refundsPaidBySale[$sale->id] ?? 0.00;
+            return $sale;
+        });
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['sales' => $sales]);
         }

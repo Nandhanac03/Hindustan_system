@@ -792,9 +792,18 @@
             const isAmount = xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit');
             if (!isAmount) return;
 
-            // Target the field container directly below the input box
+            // Target the field container directly below the input box (climb past relative/horizontal flex containers)
             let targetParent = el.parentNode;
-            if (targetParent && (targetParent.classList.contains('relative') || targetParent.classList.contains('h-9') || targetParent.classList.contains('h-10') || targetParent.classList.contains('h-11') || targetParent.classList.contains('shadow-sm'))) {
+            while (targetParent && (
+                targetParent.classList.contains('relative') || 
+                targetParent.classList.contains('flex-1') || 
+                (targetParent.classList.contains('flex') && !targetParent.classList.contains('flex-col')) || 
+                targetParent.classList.contains('h-9') || 
+                targetParent.classList.contains('h-10') || 
+                targetParent.classList.contains('h-11') || 
+                targetParent.classList.contains('shadow-sm')
+            )) {
+                if (!targetParent.parentElement || targetParent.tagName === 'TD' || targetParent.tagName === 'BODY') break;
                 targetParent = targetParent.parentElement;
             }
 

@@ -212,6 +212,26 @@ class VoucherController extends Controller
             ->get();
  
         // 3. Fetch Pending Cancelled Sales with refund payable
+        $postedVouchers = DB::table('vouchers')
+            ->where('type', 'Receipt')
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->get(['reference_no']);
+
+        $refundsPaidBySale = [];
+        foreach ($postedVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $sId = (int)$alloc['target_id'];
+                        $amt = (float)($alloc['amount'] ?? 0);
+                        $refundsPaidBySale[$sId] = ($refundsPaidBySale[$sId] ?? 0.0) + $amt;
+                    }
+                }
+            }
+        }
+
         $projectIds = Project::where('system_id', $systemId)->pluck('id');
         $cancelledSales = Sale::where('status', 'cancelled')
             ->where(function($q) use ($projectIds) {
@@ -220,21 +240,24 @@ class VoucherController extends Controller
             })
             ->with(['customer', 'unit'])
             ->get()
-            ->map(function ($sale) {
-                $refundPayable = (float)($sale->refund_amount ?? 0.00);
-                if ($refundPayable <= 0) {
+            ->map(function ($sale) use ($refundsPaidBySale) {
+                $totalRefundDue = (float)($sale->refund_amount ?? 0.00);
+                if ($totalRefundDue <= 0) {
                     $totalPaid = (float)$sale->total_amount - (float)($sale->remaining_balance ?? 0.00);
                     if ($totalPaid <= 0) {
                         $totalPaid = (float)$sale->receipts()->sum('amount');
                     }
                     $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
-                    $refundPayable = max(0.00, $totalPaid - $cancellationFee);
+                    $totalRefundDue = max(0.00, $totalPaid - $cancellationFee);
                 }
 
-                $sale->remaining_refund = $refundPayable;
+                $alreadyPaid = $refundsPaidBySale[$sale->id] ?? 0.00;
+                $remainingRefund = max(0.00, round($totalRefundDue - $alreadyPaid, 2));
+
+                $sale->remaining_refund = $remainingRefund;
                 return $sale;
             })
-            ->filter(fn($sale) => $sale->remaining_refund > 0)
+            ->filter(fn($sale) => $sale->remaining_refund > 0.001)
             ->values();
 
         // Load recent receipts (source transactions) — unallocated ones show first
@@ -332,6 +355,26 @@ class VoucherController extends Controller
             ->get();
 
         // Filter pending cancelled sales by project or system
+        $postedVouchers = DB::table('vouchers')
+            ->where('type', 'Receipt')
+            ->where('status', 'Posted')
+            ->whereNotNull('reference_no')
+            ->get(['reference_no']);
+
+        $refundsPaidBySale = [];
+        foreach ($postedVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $sId = (int)$alloc['target_id'];
+                        $amt = (float)($alloc['amount'] ?? 0);
+                        $refundsPaidBySale[$sId] = ($refundsPaidBySale[$sId] ?? 0.0) + $amt;
+                    }
+                }
+            }
+        }
+
         $projectIds = Project::where('system_id', $systemId)->pluck('id');
         $cancelledSales = Sale::where('status', 'cancelled')
             ->when($projectId, function ($q) use ($projectId) {
@@ -347,18 +390,20 @@ class VoucherController extends Controller
             })
             ->with(['customer', 'unit'])
             ->get()
-            ->map(function ($sale) {
-                $refundPayable = (float)($sale->refund_amount ?? 0.00);
-                if ($refundPayable <= 0) {
+            ->map(function ($sale) use ($refundsPaidBySale) {
+                $totalRefundDue = (float)($sale->refund_amount ?? 0.00);
+                if ($totalRefundDue <= 0) {
                     $totalPaid = (float)$sale->total_amount - (float)($sale->remaining_balance ?? 0.00);
                     if ($totalPaid <= 0) {
                         $totalPaid = (float)$sale->receipts()->sum('amount');
                     }
                     $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
-                    $refundPayable = max(0.00, $totalPaid - $cancellationFee);
+                    $totalRefundDue = max(0.00, $totalPaid - $cancellationFee);
                 }
 
-                $remainingRefund = $refundPayable;
+                $alreadyPaid = $refundsPaidBySale[$sale->id] ?? 0.00;
+                $remainingRefund = max(0.00, round($totalRefundDue - $alreadyPaid, 2));
+
                 $customerName = $sale->customer->name ?? ('Customer #' . $sale->customer_id);
                 $unitCode = $sale->unit->door_no ?? ($sale->unit->unit_number ?? 'Unit');
 
@@ -368,7 +413,7 @@ class VoucherController extends Controller
                     'remaining' => $remainingRefund,
                 ];
             })
-            ->filter(fn($s) => $s['remaining'] > 0)
+            ->filter(fn($s) => $s['remaining'] > 0.001)
             ->values();
 
         $defaultShares = [];

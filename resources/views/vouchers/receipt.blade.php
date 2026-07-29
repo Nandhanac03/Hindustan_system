@@ -578,17 +578,17 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-black text-slate-600 uppercase tracking-wider">
-                                    <th class="px-5 py-3.5" style="width:22%">Allocation Category</th>
-                                    <th class="px-5 py-3.5" style="width:30%">Target Destination Ledger</th>
-                                    <th class="px-5 py-3.5 text-right" style="width:20%">Amount (₹)</th>
-                                    <th class="px-5 py-3.5" style="width:20%">Remarks / Reference</th>
-                                    <th class="px-5 py-3.5 text-center" style="width:8%">Action</th>
+                                    <th class="px-4 py-3.5" style="width:20%">Allocation Category</th>
+                                    <th class="px-4 py-3.5" style="width:32%">Target Destination Ledger</th>
+                                    <th class="px-4 py-3.5 text-right" style="width:22%">Amount (₹)</th>
+                                    <th class="px-4 py-3.5" style="width:20%">Remarks / Reference</th>
+                                    <th class="px-4 py-3.5 text-center" style="width:6%">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-xs">
                                 <template x-for="(row, idx) in allocations" :key="idx">
                                     <tr class="hover:bg-slate-50/80 transition">
-                                        <td class="px-5 py-3">
+                                        <td class="px-4 py-3.5 align-top">
                                             <select x-model="row.type" @change="row.target_id = ''; recalculatePartnerSplits();"
                                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29] cursor-pointer transition">
                                                 <option value="partner">🤝 Partner Share Payout</option>
@@ -598,7 +598,7 @@
                                             </select>
                                         </td>
 
-                                        <td class="px-5 py-3">
+                                        <td class="px-4 py-3.5 align-top">
                                             <select x-model="row.target_id" @change="recalculatePartnerSplits()"
                                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29] cursor-pointer transition">
                                                 <option value="">-- Select Target Ledger --</option>
@@ -609,28 +609,30 @@
                                         </td>
 
                                         <!-- Amount Field with Quick Fill Remaining Button -->
-                                        <td class="px-5 py-3 text-right">
-                                            <div class="flex items-center justify-end gap-1.5">
-                                                <div class="relative flex items-center justify-end flex-1">
-                                                    <span class="absolute left-3 font-mono font-bold text-slate-400">₹</span>
-                                                    <input type="number" x-model.number="row.amount" step="0.01" min="0" placeholder="0.00"
-                                                           @input="recalculatePartnerSplits()"
-                                                           class="w-full pl-7 pr-3 py-2.5 text-right font-mono font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition">
+                                        <td class="px-4 py-3.5 align-top text-right">
+                                            <div class="flex flex-col items-end gap-1.5 w-full">
+                                                <div class="flex items-center justify-end gap-1.5 w-full">
+                                                    <div class="relative flex items-center justify-end flex-1">
+                                                        <span class="absolute left-3 font-mono font-bold text-slate-400">₹</span>
+                                                        <input type="number" x-model.number="row.amount" step="0.01" min="0" placeholder="0.00"
+                                                               @input="recalculatePartnerSplits()"
+                                                               class="w-full pl-7 pr-3 py-2.5 text-right font-mono font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition">
+                                                    </div>
+                                                    <button type="button" @click="fillRemainingBalance(idx)"
+                                                            title="Fill exact remaining balance into this row"
+                                                            class="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-black uppercase transition shrink-0">
+                                                        Fill Bal
+                                                    </button>
                                                 </div>
-                                                <button type="button" @click="fillRemainingBalance(idx)"
-                                                        title="Fill exact remaining balance into this row"
-                                                        class="px-2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-black uppercase transition shrink-0">
-                                                    Fill Bal
-                                                </button>
                                             </div>
                                         </td>
 
-                                        <td class="px-5 py-3">
+                                        <td class="px-4 py-3.5 align-top">
                                             <input type="text" x-model="row.remarks" placeholder="Enter line description..."
                                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition">
                                         </td>
 
-                                        <td class="px-5 py-3 text-center">
+                                        <td class="px-4 py-3.5 align-top text-center">
                                             <button type="button" @click="removeAllocationRow(idx); recalculatePartnerSplits();"
                                                     class="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition inline-flex items-center justify-center">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
@@ -1177,6 +1179,33 @@
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
+                },
+                amountInWords(amount) {
+                    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return '';
+                    const num = Math.floor(parseFloat(amount));
+                    const paise = Math.round((parseFloat(amount) - num) * 100);
+
+                    const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+                                   'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+                    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+                    function convert(n) {
+                        if (n < 20) return units[n];
+                        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + units[n % 10] : '');
+                        if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
+                        if (n < 100000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
+                        if (n < 10000000) return convert(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + convert(n % 100000) : '');
+                        return convert(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + convert(n % 10000000) : '');
+                    }
+
+                    let words = convert(num);
+                    if (!words) return '';
+                    let result = words + ' Rupees';
+                    if (paise > 0) {
+                        result += ' and ' + convert(paise) + ' Paise';
+                    }
+                    result += ' Only';
+                    return result;
                 },
                 getPageNumbers() {
                     let list = this.filteredReceipts().filter(r => this.activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated);
