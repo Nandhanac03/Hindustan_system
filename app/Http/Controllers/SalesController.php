@@ -26,7 +26,7 @@ class SalesController extends Controller
         if (!$request->ajax() && !$request->wantsJson() && !$request->has('project_id') && !$request->filled('project_id') && $projectsList->isNotEmpty()) {
             $request->merge(['project_id' => (string)$projectsList->first()->id]);
         }
-        $query = Sale::with(['project', 'unit.unitType', 'customer', 'broker', 'receipts', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'extraWorks']);
+        $query = Sale::with(['project', 'unit.unitType', 'customer', 'broker', 'receipts', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'extraWorks', 'statusLogs']);
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -668,6 +668,80 @@ class SalesController extends Controller
                     'errors' => ['new_unit_id' => ['Target Unit is not available for exchange.']]
                 ], 422);
             }
+            // Build rich archive snapshot of the old unit & sale BEFORE modifications
+            $oldSaleFull = Sale::with(['unit.unitType', 'unit.floor', 'project', 'customer', 'receipts', 'saleUnits.unit'])->find($sale->id);
+            $oldInstallments = \App\Models\CustomerInstallment::where('sale_id', $sale->id)->orderBy('installment_no')->get();
+
+            $oldUnitSnapshot = [
+                'old_sale' => [
+                    'id'                     => $oldSaleFull->id,
+                    'sale_number'            => $oldSaleFull->sale_number,
+                    'sale_date'              => $oldSaleFull->sale_date ? \Carbon\Carbon::parse($oldSaleFull->sale_date)->format('Y-m-d') : null,
+                    'agreement_date'         => $oldSaleFull->agreement_date ? \Carbon\Carbon::parse($oldSaleFull->agreement_date)->format('Y-m-d') : null,
+                    'status'                 => $oldSaleFull->status,
+                    'payment_plan'           => $oldSaleFull->payment_plan,
+                    'emi_type'               => $oldSaleFull->emi_type,
+                    'emi_installment_count'  => $oldSaleFull->emi_installment_count,
+                    'emi_frequency'          => $oldSaleFull->emi_frequency,
+                    'first_installment_date' => $oldSaleFull->first_installment_date ? \Carbon\Carbon::parse($oldSaleFull->first_installment_date)->format('Y-m-d') : null,
+                    'rate_per_sqft'          => (float)$oldSaleFull->rate_per_sqft,
+                    'sale_amount'            => (float)$oldSaleFull->sale_amount,
+                    'gst_type'               => $oldSaleFull->gst_type,
+                    'gst_amount'             => (float)$oldSaleFull->gst_amount,
+                    'base_amount'            => (float)$oldSaleFull->base_amount,
+                    'total_amount'           => (float)$oldSaleFull->total_amount,
+                    'remaining_balance'      => (float)$oldSaleFull->remaining_balance,
+                    'total_paid'             => (float)$oldSaleFull->receipts->sum('amount'),
+                ],
+                'old_unit' => [
+                    'id'                   => $oldSaleFull->unit?->id,
+                    'door_no'              => $oldSaleFull->unit?->door_no,
+                    'floor_name'           => $oldSaleFull->unit?->floor?->name,
+                    'unit_type_name'       => $oldSaleFull->unit?->unitType?->name,
+                    'built_up_area'        => (float)($oldSaleFull->unit?->built_up_area ?? 0),
+                    'expected_sale_amount' => (float)($oldSaleFull->unit?->expected_sale_amount ?? 0),
+                ],
+                'customer' => [
+                    'id'    => $oldSaleFull->customer?->id,
+                    'name'  => $oldSaleFull->customer?->name,
+                    'phone' => $oldSaleFull->customer?->phone,
+                ],
+                'project' => [
+                    'id'   => $oldSaleFull->project?->id,
+                    'name' => $oldSaleFull->project?->name,
+                ],
+                'receipts' => $oldSaleFull->receipts->map(function ($r) {
+                    return [
+                        'id'             => $r->id,
+                        'receipt_number' => $r->receipt_number,
+                        'receipt_date'   => $r->receipt_date ? \Carbon\Carbon::parse($r->receipt_date)->format('Y-m-d') : null,
+                        'amount'         => (float)$r->amount,
+                        'payment_mode'   => $r->payment_mode,
+                        'reference_no'   => $r->reference_no,
+                        'status'         => $r->status ?? 'posted',
+                    ];
+                })->values()->toArray(),
+                'installments' => $oldInstallments->map(function ($inst) {
+                    return [
+                        'id'             => $inst->id,
+                        'installment_no' => $inst->installment_no,
+                        'label'          => $inst->label,
+                        'due_date'       => $inst->due_date ? \Carbon\Carbon::parse($inst->due_date)->format('Y-m-d') : null,
+                        'amount'         => (float)$inst->amount,
+                        'status'         => $inst->status,
+                        'schedule_type'  => $inst->schedule_type,
+                    ];
+                })->values()->toArray(),
+                'exchange_meta' => [
+                    'target_unit_id'    => $newUnit->id,
+                    'target_door_no'    => $newUnit->door_no,
+                    'carry_forward'     => !empty($validated['carry_forward']),
+                    'exchange_reason'   => $validated['reason'],
+                    'exchanged_at'      => now()->toDateTimeString(),
+                    'exchanged_by_user' => auth()->user()?->name ?? 'System',
+                ],
+            ];
+
             $sale->update([
                 'status' => 'exchanged',
                 'cancellation_reason' => $validated['reason'],
@@ -764,27 +838,29 @@ class SalesController extends Controller
                 'gst_amount'         => $gstAmount,
             ]);
             SaleStatusLog::create([
-                'sale_id'      => $sale->id,
-                'from_status'  => $fromStatus,
-                'to_status'    => 'exchanged',
-                'event_type'   => 'exchanged',
-                'reason'       => $validated['reason'],
-                'performed_by' => auth()->id(),
+                'sale_id'       => $sale->id,
+                'from_status'   => $fromStatus,
+                'to_status'     => 'exchanged',
+                'event_type'    => 'exchanged',
+                'reason'        => $validated['reason'],
+                'snapshot_data' => $oldUnitSnapshot,
+                'performed_by'  => auth()->id(),
             ]);
             SaleStatusLog::create([
-                'sale_id'      => $newSale->id,
-                'from_status'  => null,
-                'to_status'    => 'active',
-                'event_type'   => 'created',
-                'reason'       => 'Created via unit exchange from sale ' . $sale->sale_number,
-                'performed_by' => auth()->id(),
+                'sale_id'       => $newSale->id,
+                'from_status'   => null,
+                'to_status'     => 'active',
+                'event_type'    => 'created',
+                'reason'        => 'Created via unit exchange from sale ' . $sale->sale_number,
+                'snapshot_data' => $oldUnitSnapshot,
+                'performed_by'  => auth()->id(),
             ]);
             \App\Models\CustomerInstallment::where('sale_id', $sale->id)->delete();
             $this->syncDefaultEmiSchedule($newSale);
             if (!empty($validated['carry_forward'])) {
                 \App\Models\CustomerInstallment::allocatePaymentStatusForSale($newSale->id);
             }
-            return response()->json(['sale' => $newSale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
+            return response()->json(['sale' => $newSale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer', 'statusLogs'])]);
         }
         $sale->update([
             'status'               => $validated['status'],

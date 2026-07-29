@@ -1791,15 +1791,68 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {{-- Transition logs --}}
                     <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm space-y-2.5">
-                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">📜 Transition History Logs</p>
-                        <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center justify-between">
+                            <span>📜 Transition History Logs</span>
+                            <span class="text-[9px] font-bold text-slate-400 font-mono" x-text="(activeSale.status_logs ? activeSale.status_logs.length : 0) + ' Logs'"></span>
+                        </p>
+                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
                             <template x-for="log in activeSale.status_logs" :key="log.id">
-                                <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200/60 text-[10px]">
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="font-bold text-slate-800 uppercase tracking-wide" x-text="(log.from_status || 'created') + ' → ' + log.to_status"></span>
+                                <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 text-[10px] space-y-1.5" x-data="{ openSnap: false }">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-slate-800 uppercase tracking-wide" x-text="(log.from_status || 'created') + ' → ' + log.to_status"></span>
+                                            <template x-if="log.snapshot_data">
+                                                <span class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[8px] font-extrabold uppercase">Archived Log</span>
+                                            </template>
+                                        </div>
                                         <span class="text-slate-400 font-mono text-[9px]" x-text="formatDate(log.created_at)"></span>
                                     </div>
                                     <p class="text-slate-600 italic font-sans" x-text="log.reason || 'No narrative provided'"></p>
+
+                                    {{-- Archived Unit Snapshot Viewer --}}
+                                    <template x-if="log.snapshot_data">
+                                        <div class="mt-2 pt-2 border-t border-slate-200/80">
+                                            <button type="button" @click="openSnap = !openSnap"
+                                                    class="text-[9px] font-extrabold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+                                                <span x-text="openSnap ? 'Hide Archived Unit Log' : '📦 View Archived Unit Log Snapshot'"></span>
+                                                <svg class="w-3 h-3 transition-transform" :class="openSnap ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                            </button>
+
+                                            <div x-show="openSnap" class="mt-2 p-2.5 bg-white rounded-lg border border-blue-200 space-y-2 text-[10px] font-sans">
+                                                <div class="grid grid-cols-2 gap-2 border-b border-slate-100 pb-1.5">
+                                                    <div>
+                                                        <span class="text-slate-400 font-bold block text-[8px] uppercase">Old Unit</span>
+                                                        <span class="font-extrabold text-slate-800" x-text="log.snapshot_data.old_unit ? log.snapshot_data.old_unit.door_no : 'N/A'"></span>
+                                                        <span class="text-slate-500 text-[9px]" x-text="log.snapshot_data.old_unit && log.snapshot_data.old_unit.floor_name ? ' (' + log.snapshot_data.old_unit.floor_name + ')' : ''"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-400 font-bold block text-[8px] uppercase">Old Sale No</span>
+                                                        <span class="font-extrabold text-slate-800 font-mono" x-text="log.snapshot_data.old_sale ? log.snapshot_data.old_sale.sale_number : 'N/A'"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-3 gap-1 bg-slate-50 p-1.5 rounded-md text-center font-mono">
+                                                    <div>
+                                                        <span class="text-[7px] text-slate-400 font-bold uppercase block">Contract Value</span>
+                                                        <span class="font-bold text-slate-800" x-text="log.snapshot_data.old_sale ? fmt(log.snapshot_data.old_sale.total_amount) : '₹0'"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-[7px] text-slate-400 font-bold uppercase block">Total Paid</span>
+                                                        <span class="font-bold text-emerald-700" x-text="log.snapshot_data.old_sale ? fmt(log.snapshot_data.old_sale.total_paid) : '₹0'"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-[7px] text-slate-400 font-bold uppercase block">Balance</span>
+                                                        <span class="font-bold text-slate-700" x-text="log.snapshot_data.old_sale ? fmt(log.snapshot_data.old_sale.remaining_balance) : '₹0'"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex justify-between items-center text-[9px] text-slate-500 pt-1 font-semibold">
+                                                    <span>Receipts Recorded: <strong class="text-slate-800 font-mono" x-text="log.snapshot_data.receipts ? log.snapshot_data.receipts.length : 0"></strong></span>
+                                                    <span>EMI Schedule Count: <strong class="text-slate-800 font-mono" x-text="log.snapshot_data.installments ? log.snapshot_data.installments.length : 0"></strong></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
                                 </div>
                             </template>
                             <template x-if="!activeSale.status_logs || activeSale.status_logs.length === 0">
@@ -2024,7 +2077,12 @@ function salesApp() {
         },
         getPaidTillDate(sale) {
             if (!sale) return 0;
-            return sale.receipts ? sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0) : 0;
+            const snap = this.getExchangeSnapshot(sale);
+            if (snap && snap.old_sale && snap.old_sale.total_paid !== undefined && snap.old_sale.total_paid !== null) {
+                return Number(snap.old_sale.total_paid);
+            }
+            const receiptsSum = sale.receipts ? sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0) : 0;
+            return receiptsSum;
         },
         selectReturnSale(sale, targetStatus) {
             this.selectedReturnSale = sale;
@@ -2132,14 +2190,12 @@ function salesApp() {
             let refundableToCustomer = 0;
             let completedExchanges = salesList.filter(s => s.status === 'exchanged').length;
             salesList.forEach(sale => {
-                const newVal = this.getNewUnitValue(sale);
-                const oldVal = parseFloat(sale.total_amount);
-                const diff = newVal - oldVal;
-                totalDiff += Math.abs(diff);
-                if (diff > 0) {
-                    payableByCustomer += diff;
-                } else if (diff < 0) {
-                    refundableToCustomer += Math.abs(diff);
+                const netDue = this.getExchangeNetDue(sale);
+                totalDiff += Math.abs(netDue);
+                if (netDue > 0) {
+                    payableByCustomer += netDue;
+                } else if (netDue < 0) {
+                    refundableToCustomer += Math.abs(netDue);
                 }
             });
             return { totalExchanges, totalDiff, payableByCustomer, refundableToCustomer, completedExchanges };
@@ -2154,17 +2210,22 @@ function salesApp() {
             const newSale = this.sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + sale.sale_number));
             return newSale ? parseFloat(newSale.total_amount) : 0;
         },
-        getDifferentialDue(sale) {
-            if (sale.status !== 'exchanged') return 0;
+        getExchangeNetDue(sale) {
+            if (!sale || sale.status !== 'exchanged') return 0;
             const newVal = this.getNewUnitValue(sale);
-            const oldVal = parseFloat(sale.total_amount);
-            return newVal - oldVal;
+            const paid = this.getPaidTillDate(sale);
+            return Math.round((newVal - paid) * 100) / 100;
+        },
+        getExchangeStatusText(sale) {
+            if (!sale || sale.status !== 'exchanged') return '—';
+            const netDue = this.getExchangeNetDue(sale);
+            if (netDue > 0) return 'Payable by Customer';
+            if (netDue < 0) return 'Refundable to Customer';
+            return 'Fully Settled';
         },
         getDifferenceAmount(sale) {
-            if (sale.status !== 'exchanged') return 0;
-            const newVal = this.getNewUnitValue(sale);
-            const oldVal = parseFloat(sale.total_amount);
-            return Math.abs(newVal - oldVal);
+            if (!sale || sale.status !== 'exchanged') return 0;
+            return Math.abs(this.getExchangeNetDue(sale));
         },
         fmtIndian(value) {
             let num = Number(value || 0);
@@ -2254,6 +2315,11 @@ function salesApp() {
             if (sale.project_id) {
                 this.loadExchangeUnits();
             }
+        },
+        getExchangeSnapshot(sale) {
+            if (!sale || !sale.status_logs) return null;
+            const log = sale.status_logs.find(l => l.snapshot_data && (l.event_type === 'exchanged' || l.event_type === 'created'));
+            return log ? log.snapshot_data : null;
         },
         getExchangeEmiPreview() {
             if (this.exchangeForm.payment_plan !== 'emi') return [];
