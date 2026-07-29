@@ -109,7 +109,7 @@
             <button type="button" onclick="document.getElementById('voucher_type').value = ''; document.getElementById('filterForm').submit();"
                class="text-left p-3.5 rounded-2xl border transition-all duration-200 block space-y-1 group cursor-pointer
                       {{ $isAll
-                         ? 'bg-slate-900 border-slate-900 text-white shadow-md ring-2 ring-slate-900/20'
+                         ? 'bg-[#a38c29] border-[#a38c29] text-white shadow-md ring-2 ring-[#a38c29]/20'
                          : 'bg-white border-slate-200/80 hover:border-slate-400 hover:shadow-xs' }}">
                 <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest {{ $isAll ? 'text-white' : 'text-slate-500' }}">
                     <span>All Entries</span>
@@ -151,7 +151,7 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-900 text-white text-[10px] font-extrabold uppercase tracking-widest">
+                        <tr class="bg-[#a38c29] text-white text-[10px] font-extrabold uppercase tracking-widest border-b border-[#8a7522]">
                             <th class="px-5 py-4">TRANSACTION DATE</th>
                             <th class="px-5 py-4">VOUCHER NO.</th>
                             <th class="px-5 py-4">TYPE / CATEGORY</th>
@@ -217,15 +217,15 @@
                                 $totalCredit = $grandTotalCredit ?? $entries->sum('credit');
                             @endphp
                             <!-- GRAND TOTALS Row -->
-                            <tr class="bg-slate-900 text-white font-extrabold border-t-2 border-slate-900">
-                                <td class="px-5 py-4 text-[10px] uppercase tracking-widest text-slate-300" colspan="4">GRAND TOTALS ACROSS ALL CATEGORIES</td>
+                            <tr class="bg-[#a38c29] text-white font-extrabold border-t-2 border-[#8a7522]">
+                                <td class="px-5 py-4 text-[10px] uppercase tracking-widest text-white font-black" colspan="4">GRAND TOTALS ACROSS ALL CATEGORIES</td>
                                 <td class="px-5 py-4 text-right font-mono text-white font-black text-sm">
                                     {{ $totalDebit > 0 ? '₹' . number_format((float)$totalDebit, 2, '.', ',') : '-' }}
                                 </td>
                                 <td class="px-5 py-4 text-right font-mono text-white font-black text-sm">
                                     {{ $totalCredit > 0 ? '₹' . number_format((float)$totalCredit, 2, '.', ',') : '-' }}
                                 </td>
-                                <td class="px-5 py-4 text-right font-mono text-slate-400">
+                                <td class="px-5 py-4 text-right font-mono text-white font-black">
                                     -
                                 </td>
                             </tr>

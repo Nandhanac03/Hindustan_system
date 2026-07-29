@@ -569,12 +569,12 @@
 
                 <!-- ALLOCATION TABLE -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between">
+                    <div class="px-6 py-4 bg-[#a38c29] text-white border-b border-[#8a7522] flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29]"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-white"></span>
                             <h3 class="text-xs font-black uppercase tracking-wider text-white">Dynamic Allocation Rows</h3>
                         </div>
-                        <span class="text-xs text-slate-400 font-semibold" x-text="allocations.length + ' allocation rows configured'"></span>
+                        <span class="text-xs text-amber-100 font-semibold" x-text="allocations.length + ' allocation rows configured'"></span>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -723,9 +723,9 @@
                     </div>
 
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="px-6 py-4 bg-slate-900 text-white border-b border-slate-800 flex items-center justify-between">
+                        <div class="px-6 py-4 bg-[#a38c29] text-white border-b border-[#8a7522] flex items-center justify-between">
                             <h3 class="text-xs font-black uppercase tracking-wider text-white">Double-Entry Journal Matrix Preview</h3>
-                            <span class="text-xs text-slate-400 font-semibold">Automatic Ledger Posting</span>
+                            <span class="text-xs text-amber-100 font-semibold">Automatic Ledger Posting</span>
                         </div>
 
                         <div class="overflow-x-auto">
