@@ -533,6 +533,9 @@
                             <button type="button" @click="addCategoryRow('partner')" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
                                 <span>🤝 + Partner</span>
                             </button>
+                            <button type="button" @click="addCategoryRow('broker')" class="px-2.5 py-1 bg-[#a38c29]/20 hover:bg-[#a38c29]/30 text-[#d4b94e] border border-[#a38c29]/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                                <span>🏷️ + Broker Commission</span>
+                            </button>
                             <button type="button" @click="addCategoryRow('supplier')" class="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
                                 <span>🏗️ + Supplier</span>
                             </button>
@@ -592,6 +595,7 @@
                                             <select x-model="row.type" @change="row.target_id = ''; recalculatePartnerSplits();"
                                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29] cursor-pointer transition">
                                                 <option value="partner">🤝 Partner Share Payout</option>
+                                                <option value="broker">🏷️ Broker Commission</option>
                                                 <option value="supplier">🏗️ Supplier Vendor Bill</option>
                                                 <option value="refund">↩️ Customer Refund</option>
                                                 <option value="general">🏦 General Reserve</option>
@@ -694,6 +698,10 @@
                             <div class="p-3 bg-amber-500/10 rounded-xl">
                                 <div class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Partner Share</div>
                                 <div class="mt-1 font-mono font-black text-[#a38c29] text-base" x-text="'₹' + formatCurrency(getSummaryAmount('partner'))"></div>
+                            </div>
+                            <div class="p-3 rounded-xl" style="background:rgba(163,140,41,0.08); border:1px solid rgba(163,140,41,0.2)">
+                                <div class="text-[10px] font-bold uppercase tracking-wider" style="color:#8e7a23">Broker Commission</div>
+                                <div class="mt-1 font-mono font-black text-base" style="color:#a38c29" x-text="'₹' + formatCurrency(getSummaryAmount('broker'))"></div>
                             </div>
                             <div class="p-3 bg-blue-50 rounded-xl">
                                 <div class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Supplier Bills</div>
@@ -897,7 +905,7 @@
                 fetchTargets() {
                     const projectId = this.form.project_id || '';
                     if (!projectId) {
-                        this.targets = { partners: [], pending_bills: [], cancelled_sales: [], default_shares: [] };
+                        this.targets = { partners: [], pending_bills: [], cancelled_sales: [], default_shares: [], pending_brokers: [] };
                         return;
                     }
                     fetch("{{ url('/api/receipt/targets') }}?project_id=" + projectId)
@@ -945,7 +953,7 @@
                             this.recalculatePartnerSplits();
                         })
                         .catch(() => {
-                            this.targets = { partners: [], pending_bills: [], cancelled_sales: [], default_shares: [] };
+                            this.targets = { partners: [], pending_bills: [], cancelled_sales: [], default_shares: [], pending_brokers: [] };
                         });
                 },
                 autoAllocatePartnerShares() {
@@ -1041,6 +1049,12 @@
                     if (type === 'partner') {
                         return this.targets.partners.map(p => ({ id: p.id, name: p.name }));
                     }
+                    if (type === 'broker') {
+                        return (this.targets.pending_brokers || []).map(b => ({
+                            id: b.id,
+                            name: b.name
+                        }));
+                    }
                     if (type === 'supplier') {
                         return this.targets.pending_bills.map(b => ({
                             id: b.id,
@@ -1079,6 +1093,9 @@
                     if (alloc.type === 'partner') {
                         const p = this.targets.partners.find(x => x.id == alloc.target_id);
                         return p ? `${p.name} (Partner Capital Share)` : 'Partner Account';
+                    } else if (alloc.type === 'broker') {
+                        const b = (this.targets.pending_brokers || []).find(x => x.id == alloc.target_id);
+                        return b ? `Broker Commission Payable — ${b.name.split(' (A/C:')[0]}` : 'Broker Commission Account';
                     } else if (alloc.type === 'supplier') {
                         const b = this.targets.pending_bills.find(x => x.id == alloc.target_id);
                         return b ? `${b.supplier_name} (Supplier Account Payable)` : 'Supplier Account';
@@ -1094,6 +1111,7 @@
                 getPreviewNarration(alloc) {
                     let text = '';
                     if (alloc.type === 'partner') text = 'Partner share drawings';
+                    else if (alloc.type === 'broker') text = 'Broker commission cash payout';
                     else if (alloc.type === 'supplier') text = 'Clear pending supplier invoice';
                     else if (alloc.type === 'refund') text = 'Customer booking cancellation refund';
                     else if (alloc.type === 'general') text = 'Fund transfer to ledger';

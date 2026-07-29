@@ -21,14 +21,12 @@ class Brokerage extends Model
         'commission_amount',
         'paid_amount',
         'status',
-        'paid_date',
     ];
 
     protected $casts = [
         'commission_percent' => 'decimal:2',
         'commission_amount'  => 'decimal:2',
         'paid_amount'        => 'decimal:2',
-        'paid_date'          => 'date',
     ];
 
     public function sale(): BelongsTo

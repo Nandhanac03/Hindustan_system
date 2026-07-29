@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
  
 use App\Models\Account;
+use App\Models\Broker;
+use App\Models\Brokerage;
 use App\Models\Customer;
 use App\Models\Receipt;
 use App\Models\Voucher;
@@ -416,11 +418,32 @@ class VoucherController extends Controller
                 ]);
         }
 
+        // Fetch brokers with pending/payable commission dues
+        $pendingBrokers = Broker::where('system_id', $systemId)
+            ->with(['brokerages' => function ($q) {
+                $q->whereIn('status', ['payable', 'pending', 'partial']);
+            }, 'linkedAccount:id,code'])
+            ->get()
+            ->map(function ($broker) {
+                $pendingAmount = $broker->brokerages->sum(fn($b) => (float)$b->commission_amount - (float)$b->paid_amount);
+                if ($pendingAmount <= 0.001) return null;
+                $code = $broker->linkedAccount->code ?? 'N/A';
+                return [
+                    'id'              => $broker->id,
+                    'name'            => $broker->name . " (A/C: {$code}) — Pending: ₹" . number_format($pendingAmount, 2),
+                    'linked_account_id' => $broker->linked_account_id,
+                    'pending_amount'  => round($pendingAmount, 2),
+                ];
+            })
+            ->filter()
+            ->values();
+
         return response()->json([
             'partners'        => $partners,
             'pending_bills'   => $pendingBills,
             'cancelled_sales' => $cancelledSales,
             'default_shares'  => $defaultShares,
+            'pending_brokers' => $pendingBrokers,
         ]);
     }
  
@@ -815,8 +838,82 @@ class VoucherController extends Controller
                             'running_balance' => 0.00,
                         ]);
                     }
+                    elseif ($type === 'broker') {
+                        // ── BROKER COMMISSION CASH PAYOUT ──────────────────────────
+                        // Loads the broker, distributes payment FIFO across pending entries,
+                        // updates paid_amount + status → partial/paid, posts double-entry ledger.
+
+                        $broker = Broker::where('system_id', $systemId)->findOrFail($targetId);
+
+                        // Load all pending/partial/payable brokerage entries ordered oldest first
+                        $brokerageEntries = Brokerage::where('broker_id', $broker->id)
+                            ->whereIn('status', ['pending', 'payable', 'partial'])
+                            ->orderBy('id', 'asc')
+                            ->get();
+
+                        $remainingPayout = $amount;
+
+                        foreach ($brokerageEntries as $entry) {
+                            if ($remainingPayout <= 0.001) break;
+
+                            $entryBalance = round((float)$entry->commission_amount - (float)$entry->paid_amount, 2);
+                            if ($entryBalance <= 0.001) continue;
+
+                            $payForEntry = min($remainingPayout, $entryBalance);
+                            $newPaid = round((float)$entry->paid_amount + $payForEntry, 2);
+                            $fullyPaid = ($newPaid >= (float)$entry->commission_amount - 0.01);
+
+                            $entry->update([
+                                'paid_amount' => $newPaid,
+                                'status'      => $fullyPaid ? 'paid' : 'partial',
+                            ]);
+
+                            $remainingPayout = round($remainingPayout - $payForEntry, 2);
+                        }
+
+                        // Double-entry: Debit Broker's Commission Payable Account (reduces liability),
+                        //               Credit Bank/Cash Account
+                        $brokerLine = VoucherLine::create([
+                            'voucher_id'     => $voucher->id,
+                            'account_id'     => $broker->linked_account_id,
+                            'debit'          => $amount,
+                            'credit'         => 0.00,
+                            'line_narration' => 'Broker commission payout: ' . $broker->name . ($remarks ? ' (' . $remarks . ')' : ''),
+                        ]);
+
+                        LedgerEntry::create([
+                            'system_id'        => $systemId,
+                            'account_id'       => $broker->linked_account_id,
+                            'voucher_id'       => $voucher->id,
+                            'voucher_line_id'  => $brokerLine->id,
+                            'date'             => $request->date,
+                            'debit'            => $amount,
+                            'credit'           => 0.00,
+                            'running_balance'  => 0.00,
+                        ]);
+
+                        $bankCreditLine = VoucherLine::create([
+                            'voucher_id'     => $voucher->id,
+                            'account_id'     => $request->destination_account_id,
+                            'debit'          => 0.00,
+                            'credit'         => $amount,
+                            'line_narration' => 'Credit bank/cash for broker commission payout: ' . $broker->name,
+                        ]);
+
+                        LedgerEntry::create([
+                            'system_id'        => $systemId,
+                            'account_id'       => $request->destination_account_id,
+                            'voucher_id'       => $voucher->id,
+                            'voucher_line_id'  => $bankCreditLine->id,
+                            'date'             => $request->date,
+                            'debit'            => 0.00,
+                            'credit'           => $amount,
+                            'running_balance'  => 0.00,
+                        ]);
+                    }
                 }
             }
+
             return $voucher;
         });
  

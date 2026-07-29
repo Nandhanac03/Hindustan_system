@@ -38,12 +38,18 @@ class BrokerController extends Controller
             $paid = 0.0;
 
             foreach ($broker->brokerages as $entry) {
-                if ($entry->status === 'pending') {
-                    $accrued += (float)$entry->commission_amount;
-                } elseif ($entry->status === 'payable' || $entry->status === 'partial') {
-                    $payable += (float)$entry->commission_amount;
-                } elseif ($entry->status === 'paid') {
-                    $paid += (float)$entry->commission_amount;
+                $commAmt = (float)$entry->commission_amount;
+                $paidAmt = (float)$entry->paid_amount;
+
+                // Paid portion ALWAYS contributes to Paid Out
+                $paid += $paidAmt;
+
+                $remaining = max(0.0, $commAmt - $paidAmt);
+
+                if ($entry->status === 'pending' && $paidAmt <= 0) {
+                    $accrued += $remaining;
+                } elseif ($remaining > 0) {
+                    $payable += $remaining;
                 }
             }
 
@@ -193,14 +199,18 @@ class BrokerController extends Controller
             $pendingDealsCount = 0;
 
             foreach ($broker->brokerages as $entry) {
-                if ($entry->status === 'pending') {
-                    $accrued += (float)$entry->commission_amount;
+                $commAmt = (float)$entry->commission_amount;
+                $paidAmt = (float)$entry->paid_amount;
+
+                $paid += $paidAmt;
+                $remaining = max(0.0, $commAmt - $paidAmt);
+
+                if ($entry->status === 'pending' && $paidAmt <= 0) {
+                    $accrued += $remaining;
                     $pendingDealsCount++;
-                } elseif ($entry->status === 'payable' || $entry->status === 'partial') {
-                    $payable += (float)$entry->commission_amount;
+                } elseif ($remaining > 0) {
+                    $payable += $remaining;
                     $pendingDealsCount++;
-                } elseif ($entry->status === 'paid') {
-                    $paid += (float)$entry->commission_amount;
                 }
             }
 
@@ -371,7 +381,7 @@ class BrokerController extends Controller
 
     private function syncCommissions(int $systemId): void
     {
-        // Transition 'pending' commissions to 'payable' if the sale's remaining_balance <= 0
+        // Transition 'pending' commissions to 'payable' if the sale has received customer payments
         $pendingBrokerages = Brokerage::where('status', 'pending')
             ->whereHas('broker', function($q) use($systemId) {
                 $q->where('system_id', $systemId);
@@ -381,12 +391,21 @@ class BrokerController extends Controller
 
         foreach ($pendingBrokerages as $entry) {
             if ($entry->sale) {
-                // If the customer has paid anything (advance/downpayment), commission becomes payable
                 $totalPaid = $entry->sale->total_amount - $entry->sale->remaining_balance;
                 
                 if ($totalPaid > 0) {
+                    $paidAmt = (float)$entry->paid_amount;
+                    $commAmt = (float)$entry->commission_amount;
+
+                    $newStatus = 'payable';
+                    if ($paidAmt >= $commAmt - 0.01 && $commAmt > 0) {
+                        $newStatus = 'paid';
+                    } elseif ($paidAmt > 0) {
+                        $newStatus = 'partial';
+                    }
+
                     $entry->update([
-                        'status' => 'payable',
+                        'status' => $newStatus,
                     ]);
                 }
             }

@@ -441,19 +441,30 @@
                             $sale = $brokerage->sale;
                             if (!$sale) continue;
 
-                            $status = $brokerage->status ?? 'pending';
-                            $commAmount = $brokerage->commission_amount ?? 0;
-                            
-                            $badgeClass = match($status) {
-                                'payable', 'partial' => 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs font-bold',
-                                'paid' => 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold',
-                                default => 'bg-amber-50 text-amber-700 border-amber-200 font-semibold'
+                            $paidAmt    = (float)($brokerage->paid_amount ?? 0);
+                            $commAmt    = (float)($brokerage->commission_amount ?? 0);
+                            $commAmount = $commAmt;
+                            $remaining  = max(0, $commAmt - $paidAmt);
+
+                            $rawStatus = $brokerage->status ?? 'pending';
+                            $effectiveStatus = match(true) {
+                                $paidAmt >= $commAmt - 0.01 && $commAmt > 0 => 'paid',
+                                $paidAmt > 0 => 'partial',
+                                default => $rawStatus
                             };
 
-                            $statusLabel = match($status) {
-                                'payable', 'partial' => 'Payable (Unlocked)',
-                                'paid' => 'Paid Out',
-                                default => 'Accrued (Locked)'
+                            $badgeClass = match($effectiveStatus) {
+                                'payable'  => 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs font-bold',
+                                'partial'  => 'bg-blue-50 text-blue-700 border-blue-200 font-bold',
+                                'paid'     => 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold',
+                                default    => 'bg-amber-50 text-amber-700 border-amber-200 font-semibold'
+                            };
+
+                            $statusLabel = match($effectiveStatus) {
+                                'payable'  => 'Payable (Unlocked)',
+                                'partial'  => 'Partially Paid',
+                                'paid'     => 'Paid Out',
+                                default    => 'Accrued (Locked)'
                             };
                         @endphp
                         <tr class="hover:bg-slate-50/70 transition-colors">
@@ -506,15 +517,29 @@
                                 @endif
                             </td>
                             <td class="px-3 py-4 border text-center align-middle">
-                                <div class="flex flex-col items-center justify-center gap-2 w-[130px] mx-auto">
+                                <div class="flex flex-col items-center justify-center gap-2 w-[140px] mx-auto">
                                     <span class="w-full border px-2 py-1.5 rounded-xl font-bold text-[9px] uppercase {{ $badgeClass }} shadow-sm tracking-wide text-center">
                                         {{ $statusLabel }}
                                     </span>
                                     
-                                    @if($status === 'pending')
+                                    @if($effectiveStatus === 'pending')
                                         <span class="text-[9px] text-slate-400 italic text-center w-full">Unlocks on full payment</span>
-                                    @elseif($status === 'payable' || $status === 'partial')
+                                    @elseif($effectiveStatus === 'payable')
                                         <span class="text-[9px] text-slate-500 italic text-center w-full">Settled via Receipt Allocation</span>
+                                    @elseif($effectiveStatus === 'partial')
+                                        <div class="w-full space-y-1">
+                                            <div class="flex justify-between text-[9px]">
+                                                <span class="text-blue-600 font-bold">Paid: ₹{{ number_format($paidAmt, 0) }}</span>
+                                                <span class="text-rose-600 font-bold">Bal: ₹{{ number_format($remaining, 0) }}</span>
+                                            </div>
+                                            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                                                @php $pctPaidComm = $commAmt > 0 ? ($paidAmt / $commAmt) * 100 : 0; @endphp
+                                                <div class="bg-blue-500 h-full rounded-full" style="width: {{ min(100, $pctPaidComm) }}%;"></div>
+                                            </div>
+                                            <span class="text-[9px] text-blue-600 font-bold block text-center">{{ number_format($pctPaidComm, 0) }}% paid</span>
+                                        </div>
+                                    @elseif($effectiveStatus === 'paid')
+                                        <span class="text-[9px] text-indigo-600 font-bold text-center w-full">✓ Fully settled ₹{{ number_format($commAmt, 0) }}</span>
                                     @endif
                                 </div>
                             </td>
