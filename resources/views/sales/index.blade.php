@@ -1890,7 +1890,7 @@ function salesApp() {
         targetReturnStatus: '',
         selectedExchangeSale: null,
         returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: 100000, reason: '', revert_unsold: true },
-        exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '' },
+        exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '', payment_plan: 'emi', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (function() { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })() },
         exchangeAvailableUnits: [],
         exchangeUnitTypes: [],
         exchangeSelectedUnit: null,
@@ -2242,11 +2242,54 @@ function salesApp() {
             this.exchangeForm.equity_applied = this.getPaidTillDate(sale);
             this.exchangeForm.carry_forward = true;
             this.exchangeForm.reason = '';
+            this.exchangeForm.payment_plan = sale.payment_plan || 'emi';
+            this.exchangeForm.emi_type = sale.emi_type || 'equal';
+            this.exchangeForm.emi_installment_count = sale.emi_installment_count || 12;
+            this.exchangeForm.emi_frequency = sale.emi_frequency || 'monthly';
+            const defaultDate = new Date();
+            defaultDate.setMonth(defaultDate.getMonth() + 1);
+            this.exchangeForm.first_installment_date = sale.first_installment_date ? (sale.first_installment_date.split('T')[0]) : defaultDate.toISOString().split('T')[0];
             this.exchangeAvailableUnits = [];
             this.exchangeSelectedUnit = null;
             if (sale.project_id) {
                 this.loadExchangeUnits();
             }
+        },
+        getExchangeEmiPreview() {
+            if (this.exchangeForm.payment_plan !== 'emi') return [];
+            const newVal = parseFloat(this.exchangeForm.new_unit_value || 0);
+            const equity = this.exchangeForm.carry_forward ? parseFloat(this.exchangeForm.equity_applied || 0) : 0;
+            const netDue = Math.max(0, Math.round((newVal - equity) * 100) / 100);
+            const count = parseInt(this.exchangeForm.emi_installment_count) || 1;
+            if (count <= 0 || netDue <= 0) return [];
+            const emiAmt = Math.floor((netDue / count) * 100) / 100;
+            const lastEmiAmt = Math.round((netDue - (emiAmt * (count - 1))) * 100) / 100;
+            
+            const list = [];
+            let baseDateStr = this.exchangeForm.first_installment_date || new Date().toISOString().split('T')[0];
+            let baseDate = new Date(baseDateStr + 'T00:00:00');
+            if (isNaN(baseDate.getTime())) baseDate = new Date();
+
+            for (let i = 1; i <= count; i++) {
+                let dueDate = new Date(baseDate);
+                if (i > 1) {
+                    if (this.exchangeForm.emi_frequency === 'quarterly') {
+                        dueDate.setMonth(dueDate.getMonth() + (i - 1) * 3);
+                    } else {
+                        dueDate.setMonth(dueDate.getMonth() + (i - 1));
+                    }
+                }
+                const year = dueDate.getFullYear();
+                const month = String(dueDate.getMonth() + 1).padStart(2, '0');
+                const day = String(dueDate.getDate()).padStart(2, '0');
+                list.push({
+                    installment_no: i,
+                    label: 'EMI ' + i,
+                    due_date: `${year}-${month}-${day}`,
+                    amount: i === count ? lastEmiAmt : emiAmt
+                });
+            }
+            return list;
         },
         getFilteredExchangeAvailableUnits() {
             if (!this.exchangeForm.new_project_id) return [];
@@ -2336,7 +2379,12 @@ function salesApp() {
                     status: 'exchanged',
                     new_unit_id: this.exchangeForm.new_unit_id,
                     carry_forward: this.exchangeForm.carry_forward,
-                    reason: this.exchangeForm.reason
+                    reason: this.exchangeForm.reason,
+                    payment_plan: this.exchangeForm.payment_plan,
+                    emi_type: this.exchangeForm.emi_type,
+                    emi_installment_count: this.exchangeForm.emi_installment_count,
+                    emi_frequency: this.exchangeForm.emi_frequency,
+                    first_installment_date: this.exchangeForm.first_installment_date,
                 })
             })
             .then(async res => {

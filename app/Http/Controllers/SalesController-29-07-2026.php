@@ -630,18 +630,13 @@ class SalesController extends Controller
     public function changeStatus(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'status'                 => ['required', Rule::in(['cancelled', 'returned', 'exchanged', 'resale'])],
-            'reason'                 => ['required', 'string'],
-            'cancellation_fee'       => ['nullable', 'numeric', 'min:0'],
-            'refund_amount'          => ['nullable', 'numeric', 'min:0'],
-            'revert_unsold'          => ['nullable', 'boolean'],
-            'new_unit_id'            => ['nullable', 'exists:hindustan_units,id'],
-            'carry_forward'          => ['nullable', 'boolean'],
-            'payment_plan'           => ['nullable', Rule::in(['lump_sum', 'emi'])],
-            'emi_type'               => ['nullable', Rule::in(['equal', 'milestone'])],
-            'emi_installment_count'  => ['nullable', 'integer', 'min:1'],
-            'emi_frequency'          => ['nullable', Rule::in(['monthly', 'quarterly'])],
-            'first_installment_date' => ['nullable', 'date'],
+            'status' => ['required', Rule::in(['cancelled', 'returned', 'exchanged', 'resale'])],
+            'reason' => ['required', 'string'],
+            'cancellation_fee' => ['nullable', 'numeric', 'min:0'],
+            'refund_amount' => ['nullable', 'numeric', 'min:0'],
+            'revert_unsold' => ['nullable', 'boolean'],
+            'new_unit_id' => ['nullable', 'exists:hindustan_units,id'],
+            'carry_forward' => ['nullable', 'boolean'],
         ]);
         $sale = Sale::with('saleUnits')->findOrFail($id);
         $fromStatus = $sale->status;
@@ -694,57 +689,29 @@ class SalesController extends Controller
             }
             $baseAmount = $gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount;
             $totalAmount = $gstType === 'exclusive' ? round($newAmount + $gstAmount, 2) : $newAmount;
-            
-            $paymentPlan = $validated['payment_plan'] ?? $sale->payment_plan ?? 'lump_sum';
-            $emiType = $validated['emi_type'] ?? $sale->emi_type ?? 'equal';
-            $emiCount = isset($validated['emi_installment_count']) ? (int)$validated['emi_installment_count'] : ($sale->emi_installment_count ?? 12);
-            $emiFreq = $validated['emi_frequency'] ?? $sale->emi_frequency ?? 'monthly';
-            $firstDate = !empty($validated['first_installment_date']) ? \Carbon\Carbon::parse($validated['first_installment_date']) : null;
-
             $newSale = Sale::create([
-                'sale_number'            => $this->generateSaleNumber($newUnit->project_id, $newUnit->id, $sale->customer_id),
-                'project_id'             => $newUnit->project_id,
-                'unit_id'                => $newUnit->id,
-                'customer_id'            => $sale->customer_id,
-                'broker_id'              => $sale->broker_id,
-                'rate_per_sqft'          => $newRate,
-                'sale_amount'            => $newAmount,
-                'gst_applicable'         => $gstType !== 'none',
-                'gst_type'               => $gstType,
-                'gst_percentage'         => $gstType !== 'none' ? 18 : null,
-                'gst_amount'             => $gstAmount,
-                'base_amount'            => $baseAmount,
-                'total_amount'           => $totalAmount,
-                'sale_date'              => now(),
-                'agreement_date'         => now(),
-                'status'                 => 'active',
-                'broker_involved'        => $sale->broker_involved,
-                'payment_plan'           => $paymentPlan,
-                'emi_type'               => $emiType,
-                'emi_installment_count'  => $emiCount,
-                'emi_frequency'          => $emiFreq,
-                'first_installment_date' => $firstDate,
-                'remaining_balance'      => $totalAmount,
-                'notes'                  => 'Exchanged from sale ' . $sale->sale_number . '. ' . $validated['reason'],
-                'created_by'             => auth()->id(),
+                'sale_number'       => $this->generateSaleNumber($newUnit->project_id, $newUnit->id, $sale->customer_id),
+                'project_id'        => $newUnit->project_id,
+                'unit_id'           => $newUnit->id,
+                'customer_id'       => $sale->customer_id,
+                'broker_id'         => $sale->broker_id,
+                'rate_per_sqft'     => $newRate,
+                'sale_amount'       => $newAmount,
+                'gst_applicable'    => $gstType !== 'none',
+                'gst_type'          => $gstType,
+                'gst_percentage'    => $gstType !== 'none' ? 18 : null,
+                'gst_amount'        => $gstAmount,
+                'base_amount'       => $baseAmount,
+                'total_amount'      => $totalAmount,
+                'sale_date'         => now(),
+                'agreement_date'    => now(),
+                'status'            => 'active',
+                'broker_involved'   => $sale->broker_involved,
+                'payment_plan'      => $sale->payment_plan ?? 'lump_sum',
+                'remaining_balance' => $totalAmount,
+                'notes'             => 'Exchanged from sale ' . $sale->sale_number . '. ' . $validated['reason'],
+                'created_by'        => auth()->id(),
             ]);
-            
-            \App\Models\SaleUnit::create([
-                'sale_id'          => $newSale->id,
-                'unit_id'          => $newUnit->id,
-                'wing'             => null,
-                'rate_per_sqft'    => $newRate,
-                'area_sqft'        => (float)$newUnit->built_up_area ?: 1.0,
-                'base_amount'      => $baseAmount,
-                'gst_type'         => $gstType,
-                'gst_percentage'   => $gstType !== 'none' ? 18 : 0,
-                'gst_amount'       => $gstAmount,
-                'line_total'       => $totalAmount,
-                'brokerage_type'   => null,
-                'brokerage_value'  => null,
-                'brokerage_amount' => 0.0,
-            ]);
-
             if (!empty($validated['carry_forward'])) {
                 Receipt::where('sale_id', $sale->id)->update([
                     'sale_id' => $newSale->id,
@@ -781,9 +748,6 @@ class SalesController extends Controller
             ]);
             \App\Models\CustomerInstallment::where('sale_id', $sale->id)->delete();
             $this->syncDefaultEmiSchedule($newSale);
-            if (!empty($validated['carry_forward'])) {
-                \App\Models\CustomerInstallment::allocatePaymentStatusForSale($newSale->id);
-            }
             return response()->json(['sale' => $newSale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
         }
         $sale->update([
