@@ -663,62 +663,93 @@
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Available Unit *</label>
                                 <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                                     <button type="button" 
-                                            @click="if (exchangeForm.new_project_id) { open = !open; if (open) $nextTick(() => $refs.modalTargetUnitSearchInput.focus()); }" 
+                                            @click="if (exchangeForm.new_project_id) { open = !open; if (open) $nextTick(() => $refs.modalTargetUnitSearchInput?.focus()); }" 
                                             :disabled="!exchangeForm.new_project_id"
-                                            :class="errors.new_unit_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
-                                            class="w-full px-3 py-2 border rounded-xl text-xs focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-[38px] shadow-sm">
-                                        <span x-text="exchangeForm.new_unit_id ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id) ? (getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).door_no + ' — ' + getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).floor_name) : '— Select Target Unit —') : '— Select Target Unit —'"
-                                              :class="!exchangeForm.new_unit_id ? 'text-slate-400' : 'text-slate-800 font-semibold'"></span>
-                                        <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                        </svg>
+                                            :class="errors.new_unit_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : (open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-250 bg-white hover:bg-slate-50 hover:border-slate-300')"
+                                            class="w-full h-10 px-3 py-2 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs disabled:opacity-50">
+                                        <template x-if="exchangeForm.new_unit_id && getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id)">
+                                            <div class="flex items-center gap-2 overflow-hidden min-w-0">
+                                                <span class="font-extrabold text-slate-800 truncate text-xs" x-text="getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).door_no"></span>
+                                                <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).floor_name ? '(' + getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).floor_name + ')' : ''"></span>
+                                                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 shrink-0"
+                                                      x-text="getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id).unit_type_name || 'Unit'"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!exchangeForm.new_unit_id || !getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id)">
+                                            <span class="text-slate-400 font-medium">— Select Target Unit —</span>
+                                        </template>
+                                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                                            <template x-if="exchangeForm.new_unit_id">
+                                                <span @click.stop="exchangeForm.new_unit_id = ''; onExchangeUnitSelect(); search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear target unit">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </span>
+                                            </template>
+                                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                            </svg>
+                                        </div>
                                     </button>
 
+                                    <!-- Dropdown Menu -->
                                     <div x-show="open" 
-                                         x-transition:enter="transition ease-out duration-100"
-                                         x-transition:enter-start="transform opacity-0 scale-95"
-                                         x-transition:enter-end="transform opacity-100 scale-100"
-                                         x-transition:leave="transition ease-in duration-75"
-                                         x-transition:leave-start="transform opacity-100 scale-100"
-                                         x-transition:leave-end="transform opacity-0 scale-95"
-                                         class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                         x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                                         class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50 min-w-[280px]"
                                          style="display: none;">
                                         
-                                        <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-                                            <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                            </svg>
-                                            <input type="text" 
-                                                   x-model="search" 
-                                                   x-ref="modalTargetUnitSearchInput"
-                                                   placeholder="Search unit door no or floor..."
-                                                   class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0 text-slate-800 placeholder-slate-400">
-                                            <button type="button" x-show="search" @click="search = ''" class="text-slate-400 hover:text-slate-600 text-xs px-1">✕</button>
+                                        <!-- Search Header -->
+                                        <div class="p-2 bg-slate-50/90 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                                            <div class="relative flex items-center">
+                                                <svg class="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                <input type="text" 
+                                                       x-model="search" 
+                                                       x-ref="modalTargetUnitSearchInput"
+                                                       placeholder="Type door no, floor, or unit type..."
+                                                       @keydown.escape="open = false"
+                                                       class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/15 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                                <template x-if="search">
+                                                    <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">✕</button>
+                                                </template>
+                                            </div>
                                         </div>
 
+                                        <!-- Clear Selection Item -->
                                         <button type="button" 
                                                 @click="exchangeForm.new_unit_id = ''; onExchangeUnitSelect(); open = false; search = ''"
-                                                class="w-full px-3 py-1.5 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic flex items-center justify-between">
-                                            <span>— Select Target Unit —</span>
+                                                class="w-full px-3.5 py-1.5 text-left text-[11px] font-bold text-slate-400 hover:bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 transition cursor-pointer">
+                                            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <span>Clear Target Unit</span>
                                         </button>
 
-                                        <div class="overflow-y-auto flex-1 divide-y divide-slate-50">
+                                        <!-- Unit Options -->
+                                        <div class="overflow-y-auto flex-1 p-1.5 space-y-1 max-h-60">
                                             <template x-for="unit in getFilteredExchangeAvailableUnits().filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase())))" :key="unit.id">
                                                 <button type="button"
                                                         @click="exchangeForm.new_unit_id = unit.id; onExchangeUnitSelect(); open = false; search = ''"
-                                                        class="w-full px-3 py-2 text-left text-xs hover:bg-[#a38c29]/10 transition-colors flex items-center justify-between gap-2"
-                                                        :class="exchangeForm.new_unit_id == unit.id ? 'bg-[#a38c29]/10 text-[#a38c29] font-bold' : 'text-slate-700'">
-                                                    <div>
-                                                        <span class="font-semibold" x-text="unit.door_no"></span>
-                                                        <span class="text-[10px] text-slate-400 ml-1.5" x-text="unit.floor_name ? '(' + unit.floor_name + ')' : ''"></span>
+                                                        :class="exchangeForm.new_unit_id == unit.id ? 'bg-[#a38c29]/10 border-[#a38c29]/30 text-[#a38c29] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                                        class="w-full px-3 py-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer">
+                                                    <div class="flex items-center gap-2 min-w-0">
+                                                        <span class="font-extrabold text-xs truncate" :class="exchangeForm.new_unit_id == unit.id ? 'text-[#a38c29]' : 'text-slate-800'" x-text="unit.door_no"></span>
+                                                        <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0"
+                                                              x-text="unit.unit_type_name || 'Unit'"></span>
                                                     </div>
-                                                    <span class="text-[9px] text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded" x-text="unit.unit_type_name"></span>
+                                                    <div class="flex items-center gap-2 shrink-0">
+                                                        <span class="text-[10px] text-slate-400 font-mono" x-text="unit.floor_name ? '(' + unit.floor_name + ')' : ''"></span>
+                                                        <template x-if="exchangeForm.new_unit_id == unit.id">
+                                                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                        </template>
+                                                    </div>
                                                 </button>
                                             </template>
 
                                             <div x-show="getFilteredExchangeAvailableUnits().filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase()))).length === 0"
-                                                 class="px-4 py-4 text-center text-xs text-slate-400 italic">
-                                                No matching units found
+                                                 class="px-4 py-6 text-center text-xs text-slate-400 italic flex flex-col items-center gap-1.5">
+                                                <svg class="w-6 h-6 text-slate-300 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                <span>No matching target units found</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1266,61 +1297,93 @@
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Target Available Unit *</label>
                         <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                             <button type="button" 
-                                    @click="if (exchangeForm.new_project_id) { open = !open; if (open) $nextTick(() => $refs.panelTargetUnitSearchInput.focus()); }" 
+                                    @click="if (exchangeForm.new_project_id) { open = !open; if (open) $nextTick(() => $refs.panelTargetUnitSearchInput?.focus()); }" 
                                     :disabled="!exchangeForm.new_project_id"
-                                    class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all disabled:opacity-50 text-left flex justify-between items-center h-[38px]">
-                                <span x-text="exchangeForm.new_unit_id ? (exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id) ? (exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).door_no + ' — ' + exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).floor_name) : '— Select Target Unit —') : '— Select Target Unit —'"
-                                      :class="!exchangeForm.new_unit_id ? 'text-slate-400' : 'text-slate-800 font-semibold'"></span>
-                                <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
+                                    :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'"
+                                    class="w-full h-10 px-3 py-2 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs disabled:opacity-50">
+                                <template x-if="exchangeForm.new_unit_id && exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id)">
+                                    <div class="flex items-center gap-2 overflow-hidden min-w-0">
+                                        <span class="font-extrabold text-slate-800 truncate text-xs" x-text="exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).door_no"></span>
+                                        <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).floor_name ? '(' + exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).floor_name + ')' : ''"></span>
+                                        <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 shrink-0"
+                                              x-text="exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id).unit_type_name || 'Unit'"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!exchangeForm.new_unit_id || !exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id)">
+                                    <span class="text-slate-400 font-medium">— Select Target Unit —</span>
+                                </template>
+                                <div class="flex items-center gap-1 shrink-0 ml-1">
+                                    <template x-if="exchangeForm.new_unit_id">
+                                        <span @click.stop="exchangeForm.new_unit_id = ''; onExchangeUnitSelect(); search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear target unit">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </span>
+                                    </template>
+                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </div>
                             </button>
 
+                            <!-- Dropdown Menu -->
                             <div x-show="open" 
-                                 x-transition:enter="transition ease-out duration-100"
-                                 x-transition:enter-start="transform opacity-0 scale-95"
-                                 x-transition:enter-end="transform opacity-100 scale-100"
-                                 x-transition:leave="transition ease-in duration-75"
-                                 x-transition:leave-start="transform opacity-100 scale-100"
-                                 x-transition:leave-end="transform opacity-0 scale-95"
-                                 class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-64 flex flex-col min-w-[240px]"
+                                 x-transition:enter="transition ease-out duration-200"
+                                 x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-150"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                                 class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50 min-w-[280px]"
                                  style="display: none;">
                                 
-                                <div class="p-2 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
-                                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                                    </svg>
-                                    <input type="text" 
-                                           x-model="search" 
-                                           x-ref="panelTargetUnitSearchInput"
-                                           placeholder="Search unit door no or floor..."
-                                           class="w-full py-1 text-xs border-0 bg-transparent focus:outline-none focus:ring-0 text-slate-800 placeholder-slate-400">
-                                    <button type="button" x-show="search" @click="search = ''" class="text-slate-400 hover:text-slate-600 text-xs px-1">✕</button>
+                                <!-- Search Header -->
+                                <div class="p-2 bg-slate-50/90 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                                    <div class="relative flex items-center">
+                                        <svg class="w-3.5 h-3.5 absolute left-3 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        <input type="text" 
+                                               x-model="search" 
+                                               x-ref="panelTargetUnitSearchInput"
+                                               placeholder="Type door no, floor, or unit type..."
+                                               @keydown.escape="open = false"
+                                               class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/15 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                        <template x-if="search">
+                                            <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">✕</button>
+                                        </template>
+                                    </div>
                                 </div>
 
+                                <!-- Clear Selection Item -->
                                 <button type="button" 
                                         @click="exchangeForm.new_unit_id = ''; onExchangeUnitSelect(); open = false; search = ''"
-                                        class="w-full px-3 py-1.5 text-left text-xs text-slate-400 hover:bg-slate-50 border-b border-slate-100 italic flex items-center justify-between">
-                                    <span>— Select Target Unit —</span>
+                                        class="w-full px-3.5 py-1.5 text-left text-[11px] font-bold text-slate-400 hover:bg-slate-50 border-b border-slate-100 flex items-center gap-1.5 transition cursor-pointer">
+                                    <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    <span>Clear Target Unit</span>
                                 </button>
 
-                                <div class="overflow-y-auto flex-1 divide-y divide-slate-50">
+                                <!-- Unit Options -->
+                                <div class="overflow-y-auto flex-1 p-1.5 space-y-1 max-h-60">
                                     <template x-for="unit in getFilteredExchangeAvailableUnits().filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase())))" :key="unit.id">
                                         <button type="button"
                                                 @click="exchangeForm.new_unit_id = unit.id; onExchangeUnitSelect(); open = false; search = ''"
-                                                class="w-full px-3 py-2 text-left text-xs hover:bg-blue-50 transition-colors flex items-center justify-between gap-2"
-                                                :class="exchangeForm.new_unit_id == unit.id ? 'bg-blue-50/80 text-blue-700 font-bold' : 'text-slate-700'">
-                                            <div>
-                                                <span class="font-semibold" x-text="unit.door_no"></span>
-                                                <span class="text-[10px] text-slate-400 ml-1.5" x-text="unit.floor_name ? '(' + unit.floor_name + ')' : ''"></span>
+                                                :class="exchangeForm.new_unit_id == unit.id ? 'bg-[#a38c29]/10 border-[#a38c29]/30 text-[#a38c29] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                                class="w-full px-3 py-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer">
+                                            <div class="flex items-center gap-2 min-w-0">
+                                                <span class="font-extrabold text-xs truncate" :class="exchangeForm.new_unit_id == unit.id ? 'text-[#a38c29]' : 'text-slate-800'" x-text="unit.door_no"></span>
+                                                <span class="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200/80 shrink-0"
+                                                      x-text="unit.unit_type_name || 'Unit'"></span>
                                             </div>
-                                            <span class="text-[9px] text-slate-400 font-mono bg-slate-100 px-1.5 py-0.5 rounded" x-text="unit.unit_type_name"></span>
+                                            <div class="flex items-center gap-2 shrink-0">
+                                                <span class="text-[10px] text-slate-400 font-mono" x-text="unit.floor_name ? '(' + unit.floor_name + ')' : ''"></span>
+                                                <template x-if="exchangeForm.new_unit_id == unit.id">
+                                                    <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                </template>
+                                            </div>
                                         </button>
                                     </template>
 
                                     <div x-show="getFilteredExchangeAvailableUnits().filter(u => !search || (u.door_no && u.door_no.toLowerCase().includes(search.toLowerCase())) || (u.floor_name && u.floor_name.toLowerCase().includes(search.toLowerCase())) || (u.unit_type_name && u.unit_type_name.toLowerCase().includes(search.toLowerCase()))).length === 0"
-                                         class="px-4 py-4 text-center text-xs text-slate-400 italic">
-                                        No matching units found
+                                         class="px-4 py-6 text-center text-xs text-slate-400 italic flex flex-col items-center gap-1.5">
+                                        <svg class="w-6 h-6 text-slate-300 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        <span>No matching target units found</span>
                                     </div>
                                 </div>
                             </div>
