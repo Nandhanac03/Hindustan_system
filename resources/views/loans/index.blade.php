@@ -41,41 +41,7 @@
         </div>
     </div>
 
-    {{-- Filters --}}
-    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-        <form method="GET" action="{{ route('loans.index') }}" class="flex flex-wrap items-end gap-4 text-xs font-semibold">
-            <div class="w-full sm:w-60 space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lending Bank</label>
-                <input type="text" name="lender_name" value="{{ request('lender_name') }}" placeholder="Search bank..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl focus:outline-none transition-all">
-            </div>
 
-            <div class="w-full sm:w-60 space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Associated Project</label>
-                <select name="project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl focus:outline-none transition-all">
-                    <option value="">All Projects...</option>
-                    @foreach($projects as $p)
-                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="w-full sm:w-44 space-y-1.5">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Loan Status</label>
-                <select name="status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white rounded-xl focus:outline-none transition-all">
-                    <option value="">All Statuses...</option>
-                    <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
-                    <option value="Closed" {{ request('status') === 'Closed' ? 'selected' : '' }}>Closed</option>
-                </select>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button type="submit" class="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold uppercase tracking-wider hover:bg-slate-800 transition">Filter</button>
-                @if(request()->anyFilled(['lender_name', 'project_id', 'status']))
-                    <a href="{{ route('loans.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold uppercase tracking-wider transition">Clear</a>
-                @endif
-            </div>
-        </form>
-    </div>
 
     {{-- Alert Toast --}}
     <div x-show="toast.open" 
@@ -146,31 +112,94 @@
         </div>
     </div>
 
+    {{-- Filters --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm mb-4">
+        <form method="GET" action="{{ route('loans.index') }}" class="flex flex-wrap items-end gap-3 text-xs font-semibold">
+            <div class="flex-grow min-w-[200px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Loan A/C No.</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input type="text" name="loan_account_no" value="{{ request('loan_account_no') }}" placeholder="Search Account..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all">
+                </div>
+            </div>
+
+            <div class="flex-grow min-w-[200px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lending Bank</label>
+                <input type="text" name="lender_name" value="{{ request('lender_name') }}" placeholder="Bank Name..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all">
+            </div>
+
+            <div class="flex-grow min-w-[200px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Associated Project</label>
+                <select name="project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all cursor-pointer">
+                    <option value="">All Projects...</option>
+                    @foreach($projects as $p)
+                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex-grow min-w-[150px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Loan Status</label>
+                <select name="status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all cursor-pointer">
+                    <option value="">All Statuses...</option>
+                    <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
+                    <option value="Closed" {{ request('status') === 'Closed' ? 'selected' : '' }}>Closed</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl font-bold uppercase tracking-wider transition-all shadow-md shadow-[#a38c29]/20 inline-flex items-center gap-2">
+                    Filter
+                </button>
+                @if(request()->anyFilled(['loan_account_no', 'lender_name', 'project_id', 'status']))
+                    <a href="{{ route('loans.index') }}" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold uppercase tracking-wider transition-all">Clear</a>
+                @endif
+            </div>
+        </form>
+    </div>
+
     {{-- Loans List Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+        <style>
+            #loans-table thead th {
+                border-color: #8a7522 !important;
+            }
+            #loans-tbody tr:nth-child(even) {
+                background-color: #F6F3E9 !important;
+            }
+            #loans-tbody tr:hover {
+                background-color: #ebe5d0 !important;
+            }
+        </style>
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left border-collapse">
+            <table id="loans-table" class="w-full text-xs text-left border-collapse">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100 text-center font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                        <th class="px-4 py-3 border">SL NO</th>
-                        <th class="px-4 py-3 border">LOAN ACCOUNT / PROJECT</th>
-                        <th class="px-4 py-3 border">LENDING BANK</th>
-                        <th class="px-4 py-3 border">LOAN TERMS (PRINCIPAL & RATE)</th>
-                        <th class="px-4 py-3 border">OUTSTANDING & REPAYMENTS</th>
-                        <th class="px-4 py-3 border">NEXT DUE EMI</th>
-                        <th class="px-4 py-3 border">STATUS & LOGS</th>
-                        <th class="px-4 py-3 border text-right">ACTIONS</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">SL NO</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">LOAN ACCOUNT / PROJECT</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">LENDING BANK</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">LOAN TERMS (PRINCIPAL & RATE)</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">OUTSTANDING & REPAYMENTS</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">NEXT DUE EMI</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">STATUS & LOGS</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50 text-center font-semibold text-slate-700">
+                <tbody id="loans-tbody" class="divide-y divide-[#EAE3CD] text-center font-semibold text-slate-700 bg-white">
                     @forelse($loans as $idx => $loan)
-                        <tr class="hover:bg-slate-50/50 transition-colors text-xs">
+                        <tr class="transition-colors text-xs">
                             <td class="px-4 py-3.5 border font-bold text-slate-400">{{ $loans->firstItem() + $idx }}</td>
                             <td class="px-4 py-3.5 border text-left">
                                 <div class="font-bold text-slate-900 font-mono">{{ $loan->loan_account_no ?? '—' }}</div>
                                 <div class="text-[10px] text-slate-500 font-medium mt-0.5">{{ $loan->project->name ?? '—' }}</div>
                             </td>
-                            <td class="px-4 py-3.5 border text-slate-900 font-bold">{{ $loan->lender_name }}</td>
+                            <td class="px-4 py-3.5 border text-slate-900 font-bold text-center">
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] uppercase tracking-wider shadow-sm">
+                                    {{ $loan->lender_name }}
+                                </div>
+                            </td>
                             <td class="px-4 py-3.5 border text-left">
                                 <div class="font-mono text-slate-800 font-bold">₹{{ number_format((float)$loan->principal_amount, 2) }}</div>
                                 <div class="text-[10px] text-slate-500 font-medium mt-0.5">
@@ -196,7 +225,7 @@
                                     $isUrgent = $isOverdue || $isDueThisMonth;
                                 }
                             @endphp
-                            <td class="px-4 py-3.5 border {{ $isUrgent ? 'bg-rose-50/70' : '' }}">
+                            <td class="px-4 py-3.5 border text-center {{ $isUrgent ? 'bg-rose-50/70 border-rose-100' : '' }}">
                                 @if($loan->next_emi && $loan->status === 'Active')
                                     <div class="font-mono {{ $isUrgent ? 'text-rose-600 font-extrabold text-[13px]' : 'text-slate-900 font-bold' }}">
                                         ₹{{ number_format((float)$loan->next_emi->emi_amount - (float)$loan->next_emi->amount_paid, 2) }}
@@ -206,13 +235,13 @@
                                     </div>
                                     @if($isOverdue)
                                         <div class="mt-1">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-rose-200 border border-rose-300 text-rose-800 uppercase tracking-wider animate-pulse">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-rose-200 border border-rose-300 text-rose-800 uppercase tracking-wider animate-pulse shadow-sm">
                                                 ⚠️ Overdue Urgent
                                             </span>
                                         </div>
                                     @elseif($isDueThisMonth)
                                         <div class="mt-1">
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-rose-100 border border-rose-200 text-rose-700 uppercase tracking-wider">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-rose-100 border border-rose-200 text-rose-700 uppercase tracking-wider shadow-sm">
                                                 🔥 Due This Month
                                             </span>
                                         </div>
@@ -221,9 +250,9 @@
                                     <span class="text-slate-400 font-medium italic text-[10px]">No due EMIs</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3.5 border">
+                            <td class="px-4 py-3.5 border text-center">
                                 <div class="flex flex-col items-center gap-1.5">
-                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider border {{ $loan->status === 'Active' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500' }}">
+                                    <span class="badge-pill inline-flex items-center justify-center px-2.5 py-1 rounded-md border text-[10px] font-extrabold uppercase tracking-wider shadow-sm {{ $loan->status === 'Active' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500' }}">
                                         {{ $loan->status }}
                                     </span>
                                     @if($loan->prepayments->isNotEmpty())
@@ -233,21 +262,19 @@
                                     @endif
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 border text-right">
+                            <td class="px-4 py-3.5 border text-right pr-4">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="px-2.5 py-1.5 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white transition-all inline-flex items-center justify-center shadow-sm hover:shadow-md whitespace-nowrap" title="Repayment Schedule">
-                                        <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider">Ledger</span>
+                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition-all inline-flex items-center justify-center shadow-sm" title="Repayment Schedule Ledger">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </a>
                                     @if($loan->status === 'Active')
                                         <button @click="openEditInterestModal({{ json_encode($loan) }})" 
-                                                class="px-2.5 py-1.5 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white transition-all inline-flex items-center justify-center shadow-sm hover:shadow-md whitespace-nowrap shadow-[#a38c29]/20" title="Edit Interest Rate">
-                                            <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                            <span class="text-[10px] font-bold uppercase tracking-wider">Edit Rate</span>
+                                                class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition-all inline-flex items-center justify-center shadow-sm" title="Edit Interest Rate">
+                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                         </button>
                                     @endif
                                     <button @click="openInterestLogsModal('{{ $loan->loan_account_no }}')" 
-                                            class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] hover:text-[#2d249f] transition inline-flex items-center justify-center shadow-sm" title="Interest Edit Logs">
+                                            class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] hover:text-[#2d249f] transition-all inline-flex items-center justify-center shadow-sm" title="Interest Edit Logs">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </button>
                                 </div>

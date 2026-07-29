@@ -28,6 +28,9 @@ class LoanController extends Controller
         $query = Loan::with(['project', 'ledgerAccount', 'interestAccount', 'prepayments']);
         
         // Filters
+        if ($request->filled('loan_account_no')) {
+            $query->where('loan_account_no', 'like', '%' . $request->loan_account_no . '%');
+        }
         if ($request->filled('lender_name')) {
             $query->where('lender_name', 'like', '%' . $request->lender_name . '%');
         }

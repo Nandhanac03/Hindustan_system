@@ -56,25 +56,46 @@
 
     {{-- Banks Table Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+        <style>
+            #banks-table thead th {
+                border-color: #8a7522 !important;
+            }
+            #banks-tbody tr:nth-child(even) {
+                background-color: #F6F3E9 !important;
+            }
+            #banks-tbody tr:hover {
+                background-color: #ebe5d0 !important;
+            }
+        </style>
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left">
+            <table id="banks-table" class="w-full text-xs text-left">
                 <thead>
-                    <tr class="bg-slate-50/80 border-b border-slate-100 text-center font-bold text-slate-700 uppercase tracking-wider text-[10px]">
-                        <th class="px-4 py-3 border">SL NO</th>
-                        <th class="px-4 py-3 border">BANK NAME</th>
-                        <th class="px-4 py-3 border">IFSC CODE</th>
-                        <th class="px-4 py-3 border">STATUS</th>
-                        <th class="px-4 py-3 border text-right">ACTIONS</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">SL NO</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">BANK NAME</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">IFSC CODE</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">STATUS</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">ACTIONS</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-50 text-center">
+                <tbody id="banks-tbody" class="divide-y divide-[#EAE3CD] text-center">
                     @forelse($banks as $index => $bank)
-                        <tr class="hover:bg-slate-50/50 transition-colors text-xs font-semibold text-slate-700">
+                        <tr class="hover:bg-[#ebe5d0] transition-colors text-xs font-semibold text-slate-700">
                             <td class="px-4 py-3.5 border font-bold text-slate-400">{{ $index + 1 }}</td>
-                            <td class="px-4 py-3.5 border text-slate-900 font-bold text-left pl-6">{{ $bank->bank_name }}</td>
-                            <td class="px-4 py-3.5 border font-mono text-slate-650 uppercase">{{ $bank->ifsc_code }}</td>
-                            <td class="px-4 py-3.5 border">
-                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border {{ $bank->status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-200' }}">
+                            <td class="px-4 py-3.5 border text-left">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 shadow-sm border border-primary-800">
+                                        {{ substr(trim($bank->bank_name), 0, 1) }}
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-slate-900 block text-sm leading-tight">{{ $bank->bank_name }}</span>
+                                        <span class="text-[9px] text-slate-500 font-medium">Corporate Account</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5 border font-mono text-slate-650 uppercase font-bold text-left">{{ $bank->ifsc_code }}</td>
+                            <td class="px-4 py-3.5 border text-center">
+                                <span class="badge-pill inline-flex items-center justify-center px-2.5 py-1 rounded-md border font-bold text-[10px] uppercase tracking-wider {{ $bank->status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
                                       {{ $bank->status }}
                                 </span>
                             </td>
