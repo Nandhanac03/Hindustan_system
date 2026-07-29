@@ -474,8 +474,8 @@
                                     <button type="button" @click="removeUnitRow(index)" x-show="forms.add.units.length > 1"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
                                     
-                                    <!-- Row 1: Unit, Built Up Area, Expected Rate/Sqft, Sale Rate/Sqft (4 columns) -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                                    <!-- Single row: 5 fields (Unit, Built Up Area, Agreed Sale Amount, Expected Rate/Sqft, Sale Rate/Sqft) -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                             <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
@@ -584,15 +584,10 @@
                                             <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
                                                    class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
-                                        <div x-show="!isRowParking(index, 'add')" class="space-y-1">
+                                        <div x-show="!isRowParking(index, 'add')" class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
                                             <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index)" placeholder="Sale rate"
                                                    class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                            <div class="text-xs sm:text-sm font-extrabold font-mono flex items-center gap-1.5 pt-0.5"
-                                                 :class="getRowDifference(index, 'add') > 0 ? 'text-emerald-600' : (getRowDifference(index, 'add') < 0 ? 'text-rose-600' : 'text-slate-500')">
-                                                <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Diff:</span>
-                                                <span x-text="(getRowDifference(index, 'add') >= 0 ? '₹' : '-₹') + Math.abs(getRowDifference(index, 'add')).toLocaleString()"></span>
-                                            </div>
                                         </div>
                                         <div x-show="isRowParking(index, 'add')" class="space-y-1.5 lg:col-span-2">
                                             <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
@@ -604,11 +599,6 @@
                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                             </div>
                                         </div>
-                                        
-                                    </div>
-                                    
-                                    <!-- Row 2: Agreed Sale Amount, GST %, GST Amount, Total Payable (4 columns) -->
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start pt-3 border-t border-slate-200/50">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
                                             <div class="relative rounded-xl shadow-sm h-9">
@@ -623,10 +613,14 @@
                                                 <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors['units.' + index + '.sale_amount']) ? errors['units.' + index + '.sale_amount'][0] : errors['units.' + index + '.sale_amount']"></p>
                                             </template>
                                         </div>
+                                    </div>
+                                    
+                                    <!-- Third row: GST and Payable calculations -->
+                                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-start pt-2 border-t border-slate-200/50">
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
                                             <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index)" placeholder="e.g. 18"
-                                                   class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                                   class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                         </div>
                                         <div class="space-y-1.5">
                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Amount (₹)</label>
@@ -638,9 +632,15 @@
                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                             </div>
                                         </div>
-                                        <div class="space-y-1">
-                                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Payable</label>
-                                            <p class="font-black text-indigo-700 text-lg sm:text-xl font-mono pt-0.5 h-9 flex items-center" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
+                                        <div class="space-y-1.5">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Difference</p>
+                                            <p class="font-extrabold font-mono text-xs h-9 flex items-center"
+                                               :class="getRowDifference(index, 'add') > 0 ? 'text-emerald-600' : (getRowDifference(index, 'add') < 0 ? 'text-rose-600' : 'text-slate-500')"
+                                               x-text="(getRowDifference(index, 'add') >= 0 ? '₹' : '-₹') + Math.abs(getRowDifference(index, 'add')).toLocaleString()"></p>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Payable</p>
+                                            <p class="font-extrabold text-indigo-700 font-mono text-sm h-9 flex items-center" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
                                         </div>
                                     </div>
                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end pt-2 border-t border-slate-200/50" x-show="forms.add.broker_involved && row.broker_involved">
@@ -1099,7 +1099,7 @@
                                     <button type="button" @click="removeUnitRow(index, 'edit')" x-show="forms.edit.units.length > 1"
                                             class="absolute top-2 right-2 text-rose-500 hover:text-rose-700 font-bold text-[10px] uppercase tracking-wider">✕ Remove</button>
                                      <!-- Single row: 5 fields (Unit, Built Up Area, Agreed Sale Amount, Expected Rate/Sqft, Sale Rate/Sqft) -->
-                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-start">
                                          <div class="space-y-1.5">
                                              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Unit *</label>
                                              <div class="relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
@@ -1201,21 +1201,27 @@
                                                  <span x-text="onGetRowArea(index, 'edit') + ' Sq Ft'"></span>
                                              </div>
                                          </div>
+                                         <div class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
+                                             <div class="relative rounded-xl shadow-sm h-9">
+                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                 </div>
+                                                 <input type="number" step="0.01" x-model="row.sale_amount" @input="onRowSaleAmountChange(index, 'edit')" placeholder="0.00"
+                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                             </div>
+                                         </div>
                                          <div x-show="!isRowParking(index, 'edit')" class="space-y-1.5">
                                              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Expected Rate/Sqft *</label>
                                              <input type="number" step="0.01" x-model="row.rate_per_sqft" placeholder="Expected rate"
                                                     class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                          </div>
-                                          <div x-show="!isRowParking(index, 'edit')" class="space-y-1">
-                                              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
-                                              <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index, 'edit')" placeholder="Sale rate"
-                                                     class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                              <div class="text-xs sm:text-sm font-extrabold font-mono flex items-center gap-1.5 pt-0.5"
-                                                   :class="getRowDifference(index, 'edit') > 0 ? 'text-emerald-600' : (getRowDifference(index, 'edit') < 0 ? 'text-rose-600' : 'text-slate-500')">
-                                                  <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Diff:</span>
-                                                  <span x-text="(getRowDifference(index, 'edit') >= 0 ? '₹' : '-₹') + Math.abs(getRowDifference(index, 'edit')).toLocaleString()"></span>
-                                              </div>
-                                          </div>
+                                         <div x-show="!isRowParking(index, 'edit')" class="space-y-1.5">
+                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sale Rate/Sqft *</label>
+                                             <input type="number" step="0.01" x-model="row.sale_rate_per_sqft" @input="onRowSaleRateChange(index, 'edit')" placeholder="Sale rate"
+                                                    class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                         </div>
+                                         <div x-show="isRowParking(index, 'edit')" class="space-y-1.5 lg:col-span-2">
                                              <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
                                              <div class="relative h-9 rounded-xl shadow-sm">
                                                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -1227,21 +1233,11 @@
                                          </div>
                                      </div>
                                      <!-- Third row: GST and Payable calculations -->
-                                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start pt-3 border-t border-slate-200/50">
-                                         <div class="space-y-1.5">
-                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Agreed Sale Amount *</label>
-                                             <div class="relative rounded-xl shadow-sm h-9">
-                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
-                                                 </div>
-                                                 <input type="number" step="0.01" x-model="row.sale_amount" @input="onRowSaleAmountChange(index, 'edit')" placeholder="0.00"
-                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-200 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] bg-slate-50/50 focus:bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
-                                             </div>
-                                         </div>
+                                     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-start pt-2 border-t border-slate-200/50">
                                          <div class="space-y-1.5">
                                              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Percentage (%)</label>
                                              <input type="number" step="0.01" x-model="row.gst_percentage" @input="recalculateRowGst(index, 'edit')" placeholder="e.g. 18"
-                                                    class="w-full h-9 px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                                                    class="w-full px-2.5 py-1.5 bg-white border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                                          </div>
                                          <div class="space-y-1.5">
                                              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">GST Amount (₹)</label>
@@ -1253,9 +1249,15 @@
                                                         class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
                                              </div>
                                          </div>
-                                         <div class="space-y-1">
-                                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Payable</label>
-                                             <p class="font-black text-emerald-800 text-lg sm:text-xl font-mono pt-0.5 h-9 flex items-center" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
+                                         <div class="space-y-1.5">
+                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Difference</p>
+                                             <p class="font-extrabold font-mono text-xs h-9 flex items-center"
+                                                :class="getRowDifference(index, 'edit') > 0 ? 'text-emerald-600' : (getRowDifference(index, 'edit') < 0 ? 'text-rose-600' : 'text-slate-500')"
+                                                x-text="(getRowDifference(index, 'edit') >= 0 ? '₹' : '-₹') + Math.abs(getRowDifference(index, 'edit')).toLocaleString()"></p>
+                                         </div>
+                                         <div class="space-y-1.5">
+                                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block font-bold text-emerald-800">Total Payable</p>
+                                             <p class="font-bold text-emerald-800 text-sm font-mono flex items-center h-8" x-text="'₹' + Number(row.total_amount || 0).toLocaleString()"></p>
                                          </div>
                                      </div>
                                 </div>
