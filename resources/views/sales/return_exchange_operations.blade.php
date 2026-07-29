@@ -761,11 +761,17 @@
 
                     {{-- Contract values & Options Card --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Old Contract Value</label>
+                                <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'" disabled
+                                       class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold font-mono h-[38px] flex items-center shadow-inner">
+                            </div>
+
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">New Contract Value</label>
                                 <input type="text" :value="fmt(exchangeForm.new_unit_value)" disabled
-                                       class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-650 font-bold font-mono h-[38px] flex items-center shadow-inner">
+                                       class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 font-bold font-mono h-[38px] flex items-center shadow-inner">
                             </div>
 
                             <div class="space-y-1.5">
@@ -779,19 +785,23 @@
                     </div>
 
                     {{-- Financial Balance Grid --}}
-                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center text-white relative overflow-hidden shadow-md">
                         <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Equity Applied</span>
-                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="fmt(exchangeForm.equity_applied)"></span>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-3 flex flex-col justify-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Old Contract Value</span>
+                            <span class="font-extrabold text-slate-200 text-sm mt-1 block font-mono" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'"></span>
                         </div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center">
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-3 flex flex-col justify-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Paid Amount</span>
+                            <span class="font-extrabold text-emerald-400 text-sm mt-1 block font-mono" x-text="fmt(exchangeForm.equity_applied)"></span>
+                        </div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-3 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">New Contract Value</span>
-                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="fmt(exchangeForm.new_unit_value)"></span>
+                            <span class="font-extrabold text-white text-sm mt-1 block font-mono" x-text="fmt(exchangeForm.new_unit_value)"></span>
                         </div>
                         <div class="relative z-10 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Differential Due (Receivable)</span>
-                            <span class="font-extrabold text-[#d9bf3b] text-base mt-1 block font-mono" x-text="fmt(calculateDifferentialDue())"></span>
+                            <span class="font-extrabold text-[#d9bf3b] text-sm mt-1 block font-mono" x-text="fmt(calculateDifferentialDue())"></span>
                         </div>
                     </div>
 
@@ -1257,8 +1267,8 @@
                                 <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></td>
                                 <td class="px-3 py-2.5 text-left">
                                     <template x-if="sale.status === 'exchanged'">
-                                        <span :class="getNewUnitValue(sale) > parseFloat(sale.total_amount) ? 'text-orange-600 font-bold' : 'text-teal-600 font-bold'"
-                                              x-text="getNewUnitValue(sale) > parseFloat(sale.total_amount) ? 'Payable by Customer' : 'Refundable to Customer'"></span>
+                                        <span :class="getExchangeNetDue(sale) > 0 ? 'text-orange-600 font-bold' : (getExchangeNetDue(sale) < 0 ? 'text-teal-600 font-bold' : 'text-slate-600 font-bold')"
+                                              x-text="getExchangeStatusText(sale)"></span>
                                     </template>
                                     <template x-if="sale.status !== 'exchanged'">
                                         <span class="text-slate-400 font-normal">—</span>
@@ -1282,9 +1292,9 @@
                                                 <button type="button" @click="viewExchangeSale = sale; openViewExchangeModal = true;" class="w-7 h-7 rounded-xl bg-[#f5f2df] text-[#8a7620] hover:bg-[#eae5cb] flex items-center justify-center transition-all" title="View Details">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                                 </button>
-                                                <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;" class="w-7 h-7 rounded-xl bg-[#e6f4ee] text-[#107b6e] hover:bg-[#d5ebe2] flex items-center justify-center transition-all" title="Edit Exchange">
+                                                <!-- <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;" class="w-7 h-7 rounded-xl bg-[#e6f4ee] text-[#107b6e] hover:bg-[#d5ebe2] flex items-center justify-center transition-all" title="Edit Exchange">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                </button>
+                                                </button> -->
                                             </div>
                                         </template>
                                     </div>
@@ -1467,7 +1477,13 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-semibold">
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Old Contract Value:</label>
+                        <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'" disabled
+                               class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 font-bold font-mono">
+                    </div>
+
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">New Contract Value:</label>
                         <input type="text" :value="fmt(exchangeForm.new_unit_value)" disabled
@@ -1484,18 +1500,22 @@
                 </div>
 
                 {{-- Financial Balance Grid --}}
-                <div class="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-100">
+                <div class="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-3 divide-x divide-slate-100">
                     <div class="text-center">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Equity Applied</p>
-                        <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.equity_applied)"></p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Old Contract Value</p>
+                        <p class="text-xs font-extrabold text-slate-700 font-mono mt-0.5" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'"></p>
                     </div>
-                    <div class="text-center px-2">
+                    <div class="text-center px-1">
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
+                        <p class="text-xs font-extrabold text-emerald-700 font-mono mt-0.5" x-text="fmt(exchangeForm.equity_applied)"></p>
+                    </div>
+                    <div class="text-center px-1">
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">New Contract Value</p>
-                        <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.new_unit_value)"></p>
+                        <p class="text-xs font-extrabold text-slate-800 font-mono mt-0.5" x-text="fmt(exchangeForm.new_unit_value)"></p>
                     </div>
                     <div class="text-center">
-                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Differential Due (Receivable)</p>
-                        <p class="text-sm font-extrabold text-blue-700 font-mono mt-0.5" x-text="fmt(calculateDifferentialDue())"></p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Differential Due</p>
+                        <p class="text-xs font-extrabold text-blue-700 font-mono mt-0.5" x-text="fmt(calculateDifferentialDue())"></p>
                     </div>
                 </div>
 
@@ -1640,6 +1660,7 @@
                                 <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : '—'"></span></p>
                                 <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.unit ? viewExchangeSale.unit.door_no : '—'"></span></p>
                                 <p class="text-slate-500">Original Value: <span class="text-slate-850 font-bold font-mono" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : '—'"></span></p>
+                                <p class="text-slate-500">Paid Amount: <span class="text-emerald-700 font-bold font-mono" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '—'"></span></p>
                             </div>
                         </div>
 
@@ -1656,18 +1677,18 @@
                     {{-- Financial calculations --}}
                     <div class="bg-slate-50/50 border border-slate-200 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-200">
                         <div class="text-center">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Equity Transferred</p>
-                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '₹0.00'"></p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
+                            <p class="text-sm font-extrabold text-emerald-700 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '₹0.00'"></p>
                         </div>
                         <div class="text-center px-2">
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Difference Value</p>
+                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Net Balance Due</p>
                             <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getDifferenceAmount(viewExchangeSale)) : '₹0.00'"></p>
                         </div>
                         <div class="text-center">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payable / Refundable</p>
                             <p class="text-xs font-extrabold mt-1 uppercase" 
-                               :class="viewExchangeSale && getNewUnitValue(viewExchangeSale) > parseFloat(viewExchangeSale.total_amount) ? 'text-orange-600' : 'text-teal-600'"
-                               x-text="viewExchangeSale ? (getNewUnitValue(viewExchangeSale) > parseFloat(viewExchangeSale.total_amount) ? 'Payable' : 'Refundable') : '—'"></p>
+                               :class="viewExchangeSale && getExchangeNetDue(viewExchangeSale) > 0 ? 'text-orange-600' : (viewExchangeSale && getExchangeNetDue(viewExchangeSale) < 0 ? 'text-teal-600' : 'text-slate-600')"
+                               x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : '—'"></p>
                         </div>
                     </div>
 
@@ -1676,6 +1697,94 @@
                         <div class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 min-h-12"
                              x-text="viewExchangeSale ? (viewExchangeSale.cancellation_reason || 'No notes entered.') : ''"></div>
                     </div>
+
+                    {{-- ARCHIVED LOG SNAPSHOT CARD --}}
+                    <template x-if="getExchangeSnapshot(viewExchangeSale)">
+                        <div class="bg-white border border-blue-200 rounded-2xl p-4 space-y-3 shadow-2xs">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                <h4 class="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider flex items-center gap-1.5">
+                                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                    <span>Archived Unit Exchange Log & Sourcable Snapshot</span>
+                                </h4>
+                                <span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[8px] font-bold uppercase font-mono"
+                                      x-text="'Archived ' + (getExchangeSnapshot(viewExchangeSale).exchange_meta ? getExchangeSnapshot(viewExchangeSale).exchange_meta.exchanged_at : '')"></span>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                                <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1">
+                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Old Unit & Agreement Info</span>
+                                    <p class="text-slate-600">Sale No: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.sale_number : '—'"></span></p>
+                                    <p class="text-slate-600">Door / Unit: <span class="font-extrabold text-slate-800" x-text="getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.door_no : '—'"></span></p>
+                                    <p class="text-slate-600">Unit Type & Floor: <span class="font-bold text-slate-700" x-text="(getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.unit_type_name || '' : '') + ' • ' + (getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.floor_name || '' : '')"></span></p>
+                                    <p class="text-slate-600">Old Contract Value: <span class="font-extrabold text-slate-800 font-mono" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_amount : 0)"></span></p>
+                                </div>
+
+                                <div class="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-200/80 space-y-1">
+                                    <span class="text-[9px] font-bold text-emerald-800 uppercase tracking-widest block">Transferred Financials & Receipts</span>
+                                    <p class="text-slate-600">Total Paid Amount: <span class="font-extrabold text-emerald-700 font-mono text-xs" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_paid : 0)"></span></p>
+                                    <p class="text-slate-600">Receipts History Count: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).receipts ? getExchangeSnapshot(viewExchangeSale).receipts.length : 0"></span></p>
+                                    <p class="text-slate-600">Carried Forward Status: <span class="font-bold text-emerald-700 uppercase text-[10px]" x-text="getExchangeSnapshot(viewExchangeSale).exchange_meta && getExchangeSnapshot(viewExchangeSale).exchange_meta.carry_forward ? 'Yes (Equity Transferred)' : 'No'"></span></p>
+                                    <p class="text-slate-600">Processed By User: <span class="font-bold text-slate-700" x-text="getExchangeSnapshot(viewExchangeSale).exchange_meta ? getExchangeSnapshot(viewExchangeSale).exchange_meta.exchanged_by_user : 'System'"></span></p>
+                                </div>
+                            </div>
+
+                            {{-- Collapsible Archived Receipts & EMI Schedule details --}}
+                            <div x-data="{ openTables: false }" class="pt-1">
+                                <button type="button" @click="openTables = !openTables"
+                                        class="text-[9px] font-extrabold text-blue-700 hover:text-blue-900 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+                                    <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : '📜 Expand Full Receipts & EMI Schedule Audit Log'"></span>
+                                    <svg class="w-3 h-3 transition-transform" :class="openTables ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+
+                                <div x-show="openTables" class="mt-2 space-y-3">
+                                    {{-- Archived Receipts Table --}}
+                                    <div class="space-y-1">
+                                        <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Archived Receipts History</span>
+                                        <div class="max-h-36 overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50 divide-y divide-slate-100">
+                                            <template x-for="r in getExchangeSnapshot(viewExchangeSale).receipts" :key="r.id">
+                                                <div class="px-3 py-1.5 text-[10px] flex items-center justify-between">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="font-bold text-slate-800 font-mono" x-text="r.receipt_number"></span>
+                                                        <span class="text-slate-400 font-mono" x-text="r.receipt_date"></span>
+                                                        <span class="px-1.5 py-0.2 rounded bg-slate-200 text-slate-700 text-[8px] font-bold uppercase" x-text="r.payment_mode"></span>
+                                                    </div>
+                                                    <span class="font-bold text-emerald-700 font-mono" x-text="fmt(r.amount)"></span>
+                                                </div>
+                                            </template>
+                                            <template x-if="!getExchangeSnapshot(viewExchangeSale).receipts || getExchangeSnapshot(viewExchangeSale).receipts.length === 0">
+                                                <div class="px-3 py-2 text-[10px] text-slate-400 italic text-center">No receipts recorded prior to exchange</div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    {{-- Archived Installments Schedule Table --}}
+                                    <div class="space-y-1">
+                                        <span class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Archived EMI Installments Schedule</span>
+                                        <div class="max-h-36 overflow-y-auto border border-slate-200 rounded-xl bg-slate-50/50 divide-y divide-slate-100">
+                                            <template x-for="inst in getExchangeSnapshot(viewExchangeSale).installments" :key="inst.id">
+                                                <div class="px-3 py-1.5 text-[10px] flex items-center justify-between">
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-700 text-[8px] font-bold flex items-center justify-center font-mono" x-text="inst.installment_no"></span>
+                                                        <span class="font-semibold text-slate-700" x-text="inst.label"></span>
+                                                        <span class="text-slate-400 font-mono" x-text="inst.due_date"></span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase"
+                                                              :class="inst.status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'"
+                                                              x-text="inst.status"></span>
+                                                        <span class="font-bold text-slate-800 font-mono" x-text="fmt(inst.amount)"></span>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template x-if="!getExchangeSnapshot(viewExchangeSale).installments || getExchangeSnapshot(viewExchangeSale).installments.length === 0">
+                                                <div class="px-3 py-2 text-[10px] text-slate-400 italic text-center">No EMI schedule configured prior to exchange</div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
 
                     <div class="flex items-center justify-between pt-4 border-t border-slate-100">
                         <button type="button" @click="openViewExchangeModal = false"
