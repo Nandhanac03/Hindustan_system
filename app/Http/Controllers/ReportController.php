@@ -298,6 +298,8 @@ class ReportController extends Controller
             // --- Payment mode distribution ---
             $paymentModes = Receipt::query()
                 ->selectRaw('payment_mode, SUM(amount) as total')
+                ->whereNotNull('payment_mode')
+                ->where('payment_mode', '!=', '')
                 ->when($selectedPartnerId, fn($q) => $q->where('partner_id', $selectedPartnerId))
                 ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
                 ->when($request->filled('date_to'),   fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
@@ -310,6 +312,7 @@ class ReportController extends Controller
             $partnerWise = Receipt::query()
                 ->selectRaw('partner_id, SUM(amount) as total')
                 ->with('partner')
+                ->whereNotNull('partner_id')
                 ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
                 ->when($request->filled('date_to'),   fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
                 ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))

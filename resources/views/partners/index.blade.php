@@ -1107,7 +1107,7 @@
                                                 <div class="grid grid-cols-2 gap-3.5">
                                                     <div class="col-span-2">
                                                         <span class="text-emerald-650 block font-medium">Customer / Sold To</span>
-                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.sale && unit.sale.customer ? unit.sale.customer.name : 'Unknown Customer'"></strong>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.sale && unit.sale.customer ? unit.sale.customer.name : '-'"></strong>
                                                     </div>
                                                     <div x-show="unit.sale && unit.sale.sale_date">
                                                         <span class="text-emerald-650 block font-medium">Sale Date</span>
@@ -1157,7 +1157,7 @@
                                                 <div class="grid grid-cols-2 gap-3.5">
                                                     <div class="col-span-2">
                                                         <span class="text-blue-650 block font-medium">Customer</span>
-                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.booking && unit.booking.customer ? unit.booking.customer.name : 'Unknown Customer'"></strong>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.booking && unit.booking.customer ? unit.booking.customer.name : '-'"></strong>
                                                     </div>
                                                     <div>
                                                         <span class="text-blue-650 block font-medium">Booking Date</span>

@@ -1429,7 +1429,7 @@ function unitsApp() {
                     currentFloorId = floorId;
                     currentGroup = {
                         floor_id: floorId,
-                        floor_name: unit.floor ? unit.floor.name : 'Unknown Floor',
+                        floor_name: unit.floor ? unit.floor.name : '-',
                         units: []
                     };
                     groups.push(currentGroup);
