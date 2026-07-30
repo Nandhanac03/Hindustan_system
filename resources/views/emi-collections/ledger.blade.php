@@ -326,9 +326,6 @@
                               <template x-if="errors.amount">
                                   <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                               </template>
-                              <template x-if="form.amount && amountInWords(form.amount)">
-                                  <span class="text-[10px] text-[#a38c29] font-extrabold block mt-1 uppercase tracking-wide" x-text="amountInWords(form.amount)"></span>
-                              </template>
                           </div>
 
                           <div class="space-y-1.5">

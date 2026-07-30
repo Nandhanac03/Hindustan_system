@@ -125,50 +125,46 @@
         {{-- ═══ SALES & CUSTOMERS ═══ --}}
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Sales & Customers</p>
 
-       <div x-data="{ openSales: {{ Request::routeIs('sales.*') || request('tab') === 'sale-return' || request('tab') === 'exchange' ? 'true' : 'false' }} }" class="space-y-1">
-    <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') ? 'bg-slate-800/20' : '' }}">
-        <a href="{{ route('sales.index') }}" class="flex-1 flex items-center gap-3 px-3 py-2.5 text-xs font-semibold hover:text-primary-300 transition-colors {{ Request::routeIs('sales.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            Sales
-        </a>
-        <button @click.prevent="openSales = !openSales" class="p-2.5 text-slate-400 hover:text-primary-300 transition-colors focus:outline-none">
-            <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-        </button>
-    </div>
-    <div x-show="openSales" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-        <a href="{{ route('sales.index') }}"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-            Sales Register
-        </a>
-        <a href="{{ route('sales.index') }}?tab=sale-return"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-            Cancellation / Return
-        </a>
-        <a href="{{ route('sales.index') }}?tab=exchange"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-            Unit Exchange
-        </a>
-    </div>
-</div>
+        <div x-data="{ openSales: {{ Request::routeIs('sales.*') || request('tab') === 'sale-return' || request('tab') === 'exchange' ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openSales = !openSales" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') ? 'text-white bg-slate-800/20' : 'text-slate-300' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Sales</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openSales" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('sales.index') }}"
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    Sales Register
+                </a>
+                <a href="{{ route('sales.index') }}?tab=sale-return"
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    Cancellation / Return
+                </a>
+                <a href="{{ route('sales.index') }}?tab=exchange"
+                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    Unit Exchange
+                </a>
+            </div>
+        </div>
 
         <div x-data="{ openEMI: {{ Request::routeIs('emi-collections.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('emi-collections.*') ? 'bg-slate-800/20' : '' }}">
-                <a href="{{ route('emi-collections.index') }}" class="flex-1 flex items-center gap-3 px-3 py-2.5 text-xs font-semibold hover:text-primary-300 transition-colors {{ Request::routeIs('emi-collections.*') ? 'active text-white' : 'text-slate-300' }}">
+            <button @click="openEMI = !openEMI" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('emi-collections.*') ? 'text-white bg-slate-800/20' : 'text-slate-300' }}">
+                <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    EMI & Payments
-                </a>
-                <button @click.prevent="openEMI = !openEMI" class="p-2.5 text-slate-400 hover:text-primary-300 transition-colors focus:outline-none">
-                    <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openEMI ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
-            </div>
+                    <span>EMI & Payments</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openEMI ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
             <div x-show="openEMI" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
                 <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Customer EMI
@@ -878,6 +874,36 @@
                 }
             }
         });
+
+        // Strictly block non-numeric characters (letters, e, E, +, -, symbols) on amount fields during keydown
+        document.addEventListener('keydown', function(e) {
+            const el = e.target;
+            if (el && el.tagName === 'INPUT') {
+                const xModel = (el.getAttribute('x-model') || el.getAttribute('x-model.number') || '').toLowerCase();
+                const name = (el.getAttribute('name') || '').toLowerCase();
+                const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
+                const type = (el.type || '').toLowerCase();
+
+                if ((type === 'number' || type === 'text') && !xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft')) {
+                    if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
+                        // Allow navigation and edit control keys (Backspace, Tab, Enter, Escape, Delete, Arrows, Home, End, Ctrl/Cmd shortcuts)
+                        if (e.ctrlKey || e.metaKey || ['Backspace', 'Tab', 'Enter', 'Escape', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) {
+                            return;
+                        }
+                        // Allow numbers 0-9
+                        if (/^[0-9]$/.test(e.key)) {
+                            return;
+                        }
+                        // Allow a single decimal point if not already present
+                        if (e.key === '.' && !el.value.includes('.')) {
+                            return;
+                        }
+                        // Prevent typing any letters, symbols, e, E, +, -
+                        e.preventDefault();
+                    }
+                }
+            }
+        }, true);
 
         // Initialize on load and on DOM updates (e.g. when opening modals)
         document.addEventListener('DOMContentLoaded', window.updateAllAmountInWords);
