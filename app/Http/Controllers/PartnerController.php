@@ -201,25 +201,15 @@ class PartnerController extends Controller
             'remaining_formatted' => '1,427'
         ];
         
-        $collectionsTrend = [
-            'Jan' => 700000,
-            'Feb' => 900000,
-            'May' => 1300000,
-            'Jun' => 1100000,
-            'Jul' => 1100000,
-            'Aug' => 1400000,
-            'Sep' => 1900000,
-        ];
+        $collectionsTrend = [];
+        $forecastTrend = [];
         
-        $forecastTrend = [
-            'Jan' => 800000,
-            'Feb' => 1000000,
-            'May' => 1200000,
-            'Jun' => 1400000,
-            'Jul' => 1300000,
-            'Aug' => 1500000,
-            'Sep' => 2000000,
-        ];
+        // Pre-fill last 6 months with 0
+        for ($i = 5; $i >= 0; $i--) {
+            $month = \Carbon\Carbon::now()->subMonths($i)->format('b');
+            $collectionsTrend[$month] = 0;
+            $forecastTrend[$month] = 0;
+        }
         
         $receiptsCount = 87;
         $pendingEmisCount = 142;
@@ -272,16 +262,14 @@ class PartnerController extends Controller
                 $unitStats['reserved'] = $reservedUnits;
             }
 
-            // Collection Stats (project-scoped)
-            $collected = (float) Receipt::where('project_id', $dashboardProject->id)->whereNull('partner_id')->sum('amount');
-            $target = (float) \App\Models\Sale::where('project_id', $dashboardProject->id)->where('status', 'active')->sum('total_amount');
+            // Collection Stats (software-wide)
+            $collected = (float) Receipt::whereNull('partner_id')->sum('amount');
+            $target = (float) \App\Models\Sale::where('status', 'active')->sum('total_amount');
             if ($target <= 0) {
-                $target = (float) \App\Models\Unit::where('project_id', $dashboardProject->id)
-                    ->whereIn('status', ['sold', 'booked'])
-                    ->sum('expected_sale_amount');
+                $target = (float) \App\Models\Unit::whereIn('status', ['sold', 'booked'])->sum('expected_sale_amount');
             }
 
-            $outstanding = (float) \App\Models\Sale::where('project_id', $dashboardProject->id)->where('status', 'active')->sum('remaining_balance');
+            $outstanding = (float) \App\Models\Sale::where('status', 'active')->sum('remaining_balance');
 
             if ($target > 0) {
                 $collectionStats['target'] = $target;
@@ -290,9 +278,11 @@ class PartnerController extends Controller
                 $collectionStats['efficiency'] = round(($collectionStats['collected'] / $collectionStats['target']) * 100);
             }
 
-            // Trend
+            // Trend for the last 6 months
+            $sixMonthsAgo = \Carbon\Carbon::now()->subMonths(5)->startOfMonth();
             $receiptsTrend = DB::table('receipts')
                 ->select(DB::raw("DATE_FORMAT(receipt_date, '%b') as month"), DB::raw('SUM(amount) as amount'), DB::raw('MONTH(receipt_date) as month_num'))
+                ->where('receipt_date', '>=', $sixMonthsAgo)
                 ->groupBy(DB::raw("DATE_FORMAT(receipt_date, '%b')"), DB::raw("MONTH(receipt_date)"))
                 ->orderBy('month_num')
                 ->get()
@@ -300,9 +290,11 @@ class PartnerController extends Controller
                 ->toArray();
             
             if (!empty($receiptsTrend)) {
-                $collectionsTrend = array_merge($collectionsTrend, $receiptsTrend);
-                foreach ($collectionsTrend as $m => $val) {
-                    $forecastTrend[$m] = $val * 1.1; // Forecast is 10% more
+                foreach ($receiptsTrend as $m => $val) {
+                    if (isset($collectionsTrend[$m])) {
+                        $collectionsTrend[$m] = (float)$val;
+                        $forecastTrend[$m] = (float)$val * 1.1; // Forecast is 10% more
+                    }
                 }
             }
 

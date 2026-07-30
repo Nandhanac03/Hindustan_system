@@ -578,186 +578,25 @@
         <!-- COLLECTIONS & COMMISSION OVERVIEW ROW -->
         <div class="flex flex-col lg:flex-row gap-6 items-stretch w-full">
             
-            <!-- Left Side: Collections Bar Card -->
-            <div class="w-full lg:w-[65%] bg-white border border-[#EFECE1] rounded-3xl p-6 shadow-lg space-y-6 text-slate-800">
-                <!-- Header -->
-                <div class="flex justify-between items-center pb-2">
-                    <h3 class="text-xs font-extrabold text-[#0B1E36] uppercase tracking-wider">Collection Overview</h3>
-                    <div class="text-xs font-bold text-slate-650 flex items-center gap-1.5">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase">Total Target</span>
-                        <span class="text-slate-900 font-mono">₹ {{ $collectionStats['target_formatted'] }}</span>
+            <!-- Left Side: Registered Partners -->
+            <div class="w-full lg:w-1/2 flex flex-col h-full">
+                <!-- Partner Balances Chart Card -->
+                <div class="bg-white border border-[#EFECE1] rounded-3xl p-6 shadow-lg text-slate-800 flex flex-col h-full min-h-[350px]">
+                    <div class="border-b border-slate-100 pb-3">
+                        <h3 class="text-xs font-extrabold text-[#0B1E36] uppercase tracking-wider">Registered Partners</h3>
+                        <p class="text-[10px] text-slate-400 font-medium mt-1">Total collected, payouts and net balance by partner</p>
                     </div>
-                </div>
-
-                <!-- Progress Bar Section -->
-                <div class="space-y-1 pb-2">
-                    <div class="w-full h-6 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                        <div class="h-full bg-[#a38c29] rounded-full transition-all duration-500 flex items-center justify-end pr-3" style="width: {{ min(100, $collectionStats['efficiency']) }}%;">
-                            <span class="text-[9px] font-extrabold text-white">{{ $collectionStats['efficiency'] }}%</span>
-                        </div>
-                    </div>
-                    <div class="text-[9px] font-bold text-[#a38c29] text-right">
-                        (Target Achieved)
-                    </div>
-                </div>
-                
-                <!-- Top Metric Row (Three equal cards) -->
-                <div class="grid grid-cols-3 gap-4">
-                    <!-- Card 1 -->
-                    <div class="bg-[#FAF8F2]/60 border border-[#EFECE1] rounded-2xl p-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-[#FAF0D7] flex items-center justify-center text-[#9C6D3B] shrink-0">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 8h6m-6 4h6m-6-8h6a4 4 0 010 8H9v8m3-8L9 21"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-xs font-extrabold text-slate-900 font-mono block leading-none">₹{{ $collectionStats['collected_formatted'] }}</span>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mt-1">Total Collected</span>
-                        </div>
-                    </div>
-                    <!-- Card 2 -->
-                    <div class="bg-[#FAF8F2]/60 border border-[#EFECE1] rounded-2xl p-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-[#FAF0D7] flex items-center justify-center text-[#9C6D3B] shrink-0">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-xs font-extrabold text-slate-900 font-mono block leading-none">{{ $outstandingFormatted }}</span>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mt-1">Outstanding</span>
-                        </div>
-                    </div>
-                    <!-- Card 3 -->
-                    <div class="bg-[#FAF8F2]/60 border border-[#EFECE1] rounded-2xl p-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-[#FAF0D7] flex items-center justify-center text-[#9C6D3B] shrink-0">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-xs font-extrabold text-slate-900 font-mono block leading-none">{{ $collectionStats['efficiency'] }}%</span>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mt-1">Collection Efficiency</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Chart Area -->
-                <div id="collectionsChart" class="w-full h-[220px] bg-slate-50 rounded-2xl border border-slate-100"></div>
-                
-                <!-- Bottom Metric Row (Three equal cards) -->
-                <div class="grid grid-cols-3 gap-4 pt-2">
-                    <!-- Card 1 -->
-                    <div class="bg-[#FAF8F2]/60 border border-[#EFECE1] rounded-2xl p-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-[#FAF0D7] flex items-center justify-center text-[#9C6D3B] shrink-0">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-sm font-extrabold text-slate-950 font-mono block leading-none">{{ $receiptsCount }}</span>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mt-1.5">Total Receipts Count</span>
-                        </div>
-                    </div>
-                    <!-- Card 2 -->
-                    <div class="bg-[#FAF8F2]/60 border border-[#EFECE1] rounded-2xl p-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-[#FAF0D7] flex items-center justify-center text-[#9C6D3B] shrink-0">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-sm font-extrabold text-slate-955 font-mono block leading-none">{{ $pendingEmisCount }}</span>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mt-1.5">Pending EMIs Count</span>
-                        </div>
-                    </div>
-                    <!-- Card 3 -->
-                    <div class="bg-[#FAF8F2]/60 border border-[#EFECE1] rounded-2xl p-4 flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-[#FAF0D7] flex items-center justify-center text-[#9C6D3B] shrink-0">
-                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0h4m-4 0H8"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <span class="text-sm font-extrabold text-slate-955 font-mono block leading-none">{{ $thisMonthPercent }}%</span>
-                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block mt-1.5">This Month %</span>
-                        </div>
+                    
+                    <div class="pt-4 flex-1 flex flex-col relative w-full h-full min-h-[250px]">
+                        <div id="partnerBalancesChart" class="w-full absolute inset-0"></div>
                     </div>
                 </div>
             </div>
             
-            <!-- Right Side: Commission Summary & Repayments Alerts -->
-            <div class="w-full lg:w-[35%] flex flex-col gap-6">
-                <!-- Commission Summary Card -->
-                <div class="bg-white border border-[#EFECE1] rounded-3xl p-6 shadow-lg text-slate-800 flex flex-col justify-between">
-                    <div class="border-b border-slate-100 pb-3">
-                        <h3 class="text-xs font-extrabold text-[#0B1E36] uppercase tracking-wider">Commission Summary</h3>
-                    </div>
-                    
-                    <div class="py-4 space-y-4">
-                        <!-- Row 1 -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide block">Total Earned</span>
-                                    <span class="text-[8px] text-slate-400 font-medium uppercase block -mt-0.5">(All Time)</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-bold text-slate-800 font-mono">₹ {{ number_format($commissionSummary['total_earned']) }}</span>
-                        </div>
-                        <!-- Row 2 -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2m0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2"/></svg>
-                                </div>
-                                <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide block">This Month Earned</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-bold text-slate-800 font-mono">₹ {{ number_format($commissionSummary['this_month_earned']) }}</span>
-                        </div>
-                        <!-- Row 3 -->
-                        <div class="flex items-center justify-between py-2 border-b border-slate-50">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                </div>
-                                <div>
-                                    <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wide block">Paid Out</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-bold text-slate-800 font-mono">₹ {{ number_format($commissionSummary['paid_out']) }}</span>
-                        </div>
-                        <!-- Row 4 -->
-                        <div class="flex items-center justify-between py-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                                </div>
-                                <div>
-                                    <span class="text-[9px] font-bold text-emerald-750 uppercase tracking-wide block font-extrabold">Available Payout</span>
-                                </div>
-                            </div>
-                            <span class="text-xs font-bold text-emerald-600 font-mono">₹ {{ number_format($commissionSummary['available_payout']) }}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Request Payout Button -->
-                    <div class="pt-2">
-                        <button class="w-full bg-primary hover:bg-primary-700 text-white text-[10px] font-extrabold uppercase py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 tracking-wider transition shadow-sm">
-                            Request Payout
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
+            <!-- Right Side: Repayments Alerts -->
+            <div class="w-full lg:w-1/2 relative min-h-[350px]">
                 <!-- Bank Loan EMI Repayment Notifications Card -->
-                <div class="bg-white border border-[#EFECE1] rounded-3xl p-6 shadow-lg text-slate-800 space-y-4">
+                <div class="absolute inset-0 bg-white border border-[#EFECE1] rounded-3xl p-6 shadow-lg text-slate-800 space-y-4 flex flex-col">
                     <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
                         <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -767,7 +606,7 @@
                         <h3 class="text-xs font-extrabold text-[#0B1E36] uppercase tracking-wider">Bank Loan EMI Repayment Notifications</h3>
                     </div>
                     
-                    <div class="space-y-3 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div class="space-y-3 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                         @if(isset($bankEmiAlerts) && $bankEmiAlerts->isNotEmpty())
                             @php
                                 $bankColors = ['bg-rose-700', 'bg-indigo-700', 'bg-emerald-700', 'bg-amber-600', 'bg-purple-700', 'bg-teal-700', 'bg-blue-800'];
@@ -1404,95 +1243,120 @@
 
 
 
-    <!-- Script to render ApexCharts line / area chart -->
+
+
+</div> <!-- END Executive Dashboard -->
+</div> <!-- END Main Container -->
+
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            @php
+                $partnerNames = $partners->pluck('name')->toArray();
+                $totalCollectedData = $partners->pluck('total_collected')->toArray();
+                $totalPayoutsData = $partners->pluck('total_allocated')->toArray();
+                $netBalanceData = $partners->pluck('balance')->toArray();
+            @endphp
             var options = {
                 series: [{
-                    name: 'Collections',
-                    type: 'column',
-                    data: @json(array_values($collectionsTrend))
+                    name: 'Total Collected',
+                    data: {!! json_encode($totalCollectedData) !!}
                 }, {
-                    name: 'Forecast',
-                    type: 'line',
-                    data: @json(array_values($forecastTrend))
+                    name: 'Total Payouts',
+                    data: {!! json_encode($totalPayoutsData) !!}
+                }, {
+                    name: 'Net Balance',
+                    data: {!! json_encode($netBalanceData) !!}
                 }],
                 chart: {
-                    type: 'line',
-                    height: 220,
-                    toolbar: { show: false },
-                    fontFamily: 'Outfit, sans-serif'
+                    type: 'bar',
+                    height: '100%',
+                    fontFamily: 'Outfit, sans-serif',
+                    toolbar: { show: false }
                 },
                 plotOptions: {
                     bar: {
-                        columnWidth: '35%',
-                        borderRadius: 2
-                    }
+                        horizontal: false,
+                        columnWidth: '60%',
+                        endingShape: 'rounded',
+                        borderRadius: 3
+                    },
                 },
-                colors: ['#DCE2E6', '#a38c29'],
-                stroke: { curve: 'smooth', width: [0, 2.5] },
-                markers: {
-                    size: [0, 4.5],
-                    colors: ['#a38c29'],
-                    strokeColors: '#FAF8F2',
-                    strokeWidth: 2,
-                    hover: { size: 6 }
+                dataLabels: {
+                    enabled: false
                 },
+                stroke: {
+                    show: true,
+                    width: 2,
+                    colors: ['transparent']
+                },
+                colors: ['#10b981', '#ef4444', '#d97706'],
                 xaxis: {
-                    categories: @json(array_keys($collectionsTrend)),
-                    labels: { style: { colors: '#94a3b8', fontSize: '9px', fontWeight: 600 } },
-                    axisBorder: { show: false },
-                    axisTicks: { show: false }
-                },
-                yaxis: {
-                    min: 0,
-                    max: 200000,
-                    tickAmount: 4,
+                    categories: {!! json_encode($partnerNames) !!},
                     labels: {
-                        formatter: function(val) {
-                            return val === 0 ? '0' : (val / 1000) + 'K';
-                        },
                         style: {
-                            colors: '#94a3b8',
-                            fontSize: '9px',
+                            colors: '#64748b',
+                            fontSize: '11px',
                             fontWeight: 600
                         }
+                    },
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#64748b',
+                            fontSize: '10px',
+                            fontWeight: 600
+                        },
+                        formatter: function (val) {
+                            if (val >= 10000000) {
+                                return "₹" + (val / 10000000).toFixed(1) + "Cr";
+                            } else if (val >= 100000) {
+                                return "₹" + (val / 100000).toFixed(1) + "L";
+                            }
+                            return "₹" + val.toLocaleString('en-IN');
+                        }
+                    }
+                },
+                fill: {
+                    opacity: 1
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'left',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    labels: { colors: '#0f172a' },
+                    markers: {
+                        width: 10,
+                        height: 10,
+                        radius: 2
                     }
                 },
                 grid: {
                     borderColor: '#f1f5f9',
                     strokeDashArray: 4,
-                    xaxis: {
-                        lines: {
-                            show: false
-                        }
-                    },
-                    yaxis: {
-                        lines: {
-                            show: true
-                        }
-                    }
                 },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'center',
-                    fontSize: '10px',
-                    fontWeight: 700,
-                    labels: { colors: '#475569' },
-                    markers: {
-                        width: 14,
-                        height: 3,
-                        strokeWidth: 0,
-                        radius: 2
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        formatter: function (val) {
+                            return "₹ " + val.toLocaleString('en-IN')
+                        }
                     }
                 }
             };
-            var chart = new ApexCharts(document.querySelector("#collectionsChart"), options);
-            chart.render();
+
+            if (document.querySelector("#partnerBalancesChart")) {
+                var chart = new ApexCharts(document.querySelector("#partnerBalancesChart"), options);
+                chart.render();
+            }
         });
     </script>
-
-</div> <!-- END Executive Dashboard -->
-</div> <!-- END Main Container -->
 
 </x-erp-layout>
