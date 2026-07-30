@@ -103,10 +103,15 @@ class ProjectController extends Controller
             }
         }
 
-        // Generate short code
-        $codePrefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $validated['name']), 0, 3));
-        $count = Project::withoutGlobalScopes()->where('system_id', $validated['system_id'])->count() + 1;
-        $validated['code'] = "{$codePrefix}-" . sprintf('%02d', $count);
+        // Generate short code (first letters of each word)
+        $words = explode(' ', $validated['name']);
+        $code = '';
+        foreach ($words as $word) {
+            if (!empty($word)) {
+                $code .= strtoupper(substr($word, 0, 1));
+            }
+        }
+        $validated['code'] = $code;
 
         Project::create($validated);
 
@@ -143,6 +148,7 @@ public function update(Request $request, Project $project): RedirectResponse
 
     $validated = $request->validate([
         'name' => ['required', 'string', 'max:255'],
+        'code' => ['nullable', 'string', 'max:50'],
         'location' => ['required', 'string', 'max:255'],
         'city' => ['required', 'string', 'max:100'],
         'state_or_emirate' => ['required', 'string', 'max:100'],
