@@ -1229,18 +1229,17 @@
                                                   <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Diff:</span>
                                                   <span x-text="(getRowDifference(index, 'edit') >= 0 ? '₹' : '-₹') + Math.abs(getRowDifference(index, 'edit')).toLocaleString()"></span>
                                               </div>
-                                           </div>
-                                                                        <div x-show="isRowParking(index, 'edit')" class="space-y-1.5 lg:col-span-2">
-                                              <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
-                                              <div class="relative h-9 rounded-xl shadow-sm">
-                                                  <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                                                      <span class="text-slate-400 font-bold text-xs">₹</span>
-                                                  </div>
-                                                  <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'edit')" placeholder="Enter parking expected sale amount"
-                                                         class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
-                                              </div>
                                           </div>
-                                      </div>
+                                             <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
+                                             <div class="relative h-9 rounded-xl shadow-sm">
+                                                 <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                                     <span class="text-slate-400 font-bold text-xs">₹</span>
+                                                 </div>
+                                                 <input type="number" step="0.01" x-model="row.expected_sale_amount" @input="row.sale_amount = row.expected_sale_amount; recalculateRowGst(index, 'edit')" placeholder="Enter parking expected sale amount"
+                                                        class="block w-full h-full pl-7 pr-3 py-1.5 border border-slate-250 focus:ring-2 focus:ring-primary/20 focus:border-primary bg-amber-50/30 rounded-xl text-xs focus:outline-none transition-all font-mono font-bold text-slate-800 placeholder-slate-400">
+                                             </div>
+                                         </div>
+                                     </div>
                                      <!-- Third row: GST and Payable calculations -->
                                      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start pt-3 border-t border-slate-200/50">
                                          <div class="space-y-1.5">
@@ -2820,19 +2819,8 @@ function salesApp() {
         },
         onGetRowArea(index, mode = 'add') {
             const row = this.forms[mode].units[index];
-            if (!row || !row.unit_id) return '—';
-            const unit = (this.availableUnits[mode] || []).find(u => u.id == row.unit_id);
-            if (!unit) {
-                if (mode === 'edit' && this.activeSale) {
-                    const activeSU = (this.activeSale.sale_units || []).find(su => su.unit_id == row.unit_id);
-                    const uObj = activeSU?.unit || (this.activeSale.unit_id == row.unit_id ? this.activeSale.unit : null);
-                    if (uObj) {
-                        return uObj.built_up_area || '—';
-                    }
-                }
-                return '—';
-            }
-            return unit.built_up_area || '—';
+            const unit = this.availableUnits[mode].find(u => u.id == row.unit_id);
+            return unit ? (unit.built_up_area || '—') : '—';
         },
         getFilteredUnits(mode, search = '') {
             const s = (search || '').toLowerCase().trim();
@@ -3504,16 +3492,13 @@ function salesApp() {
                         this.forms.edit.units.forEach(u => {
                             if (u.unit_id && !this.availableUnits.edit.some(au => au.id == u.unit_id)) {
                                 const activeSU = this.activeSale.sale_units?.find(su => su.unit_id == u.unit_id);
-                                const unitObj = activeSU?.unit || this.activeSale.unit;
-                                
-                                const door_no = unitObj?.door_no || 'Current Unit';
-                                const floor_name = unitObj?.floor?.name || '';
-                                const built_up_area = unitObj?.built_up_area || 0;
-                                const expected_rate_per_sqft = unitObj?.expected_rate_per_sqft || 0;
-                                const expected_sale_amount = unitObj?.expected_sale_amount || 0;
-                                const unit_type_name = unitObj?.unit_type?.name || '';
-                                const unit_type_category = unitObj?.unit_type?.category || '';
-                                
+                                const door_no = activeSU?.unit?.door_no || this.activeSale.unit?.door_no || 'Current Unit';
+                                const floor_name = activeSU?.unit?.floor?.name || this.activeSale.unit?.floor?.name || '';
+                                const built_up_area = activeSU?.unit?.built_up_area || this.activeSale.unit?.built_up_area || 0;
+                                const expected_rate_per_sqft = activeSU?.unit?.expected_rate_per_sqft || this.activeSale.unit?.expected_rate_per_sqft || 0;
+                                const expected_sale_amount = activeSU?.unit?.expected_sale_amount || this.activeSale.unit?.expected_sale_amount || 0;
+                                const unit_type_name = activeSU?.unit?.unit_type?.name || this.activeSale.unit?.unit_type?.name || '';
+                                const unit_type_category = activeSU?.unit?.unit_type?.category || this.activeSale.unit?.unit_type?.category || '';
                                 this.availableUnits.edit.push({
                                     id: u.unit_id,
                                     door_no: door_no,
