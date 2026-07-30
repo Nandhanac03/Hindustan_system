@@ -61,6 +61,8 @@ class ExpenseController extends Controller
             'bill_number' => 'required|string|max:100',
             'bill_amount' => 'required|numeric|min:0.01',
             'final_amount' => 'required|numeric|min:0.01',
+            'gst_rate' => 'nullable|numeric|min:0|max:100',
+            'gst_amount' => 'nullable|numeric|min:0',
             'bill_date' => 'required|date',
             'bill_type' => 'nullable|string|max:50',
             'payment_terms' => 'nullable|string|max:50',
@@ -75,13 +77,20 @@ class ExpenseController extends Controller
             $billFilePath = $request->file('bill_file')->store('bills', 'public');
         }
 
+        // Calculate GST fields
+        $gstRate = (float)($request->gst_rate ?? 0);
+        $gstAmount = (float)($request->gst_amount ?? 0);
+        if ($gstAmount == 0 && $gstRate > 0) {
+            $gstAmount = max(0, (float)$request->final_amount - (float)$request->bill_amount);
+        }
+
         // Decode allocations if present
         $allocations = [];
         if ($request->filled('allocations')) {
             $allocations = json_decode($request->allocations, true);
         }
 
-        DB::transaction(function () use ($systemId, $request, $user, $billFilePath, $allocations) {
+        DB::transaction(function () use ($systemId, $request, $user, $billFilePath, $allocations, $gstRate, $gstAmount) {
             if (empty($allocations) || count($allocations) <= 1) {
                 // Standard single project bill
                 DB::table('bills')->insert([
@@ -95,6 +104,8 @@ class ExpenseController extends Controller
                     'expense_head' => $request->expense_head,
                     'bill_file' => $billFilePath,
                     'bill_amount' => $request->bill_amount,
+                    'gst_rate' => $gstRate,
+                    'gst_amount' => $gstAmount,
                     'final_amount' => $request->final_amount,
                     'status' => 'approved_unpaid', // Immediately available in receipt split target
                     'created_at' => now(),
@@ -170,6 +181,7 @@ class ExpenseController extends Controller
                     // Calculate proportional amounts
                     $billAmount = round((float)$request->bill_amount * $pct, 2);
                     $finalAmount = round((float)$request->final_amount * $pct, 2);
+                    $allocatedGstAmount = round($gstAmount * $pct, 2);
 
                     // Append suffix to avoid duplicate bill number violation
                     $billNum = $request->bill_number . '/' . $projCode;
@@ -185,6 +197,8 @@ class ExpenseController extends Controller
                         'expense_head' => $request->expense_head,
                         'bill_file' => $billFilePath,
                         'bill_amount' => $billAmount,
+                        'gst_rate' => $gstRate,
+                        'gst_amount' => $allocatedGstAmount,
                         'final_amount' => $finalAmount,
                         'status' => 'approved_unpaid',
                         'created_at' => now(),

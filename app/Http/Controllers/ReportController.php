@@ -1115,8 +1115,16 @@ class ReportController extends Controller
 
                     foreach ($supplierBills as $bill) {
                         $finalAmt  = (float)($bill->final_amount ?? $bill->bill_amount ?? 0);
+                        $billAmt   = (float)($bill->bill_amount ?? 0);
                         $rate      = (float)($bill->gst_rate ?? 0);
                         $taxAmount = (float)($bill->gst_amount ?? 0);
+
+                        if ($taxAmount == 0 && $finalAmt > $billAmt && $billAmt > 0) {
+                            $taxAmount = max(0, $finalAmt - $billAmt);
+                            if ($rate == 0) {
+                                $rate = round(($taxAmount / $billAmt) * 100, 2);
+                            }
+                        }
 
                         if ($taxAmount > 0) {
                             $baseAmount = max(0, $finalAmt - $taxAmount);
@@ -1159,53 +1167,19 @@ class ReportController extends Controller
                 } catch (\Exception $e) {}
             }
 
-            // 4. BROKERAGE COMMISSIONS SECTION (INPUT TAX CREDIT - SERVICE)
-            if ($sectionFilter === 'all' || $sectionFilter === 'brokerage') {
-                try {
-                    $brokerageQuery = DB::table('brokerages')
-                        ->join('brokers', 'brokerages.broker_id', '=', 'brokers.id')
-                        ->join('sales', 'brokerages.sale_id', '=', 'sales.id')
-                        ->leftJoin('projects', 'sales.project_id', '=', 'projects.id')
-                        ->select('brokerages.*', 'brokers.name as broker_name', 'brokers.pan as broker_pan', 'projects.name as project_name');
-                    if ($request->filled('project_id')) {
-                        $brokerageQuery->where('sales.project_id', $request->project_id);
-                    }
-                    $brokerages = $brokerageQuery->get();
-
-                    foreach ($brokerages as $brok) {
-                        $commAmt   = (float)($brok->commission_amount ?? 0);
-                        $rate      = 18.0;
-                        $taxAmount = $commAmt * ($rate / 100);
-                        $cgst      = $taxAmount / 2;
-                        $sgst      = $taxAmount / 2;
-
-                        $gstReportEntries->push((object)[
-                            'id' => 'brokerage_' . $brok->id,
-                            'section_code' => 'brokerage',
-                            'section_name' => 'Brokerage & Commissions',
-                            'type' => 'Input Credit (Brokerage Service)',
-                            'invoice_number' => 'COMM-' . $brok->id,
-                            'date' => Carbon::parse($brok->created_at)->format('d M Y'),
-                            'entity_name' => $brok->broker_name ?? 'Channel Partner',
-                            'customer_name' => $brok->broker_name ?? 'Channel Partner',
-                            'gstin' => $brok->broker_pan ? ('PAN: ' . $brok->broker_pan) : 'N/A',
-                            'project_name' => $brok->project_name ?? 'N/A',
-                            'unit_door' => 'Agent Commission',
-                            'taxable_value' => $commAmt,
-                            'gst_rate' => $rate,
-                            'cgst' => $cgst,
-                            'sgst' => $sgst,
-                            'igst' => 0.0,
-                            'total_tax' => $taxAmount,
-                            'grand_total' => $commAmt + $taxAmount,
-                            'tax_nature' => 'input'
-                        ]);
-                    }
-                } catch (\Exception $e) {}
-            }
+            // Filter out non-GST / 0% tax entries so only entries with actual GST are displayed
+            $gstReportEntries = $gstReportEntries->filter(function ($entry) {
+                return (float)($entry->total_tax ?? 0) > 0 || (float)($entry->gst_rate ?? 0) > 0;
+            })->values();
 
             // SECTION BREAKDOWN STATS (ACTIVE SECTIONS ONLY)
             $sectionStats = [
+                'all' => [
+                    'name' => 'All Sections',
+                    'count' => $gstReportEntries->count(),
+                    'taxable' => $gstReportEntries->sum('taxable_value'),
+                    'tax' => $gstReportEntries->sum('total_tax'),
+                ],
                 'sales' => [
                     'name' => 'Sales & Bookings',
                     'count' => $gstReportEntries->where('section_code', 'sales')->count(),
@@ -1223,12 +1197,6 @@ class ReportController extends Controller
                     'count' => $gstReportEntries->where('section_code', 'suppliers')->count(),
                     'taxable' => $gstReportEntries->where('section_code', 'suppliers')->sum('taxable_value'),
                     'tax' => $gstReportEntries->where('section_code', 'suppliers')->sum('total_tax'),
-                ],
-                'brokerage' => [
-                    'name' => 'Brokerage Commission',
-                    'count' => $gstReportEntries->where('section_code', 'brokerage')->count(),
-                    'taxable' => $gstReportEntries->where('section_code', 'brokerage')->sum('taxable_value'),
-                    'tax' => $gstReportEntries->where('section_code', 'brokerage')->sum('total_tax'),
                 ],
             ];
 

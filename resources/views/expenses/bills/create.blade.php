@@ -168,7 +168,7 @@
                                     </div>
                                 </div>
                                 <div class="relative">
-                                    <input type="number" step="0.01" min="0" max="100" x-model.number="form.tax_pct" @input="onTaxPctChange(); fetchProjectMetrics()" placeholder="0.00"
+                                    <input type="number" name="gst_rate" step="0.01" min="0" max="100" x-model.number="form.tax_pct" @input="onTaxPctChange(); fetchProjectMetrics()" placeholder="0.00"
                                            class="w-full pl-3 pr-8 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
                                     <span class="absolute right-3 top-2.5 text-xs font-bold text-slate-400 pointer-events-none">%</span>
                                 </div>
@@ -177,7 +177,7 @@
                             <!-- Tax / GST Amount (₹) -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Tax / GST Amount (₹)</label>
-                                <input type="number" step="0.01" min="0" x-model.number="form.tax" @input="onTaxAmountChange(); fetchProjectMetrics()" placeholder="0.00"
+                                <input type="number" name="gst_amount" step="0.01" min="0" x-model.number="form.tax" @input="onTaxAmountChange(); fetchProjectMetrics()" placeholder="0.00"
                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
                             </div>
 
