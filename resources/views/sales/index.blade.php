@@ -132,7 +132,7 @@
                             </td>
                             <td class="px-4 py-4 text-right border-b border-slate-100">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <a :href="'/emi-collections/ledger/' + sale.id" class="p-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition inline-flex items-center justify-center shadow-sm" title="EMI & Collection Ledger">
+                                    <a :href="`{{ url('emi-collections/ledger') }}/${sale.id}`" class="p-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition inline-flex items-center justify-center shadow-sm" title="EMI & Collection Ledger">
                                         <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     </a>
                                     <button @click="openViewModal(sale.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Sale">
