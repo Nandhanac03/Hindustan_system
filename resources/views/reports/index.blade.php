@@ -2,110 +2,6 @@
 
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="reportsApp()">
 
-    {{-- Header Options --}}
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-white via-slate-50/50 to-white border border-slate-200/90 rounded-2xl p-5 shadow-sm">
-        <div>
-            <div class="flex items-center gap-3">
-                <h2 class="text-lg font-black text-slate-900 tracking-tight uppercase">Reporting & MIS Analytics</h2>
-                <span class="px-3 py-1 bg-amber-500/10 text-amber-800 text-[10px] font-black rounded-full uppercase border border-amber-500/20 shadow-2xs">Executive Suite</span>
-            </div>
-            <p class="text-xs text-slate-500 mt-1 font-medium">Real-time financial checkpoint, Trial Balance, P&L Statement, and Balance Sheet net worth analytics.</p>
-        </div>
-        <div class="flex flex-wrap gap-2.5 items-center">
-            <button @click="printReport()" 
-                    class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                Print Report
-            </button>
-            <button @click="exportCurrentTable()" 
-                    class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Export Excel
-            </button>
-        </div>
-    </div>
-
-    {{-- Global Filters --}}
-    @if($activeTab !== 'gst_report')
-    <form method="GET" action="" class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-4">
-        <input type="hidden" name="report" value="{{ $activeTab }}">
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Project</label>
-                <select name="project_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-                    <option value="">All Projects</option>
-                    @foreach($projects as $p)
-                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Floor</label>
-                <select name="floor_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-                    <option value="">All Floors</option>
-                    @foreach($floors ?? [] as $fl)
-                        <option value="{{ $fl->id }}" {{ request('floor_id') == $fl->id ? 'selected' : '' }}>{{ $fl->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Unit Type</label>
-                <select name="unit_type_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-                    <option value="">All Types</option>
-                    @foreach($unitTypes as $ut)
-                        <option value="{{ $ut->id }}" {{ request('unit_type_id') == $ut->id ? 'selected' : '' }}>{{ $ut->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Customer</label>
-                <select name="customer_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-                    <option value="">All Customers</option>
-                    @foreach($customers as $c)
-                        <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Broker</label>
-                <select name="broker_id" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-                    <option value="">All Brokers</option>
-                    @foreach($brokers as $b)
-                        <option value="{{ $b->id }}" {{ request('broker_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Payment Mode</label>
-                <select name="payment_mode" class="w-full px-3 py-2 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-                    <option value="">All Modes</option>
-                    <option value="Cash" {{ request('payment_mode') == 'Cash' ? 'selected' : '' }}>Cash</option>
-                    <option value="Bank Transfer" {{ request('payment_mode') == 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                    <option value="Cheque" {{ request('payment_mode') == 'Cheque' ? 'selected' : '' }}>Cheque</option>
-                    <option value="Online" {{ request('payment_mode') == 'Online' ? 'selected' : '' }}>Online</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Date From</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full px-3 py-1.5 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-            </div>
-            <div>
-                <label class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1.5">Date To</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full px-3 py-1.5 bg-slate-50/70 border border-slate-200 text-slate-800 rounded-xl text-xs font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition">
-            </div>
-        </div>
-        <div class="flex justify-end gap-2.5 pt-1 border-t border-slate-100">
-            <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black rounded-xl transition shadow hover:shadow-md uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                Apply Filters
-            </button>
-            <a href="?report={{ $activeTab }}" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold rounded-xl transition uppercase tracking-wider flex items-center gap-1.5">
-                Reset Filters
-            </a>
-        </div>
-    </form>
-    @endif
-
     {{-- Main Report Output Card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6">
 
@@ -127,8 +23,18 @@
                     </div>
                     <p class="text-xs text-slate-600 mt-2 font-medium max-w-3xl">Verified database audit trail of Output Tax (Sales & Extra Works), Input Tax Credit (Suppliers & Services), CGST, SGST, and statutory net tax liabilities.</p>
                 </div>
-                <div class="flex items-center gap-2.5 shrink-0 relative z-10">
-                    <a href="{{ route('gst.index') }}" class="px-5 py-3 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] hover:from-[#8a7522] hover:to-[#a38c29] text-white rounded-xl text-xs font-black transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0 relative z-10">
+                    <button @click="printReport()" 
+                            class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print Report
+                    </button>
+                    <button @click="exportCurrentTable()" 
+                            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export Excel
+                    </button>
+                    <a href="{{ route('gst.index') }}" class="px-5 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] hover:from-[#8a7522] hover:to-[#a38c29] text-white rounded-xl text-xs font-black transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 uppercase tracking-wider cursor-pointer">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
                         <span>Manage Tax Slabs →</span>
                     </a>
@@ -510,20 +416,24 @@
                         <p class="text-xs text-slate-400">High-level financial KPIs, property metrics, and profitability breakdown</p>
                     </div>
                 </div>
-                <span class="inline-flex items-center gap-2 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-[10px] font-bold uppercase tracking-wider border border-slate-200 shadow-2xs">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                    </span>
-                    Live Data
-                </span>
+                <div class="flex flex-wrap gap-2.5 items-center">
+                    <button @click="printReport()" 
+                            class="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 00-2-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print Report
+                    </button>
+                    <button @click="exportCurrentTable()" 
+                            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Export Excel
+                    </button>
+                </div>
             </div>
             
             {{-- Executive KPI Cards --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 {{-- Card 1 --}}
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-slate-800"></div>
+                <div class="bg-white border border-slate-200/80 border-l-4 border-l-slate-800 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Total Projects</span>
                         <div class="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center group-hover:bg-slate-800 group-hover:text-white transition-colors">
@@ -534,8 +444,7 @@
                 </div>
 
                 {{-- Card 2 --}}
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-blue-600"></div>
+                <div class="bg-white border border-slate-200/80 border-l-4 border-l-blue-600 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Units (Sold / Total)</span>
                         <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -546,8 +455,7 @@
                 </div>
 
                 {{-- Card 3 --}}
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-emerald-500"></div>
+                <div class="bg-white border border-slate-200/80 border-l-4 border-l-emerald-500 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Total Collections</span>
                         <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
@@ -558,8 +466,7 @@
                 </div>
 
                 {{-- Card 4 --}}
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500"></div>
+                <div class="bg-white border border-slate-200/80 border-l-4 border-l-amber-500 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Outstanding Receivable</span>
                         <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
@@ -570,8 +477,7 @@
                 </div>
 
                 {{-- Card 5 --}}
-                <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-amber-400"></div>
+                <div class="bg-white border border-slate-200/80 border-l-4 border-l-[#a38c29] rounded-2xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group relative overflow-hidden">
                     <div class="flex items-center justify-between mb-2">
                         <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Net Calculated Profit</span>
                         <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors">
