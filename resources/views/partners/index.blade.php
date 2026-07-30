@@ -694,8 +694,7 @@
                 <!-- Status Legends -->
                 <div class="flex flex-wrap items-center gap-3 sm:gap-5 text-[9px] font-black uppercase tracking-wider text-slate-600">
                     <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-emerald-500 shadow-sm border border-emerald-600"></span> Available</span>
-                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-blue-500 shadow-sm border border-blue-600"></span> Booked</span>
-                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-amber-500 shadow-sm border border-amber-600"></span> Pending</span>
+                    <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-amber-500 shadow-sm border border-amber-600"></span> Blocked</span>
                     <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-rose-600 shadow-sm border border-rose-700"></span> Sold</span>
                     <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded-md bg-[#0B1E36] shadow-sm border border-slate-800"></span> Parking</span>
                 </div>
@@ -718,19 +717,25 @@
                 // Summary aggregates
                 $totalUnitsCount = 0;
                 $availableCount = 0;
-                $bookedCount = 0;
-                $pendingCount = 0;
+                $blockedCount = 0;
                 $soldCount = 0;
+                $parkingCount = 0;
                 foreach ($floorMatrix as $row) {
                     foreach ($row['columns'] as $u) {
                         if ($u) {
                             $totalUnitsCount++;
                             $st = strtolower($u->status);
                             if ($st === 'sold') $soldCount++;
-                            elseif ($st === 'booked') $bookedCount++;
-                            elseif ($st === 'blocked') $pendingCount++;
+                            elseif ($st === 'blocked') $blockedCount++;
                             elseif ($st === 'available') $availableCount++;
                         }
+                    }
+                }
+                
+                if (!empty($parkingRows)) {
+                    foreach ($parkingRows as $pRow) {
+                        if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
+                        $parkingCount += $pRow['units']->count();
                     }
                 }
             @endphp
@@ -859,7 +864,7 @@
                                                 
                                                 @if ($isParkingRow)
                                                     @php 
-                                                        $isOccupied = in_array(strtolower($unit->status), ['sold', 'booked']); 
+                                                        $isOccupied = in_array(strtolower($unit->status), ['sold', 'blocked']); 
                                                     @endphp
                                                     <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: '{{ $isOccupied ? 'Reserved' : 'Available' }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
                                                          @mouseleave="hoveredUnit = null"
@@ -873,7 +878,6 @@
                                                     @php
                                                         $status = strtolower($unit->status);
                                                         $isSold     = in_array($status, ['sold']);
-                                                        $isBooked   = ($status === 'booked');
                                                         $isBlocked  = ($status === 'blocked');
                                                     @endphp
                                                     <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}' }; hoveredEl = $el"
@@ -881,7 +885,6 @@
                                                          @click="fetchUnit({{ $unit->id }})"
                                                          class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_6px_-2px_rgba(0,0,0,0.1)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-200/40 cursor-pointer duration-200
                                                          @if ($isSold) bg-rose-600 text-white shadow-rose-200/50 hover:shadow-rose-300/50 hover:border-rose-400
-                                                         @elseif ($isBooked) bg-blue-500 text-white shadow-blue-200/50 hover:shadow-blue-300/50 hover:border-blue-400
                                                          @elseif ($isBlocked) bg-amber-500 text-white shadow-amber-200/50 hover:shadow-amber-300/50 hover:border-amber-400
                                                          @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
 
@@ -933,55 +936,57 @@
                 </div>
 
                 <!-- Footer Summary Bar matching the design -->
-                <div class="grid grid-cols-2 sm:grid-cols-6 gap-4 p-4.5 bg-slate-50 border border-slate-150 rounded-2xl items-center text-xs font-bold text-slate-500 uppercase tracking-wide">
+                <div class="grid grid-cols-2 sm:grid-cols-6 gap-6 py-6 px-8 bg-gradient-to-r from-[#FAF8F2] to-white border border-[#EFECE1] shadow-sm rounded-3xl items-center">
                     
                     <!-- Summary Icon Column -->
-                    <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5"/>
-                        </svg>
-                        <span class="font-extrabold text-[#0B1E36]">Summary</span>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-[#FAF0D7] text-[#9C6D3B] flex items-center justify-center shadow-sm border border-[#EFECE1]">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
+                            </svg>
+                        </div>
+                        <span class="font-extrabold text-[#0B1E36] text-sm uppercase tracking-widest">Summary</span>
                     </div>
 
                     <!-- Total Units -->
-                    <div>
-                        <span class="block text-[8px] text-slate-400 font-bold">Total Units</span>
-                        <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $totalUnitsCount }}</span>
+                    <div class="pl-2 border-l border-slate-200">
+                        <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total Units</span>
+                        <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $totalUnitsCount }}</span>
                     </div>
 
                     <!-- Available -->
-                    <div class="flex items-center gap-2">
-                        <span class="w-4 h-4 rounded-md bg-emerald-500 border border-emerald-600 shadow-sm shrink-0"></span>
+                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
+                        <span class="w-5 h-5 rounded-lg bg-emerald-500 shadow-sm shrink-0"></span>
                         <div>
-                            <span class="block text-[8px] text-slate-400 font-bold">Available</span>
-                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $availableCount }}</span>
+                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Available</span>
+                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $availableCount }}</span>
                         </div>
                     </div>
 
-                    <!-- Booked -->
-                    <div class="flex items-center gap-2">
-                        <span class="w-4 h-4 rounded-md bg-blue-500 border border-blue-600 shadow-sm shrink-0"></span>
+                    <!-- Pending / Blocked -->
+                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
+                        <span class="w-5 h-5 rounded-lg bg-amber-500 shadow-sm shrink-0"></span>
                         <div>
-                            <span class="block text-[8px] text-slate-400 font-bold">Booked</span>
-                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $bookedCount }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Pending -->
-                    <div class="flex items-center gap-2">
-                        <span class="w-4 h-4 rounded-md bg-amber-500 border border-amber-600 shadow-sm shrink-0"></span>
-                        <div>
-                            <span class="block text-[8px] text-slate-400 font-bold">Pending</span>
-                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $pendingCount }}</span>
+                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Blocked</span>
+                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $blockedCount }}</span>
                         </div>
                     </div>
 
                     <!-- Sold -->
-                    <div class="flex items-center gap-2">
-                        <span class="w-4 h-4 rounded-md bg-rose-600 border border-rose-700 shadow-sm shrink-0"></span>
+                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
+                        <span class="w-5 h-5 rounded-lg bg-rose-600 shadow-sm shrink-0"></span>
                         <div>
-                            <span class="block text-[8px] text-slate-400 font-bold">Sold</span>
-                            <span class="text-slate-800 font-extrabold text-sm font-mono mt-0.5">{{ $soldCount }}</span>
+                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Sold</span>
+                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $soldCount }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Parking -->
+                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
+                        <span class="w-5 h-5 rounded-lg bg-[#0B1E36] shadow-sm shrink-0"></span>
+                        <div>
+                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Parking</span>
+                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $parkingCount }}</span>
                         </div>
                     </div>
                 </div>
