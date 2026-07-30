@@ -214,16 +214,26 @@
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
                                         Paid
                                     </span>
-                                    @if($sale->receipts->count() > 0)
-                                        <button type="button" @click.stop="openReceiptModal('{{ $sale->receipts->last()->id }}')" title="View Receipt"
-                                                class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
-                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
+                                    @if(!empty($row['receipts']))
+                                        @foreach($row['receipts'] as $rcpt)
+                                            <button type="button" @click.stop="openReceiptModal('{{ $rcpt['id'] }}')" title="View Receipt (₹{{ number_format($rcpt['amount'], 2) }})"
+                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
+                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            </button>
+                                        @endforeach
                                     @endif
                                 @elseif($row['status'] === 'partial')
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
                                         Partial
                                     </span>
+                                    @if(!empty($row['receipts']))
+                                        @foreach($row['receipts'] as $rcpt)
+                                            <button type="button" @click.stop="openReceiptModal('{{ $rcpt['id'] }}')" title="View Receipt (₹{{ number_format($rcpt['amount'], 2) }})"
+                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
+                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            </button>
+                                        @endforeach
+                                    @endif
                                     <button
                                         @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
                                         type="button"
@@ -261,11 +271,11 @@
                     @endforelse
                 </tbody>
                 <tfoot>
-                    <tr class="bg-slate-900 text-white font-extrabold text-xs border-t-2 border-[#a38c29]">
-                        <td colspan="3" class="px-5 py-4 text-[10px] text-slate-300 uppercase tracking-widest">Closing Totals</td>
-                        <td class="px-5 py-4 text-right font-mono text-emerald-400">₹{{ number_format($totalCredits, 2) }}</td>
-                        <td class="px-5 py-4 text-right font-mono {{ $closingBalance > 0 ? 'text-rose-400' : 'text-emerald-400' }}">
-                            ₹{{ number_format(abs($closingBalance), 2) }} <span class="text-[9px] font-extrabold uppercase text-slate-400">{{ $closingBalance > 0 ? 'DR' : 'CR' }}</span>
+                    <tr class="bg-white text-slate-900 font-extrabold text-xs border-t-2 border-[#a38c29]">
+                        <td colspan="3" class="px-5 py-4 text-[10px] text-slate-800 uppercase tracking-widest">Closing Totals</td>
+                        <td class="px-5 py-4 text-right font-mono text-emerald-600">₹{{ number_format($totalCredits, 2) }}</td>
+                        <td class="px-5 py-4 text-right font-mono {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }}">
+                            ₹{{ number_format(abs($closingBalance), 2) }} <span class="text-[9px] font-extrabold uppercase text-slate-500">{{ $closingBalance > 0 ? 'DR' : 'CR' }}</span>
                         </td>
                         <td></td>
                     </tr>

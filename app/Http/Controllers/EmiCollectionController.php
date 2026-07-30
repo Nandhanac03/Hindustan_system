@@ -526,6 +526,52 @@ class EmiCollectionController extends Controller
             ->orderBy('installment_no')
             ->get();
 
+        $receipts = $sale->receipts->sortBy('id')->values();
+        $receiptQueue = [];
+        foreach ($receipts as $r) {
+            $receiptQueue[] = [
+                'id' => $r->id,
+                'amount' => (float)$r->amount,
+                'original_amount' => (float)$r->amount,
+            ];
+        }
+
+        $receiptIndex = 0;
+        $installmentReceipts = [];
+
+        foreach ($installments as $inst) {
+            $instAmount = round((float)$inst->amount, 2);
+            $needed = $instAmount;
+            $installmentReceipts[$inst->id] = [];
+
+            while ($needed > 0 && $receiptIndex < count($receiptQueue)) {
+                $r = &$receiptQueue[$receiptIndex];
+                $avail = round($r['amount'], 2);
+                if ($avail > 0) {
+                    $allocated = min($needed, $avail);
+                    $r['amount'] = round($r['amount'] - $allocated, 2);
+                    $needed = round($needed - $allocated, 2);
+                    
+                    $found = false;
+                    foreach ($installmentReceipts[$inst->id] as $item) {
+                        if ($item['id'] === $r['id']) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        $installmentReceipts[$inst->id][] = [
+                            'id' => $r['id'],
+                            'amount' => $r['original_amount'],
+                        ];
+                    }
+                }
+                if (round($r['amount'], 2) <= 0.01) {
+                    $receiptIndex++;
+                }
+            }
+        }
+
         $ledger = collect();
         $runningBalance = 0;
         $opening = 0;
@@ -545,6 +591,7 @@ class EmiCollectionController extends Controller
                 'type'            => 'installment',
                 'status'          => $inst->status,
                 'sort_date'       => $inst->due_date,
+                'receipts'        => $installmentReceipts[$inst->id] ?? [],
             ]);
         }
 
