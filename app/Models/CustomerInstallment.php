@@ -60,17 +60,23 @@ class CustomerInstallment extends Model
         foreach ($installments as $inst) {
             $instAmount = round((float)$inst->amount, 2);
             if (round($allocatedPayment - $instAmount, 2) >= -0.01) {
-                $inst->update(['status' => 'paid']);
+                $inst->update([
+                    'paid_amount' => $instAmount,
+                    'status' => 'paid'
+                ]);
                 $allocatedPayment = max(0, round($allocatedPayment - $instAmount, 2));
             } elseif (round($allocatedPayment, 2) > 0.01) {
-                $inst->update(['status' => 'partial']);
+                $inst->update([
+                    'paid_amount' => $allocatedPayment,
+                    'status' => 'partial'
+                ]);
                 $allocatedPayment = 0;
             } else {
-                if ($inst->due_date && $inst->due_date->isPast()) {
-                    $inst->update(['status' => 'overdue']);
-                } else {
-                    $inst->update(['status' => 'pending']);
-                }
+                $status = ($inst->due_date && $inst->due_date->isPast()) ? 'overdue' : 'pending';
+                $inst->update([
+                    'paid_amount' => 0,
+                    'status' => $status
+                ]);
             }
         }
     }

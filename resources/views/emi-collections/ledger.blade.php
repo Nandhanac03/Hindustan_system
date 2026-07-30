@@ -171,9 +171,6 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
                     @forelse($ledger as $row)
-                    @if($row['type'] === 'receipt')
-                        @continue
-                    @endif
                     @php
                         $status = $row['status'] ?? '';
                         $rowStyle = match($status) {
@@ -193,14 +190,14 @@
                         <td class="px-4 py-2.5">
                             <div class="font-extrabold text-slate-900 text-xs">{{ $row['description'] }}</div>
                         </td>
-                        <td class="px-4 py-2.5 text-right font-mono text-xs {{ ($row['status'] ?? '') === 'paid' ? 'text-emerald-600 font-extrabold' : ($row['debit'] > 0 ? 'text-rose-600 font-extrabold' : 'text-slate-300') }}">
-                            {{ $row['debit'] > 0 ? '₹' . number_format($row['debit'], 2) : '—' }}
+                        <td class="px-4 py-2.5 text-right font-mono text-xs {{ $row['status'] === 'paid' ? 'text-emerald-600 font-extrabold' : 'text-rose-600 font-extrabold' }}">
+                            ₹{{ number_format($row['debit'], 2) }}
                         </td>
-                        <td class="px-4 py-2.5 text-right font-mono text-xs {{ $row['credit'] > 0 ? 'text-emerald-600 font-extrabold' : 'text-slate-300' }}">
+                        <td class="px-4 py-2.5 text-right font-mono text-xs {{ $row['credit'] > 0 ? 'text-emerald-600 font-extrabold' : 'text-slate-350' }}">
                             {{ $row['credit'] > 0 ? '₹' . number_format($row['credit'], 2) : '—' }}
                         </td>
                         <td class="px-4 py-2.5 text-right font-mono text-xs font-black">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border {{ ($row['status'] ?? '') === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : ($row['running_balance'] > 0 ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100') }}">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg border {{ $row['status'] === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : ($row['running_balance'] > 0 ? 'bg-rose-50 text-rose-700 border-rose-100' : 'bg-emerald-50 text-emerald-700 border-emerald-100') }}">
                                 ₹{{ number_format(abs($row['running_balance']), 2) }}
                                 <span class="text-[8px] font-extrabold uppercase">{{ $row['running_balance'] > 0 ? 'DR' : 'CR' }}</span>
                             </span>
@@ -209,61 +206,50 @@
                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                 {{-- Type Badge --}}
                                 <span class="inline-flex items-center justify-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md border {{ $cfg['badge'] }}">
-                                    {{ strtoupper($row['type']) }}
+                                    INSTALLMENT
                                 </span>
 
                                 {{-- Installment Status / Button --}}
-                                @if(isset($row['status']) && $row['type'] === 'installment')
-                                    @if($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
-                                        <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
-                                            Paid
-                                        </span>
-                                        @if(isset($row['receipt_ids']) && count($row['receipt_ids']) > 0)
-                                            <button type="button" @click.stop="openReceiptModal('{{ collect($row['receipt_ids'])->last() }}')" title="View Receipt"
-                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
-                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </button>
-                                        @elseif($sale->receipts->count() > 0)
-                                            <button type="button" @click.stop="openReceiptModal('{{ $sale->receipts->last()->id }}')" title="View Receipt"
-                                                    class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
-                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                            </button>
-                                        @endif
-                                    @elseif($row['status'] === 'partial')
-                                        <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
-                                            Partial
-                                        </span>
-                                        @if(isset($row['receipt_ids']) && count($row['receipt_ids']) > 0)
-                                            <button type="button" @click.stop="openReceiptModal('{{ collect($row['receipt_ids'])->last() }}')"
-                                                    class="inline-flex items-center justify-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-[9px] font-bold uppercase rounded-lg transition-all whitespace-nowrap shadow-xs">
-                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                Receipt
-                                            </button>
-                                        @endif
-                                        <button
-                                            @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
-                                            type="button"
-                                            class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
-                                            Pay Remaining
-                                        </button>
-                                    @elseif($row['status'] === 'overdue')
-                                        <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
-                                            Overdue
-                                        </span>
-                                        <button
-                                            @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
-                                            type="button"
-                                            class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
-                                            Pay Installment
-                                        </button>
-                                    @else
-                                        <button
-                                            @click.stop="openPayModal('{{ $row['balance'] ?? (($row['debit'] ?? 0) - ($row['credit'] ?? 0)) }}', '{{ addslashes($row['description']) }}')"
-                                            type="button"
-                                            class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
-                                            Pay Installment
+                                @if($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
+                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                        Paid
+                                    </span>
+                                    @if($sale->receipts->count() > 0)
+                                        <button type="button" @click.stop="openReceiptModal('{{ $sale->receipts->last()->id }}')" title="View Receipt"
+                                                class="inline-flex items-center justify-center p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 rounded-lg transition-all shadow-xs">
+                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
                                     @endif
+                                @elseif($row['status'] === 'partial')
+                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-amber-100 text-amber-700 border border-amber-200">
+                                        Partial
+                                    </span>
+                                    <button
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
+                                        type="button"
+                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                        Pay Remaining
+                                    </button>
+                                @elseif($row['status'] === 'overdue')
+                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
+                                        Overdue
+                                    </span>
+                                    <button
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
+                                        type="button"
+                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                        Pay Installment
+                                    </button>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                                        Pending
+                                    </span>
+                                    <button
+                                        @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
+                                        type="button"
+                                        class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
+                                        Pay Installment
+                                    </button>
                                 @endif
                             </div>
                         </td>
@@ -276,8 +262,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="bg-slate-900 text-white font-extrabold text-xs border-t-2 border-[#a38c29]">
-                        <td colspan="2" class="px-5 py-4 text-[10px] text-slate-300 uppercase tracking-widest">Closing Totals</td>
-                        <td class="px-5 py-4 text-right font-mono text-rose-400">₹{{ number_format($totalDebits, 2) }}</td>
+                        <td colspan="3" class="px-5 py-4 text-[10px] text-slate-300 uppercase tracking-widest">Closing Totals</td>
                         <td class="px-5 py-4 text-right font-mono text-emerald-400">₹{{ number_format($totalCredits, 2) }}</td>
                         <td class="px-5 py-4 text-right font-mono {{ $closingBalance > 0 ? 'text-rose-400' : 'text-emerald-400' }}">
                             ₹{{ number_format(abs($closingBalance), 2) }} <span class="text-[9px] font-extrabold uppercase text-slate-400">{{ $closingBalance > 0 ? 'DR' : 'CR' }}</span>
