@@ -40,7 +40,7 @@
             <button type="button" @click="openNewReturnModal = true; newReturnStep = 1; newReturnSaleId = ''; newReturnSale = null;" 
                     class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span x-text="isCancellationTab ? 'New Cancellation' : 'New Return'"></span>
+                <span x-text="isCancellationTab ? 'New Cancellation' : '{{ request('tab') === 'sale-return' ? 'Cancellation' : 'New Return' }}'"></span>
             </button>
         @elseif(request('tab') === 'exchange')
             <button type="button" @click="openNewExchangeModal = true; newExchangeStep = 1; newExchangeSaleId = '';" 
@@ -302,7 +302,7 @@
                                 <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="!isEditReturn ? 'View Mode' : 'Active Form'"></span>
                                 <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="selectedReturnSale ? (selectedReturnSale.status === 'cancelled' ? 'Cancellation' : 'Return') : ''"></span>
                             </div>
-                            <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="!isEditReturn ? 'View Return Details' : (targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Return Details')"></h2>
+                            <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="!isEditReturn ? 'View Return Details' : (targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details')"></h2>
                             <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="selectedReturnSale"
                                x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • Sale No: ' + selectedReturnSale.sale_number : ''"></p>
                         </div>
@@ -419,7 +419,7 @@
 
     {{-- INITIATE NEW RETURN / CANCELLATION MODAL POPUP --}}
     <div x-show="openNewReturnModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openNewReturnModal = false">
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthcancel" @click.away="openNewReturnModal = false">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -429,7 +429,7 @@
                             <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="isCancellationTab ? 'Cancellation' : 'Return'"></span>
                             <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Step <span x-text="newReturnStep"></span> of 2</span>
                         </div>
-                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newReturnStep === 1 ? (isCancellationTab ? 'Initiate Booking Cancellation' : 'Initiate Sales Return / Cancellation') : (isCancellationTab ? 'Process Cancellation Details' : 'Process Return Details')"></h2>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newReturnStep === 1 ? (isCancellationTab ? 'Initiate Booking Cancellation' : 'Initiate Sales Return / Cancellation') : (isCancellationTab ? 'Process Cancellation Details' : 'Process Cancel Details')"></h2>
                     </div>
                     <button type="button" @click="openNewReturnModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
@@ -573,7 +573,7 @@
 
     {{-- INITIATE NEW EXCHANGE MODAL POPUP --}}
     <div x-show="openNewExchangeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openNewExchangeModal = false; selectedExchangeSale = null;">
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthexchange" @click.away="openNewExchangeModal = false; selectedExchangeSale = null;">
             {{-- Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/10">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -1012,7 +1012,7 @@
                     <div>
                         <span class="text-[9px] font-bold text-emerald-800 uppercase tracking-widest">Active Form</span>
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider"
-                            x-text="targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Return Details'"></h4>
+                            x-text="targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details'"></h4>
                         <p class="text-[10px] text-slate-500 font-semibold"
                            x-text="'Sale No: ' + selectedReturnSale.sale_number + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A')"></p>
                     </div>
