@@ -3542,8 +3542,8 @@ function salesApp() {
                 this.showToast('Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.', 'error');
                 return;
             }
-            fetch(`{{ url('sales') }}/${this.activeSale.id}`, {
-                method: 'PUT',
+            fetch(`{{ url('sales') }}/${this.activeSale.id}/update`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
