@@ -361,7 +361,7 @@ class SalesController extends Controller
     }
     public function show(int $id): JsonResponse
     {
-        $sale = Sale::with(['project', 'unit.floor', 'unit.unitType', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage', 'saleUnits.unit.floor', 'extraWorks'])->findOrFail($id);
+        $sale = Sale::with(['project', 'unit.floor', 'unit.unitType', 'customer', 'broker', 'statusLogs', 'receipts', 'brokerage', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'extraWorks'])->findOrFail($id);
         $sale->status_logs = $sale->statusLogs;
         return response()->json(['sale' => $sale]);
     }
