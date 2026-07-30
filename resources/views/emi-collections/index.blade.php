@@ -248,7 +248,7 @@
                     <div @click="searchOpen = !searchOpen" 
                          class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary rounded-xl text-xs font-semibold cursor-pointer flex justify-between items-center transition-all">
                         <span class="text-ellipsis overflow-hidden whitespace-nowrap" 
-                              x-text="selectedSale ? ((selectedSale.customer ? selectedSale.customer.name : 'Unknown Customer') + ' — ' + selectedSale.sale_number) : '-- Choose Customer... --'"></span>
+                              x-text="selectedSale ? ((selectedSale.customer ? selectedSale.customer.name : '-') + ' — ' + selectedSale.sale_number) : '-- Choose Customer... --'"></span>
                         <svg class="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                     
@@ -262,17 +262,17 @@
                             <li @click="selectedSaleId = ''; onSaleSelect(); searchOpen = false; searchString = ''" 
                                 class="px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 rounded-lg text-slate-500 font-medium">-- Choose Customer... --</li>
                             <template x-for="s in activeSales.filter(sale => {
-                                let searchText = ((sale.customer ? sale.customer.name : 'Unknown Customer') + ' ' + sale.sale_number).toLowerCase();
+                                let searchText = ((sale.customer ? sale.customer.name : '-') + ' ' + sale.sale_number).toLowerCase();
                                 return searchText.includes(searchString.toLowerCase());
                             })" :key="s.id">
                                 <li @click="selectedSaleId = s.id; onSaleSelect(); searchOpen = false; searchString = ''"
                                     class="px-3 py-2 text-xs cursor-pointer hover:bg-primary-50 hover:text-primary-700 rounded-lg font-medium"
                                     :class="selectedSaleId == s.id ? 'bg-primary-50 text-primary-700' : 'text-slate-700'">
-                                    <span x-text="(s.customer ? s.customer.name : 'Unknown Customer') + ' — ' + s.sale_number"></span>
+                                    <span x-text="(s.customer ? s.customer.name : '-') + ' — ' + s.sale_number"></span>
                                 </li>
                             </template>
                             <template x-if="activeSales.filter(sale => {
-                                let searchText = ((sale.customer ? sale.customer.name : 'Unknown Customer') + ' ' + sale.sale_number).toLowerCase();
+                                let searchText = ((sale.customer ? sale.customer.name : '-') + ' ' + sale.sale_number).toLowerCase();
                                 return searchText.includes(searchString.toLowerCase());
                             }).length === 0">
                                 <li class="px-3 py-4 text-xs text-center text-slate-400 italic">No matches found.</li>
@@ -292,13 +292,13 @@
                                 <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1"
                                       x-text="selectedSale.payment_plan === 'emi' ? (selectedSale.emi_installment_count + ' ' + (selectedSale.emi_frequency ? selectedSale.emi_frequency.charAt(0).toUpperCase() + selectedSale.emi_frequency.slice(1) : 'Monthly')) : 'Lump Sum'">
                                 </span>
-                                <h3 class="text-xs font-bold text-slate-900 mt-2" x-text="selectedSale.customer ? selectedSale.customer.name : 'Unknown Customer'"></h3>
+                                <h3 class="text-xs font-bold text-slate-900 mt-2" x-text="selectedSale.customer ? selectedSale.customer.name : '-'"></h3>
                                 <p class="text-[10px] text-slate-400 mt-0.5" x-text="(selectedSale.project ? selectedSale.project.name : '') + ' · Unit: ' + (selectedSale.unit ? selectedSale.unit.door_no : 'No Unit')"></p>
                             </div>
                             <span class="text-[11px] font-extrabold text-slate-900" x-text="'₹' + (Number(selectedSale.total_amount) / 100000).toFixed(1) + 'L'"></span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button @click="openCollectModal({ id: selectedSale.id, outstanding: selectedSale.remaining_balance, customer_name: selectedSale.customer ? selectedSale.customer.name : 'Unknown', door_no: selectedSale.unit ? selectedSale.unit.door_no : 'No Unit' })" 
+                            <button @click="openCollectModal({ id: selectedSale.id, outstanding: selectedSale.remaining_balance, customer_name: selectedSale.customer ? selectedSale.customer.name : '-', door_no: selectedSale.unit ? selectedSale.unit.door_no : 'No Unit' })" 
                                     class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
                                 Collect
                             </button>
@@ -327,13 +327,13 @@
                                                 Lump Sum
                                             </span>
                                         @endif
-                                        <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? 'Unknown Customer' }}</h3>
-                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? 'Unknown Project' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
+                                        <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? '-' }}</h3>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? '-' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
                                     </div>
                                     <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->total_amount / 100000, 1) }}L</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 mt-2">
-                                    <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? 'Unknown') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
+                                    <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? '-') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
                                             class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
                                         Collect
                                     </button>
@@ -578,7 +578,7 @@ function emiApp() {
         onModalSaleSelect() {
             const sale = this.activeSales.find(s => s.id == this.form.booking_id);
             if (sale) {
-                this.form.customer_name = sale.customer ? sale.customer.name : 'Unknown';
+                this.form.customer_name = sale.customer ? sale.customer.name : '-';
                 this.form.unit_number = sale.unit ? sale.unit.door_no : 'No Unit';
                 this.form.outstanding = sale.remaining_balance;
                 this.form.project_name = sale.project ? sale.project.name : '';

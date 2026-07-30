@@ -430,7 +430,7 @@
                                 <span class="text-[9px] font-bold uppercase tracking-widest {{ $bColor['text'] }}">{{ ucfirst($booking->status) }}</span>
                                 <span class="text-[10px] text-slate-400">Unit: {{ $booking->unit->door_no ?? 'N/A' }}</span>
                             </div>
-                            <div class="text-xs font-semibold text-slate-900 truncate">Customer: {{ $booking->customer->name ?? 'Unknown' }}</div>
+                            <div class="text-xs font-semibold text-slate-900 truncate">Customer: {{ $booking->customer->name ?? '-' }}</div>
                             <div class="text-[10px] text-slate-400 mt-0.5">{{ $booking->created_at->diffForHumans() }}</div>
                         </div>
                         <div class="text-right flex-shrink-0">

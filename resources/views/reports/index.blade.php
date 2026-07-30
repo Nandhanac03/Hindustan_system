@@ -2359,7 +2359,7 @@ function reportsApp() {
                 }).render();
 
                 // Payment mode donut
-                const cbModeLabels  = {!! json_encode($cashBookChartData['payment_modes']->pluck('payment_mode')->map(fn($m) => $m ?? 'Unknown')) !!};
+                const cbModeLabels  = {!! json_encode($cashBookChartData['payment_modes']->pluck('payment_mode')->map(fn($m) => $m ?? '-')) !!};
                 const cbModeAmounts = {!! json_encode($cashBookChartData['payment_modes']->pluck('total')->map(fn($v) => (float)$v)) !!};
                 if (cbModeLabels.length > 0) {
                     new ApexCharts(document.querySelector("#cbPaymentModeChart"), {
@@ -2397,7 +2397,7 @@ function reportsApp() {
                 }).render();
 
                 // Partner-wise donut chart
-                const cbPartnerLabels  = {!! json_encode($cashBookChartData['partner_wise']->map(fn($r) => $r->partner?->name ?? 'Unknown')) !!};
+                const cbPartnerLabels  = {!! json_encode($cashBookChartData['partner_wise']->map(fn($r) => $r->partner?->name ?? '-')) !!};
                 const cbPartnerAmounts = {!! json_encode($cashBookChartData['partner_wise']->pluck('total')->map(fn($v) => (float)$v)) !!};
                 if (cbPartnerLabels.length > 0) {
                     new ApexCharts(document.querySelector("#cbPartnerDonutChart"), {
