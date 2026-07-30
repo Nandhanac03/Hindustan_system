@@ -932,9 +932,12 @@ class ReportController extends Controller
 
             // 1. SALES & UNIT BOOKINGS SECTION (OUTPUT GST)
             if ($sectionFilter === 'all' || $sectionFilter === 'sales') {
-                $salesQuery = Sale::with(['customer', 'unit.unitType', 'project'])->where('status', 'active');
+                $salesQuery = Sale::with(['customer', 'unit.unitType', 'project', 'saleUnits.unit'])->where('status', 'active');
                 if ($request->filled('project_id')) {
                     $salesQuery->where('project_id', $request->project_id);
+                }
+                if ($request->filled('customer_id')) {
+                    $salesQuery->where('customer_id', $request->customer_id);
                 }
                 if ($request->filled('date_from')) {
                     $salesQuery->whereDate('sale_date', '>=', $request->date_from);
@@ -945,46 +948,96 @@ class ReportController extends Controller
                 $allSales = $salesQuery->orderByDesc('sale_date')->get();
 
                 foreach ($allSales as $sale) {
-                    $totalAmt = (float)$sale->total_amount;
-                    $rate = (float)($sale->gst_rate ?? 5.0);
-                    $behavior = $sale->gst_behavior ?? 'inclusive';
+                    if ($sale->saleUnits && $sale->saleUnits->count() > 0) {
+                        foreach ($sale->saleUnits as $su) {
+                            $baseAmount = (float)($su->base_amount ?? 0);
+                            $taxAmount  = (float)($su->gst_amount ?? 0);
+                            $rate       = (float)($su->gst_percentage ?? 0);
+                            if ($taxAmount > 0 && $baseAmount > 0 && $rate == 0) {
+                                $rate = round(($taxAmount / $baseAmount) * 100, 2);
+                            }
+                            $cgst = $taxAmount / 2;
+                            $sgst = $taxAmount / 2;
+                            $doorNo = $su->unit?->door_no ?? $sale->unit?->door_no ?? 'N/A';
 
-                    if ($behavior === 'inclusive') {
-                        $baseAmount = $totalAmt / (1 + ($rate / 100));
-                        $taxAmount = $totalAmt - $baseAmount;
-                    } else if ($behavior === 'exclusive') {
-                        $baseAmount = $totalAmt;
-                        $taxAmount = $totalAmt * ($rate / 100);
+                            $gstReportEntries->push((object)[
+                                'id' => 'sale_unit_' . $su->id,
+                                'section_code' => 'sales',
+                                'section_name' => 'Sales & Unit Bookings',
+                                'type' => 'Output Tax (Sales)',
+                                'invoice_number' => $sale->sale_number ?? ('INV-SALE-' . $sale->id),
+                                'date' => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('d M Y') : $sale->created_at->format('d M Y'),
+                                'entity_name' => $sale->customer?->name ?? 'Customer',
+                                'customer_name' => $sale->customer?->name ?? 'Customer',
+                                'gstin' => $sale->customer?->gstin ?? 'N/A',
+                                'project_name' => $sale->project?->name ?? 'N/A',
+                                'unit_door' => $doorNo,
+                                'taxable_value' => $baseAmount,
+                                'gst_rate' => $rate,
+                                'cgst' => $cgst,
+                                'sgst' => $sgst,
+                                'igst' => 0.0,
+                                'total_tax' => $taxAmount,
+                                'grand_total' => (float)($su->line_total ?? ($baseAmount + $taxAmount)),
+                                'tax_nature' => 'output'
+                            ]);
+                        }
                     } else {
-                        $baseAmount = $totalAmt;
-                        $taxAmount = (float)($sale->gst_amount ?? 0);
-                        $rate = $taxAmount > 0 ? $rate : 0.0;
+                        $totalAmt = (float)($sale->total_amount ?? 0);
+                        $baseAmt  = (float)($sale->base_amount ?? $sale->sale_amount ?? 0);
+                        $gstAmt   = (float)($sale->gst_amount ?? 0);
+
+                        if ($gstAmt > 0 && $baseAmt > 0) {
+                            $taxAmount  = $gstAmt;
+                            $baseAmount = $baseAmt;
+                            $rate       = round(($gstAmt / $baseAmt) * 100, 2);
+                        } elseif ($gstAmt > 0) {
+                            $taxAmount  = $gstAmt;
+                            $baseAmount = max(0, $totalAmt - $gstAmt);
+                            $rate       = $baseAmount > 0 ? round(($gstAmt / $baseAmount) * 100, 2) : 0.0;
+                        } else {
+                            $rate = (float)($sale->gst_percentage ?? 0);
+                            $behavior = strtolower($sale->gst_type ?? $sale->gst_behavior ?? 'inclusive');
+                            if ($rate > 0) {
+                                if ($behavior === 'included' || $behavior === 'inclusive') {
+                                    $baseAmount = $totalAmt / (1 + ($rate / 100));
+                                    $taxAmount  = $totalAmt - $baseAmount;
+                                } else {
+                                    $baseAmount = $totalAmt > 0 ? $totalAmt : $baseAmt;
+                                    $taxAmount  = $baseAmount * ($rate / 100);
+                                }
+                            } else {
+                                $baseAmount = $totalAmt > 0 ? $totalAmt : $baseAmt;
+                                $taxAmount  = 0.0;
+                                $rate       = 0.0;
+                            }
+                        }
+
+                        $cgst = $taxAmount / 2;
+                        $sgst = $taxAmount / 2;
+
+                        $gstReportEntries->push((object)[
+                            'id' => 'sale_' . $sale->id,
+                            'section_code' => 'sales',
+                            'section_name' => 'Sales & Unit Bookings',
+                            'type' => 'Output Tax (Sales)',
+                            'invoice_number' => $sale->sale_number ?? ('INV-SALE-' . $sale->id),
+                            'date' => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('d M Y') : $sale->created_at->format('d M Y'),
+                            'entity_name' => $sale->customer?->name ?? 'Customer',
+                            'customer_name' => $sale->customer?->name ?? 'Customer',
+                            'gstin' => $sale->customer?->gstin ?? 'N/A',
+                            'project_name' => $sale->project?->name ?? 'N/A',
+                            'unit_door' => $sale->unit?->door_no ?? 'N/A',
+                            'taxable_value' => $baseAmount,
+                            'gst_rate' => $rate,
+                            'cgst' => $cgst,
+                            'sgst' => $sgst,
+                            'igst' => 0.0,
+                            'total_tax' => $taxAmount,
+                            'grand_total' => $baseAmount + $taxAmount,
+                            'tax_nature' => 'output'
+                        ]);
                     }
-
-                    $cgst = $taxAmount / 2;
-                    $sgst = $taxAmount / 2;
-
-                    $gstReportEntries->push((object)[
-                        'id' => 'sale_' . $sale->id,
-                        'section_code' => 'sales',
-                        'section_name' => 'Sales & Unit Bookings',
-                        'type' => 'Output Tax (Sales)',
-                        'invoice_number' => $sale->sale_number ?? ('INV-SALE-' . $sale->id),
-                        'date' => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('d M Y') : $sale->created_at->format('d M Y'),
-                        'entity_name' => $sale->customer?->name ?? 'Customer',
-                        'customer_name' => $sale->customer?->name ?? 'Customer',
-                        'gstin' => $sale->customer?->gstin ?? 'N/A',
-                        'project_name' => $sale->project?->name ?? 'N/A',
-                        'unit_door' => $sale->unit?->door_no ?? 'N/A',
-                        'taxable_value' => $baseAmount,
-                        'gst_rate' => $rate,
-                        'cgst' => $cgst,
-                        'sgst' => $sgst,
-                        'igst' => 0.0,
-                        'total_tax' => $taxAmount,
-                        'grand_total' => $baseAmount + $taxAmount,
-                        'tax_nature' => 'output'
-                    ]);
                 }
             }
 
@@ -995,16 +1048,30 @@ class ReportController extends Controller
                         ->join('sales', 'sale_extra_works.sale_id', '=', 'sales.id')
                         ->leftJoin('customers', 'sales.customer_id', '=', 'customers.id')
                         ->leftJoin('projects', 'sales.project_id', '=', 'projects.id')
-                        ->select('sale_extra_works.*', 'sales.sale_number', 'customers.name as customer_name', 'customers.gstin as customer_gstin', 'projects.name as project_name');
+                        ->where('sales.status', 'active')
+                        ->select('sale_extra_works.*', 'sales.sale_number', 'customers.name as customer_name', 'customers.id_proof_number as customer_gstin', 'projects.name as project_name');
+
                     if ($request->filled('project_id')) {
                         $extraQuery->where('sales.project_id', $request->project_id);
+                    }
+                    if ($request->filled('customer_id')) {
+                        $extraQuery->where('sales.customer_id', $request->customer_id);
+                    }
+                    if ($request->filled('date_from')) {
+                        $extraQuery->whereDate('sale_extra_works.created_at', '>=', $request->date_from);
+                    }
+                    if ($request->filled('date_to')) {
+                        $extraQuery->whereDate('sale_extra_works.created_at', '<=', $request->date_to);
                     }
                     $extraWorks = $extraQuery->get();
 
                     foreach ($extraWorks as $ew) {
-                        $taxAmount = (float)($ew->gst_amount ?? 0);
-                        $rate = (float)($ew->gst_percentage ?? 18.0);
                         $baseAmount = (float)($ew->amount ?? 0);
+                        $taxAmount  = (float)($ew->gst_amount ?? 0);
+                        $rate       = (float)($ew->gst_percentage ?? 0);
+                        if ($taxAmount > 0 && $baseAmount > 0) {
+                            $rate = round(($taxAmount / $baseAmount) * 100, 2);
+                        }
                         $cgst = $taxAmount / 2;
                         $sgst = $taxAmount / 2;
 
@@ -1047,14 +1114,21 @@ class ReportController extends Controller
                     $supplierBills = $supplierBillsQuery->get();
 
                     foreach ($supplierBills as $bill) {
-                        $finalAmt = (float)($bill->final_amount ?? $bill->bill_amount ?? 0);
-                        $rate = (float)($bill->gst_rate ?? 18.0);
+                        $finalAmt  = (float)($bill->final_amount ?? $bill->bill_amount ?? 0);
+                        $rate      = (float)($bill->gst_rate ?? 0);
                         $taxAmount = (float)($bill->gst_amount ?? 0);
-                        if ($taxAmount == 0 && $rate > 0) {
-                            $baseAmount = $finalAmt / (1 + ($rate / 100));
-                            $taxAmount = $finalAmt - $baseAmount;
-                        } else {
+
+                        if ($taxAmount > 0) {
                             $baseAmount = max(0, $finalAmt - $taxAmount);
+                            if ($rate == 0 && $baseAmount > 0) {
+                                $rate = round(($taxAmount / $baseAmount) * 100, 2);
+                            }
+                        } else if ($rate > 0) {
+                            $baseAmount = $finalAmt / (1 + ($rate / 100));
+                            $taxAmount  = $finalAmt - $baseAmount;
+                        } else {
+                            $baseAmount = $finalAmt;
+                            $taxAmount  = 0.0;
                         }
 
                         $cgst = $taxAmount / 2;
@@ -1085,59 +1159,7 @@ class ReportController extends Controller
                 } catch (\Exception $e) {}
             }
 
-            // 4. CONTRACTOR WORKS SECTION (INPUT TAX CREDIT - ITC)
-            if ($sectionFilter === 'all' || $sectionFilter === 'contractors') {
-                try {
-                    $contractorBillsQuery = DB::table('bills')
-                        ->join('payees', 'bills.payee_id', '=', 'payees.id')
-                        ->leftJoin('projects', 'bills.project_id', '=', 'projects.id')
-                        ->where('payees.type', 'Contractor')
-                        ->select('bills.*', 'payees.name as payee_name', 'payees.gstin as payee_gstin', 'projects.name as project_name');
-                    if ($request->filled('project_id')) {
-                        $contractorBillsQuery->where('bills.project_id', $request->project_id);
-                    }
-                    $contractorBills = $contractorBillsQuery->get();
-
-                    foreach ($contractorBills as $bill) {
-                        $finalAmt = (float)($bill->final_amount ?? $bill->bill_amount ?? 0);
-                        $rate = (float)($bill->gst_rate ?? 18.0);
-                        $taxAmount = (float)($bill->gst_amount ?? 0);
-                        if ($taxAmount == 0 && $rate > 0) {
-                            $baseAmount = $finalAmt / (1 + ($rate / 100));
-                            $taxAmount = $finalAmt - $baseAmount;
-                        } else {
-                            $baseAmount = max(0, $finalAmt - $taxAmount);
-                        }
-
-                        $cgst = $taxAmount / 2;
-                        $sgst = $taxAmount / 2;
-
-                        $gstReportEntries->push((object)[
-                            'id' => 'con_bill_' . $bill->id,
-                            'section_code' => 'contractors',
-                            'section_name' => 'Contracting & Labour (ITC)',
-                            'type' => 'Input Credit (Contractor)',
-                            'invoice_number' => $bill->bill_number ?? ('CON-BILL-' . $bill->id),
-                            'date' => Carbon::parse($bill->created_at)->format('d M Y'),
-                            'entity_name' => $bill->payee_name ?? 'Contractor',
-                            'customer_name' => $bill->payee_name ?? 'Contractor',
-                            'gstin' => $bill->payee_gstin ?? 'N/A',
-                            'project_name' => $bill->project_name ?? 'N/A',
-                            'unit_door' => 'Site Construction',
-                            'taxable_value' => $baseAmount,
-                            'gst_rate' => $rate,
-                            'cgst' => $cgst,
-                            'sgst' => $sgst,
-                            'igst' => 0.0,
-                            'total_tax' => $taxAmount,
-                            'grand_total' => $finalAmt,
-                            'tax_nature' => 'input'
-                        ]);
-                    }
-                } catch (\Exception $e) {}
-            }
-
-            // 5. BROKERAGE COMMISSIONS SECTION
+            // 4. BROKERAGE COMMISSIONS SECTION (INPUT TAX CREDIT - SERVICE)
             if ($sectionFilter === 'all' || $sectionFilter === 'brokerage') {
                 try {
                     $brokerageQuery = DB::table('brokerages')
@@ -1151,11 +1173,11 @@ class ReportController extends Controller
                     $brokerages = $brokerageQuery->get();
 
                     foreach ($brokerages as $brok) {
-                        $commAmt = (float)($brok->commission_amount ?? 0);
-                        $rate = 18.0;
+                        $commAmt   = (float)($brok->commission_amount ?? 0);
+                        $rate      = 18.0;
                         $taxAmount = $commAmt * ($rate / 100);
-                        $cgst = $taxAmount / 2;
-                        $sgst = $taxAmount / 2;
+                        $cgst      = $taxAmount / 2;
+                        $sgst      = $taxAmount / 2;
 
                         $gstReportEntries->push((object)[
                             'id' => 'brokerage_' . $brok->id,
@@ -1182,59 +1204,7 @@ class ReportController extends Controller
                 } catch (\Exception $e) {}
             }
 
-            // 6. CUSTOMER RECEIPTS SECTION
-            if ($sectionFilter === 'all' || $sectionFilter === 'receipts') {
-                try {
-                    $receiptsQuery = DB::table('receipts')
-                        ->join('customers', 'receipts.customer_id', '=', 'customers.id')
-                        ->leftJoin('sales', 'receipts.sale_id', '=', 'sales.id')
-                        ->leftJoin('projects', 'sales.project_id', '=', 'projects.id')
-                        ->select('receipts.*', 'customers.name as customer_name', 'customers.gstin as customer_gstin', 'projects.name as project_name');
-                    if ($request->filled('project_id')) {
-                        $receiptsQuery->where('sales.project_id', $request->project_id);
-                    }
-                    $receiptsList = $receiptsQuery->get();
-
-                    foreach ($receiptsList as $rec) {
-                        $recAmt = (float)($rec->amount ?? 0);
-                        $taxAmount = (float)($rec->gst_amount ?? 0);
-                        $rate = (float)($rec->gst_rate ?? 5.0);
-                        if ($taxAmount == 0 && $rate > 0) {
-                            $baseAmount = $recAmt / (1 + ($rate / 100));
-                            $taxAmount = $recAmt - $baseAmount;
-                        } else {
-                            $baseAmount = max(0, $recAmt - $taxAmount);
-                        }
-
-                        $cgst = $taxAmount / 2;
-                        $sgst = $taxAmount / 2;
-
-                        $gstReportEntries->push((object)[
-                            'id' => 'rec_' . $rec->id,
-                            'section_code' => 'receipts',
-                            'section_name' => 'Customer Installment Receipts',
-                            'type' => 'Output Tax (Receipt Collection)',
-                            'invoice_number' => $rec->receipt_number ?? ('REC-' . $rec->id),
-                            'date' => $rec->receipt_date ? Carbon::parse($rec->receipt_date)->format('d M Y') : Carbon::parse($rec->created_at)->format('d M Y'),
-                            'entity_name' => $rec->customer_name ?? 'Customer',
-                            'customer_name' => $rec->customer_name ?? 'Customer',
-                            'gstin' => $rec->customer_gstin ?? 'N/A',
-                            'project_name' => $rec->project_name ?? 'N/A',
-                            'unit_door' => 'Installment Receipt',
-                            'taxable_value' => $baseAmount,
-                            'gst_rate' => $rate,
-                            'cgst' => $cgst,
-                            'sgst' => $sgst,
-                            'igst' => 0.0,
-                            'total_tax' => $taxAmount,
-                            'grand_total' => $recAmt,
-                            'tax_nature' => 'output'
-                        ]);
-                    }
-                } catch (\Exception $e) {}
-            }
-
-            // SECTION BREAKDOWN STATS
+            // SECTION BREAKDOWN STATS (ACTIVE SECTIONS ONLY)
             $sectionStats = [
                 'sales' => [
                     'name' => 'Sales & Bookings',
@@ -1254,23 +1224,11 @@ class ReportController extends Controller
                     'taxable' => $gstReportEntries->where('section_code', 'suppliers')->sum('taxable_value'),
                     'tax' => $gstReportEntries->where('section_code', 'suppliers')->sum('total_tax'),
                 ],
-                'contractors' => [
-                    'name' => 'Contractor Works',
-                    'count' => $gstReportEntries->where('section_code', 'contractors')->count(),
-                    'taxable' => $gstReportEntries->where('section_code', 'contractors')->sum('taxable_value'),
-                    'tax' => $gstReportEntries->where('section_code', 'contractors')->sum('total_tax'),
-                ],
                 'brokerage' => [
                     'name' => 'Brokerage Commission',
                     'count' => $gstReportEntries->where('section_code', 'brokerage')->count(),
                     'taxable' => $gstReportEntries->where('section_code', 'brokerage')->sum('taxable_value'),
                     'tax' => $gstReportEntries->where('section_code', 'brokerage')->sum('total_tax'),
-                ],
-                'receipts' => [
-                    'name' => 'Customer Receipts',
-                    'count' => $gstReportEntries->where('section_code', 'receipts')->count(),
-                    'taxable' => $gstReportEntries->where('section_code', 'receipts')->sum('taxable_value'),
-                    'tax' => $gstReportEntries->where('section_code', 'receipts')->sum('total_tax'),
                 ],
             ];
 
