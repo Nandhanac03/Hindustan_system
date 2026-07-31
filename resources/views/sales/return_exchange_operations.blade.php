@@ -38,13 +38,13 @@
     <div>
         @if(request('tab') === 'sale-return' || request('tab') === 'returns' || request('tab') === 'cancellations')
             <button type="button" @click="openNewReturnModal = true; newReturnStep = 1; newReturnSaleId = ''; newReturnSale = null;" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
+                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span x-text="isCancellationTab ? 'New Cancellation' : '{{ request('tab') === 'sale-return' ? 'Cancellation' : 'New Return' }}'"></span>
             </button>
         @elseif(request('tab') === 'exchange')
             <button type="button" @click="openNewExchangeModal = true; newExchangeStep = 1; newExchangeSaleId = '';" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
+                    class="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-extrabold text-white shadow-sm transition-all duration-200 hover:bg-primary-700 hover:shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 <span> New Exchange</span>
             </button>
@@ -1257,7 +1257,7 @@
                                     <div class="flex items-center justify-end gap-1.5">
                                         <template x-if="sale.status === 'active' || sale.status === 'cancelled'">
                                             <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;"
-                                                    class="px-2.5 py-1 bg-primary hover:bg-primary-700 text-white font-bold rounded-lg text-[9px] uppercase transition-all tracking-wide shadow-sm">
+                                                    class="px-3 py-1.5 bg-primary hover:bg-primary-700 text-white font-extrabold rounded-lg text-[11px] uppercase transition-all tracking-wide shadow-sm">
                                                 Process Exchange
                                             </button>
                                         </template>
