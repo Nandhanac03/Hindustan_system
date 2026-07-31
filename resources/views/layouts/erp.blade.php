@@ -847,7 +847,7 @@
                 const id = (el.getAttribute('id') || '').toLowerCase();
                 
                 // 1. Handle GST & Percentage inputs limit
-                if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount') && !name.includes('gstin') && !xModel.includes('gstin') && !placeholder.includes('gstin')) {
+                if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount') && !name.includes('gstin') && !xModel.includes('gstin') && !placeholder.includes('gstin') && !xModel.includes('reason') && !name.includes('reason')) {
                     if (
                         xModel.includes('gst') ||
                         xModel.includes('percentage') ||
@@ -929,8 +929,8 @@
                 return false;
             }
             
-            // Exclude gstin fields to allow alphanumeric input
-            if (name.includes('gstin') || xModel.includes('gstin') || placeholder.includes('gstin') || id.includes('gstin')) {
+            // Exclude gstin fields and reason fields to allow alphanumeric input
+            if (name.includes('gstin') || xModel.includes('gstin') || placeholder.includes('gstin') || id.includes('gstin') || name.includes('reason') || xModel.includes('reason') || placeholder.includes('reason')) {
                 return false;
             }
             

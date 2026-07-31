@@ -632,7 +632,7 @@
                                 <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-[10px] space-y-1">
                                     <div class="flex justify-between items-center">
                                         <span class="font-bold text-slate-900 text-xs" x-text="'₹' + Number(log.rate).toLocaleString()"></span>
-                                        <span class="text-slate-400 font-medium" x-text="log.effective_from"></span>
+                                        <span class="text-slate-400 font-medium" x-text="formatDate(log)"></span>
                                     </div>
                                     <p class="text-slate-500" x-text="log.reason || 'No reason provided'"></p>
                                     <p class="text-[9px] text-slate-400 font-semibold" x-text="'By: ' + (log.user ? log.user.name : 'System')"></p>
