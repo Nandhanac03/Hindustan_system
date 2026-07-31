@@ -766,15 +766,7 @@
                                        class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-800 font-bold font-mono h-[38px] flex items-center shadow-inner">
                             </div>
 
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Options</label>
-                                <label class="flex items-center gap-2 h-9 cursor-pointer">
-                                    <input type="checkbox" x-model="exchangeForm.carry_forward" class="rounded text-primary focus:ring-primary/20">
-                                    <span class="text-xs font-semibold text-slate-650">Carry forward payments to New Unit sale?</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
+                        </div>                    </div>
 
                     {{-- Financial Balance Grid --}}
                     <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-center text-white relative overflow-hidden shadow-md">

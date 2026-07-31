@@ -2598,7 +2598,7 @@ function salesApp() {
                 if (this.exchangeFilters.status) {
                     if (sale.status !== this.exchangeFilters.status) return false;
                 } else {
-                    if (!['active', 'cancelled', 'exchanged'].includes(sale.status)) return false;
+                    if (sale.status !== 'exchanged') return false;
                 }
                 return true;
             });
