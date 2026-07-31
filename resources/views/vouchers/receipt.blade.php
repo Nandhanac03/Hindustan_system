@@ -619,14 +619,9 @@
                                                     <div class="relative flex items-center justify-end flex-1">
                                                         <span class="absolute left-3 font-mono font-bold text-slate-400">₹</span>
                                                         <input type="number" x-model.number="row.amount" step="0.01" min="0" placeholder="0.00"
-                                                               @input="recalculatePartnerSplits()"
+                                                               @input="row.type === 'partner' ? handlePartnerInput(row) : validateNonPartnerAmount(row)"
                                                                class="w-full pl-7 pr-3 py-2.5 text-right font-mono font-black text-slate-900 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition">
                                                     </div>
-                                                    <button type="button" @click="fillRemainingBalance(idx)"
-                                                            title="Fill exact remaining balance into this row"
-                                                            class="px-2.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-[10px] font-black uppercase transition shrink-0">
-                                                        Fill Bal
-                                                    </button>
                                                 </div>
                                             </div>
                                         </td>
@@ -799,8 +794,40 @@
                 </div>
             </div>
         </form>
-    </div>
 
+        <!-- Validation Error Modal -->
+        <div x-show="validationError" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="closeErrorModal()"></div>
+            
+            <div x-show="validationError" 
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="relative bg-white rounded-2xl shadow-xl overflow-hidden max-w-sm w-full transform transition-all border border-slate-200">
+                
+                <div class="p-6 text-center space-y-4">
+                    <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900 tracking-tight mb-1">Limit Exceeded</h3>
+                        <p class="text-sm text-slate-500 font-medium" x-text="validationError"></p>
+                    </div>
+                </div>
+                
+                <div class="bg-slate-50 px-6 py-4 border-t border-slate-100">
+                    <button type="button" @click="closeErrorModal()" class="w-full inline-flex justify-center rounded-xl border border-transparent bg-slate-900 px-4 py-2.5 text-sm font-black uppercase text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 transition">
+                        Okay, got it
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
     <!-- ── ALPINE JS CONTROLLER ── -->
     <script>
         function receiptAllocationWorkspace() {
@@ -812,6 +839,11 @@
                 selectedReceiptId: '',
                 selectedReceipt: null,
                 selectedReceiptLabel: '',
+
+                validationError: '',
+                closeErrorModal() {
+                    this.validationError = '';
+                },
 
                 form: {
                     project_id: '',
@@ -966,14 +998,17 @@
                         });
                 },
                 autoAllocatePartnerShares() {
-                    this.allocations = [];
+                    const nonPartnerRows = this.allocations.filter(a => a.type !== 'partner');
+                    this.allocations = [...nonPartnerRows];
+                    
                     if (this.targets.default_shares && this.targets.default_shares.length > 0) {
                         this.targets.default_shares.forEach(share => {
                             this.allocations.push({
                                 type: 'partner',
                                 target_id: share.partner_id,
                                 amount: 0.00,
-                                remarks: `Partner Share (${share.share_pct}%)`
+                                remarks: `Partner Share (${share.share_pct}%)`,
+                                is_locked: false
                             });
                         });
                     } else if (this.targets.partners && this.targets.partners.length > 0) {
@@ -982,7 +1017,8 @@
                                 type: 'partner',
                                 target_id: p.id,
                                 amount: 0.00,
-                                remarks: 'Partner Share allocation'
+                                remarks: 'Partner Share allocation',
+                                is_locked: false
                             });
                         });
                     }
@@ -1048,26 +1084,86 @@
                     const nonPartnerRows = this.allocations.filter(a => a.type !== 'partner');
                     const nonPartnerSum = nonPartnerRows.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
                     
-                    const balanceToSplit = parseFloat((this.form.amount - nonPartnerSum).toFixed(2));
                     const partnerRows = this.allocations.filter(a => a.type === 'partner');
-                    
                     if (partnerRows.length === 0) return;
 
-                    let distributedAmount = 0.0;
-                    partnerRows.forEach((row, index) => {
+                    const lockedPartners = partnerRows.filter(a => a.is_locked);
+                    const lockedSum = lockedPartners.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
+                    
+                    const unlockedPartners = partnerRows.filter(a => !a.is_locked);
+                    if (unlockedPartners.length === 0) return;
+
+                    const balanceToSplit = parseFloat((this.form.amount - nonPartnerSum - lockedSum).toFixed(2));
+
+                    // Calculate total relative percentage weight of currently UNLOCKED partners
+                    let totalRelativePct = 0.0;
+                    unlockedPartners.forEach(row => {
                         const share = this.targets.default_shares.find(s => s.partner_id == row.target_id);
-                        const sharePct = share ? parseFloat(share.share_pct) : 0.0;
+                        if (share) totalRelativePct += parseFloat(share.share_pct);
+                    });
+
+                    if (totalRelativePct === 0) return;
+
+                    let distributedAmount = 0.0;
+                    unlockedPartners.forEach((row, index) => {
+                        const share = this.targets.default_shares.find(s => s.partner_id == row.target_id);
+                        const originalPct = share ? parseFloat(share.share_pct) : 0.0;
                         
                         let amt = 0.0;
-                        if (index === partnerRows.length - 1) {
+                        if (index === unlockedPartners.length - 1) {
                             amt = parseFloat(Math.max(0, balanceToSplit - distributedAmount).toFixed(2));
                         } else {
-                            amt = parseFloat(Math.max(0, balanceToSplit * (sharePct / 100)).toFixed(2));
+                            // Split based on their relative share weight against the total weight of remaining partners
+                            amt = parseFloat(Math.max(0, balanceToSplit * (originalPct / totalRelativePct)).toFixed(2));
                             distributedAmount += amt;
                         }
                         row.amount = amt;
-                        row.remarks = `Partner Share (${sharePct}%) allocation`;
+                        row.remarks = `Partner Share (${originalPct}%) allocation`;
                     });
+                },
+                validateNonPartnerAmount(row) {
+                    if (row.type === 'partner') return;
+                    if (row.type === 'general') {
+                        this.recalculatePartnerSplits();
+                        return;
+                    }
+                    
+                    let maxAllowed = null;
+                    if (row.type === 'broker' && this.targets.pending_brokers) {
+                        const broker = this.targets.pending_brokers.find(b => b.id == row.target_id);
+                        if (broker) maxAllowed = parseFloat(broker.pending_amount);
+                    } else if (row.type === 'supplier' && this.targets.pending_bills) {
+                        const bill = this.targets.pending_bills.find(b => b.id == row.target_id);
+                        if (bill) maxAllowed = parseFloat(bill.balance);
+                    } else if (row.type === 'refund' && this.targets.cancelled_sales) {
+                        const sale = this.targets.cancelled_sales.find(s => s.id == row.target_id);
+                        if (sale) maxAllowed = parseFloat(sale.remaining);
+                    }
+
+                    if (maxAllowed !== null && parseFloat(row.amount) > maxAllowed) {
+                        row.amount = maxAllowed;
+                        this.validationError = `Amount cannot exceed the pending balance (₹${maxAllowed}) for this target.`;
+                    }
+
+                    this.recalculatePartnerSplits();
+                },
+                handlePartnerInput(row) {
+                    if (row.type !== 'partner') return;
+                    row.is_locked = true;
+                    
+                    const nonPartnerRows = this.allocations.filter(a => a.type !== 'partner');
+                    const nonPartnerSum = nonPartnerRows.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
+                    
+                    const otherLockedPartners = this.allocations.filter(a => a.type === 'partner' && a.is_locked && a !== row);
+                    const otherLockedSum = otherLockedPartners.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
+                    
+                    const maxAllowed = parseFloat((this.form.amount - nonPartnerSum - otherLockedSum).toFixed(2));
+                    
+                    if (parseFloat(row.amount) > maxAllowed) {
+                        row.amount = maxAllowed;
+                        this.validationError = `Amount cannot exceed the total remaining balance (₹${maxAllowed}).`;
+                    }
+                    this.recalculatePartnerSplits();
                 },
                 getFilteredTargets(type) {
                     if (type === 'partner') {
