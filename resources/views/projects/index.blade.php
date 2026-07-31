@@ -106,7 +106,12 @@
                         </span>
 
                         <!-- Project Code Badge -->
-                        
+                        <div class="absolute bottom-4 left-4">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/90 text-slate-100 font-mono font-bold text-[10px] tracking-wider shadow-sm border border-slate-700/50 backdrop-blur-md">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                                {{ $proj->code }}
+                            </span>
+                        </div>
                     </div>
 
                     <!-- Card Body -->
@@ -240,8 +245,8 @@
                     
                     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
                         <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                            <!-- Name & Total Floors -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Name, Code & Total Floors -->
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div class="md:col-span-2 space-y-1.5">
                                     <label for="edit_name" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Project Name</label>
                                     <input id="edit_name" 
@@ -250,6 +255,15 @@
                                            x-model="editProject.name"
                                            required 
                                            class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <label for="edit_code" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Project Code</label>
+                                    <input id="edit_code" 
+                                           type="text" 
+                                           name="code" 
+                                           x-model="editProject.code"
+                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold uppercase focus:outline-none transition shadow-sm" />
                                 </div>
 
                                 <div class="space-y-1.5">

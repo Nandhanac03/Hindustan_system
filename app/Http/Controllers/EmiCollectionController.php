@@ -526,134 +526,72 @@ class EmiCollectionController extends Controller
             ->orderBy('installment_no')
             ->get();
 
-        // Build chronological ledger
-        $ledger = collect();
-        $opening = 0; // Sales have no "opening balance" concept — full amount is the debit
+        $receipts = $sale->receipts->sortBy('id')->values();
+        $receiptQueue = [];
+        foreach ($receipts as $r) {
+            $receiptQueue[] = [
+                'id' => $r->id,
+                'amount' => (float)$r->amount,
+                'original_amount' => (float)$r->amount,
+            ];
+        }
 
-        $totalPaid = round((float)$sale->receipts->sum('amount'), 2);
-        $allocatedPayment = $totalPaid;
-
-        $receiptsQueue = $sale->receipts->sortBy('receipt_date')->values();
         $receiptIndex = 0;
-        $currentReceiptBalance = $receiptsQueue->isEmpty() ? 0 : round((float)$receiptsQueue[0]->amount, 2);
+        $installmentReceipts = [];
 
-        // Installment rows (debits)
         foreach ($installments as $inst) {
             $instAmount = round((float)$inst->amount, 2);
-            $appliedReceiptIds = [];
+            $needed = $instAmount;
+            $installmentReceipts[$inst->id] = [];
 
-            $remainingToPay = $instAmount;
-            while ($remainingToPay > 0.001 && $currentReceiptBalance > 0.001) {
-                $take = min($remainingToPay, $currentReceiptBalance);
-                
-                if (!in_array($receiptsQueue[$receiptIndex]->id, $appliedReceiptIds)) {
-                    $appliedReceiptIds[] = $receiptsQueue[$receiptIndex]->id;
-                }
-                
-                $remainingToPay = round($remainingToPay - $take, 2);
-                $currentReceiptBalance = round($currentReceiptBalance - $take, 2);
-                
-                if ($currentReceiptBalance <= 0.001) {
-                    $receiptIndex++;
-                    if ($receiptIndex < $receiptsQueue->count()) {
-                        $currentReceiptBalance = round((float)$receiptsQueue[$receiptIndex]->amount, 2);
-                    } else {
-                        $currentReceiptBalance = 0;
+            while ($needed > 0 && $receiptIndex < count($receiptQueue)) {
+                $r = &$receiptQueue[$receiptIndex];
+                $avail = round($r['amount'], 2);
+                if ($avail > 0) {
+                    $allocated = min($needed, $avail);
+                    $r['amount'] = round($r['amount'] - $allocated, 2);
+                    $needed = round($needed - $allocated, 2);
+                    
+                    $found = false;
+                    foreach ($installmentReceipts[$inst->id] as $item) {
+                        if ($item['id'] === $r['id']) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        $installmentReceipts[$inst->id][] = [
+                            'id' => $r['id'],
+                            'amount' => $r['original_amount'],
+                        ];
                     }
                 }
-            }
-            
-            if (round($allocatedPayment - $instAmount, 2) >= -0.01) {
-                $ledger->push([
-                    'date'            => $inst->due_date?->format('d M Y') ?? '—',
-                    'description'     => $inst->label . ' (Due)',
-                    'debit'           => $instAmount,
-                    'credit'          => 0,
-                    'running_balance' => 0,
-                    'type'            => 'installment',
-                    'status'          => 'paid',
-                    'sort_date'       => $inst->due_date,
-                    'remaining'       => 0,
-                    'receipt_ids'     => $appliedReceiptIds,
-                ]);
-                $allocatedPayment = max(0, round($allocatedPayment - $instAmount, 2));
-            } elseif (round($allocatedPayment, 2) > 0.01) {
-                $paidPart = round($allocatedPayment, 2);
-                $remainingPart = round($instAmount - $paidPart, 2);
-                
-                if ($remainingPart <= 0.01) {
-                    $ledger->push([
-                        'date'            => $inst->due_date?->format('d M Y') ?? '—',
-                        'description'     => $inst->label . ' (Due)',
-                        'debit'           => $instAmount,
-                        'credit'          => 0,
-                        'running_balance' => 0,
-                        'type'            => 'installment',
-                        'status'          => 'paid',
-                        'sort_date'       => $inst->due_date,
-                        'remaining'       => 0,
-                        'receipt_ids'     => $appliedReceiptIds,
-                    ]);
-                    $allocatedPayment = 0;
-                } else {
-                    $ledger->push([
-                        'date'            => $inst->due_date?->format('d M Y') ?? '—',
-                        'description'     => $inst->label . ' (Paid Part)',
-                        'debit'           => $paidPart,
-                        'credit'          => 0,
-                        'running_balance' => 0,
-                        'type'            => 'installment',
-                        'status'          => 'paid',
-                        'sort_date'       => $inst->due_date,
-                        'remaining'       => 0,
-                        'receipt_ids'     => $appliedReceiptIds,
-                    ]);
-
-                    $ledger->push([
-                        'date'            => $inst->due_date?->format('d M Y') ?? '—',
-                        'description'     => $inst->label . ' (Balance Due)',
-                        'debit'           => $remainingPart,
-                        'credit'          => 0,
-                        'running_balance' => 0,
-                        'type'            => 'installment',
-                        'status'          => ($inst->due_date && $inst->due_date->isPast()) ? 'overdue' : 'pending',
-                        'sort_date'       => $inst->due_date,
-                        'remaining'       => $remainingPart,
-                        'receipt_ids'     => [],
-                    ]);
-                    
-                    $allocatedPayment = 0;
+                if (round($r['amount'], 2) <= 0.01) {
+                    $receiptIndex++;
                 }
-            } else {
-                $ledger->push([
-                    'date'            => $inst->due_date?->format('d M Y') ?? '—',
-                    'description'     => $inst->label . ' (Due)',
-                    'debit'           => $instAmount,
-                    'credit'          => 0,
-                    'running_balance' => 0,
-                    'type'            => 'installment',
-                    'status'          => ($inst->due_date && $inst->due_date->isPast()) ? 'overdue' : 'pending',
-                    'sort_date'       => $inst->due_date,
-                    'remaining'       => $instAmount,
-                    'receipt_ids'     => [],
-                ]);
             }
         }
 
-        // Receipt rows (credits)
-        foreach ($sale->receipts as $receipt) {
-            $desc = $receipt->payment_type === 'prepayment' 
-                ? 'Prepayment Receipt — ' . $receipt->payment_mode
-                : 'Receipt — ' . $receipt->payment_mode;
-                
+        $ledger = collect();
+        $runningBalance = 0;
+        $opening = 0;
+
+        foreach ($installments as $inst) {
+            $instAmount = round((float)$inst->amount, 2);
+            $paidAmount = round((float)($inst->paid_amount ?? 0), 2);
+            $runningBalance += ($instAmount - $paidAmount);
+
             $ledger->push([
-                'date'            => Carbon::parse($receipt->receipt_date)->format('d M Y'),
-                'description'     => $desc . ($receipt->reference_no ? ' (' . $receipt->reference_no . ')' : ''),
-                'debit'           => 0,
-                'credit'          => (float)$receipt->amount,
-                'running_balance' => 0,
-                'type'            => 'receipt',
-                'sort_date'       => Carbon::parse($receipt->receipt_date),
+                'id'              => $inst->id,
+                'date'            => $inst->due_date?->format('d M Y') ?? '—',
+                'description'     => $inst->label . ' (Due)',
+                'debit'           => $instAmount,
+                'credit'          => $paidAmount,
+                'running_balance' => $runningBalance,
+                'type'            => 'installment',
+                'status'          => $inst->status,
+                'sort_date'       => $inst->due_date,
+                'receipts'        => $installmentReceipts[$inst->id] ?? [],
             ]);
         }
 

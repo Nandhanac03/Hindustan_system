@@ -111,7 +111,9 @@
                 <tbody class="divide-y divide-slate-100 bg-white">
                     <template x-for="sale in paginatedSales()" :key="sale.id">
                         <tr class="hover:bg-slate-50/50 transition-colors text-center text-xs font-semibold text-slate-700">
-                            <td class="px-4 py-4 font-bold text-slate-900 border-b border-slate-100" x-text="sale.sale_number"></td>
+                            <td class="px-4 py-4 font-bold border-b border-slate-100">
+                                <a href="#" @click.prevent="openViewModal(sale.id)" class="text-[#09876B] hover:text-[#076852] hover:underline transition-colors cursor-pointer" x-text="sale.sale_number"></a>
+                            </td>
                             <td class="px-4 py-4 text-left border-b border-slate-100">
                                 <div class="font-bold text-slate-800" x-text="sale.project ? sale.project.name : 'N/A'"></div>
                                 <div class="text-[10px] text-slate-400 mt-0.5" x-text="sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (sale.unit ? sale.unit.door_no : '')"></div>
@@ -130,7 +132,7 @@
                             </td>
                             <td class="px-4 py-4 text-right border-b border-slate-100">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <a :href="'/emi-collections/ledger/' + sale.id" class="p-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition inline-flex items-center justify-center shadow-sm" title="EMI & Collection Ledger">
+                                    <a :href="`{{ url('emi-collections/ledger') }}/${sale.id}`" class="p-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 hover:text-indigo-800 transition inline-flex items-center justify-center shadow-sm" title="EMI & Collection Ledger">
                                         <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                     </a>
                                     <button @click="openViewModal(sale.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Sale">
@@ -1888,7 +1890,7 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>EMI & Collection Ledger</span>
                 </a>
-                <button @click="closeViewModal()" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Close Modal</button>
+                <button @click="closeViewModal()" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Close</button>
             </div>
         </div>
     </div>
@@ -3542,8 +3544,8 @@ function salesApp() {
                 this.showToast('Initial payment cannot exceed Total Contract Value. Please enter a lesser amount.', 'error');
                 return;
             }
-            fetch(`{{ url('sales') }}/${this.activeSale.id}`, {
-                method: 'PUT',
+            fetch(`{{ url('sales') }}/${this.activeSale.id}/update`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
