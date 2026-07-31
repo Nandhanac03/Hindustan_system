@@ -215,7 +215,11 @@
                                 </span>
 
                                 {{-- Installment Status / Button --}}
-                                @if($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
+                                @if($row['status'] === 'exchanged')
+                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-blue-50 text-blue-700 border border-blue-200">
+                                        Exchanged
+                                    </span>
+                                @elseif($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
                                         Paid
                                     </span>
@@ -294,6 +298,84 @@
             </table>
         </div>
     </div>
+
+    @if(!empty($archiveSnapshot))
+    {{-- Collapsible Archived Receipts & EMI Schedule details --}}
+    <div x-data="{ openTables: false }" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4">
+        <button type="button" @click="openTables = !openTables"
+                class="text-xs font-black text-blue-700 hover:text-blue-900 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
+            <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : '📜 Expand Full Receipts & EMI Schedule Audit Log'"></span>
+            <svg class="w-4 h-4 transition-transform duration-200" :class="openTables ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+
+        <div x-show="openTables" x-transition.opacity class="mt-4 space-y-4 font-sans text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {{-- Archived Receipts Table --}}
+                <div class="space-y-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Archived Receipts History</span>
+                    <div class="border border-slate-200/80 rounded-2xl bg-slate-50/50 divide-y divide-slate-200/60 overflow-hidden shadow-xs">
+                        @if(!empty($archiveSnapshot['receipts']))
+                            @foreach($archiveSnapshot['receipts'] as $r)
+                                @if(empty($r['partner_id']))
+                                <div class="px-4 py-2.5 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-extrabold text-slate-800 font-mono">{{ $r['receipt_number'] ?? 'Receipt #' . $r['id'] }}</span>
+                                        <span class="text-slate-400 font-mono font-semibold">{{ isset($r['receipt_date']) ? \Carbon\Carbon::parse($r['receipt_date'])->format('d M Y') : '—' }}</span>
+                                        <span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[8px] font-bold uppercase">{{ $r['payment_mode'] ?? '—' }}</span>
+                                    </div>
+                                    <span class="font-bold text-emerald-700 font-mono">₹{{ number_format($r['amount'], 2) }}</span>
+                                </div>
+                                @endif
+                            @endforeach
+                        @else
+                            <div class="px-4 py-4 text-slate-400 italic text-center">No receipts recorded prior to exchange</div>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Archived Installments Schedule Table --}}
+                <div class="space-y-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Archived EMI Installments Schedule</span>
+                    <div class="border border-slate-200/80 rounded-2xl bg-slate-50/50 divide-y divide-slate-200/60 overflow-hidden shadow-xs">
+                        @if(!empty($archiveSnapshot['installments']))
+                            @foreach($archiveSnapshot['installments'] as $inst)
+                                <div class="px-4 py-2.5 flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-4 h-4 rounded-full bg-slate-200 text-slate-700 text-[8px] font-bold flex items-center justify-center font-mono">{{ $inst['installment_no'] }}</span>
+                                        <span class="font-bold text-slate-800">{{ $inst['label'] }}</span>
+                                        <span class="text-slate-400 font-mono font-semibold">{{ isset($inst['due_date']) ? \Carbon\Carbon::parse($inst['due_date'])->format('d M Y') : '—' }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2.5">
+                                        @php
+                                            $paidAmt = $inst['paid_amount'] ?? 0;
+                                            if (($inst['status'] ?? '') === 'paid' && (!$paidAmt || (float)$paidAmt <= 0)) {
+                                                $paidAmt = $inst['amount'] ?? 0;
+                                            }
+                                        @endphp
+                                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase border
+                                            @if(($inst['status'] ?? '') === 'paid')
+                                                bg-emerald-50 text-emerald-755 border-emerald-100
+                                            @elseif(($inst['status'] ?? '') === 'partial')
+                                                bg-amber-50 text-amber-755 border-amber-100
+                                            @else
+                                                bg-slate-100 text-slate-700 border-slate-200
+                                            @endif
+                                        ">
+                                            {{ $inst['status'] ?? 'pending' }}
+                                        </span>
+                                        <span class="font-bold text-slate-800 font-mono">₹{{ number_format($inst['amount'], 2) }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="px-4 py-4 text-slate-400 italic text-center">No EMI schedule configured prior to exchange</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Back Links --}}
     <div class="flex gap-4 text-xs">

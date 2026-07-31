@@ -520,9 +520,44 @@ class EmiCollectionController extends Controller
 
     public function customerLedger(Sale $sale): View
     {
-        CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+        if ($sale->status !== 'exchanged') {
+            CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+        }
 
         $sale->load(['customer', 'project', 'unit', 'receipts']);
+
+        $archiveSnapshot = null;
+        if ($sale->status === 'exchanged') {
+            $statusLog = \App\Models\SaleStatusLog::where('sale_id', $sale->id)
+                ->where('event_type', 'exchanged')
+                ->first();
+
+            $snapshotReceipts = collect();
+            if ($statusLog && isset($statusLog->snapshot_data)) {
+                $archiveSnapshot = $statusLog->snapshot_data;
+                if (isset($statusLog->snapshot_data['receipts'])) {
+                    foreach ($statusLog->snapshot_data['receipts'] as $rData) {
+                        $r = new Receipt();
+                        $r->forceFill([
+                            'id'           => $rData['id'] ?? null,
+                            'sale_id'      => $rData['sale_id'] ?? $sale->id,
+                            'customer_id'  => $rData['customer_id'] ?? $sale->customer_id,
+                            'project_id'   => $rData['project_id'] ?? $sale->project_id,
+                            'unit_id'      => $rData['unit_id'] ?? $sale->unit_id,
+                            'receipt_date' => isset($rData['receipt_date']) ? Carbon::parse($rData['receipt_date']) : null,
+                            'amount'       => $rData['amount'] ?? 0,
+                            'payment_mode' => $rData['payment_mode'] ?? '',
+                            'reference_no' => $rData['reference_no'] ?? null,
+                            'bank_id'      => $rData['bank_id'] ?? null,
+                            'partner_id'   => $rData['partner_id'] ?? null,
+                        ]);
+                        $r->exists = true;
+                        $snapshotReceipts->push($r);
+                    }
+                }
+            }
+            $sale->setRelation('receipts', $snapshotReceipts);
+        }
 
         $installments = CustomerInstallment::where('sale_id', $sale->id)
             ->orderBy('installment_no')
@@ -606,7 +641,7 @@ class EmiCollectionController extends Controller
                 'credit'          => 0,
                 'running_balance' => 0,
                 'type'            => 'installment',
-                'status'          => 'pending',
+                'status'          => $sale->status === 'exchanged' ? 'exchanged' : 'pending',
                 'sort_date'       => Carbon::parse($sale->sale_date),
             ]);
         }
@@ -622,7 +657,7 @@ class EmiCollectionController extends Controller
         });
 
         $totalDebits    = $ledger->sum('debit');
-        $totalCredits   = $ledger->sum('credit');
+        $totalCredits   = $sale->status === 'exchanged' ? $sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount') : $ledger->sum('credit');
         $closingBalance = (float)$sale->remaining_balance;
         $allSales       = Sale::with(['customer', 'unit'])->get();
         $banks          = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
@@ -636,7 +671,8 @@ class EmiCollectionController extends Controller
             'closingBalance',
             'allSales',
             'installments',
-            'banks'
+            'banks',
+            'archiveSnapshot'
         ));
     }
 
