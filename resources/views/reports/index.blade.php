@@ -82,49 +82,49 @@
                 <!-- Card 1: Output Tax -->
                 <div class="text-left p-5 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#a38c29] bg-gradient-to-br from-white via-white to-amber-50/30 shadow-2xs transition-all duration-200 space-y-2 hover:-translate-y-0.5 hover:shadow-md cursor-default overflow-hidden">
                     <div class="flex items-center justify-between gap-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                        <span class="whitespace-nowrap font-extrabold" title="Output Tax (Sales)">Output Tax (Sales)</span>
+                        <span class="whitespace-nowrap font-extrabold" title="Total GST Collected">Total GST Collected</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29] animate-pulse shrink-0"></span>
                     </div>
                     <div class="text-xl font-black font-mono text-[#a38c29] truncate pt-0.5">
                         ₹{{ number_format($gstStats['output_tax'] ?? 0, 2) }}
                     </div>
-                    <div class="text-[10px] font-semibold text-slate-400">Total Tax Collected</div>
+                    <div class="text-[10px] font-semibold text-slate-400">From Customer Sales & Bookings</div>
                 </div>
 
                 <!-- Card 2: Input Tax Credit (ITC) -->
                 <div class="text-left p-5 rounded-2xl border border-slate-200/90 border-l-4 border-l-slate-800 bg-gradient-to-br from-white via-white to-slate-50 shadow-2xs transition-all duration-200 space-y-2 hover:-translate-y-0.5 hover:shadow-md cursor-default overflow-hidden">
                     <div class="flex items-center justify-between gap-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                        <span class="whitespace-nowrap font-extrabold" title="Input Tax Credit (ITC)">Input Tax Credit (ITC)</span>
+                        <span class="whitespace-nowrap font-extrabold" title="Total GST Paid">Total GST Paid</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-slate-800 animate-pulse shrink-0"></span>
                     </div>
                     <div class="text-xl font-black font-mono text-slate-900 truncate pt-0.5">
                         ₹{{ number_format($gstStats['input_tax'] ?? 0, 2) }}
                     </div>
-                    <div class="text-[10px] font-semibold text-slate-400">Supplier & Material Credit</div>
+                    <div class="text-[10px] font-semibold text-slate-400">To Suppliers for Materials & Services</div>
                 </div>
 
                 <!-- Card 3: Net Tax Payable -->
                 <div class="text-left p-5 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#a38c29] bg-gradient-to-br from-white via-white to-amber-50/30 shadow-2xs transition-all duration-200 space-y-2 hover:-translate-y-0.5 hover:shadow-md cursor-default overflow-hidden">
                     <div class="flex items-center justify-between gap-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                        <span class="whitespace-nowrap font-extrabold" title="Net Tax Liability">Net Tax Liability</span>
+                        <span class="whitespace-nowrap font-extrabold" title="Net GST Payable">Net GST Payable to Govt</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29] animate-pulse shrink-0"></span>
                     </div>
                     <div class="text-xl font-black font-mono text-[#a38c29] truncate pt-0.5">
                         ₹{{ number_format($gstStats['net_payable'] ?? 0, 2) }}
                     </div>
-                    <div class="text-[10px] font-semibold text-slate-400">Output - Input Credit</div>
+                    <div class="text-[10px] font-semibold text-slate-400">(GST Collected - GST Paid)</div>
                 </div>
 
                 <!-- Card 4: Total GST Volume -->
                 <div class="text-left p-5 rounded-2xl border border-slate-200/90 border-l-4 border-l-slate-900 bg-gradient-to-br from-white via-white to-slate-100/50 shadow-2xs transition-all duration-200 space-y-2 hover:-translate-y-0.5 hover:shadow-md cursor-default overflow-hidden">
                     <div class="flex items-center justify-between gap-2 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">
-                        <span class="whitespace-nowrap font-extrabold" title="Total GST Volume">Total GST Volume</span>
+                        <span class="whitespace-nowrap font-extrabold" title="Overall Tax Volume">Overall Tax Volume</span>
                         <span class="w-2.5 h-2.5 rounded-full bg-slate-900 animate-pulse shrink-0"></span>
                     </div>
                     <div class="text-xl font-black font-mono text-slate-900 truncate pt-0.5">
                         ₹{{ number_format($gstStats['total_tax'] ?? 0, 2) }}
                     </div>
-                    <div class="text-[10px] font-semibold text-slate-400">{{ $gstStats['count'] ?? 0 }} Total Audit Transactions</div>
+                    <div class="text-[10px] font-semibold text-slate-400">Total value across {{ $gstStats['count'] ?? 0 }} transactions</div>
                 </div>
             </div>
 
@@ -138,67 +138,74 @@
                         </h4>
                         <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Database-verified statutory tax breakdown log for audit & tax filing.</p>
                     </div>
-                    <span class="px-4 py-1.5 bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider shadow-2xs">
-                        Showing {{ count($gstReportEntries) }} Tax Records
-                    </span>
+                    <div class="flex items-center gap-2">
+                        @php
+                            $activeProjectName = 'All Projects (Default)';
+                            if(request('project_id')) {
+                                $activeProject = \App\Models\Project::find(request('project_id'));
+                                if($activeProject) {
+                                    $activeProjectName = $activeProject->name;
+                                }
+                            }
+                        @endphp
+                        <span class="px-4 py-1.5 bg-slate-800 text-white border border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xs flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Active Project: {{ $activeProjectName }}
+                        </span>
+                        <span class="px-4 py-1.5 bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider shadow-2xs">
+                            Showing {{ count($gstReportEntries) }} Tax Records
+                        </span>
+                    </div>
                 </div>
 
-                <div class="w-full overflow-x-auto">
+                <div class="w-full overflow-x-auto overflow-y-auto max-h-[600px] relative">
                     <table id="reportsTable" class="w-full text-xs text-left border-collapse">
-                        <thead>
+                        <thead class="sticky top-0 z-10">
                             <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
-                                <th class="px-4 py-3.5 text-white font-extrabold whitespace-nowrap">Tax Nature / Section</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold whitespace-nowrap">Invoice No</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold text-center whitespace-nowrap">Date</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold whitespace-nowrap">Customer / Entity</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold whitespace-nowrap">GSTIN / PAN</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold whitespace-nowrap">Project / Unit</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold text-right whitespace-nowrap">Taxable Base (₹)</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold text-center whitespace-nowrap">GST (%)</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold text-right whitespace-nowrap">CGST (₹)</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold text-right whitespace-nowrap">SGST (₹)</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold text-right whitespace-nowrap">Total Tax (₹)</th>
-                                <th class="px-4 py-3.5 text-white font-extrabold text-right whitespace-nowrap">Invoice Total (₹)</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold whitespace-nowrap">Tax Nature / Section</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold whitespace-nowrap">Invoice No</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold text-center whitespace-nowrap">Date</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold whitespace-nowrap">Customer / Entity</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold whitespace-nowrap">GSTIN / PAN</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold text-right whitespace-nowrap">Taxable Base (₹)</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold text-center whitespace-nowrap">GST (%)</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold text-right whitespace-nowrap">GST Amount (₹)</th>
+                                <th class="px-3 py-2.5 text-white font-extrabold text-right whitespace-nowrap">Invoice Total (₹)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
                             @forelse($gstReportEntries as $row)
                                 <tr class="hover:bg-amber-50/30 transition-colors duration-150 font-medium">
-                                    <td class="px-4 py-3.5 whitespace-nowrap">
+                                    <td class="px-3 py-2.5 whitespace-nowrap">
                                         <span class="px-3 py-1 rounded-lg text-[9.5px] font-black uppercase border shadow-2xs whitespace-nowrap inline-block {{ ($row->tax_nature ?? 'output') === 'output' ? 'bg-[#a38c29]/15 text-[#8a7522] border-[#a38c29]/30' : 'bg-slate-100 text-slate-800 border-slate-300' }}">
                                             {{ $row->type ?? 'GST' }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3.5 font-mono font-bold text-slate-900 whitespace-nowrap">{{ $row->invoice_number ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px] whitespace-nowrap">{{ $row->date ?? '' }}</td>
-                                    <td class="px-4 py-3.5 font-bold text-slate-900 whitespace-nowrap">{{ $row->entity_name ?? $row->customer_name ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">{{ $row->gstin ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3.5 text-slate-700 font-semibold whitespace-nowrap">{{ $row->project_name ?? 'N/A' }} - {{ $row->unit_door ?? '' }}</td>
-                                    <td class="px-4 py-3.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">₹{{ number_format($row->taxable_value ?? 0, 2) }}</td>
-                                    <td class="px-4 py-3.5 text-center font-mono font-black whitespace-nowrap">
+                                    <td class="px-3 py-2.5 font-mono font-bold text-slate-900 whitespace-nowrap">{{ $row->invoice_number ?? 'N/A' }}</td>
+                                    <td class="px-3 py-2.5 text-center text-slate-500 font-mono text-[11px] whitespace-nowrap">{{ $row->date ?? '' }}</td>
+                                    <td class="px-3 py-2.5 font-bold text-slate-900 whitespace-nowrap">{{ $row->entity_name ?? $row->customer_name ?? 'N/A' }}</td>
+                                    <td class="px-3 py-2.5 font-mono text-[11px] text-slate-600 whitespace-nowrap">{{ $row->gstin ?? 'N/A' }}</td>
+                                    <td class="px-3 py-2.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">₹{{ number_format($row->taxable_value ?? 0, 2) }}</td>
+                                    <td class="px-3 py-2.5 text-center font-mono font-black whitespace-nowrap">
                                         <span class="px-2.5 py-1 bg-amber-50/90 text-[#8a7522] border border-[#a38c29]/30 rounded-md whitespace-nowrap inline-block">{{ number_format($row->gst_rate, 2) }}%</span>
                                     </td>
-                                    <td class="px-4 py-3.5 text-right font-mono text-slate-700 font-semibold whitespace-nowrap">₹{{ number_format($row->cgst, 2) }}</td>
-                                    <td class="px-4 py-3.5 text-right font-mono text-slate-700 font-semibold whitespace-nowrap">₹{{ number_format($row->sgst, 2) }}</td>
-                                    <td class="px-4 py-3.5 text-right font-mono font-black text-[#a38c29] whitespace-nowrap">₹{{ number_format($row->total_tax, 2) }}</td>
-                                    <td class="px-4 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">₹{{ number_format($row->grand_total, 2) }}</td>
+                                    <td class="px-3 py-2.5 text-right font-mono font-black text-[#a38c29] whitespace-nowrap">₹{{ number_format($row->total_tax, 2) }}</td>
+                                    <td class="px-3 py-2.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">₹{{ number_format($row->grand_total, 2) }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="12" class="px-6 py-12 text-center text-slate-400 italic font-semibold">No active GST tax transaction records found for the selected filter criteria.</td>
+                                    <td colspan="9" class="px-6 py-12 text-center text-slate-400 italic font-semibold">No active GST tax transaction records found for the selected filter criteria.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                         @if(count($gstReportEntries) > 0)
                         <tfoot>
                             <tr class="bg-slate-900 text-white border-t-2 border-[#a38c29] text-xs font-black">
-                                <td colspan="6" class="px-4 py-4 text-left uppercase tracking-wider text-slate-200">Total Combined GST Statutory Summary</td>
-                                <td class="px-4 py-4 text-right font-mono text-white">₹{{ number_format($gstStats['total_taxable'] ?? 0, 2) }}</td>
-                                <td class="px-4 py-4 text-center font-mono text-slate-400">—</td>
-                                <td class="px-4 py-4 text-right font-mono text-slate-300">₹{{ number_format($gstStats['total_cgst'] ?? 0, 2) }}</td>
-                                <td class="px-4 py-4 text-right font-mono text-slate-300">₹{{ number_format($gstStats['total_sgst'] ?? 0, 2) }}</td>
-                                <td class="px-4 py-4 text-right font-mono text-[#d4af37] text-sm font-black">₹{{ number_format($gstStats['total_tax'] ?? 0, 2) }}</td>
-                                <td class="px-4 py-4 text-right font-mono text-white text-sm font-black">₹{{ number_format(($gstStats['total_taxable'] ?? 0) + ($gstStats['total_tax'] ?? 0), 2) }}</td>
+                                <td colspan="5" class="px-3 py-4 text-left uppercase tracking-wider text-slate-200">Total Combined GST Statutory Summary</td>
+                                <td class="px-3 py-4 text-right font-mono text-white">₹{{ number_format($gstStats['total_taxable'] ?? 0, 2) }}</td>
+                                <td class="px-3 py-4 text-center font-mono text-slate-400">—</td>
+                                <td class="px-3 py-4 text-right font-mono text-[#d4af37] text-sm font-black">₹{{ number_format($gstStats['total_tax'] ?? 0, 2) }}</td>
+                                <td class="px-3 py-4 text-right font-mono text-white text-sm font-black">₹{{ number_format(($gstStats['total_taxable'] ?? 0) + ($gstStats['total_tax'] ?? 0), 2) }}</td>
                             </tr>
                         </tfoot>
                         @endif
