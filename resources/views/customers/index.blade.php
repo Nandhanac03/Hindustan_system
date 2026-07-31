@@ -621,21 +621,31 @@ function customersApp() {
             if (hasError) return;
 
             let customerId = this.forms.edit.id;
+            let payload = { ...this.forms.edit, _method: 'PUT' };
             fetch(`{{ url('customers') }}/${customerId}`, {
-                method: 'PUT',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify(this.forms.edit)
+                body: JSON.stringify(payload)
             })
             .then(async res => {
-                let data = await res.json();
+                let text = await res.text();
+                let data = {};
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error('Server returned non-JSON:', text);
+                    this.showToast('Server returned an invalid response. Check console.', 'error');
+                    return;
+                }
+                
                 if (res.status === 422) {
                     this.editErrors = data.errors || {};
                 } else if (!res.ok) {
-                    this.showToast(data.error || 'Server error occurred.', 'error');
+                    this.showToast(data.error || data.message || 'Server error occurred.', 'error');
                 } else {
                     this.showToast('Customer updated successfully.');
                     this.closeEditModal();
@@ -662,17 +672,27 @@ function customersApp() {
             let customerId = this.deleteTarget.id;
 
             fetch(`{{ url('customers') }}/${customerId}`, {
-                method: 'DELETE',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Accept': 'application/json'
-                }
+                },
+                body: JSON.stringify({ _method: 'DELETE' })
             })
             .then(async res => {
-                let data = await res.json().catch(() => ({}));
+                let text = await res.text();
+                let data = {};
+                try {
+                    data = JSON.parse(text);
+                } catch(e) {
+                    console.error('Server returned non-JSON:', text);
+                    this.showToast('Server returned an invalid response. Check console.', 'error');
+                    return;
+                }
+                
                 if (!res.ok) {
-                    this.showToast(data.error || 'Failed to delete customer.', 'error');
+                    this.showToast(data.error || data.message || 'Failed to delete customer.', 'error');
                 } else {
                     this.showToast('Customer deleted successfully.');
                     this.closeDeleteModal();
