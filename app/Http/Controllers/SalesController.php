@@ -356,6 +356,7 @@ class SalesController extends Controller
                 // Receipt::allocateToPartners($receipt);
             }
             $this->syncDefaultEmiSchedule($sale);
+            \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
             return response()->json(['sale' => $sale->load(['receipts', 'brokerage'])], 201);
         });
     }
@@ -613,6 +614,7 @@ class SalesController extends Controller
             ]);
             // Sync/regenerate EMI schedules if plan is EMI
             $this->syncDefaultEmiSchedule($sale);
+            \App\Models\CustomerInstallment::allocatePaymentStatusForSale($sale->id);
             return response()->json(['sale' => $sale->load(['receipts', 'brokerage'])], 200);
         });
     }
@@ -938,6 +940,7 @@ class SalesController extends Controller
                 'label'          => 'Down Payment',
                 'due_date'       => $startDate->toDateString(),
                 'amount'         => $downPayment,
+                'paid_amount'    => $downPayment,
                 'status'         => 'paid',
                 'schedule_type'  => 'fixed_emi',
             ]);

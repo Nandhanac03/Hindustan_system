@@ -520,6 +520,8 @@ class EmiCollectionController extends Controller
 
     public function customerLedger(Sale $sale): View
     {
+        CustomerInstallment::allocatePaymentStatusForSale($sale->id);
+
         $sale->load(['customer', 'project', 'unit', 'receipts']);
 
         $installments = CustomerInstallment::where('sale_id', $sale->id)
