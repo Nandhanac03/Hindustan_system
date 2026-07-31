@@ -54,7 +54,7 @@
             </div>
         @endif
 
-        <form action="{{ route('expenses.bills.store') }}" method="POST" enctype="multipart/form-data">
+        <form x-ref="mainForm" action="{{ route('expenses.bills.store') }}" method="POST" enctype="multipart/form-data" novalidate>
             @csrf
 
             <!-- Two-Panel Grid Layout -->
@@ -77,20 +77,24 @@
                                           class="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-100 uppercase"
                                           x-text="'Owed: ₹' + formatCurrency(selectedSupplierBalance())"></span>
                                 </div>
-                                <select name="payee_id" required x-model="form.payee_id" @change="onSupplierChange()"
-                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
+                                <select name="payee_id" x-model="form.payee_id" @change="onSupplierChange(); delete errors.payee_id"
+                                        :class="errors.payee_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 hover:border-slate-350 focus:bg-white focus:ring-2 focus:ring-blue-500/20'"
+                                        class="w-full px-3 py-2.5 border rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition cursor-pointer">
                                     <option value="">Select Supplier</option>
                                     @foreach($suppliers as $supplier)
                                         <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
                                     @endforeach
                                 </select>
+                                <template x-if="errors.payee_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.payee_id"></p></template>
                             </div>
 
                             <!-- Supplier Bill Number -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Supplier Bill Number (as per invoice) <span class="text-rose-500">*</span></label>
-                                <input type="text" name="bill_number" required x-model="form.bill_number" placeholder="e.g. BR/25-26/0987"
-                                       class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                                <input type="text" name="bill_number" x-model="form.bill_number" @input="delete errors.bill_number" placeholder="e.g. BR/25-26/0987"
+                                       :class="errors.bill_number ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20'"
+                                       class="w-full px-3 py-2.5 border rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                                <template x-if="errors.bill_number"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.bill_number"></p></template>
                             </div>
 
                             <!-- Supplier GSTIN -->
@@ -103,8 +107,10 @@
                             <!-- Supplier Bill Date -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier Bill Date <span class="text-rose-500">*</span></label>
-                                <input type="date" name="bill_date" required x-model="form.bill_date"
-                                       class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition-all">
+                                <input type="date" name="bill_date" x-model="form.bill_date" @input="delete errors.bill_date"
+                                       :class="errors.bill_date ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20'"
+                                       class="w-full px-3 py-2.5 border rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition-all">
+                                <template x-if="errors.bill_date"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.bill_date"></p></template>
                             </div>
 
                             <!-- Supplier PAN -->
@@ -151,8 +157,10 @@
                             <!-- Base Amount -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Base Amount (₹) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="bill_amount" required step="0.01" min="0.01" x-model.number="form.amount" @input="onBaseAmountChange(); fetchProjectMetrics()"
-                                       class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                                <input type="number" name="bill_amount" step="0.01" min="0.01" x-model.number="form.amount" @input="onBaseAmountChange(); fetchProjectMetrics(); delete errors.bill_amount"
+                                       :class="errors.bill_amount ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20'"
+                                       class="w-full px-3 py-2.5 border rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                                <template x-if="errors.bill_amount"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.bill_amount"></p></template>
                             </div>
 
                             <!-- Tax / GST Rate (%) -->
@@ -184,8 +192,10 @@
                             <!-- Total Bill Liability -->
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Amount (₹) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="final_amount" required step="0.01" min="0.01" x-model.number="form.total_amount" @input="onTotalAmountChange(); fetchProjectMetrics()"
-                                       class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition">
+                                <input type="number" name="final_amount" step="0.01" min="0.01" x-model.number="form.total_amount" @input="onTotalAmountChange(); fetchProjectMetrics(); delete errors.final_amount"
+                                       :class="errors.final_amount ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20'"
+                                       class="w-full px-3 py-2.5 border rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition">
+                                <template x-if="errors.final_amount"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.final_amount"></p></template>
                             </div>
 
                             <!-- Form Action Next Button -->
@@ -350,7 +360,7 @@
                                         class="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                                     Back
                                 </button>
-                                <button type="submit"
+                                <button type="button" @click="if (!form.uploaded_file_name) { showUploadAlert = true; } else { $refs.mainForm.submit(); }"
                                         class="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
                                     <span>Save & Create Liability</span>
@@ -506,6 +516,31 @@
                 </div>
             </div>
         </form>
+
+        <!-- Missing Document Modal -->
+        <template x-teleport="body">
+            <div x-show="showUploadAlert" class="fixed inset-0 z-[99999] flex items-center justify-center p-4" x-transition.opacity x-cloak>
+                <!-- Backdrop -->
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showUploadAlert = false"></div>
+                
+                <!-- Modal Box -->
+                <div class="relative bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-sm z-10" @click.stop>
+                    <div class="p-6 text-center">
+                        <div class="w-16 h-16 bg-rose-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-extrabold text-slate-800 mb-2">Missing Document</h3>
+                        <p class="text-xs text-slate-500 font-semibold mb-6">Please upload a bill document (Step 3) before saving the liability.</p>
+                        <button type="button" @click="showUploadAlert = false"
+                                class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
+                            Okay, I'll Upload It
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </template>
     </div>
 
     <script>
@@ -513,6 +548,8 @@
             return {
                 step: 1,
                 dragover: false,
+                showUploadAlert: false,
+                errors: {},
                 suppliers: @json($suppliers),
                 systemRef: '{{ $systemBillRef }}',
                 projectMetrics: {
@@ -682,17 +719,29 @@
                     this.form.uploaded_file_size = '';
                 },
                 validateStep(currentStep) {
-                    const panel = document.querySelector(`[x-show="step === ${currentStep}"]`);
-                    if (!panel) return true;
-                    
-                    const inputs = panel.querySelectorAll('input, select, textarea');
+                    this.errors = {};
                     let isValid = true;
                     
-                    for (let i = 0; i < inputs.length; i++) {
-                        if (!inputs[i].checkValidity()) {
-                            inputs[i].reportValidity();
+                    if (currentStep === 1) {
+                        if (!this.form.payee_id) {
+                            this.errors.payee_id = 'The supplier / contractor field is required.';
                             isValid = false;
-                            break;
+                        }
+                        if (!this.form.bill_number || this.form.bill_number.trim() === '') {
+                            this.errors.bill_number = 'The bill number field is required.';
+                            isValid = false;
+                        }
+                        if (!this.form.bill_date) {
+                            this.errors.bill_date = 'The bill date field is required.';
+                            isValid = false;
+                        }
+                        if (!this.form.amount || this.form.amount <= 0) {
+                            this.errors.bill_amount = 'The base amount must be greater than zero.';
+                            isValid = false;
+                        }
+                        if (!this.form.total_amount || this.form.total_amount <= 0) {
+                            this.errors.final_amount = 'The total amount must be greater than zero.';
+                            isValid = false;
                         }
                     }
                     return isValid;
