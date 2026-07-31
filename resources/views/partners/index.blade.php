@@ -103,58 +103,73 @@
                 <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Registered Partners & Current Balances</h2>
             </div>
             
-            <div class="overflow-x-auto flex-1">
-                <table class="w-full text-xs text-left">
-                    <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522]">
-                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Partner Info</th>
-                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Total Collected</th>
-                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Total Payouts</th>
-                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px]">Net Balance</th>
-                            <th class="px-5 py-3 font-extrabold text-white uppercase tracking-widest text-[9px] text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @forelse($partners as $partner)
-                            <tr class="hover:bg-slate-50/50 transition-all">
-                                <td class="px-5 py-4">
-                                    <div class="font-bold text-slate-900">{{ $partner->name }}</div>
-                                    <div class="text-[9px] text-slate-400 font-mono mt-0.5">A/C: {{ $partner->linkedAccount->code ?? 'N/A' }}</div>
-                                </td>
-                                <td class="px-5 py-4 font-semibold text-emerald-700">
-                                    ₹{{ number_format($partner->total_collected, 2) }}
-                                </td>
-                                <td class="px-5 py-4 font-semibold text-rose-700">
-                                    ₹{{ number_format($partner->total_allocated, 2) }}
-                                </td>
-                                <td class="px-5 py-4">
-                                    <span class="font-bold {{ $partner->balance >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
-                                        ₹{{ number_format($partner->balance, 2) }}
-                                    </span>
-                                </td>
-                                <td class="px-5 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button @click.prevent="selectedPartner = {{ $partner->id }}" title="View Partner Profile" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
-                                        
-                                        <form action="{{ route('partners.destroy', $partner->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this partner and their linked account?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" title="Delete Partner" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-500 hover:text-rose-700 transition inline-flex items-center justify-center shadow-sm">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            </button>
-                                        </form>
+            <div class="p-5 flex-1 bg-slate-50/30">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-5">
+                    @forelse($partners as $partner)
+                        <div class="bg-gradient-to-br from-white via-amber-50/10 to-amber-50/30 rounded-2xl border border-amber-200/50 border-t-4 border-t-[#a38c29] shadow-md hover:shadow-xl hover:-translate-y-1 hover:border-amber-300 transition-all duration-300 p-5 relative overflow-hidden flex flex-col group">
+                            <!-- Card Header: Partner Name & Actions -->
+                            <div class="flex justify-between items-start mb-5">
+                                <div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#a38c29]/20 to-[#b89635]/10 text-[#a38c29] flex items-center justify-center font-black text-xs shadow-inner">
+                                            {{ strtoupper(substr($partner->name, 0, 2)) }}
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wide">{{ $partner->name }}</h3>
+                                            <p class="text-[10px] font-mono text-slate-500 mt-0.5 font-bold tracking-widest">A/C: {{ $partner->linkedAccount->code ?? 'N/A' }}</p>
+                                        </div>
                                     </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-5 py-12 text-center text-slate-450 italic">No partners registered yet. Use the action button above to register.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                </div>
+                                <div class="flex gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button @click.prevent="selectedPartner = {{ $partner->id }}" title="View Partner Profile" class="w-8 h-8 rounded-xl bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition flex items-center justify-center shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
+                                    <form action="{{ route('partners.destroy', $partner->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this partner and their linked account?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" title="Delete Partner" class="w-8 h-8 rounded-xl bg-rose-50 hover:bg-rose-500 text-rose-500 hover:text-white transition flex items-center justify-center shadow-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            
+                            <!-- Financial Metrics Grid -->
+                            <div class="grid grid-cols-2 gap-3 mb-5 flex-1">
+                                <div class="bg-gradient-to-br from-emerald-50/50 to-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs flex flex-col justify-center">
+                                    <p class="text-[9px] uppercase font-extrabold text-emerald-600/80 tracking-widest mb-1.5 flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M7 11l5-5m0 0l5 5m-5-5v12"/></svg>
+                                        Total Collected
+                                    </p>
+                                    <p class="text-sm font-black text-emerald-800 font-mono">₹{{ number_format($partner->total_collected, 2) }}</p>
+                                </div>
+                                <div class="bg-gradient-to-br from-rose-50/50 to-white p-3.5 rounded-xl border border-rose-100 shadow-2xs flex flex-col justify-center">
+                                    <p class="text-[9px] uppercase font-extrabold text-rose-600/80 tracking-widest mb-1.5 flex items-center gap-1">
+                                        <svg class="w-3 h-3 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 13l-5 5m0 0l-5-5m5 5V6"/></svg>
+                                        Total Payouts
+                                    </p>
+                                    <p class="text-sm font-black text-rose-800 font-mono">₹{{ number_format($partner->total_allocated, 2) }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Bottom Net Balance -->
+                            <div class="pt-4 flex items-center justify-between mt-auto bg-gradient-to-r from-[#a38c29] to-[#8a7522] -mx-5 -mb-5 px-5 py-4 shadow-inner">
+                                <span class="text-[10px] font-black uppercase tracking-widest text-white/90">Net Balance</span>
+                                <span class="text-xl font-black font-mono text-white drop-shadow-md">
+                                    ₹{{ number_format($partner->balance, 2) }}
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-1 md:col-span-2 xl:col-span-2 text-center py-16 bg-white rounded-3xl border border-slate-200/80 border-dashed">
+                            <div class="w-16 h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                            </div>
+                            <h3 class="text-sm font-black text-slate-800 uppercase tracking-wider mb-2">No Partners Registered</h3>
+                            <p class="text-xs text-slate-500 font-medium max-w-sm mx-auto leading-relaxed">You haven't added any partners yet. Use the "Register Partner" button to get started.</p>
+                        </div>
+                    @endforelse
+                </div>
             </div>
 
             {{-- Partner Modals (placed outside overflow-x-auto to prevent clipping) --}}
@@ -217,30 +232,41 @@
         </div>
 
         {{-- Projects Share Settings Side Panel --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 space-y-4 flex flex-col h-full">
-            <div>
-                <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Project Share Percentages</h3>
-                <p class="text-[10px] text-slate-450 mt-1">Configure how booking payment collections are divided among project partners.</p>
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5 flex flex-col h-full bg-gradient-to-br from-white to-slate-50">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#a38c29]/20 to-[#a38c29]/5 text-[#a38c29] flex items-center justify-center shadow-inner">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider">Project Share Percentages</h3>
+                    <p class="text-[9px] font-bold text-slate-400 mt-0.5 tracking-wide">Configure booking collections split</p>
+                </div>
             </div>
 
-            <div class="divide-y divide-slate-100 flex-1">
+            <div class="space-y-3 flex-1 overflow-y-auto pr-1 custom-scrollbar">
                 @forelse($projects as $project)
-                    <div class="py-3 flex items-center justify-between" x-data="{ shareModal: false }">
-                        <div>
-                            <div class="font-bold text-slate-900 text-xs">{{ $project->name }}</div>
-                            <div class="text-[9px] text-slate-450 mt-0.5">
-                                @php
-                                    $sharesSummary = $project->partnerShares->map(function ($s) {
-                                        return $s->partner->name . ' (' . $s->share_pct . '%)';
-                                    })->implode(', ');
-                                @endphp
-                                {{ $sharesSummary ?: 'No shares defined yet' }}
+                    <div class="p-4 bg-white border border-slate-150 rounded-2xl shadow-2xs hover:shadow-md hover:border-[#a38c29]/30 transition-all flex items-start justify-between group" x-data="{ shareModal: false }">
+                        <div class="flex-1 pr-4">
+                            <div class="font-black text-slate-900 text-xs uppercase tracking-wide flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                {{ $project->name }}
+                            </div>
+                            <div class="flex flex-wrap gap-1.5 mt-2.5">
+                                @forelse($project->partnerShares as $s)
+                                    <span class="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg text-[9px] text-slate-600 transition-colors hover:bg-amber-50 hover:border-amber-200">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                                        <span class="font-semibold">{{ $s->partner->name }}</span>
+                                        <span class="font-mono font-black text-[#a38c29]">{{ number_format((float)$s->share_pct, 1) }}%</span>
+                                    </span>
+                                @empty
+                                    <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 italic bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">No shares defined</span>
+                                @endforelse
                             </div>
                         </div>
                         
-                        <button @click.prevent="shareModal = true" title="Configure Project Shares" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                        </button>
+                        <button @click.prevent="shareModal = true" title="Configure Project Shares" class="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-[#a38c29] text-slate-500 group-hover:text-white transition-all flex items-center justify-center shrink-0 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </button>           </button>
                         
                         {{-- Settings Modal --}}
                         <div x-show="shareModal" x-cloak class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm transition-opacity" style="display: none;">
