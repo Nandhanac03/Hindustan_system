@@ -260,12 +260,12 @@ class LoanController extends Controller
         $validated = $request->validate([
             'amount'    => ['required', 'numeric', 'min:0.01'],
             'paid_date' => ['required', 'date'],
-            'bank_account_id' => ['required', 'exists:accounts,id'],
+            'bank_account_id' => ['nullable', 'exists:accounts,id'],
         ]);
 
         $amount   = (float)$validated['amount'];
         $paidDate = $validated['paid_date'];
-        $bankAccountId = $validated['bank_account_id'];
+        $bankAccountId = $validated['bank_account_id'] ?? \App\Models\Account::where('type', 'Asset')->where('is_active', true)->value('id');
 
         if ($installment->loan_id !== $loan->id) {
             return response()->json(['error' => 'Invalid installment for this loan.'], 400);
