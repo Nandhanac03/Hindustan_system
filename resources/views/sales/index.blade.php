@@ -2104,8 +2104,13 @@ function salesApp() {
         selectReturnSale(sale, targetStatus) {
             this.selectedReturnSale = sale;
             this.targetReturnStatus = targetStatus;
-            this.returnForm.cancellation_fee = 100000;
+            this.returnForm.cancellation_fee = (sale.cancellation_fee !== null && sale.cancellation_fee !== undefined) 
+                ? Number(sale.cancellation_fee) 
+                : 100000;
             this.returnForm.reason = sale.cancellation_reason || '';
+            this.returnForm.date = sale.cancelled_at 
+                ? new Date(sale.cancelled_at).toISOString().split('T')[0] 
+                : new Date().toISOString().split('T')[0];
             this.returnForm.revert_unsold = true;
         },
         calculateApprovedRefund(sale) {
