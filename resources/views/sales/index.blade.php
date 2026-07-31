@@ -861,10 +861,10 @@
                             </div>
                         </div>
 
-                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.add.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm" x-transition>
+                        <div x-show="['Bank Transfer', 'Cheque', 'UPI'].includes(forms.add.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm" x-transition>
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Reference / Cheque No</label>
-                                <input type="text" x-model="forms.add.reference_no" placeholder="e.g. UTR / Cheque number"
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block" x-text="forms.add.payment_mode === 'UPI' ? 'UPI Number / Transaction ID' : 'Reference / Cheque No'"></label>
+                                <input type="text" x-model="forms.add.reference_no" :placeholder="forms.add.payment_mode === 'UPI' ? 'Enter UPI Number or Ref ID' : 'e.g. UTR / Cheque number'"
                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                             </div>
                             <div class="space-y-1.5">
@@ -1483,10 +1483,10 @@
                             </div>
                         </div>
 
-                        <div x-show="['Bank Transfer', 'Cheque'].includes(forms.edit.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm" x-transition>
+                        <div x-show="['Bank Transfer', 'Cheque', 'UPI'].includes(forms.edit.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm" x-transition>
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Reference / Cheque No</label>
-                                <input type="text" x-model="forms.edit.reference_no" placeholder="e.g. UTR / Cheque number"
+                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block" x-text="forms.edit.payment_mode === 'UPI' ? 'UPI Number / Transaction ID' : 'Reference / Cheque No'"></label>
+                                <input type="text" x-model="forms.edit.reference_no" :placeholder="forms.edit.payment_mode === 'UPI' ? 'Enter UPI Number or Ref ID' : 'e.g. UTR / Cheque number'"
                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
                             </div>
                             <div class="space-y-1.5">
@@ -2092,9 +2092,11 @@ function salesApp() {
         },
         getPaidTillDate(sale) {
             if (!sale) return 0;
-            const snap = this.getExchangeSnapshot(sale);
-            if (snap && snap.old_sale && snap.old_sale.total_paid !== undefined && snap.old_sale.total_paid !== null) {
-                return Number(snap.old_sale.total_paid);
+            if (sale.status === 'exchanged') {
+                const snap = this.getExchangeSnapshot(sale);
+                if (snap && snap.old_sale && snap.old_sale.total_paid !== undefined && snap.old_sale.total_paid !== null) {
+                    return Number(snap.old_sale.total_paid);
+                }
             }
             const receiptsSum = sale.receipts ? sale.receipts.filter(r => !r.partner_id).reduce((sum, r) => sum + Number(r.amount), 0) : 0;
             return receiptsSum;
