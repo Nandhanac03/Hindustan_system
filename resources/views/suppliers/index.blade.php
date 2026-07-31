@@ -146,13 +146,9 @@
                                             </button>
                                             
                                             <!-- Delete -->
-                                            <form :action="'{{ url('/suppliers') }}/' + sup.id" method="POST" onsubmit="return confirm('Are you sure you want to remove this supplier?');" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" title="Delete Supplier">
-                                                    <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                </button>
-                                            </form>
+                                            <button type="button" @click="confirmDelete(sup)" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" title="Delete Supplier">
+                                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -245,6 +241,37 @@
                   </form>
              </div>
         </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div x-show="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+             <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showDeleteModal = false">
+                  <div class="p-6">
+                      <div class="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full mb-4 shadow-sm shadow-red-200/50">
+                          <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                          </svg>
+                      </div>
+                      <h3 class="text-lg font-black text-slate-900 text-center uppercase tracking-wider mb-2">Delete Supplier?</h3>
+                      <p class="text-sm text-slate-500 text-center mb-6">
+                          Are you sure you want to permanently remove <span class="font-bold text-slate-800" x-text="supplierToDelete ? supplierToDelete.name : ''"></span>? This action cannot be undone.
+                      </p>
+                      
+                      <div class="flex items-center justify-center gap-3">
+                          <button type="button" @click="showDeleteModal = false" class="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                              Cancel
+                          </button>
+                          <form :action="supplierToDelete ? '{{ url('/suppliers') }}/' + supplierToDelete.id : ''" method="POST" class="inline">
+                              @csrf
+                              @method('DELETE')
+                              <button type="submit" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-red-600/20 uppercase tracking-wider flex items-center gap-2">
+                                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                  Yes, Delete
+                              </button>
+                          </form>
+                      </div>
+                  </div>
+             </div>
+        </div>
     </div>
 
     <script>
@@ -281,6 +308,12 @@
                     this.editForm.pan = sup.pan || '';
                     this.editForm.address = sup.address || '';
                     this.showEditModal = true;
+                },
+                showDeleteModal: false,
+                supplierToDelete: null,
+                confirmDelete(sup) {
+                    this.supplierToDelete = sup;
+                    this.showDeleteModal = true;
                 }
             }
         }
