@@ -929,6 +929,11 @@
                 return false;
             }
             
+            // Exclude gstin fields to allow alphanumeric input
+            if (name.includes('gstin') || xModel.includes('gstin') || placeholder.includes('gstin') || id.includes('gstin')) {
+                return false;
+            }
+            
             // Matches amount fields
             if (xModel.includes('amount') || name.includes('amount') || placeholder.includes('amount') || name === 'debit' || name === 'credit' || name.includes('debit') || name.includes('credit')) {
                 return true;
