@@ -65,11 +65,12 @@
             <div class="lg:text-right">
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Remaining Balance</span>
                 <div class="mt-0.5 inline-flex items-center gap-2">
-                    <span class="text-base font-black font-mono {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }}">
+                    <span class="text-base font-black font-mono {{ $sale->status === 'exchanged' ? 'text-blue-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600') }}">
                         ₹{{ number_format(abs($closingBalance), 2) }}
                     </span>
-                    <span class="px-2 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider border {{ $closingBalance > 0 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200' }}">
-                        {{ $closingBalance > 0 ? 'Outstanding' : 'Fully Paid' }}
+                    <span class="px-2 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider border 
+                        {{ $sale->status === 'exchanged' ? 'bg-blue-50 text-blue-700 border-blue-200' : ($closingBalance > 0 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200') }}">
+                        {{ $sale->status === 'exchanged' ? 'Exchanged' : ($closingBalance > 0 ? 'Outstanding' : 'Fully Paid') }}
                     </span>
                 </div>
             </div>
@@ -115,17 +116,19 @@
         </div>
 
         {{-- Card 4: Net Outstanding --}}
-        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] {{ $closingBalance > 0 ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' : 'border-l-emerald-500 hover:border-emerald-200 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] bg-emerald-50/20' }} shadow-sm p-3.5 sm:p-4 transition-all duration-300 hover:-translate-y-1.5 group relative overflow-hidden flex items-center justify-between">
+        <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] 
+            {{ $sale->status === 'exchanged' ? 'border-l-blue-500 hover:border-blue-200 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] bg-blue-50/20' : ($closingBalance > 0 ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' : 'border-l-emerald-500 hover:border-emerald-200 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] bg-emerald-50/20') }} 
+            shadow-sm p-3.5 sm:p-4 transition-all duration-300 hover:-translate-y-1.5 group relative overflow-hidden flex items-center justify-between">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Net Outstanding</span>
-                <span class="text-lg font-black {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-0.5 block font-mono">
+                <span class="text-lg font-black {{ $sale->status === 'exchanged' ? 'text-blue-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600') }} mt-0.5 block font-mono">
                     ₹{{ number_format(abs($closingBalance), 2) }}
                 </span>
-                <span class="text-[9px] font-bold {{ $closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600' }} mt-0.5 block">
-                    {{ $closingBalance > 0 ? 'Balance Due' : 'Fully Settled' }}
+                <span class="text-[9px] font-bold {{ $sale->status === 'exchanged' ? 'text-blue-650' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600') }} mt-0.5 block">
+                    {{ $sale->status === 'exchanged' ? 'Exchanged (Archived)' : ($closingBalance > 0 ? 'Balance Due' : 'Fully Settled') }}
                 </span>
             </div>
-            <div class="w-9 h-9 rounded-xl {{ $closingBalance > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600' }} flex items-center justify-center shrink-0">
+            <div class="w-9 h-9 rounded-xl {{ $sale->status === 'exchanged' ? 'bg-blue-100 text-blue-600' : ($closingBalance > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600') }} flex items-center justify-center shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 18h12l3-18H3zm12 11H9v-2h6v2zm1-4H8V9h9v4z"/></svg>
             </div>
         </div>
@@ -146,10 +149,12 @@
             </div>
             
             <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                @if($sale->status !== 'exchanged')
                 <button type="button" @click="openPayModal({{ $closingBalance }}, 'Outstanding Balance')" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white border border-[#a38c29] text-[10px] font-black uppercase tracking-wider rounded-xl transition-all shadow-sm hover:shadow inline-flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     Add Receipt
                 </button>
+                @endif
                 <a href="{{ route('sales.index') }}" class="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 hover:border-slate-300 text-[10px] font-extrabold uppercase tracking-wider rounded-xl transition-all shadow-xs inline-flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
                     Sales Register
@@ -234,32 +239,38 @@
                                             </button>
                                         @endforeach
                                     @endif
+                                    @if($sale->status !== 'exchanged')
                                     <button
                                         @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
                                         type="button"
                                         class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
                                         Pay Remaining
                                     </button>
+                                    @endif
                                 @elseif($row['status'] === 'overdue')
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-rose-100 text-rose-700 border border-rose-200">
                                         Overdue
                                     </span>
+                                    @if($sale->status !== 'exchanged')
                                     <button
                                         @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
                                         type="button"
                                         class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
                                         Pay Installment
                                     </button>
+                                    @endif
                                 @else
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                                         Pending
                                     </span>
+                                    @if($sale->status !== 'exchanged')
                                     <button
                                         @click.stop="openPayModal('{{ $row['debit'] - $row['credit'] }}', '{{ addslashes($row['description']) }}')"
                                         type="button"
                                         class="inline-flex items-center justify-center px-3 py-1 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm transition-all whitespace-nowrap">
                                         Pay Installment
                                     </button>
+                                    @endif
                                 @endif
                             </div>
                         </td>
