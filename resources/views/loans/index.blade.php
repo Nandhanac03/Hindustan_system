@@ -753,7 +753,7 @@ function loanApp() {
         },
         submitEditInterestForm() {
             if (!this.editLoan) return;
-            const url = `/loans/${this.editLoan.id}/update-interest`;
+            const url = `{{ url('/loans') }}/${this.editLoan.id}/update-interest`;
             fetch(url, {
                 method: 'POST',
                 headers: {
