@@ -847,7 +847,7 @@
                 const id = (el.getAttribute('id') || '').toLowerCase();
                 
                 // 1. Handle GST & Percentage inputs limit
-                if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount')) {
+                if (!xModel.includes('sqft') && !name.includes('sqft') && !placeholder.includes('sqft') && !xModel.includes('amount') && !name.includes('amount') && !placeholder.includes('amount') && !name.includes('gstin') && !xModel.includes('gstin') && !placeholder.includes('gstin')) {
                     if (
                         xModel.includes('gst') ||
                         xModel.includes('percentage') ||

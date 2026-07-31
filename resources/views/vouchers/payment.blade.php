@@ -216,7 +216,7 @@
                     if (!this.sourceType || !this.sourceId) return;
                     
                     try {
-                        const response = await fetch(`/vouchers/source-details?source_type=${this.sourceType}&source_id=${this.sourceId}`);
+                        const response = await fetch(`{{ url('/vouchers/source-details') }}?source_type=${this.sourceType}&source_id=${this.sourceId}`);
                         if (!response.ok) throw new Error('Failed to fetch data');
                         
                         const data = await response.json();

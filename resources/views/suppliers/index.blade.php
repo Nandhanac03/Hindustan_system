@@ -65,8 +65,8 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier GSTIN</label>
-                            <input type="text" name="gstin" placeholder="e.g. 33AABCB1234C1Z5"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
+                            <input type="text" name="gstin" placeholder="e.g. 33AABCB1234C1Z5" minlength="15" maxlength="15" pattern="[a-zA-Z0-9]{15}" title="GSTIN must be exactly 15 alphanumeric characters"
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition uppercase">
                         </div>
                         <div class="space-y-1.5">
                             <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier PAN</label>
@@ -214,8 +214,8 @@
                               <div class="grid grid-cols-2 gap-4">
                                   <div class="space-y-1.5">
                                       <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier GSTIN</label>
-                                      <input type="text" name="gstin" x-model="editForm.gstin"
-                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700 font-mono">
+                                      <input type="text" name="gstin" x-model="editForm.gstin" minlength="15" maxlength="15" pattern="[a-zA-Z0-9]{15}" title="GSTIN must be exactly 15 alphanumeric characters"
+                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700 font-mono uppercase">
                                   </div>
                                   <div class="space-y-1.5">
                                       <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier PAN</label>

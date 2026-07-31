@@ -606,7 +606,7 @@
                         };
                         return;
                     }
-                    fetch(`/expenses/project/${this.form.project_id}/metrics`)
+                    fetch(`{{ url('/expenses/project') }}/${this.form.project_id}/metrics`)
                         .then(res => res.json())
                         .then(data => {
                             this.projectMetrics = data;

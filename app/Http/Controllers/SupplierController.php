@@ -34,16 +34,27 @@ class SupplierController extends Controller
             'name' => 'required|string|max:191|unique:payees,name,NULL,id,system_id,' . $systemId . ',type,Supplier',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:191',
-            'gstin' => 'nullable|string|max:100',
+            'gstin' => 'nullable|string|size:15|alpha_num',
             'pan' => 'nullable|string|max:100',
             'address' => 'nullable|string',
         ]);
 
         DB::transaction(function () use ($request, $systemId) {
-            // Find next counter for unique account code
-            $lastPayee = Payee::orderBy('id', 'desc')->first();
-            $nextId = $lastPayee ? ($lastPayee->id + 1) : 1;
-            $accountCode = 'SUP-ACC-' . str_pad((string)$nextId, 4, '0', STR_PAD_LEFT);
+            // Find next counter for unique account code by checking accounts table directly
+            $baseCode = 'SUP-ACC-';
+            $existingCodes = Account::where('system_id', $systemId)
+                ->where('code', 'like', $baseCode . '%')
+                ->pluck('code');
+                
+            $maxId = 0;
+            foreach ($existingCodes as $code) {
+                $idPart = (int) str_replace($baseCode, '', $code);
+                if ($idPart > $maxId) {
+                    $maxId = $idPart;
+                }
+            }
+            $nextId = $maxId + 1;
+            $accountCode = $baseCode . str_pad((string)$nextId, 4, '0', STR_PAD_LEFT);
 
             // Create liability account for the supplier (Accounts Payable)
             $account = Account::create([
@@ -82,7 +93,7 @@ class SupplierController extends Controller
             'name' => 'required|string|max:191|unique:payees,name,' . $payee->id . ',id,system_id,' . $systemId . ',type,Supplier',
             'phone' => 'nullable|string|max:50',
             'email' => 'nullable|email|max:191',
-            'gstin' => 'nullable|string|max:100',
+            'gstin' => 'nullable|string|size:15|alpha_num',
             'pan' => 'nullable|string|max:100',
             'address' => 'nullable|string',
         ]);

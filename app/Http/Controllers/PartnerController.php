@@ -472,9 +472,26 @@ class PartnerController extends Controller
         $systemId = auth()->user()->system_id ?? 1;
 
         DB::transaction(function () use ($data, $systemId) {
-            // Auto-generate account code
-            $count    = Account::where('type', 'liability')->where('name', 'like', 'Pavoor%')->orWhere('name', 'like', 'Basheer%')->count() + Account::where('code', 'like', 'PRT-ACC-%')->count() + 1;
-            $code     = 'PRT-ACC-' . str_pad((string)$count, 2, '0', STR_PAD_LEFT);
+            // Auto-generate account code by checking existing codes
+            $baseCode = 'PRT-ACC-';
+            $existingCodes = Account::where('system_id', $systemId)
+                ->where('code', 'like', $baseCode . '%')
+                ->pluck('code');
+                
+            $maxId = 0;
+            foreach ($existingCodes as $c) {
+                $idPart = (int) str_replace($baseCode, '', $c);
+                if ($idPart > $maxId) {
+                    $maxId = $idPart;
+                }
+            }
+            // Add legacy counts to avoid starting from 0 if no PRT-ACC- exists yet
+            $legacyCount = Account::where('system_id', $systemId)->where('type', 'liability')->where(function($q) {
+                $q->where('name', 'like', 'Pavoor%')->orWhere('name', 'like', 'Basheer%');
+            })->count();
+            
+            $nextId = max($maxId, $legacyCount) + 1;
+            $code = $baseCode . str_pad((string)$nextId, 2, '0', STR_PAD_LEFT);
 
             // Create linked account
             $account = Account::create([
