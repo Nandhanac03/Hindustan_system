@@ -26,7 +26,7 @@ class SalesController extends Controller
         if (!$request->ajax() && !$request->wantsJson() && !$request->has('project_id') && !$request->filled('project_id') && $projectsList->isNotEmpty()) {
             $request->merge(['project_id' => (string)$projectsList->first()->id]);
         }
-        $query = Sale::with(['project', 'unit.unitType', 'customer', 'broker', 'receipts', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'extraWorks', 'statusLogs']);
+        $query = Sale::with(['project', 'unit.unitType', 'unit.floor', 'customer', 'broker', 'receipts', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'extraWorks', 'statusLogs']);
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -36,7 +36,8 @@ class SalesController extends Controller
                   });
             });
         }
-        if ($request->filled('project_id') && $request->tab !== 'exchange') {
+        $isReturnExchange = in_array($request->tab, ['exchange', 'sale-return', 'returns', 'cancellations']);
+        if ($request->filled('project_id') && !$isReturnExchange) {
             $query->where('project_id', $request->project_id);
         }
         if ($request->filled('status')) {
@@ -664,6 +665,11 @@ class SalesController extends Controller
             'emi_installment_count'  => ['nullable', 'integer', 'min:1'],
             'emi_frequency'          => ['nullable', Rule::in(['monthly', 'quarterly'])],
             'first_installment_date' => ['nullable', 'date'],
+            'initial_payment_amount' => ['nullable', 'numeric', 'min:0'],
+            'payment_mode'           => ['nullable', 'string'],
+            'reference_no'           => ['nullable', 'string'],
+            'bank_id'                => ['nullable', 'exists:banks,id'],
+            'initial_payment_date'   => ['nullable', 'date'],
         ]);
         $sale = Sale::with('saleUnits')->findOrFail($id);
         $fromStatus = $sale->status;
@@ -691,69 +697,7 @@ class SalesController extends Controller
                 ], 422);
             }
             // Build rich archive snapshot of the old unit & sale BEFORE modifications
-            $oldSaleFull = Sale::with(['unit.unitType', 'unit.floor', 'project', 'customer', 'receipts', 'saleUnits.unit'])->find($sale->id);
-            $oldInstallments = \App\Models\CustomerInstallment::where('sale_id', $sale->id)->orderBy('installment_no')->get();
-
-            $oldUnitSnapshot = [
-                'old_sale' => [
-                    'id'                     => $oldSaleFull->id,
-                    'sale_number'            => $oldSaleFull->sale_number,
-                    'sale_date'              => $oldSaleFull->sale_date ? \Carbon\Carbon::parse($oldSaleFull->sale_date)->format('Y-m-d') : null,
-                    'agreement_date'         => $oldSaleFull->agreement_date ? \Carbon\Carbon::parse($oldSaleFull->agreement_date)->format('Y-m-d') : null,
-                    'status'                 => $oldSaleFull->status,
-                    'payment_plan'           => $oldSaleFull->payment_plan,
-                    'emi_type'               => $oldSaleFull->emi_type,
-                    'emi_installment_count'  => $oldSaleFull->emi_installment_count,
-                    'emi_frequency'          => $oldSaleFull->emi_frequency,
-                    'first_installment_date' => $oldSaleFull->first_installment_date ? \Carbon\Carbon::parse($oldSaleFull->first_installment_date)->format('Y-m-d') : null,
-                    'rate_per_sqft'          => (float)$oldSaleFull->rate_per_sqft,
-                    'sale_amount'            => (float)$oldSaleFull->sale_amount,
-                    'gst_type'               => $oldSaleFull->gst_type,
-                    'gst_amount'             => (float)$oldSaleFull->gst_amount,
-                    'base_amount'            => (float)$oldSaleFull->base_amount,
-                    'total_amount'           => (float)$oldSaleFull->total_amount,
-                    'remaining_balance'      => (float)$oldSaleFull->remaining_balance,
-                    'total_paid'             => (float)$oldSaleFull->receipts->sum('amount'),
-                ],
-                'old_unit' => [
-                    'id'                   => $oldSaleFull->unit?->id,
-                    'door_no'              => $oldSaleFull->unit?->door_no,
-                    'floor_name'           => $oldSaleFull->unit?->floor?->name,
-                    'unit_type_name'       => $oldSaleFull->unit?->unitType?->name,
-                    'built_up_area'        => (float)($oldSaleFull->unit?->built_up_area ?? 0),
-                    'expected_sale_amount' => (float)($oldSaleFull->unit?->expected_sale_amount ?? 0),
-                ],
-                'customer' => [
-                    'id'    => $oldSaleFull->customer?->id,
-                    'name'  => $oldSaleFull->customer?->name,
-                    'phone' => $oldSaleFull->customer?->phone,
-                ],
-                'project' => [
-                    'id'   => $oldSaleFull->project?->id,
-                    'name' => $oldSaleFull->project?->name,
-                ],
-                'receipts' => $oldSaleFull->receipts->map(function ($r) {
-                    return [
-                        'id'             => $r->id,
-                        'receipt_number' => $r->receipt_number,
-                        'receipt_date'   => $r->receipt_date ? \Carbon\Carbon::parse($r->receipt_date)->format('Y-m-d') : null,
-                        'amount'         => (float)$r->amount,
-                        'payment_mode'   => $r->payment_mode,
-                        'reference_no'   => $r->reference_no,
-                        'status'         => $r->status ?? 'posted',
-                    ];
-                })->values()->toArray(),
-                'installments' => $oldInstallments->map(function ($inst) {
-                    return [
-                        'id'             => $inst->id,
-                        'installment_no' => $inst->installment_no,
-                        'label'          => $inst->label,
-                        'due_date'       => $inst->due_date ? \Carbon\Carbon::parse($inst->due_date)->format('Y-m-d') : null,
-                        'amount'         => (float)$inst->amount,
-                        'status'         => $inst->status,
-                        'schedule_type'  => $inst->schedule_type,
-                    ];
-                })->values()->toArray(),
+            $oldUnitSnapshot = $this->buildSaleSnapshot($sale->id, [
                 'exchange_meta' => [
                     'target_unit_id'    => $newUnit->id,
                     'target_door_no'    => $newUnit->door_no,
@@ -762,7 +706,7 @@ class SalesController extends Controller
                     'exchanged_at'      => now()->toDateTimeString(),
                     'exchanged_by_user' => auth()->user()?->name ?? 'System',
                 ],
-            ];
+            ]);
 
             $sale->update([
                 'status' => 'exchanged',
@@ -841,6 +785,24 @@ class SalesController extends Controller
                 'brokerage_amount' => 0.0,
             ]);
 
+            // Create initial payment receipt if provided
+            $initialPayment = (float)($validated['initial_payment_amount'] ?? 0);
+            if ($initialPayment > 0) {
+                Receipt::create([
+                    'sale_id'      => $newSale->id,
+                    'customer_id'  => $newSale->customer_id,
+                    'project_id'   => $newSale->project_id,
+                    'unit_id'      => $newSale->unit_id,
+                    'receipt_date' => $validated['initial_payment_date'] ?? now()->toDateString(),
+                    'amount'       => $initialPayment,
+                    'payment_mode' => $validated['payment_mode'] ?? 'Cash',
+                    'reference_no' => $validated['reference_no'] ?? null,
+                    'bank_id'      => $validated['bank_id'] ?? null,
+                    'remarks'      => 'Initial booking payment for exchanged unit',
+                    'created_by'   => auth()->id(),
+                ]);
+            }
+
             if (!empty($validated['carry_forward'])) {
                 Receipt::where('sale_id', $sale->id)->update([
                     'sale_id' => $newSale->id,
@@ -849,6 +811,10 @@ class SalesController extends Controller
                 ]);
                 $sale->update(['remaining_balance' => $sale->total_amount - $sale->receipts()->sum('amount')]);
                 $newSale->update(['remaining_balance' => $totalAmount - $newSale->receipts()->sum('amount')]);
+            } else {
+                if ($initialPayment > 0) {
+                    $newSale->update(['remaining_balance' => round($totalAmount - $initialPayment, 2)]);
+                }
             }
             $newUnitDifference = (float)$newUnit->expected_sale_amount - $newAmount;
             $newUnit->update([
@@ -868,22 +834,25 @@ class SalesController extends Controller
                 'snapshot_data' => $oldUnitSnapshot,
                 'performed_by'  => auth()->id(),
             ]);
+            \App\Models\CustomerInstallment::where('sale_id', $sale->id)->delete();
+            $this->syncDefaultEmiSchedule($newSale);
+            \App\Models\CustomerInstallment::allocatePaymentStatusForSale($newSale->id);
+            // Build rich snapshot of the new unit & sale AFTER modifications and installment sync
+            $newUnitSnapshot = $this->buildSaleSnapshot($newSale->id);
             SaleStatusLog::create([
                 'sale_id'       => $newSale->id,
                 'from_status'   => null,
                 'to_status'     => 'active',
                 'event_type'    => 'created',
                 'reason'        => 'Created via unit exchange from sale ' . $sale->sale_number,
-                'snapshot_data' => $oldUnitSnapshot,
+                'snapshot_data' => $newUnitSnapshot,
                 'performed_by'  => auth()->id(),
             ]);
-            \App\Models\CustomerInstallment::where('sale_id', $sale->id)->delete();
-            $this->syncDefaultEmiSchedule($newSale);
-            if (!empty($validated['carry_forward'])) {
-                \App\Models\CustomerInstallment::allocatePaymentStatusForSale($newSale->id);
-            }
             return response()->json(['sale' => $newSale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer', 'statusLogs'])]);
         }
+        // Build rich snapshot of the unit & sale BEFORE cancellation/returns/resales
+        $snapshotData = $this->buildSaleSnapshot($sale->id);
+
         $sale->update([
             'status'               => $validated['status'],
             'cancellation_reason'  => in_array($validated['status'], ['cancelled', 'returned']) ? $validated['reason'] : $sale->cancellation_reason,
@@ -892,14 +861,7 @@ class SalesController extends Controller
             'cancellation_fee'     => in_array($validated['status'], ['cancelled', 'returned']) ? ($validated['cancellation_fee'] ?? 0.00) : $sale->cancellation_fee,
             'refund_amount'        => in_array($validated['status'], ['cancelled', 'returned']) ? ($validated['refund_amount'] ?? 0.00) : $sale->refund_amount,
         ]);
-        $shouldFreeUnit = false;
-        if ($validated['status'] === 'cancelled') {
-            $shouldFreeUnit = true;
-        } elseif ($validated['status'] === 'returned') {
-            $shouldFreeUnit = $request->has('revert_unsold') ? !empty($validated['revert_unsold']) : true;
-        } elseif ($validated['status'] === 'resale') {
-            $shouldFreeUnit = true;
-        }
+        $shouldFreeUnit = in_array($validated['status'], ['cancelled', 'returned', 'resale']);
         if ($shouldFreeUnit) {
             foreach ($sale->saleUnits as $su) {
                 Unit::where('id', $su->unit_id)->update([
@@ -919,9 +881,79 @@ class SalesController extends Controller
             'to_status'    => $validated['status'],
             'event_type'   => $validated['status'],
             'reason'       => $validated['reason'],
+            'snapshot_data'=> $snapshotData,
             'performed_by' => auth()->id(),
         ]);
         return response()->json(['sale' => $sale->load(['receipts', 'brokerage', 'unit.floor', 'project', 'customer'])]);
+    }
+    private function buildSaleSnapshot(int $saleId, array $extraMeta = []): array
+    {
+        $saleFull = Sale::with(['unit.unitType', 'unit.floor', 'project', 'customer', 'receipts', 'saleUnits.unit'])->findOrFail($saleId);
+        $installments = \App\Models\CustomerInstallment::where('sale_id', $saleId)->orderBy('installment_no')->get();
+
+        $snapshot = [
+            'old_sale' => [
+                'id'                     => $saleFull->id,
+                'sale_number'            => $saleFull->sale_number,
+                'sale_date'              => $saleFull->sale_date ? \Carbon\Carbon::parse($saleFull->sale_date)->format('Y-m-d') : null,
+                'agreement_date'         => $saleFull->agreement_date ? \Carbon\Carbon::parse($saleFull->agreement_date)->format('Y-m-d') : null,
+                'status'                 => $saleFull->status,
+                'payment_plan'           => $saleFull->payment_plan,
+                'emi_type'               => $saleFull->emi_type,
+                'emi_installment_count'  => $saleFull->emi_installment_count,
+                'emi_frequency'          => $saleFull->emi_frequency,
+                'first_installment_date' => $saleFull->first_installment_date ? \Carbon\Carbon::parse($saleFull->first_installment_date)->format('Y-m-d') : null,
+                'rate_per_sqft'          => (float)$saleFull->rate_per_sqft,
+                'sale_amount'            => (float)$saleFull->sale_amount,
+                'gst_type'               => $saleFull->gst_type,
+                'gst_amount'             => (float)$saleFull->gst_amount,
+                'base_amount'            => (float)$saleFull->base_amount,
+                'total_amount'           => (float)$saleFull->total_amount,
+                'remaining_balance'      => (float)$saleFull->remaining_balance,
+                'total_paid'             => (float)$saleFull->receipts->sum('amount'),
+            ],
+            'old_unit' => [
+                'id'                   => $saleFull->unit?->id,
+                'door_no'              => $saleFull->unit?->door_no,
+                'floor_name'           => $saleFull->unit?->floor?->name,
+                'unit_type_name'       => $saleFull->unit?->unitType?->name,
+                'built_up_area'        => (float)($saleFull->unit?->built_up_area ?? 0),
+                'expected_sale_amount' => (float)($saleFull->unit?->expected_sale_amount ?? 0),
+            ],
+            'customer' => [
+                'id'    => $saleFull->customer?->id,
+                'name'  => $saleFull->customer?->name,
+                'phone' => $saleFull->customer?->phone,
+            ],
+            'project' => [
+                'id'   => $saleFull->project?->id,
+                'name' => $saleFull->project?->name,
+            ],
+            'receipts' => $saleFull->receipts->map(function ($r) {
+                return [
+                    'id'             => $r->id,
+                    'receipt_number' => $r->receipt_number,
+                    'receipt_date'   => $r->receipt_date ? \Carbon\Carbon::parse($r->receipt_date)->format('Y-m-d') : null,
+                    'amount'         => (float)$r->amount,
+                    'payment_mode'   => $r->payment_mode,
+                    'reference_no'   => $r->reference_no,
+                    'status'         => $r->status ?? 'posted',
+                ];
+            })->values()->toArray(),
+            'installments' => $installments->map(function ($inst) {
+                return [
+                    'id'             => $inst->id,
+                    'installment_no' => $inst->installment_no,
+                    'label'          => $inst->label,
+                    'due_date'       => $inst->due_date ? \Carbon\Carbon::parse($inst->due_date)->format('Y-m-d') : null,
+                    'amount'         => (float)$inst->amount,
+                    'status'         => $inst->status,
+                    'schedule_type'  => $inst->schedule_type,
+                ];
+            })->values()->toArray(),
+        ];
+
+        return array_merge($snapshot, $extraMeta);
     }
     private function syncDefaultEmiSchedule(Sale $sale, array $milestones = []): void
     {

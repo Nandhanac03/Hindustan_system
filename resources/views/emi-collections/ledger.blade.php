@@ -65,12 +65,16 @@
             <div class="lg:text-right">
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">Remaining Balance</span>
                 <div class="mt-0.5 inline-flex items-center gap-2">
-                    <span class="text-base font-black font-mono {{ $sale->status === 'exchanged' ? 'text-blue-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600') }}">
+                    <span class="text-base font-black font-mono {{ $sale->status === 'exchanged' ? 'text-blue-600' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'text-rose-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600')) }}">
                         ₹{{ number_format(abs($closingBalance), 2) }}
                     </span>
                     <span class="px-2 py-0.5 rounded-full text-[8.5px] font-extrabold uppercase tracking-wider border 
-                        {{ $sale->status === 'exchanged' ? 'bg-blue-50 text-blue-700 border-blue-200' : ($closingBalance > 0 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200') }}">
-                        {{ $sale->status === 'exchanged' ? 'Exchanged' : ($closingBalance > 0 ? 'Outstanding' : 'Fully Paid') }}
+                        {{ $sale->status === 'exchanged' 
+                            ? 'bg-blue-50 text-blue-700 border-blue-200' 
+                            : (in_array($sale->status, ['cancelled', 'returned', 'resale']) 
+                                ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                                : ($closingBalance > 0 ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200')) }}">
+                        {{ in_array($sale->status, ['exchanged', 'cancelled', 'returned', 'resale']) ? ucfirst($sale->status) : ($closingBalance > 0 ? 'Outstanding' : 'Fully Paid') }}
                     </span>
                 </div>
             </div>
@@ -117,18 +121,22 @@
 
         {{-- Card 4: Net Outstanding --}}
         <div class="bg-white rounded-2xl border border-slate-200/80 border-l-[6px] 
-            {{ $sale->status === 'exchanged' ? 'border-l-blue-500 hover:border-blue-200 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] bg-blue-50/20' : ($closingBalance > 0 ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' : 'border-l-emerald-500 hover:border-emerald-200 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] bg-emerald-50/20') }} 
+            {{ $sale->status === 'exchanged' 
+                ? 'border-l-blue-500 hover:border-blue-200 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] bg-blue-50/20' 
+                : (in_array($sale->status, ['cancelled', 'returned', 'resale']) 
+                    ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' 
+                    : ($closingBalance > 0 ? 'border-l-rose-500 hover:border-rose-200 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] bg-rose-50/20' : 'border-l-emerald-500 hover:border-emerald-200 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] bg-emerald-50/20')) }} 
             shadow-sm p-3.5 sm:p-4 transition-all duration-300 hover:-translate-y-1.5 group relative overflow-hidden flex items-center justify-between">
             <div>
                 <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block">Net Outstanding</span>
-                <span class="text-lg font-black {{ $sale->status === 'exchanged' ? 'text-blue-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600') }} mt-0.5 block font-mono">
+                <span class="text-lg font-black {{ $sale->status === 'exchanged' ? 'text-blue-600' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'text-rose-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600')) }} mt-0.5 block font-mono">
                     ₹{{ number_format(abs($closingBalance), 2) }}
                 </span>
-                <span class="text-[9px] font-bold {{ $sale->status === 'exchanged' ? 'text-blue-650' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600') }} mt-0.5 block">
-                    {{ $sale->status === 'exchanged' ? 'Exchanged (Archived)' : ($closingBalance > 0 ? 'Balance Due' : 'Fully Settled') }}
+                <span class="text-[9px] font-bold {{ $sale->status === 'exchanged' ? 'text-blue-650' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'text-rose-600' : ($closingBalance > 0 ? 'text-rose-600' : 'text-emerald-600')) }} mt-0.5 block">
+                    {{ in_array($sale->status, ['exchanged', 'cancelled', 'returned', 'resale']) ? ucfirst($sale->status) . ' (Archived)' : ($closingBalance > 0 ? 'Balance Due' : 'Fully Settled') }}
                 </span>
             </div>
-            <div class="w-9 h-9 rounded-xl {{ $sale->status === 'exchanged' ? 'bg-blue-100 text-blue-600' : ($closingBalance > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600') }} flex items-center justify-center shrink-0">
+            <div class="w-9 h-9 rounded-xl {{ $sale->status === 'exchanged' ? 'bg-blue-100 text-blue-600' : (in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'bg-rose-100 text-rose-600' : ($closingBalance > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600')) }} flex items-center justify-center shrink-0">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 18h12l3-18H3zm12 11H9v-2h6v2zm1-4H8V9h9v4z"/></svg>
             </div>
         </div>
@@ -215,9 +223,10 @@
                                 </span>
 
                                 {{-- Installment Status / Button --}}
-                                @if($row['status'] === 'exchanged')
-                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-blue-50 text-blue-700 border border-blue-200">
-                                        Exchanged
+                                @if(in_array($row['status'], ['exchanged', 'cancelled', 'returned', 'resale']))
+                                    <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md 
+                                        {{ $row['status'] === 'exchanged' ? 'bg-blue-50 text-blue-700 border-blue-200' : ($row['status'] === 'cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-700 border-amber-200') }}">
+                                        {{ ucfirst($row['status']) }}
                                     </span>
                                 @elseif($row['status'] === 'paid' || round($row['debit'] ?? 0, 2) <= 0.01)
                                     <span class="inline-flex items-center px-2 py-0.5 text-[9px] font-extrabold uppercase rounded-md bg-emerald-100 text-emerald-700 border border-emerald-200">
@@ -303,7 +312,7 @@
     {{-- Collapsible Archived Receipts & EMI Schedule details --}}
     <div x-data="{ openTables: false }" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4">
         <button type="button" @click="openTables = !openTables"
-                class="text-xs font-black text-blue-700 hover:text-blue-900 uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
+                class="text-xs font-black {{ in_array($sale->status, ['cancelled', 'returned', 'resale']) ? 'text-rose-700 hover:text-rose-900' : 'text-blue-700 hover:text-blue-900' }} uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
             <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : '📜 Expand Full Receipts & EMI Schedule Audit Log'"></span>
             <svg class="w-4 h-4 transition-transform duration-200" :class="openTables ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
         </button>

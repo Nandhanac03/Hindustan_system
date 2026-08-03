@@ -1958,7 +1958,7 @@ function salesApp() {
         targetReturnStatus: '',
         selectedExchangeSale: null,
         returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: 100000, reason: '', revert_unsold: true },
-        exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '', payment_plan: 'emi', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (function() { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })() },
+        exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '', payment_plan: 'emi', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (function() { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })(), initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', initial_payment_date: new Date().toISOString().split('T')[0], reference_no: '', bank_id: '' },
         exchangeAvailableUnits: [],
         exchangeUnitTypes: [],
         exchangeSelectedUnit: null,
@@ -2329,6 +2329,12 @@ function salesApp() {
             this.exchangeForm.emi_type = sale.emi_type || 'equal';
             this.exchangeForm.emi_installment_count = sale.emi_installment_count || 12;
             this.exchangeForm.emi_frequency = sale.emi_frequency || 'monthly';
+            this.exchangeForm.initial_payment_amount = 0;
+            this.exchangeForm.initial_payment_percentage = '';
+            this.exchangeForm.payment_mode = 'Cash';
+            this.exchangeForm.initial_payment_date = new Date().toISOString().split('T')[0];
+            this.exchangeForm.reference_no = '';
+            this.exchangeForm.bank_id = '';
             const defaultDate = new Date();
             defaultDate.setMonth(defaultDate.getMonth() + 1);
             this.exchangeForm.first_installment_date = sale.first_installment_date ? (sale.first_installment_date.split('T')[0]) : defaultDate.toISOString().split('T')[0];
@@ -2347,7 +2353,8 @@ function salesApp() {
             if (this.exchangeForm.payment_plan !== 'emi') return [];
             const newVal = parseFloat(this.exchangeForm.new_unit_value || 0);
             const equity = this.exchangeForm.carry_forward ? parseFloat(this.exchangeForm.equity_applied || 0) : 0;
-            const netDue = Math.max(0, Math.round((newVal - equity) * 100) / 100);
+            const initPay = parseFloat(this.exchangeForm.initial_payment_amount || 0);
+            const netDue = Math.max(0, Math.round((newVal - equity - initPay) * 100) / 100);
             const count = parseInt(this.exchangeForm.emi_installment_count) || 1;
             if (count <= 0 || netDue <= 0) return [];
             const emiAmt = Math.floor((netDue / count) * 100) / 100;
@@ -2420,6 +2427,27 @@ function salesApp() {
             } else {
                 this.exchangeForm.new_unit_value = 0;
             }
+            if (this.exchangeForm.initial_payment_percentage !== '' && this.exchangeForm.initial_payment_percentage !== undefined) {
+                this.updateExchangeInitialPaymentFromPercentage();
+            } else {
+                this.updateExchangeInitialPaymentFromAmount();
+            }
+        },
+        updateExchangeInitialPaymentFromPercentage() {
+            const form = this.exchangeForm;
+            const total = parseFloat(form.new_unit_value) || 0;
+            const pct = parseFloat(form.initial_payment_percentage) || 0;
+            form.initial_payment_amount = Math.round((total * pct / 100) * 100) / 100;
+        },
+        updateExchangeInitialPaymentFromAmount() {
+            const form = this.exchangeForm;
+            const total = parseFloat(form.new_unit_value) || 0;
+            const paid = parseFloat(form.initial_payment_amount) || 0;
+            if (total > 0) {
+                form.initial_payment_percentage = Math.round((paid / total * 100) * 100) / 100;
+            } else {
+                form.initial_payment_percentage = '';
+            }
         },
         calculateDifferentialDue() {
             return Math.round((parseFloat(this.exchangeForm.new_unit_value || 0) - parseFloat(this.exchangeForm.equity_applied || 0)) * 100) / 100;
@@ -2438,6 +2466,15 @@ function salesApp() {
             }
             if (!this.exchangeForm.reason) {
                 this.errors.reason = ['Please enter exchange reason / notes.'];
+                hasError = true;
+            }
+
+            const maxAllowed = this.exchangeForm.carry_forward 
+                ? Math.max(0, parseFloat(this.exchangeForm.new_unit_value || 0) - parseFloat(this.exchangeForm.equity_applied || 0)) 
+                : parseFloat(this.exchangeForm.new_unit_value || 0);
+
+            if ((parseFloat(this.exchangeForm.initial_payment_amount) || 0) > maxAllowed) {
+                this.errors.initial_payment_amount = ['Initial payment cannot exceed the remaining balance due (' + this.fmt(maxAllowed) + ').'];
                 hasError = true;
             }
 
@@ -2473,6 +2510,11 @@ function salesApp() {
                     emi_installment_count: this.exchangeForm.emi_installment_count,
                     emi_frequency: this.exchangeForm.emi_frequency,
                     first_installment_date: this.exchangeForm.first_installment_date,
+                    initial_payment_amount: this.exchangeForm.initial_payment_amount,
+                    payment_mode: this.exchangeForm.payment_mode,
+                    reference_no: this.exchangeForm.reference_no,
+                    bank_id: this.exchangeForm.bank_id,
+                    initial_payment_date: this.exchangeForm.initial_payment_date,
                 })
             })
             .then(async res => {

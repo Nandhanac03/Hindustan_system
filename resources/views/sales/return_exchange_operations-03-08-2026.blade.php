@@ -324,11 +324,19 @@
                     
                     {{-- Inputs Card --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                        <div class="grid grid-cols-1 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Return/Cancel Date</label>
                                 <input type="date" x-model="returnForm.date" :disabled="!isEditReturn"
                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm disabled:opacity-75 disabled:cursor-not-allowed">
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Revert Unit status to 'Unsold'?</label>
+                                <label class="flex items-center gap-2 h-9 cursor-pointer">
+                                    <input type="checkbox" x-model="returnForm.revert_unsold" :disabled="!isEditReturn" class="rounded text-primary focus:ring-primary/20 disabled:opacity-75">
+                                    <span class="text-xs font-semibold text-slate-650">Mark Unit as Available</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -469,11 +477,19 @@
                     
                     {{-- Inputs Card --}}
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                        <div class="grid grid-cols-1 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Select Return/Cancel Date *</label>
                                 <input type="date" x-model="returnForm.date"
                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Revert Unit status to 'Unsold'?</label>
+                                <label class="flex items-center gap-2 h-9 cursor-pointer">
+                                    <input type="checkbox" x-model="returnForm.revert_unsold" class="rounded text-primary focus:ring-primary/20">
+                                    <span class="text-xs font-semibold text-slate-650">Mark Unit as Available</span>
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -608,28 +624,8 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
-                            <span>🔄 Unit Exchange Details</span>
-                        </p>
-
-                        <!-- Selected Old Unit Details Inline Info -->
-                        <div x-show="selectedExchangeSale && selectedExchangeSale.unit" x-transition.opacity
-                             class="flex flex-wrap items-center gap-x-2 gap-y-1.5 bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 shadow-2xs">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mr-1 select-none">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
-                                Old Unit:
-                            </span>
-                            <span class="text-sm font-black text-slate-800" x-text="selectedExchangeSale.unit.door_no || '—'"></span>
-                            <span class="text-sm text-slate-500 font-semibold" x-text="selectedExchangeSale.unit.unit_type?.name ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span>
-                            <span class="text-slate-300 font-light text-sm">—</span>
-                            <span class="text-sm text-slate-600 font-medium" x-text="selectedExchangeSale.unit.floor?.name || '—'"></span>
-                        </div>
-
-                        <!-- Target Unit Selections Heading -->
-                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2 mt-4">
-                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
                             <span>🎯 Target Unit Selections</span>
                         </p>
-
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Target Project *</label>
@@ -790,76 +786,6 @@
                         <div class="relative z-10 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Differential Due (Receivable)</span>
                             <span class="font-extrabold text-[#d9bf3b] text-sm mt-1 block font-mono" x-text="fmt(calculateDifferentialDue())"></span>
-                        </div>
-                    </div>
-
-                    {{-- INITIAL PAYMENT DETAILS SECTION --}}
-                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>💼 Initial Payment Details</span>
-                        </p>
-                        
-                        <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm">
-                            <div class="space-y-1.5 flex-1 w-full">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <input type="number" step="0.01" min="0" x-model="exchangeForm.initial_payment_amount" @input="updateExchangeInitialPaymentFromAmount()" placeholder="Amount (₹)"
-                                               :class="errors.initial_payment_amount ? 'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20' : 'border-slate-200 bg-white focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29]'"
-                                               class="w-full px-3 py-2 border rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
-                                    </div>
-                                    <div>
-                                        <input type="number" step="0.01" min="0" max="100" x-model="exchangeForm.initial_payment_percentage" @input="updateExchangeInitialPaymentFromPercentage()" placeholder="Percentage (%)"
-                                               :class="{'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20': (parseFloat(exchangeForm.initial_payment_percentage) || 0) > 100}"
-                                               class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
-                                    </div>
-                                </div>
-                                <p x-show="!errors.initial_payment_amount"
-                                   class="text-[9px] text-slate-400 font-medium">Enter amount or percentage (0 if none)</p>
-                                <template x-if="errors.initial_payment_amount">
-                                    <p class="text-[10px] font-semibold text-rose-600 mt-1 flex items-center gap-1" x-cloak>
-                                        <svg class="w-3.5 h-3.5 flex-shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span x-text="Array.isArray(errors.initial_payment_amount) ? errors.initial_payment_amount[0] : errors.initial_payment_amount"></span>
-                                    </p>
-                                </template>
-                            </div>
-                            <div class="space-y-1.5 w-full md:w-40">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Mode</label>
-                                <select x-model="exchangeForm.payment_mode"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                    <option value="Cash">Cash</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Cheque">Cheque</option>
-                                    <option value="UPI">UPI</option>
-                                    <option value="Credit Card">Credit Card</option>
-                                </select>
-                            </div>
-                            <div class="space-y-1.5 w-full md:w-40">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Date</label>
-                                <input type="date" x-model="exchangeForm.initial_payment_date"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                            </div>
-                        </div>
-
-                        <div x-show="['Bank Transfer', 'Cheque', 'UPI'].includes(exchangeForm.payment_mode)" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm" x-transition>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block" x-text="exchangeForm.payment_mode === 'UPI' ? 'UPI Number / Transaction ID' : 'Reference / Cheque No'"></label>
-                                <input type="text" x-model="exchangeForm.reference_no" :placeholder="exchangeForm.payment_mode === 'UPI' ? 'Enter UPI Number or Ref ID' : 'e.g. UTR / Cheque number'"
-                                       class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                            </div>
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Bank Name</label>
-                                <select x-model="exchangeForm.bank_id"
-                                        class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                    <option value="">Select Bank Account</option>
-                                    <template x-for="bank in bankAccountsList" :key="bank.id">
-                                        <option :value="bank.id" x-text="bank.name"></option>
-                                    </template>
-                                </select>
-                            </div>
                         </div>
                     </div>
 
@@ -1085,11 +1011,19 @@
                     <button type="button" @click="selectedReturnSale = null" class="text-emerald-700 hover:text-emerald-900 font-bold">✕</button>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 text-xs font-semibold">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Select Return/Cancel Date:</label>
                         <input type="date" x-model="returnForm.date"
                                class="w-full px-3 py-2 bg-white border border-slate-200 focus:ring-2 focus:ring-primary/20 focus:border-primary rounded-xl text-xs focus:outline-none transition-all">
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Revert Unit status to 'Unsold'?</label>
+                        <label class="flex items-center gap-2 h-9 cursor-pointer">
+                            <input type="checkbox" x-model="returnForm.revert_unsold" class="rounded text-primary focus:ring-primary/20">
+                            <span class="text-xs text-slate-650">Mark Unit as Available</span>
+                        </label>
                     </div>
                 </div>
 

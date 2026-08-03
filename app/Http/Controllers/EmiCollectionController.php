@@ -520,17 +520,27 @@ class EmiCollectionController extends Controller
 
     public function customerLedger(Sale $sale): View
     {
-        if ($sale->status !== 'exchanged') {
+        if ($sale->status === 'active') {
             CustomerInstallment::allocatePaymentStatusForSale($sale->id);
         }
 
         $sale->load(['customer', 'project', 'unit', 'receipts']);
 
         $archiveSnapshot = null;
-        if ($sale->status === 'exchanged') {
+        $archivedStatuses = ['exchanged', 'cancelled', 'returned', 'resale'];
+        if (in_array($sale->status, $archivedStatuses)) {
             $statusLog = \App\Models\SaleStatusLog::where('sale_id', $sale->id)
-                ->where('event_type', 'exchanged')
+                ->whereIn('event_type', $archivedStatuses)
+                ->whereNotNull('snapshot_data')
+                ->latest()
                 ->first();
+
+            if (!$statusLog) {
+                $statusLog = \App\Models\SaleStatusLog::where('sale_id', $sale->id)
+                    ->where('event_type', 'created')
+                    ->whereNotNull('snapshot_data')
+                    ->first();
+            }
 
             $snapshotReceipts = collect();
             if ($statusLog && isset($statusLog->snapshot_data)) {
@@ -555,8 +565,25 @@ class EmiCollectionController extends Controller
                         $snapshotReceipts->push($r);
                     }
                 }
+            } else {
+                $archiveSnapshot = [
+                    'old_sale' => [
+                        'id' => $sale->id,
+                    ],
+                ];
             }
-            $sale->setRelation('receipts', $snapshotReceipts);
+
+            if ($archiveSnapshot && isset($archiveSnapshot['old_sale']['id']) && $archiveSnapshot['old_sale']['id'] !== $sale->id) {
+                $simulated = $this->simulateInstallmentsForSale($sale);
+                $archiveSnapshot['installments'] = $simulated->toArray();
+            } elseif ($archiveSnapshot && !isset($archiveSnapshot['installments'])) {
+                $simulated = $this->simulateInstallmentsForSale($sale);
+                $archiveSnapshot['installments'] = $simulated->toArray();
+            }
+
+            if ($sale->receipts->isEmpty() && $snapshotReceipts->isNotEmpty()) {
+                $sale->setRelation('receipts', $snapshotReceipts);
+            }
         }
 
         $installments = CustomerInstallment::where('sale_id', $sale->id)
@@ -641,7 +668,7 @@ class EmiCollectionController extends Controller
                 'credit'          => 0,
                 'running_balance' => 0,
                 'type'            => 'installment',
-                'status'          => $sale->status === 'exchanged' ? 'exchanged' : 'pending',
+                'status'          => in_array($sale->status, $archivedStatuses) ? $sale->status : 'pending',
                 'sort_date'       => Carbon::parse($sale->sale_date),
             ]);
         }
@@ -657,7 +684,7 @@ class EmiCollectionController extends Controller
         });
 
         $totalDebits    = $ledger->sum('debit');
-        $totalCredits   = $sale->status === 'exchanged' ? $sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount') : $ledger->sum('credit');
+        $totalCredits   = in_array($sale->status, $archivedStatuses) ? $sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount') : $ledger->sum('credit');
         $closingBalance = (float)$sale->remaining_balance;
         $allSales       = Sale::with(['customer', 'unit'])->get();
         $banks          = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
@@ -843,5 +870,94 @@ class EmiCollectionController extends Controller
         });
 
         return response()->json(['success' => true]);
+    }
+
+    private function simulateInstallmentsForSale(Sale $sale)
+    {
+        $installments = collect();
+        if ($sale->payment_plan !== 'emi') {
+            return $installments;
+        }
+
+        $agreementDate = Carbon::parse($sale->agreement_date ?? $sale->sale_date ?? now());
+        $carriedForward = $sale->receipts
+            ->filter(function($r) use ($agreementDate) {
+                return Carbon::parse($r->receipt_date)->lte($agreementDate);
+            })
+            ->sum('amount');
+        
+        $totalAmount = (float)$sale->total_amount;
+        $downPayment = (float)$carriedForward;
+        $remaining = $totalAmount - $downPayment;
+        
+        if ($downPayment > 0) {
+            $installments->push([
+                'installment_no' => 0,
+                'label'          => 'Down Payment',
+                'due_date'       => $agreementDate->toDateString(),
+                'amount'         => $downPayment,
+                'status'         => 'paid',
+                'paid_amount'    => $downPayment,
+                'schedule_type'  => 'fixed_emi',
+            ]);
+        }
+
+        $numEmi = (int)$sale->emi_installment_count;
+        if ($numEmi > 0) {
+            $emiAmount = round($remaining / $numEmi, 2);
+            $firstDateVal = $sale->first_installment_date ? Carbon::parse($sale->first_installment_date) : $agreementDate->copy()->addMonth();
+            
+            for ($i = 1; $i <= $numEmi; $i++) {
+                $due = $firstDateVal->copy();
+                if ($i > 1) {
+                    if ($sale->emi_frequency === 'quarterly') {
+                        $due->addMonths(($i - 1) * 3);
+                    } else {
+                        $due->addMonths($i - 1);
+                    }
+                }
+                $amt = ($i === $numEmi)
+                    ? round($remaining - ($emiAmount * ($numEmi - 1)), 2)
+                    : $emiAmount;
+                
+                if ($amt > 0) {
+                    $installments->push([
+                        'installment_no' => $i,
+                        'label'          => "EMI {$i}",
+                        'due_date'       => $due->toDateString(),
+                        'amount'         => $amt,
+                        'status'         => 'pending',
+                        'paid_amount'    => 0,
+                        'schedule_type'  => 'fixed_emi',
+                    ]);
+                }
+            }
+        }
+
+        $receipts = $sale->receipts->sortBy('id');
+        // Convert installments collection to array of arrays to allow modification inside loop by reference
+        $installmentsArray = $installments->toArray();
+        foreach ($receipts as $r) {
+            $amountToAllocate = (float)$r->amount;
+            foreach ($installmentsArray as &$inst) {
+                $instAmount = (float)$inst['amount'];
+                $instPaid = (float)($inst['paid_amount'] ?? 0);
+                $needed = $instAmount - $instPaid;
+                
+                if ($needed > 0 && $amountToAllocate > 0) {
+                    $alloc = min($needed, $amountToAllocate);
+                    $inst['paid_amount'] = round($instPaid + $alloc, 2);
+                    $amountToAllocate = round($amountToAllocate - $alloc, 2);
+                    
+                    if (round($inst['paid_amount'], 2) >= round($instAmount, 2)) {
+                        $inst['status'] = 'paid';
+                    } else {
+                        $inst['status'] = 'partial';
+                    }
+                }
+            }
+        }
+
+        return collect($installmentsArray);
     }
 }
