@@ -118,24 +118,24 @@
                 <!-- Left Panel: Receipts Directory (2/3 width) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden lg:col-span-2 flex flex-col justify-between">
                     <div>
-                        <!-- Header with Filters -->
-                        <div class="px-6 py-5 bg-slate-900 text-white border-b border-slate-800">
+                        <!-- Header with Filters (Light Theme) -->
+                        <div class="px-6 py-5 bg-slate-50 text-slate-900 border-b border-slate-200">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div>
-                                    <h3 class="text-sm font-black uppercase tracking-wider text-white">Inbound Payment Receipts</h3>
-                                    <p class="text-xs text-slate-400 font-medium mt-0.5">Select any receipt to preview details and configure splits</p>
+                                    <h3 class="text-sm font-black uppercase tracking-wider text-slate-900">Inbound Payment Receipts</h3>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5">Select any receipt to preview details and configure splits</p>
                                 </div>
                                 
                                 <div class="flex items-center gap-2">
-                                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300">
-                                        <div class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
+                                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-800">
+                                        <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
                                         <span class="text-xs font-black" x-text="filteredReceipts().filter(r => !r.is_allocated).length"></span>
-                                        <span class="text-xs font-bold text-amber-200/80">Unallocated</span>
+                                        <span class="text-xs font-bold text-amber-900">Unallocated</span>
                                     </div>
-                                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-                                        <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800">
+                                        <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
                                         <span class="text-xs font-black" x-text="filteredReceipts().filter(r => r.is_allocated).length"></span>
-                                        <span class="text-xs font-bold text-emerald-200/80">Allocated</span>
+                                        <span class="text-xs font-bold text-emerald-900">Allocated</span>
                                     </div>
                                 </div>
                             </div>
@@ -147,14 +147,14 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                     </span>
                                     <input type="text" x-model="searchQuery" placeholder="Search receipt #, customer name..."
-                                           class="w-full pl-10 pr-4 py-2.5 bg-slate-800/80 border border-slate-700 hover:border-slate-600 rounded-xl text-xs font-semibold text-white placeholder-slate-400 focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition-all">
+                                           class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 hover:border-slate-400 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition-all shadow-xs">
                                 </div>
                                 
                                 <div class="relative flex items-center">
                                     <span class="absolute left-3.5 text-slate-400">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                     </span>
-                                    <select x-model="filterProject" class="w-full pl-10 pr-8 py-2.5 bg-slate-800/80 border border-slate-700 hover:border-slate-600 rounded-xl text-xs font-semibold text-slate-200 focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition-all cursor-pointer">
+                                    <select x-model="filterProject" class="w-full pl-10 pr-8 py-2.5 bg-white border border-slate-300 hover:border-slate-400 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition-all cursor-pointer shadow-xs">
                                         <option value="" class="text-slate-800">All Projects</option>
                                         @foreach($projects as $p)
                                             <option value="{{ $p->id }}" class="text-slate-800">{{ $p->name }}</option>
@@ -358,14 +358,14 @@
                 <!-- Right Panel: PROFESSIONAL ENTERPRISE PAYMENT RECEIPT CARD (1/3 width) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between h-full min-h-[580px]">
                     
-                    <!-- Card Header -->
-                    <div class="px-6 py-5 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border-b border-slate-800 text-white flex items-center justify-between">
+                    <!-- Card Header (Luxury Gold Theme) -->
+                    <div class="px-6 py-5 bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white border-b border-[#EAE3CD] text-slate-900 flex items-center justify-between">
                         <div>
-                            <div class="text-[10px] font-black text-[#d4b94e] uppercase tracking-widest">OFFICIAL PAYMENT RECEIPT</div>
-                            <div class="text-xs font-extrabold text-white mt-0.5" x-text="selectedReceipt ? selectedReceipt.ref : 'Receipt Voucher'"></div>
+                            <div class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest">OFFICIAL PAYMENT RECEIPT</div>
+                            <div class="text-xs font-extrabold text-slate-900 mt-0.5" x-text="selectedReceipt ? selectedReceipt.ref : 'Receipt Voucher'"></div>
                         </div>
                         <template x-if="selectedReceipt">
-                            <span :class="selectedReceipt.is_allocated ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border-amber-500/30'"
+                            <span :class="selectedReceipt.is_allocated ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-900 border-amber-300'"
                                   class="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border">
                                 <span x-text="selectedReceipt.is_allocated ? 'Allocated' : 'Ready to Allocate'"></span>
                             </span>
@@ -402,20 +402,20 @@
                                     </div>
                                 </div>
 
-                                <!-- Amount & Payment Mode -->
-                                <div class="grid grid-cols-2 gap-3 p-4 bg-slate-900 text-white rounded-2xl shadow-sm">
+                                <!-- Amount & Payment Mode (Luxury Gold Theme) -->
+                                <div class="grid grid-cols-2 gap-3 p-4 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] text-slate-900 rounded-2xl shadow-xs">
                                     <div>
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">COLLECTED AMOUNT</div>
-                                        <div class="mt-1 font-mono font-black text-amber-300 text-lg" x-text="'₹' + formatCurrency(selectedReceipt.amount)"></div>
+                                        <div class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">COLLECTED AMOUNT</div>
+                                        <div class="mt-1 font-mono font-black text-[#a38c29] text-lg" x-text="'₹' + formatCurrency(selectedReceipt.amount)"></div>
                                     </div>
                                     <div>
-                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">PAYMENT MODE</div>
+                                        <div class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">PAYMENT MODE</div>
                                         <div class="mt-1.5">
                                             <span :class="
-                                                selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-                                                (selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-                                                'bg-blue-500/20 text-blue-300 border border-blue-500/30')
-                                            " class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider">
+                                                selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                                                (selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
+                                                'bg-blue-100 text-blue-800 border border-blue-300')
+                                            " class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider whitespace-nowrap inline-block shadow-2xs">
                                                 <span x-text="selectedReceipt.payment_mode || 'N/A'"></span>
                                             </span>
                                         </div>
@@ -525,24 +525,24 @@
                     </div>
                 </div>
 
-                <!-- CATEGORY QUICK-ADD PILLS & TOOLBAR -->
-                <div class="bg-slate-900 rounded-2xl p-4 text-white flex flex-wrap items-center justify-between gap-3 border border-slate-800 shadow-sm">
+                <!-- CATEGORY QUICK-ADD PILLS & TOOLBAR (Luxury Gold Theme) -->
+                <div class="bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white rounded-2xl p-4 text-slate-900 flex flex-wrap items-center justify-between gap-3 border border-[#EAE3CD] shadow-sm">
                     <div class="flex items-center gap-2">
-                        <span class="text-xs font-black uppercase tracking-wider text-slate-400">Quick Category Add:</span>
+                        <span class="text-xs font-black uppercase tracking-wider text-[#8a7522]">Quick Category Add:</span>
                         <div class="flex flex-wrap items-center gap-1.5">
-                            <button type="button" @click="addCategoryRow('partner')" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                            <button type="button" @click="addCategoryRow('partner')" class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs">
                                 <span>🤝 + Partner</span>
                             </button>
-                            <button type="button" @click="addCategoryRow('broker')" class="px-2.5 py-1 bg-[#a38c29]/20 hover:bg-[#a38c29]/30 text-[#d4b94e] border border-[#a38c29]/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                            <button type="button" @click="addCategoryRow('broker')" class="px-2.5 py-1 bg-[#FAF0D7] hover:bg-[#F6F3E9] text-[#8a7522] border border-[#a38c29]/40 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs">
                                 <span>🏷️ + Broker Commission</span>
                             </button>
-                            <button type="button" @click="addCategoryRow('supplier')" class="px-2.5 py-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                            <button type="button" @click="addCategoryRow('supplier')" class="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-900 border border-blue-300 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs">
                                 <span>🏗️ + Supplier</span>
                             </button>
-                            <button type="button" @click="addCategoryRow('refund')" class="px-2.5 py-1 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                            <button type="button" @click="addCategoryRow('refund')" class="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-900 border border-rose-300 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs">
                                 <span>↩️ + Refund</span>
                             </button>
-                            <button type="button" @click="addCategoryRow('general')" class="px-2.5 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                            <button type="button" @click="addCategoryRow('general')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-2xs">
                                 <span>🏦 + General</span>
                             </button>
                         </div>
@@ -551,17 +551,17 @@
                     <div class="flex flex-wrap items-center gap-2.5">
                         <button type="button" @click="autoAllocatePartnerShares()"
                                 class="px-3.5 py-2 bg-[#a38c29] hover:bg-[#8f7a23] text-white text-xs font-extrabold uppercase rounded-xl transition flex items-center gap-2 shadow-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                             <span>Auto-Split Partner Shares</span>
                         </button>
 
                         <button type="button" @click="allocateAllToGeneral()"
-                                class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-extrabold uppercase rounded-xl transition flex items-center gap-2 border border-slate-700">
+                                class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold uppercase rounded-xl transition flex items-center gap-2 border border-slate-300 shadow-2xs">
                             <span>100% General Reserve</span>
                         </button>
 
                         <button type="button" @click="clearAllAllocations()"
-                                class="px-3 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-extrabold uppercase rounded-xl transition flex items-center gap-1.5 border border-rose-500/30">
+                                class="px-3 py-2 bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-extrabold uppercase rounded-xl transition flex items-center gap-1.5 border border-rose-300 shadow-2xs">
                             <span>Clear All</span>
                         </button>
                     </div>
