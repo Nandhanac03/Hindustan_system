@@ -392,7 +392,7 @@
                         'cash_book'           => 'Cash Book',
                         'bank_reports'        => 'Bank Reports',
                         'partner_statements'  => 'Supplier, Contractor & Partner Stmt',
-                        'sales_return'        => 'Sales Return Report',
+                        'sales_return'        => 'Sales Cancel Report',
                         'exchange_report'     => 'Exchange Report',
                         'petty_cash'          => 'Petty Cash Book',
                         'loan_schedules'      => 'Bank Loan EMI Schedules',

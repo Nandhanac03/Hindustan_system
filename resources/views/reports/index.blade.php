@@ -1393,7 +1393,7 @@
         {{-- 9. SALES RETURN --}}
         @if($activeTab === 'sales_return')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Sales Return Report</h3>
+            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Sales Cancel Report</h3>
 
             <div id="salesReturnChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
 
