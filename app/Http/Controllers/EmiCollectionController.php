@@ -32,7 +32,7 @@ class EmiCollectionController extends Controller
 
     public function index(Request $request): View
     {
-        $sales = Sale::with(['customer', 'project', 'unit', 'receipts' => function($q) {
+        $sales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts' => function($q) {
                 $q->latest();
             }])
             ->where('status', 'active')
@@ -44,14 +44,14 @@ class EmiCollectionController extends Controller
         $totalOutstanding = Sale::where('status', 'active')->sum('remaining_balance');
         $pendingPaymentsCount = Sale::where('status', 'active')->where('remaining_balance', '>', 0)->count();
 
-        $recentBookings = Sale::with(['customer', 'project', 'unit'])
+        $recentBookings = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
             ->where('status', 'active')
             ->where('remaining_balance', '>', 0)
             ->latest()
             ->take(5)
             ->get();
 
-        $activeSales = Sale::with(['customer', 'project', 'unit'])
+        $activeSales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
             ->where('status', 'active')
             ->latest()
             ->get();
@@ -524,7 +524,7 @@ class EmiCollectionController extends Controller
             CustomerInstallment::allocatePaymentStatusForSale($sale->id);
         }
 
-        $sale->load(['customer', 'project', 'unit', 'receipts']);
+        $sale->load(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts']);
 
         $archiveSnapshot = null;
         $archivedStatuses = ['exchanged', 'cancelled', 'returned', 'resale'];

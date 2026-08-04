@@ -2261,7 +2261,7 @@ function salesApp() {
         getNewUnitDoorNo(sale) {
             if (sale.status !== 'exchanged') return '—';
             const newSale = this.sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + sale.sale_number));
-            return newSale && newSale.unit ? newSale.unit.door_no : '—';
+            return newSale && newSale.unit ? this.formatUnitDisplay(newSale.unit) : '—';
         },
         getNewUnitValue(sale) {
             if (sale.status !== 'exchanged') return 0;
