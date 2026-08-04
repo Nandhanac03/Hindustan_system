@@ -116,7 +116,7 @@
                             </td>
                             <td class="px-4 py-4 text-left border-b border-slate-100">
                                 <div class="font-bold text-slate-800" x-text="sale.project ? sale.project.name : 'N/A'"></div>
-                                <div class="text-[10px] text-slate-400 mt-0.5" x-text="sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (sale.unit ? sale.unit.door_no : '')"></div>
+                                <div class="text-[10px] text-slate-400 mt-0.5" x-text="formatSaleUnits(sale)"></div>
                             </td>
                             <td class="px-4 py-4 text-slate-600 border-b border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
                             <td class="px-4 py-4 text-slate-500 border-b border-slate-100" x-text="sale.broker ? sale.broker.name : '—'"></td>
@@ -2019,6 +2019,42 @@ function salesApp() {
             } catch(e) {
                 return val.split('T')[0];
             }
+        },
+        formatUnitDisplay(unit) {
+            if (!unit) return '';
+            let door = (unit.door_no || '').split(',')[0].trim();
+            let type = '';
+            if (unit.unit_type && unit.unit_type.name) {
+                let tName = unit.unit_type.name.toLowerCase();
+                if (tName === 'flat') {
+                    type = 'Apartment';
+                } else if (tName.includes('parking')) {
+                    type = 'Parking';
+                } else {
+                    type = tName.charAt(0).toUpperCase() + tName.slice(1);
+                }
+            }
+            let floor = '';
+            if (unit.floor && unit.floor.name) {
+                let fName = unit.floor.name.trim();
+                if (/^(floor|fl)\b/i.test(fName)) {
+                    floor = fName.replace(/^(floor|fl)\b/i, 'Floor');
+                } else if (!isNaN(fName)) {
+                    floor = 'Floor ' + fName;
+                } else {
+                    floor = fName.charAt(0).toUpperCase() + fName.slice(1);
+                }
+            }
+            let typeStr = type ? `(${type})` : '';
+            let floorStr = floor ? ` - ${floor}` : '';
+            return `${door}${typeStr}${floorStr}`;
+        },
+        formatSaleUnits(sale) {
+            if (!sale) return '';
+            if (sale.sale_units && sale.sale_units.length) {
+                return sale.sale_units.map(su => this.formatUnitDisplay(su.unit)).filter(Boolean).join(', ');
+            }
+            return this.formatUnitDisplay(sale.unit);
         },
         fetchSales() {
             let params = new URLSearchParams();
