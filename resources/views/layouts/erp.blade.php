@@ -68,11 +68,17 @@
     <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}">
 </head>
 <body class="h-full bg-slate-50 text-slate-900" 
-      x-data="{ sidebarOpen: false, fontSize: localStorage.getItem('erp-font-size') || '100%' }" 
-      x-init="$watch('fontSize', val => { document.documentElement.style.fontSize = val; localStorage.setItem('erp-font-size', val); }); document.documentElement.style.fontSize = fontSize;">
+      x-data="{ 
+          sidebarOpen: false, 
+          openHeaderSettings: false,
+          fontSize: localStorage.getItem('erp-font-size') || '100%'
+      }" 
+      x-init="
+          $watch('fontSize', val => { document.documentElement.style.fontSize = val; localStorage.setItem('erp-font-size', val); }); 
+          document.documentElement.style.fontSize = fontSize;
+      ">
 
-    <!-- Mobile Sidebar Backdrop -->
-    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity duration-300"></div>
+    <!-- Mobile Sidebar Backdrop (Removed dark transparent overlay) -->
 
     <!-- Sidebar Container -->
     <aside class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-gradient-to-b from-primary-900 to-slate-950 text-slate-200 border-r border-primary-800/30 transition-transform duration-300 transform lg:translate-x-0"
@@ -93,7 +99,7 @@
 
         
         <!-- Navigation -->
-    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+    <nav id="sidebar-nav" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
 
         <!-- Dashboard -->
         <a href="{{ route('dashboard') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('dashboard') ? 'active text-white' : 'text-slate-300' }}">
@@ -408,8 +414,8 @@
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Administration</p>
 
         <!-- Configurations -->
-        <div x-data="{ openMaster: {{ Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('gst.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openMaster = !openMaster" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all text-slate-300">
+        <div x-data="{ openMaster: {{ Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('payment-modes.*') || Request::routeIs('gst.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openMaster = !openMaster" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('payment-modes.*') || Request::routeIs('gst.*') ? 'text-white bg-slate-800/20' : 'text-slate-300' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -421,18 +427,15 @@
                 </svg>
             </button>
             <div x-show="openMaster" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Floor
                 </a>
-                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Unit Type
                 </a>
-                <a href="{{ route('payment-modes.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payment-modes.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('payment-modes.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payment-modes.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Payment Modes Master
                 </a>
-                <!-- <a href="{{ route('gst.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('gst.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    GST Tax Slabs & Master
-                </a> -->
             </div>
         </div>
 
@@ -443,6 +446,14 @@
             </svg>
             Users & Roles
         </a>
+
+        <!-- System Settings -->
+        <button @click="openHeaderSettings = !openHeaderSettings" type="button" class="w-full text-left nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors text-slate-300 hover:bg-slate-800/30 cursor-pointer">
+            <svg class="w-[18px] h-[18px] text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            </svg>
+            Settings
+        </button>
 
     </nav>
         
@@ -467,18 +478,79 @@
 
             <!-- Profile Info & Sign Out -->
             <div class="flex items-center gap-4">
-                <!-- Interactive Font Size Switcher -->
-                <div class="flex items-center gap-1.5 bg-slate-100/90 rounded-full px-2.5 py-1 border border-slate-200 shadow-sm mr-2 shrink-0">
-                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 mr-0.5"></i>
-                    <button type="button" @click="fontSize = '100%'" 
-                            :class="fontSize === '100%' ? 'bg-white text-primary font-black shadow-sm scale-105' : 'text-slate-500 hover:text-slate-800'"
-                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-150" title="Normal text size">A</button>
-                    <button type="button" @click="fontSize = '112.5%'" 
-                            :class="fontSize === '112.5%' ? 'bg-white text-primary font-black shadow-sm scale-105' : 'text-slate-500 hover:text-slate-800'"
-                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-150" title="Medium text size">A+</button>
-                    <button type="button" @click="fontSize = '125%'" 
-                            :class="fontSize === '125%' ? 'bg-white text-primary font-black shadow-sm scale-105' : 'text-slate-500 hover:text-slate-800'"
-                            class="text-[9px] font-bold px-2 py-0.5 rounded-full transition-all duration-150" title="Large text size">A++</button>
+                <!-- Header Settings Dropdown Menu -->
+                <div class="relative" x-data="{ openHeaderSettings: false }" @click.outside="openHeaderSettings = false">
+                    <button @click="openHeaderSettings = !openHeaderSettings" 
+                            type="button" 
+                            class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-bold transition-all border border-slate-200 shadow-2xs cursor-pointer">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        </svg>
+                        <span>Settings</span>
+                        <svg class="w-3 h-3 text-slate-400 transition-transform" :class="openHeaderSettings ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </button>
+
+                    <!-- Settings Dropdown Popover -->
+                    <div x-show="openHeaderSettings" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         class="absolute right-0 mt-2 w-72 rounded-2xl bg-white p-4 shadow-xl border border-slate-200 z-50 space-y-4"
+                         style="display: none;">
+                        
+                        <!-- Header -->
+                        <div class="border-b border-slate-100 pb-2">
+                            <h4 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span> System Settings
+                            </h4>
+                            <p class="text-[10px] text-slate-500 font-medium">Display Preferences & Appearance</p>
+                        </div>
+
+                        <!-- 1. Font Size Adjustment Option -->
+                        <div class="space-y-2">
+                            <label class="block text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                                <span>Font Size</span>
+                                <span class="text-[9px] font-mono text-slate-400" x-text="fontSize"></span>
+                            </label>
+                            <div class="grid grid-cols-3 gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                                <button type="button" @click="fontSize = '100%'" 
+                                        :class="fontSize === '100%' ? 'bg-white text-slate-900 font-black shadow-xs border border-slate-200' : 'text-slate-500 hover:text-slate-800'"
+                                        class="py-1.5 text-center text-xs font-bold rounded-lg transition-all" title="Normal 100%">
+                                    A <span class="block text-[9px] font-normal opacity-75">Normal</span>
+                                </button>
+                                <button type="button" @click="fontSize = '112.5%'" 
+                                        :class="fontSize === '112.5%' ? 'bg-white text-slate-900 font-black shadow-xs border border-slate-200' : 'text-slate-500 hover:text-slate-800'"
+                                        class="py-1.5 text-center text-xs font-bold rounded-lg transition-all" title="Medium 112.5%">
+                                    A+ <span class="block text-[9px] font-normal opacity-75">Medium</span>
+                                </button>
+                                <button type="button" @click="fontSize = '125%'" 
+                                        :class="fontSize === '125%' ? 'bg-white text-slate-900 font-black shadow-xs border border-slate-200' : 'text-slate-500 hover:text-slate-800'"
+                                        class="py-1.5 text-center text-xs font-bold rounded-lg transition-all" title="Large 125%">
+                                    A++ <span class="block text-[9px] font-normal opacity-75">Large</span>
+                                </button>
+                            </div>
+                        </div>
+
+                   
+
+                        <!-- Quick Administration Links -->
+                        <div class="border-t border-slate-100 pt-2 space-y-1">
+                            <span class="block text-[9px] font-extrabold text-slate-400 uppercase tracking-widest px-1">Quick Configs</span>
+                            <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-semibold transition">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m0 0h4m-4 0V11m0 0h4m-4 0H9"/></svg>
+                                Master Configuration
+                            </a>
+                            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-2 px-2.5 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-lg font-semibold transition">
+                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 09-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                Users & Roles Settings
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex items-center gap-3">
@@ -574,8 +646,8 @@
                 }
             @endphp
             {{-- ═══════ PROFESSIONAL SUCCESS MODAL ═══════ --}}
-            <div id="statusSuccessModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4" style="background: rgba(15,23,42,0.55); backdrop-filter: blur(4px);">
-                <div id="statusModalCard" class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden"
+            <div id="statusSuccessModal" class="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-none" style="background: transparent;">
+                <div id="statusModalCard" class="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
                     style="animation: successModalIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;">
                     {{-- Gold shimmer top stripe --}}
                     <div class="h-1 w-full bg-gradient-to-r from-[#a38c29] via-[#d9bf3b] to-[#a38c29]"></div>
@@ -1057,6 +1129,105 @@
                     })
                     .catch(err => console.error('CKEditor init error on #' + textarea.id + ':', err));
             });
+        });
+    </script>
+    <!-- System Settings Modal -->
+    <div x-show="openSettingsModal" 
+         x-transition.opacity 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" 
+         style="display: none;">
+        <div @click.outside="openSettingsModal = false" 
+             class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden space-y-6 p-6">
+            
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-3">
+                    <div class="p-2.5 bg-[#a38c29]/15 text-[#a38c29] rounded-2xl border border-[#a38c29]/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 uppercase tracking-wider">System Settings</h3>
+                        <p class="text-xs text-slate-500 font-medium">Font size, theme & display preferences</p>
+                    </div>
+                </div>
+                <button @click="openSettingsModal = false" class="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Font Size Options -->
+            <div class="space-y-2">
+                <label class="block text-xs font-black text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                    <span>Font Size Customization</span>
+                    <span class="text-xs font-mono text-[#a38c29]" x-text="fontSize"></span>
+                </label>
+                <div class="grid grid-cols-3 gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button type="button" @click="fontSize = '100%'" 
+                            :class="fontSize === '100%' ? 'bg-white text-slate-900 font-black shadow-xs border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
+                            class="py-2.5 text-center text-xs font-bold rounded-xl transition-all" title="Normal 100%">
+                        A <span class="block text-[10px] font-normal opacity-75">Normal</span>
+                    </button>
+                    <button type="button" @click="fontSize = '112.5%'" 
+                            :class="fontSize === '112.5%' ? 'bg-white text-slate-900 font-black shadow-xs border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
+                            class="py-2.5 text-center text-xs font-bold rounded-xl transition-all" title="Medium 112.5%">
+                        A+ <span class="block text-[10px] font-normal opacity-75">Medium</span>
+                    </button>
+                    <button type="button" @click="fontSize = '125%'" 
+                            :class="fontSize === '125%' ? 'bg-white text-slate-900 font-black shadow-xs border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
+                            class="py-2.5 text-center text-xs font-bold rounded-xl transition-all" title="Large 125%">
+                        A++ <span class="block text-[10px] font-normal opacity-75">Large</span>
+                    </button>
+                </div>
+            </div>
+
+           
+
+            <div class="flex justify-end border-t border-slate-100 pt-4">
+                <button type="button" @click="openSettingsModal = false" class="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition">
+                    Done
+                </button>
+            </div>
+    <!-- Persistent Sidebar Scroll & Active Menu Alignment Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarNav = document.getElementById('sidebar-nav') || document.querySelector('aside nav');
+            if (!sidebarNav) return;
+
+            // Track scroll position in sessionStorage
+            sidebarNav.addEventListener('scroll', function() {
+                sessionStorage.setItem('erp_sidebar_scroll', sidebarNav.scrollTop);
+            });
+
+            sidebarNav.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', function() {
+                    sessionStorage.setItem('erp_sidebar_scroll', sidebarNav.scrollTop);
+                });
+            });
+
+            function alignActiveSidebarItem() {
+                const activeItem = sidebarNav.querySelector('.active') || 
+                                   sidebarNav.querySelector('[class*="bg-[#a38c29]"]');
+                
+                if (activeItem) {
+                    // Ensure active item's parent container is visible if hidden
+                    const parentGroup = activeItem.closest('[x-data]');
+                    if (parentGroup && parentGroup.querySelector('[x-show]')) {
+                        const hiddenChild = parentGroup.querySelector('[x-show]');
+                        if (hiddenChild) hiddenChild.style.display = 'block';
+                    }
+
+                    // Pin active item in center of sidebar
+                    activeItem.scrollIntoView({ block: 'center', behavior: 'instant' });
+                } else {
+                    const savedScroll = sessionStorage.getItem('erp_sidebar_scroll');
+                    if (savedScroll !== null) {
+                        sidebarNav.scrollTop = parseInt(savedScroll, 10);
+                    }
+                }
+            }
+
+            alignActiveSidebarItem();
+            setTimeout(alignActiveSidebarItem, 100);
+            setTimeout(alignActiveSidebarItem, 300);
         });
     </script>
 </body>

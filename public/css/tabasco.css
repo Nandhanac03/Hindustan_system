@@ -28,6 +28,41 @@ body {
     letter-spacing: -0.01em;
 }
 
+/* Dark Mode Overrides */
+html.dark body {
+    background-color: #0f0e0d !important;
+    color: #f1f5f9 !important;
+}
+html.dark header {
+    background-color: #191816 !important;
+    border-color: #292724 !important;
+}
+html.dark .bg-white {
+    background-color: #191816 !important;
+    color: #f1f5f9 !important;
+    border-color: #292724 !important;
+}
+html.dark .bg-slate-50, html.dark .bg-slate-100 {
+    background-color: #292724 !important;
+    color: #f8fafc !important;
+}
+html.dark .text-slate-900, html.dark .text-slate-800, html.dark .text-slate-700 {
+    color: #f1f5f9 !important;
+}
+html.dark .text-slate-600, html.dark .text-slate-500 {
+    color: #94a3b8 !important;
+}
+html.dark table thead {
+    background-color: #0f0e0d !important;
+    color: #f8fafc !important;
+}
+html.dark table tbody tr:hover {
+    background-color: #292724 !important;
+}
+html.dark .border-slate-200, html.dark .border-slate-100 {
+    border-color: #2e2810 !important;
+}
+
 /* Scrollbar Customization - Premium Tabasco Gold Styling */
 * {
     scrollbar-width: thin;
