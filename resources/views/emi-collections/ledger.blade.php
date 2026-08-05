@@ -462,11 +462,11 @@
                               </div>
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
-                                  <select x-model="form.bank_name"
+                                  <select x-model="form.bank_id"
                                           class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-sm">
                                       <option value="">-- Optional --</option>
                                       @foreach($banks as $bank)
-                                      <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
+                                      <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
                                       @endforeach
                                   </select>
                               </div>
@@ -646,6 +646,13 @@
                               <span class="text-slate-800 text-xs font-mono font-bold mt-1 block" x-text="viewReceiptData.reference_no || 'N/A'"></span>
                           </div>
                       </div>
+
+                      <template x-if="viewReceiptData.bank_name">
+                          <div class="p-5 rounded-xl border border-slate-200/80 bg-white shadow-sm flex justify-between items-center">
+                              <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Bank Name</span>
+                              <strong class="text-slate-800 text-xs font-bold" x-text="viewReceiptData.bank_name"></strong>
+                          </div>
+                      </template>
                       
                       <template x-if="viewReceiptData.remarks">
                           <div class="p-5 rounded-xl border border-slate-200/80 bg-[#a38c29]/5 shadow-sm">
@@ -686,7 +693,7 @@ function ledgerApp() {
             receipt_date: new Date().toISOString().split('T')[0],
             payment_mode: 'Cash',
             reference_no: '',
-            bank_name: '',
+            bank_id: '',
             partner_id: '',
             remarks: '',
             label: ''
@@ -699,7 +706,7 @@ function ledgerApp() {
             this.form.receipt_date = new Date().toISOString().split('T')[0];
             this.form.payment_mode = 'Cash';
             this.form.reference_no = '';
-            this.form.bank_name = '';
+            this.form.bank_id = '';
             this.form.partner_id = '';
             this.form.remarks = '';
             this.modalOpen = true;

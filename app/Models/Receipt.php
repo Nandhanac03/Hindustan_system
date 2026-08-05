@@ -16,6 +16,10 @@ class Receipt extends Model
         'receipt_date' => 'date',
     ];
 
+    protected $appends = [
+        'bank_name',
+    ];
+
     public function sale()
     {
         return $this->belongsTo(Sale::class);

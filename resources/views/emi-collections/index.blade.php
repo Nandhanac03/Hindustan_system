@@ -559,11 +559,11 @@
                             </div>
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-455 uppercase tracking-wider block">Bank Name</label>
-                                <select x-model="form.bank_name"
+                                <select x-model="form.bank_id"
                                         class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-750 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
                                     <option value="">-- Optional --</option>
                                     @foreach($banks as $bank)
-                                    <option value="{{ $bank->bank_name }}">{{ $bank->bank_name }}</option>
+                                    <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -604,7 +604,7 @@ function emiApp() {
             payment_mode: 'Cash',
             receipt_date: new Date().toISOString().split('T')[0],
             reference_no: '',
-            bank_name: '',
+            bank_id: '',
             remarks: '',
             customer_name: '',
             unit_number: '',
@@ -717,7 +717,7 @@ function emiApp() {
             this.form.payment_mode = 'Cash';
             this.form.receipt_date = new Date().toISOString().split('T')[0];
             this.form.reference_no = '';
-            this.form.bank_name = '';
+            this.form.bank_id = '';
             this.form.remarks = '';
             this.form.collection_type = 'regular';
             this.form.prepayment_option = 'reduce_emi';
@@ -776,7 +776,7 @@ function emiApp() {
                     payment_mode: this.form.payment_mode,
                     receipt_date: this.form.receipt_date,
                     reference_no: this.form.reference_no,
-                    bank_name: this.form.bank_name,
+                    bank_id: this.form.bank_id,
                     remarks: this.form.remarks,
                     collection_type: this.form.collection_type,
                     prepayment_option: this.form.prepayment_option,

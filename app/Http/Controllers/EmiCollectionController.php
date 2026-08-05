@@ -33,7 +33,7 @@ class EmiCollectionController extends Controller
     public function index(Request $request): View
     {
         $sales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts' => function($q) {
-                $q->latest();
+                $q->with('bank')->latest();
             }])
             ->where('status', 'active')
             ->latest()
@@ -227,7 +227,7 @@ class EmiCollectionController extends Controller
         $partners     = Payee::where('type', 'Partner')->orderBy('name')->get();
         $banks        = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
 
-        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner'])
+        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner', 'bank'])
             ->latest('receipt_date')
             ->take(20)
             ->get();
@@ -247,6 +247,7 @@ class EmiCollectionController extends Controller
             'payment_mode'  => ['required_unless:collection_type,reschedule', 'nullable', 'in:Cash,Cheque,Bank Transfer,Online,Credit Card,UPI'],
             'receipt_date'  => ['nullable', 'date'],
             'reference_no'  => ['nullable', 'string', 'max:100'],
+            'bank_id'       => ['nullable', 'exists:banks,id'],
             'bank_name'     => ['nullable', 'string', 'max:100'],
             'remarks'       => ['nullable', 'string', 'max:500'],
             'partner_id'    => ['nullable', 'exists:payees,id'],
@@ -286,6 +287,14 @@ class EmiCollectionController extends Controller
             $receipt = null;
 
             if ($collectionType === 'regular' || $collectionType === 'prepayment') {
+                $bankId = $validated['bank_id'] ?? null;
+                if (!$bankId && !empty($validated['bank_name'])) {
+                    $bank = \App\Models\Bank::where('bank_name', $validated['bank_name'])->first();
+                    if ($bank) {
+                        $bankId = $bank->id;
+                    }
+                }
+
                 $receipt = Receipt::create([
                     'sale_id'      => $sale->id,
                     'customer_id'  => $sale->customer_id,
@@ -296,7 +305,7 @@ class EmiCollectionController extends Controller
                     'payment_mode' => $validated['payment_mode'],
                     'payment_type' => $collectionType,
                     'reference_no' => $validated['reference_no'] ?? null,
-                    'bank_name'    => $validated['bank_name'] ?? null,
+                    'bank_id'      => $bankId,
                     'remarks'      => $validated['remarks'] ?? null,
                     'created_by'   => auth()->id() ?? 1,
                     'partner_id'   => $validated['partner_id'] ?? null,
@@ -524,7 +533,7 @@ class EmiCollectionController extends Controller
             CustomerInstallment::allocatePaymentStatusForSale($sale->id);
         }
 
-        $sale->load(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts']);
+        $sale->load(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts.bank']);
 
         $archiveSnapshot = null;
         $archivedStatuses = ['exchanged', 'cancelled', 'returned', 'resale'];
