@@ -108,7 +108,51 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-semibold text-slate-800">{{ $sale->project?->name ?? 'N/A' }}</div>
-                                    <span class="text-[9px] bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 font-mono font-bold">Unit: {{ $sale->unit?->door_no ?? '—' }}</span>
+                                    @php
+                                        $formattedUnitText = '';
+                                        if($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                                            $unitStrings = [];
+                                            foreach($sale->saleUnits as $su) {
+                                                if($su->unit) {
+                                                    $door = trim(explode(',', $su->unit->door_no)[0]);
+                                                    $type = strtolower($su->unit->unitType?->name ?? '');
+                                                    if ($type === 'flat') $type = 'Apartment';
+                                                    elseif (strpos($type, 'parking') !== false) $type = 'Parking';
+                                                    else $type = ucfirst($type);
+
+                                                    $floor = trim($su->unit->floor?->name ?? '');
+                                                    if (preg_match('/^(floor|fl)\b/i', $floor)) {
+                                                        $floor = preg_replace('/^(floor|fl)\b/i', 'Floor', $floor);
+                                                    } elseif ($floor && is_numeric($floor)) {
+                                                        $floor = 'Floor ' . $floor;
+                                                    } elseif ($floor) {
+                                                        $floor = ucfirst($floor);
+                                                    }
+                                                    $unitStrings[] = $door . ($type ? "($type)" : "") . ($floor ? " - $floor" : "");
+                                                }
+                                            }
+                                            $formattedUnitText = implode(', ', $unitStrings);
+                                        } elseif($sale->unit) {
+                                            $door = trim(explode(',', $sale->unit->door_no)[0]);
+                                            $type = strtolower($sale->unit->unitType?->name ?? '');
+                                            if ($type === 'flat') $type = 'Apartment';
+                                            elseif (strpos($type, 'parking') !== false) $type = 'Parking';
+                                            else $type = ucfirst($type);
+
+                                            $floor = trim($sale->unit->floor?->name ?? '');
+                                            if (preg_match('/^(floor|fl)\b/i', $floor)) {
+                                                $floor = preg_replace('/^(floor|fl)\b/i', 'Floor', $floor);
+                                            } elseif ($floor && is_numeric($floor)) {
+                                                $floor = 'Floor ' . $floor;
+                                            } elseif ($floor) {
+                                                $floor = ucfirst($floor);
+                                            }
+                                            $formattedUnitText = $door . ($type ? "($type)" : "") . ($floor ? " - $floor" : "");
+                                        } else {
+                                            $formattedUnitText = '—';
+                                        }
+                                    @endphp
+                                    <span class="text-[9px] bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 font-mono font-bold">Unit: {{ $formattedUnitText }}</span>
                                 </td>
                                 <td class="px-6 py-4 font-extrabold text-slate-900 font-mono text-right">₹{{ number_format($sale->total_amount, 2) }}</td>
                                 <td class="px-6 py-4 font-extrabold text-emerald-600 font-mono text-right">₹{{ number_format($totalPaid, 2) }}</td>
@@ -293,12 +337,12 @@
                                       x-text="selectedSale.payment_plan === 'emi' ? (selectedSale.emi_installment_count + ' ' + (selectedSale.emi_frequency ? selectedSale.emi_frequency.charAt(0).toUpperCase() + selectedSale.emi_frequency.slice(1) : 'Monthly')) : 'Lump Sum'">
                                 </span>
                                 <h3 class="text-xs font-bold text-slate-900 mt-2" x-text="selectedSale.customer ? selectedSale.customer.name : '-'"></h3>
-                                <p class="text-[10px] text-slate-400 mt-0.5" x-text="(selectedSale.project ? selectedSale.project.name : '') + ' · Unit: ' + (selectedSale.unit ? selectedSale.unit.door_no : 'No Unit')"></p>
+                                <p class="text-[10px] text-slate-400 mt-0.5" x-text="(selectedSale.project ? selectedSale.project.name : '') + ' · Unit: ' + (selectedSale.sale_units && selectedSale.sale_units.length ? selectedSale.sale_units.map(su => su.unit ? su.unit.door_no.split(',')[0].trim() : '').join(', ') : (selectedSale.unit ? selectedSale.unit.door_no.split(',')[0].trim() : 'No Unit'))"></p>
                             </div>
                             <span class="text-[11px] font-extrabold text-slate-900" x-text="'₹' + (Number(selectedSale.total_amount) / 100000).toFixed(1) + 'L'"></span>
                         </div>
                         <div class="grid grid-cols-2 gap-2 mt-2">
-                            <button @click="openCollectModal({ id: selectedSale.id, outstanding: selectedSale.remaining_balance, customer_name: selectedSale.customer ? selectedSale.customer.name : '-', door_no: selectedSale.unit ? selectedSale.unit.door_no : 'No Unit' })" 
+                            <button @click="openCollectModal({ id: selectedSale.id, outstanding: selectedSale.remaining_balance, customer_name: selectedSale.customer ? selectedSale.customer.name : '-', door_no: selectedSale.sale_units && selectedSale.sale_units.length ? selectedSale.sale_units.map(su => su.unit ? su.unit.door_no.split(',')[0].trim() : '').join(', ') : (selectedSale.unit ? selectedSale.unit.door_no.split(',')[0].trim() : 'No Unit') })" 
                                     class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
                                 Collect
                             </button>
@@ -314,6 +358,20 @@
                 <template x-if="!selectedSale">
                     <div class="space-y-4">
                         @forelse($recentBookings as $booking)
+                            @php
+                                $simpleBUnit = '';
+                                if($booking->saleUnits && $booking->saleUnits->isNotEmpty()) {
+                                    $bStrings = [];
+                                    foreach($booking->saleUnits as $su) {
+                                        if($su->unit) {
+                                            $bStrings[] = trim(explode(',', $su->unit->door_no)[0]);
+                                        }
+                                    }
+                                    $simpleBUnit = implode(', ', $bStrings);
+                                } else {
+                                    $simpleBUnit = trim(explode(',', $booking->unit?->door_no ?? 'No Unit')[0]);
+                                }
+                            @endphp
                             <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 hover:border-primary-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
                                 <div class="flex justify-between items-start">
                                     <div>
@@ -328,12 +386,12 @@
                                             </span>
                                         @endif
                                         <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? '-' }}</h3>
-                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? '-' }} · Unit: {{ $booking->unit?->door_no ?? 'No Unit' }}</p>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? '-' }} · Unit: {{ $simpleBUnit }}</p>
                                     </div>
                                     <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->total_amount / 100000, 1) }}L</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 mt-2">
-                                    <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? '-') }}', door_no: '{{ addslashes($booking->unit?->door_no ?? 'No Unit') }}' })" 
+                                    <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? '-') }}', door_no: '{{ addslashes($simpleBUnit) }}' })" 
                                             class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
                                         Collect
                                     </button>
@@ -573,6 +631,42 @@ function emiApp() {
 
         onSaleSelect() {
             this.selectedSale = this.activeSales.find(s => s.id == this.selectedSaleId) || null;
+        },
+        formatUnitDisplay(unit) {
+            if (!unit) return '';
+            let door = (unit.door_no || '').split(',')[0].trim();
+            let type = '';
+            if (unit.unit_type && unit.unit_type.name) {
+                let tName = unit.unit_type.name.toLowerCase();
+                if (tName === 'flat') {
+                    type = 'Apartment';
+                } else if (tName.includes('parking')) {
+                    type = 'Parking';
+                } else {
+                    type = tName.charAt(0).toUpperCase() + tName.slice(1);
+                }
+            }
+            let floor = '';
+            if (unit.floor && unit.floor.name) {
+                let fName = unit.floor.name.trim();
+                if (/^(floor|fl)\b/i.test(fName)) {
+                    floor = fName.replace(/^(floor|fl)\b/i, 'Floor');
+                } else if (!isNaN(fName)) {
+                    floor = 'Floor ' + fName;
+                } else {
+                    floor = fName.charAt(0).toUpperCase() + fName.slice(1);
+                }
+            }
+            let typeStr = type ? `(${type})` : '';
+            let floorStr = floor ? ` - ${floor}` : '';
+            return `${door}${typeStr}${floorStr}`;
+        },
+        formatSaleUnits(sale) {
+            if (!sale) return '';
+            if (sale.sale_units && sale.sale_units.length) {
+                return sale.sale_units.map(su => this.formatUnitDisplay(su.unit)).filter(Boolean).join(', ');
+            }
+            return this.formatUnitDisplay(sale.unit);
         },
 
         onModalSaleSelect() {

@@ -116,7 +116,7 @@
                             </td>
                             <td class="px-4 py-4 text-left border-b border-slate-100">
                                 <div class="font-bold text-slate-800" x-text="sale.project ? sale.project.name : 'N/A'"></div>
-                                <div class="text-[10px] text-slate-400 mt-0.5" x-text="sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (sale.unit ? sale.unit.door_no : '')"></div>
+                                <div class="text-[10px] text-slate-400 mt-0.5" x-text="formatSaleUnits(sale)"></div>
                             </td>
                             <td class="px-4 py-4 text-slate-600 border-b border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
                             <td class="px-4 py-4 text-slate-500 border-b border-slate-100" x-text="sale.broker ? sale.broker.name : '—'"></td>
@@ -138,7 +138,7 @@
                                     <button @click="openViewModal(sale.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Sale">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
-                                    <button x-show="(sale.status || '').toLowerCase() !== 'cancelled'" @click="openEditModal(sale.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Sale">
+                                    <button x-show="!['cancelled', 'exchanged'].includes((sale.status || '').toLowerCase())" @click="openEditModal(sale.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Sale">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
                                 </div>
@@ -2020,6 +2020,42 @@ function salesApp() {
                 return val.split('T')[0];
             }
         },
+        formatUnitDisplay(unit) {
+            if (!unit) return '';
+            let door = (unit.door_no || '').split(',')[0].trim();
+            let type = '';
+            if (unit.unit_type && unit.unit_type.name) {
+                let tName = unit.unit_type.name.toLowerCase();
+                if (tName === 'flat') {
+                    type = 'Apartment';
+                } else if (tName.includes('parking')) {
+                    type = 'Parking';
+                } else {
+                    type = tName.charAt(0).toUpperCase() + tName.slice(1);
+                }
+            }
+            let floor = '';
+            if (unit.floor && unit.floor.name) {
+                let fName = unit.floor.name.trim();
+                if (/^(floor|fl)\b/i.test(fName)) {
+                    floor = fName.replace(/^(floor|fl)\b/i, 'Floor');
+                } else if (!isNaN(fName)) {
+                    floor = 'Floor ' + fName;
+                } else {
+                    floor = fName.charAt(0).toUpperCase() + fName.slice(1);
+                }
+            }
+            let typeStr = type ? `(${type})` : '';
+            let floorStr = floor ? ` - ${floor}` : '';
+            return `${door}${typeStr}${floorStr}`;
+        },
+        formatSaleUnits(sale) {
+            if (!sale) return '';
+            if (sale.sale_units && sale.sale_units.length) {
+                return sale.sale_units.map(su => this.formatUnitDisplay(su.unit)).filter(Boolean).join(', ');
+            }
+            return this.formatUnitDisplay(sale.unit);
+        },
         fetchSales() {
             let params = new URLSearchParams();
             params.append('tab', '{{ request('tab') }}');
@@ -2225,7 +2261,7 @@ function salesApp() {
         getNewUnitDoorNo(sale) {
             if (sale.status !== 'exchanged') return '—';
             const newSale = this.sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + sale.sale_number));
-            return newSale && newSale.unit ? newSale.unit.door_no : '—';
+            return newSale && newSale.unit ? this.formatUnitDisplay(newSale.unit) : '—';
         },
         getNewUnitValue(sale) {
             if (sale.status !== 'exchanged') return 0;
