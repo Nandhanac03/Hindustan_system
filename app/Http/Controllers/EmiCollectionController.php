@@ -452,7 +452,7 @@ class EmiCollectionController extends Controller
             ? $request->input('project_id')
             : (string)($projects->first()?->id ?? '');
 
-        $sales = Sale::with(['customer', 'project', 'unit', 'receipts'])
+        $sales = Sale::with(['customer', 'project', 'unit.unitType', 'unit.floor', 'receipts'])
             ->where('status', 'active')
             ->where('remaining_balance', '>', 0)
             ->when(!empty($selectedProjectId), fn($q) => $q->where('project_id', $selectedProjectId))
