@@ -3652,7 +3652,7 @@ function salesApp() {
                 let data = await res.json();
                 if (res.status === 422) { this.errors = data.errors || {}; }
                 else if (!res.ok) { this.showToast(data.error || 'Server error.', 'error'); }
-                else { this.showToast('Sale updated successfully.'); this.fetchSales(); this.openEditModal(this.activeSale.id); }
+                else { this.showToast('Sale updated successfully.'); this.fetchSales(); this.closeEditModal(); }
             })
             .catch(err => { console.error(err); this.showToast('Network error.', 'error'); });
         },
