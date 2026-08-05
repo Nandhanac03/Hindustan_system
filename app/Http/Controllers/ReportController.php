@@ -88,6 +88,14 @@ class ReportController extends Controller
         $cashBookStats = [];
         $cashBookChartData = [];
         $salesReturnChartData = [];
+        $partnerChartData = [];
+        $bankChartData = [];
+        $supplierChartData = [];
+        $exchangeChartData = [];
+        $pettyCashChartData = [];
+        $loanChartData = [];
+        $salesChartData = [];
+        $emiChartData = [];
         $floorMatrix = [];
         $parkingRows = [];
         $matrixColumns = [];
@@ -222,17 +230,77 @@ class ReportController extends Controller
                 });
             }
             $salesList = $salesQuery->orderByDesc('sale_date')->paginate(50);
+
+            $monthlySales = Sale::where('status', 'active')
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->selectRaw("DATE_FORMAT(sale_date, '%b %Y') as m_label, DATE_FORMAT(sale_date, '%Y-%m') as ym, SUM(total_amount) as total")
+                ->groupBy('ym', 'm_label')
+                ->orderBy('ym')
+                ->get();
+
+            $sMonths = [];
+            $sAmounts = [];
+            if ($monthlySales->isNotEmpty()) {
+                foreach ($monthlySales as $ms) {
+                    $sMonths[] = $ms->m_label;
+                    $sAmounts[] = (float)$ms->total;
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $sMonths[] = $dt->format('M Y');
+                    $sAmounts[] = 0.0;
+                }
+            }
+
+            $projectSales = Sale::with('project')
+                ->where('status', 'active')
+                ->selectRaw("project_id, COUNT(*) as cnt, SUM(total_amount) as total")
+                ->groupBy('project_id')
+                ->get();
+
+            $salesChartData = [
+                'months' => $sMonths,
+                'amounts' => $sAmounts,
+                'project_names' => $projectSales->map(fn($p) => $p->project?->name ?? 'Project #' . $p->project_id)->toArray(),
+                'project_counts' => $projectSales->map(fn($p) => (int)$p->cnt)->toArray(),
+            ];
         }
 
         // 3. EMI & COLLECTION REPORTS
         if ($activeTab === 'emi_collections') {
             $emiCollectionsSummary = [
-                'total_receivable' => Sale::where('status', 'active')->sum('total_amount'),
-                'total_received'   => Receipt::sum('amount'),
-                'outstanding'      => Sale::where('status', 'active')->sum('remaining_balance'),
-                'mtd_collections'  => Receipt::whereMonth('receipt_date', now()->month)->whereYear('receipt_date', now()->year)->sum('amount'),
+                'total_receivable' => (float)Sale::where('status', 'active')->sum('total_amount'),
+                'total_received'   => (float)Receipt::sum('amount'),
+                'outstanding'      => (float)Sale::where('status', 'active')->sum('remaining_balance'),
+                'mtd_collections'  => (float)Receipt::whereMonth('receipt_date', now()->month)->whereYear('receipt_date', now()->year)->sum('amount'),
             ];
             $cashBookEntries = Receipt::with(['customer', 'sale.project', 'sale.unit'])->orderByDesc('receipt_date')->paginate(50);
+
+            $monthlyEmi = Receipt::selectRaw("DATE_FORMAT(receipt_date, '%b %Y') as m_label, DATE_FORMAT(receipt_date, '%Y-%m') as ym, SUM(amount) as total")
+                ->groupBy('ym', 'm_label')
+                ->orderBy('ym')
+                ->get();
+
+            $eMonths = [];
+            $eAmounts = [];
+            if ($monthlyEmi->isNotEmpty()) {
+                foreach ($monthlyEmi as $me) {
+                    $eMonths[] = $me->m_label;
+                    $eAmounts[] = (float)$me->total;
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $eMonths[] = $dt->format('M Y');
+                    $eAmounts[] = 0.0;
+                }
+            }
+
+            $emiChartData = [
+                'months' => $eMonths,
+                'amounts' => $eAmounts,
+            ];
         }
 
         // 4. CUSTOMER LEDGER / STATEMENT
@@ -424,6 +492,35 @@ class ReportController extends Controller
                 $bankQuery->whereDate('receipt_date', '<=', $request->date_to);
             }
             $bankReportEntries = $bankQuery->orderByDesc('receipt_date')->paginate(50);
+
+            $monthlyBank = Receipt::whereIn('payment_mode', ['Bank Transfer', 'Cheque', 'Online'])
+                ->when($request->filled('bank_name'), fn($q) => $q->where('bank_name', 'like', "%{$request->bank_name}%"))
+                ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
+                ->when($request->filled('date_to'), fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
+                ->selectRaw("DATE_FORMAT(receipt_date, '%b %Y') as m_label, DATE_FORMAT(receipt_date, '%Y-%m') as ym, SUM(amount) as total")
+                ->groupBy('ym', 'm_label')
+                ->orderBy('ym')
+                ->get();
+
+            $bMonths = [];
+            $bAmounts = [];
+            if ($monthlyBank->isNotEmpty()) {
+                foreach ($monthlyBank as $mb) {
+                    $bMonths[] = $mb->m_label;
+                    $bAmounts[] = (float)$mb->total;
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $bMonths[] = $dt->format('M Y');
+                    $bAmounts[] = 0.0;
+                }
+            }
+            $bankChartData = [
+                'months' => $bMonths,
+                'amounts' => $bAmounts,
+                'total_cleared' => (float)$monthlyBank->sum('total'),
+            ];
         }
 
         // 7. PARTNER STATEMENTS
@@ -436,16 +533,67 @@ class ReportController extends Controller
                 $allocQuery->where('project_id', $request->project_id);
             }
             $partnerAllocations = $allocQuery->orderByDesc('date')->paginate(50);
+
+            $monthlyAllocs = PartnerAllocation::query()
+                ->when($request->filled('partner_id'), fn($q) => $q->where('partner_id', $request->partner_id))
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->selectRaw("DATE_FORMAT(date, '%b %Y') as m_label, DATE_FORMAT(date, '%Y-%m') as ym, SUM(allocated_amount) as total")
+                ->groupBy('ym', 'm_label')
+                ->orderBy('ym')
+                ->get();
+
+            $partnerDist = PartnerAllocation::with('partner')
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->selectRaw("partner_id, SUM(allocated_amount) as total")
+                ->groupBy('partner_id')
+                ->get();
+
+            $pMonths = [];
+            $pAmounts = [];
+            if ($monthlyAllocs->isNotEmpty()) {
+                foreach ($monthlyAllocs as $ma) {
+                    $pMonths[] = $ma->m_label;
+                    $pAmounts[] = (float)$ma->total;
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $pMonths[] = $dt->format('M Y');
+                    $pAmounts[] = 0.0;
+                }
+            }
+
+            $partnerChartData = [
+                'months' => $pMonths,
+                'amounts' => $pAmounts,
+                'partner_labels' => $partnerDist->map(fn($p) => $p->partner?->name ?? 'Partner #' . $p->partner_id)->toArray(),
+                'partner_totals' => $partnerDist->map(fn($p) => (float)$p->total)->toArray(),
+                'total_allocated' => (float)$partnerDist->sum('total'),
+                'alloc_count' => PartnerAllocation::count(),
+            ];
         }
 
         // 8. SUPPLIER & CONTRACTOR STATEMENTS
         if ($activeTab === 'supplier_contractor') {
-            // Broker commissions act as suppliers/contractors payables
             $supplierQuery = Brokerage::with(['broker', 'sale.project', 'sale.customer']);
             if ($request->filled('broker_id')) {
                 $supplierQuery->where('broker_id', $request->broker_id);
             }
             $supplierContractorEntries = $supplierQuery->paginate(50);
+
+            $brokerWise = Brokerage::with('broker')
+                ->when($request->filled('broker_id'), fn($q) => $q->where('broker_id', $request->broker_id))
+                ->selectRaw("broker_id, SUM(commission_amount) as total_due, SUM(paid_amount) as total_paid")
+                ->groupBy('broker_id')
+                ->get();
+
+            $supplierChartData = [
+                'labels' => $brokerWise->map(fn($b) => $b->broker?->name ?? 'Broker #' . $b->broker_id)->toArray(),
+                'dues' => $brokerWise->map(fn($b) => (float)$b->total_due)->toArray(),
+                'paids' => $brokerWise->map(fn($b) => (float)$b->total_paid)->toArray(),
+                'total_due' => (float)$brokerWise->sum('total_due'),
+                'total_paid' => (float)$brokerWise->sum('total_paid'),
+            ];
         }
 
         // 9. SALES RETURN REPORT
@@ -464,6 +612,51 @@ class ReportController extends Controller
                 });
             }
             $salesReturns = $retQuery->orderByDesc('cancelled_at')->paginate(50);
+
+            $allReturns = Sale::whereIn('status', ['cancelled', 'returned'])
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->get();
+
+            $totalFee = (float)$allReturns->sum('cancellation_fee');
+            $totalRefund = (float)$allReturns->sum('refund_amount');
+            $totalCount = $allReturns->count();
+
+            $monthlyReturns = Sale::whereIn('status', ['cancelled', 'returned'])
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->selectRaw("DATE_FORMAT(cancelled_at, '%b %Y') as m_label, DATE_FORMAT(cancelled_at, '%Y-%m') as ym, COUNT(*) as cnt, SUM(cancellation_fee) as total_fee, SUM(refund_amount) as total_refund")
+                ->groupBy('ym', 'm_label')
+                ->orderBy('ym')
+                ->get();
+
+            $rMonths = [];
+            $rCounts = [];
+            $rFees = [];
+            $rRefunds = [];
+            if ($monthlyReturns->isNotEmpty()) {
+                foreach ($monthlyReturns as $mr) {
+                    $rMonths[] = $mr->m_label;
+                    $rCounts[] = (int)$mr->cnt;
+                    $rFees[] = (float)$mr->total_fee;
+                    $rRefunds[] = (float)$mr->total_refund;
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $rMonths[] = $dt->format('M Y');
+                    $rCounts[] = 0;
+                    $rFees[] = 0.0;
+                    $rRefunds[] = 0.0;
+                }
+            }
+            $salesReturnChartData = [
+                'months' => $rMonths,
+                'counts' => $rCounts,
+                'fees' => $rFees,
+                'refunds' => $rRefunds,
+                'total_fee' => $totalFee,
+                'total_refund' => $totalRefund,
+                'total_count' => $totalCount,
+            ];
         }
 
         // 10. EXCHANGE REPORT
@@ -473,6 +666,36 @@ class ReportController extends Controller
                 $exQuery->where('project_id', $request->project_id);
             }
             $exchangeEntries = $exQuery->orderByDesc('sale_date')->paginate(50);
+
+            $allExSales = Sale::with('statusLogs')
+                ->where('status', 'exchanged')
+                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+                ->get();
+
+            $monthlyGrouped = $allExSales->groupBy(fn($s) => $s->sale_date ? $s->sale_date->format('M Y') : 'Unknown');
+
+            $exMonths = [];
+            $exCounts = [];
+            $exEquities = [];
+            if ($monthlyGrouped->isNotEmpty()) {
+                foreach ($monthlyGrouped as $mLabel => $salesInMonth) {
+                    $exMonths[] = $mLabel;
+                    $exCounts[] = $salesInMonth->count();
+                    $exEquities[] = (float)$salesInMonth->sum('transferred_equity');
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $exMonths[] = $dt->format('M Y');
+                    $exCounts[] = 0;
+                    $exEquities[] = 0.0;
+                }
+            }
+            $exchangeChartData = [
+                'months' => $exMonths,
+                'counts' => $exCounts,
+                'equities' => $exEquities,
+            ];
         }
 
         // 11. PETTY CASH BOOK
@@ -485,11 +708,92 @@ class ReportController extends Controller
                 $pettyQuery->whereDate('receipt_date', '<=', $request->date_to);
             }
             $pettyCashEntries = $pettyQuery->orderByDesc('receipt_date')->paginate(50);
+
+            $allPetty = Receipt::with('customer')
+                ->where('payment_mode', 'Cash')
+                ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
+                ->when($request->filled('date_to'), fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
+                ->get();
+
+            $totalPettyAmount = (float)$allPetty->sum('amount');
+            $pettyCount = $allPetty->count();
+            $avgPetty = $pettyCount > 0 ? $totalPettyAmount / $pettyCount : 0;
+            $maxPetty = (float)($allPetty->max('amount') ?? 0);
+
+            $custBreakdown = $allPetty->groupBy('customer_id')->map(function($items) {
+                $custName = $items->first()?->customer?->name ?? 'Customer #' . $items->first()?->customer_id;
+                return [
+                    'name' => $custName,
+                    'total' => (float)$items->sum('amount'),
+                ];
+            })->values();
+
+            $monthlyPetty = Receipt::where('payment_mode', 'Cash')
+                ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
+                ->when($request->filled('date_to'), fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
+                ->selectRaw("DATE_FORMAT(receipt_date, '%b %Y') as m_label, DATE_FORMAT(receipt_date, '%Y-%m') as ym, SUM(amount) as total")
+                ->groupBy('ym', 'm_label')
+                ->orderBy('ym')
+                ->get();
+
+            $pcMonths = [];
+            $pcAmounts = [];
+            if ($monthlyPetty->isNotEmpty()) {
+                foreach ($monthlyPetty as $mp) {
+                    $pcMonths[] = $mp->m_label;
+                    $pcAmounts[] = (float)$mp->total;
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $pcMonths[] = $dt->format('M Y');
+                    $pcAmounts[] = 0.0;
+                }
+            }
+            $pettyCashChartData = [
+                'months' => $pcMonths,
+                'amounts' => $pcAmounts,
+                'total_amount' => $totalPettyAmount,
+                'total_count' => $pettyCount,
+                'avg_amount' => $avgPetty,
+                'max_amount' => $maxPetty,
+                'cust_labels' => $custBreakdown->pluck('name')->toArray(),
+                'cust_totals' => $custBreakdown->pluck('total')->toArray(),
+            ];
         }
 
         // 12. BANK LOAN EMI SCHEDULES
         if ($activeTab === 'loan_schedules') {
             $loanSchedules = EmiSchedule::with(['loan.project'])->orderBy('due_date')->paginate(50);
+
+            $monthlyLoans = EmiSchedule::selectRaw("DATE_FORMAT(due_date, '%b %Y') as m_label, DATE_FORMAT(due_date, '%Y-%m') as ym, SUM(principal_component) as principal, SUM(interest_component) as interest")
+                ->groupBy('ym', 'm_label')
+                ->orderBy('ym')
+                ->limit(12)
+                ->get();
+
+            $lMonths = [];
+            $lPrincipals = [];
+            $lInterests = [];
+            if ($monthlyLoans->isNotEmpty()) {
+                foreach ($monthlyLoans as $ml) {
+                    $lMonths[] = $ml->m_label;
+                    $lPrincipals[] = (float)$ml->principal;
+                    $lInterests[] = (float)$ml->interest;
+                }
+            } else {
+                for ($i = 5; $i >= 0; $i--) {
+                    $dt = Carbon::now()->subMonths($i);
+                    $lMonths[] = $dt->format('M Y');
+                    $lPrincipals[] = 0.0;
+                    $lInterests[] = 0.0;
+                }
+            }
+            $loanChartData = [
+                'months' => $lMonths,
+                'principals' => $lPrincipals,
+                'interests' => $lInterests,
+            ];
         }
 
         // 13. TRIAL BALANCE SUMMARY GRID
@@ -1331,7 +1635,16 @@ class ReportController extends Controller
             'gstStats',
             'floorMatrix',
             'parkingRows',
-            'matrixColumns'
+            'matrixColumns',
+            'partnerChartData',
+            'bankChartData',
+            'supplierChartData',
+            'exchangeChartData',
+            'salesReturnChartData',
+            'pettyCashChartData',
+            'loanChartData',
+            'salesChartData',
+            'emiChartData'
         ));
     }
 }

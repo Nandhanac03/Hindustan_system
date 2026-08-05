@@ -1696,29 +1696,70 @@
         {{-- 7. PARTNER STATEMENTS --}}
         @if($activeTab === 'partner_statements')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Partner Statement Ledger</h3>
+            {{-- Header & Summary Bar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Partner Statement Ledger & Capital Outflows</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Track capital allocations, profit shares, and mapping of receipt distributions across project partners.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="px-4 py-2 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-[#a38c29]/30 rounded-xl">
+                        <span class="block text-[9px] font-black uppercase tracking-widest text-[#a38c29]">Total Allocated Outflow</span>
+                        <span class="text-base font-black text-slate-900 font-mono">₹{{ number_format($partnerChartData['total_allocated'] ?? 0, 2) }}</span>
+                    </div>
+                </div>
+            </div>
 
-            <div id="partnerStatementsChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
+            {{-- Dual Interactive Charts Grid --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {{-- Chart 1: Monthly Allocation Outflow Trend --}}
+                <div class="lg:col-span-2 bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29]"></span>
+                            Monthly Capital Outflow Trend
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">Allocated Amounts (₹)</span>
+                    </div>
+                    <div id="partnerStatementsChart" class="w-full h-56"></div>
+                </div>
 
-            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                {{-- Chart 2: Partner Distribution Donut --}}
+                <div class="bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-3 flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            Partner Outflow Share
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">Distribution</span>
+                    </div>
+                    <div id="partnerDistributionChart" class="w-full h-56 flex items-center justify-center"></div>
+                </div>
+            </div>
+
+            {{-- Allocations Table --}}
+            <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
                 <table id="reportsTable" class="w-full text-xs text-left">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
-                            <th class="px-5 py-3">Allocation Date</th>
-                            <th class="px-5 py-3">Partner Entity</th>
-                            <th class="px-5 py-3">Associated Project</th>
-                            <th class="px-5 py-3">Description Memo</th>
-                            <th class="px-5 py-3 text-right">Allocated Outflow</th>
+                            <th class="px-5 py-3.5">Allocation Date</th>
+                            <th class="px-5 py-3.5">Partner Entity</th>
+                            <th class="px-5 py-3.5">Associated Project</th>
+                            <th class="px-5 py-3.5">Description Memo</th>
+                            <th class="px-5 py-3.5 text-right">Allocated Outflow</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-650 font-mono">
                         @forelse($partnerAllocations as $alloc)
-                        <tr class="hover:bg-slate-50/60 font-semibold">
-                            <td class="px-5 py-3 text-slate-500 font-sans">{{ $alloc->date?->format('d M Y') }}</td>
-                            <td class="px-5 py-3 font-sans font-bold text-slate-800">{{ $alloc->partner?->name }}</td>
-                            <td class="px-5 py-3 font-sans text-slate-500">{{ $alloc->project?->name }}</td>
-                            <td class="px-5 py-3 font-sans font-medium text-slate-500">Capital Profit Allocation via receipts mapping</td>
-                            <td class="px-5 py-3 text-right text-rose-600">₹{{ number_format($alloc->allocated_amount, 2) }}</td>
+                        <tr class="hover:bg-slate-50/70 transition-colors font-semibold">
+                            <td class="px-5 py-3.5 text-slate-500 font-sans whitespace-nowrap">{{ $alloc->date?->format('d M Y') }}</td>
+                            <td class="px-5 py-3.5 font-sans font-bold text-slate-800 flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
+                                {{ $alloc->partner?->name }}
+                            </td>
+                            <td class="px-5 py-3.5 font-sans text-slate-600">{{ $alloc->project?->name ?? '—' }}</td>
+                            <td class="px-5 py-3.5 font-sans font-medium text-slate-500">Capital Profit Allocation via receipts mapping</td>
+                            <td class="px-5 py-3.5 text-right text-rose-600 font-black font-mono">₹{{ number_format($alloc->allocated_amount, 2) }}</td>
                         </tr>
                         @empty
                         <tr>
@@ -1782,9 +1823,50 @@
         {{-- 9. SALES RETURN --}}
         @if($activeTab === 'sales_return')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Sales Cancel Report</h3>
+            {{-- Header & Summary Stat Bar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Sales Cancellation & Retention Report</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Audit cancelled bookings, retention fees retained by the business, and refund liabilities.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="px-3.5 py-2 bg-rose-50 border border-rose-200 rounded-xl">
+                        <span class="block text-[9px] font-black uppercase tracking-widest text-rose-700">Total Retention Fee</span>
+                        <span class="text-sm font-black text-rose-900 font-mono">₹{{ number_format($salesReturnChartData['total_fee'] ?? 0, 2) }}</span>
+                    </div>
+                    <div class="px-3.5 py-2 bg-emerald-50 border border-emerald-200 rounded-xl">
+                        <span class="block text-[9px] font-black uppercase tracking-widest text-emerald-700">Total Refund Payable</span>
+                        <span class="text-sm font-black text-emerald-900 font-mono">₹{{ number_format($salesReturnChartData['total_refund'] ?? 0, 2) }}</span>
+                    </div>
+                </div>
+            </div>
 
-            <div id="salesReturnChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
+            {{-- Dual Interactive Charts Grid --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {{-- Chart 1: Monthly Retention & Refund Trend --}}
+                <div class="lg:col-span-2 bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            Retention Fees & Refund Outflow Trend
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">Monthly Timeline (₹)</span>
+                    </div>
+                    <div id="salesReturnChart" class="w-full h-56"></div>
+                </div>
+
+                {{-- Chart 2: Retention vs Refund Donut Chart --}}
+                <div class="bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-3 flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            Cancellation Fee vs Refund Breakdown
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">Distribution</span>
+                    </div>
+                    <div id="salesReturnDonutChart" class="w-full h-56 flex items-center justify-center"></div>
+                </div>
+            </div>
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">
@@ -1872,9 +1954,66 @@
         {{-- 11. PETTY CASH BOOK --}}
         @if($activeTab === 'petty_cash')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Petty Cash Inflow & Outflow Book</h3>
+            {{-- Header & Summary Bar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Petty Cash Inflow & Outflow Book</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Track daily cash receipts, petty cash disbursements, and physical cash register balances.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="px-4 py-2 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-[#a38c29]/30 rounded-xl">
+                        <span class="block text-[9px] font-black uppercase tracking-widest text-[#a38c29]">Total Cash Inflow</span>
+                        <span class="text-base font-black text-slate-900 font-mono">₹{{ number_format($pettyCashChartData['total_amount'] ?? 0, 2) }}</span>
+                    </div>
+                </div>
+            </div>
 
-            <div id="pettyCashChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
+            {{-- 4 Stat Badges Grid --}}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Collection</span>
+                    <div class="text-base font-black text-slate-900 font-mono">₹{{ number_format($pettyCashChartData['total_amount'] ?? 0, 2) }}</div>
+                </div>
+                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cash Receipts Count</span>
+                    <div class="text-base font-black text-emerald-600 font-mono">{{ $pettyCashChartData['total_count'] ?? 0 }} Vouchers</div>
+                </div>
+                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Average Receipt</span>
+                    <div class="text-base font-black text-indigo-600 font-mono">₹{{ number_format($pettyCashChartData['avg_amount'] ?? 0, 2) }}</div>
+                </div>
+                <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Max Cash Receipt</span>
+                    <div class="text-base font-black text-amber-600 font-mono">₹{{ number_format($pettyCashChartData['max_amount'] ?? 0, 2) }}</div>
+                </div>
+            </div>
+
+            {{-- Dual Visualization Grid --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {{-- Chart 1: Customer Cash Collection Donut --}}
+                <div class="bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-3 flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                            Customer Inflow Share
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">Distribution</span>
+                    </div>
+                    <div id="pettyCashCustomerChart" class="w-full h-56 flex items-center justify-center"></div>
+                </div>
+
+                {{-- Chart 2: Monthly Trend Area Chart --}}
+                <div class="lg:col-span-2 bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            Monthly Cash Timeline Trend
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-mono">Inflows (₹)</span>
+                    </div>
+                    <div id="pettyCashChart" class="w-full h-56"></div>
+                </div>
+            </div>
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">
@@ -1912,9 +2051,33 @@
         {{-- 12. BANK LOAN EMI --}}
         @if($activeTab === 'loan_schedules')
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Bank Loan EMI Schedules</h3>
+            {{-- Header & Summary Bar --}}
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
+                <div>
+                    <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Bank Loan EMI Schedules & Repayments</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">Track project construction loan repayments, principal amortization, and monthly interest dues.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl">
+                        <span class="block text-[9px] font-black uppercase tracking-widest text-indigo-700">Total Scheduled Principal</span>
+                        <span class="text-base font-black text-indigo-950 font-mono">₹{{ number_format($loanSchedules->sum('principal_component'), 2) }}</span>
+                    </div>
+                </div>
+            </div>
 
-            <div id="bankLoanEmiChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
+            @if($loanSchedules->count() > 0)
+            {{-- Stacked EMI Repayment Chart --}}
+            <div class="bg-slate-50/60 border border-slate-200/90 rounded-2xl p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                        Monthly Loan Repayment Schedule Breakdown (Principal vs Interest)
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-mono">EMI Outflows (₹)</span>
+                </div>
+                <div id="bankLoanEmiChart" class="w-full h-56"></div>
+            </div>
+            @endif
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">
@@ -2664,26 +2827,35 @@ function reportsApp() {
             // 2. SALES
             @if($activeTab === 'sales')
             if (this.activeTab === 'sales') {
+                const sMonths  = {!! json_encode($salesChartData['months'] ?? []) !!};
+                const sAmounts = {!! json_encode($salesChartData['amounts'] ?? []) !!};
+                const sProjects = {!! json_encode($salesChartData['project_names'] ?? []) !!};
+                const sCounts   = {!! json_encode($salesChartData['project_counts'] ?? []) !!};
+
                 new ApexCharts(document.querySelector("#monthlySalesTrendChart"), {
                     series: [{
-                        name: 'Sales Value',
-                        data: [30, 40, 35, 50, 49, 60, 70, 91, 125, 85, 90, 110]
+                        name: 'Sales Value (₹)',
+                        data: sAmounts
                     }],
-                    chart: { type: 'line', height: 220, toolbar: { show: false } },
+                    chart: { type: 'area', height: 220, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#a38c29'],
                     stroke: { curve: 'smooth', width: 3 },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] }
+                    fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+                    xaxis: { categories: sMonths },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 10000000 ? (v/10000000).toFixed(1)+'Cr' : (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K')) } },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
 
                 new ApexCharts(document.querySelector("#salesByProjectChart"), {
                     series: [{
-                        name: 'Sales Count',
-                        data: [12, 18, 5, 9]
+                        name: 'Active Sales Count',
+                        data: sCounts
                     }],
-                    chart: { type: 'bar', height: 220, toolbar: { show: false } },
+                    chart: { type: 'bar', height: 220, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#f97316'],
                     plotOptions: { bar: { columnWidth: '45%', borderRadius: 4 } },
-                    xaxis: { categories: ['Project East', 'Project West', 'Tabasco Park', 'Hindustan Residency'] }
+                    xaxis: { categories: sProjects.length ? sProjects : ['No Projects'] },
+                    tooltip: { y: { formatter: (v) => v + ' Units Sold' } }
                 }).render();
             }
             @endif
@@ -2691,23 +2863,46 @@ function reportsApp() {
             // 3. EMI & COLLECTIONS
             @if($activeTab === 'emi_collections')
             if (this.activeTab === 'emi_collections') {
+                const emiMonths  = {!! json_encode($emiChartData['months'] ?? []) !!};
+                const emiAmounts = {!! json_encode($emiChartData['amounts'] ?? []) !!};
+
                 new ApexCharts(document.querySelector("#emiOutstandingCollectionChart"), {
                     series: [{{ $emiCollectionsSummary['total_received'] ?? 0 }}, {{ $emiCollectionsSummary['outstanding'] ?? 0 }}],
                     labels: ['Collected', 'Outstanding'],
-                    chart: { type: 'donut', height: 200 },
+                    chart: { type: 'donut', height: 200, fontFamily: 'Inter, sans-serif' },
                     colors: ['#10b981', '#f43f5e'],
-                    legend: { position: 'bottom' }
+                    legend: { position: 'bottom', fontSize: '11px', fontWeight: 600 },
+                    dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '65%',
+                                labels: {
+                                    show: true,
+                                    total: {
+                                        show: true,
+                                        label: 'Total Value',
+                                        formatter: (w) => '₹' + (w.globals.seriesTotals.reduce((a, b) => a + b, 0) / 100000).toFixed(1) + 'L'
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }).render();
 
                 new ApexCharts(document.querySelector("#emiCollectionTrendChart"), {
                     series: [{
-                        name: 'Monthly Collections',
-                        data: [25, 30, 45, 38, 55, 62, 70]
+                        name: 'Monthly Collections (₹)',
+                        data: emiAmounts
                     }],
-                    chart: { type: 'area', height: 200, toolbar: { show: false } },
+                    chart: { type: 'area', height: 200, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#3b82f6'],
-                    stroke: { curve: 'smooth', width: 2 },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'] }
+                    stroke: { curve: 'smooth', width: 2.5 },
+                    fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+                    xaxis: { categories: emiMonths },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
             }
             @endif
@@ -2715,16 +2910,19 @@ function reportsApp() {
             // 4. CUSTOMER LEDGER
             @if($activeTab === 'customer_ledger')
             if (this.activeTab === 'customer_ledger' && document.querySelector("#customerPaymentHistoryChart")) {
+                const customerCredits = {!! json_encode(($ledgerEntries ?? collect())->where('credit', '>', 0)->pluck('credit')->map(fn($v) => (float)$v)->values()) !!};
+                const customerDates   = {!! json_encode(($ledgerEntries ?? collect())->where('credit', '>', 0)->pluck('date')->values()) !!};
                 new ApexCharts(document.querySelector("#customerPaymentHistoryChart"), {
                     series: [{
-                        name: 'Payment Clearings',
-                        data: [10000, 25000, 15000, 30000]
+                        name: 'Receipt Payments (₹)',
+                        data: customerCredits.length ? customerCredits : [0]
                     }],
-                    chart: { type: 'bar', height: 120, toolbar: { show: false } },
+                    chart: { type: 'bar', height: 140, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#10b981'],
-                    plotOptions: { bar: { columnWidth: '50%', borderRadius: 2 } },
-                    xaxis: { labels: { show: false } },
-                    yaxis: { labels: { show: false } }
+                    plotOptions: { bar: { columnWidth: '45%', borderRadius: 3 } },
+                    xaxis: { categories: customerDates.length ? customerDates : ['No Payments'] },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
             }
             @endif
@@ -2838,15 +3036,20 @@ function reportsApp() {
             // 6. BANK REPORTS
             @if($activeTab === 'bank_reports')
             if (this.activeTab === 'bank_reports') {
+                const bankMonths  = {!! json_encode($bankChartData['months'] ?? []) !!};
+                const bankAmounts = {!! json_encode($bankChartData['amounts'] ?? []) !!};
                 new ApexCharts(document.querySelector("#bankTransactionsChart"), {
                     series: [{
-                        name: 'Transactions Count',
-                        data: [18, 25, 14, 30, 22, 28, 35, 29, 41, 33, 40, 48]
+                        name: 'Bank Clearances',
+                        data: bankAmounts
                     }],
-                    chart: { type: 'area', height: 140, toolbar: { show: false } },
+                    chart: { type: 'area', height: 180, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#3b82f6'],
-                    stroke: { curve: 'smooth', width: 2 },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] }
+                    stroke: { curve: 'smooth', width: 2.5 },
+                    fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+                    xaxis: { categories: bankMonths },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
             }
             @endif
@@ -2854,31 +3057,97 @@ function reportsApp() {
             // 7. PARTNER STATEMENTS
             @if($activeTab === 'partner_statements')
             if (this.activeTab === 'partner_statements') {
+                const partnerMonths  = {!! json_encode($partnerChartData['months'] ?? []) !!};
+                const partnerAmounts = {!! json_encode($partnerChartData['amounts'] ?? []) !!};
+                const pLabels = {!! json_encode($partnerChartData['partner_labels'] ?? []) !!};
+                const pTotals = {!! json_encode($partnerChartData['partner_totals'] ?? []) !!};
+
+                // Chart 1: Monthly Allocation Column Bar Chart
                 new ApexCharts(document.querySelector("#partnerStatementsChart"), {
                     series: [{
-                        name: 'Capital Allocations',
-                        data: [5, 10, 15, 8, 20, 25, 30]
+                        name: 'Capital Outflow Allocated',
+                        data: partnerAmounts
                     }],
-                    chart: { type: 'line', height: 140, toolbar: { show: false } },
+                    chart: { type: 'bar', height: 210, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#a38c29'],
-                    stroke: { width: 3 },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'] }
+                    plotOptions: {
+                        bar: {
+                            columnWidth: '32%',
+                            borderRadius: 6,
+                            dataLabels: { position: 'top' }
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: (v) => v > 0 ? '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') : '',
+                        offsetY: -20,
+                        style: { fontSize: '10px', fontWeight: 700, colors: ['#a38c29'] }
+                    },
+                    xaxis: {
+                        categories: partnerMonths,
+                        axisBorder: { show: false },
+                        axisTicks: { show: false },
+                        labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 600 } }
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)),
+                            style: { colors: '#94a3b8', fontSize: '10px' }
+                        }
+                    },
+                    grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
+
+                // Chart 2: Partner Distribution Donut Chart
+                if (pLabels.length > 0 && document.querySelector("#partnerDistributionChart")) {
+                    new ApexCharts(document.querySelector("#partnerDistributionChart"), {
+                        series: pTotals,
+                        labels: pLabels,
+                        chart: { type: 'donut', height: 210, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#a38c29', '#10b981', '#3b82f6', '#f97316', '#8b5cf6'],
+                        legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
+                        dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '65%',
+                                    labels: {
+                                        show: true,
+                                        total: {
+                                            show: true,
+                                            label: 'Total Outflow',
+                                            formatter: (w) => '₹' + (w.globals.seriesTotals.reduce((a, b) => a + b, 0) / 100000).toFixed(1) + 'L'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
             }
             @endif
 
             // 8. SUPPLIER & CONTRACTOR
             @if($activeTab === 'supplier_contractor')
             if (this.activeTab === 'supplier_contractor') {
+                const supplierLabels = {!! json_encode($supplierChartData['labels'] ?? []) !!};
+                const supplierDues   = {!! json_encode($supplierChartData['dues'] ?? []) !!};
+                const supplierPaids  = {!! json_encode($supplierChartData['paids'] ?? []) !!};
                 new ApexCharts(document.querySelector("#supplierPayablesChart"), {
-                    series: [{
-                        name: 'Brokerage Paid',
-                        data: [20, 30, 25, 40, 35, 45]
-                    }],
-                    chart: { type: 'bar', height: 140, toolbar: { show: false } },
-                    colors: ['#f97316'],
-                    plotOptions: { bar: { columnWidth: '40%' } },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] }
+                    series: [
+                        { name: 'Commission Due', data: supplierDues },
+                        { name: 'Commission Paid', data: supplierPaids }
+                    ],
+                    chart: { type: 'bar', height: 180, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                    colors: ['#f97316', '#10b981'],
+                    dataLabels: { enabled: false },
+                    plotOptions: { bar: { columnWidth: '30%', borderRadius: 4 } },
+                    xaxis: { categories: supplierLabels.length ? supplierLabels : ['No Brokers'] },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
+                    grid: { borderColor: '#f1f5f9' },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
             }
             @endif
@@ -2886,31 +3155,77 @@ function reportsApp() {
             // 9. SALES RETURN
             @if($activeTab === 'sales_return')
             if (this.activeTab === 'sales_return') {
+                const retMonths  = {!! json_encode($salesReturnChartData['months'] ?? []) !!};
+                const retFees    = {!! json_encode($salesReturnChartData['fees'] ?? []) !!};
+                const retRefunds = {!! json_encode($salesReturnChartData['refunds'] ?? []) !!};
+                const totalFee   = {{ $salesReturnChartData['total_fee'] ?? 0 }};
+                const totalRefund = {{ $salesReturnChartData['total_refund'] ?? 0 }};
+
+                // Chart 1: Monthly Timeline Area Chart
                 new ApexCharts(document.querySelector("#salesReturnChart"), {
-                    series: [{
-                        name: 'Returns Count',
-                        data: [2, 1, 4, 3, 2, 5, 1]
-                    }],
-                    chart: { type: 'bar', height: 140, toolbar: { show: false } },
-                    colors: ['#ef4444'],
-                    plotOptions: { bar: { columnWidth: '35%' } },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'] }
+                    series: [
+                        { name: 'Retention Fees Retained (₹)', data: retFees },
+                        { name: 'Refund Amount Payable (₹)', data: retRefunds }
+                    ],
+                    chart: { type: 'area', height: 210, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                    colors: ['#ef4444', '#10b981'],
+                    stroke: { curve: 'smooth', width: 2.5 },
+                    fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0.05 } },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: retMonths },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)) } },
+                    grid: { borderColor: '#f1f5f9' },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
+
+                // Chart 2: Retention vs Refund Donut Chart
+                if (document.querySelector("#salesReturnDonutChart")) {
+                    new ApexCharts(document.querySelector("#salesReturnDonutChart"), {
+                        series: [totalFee, totalRefund],
+                        labels: ['Retention Fee Retained', 'Refund Payable'],
+                        chart: { type: 'donut', height: 210, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#ef4444', '#10b981'],
+                        legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
+                        dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '65%',
+                                    labels: {
+                                        show: true,
+                                        total: {
+                                            show: true,
+                                            label: 'Total Value',
+                                            formatter: (w) => '₹' + (w.globals.seriesTotals.reduce((a, b) => a + b, 0) / 100000).toFixed(1) + 'L'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
             }
             @endif
 
             // 10. EXCHANGE REPORT
             @if($activeTab === 'exchange_report')
             if (this.activeTab === 'exchange_report') {
+                const exMonths   = {!! json_encode($exchangeChartData['months'] ?? []) !!};
+                const exEquities = {!! json_encode($exchangeChartData['equities'] ?? []) !!};
                 new ApexCharts(document.querySelector("#unitExchangesChart"), {
                     series: [{
-                        name: 'Exchanges Count',
-                        data: [4, 6, 3, 5, 8, 4]
+                        name: 'Transferred Equity Applied (₹)',
+                        data: exEquities
                     }],
-                    chart: { type: 'area', height: 140, toolbar: { show: false } },
+                    chart: { type: 'area', height: 180, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#3b82f6'],
-                    stroke: { curve: 'smooth', width: 2 },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] }
+                    stroke: { curve: 'smooth', width: 2.5 },
+                    fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
+                    xaxis: { categories: exMonths },
+                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
+                    grid: { borderColor: '#f1f5f9' },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
             }
             @endif
@@ -2918,32 +3233,105 @@ function reportsApp() {
             // 11. PETTY CASH
             @if($activeTab === 'petty_cash')
             if (this.activeTab === 'petty_cash') {
-                new ApexCharts(document.querySelector("#pettyCashChart"), {
-                    series: [{
-                        name: 'Petty Cash Outflow',
-                        data: [1500, 3000, 2500, 1800, 4000, 3500]
-                    }],
-                    chart: { type: 'bar', height: 140, toolbar: { show: false } },
-                    colors: ['#f59e0b'],
-                    plotOptions: { bar: { columnWidth: '40%' } },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] }
-                }).render();
+                const pcMonths  = {!! json_encode($pettyCashChartData['months'] ?? []) !!};
+                const pcAmounts = {!! json_encode($pettyCashChartData['amounts'] ?? []) !!};
+                const pcCustLabels = {!! json_encode($pettyCashChartData['cust_labels'] ?? []) !!};
+                const pcCustTotals = {!! json_encode($pettyCashChartData['cust_totals'] ?? []) !!};
+
+                // Chart 1: Customer Distribution Donut
+                if (pcCustLabels.length > 0 && document.querySelector("#pettyCashCustomerChart")) {
+                    new ApexCharts(document.querySelector("#pettyCashCustomerChart"), {
+                        series: pcCustTotals,
+                        labels: pcCustLabels,
+                        chart: { type: 'donut', height: 210, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#a38c29'],
+                        legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
+                        dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '65%',
+                                    labels: {
+                                        show: true,
+                                        total: {
+                                            show: true,
+                                            label: 'Total Inflow',
+                                            formatter: (w) => '₹' + (w.globals.seriesTotals.reduce((a, b) => a + b, 0) / 100000).toFixed(1) + 'L'
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
+
+                // Chart 2: User-Friendly Monthly Column Bar Chart
+                if (document.querySelector("#pettyCashChart")) {
+                    new ApexCharts(document.querySelector("#pettyCashChart"), {
+                        series: [{
+                            name: 'Cash Collections',
+                            data: pcAmounts
+                        }],
+                        chart: { type: 'bar', height: 210, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#a38c29'],
+                        plotOptions: {
+                            bar: {
+                                columnWidth: '32%',
+                                borderRadius: 6,
+                                dataLabels: { position: 'top' }
+                            }
+                        },
+                        dataLabels: {
+                            enabled: true,
+                            formatter: (v) => v > 0 ? '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') : '',
+                            offsetY: -20,
+                            style: { fontSize: '10px', fontWeight: 700, colors: ['#a38c29'] }
+                        },
+                        xaxis: {
+                            categories: pcMonths,
+                            axisBorder: { show: false },
+                            axisTicks: { show: false },
+                            labels: { style: { colors: '#64748b', fontSize: '10px', fontWeight: 600 } }
+                        },
+                        yaxis: {
+                            labels: {
+                                formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)),
+                                style: { colors: '#94a3b8', fontSize: '10px' }
+                            }
+                        },
+                        grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
+                        tooltip: {
+                            y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') }
+                        }
+                    }).render();
+                }
             }
             @endif
 
             // 12. BANK LOAN EMI
             @if($activeTab === 'loan_schedules')
             if (this.activeTab === 'loan_schedules') {
-                new ApexCharts(document.querySelector("#bankLoanEmiChart"), {
-                    series: [{
-                        name: 'Loan Dues',
-                        data: [22, 15, 30, 41, 12, 18]
-                    }],
-                    chart: { type: 'area', height: 140, toolbar: { show: false } },
-                    colors: ['#ef4444'],
-                    stroke: { curve: 'smooth', width: 2 },
-                    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'] }
-                }).render();
+                const el = document.querySelector("#bankLoanEmiChart");
+                if (el) {
+                    const lMonths     = {!! json_encode($loanChartData['months'] ?? []) !!};
+                    const lPrincipals = {!! json_encode($loanChartData['principals'] ?? []) !!};
+                    const lInterests  = {!! json_encode($loanChartData['interests'] ?? []) !!};
+                    new ApexCharts(el, {
+                        series: [
+                            { name: 'Principal Component', data: lPrincipals },
+                            { name: 'Interest Component', data: lInterests }
+                        ],
+                        chart: { type: 'bar', height: 210, stacked: true, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#3b82f6', '#ef4444'],
+                        dataLabels: { enabled: false },
+                        plotOptions: { bar: { columnWidth: '30%', borderRadius: 4 } },
+                        xaxis: { categories: lMonths },
+                        yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)) } },
+                        grid: { borderColor: '#f1f5f9' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
+                    }).render();
+                }
             }
             @endif
 
@@ -2951,14 +3339,17 @@ function reportsApp() {
             @if($activeTab === 'trial_balance')
             if (this.activeTab === 'trial_balance') {
                 new ApexCharts(document.querySelector("#trialBalanceChart"), {
-                    series: [{
-                        name: 'Account Group Distribution',
-                        data: [44, 55, 41, 64]
-                    }],
-                    chart: { type: 'bar', height: 140, toolbar: { show: false } },
-                    colors: ['#6366f1'],
-                    plotOptions: { bar: { columnWidth: '40%' } },
-                    xaxis: { categories: ['Assets', 'Liabilities', 'Revenues', 'Expenses'] }
+                    series: [
+                        { name: 'Total Debit', data: [{{ $trialBalanceEntries['grand_total_debit'] ?? 0 }}] },
+                        { name: 'Total Credit', data: [{{ $trialBalanceEntries['grand_total_credit'] ?? 0 }}] }
+                    ],
+                    chart: { type: 'bar', height: 140, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                    colors: ['#3b82f6', '#10b981'],
+                    dataLabels: { enabled: false },
+                    plotOptions: { bar: { horizontal: true, barHeight: '35%', borderRadius: 4 } },
+                    xaxis: { labels: { formatter: (v) => '₹' + (v >= 10000000 ? (v/10000000).toFixed(1)+'Cr' : (v/100000).toFixed(1)+'L') } },
+                    grid: { borderColor: '#f1f5f9' },
+                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
                 }).render();
             }
             @endif
