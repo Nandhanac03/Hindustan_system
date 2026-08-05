@@ -787,6 +787,51 @@
                     $totalGridCols = max($maxFloorUnits, $maxParkingUnits);
                 @endphp
 
+                <!-- Unit Summary Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
+                    <!-- Total Units -->
+                    <div class="flex items-center gap-3 bg-gradient-to-br from-[#a38c29] to-[#7a6920] text-white rounded-2xl px-6 py-4 shadow-md shadow-[#a38c29]/30 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.12),_transparent_60%)] pointer-events-none"></div>
+                        <svg class="w-5 h-5 opacity-70 shrink-0 relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                        <div class="relative z-10">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-white/70 leading-none mb-1">Total Units</p>
+                            <p class="text-2xl font-black leading-none">{{ $totalUnitsCount }}</p>
+                        </div>
+                    </div>
+                    <!-- Available -->
+                    <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-2xl px-6 py-4 shadow-sm">
+                        <span class="w-4 h-4 rounded-lg bg-emerald-500 border border-emerald-600 shrink-0 shadow-sm"></span>
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-emerald-600 leading-none mb-1">Available</p>
+                            <p class="text-2xl font-black leading-none text-emerald-900">{{ $availableCount }}</p>
+                        </div>
+                    </div>
+                    <!-- Blocked -->
+                    <div class="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-6 py-4 shadow-sm">
+                        <span class="w-4 h-4 rounded-lg bg-amber-500 border border-amber-600 shrink-0 shadow-sm"></span>
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-amber-600 leading-none mb-1">Blocked</p>
+                            <p class="text-2xl font-black leading-none text-amber-900">{{ $blockedCount }}</p>
+                        </div>
+                    </div>
+                    <!-- Sold -->
+                    <div class="flex items-center gap-3 bg-rose-50 border border-rose-200 rounded-2xl px-6 py-4 shadow-sm">
+                        <span class="w-4 h-4 rounded-lg bg-rose-600 border border-rose-700 shrink-0 shadow-sm"></span>
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-rose-600 leading-none mb-1">Sold</p>
+                            <p class="text-2xl font-black leading-none text-rose-900">{{ $soldCount }}</p>
+                        </div>
+                    </div>
+                    <!-- Parking -->
+                    <div class="flex items-center gap-3 bg-slate-100 border border-slate-300 rounded-2xl px-6 py-4 shadow-sm">
+                        <span class="w-4 h-4 rounded-lg bg-[#0B1E36] border border-slate-800 shrink-0 shadow-sm"></span>
+                        <div>
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-500 leading-none mb-1">Parking</p>
+                            <p class="text-2xl font-black leading-none text-slate-900">{{ $parkingCount }}</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Table Matrix Container -->
                 <div class="overflow-x-auto relative rounded-2xl border border-slate-200/80 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.05)] bg-white">
                     <table class="border-collapse w-full" style="min-width: max-content;">
@@ -961,61 +1006,10 @@
                     </div>
                 </div>
 
-                <!-- Footer Summary Bar matching the design -->
-                <div class="grid grid-cols-2 sm:grid-cols-6 gap-6 py-6 px-8 bg-gradient-to-r from-[#FAF8F2] to-white border border-[#EFECE1] shadow-sm rounded-3xl items-center">
-                    
-                    <!-- Summary Icon Column -->
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-[#FAF0D7] text-[#9C6D3B] flex items-center justify-center shadow-sm border border-[#EFECE1]">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7"/>
-                            </svg>
-                        </div>
-                        <span class="font-extrabold text-[#0B1E36] text-sm uppercase tracking-widest">Summary</span>
-                    </div>
+            
 
-                    <!-- Total Units -->
-                    <div class="pl-2 border-l border-slate-200">
-                        <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Total Units</span>
-                        <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $totalUnitsCount }}</span>
-                    </div>
 
-                    <!-- Available -->
-                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
-                        <span class="w-5 h-5 rounded-lg bg-emerald-500 shadow-sm shrink-0"></span>
-                        <div>
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Available</span>
-                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $availableCount }}</span>
-                        </div>
-                    </div>
 
-                    <!-- Pending / Blocked -->
-                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
-                        <span class="w-5 h-5 rounded-lg bg-amber-500 shadow-sm shrink-0"></span>
-                        <div>
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Blocked</span>
-                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $blockedCount }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Sold -->
-                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
-                        <span class="w-5 h-5 rounded-lg bg-rose-600 shadow-sm shrink-0"></span>
-                        <div>
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Sold</span>
-                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $soldCount }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Parking -->
-                    <div class="flex items-center gap-3 pl-2 border-l border-slate-200">
-                        <span class="w-5 h-5 rounded-lg bg-[#0B1E36] shadow-sm shrink-0"></span>
-                        <div>
-                            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Parking</span>
-                            <span class="text-slate-800 font-black text-xl font-mono mt-0.5 block">{{ $parkingCount }}</span>
-                        </div>
-                    </div>
-                </div>
             @endif
             
             <!-- Dynamic Drawer Slide-Over Panel -->
