@@ -172,7 +172,7 @@
                 </svg>
             </button>
             <div x-show="openEMI" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.index') || Request::routeIs('emi-collections.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Customer EMI
                 </a>
                 <!-- <a href="{{ route('emi-collections.receipts') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.receipts') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
@@ -400,7 +400,7 @@
                         'profit_loss'         => 'Profit & Loss',
                         'balance_sheet'       => 'Balance Sheet Summary',
                     ];
-                    $currentReport = request('report', 'availability');
+                    $currentReport = Request::routeIs('reports.*') ? request('report', 'availability') : null;
                 @endphp
                 @foreach($reportLinks as $key => $label)
                     <a href="{{ route('reports.index', ['report' => $key]) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ $currentReport === $key ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
