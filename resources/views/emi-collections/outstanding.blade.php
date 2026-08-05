@@ -185,7 +185,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="font-semibold text-slate-700">{{ $sale->project?->name ?? '—' }}</div>
-                                <div class="text-[9px] text-slate-400">Unit: {{ $sale->unit?->door_no ?? '—' }}</div>
+                                <div class="text-[9px] text-slate-400">Unit: {{ $sale->unit?->formatted_name ?? '—' }}</div>
                             </td>
                             <td class="px-6 py-4 font-mono text-[10px] text-primary font-bold">{{ $sale->sale_number }}</td>
                             <td class="px-6 py-4 text-right font-mono font-semibold text-slate-800">₹{{ number_format($sale->total_amount, 0) }}</td>

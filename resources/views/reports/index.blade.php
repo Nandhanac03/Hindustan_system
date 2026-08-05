@@ -1084,7 +1084,7 @@
                                                                     {{ $unit->door_no }}
                                                                 </span>
                                                                 <span class="text-[8.5px] font-bold mt-1 font-mono leading-none opacity-90 drop-shadow-xs">
-                                                                    {{ $unit->built_up_area ? number_format((float)$unit->built_up_area, 2) . ' Sq.ft' : 'N/A' }}
+                                                                    {{ $unit->unitType?->name ? (strtolower($unit->unitType->name) === 'flat' ? 'Apartment' : ucfirst($unit->unitType->name)) : 'N/A' }}
                                                                 </span>
                                                             </div>
                                                         @else
@@ -1849,7 +1849,7 @@
                             <td class="px-5 py-3 font-sans text-slate-900">{{ $row->customer?->name }}</td>
                             <td class="px-5 py-3 font-sans">
                                 <div>{{ $row->project?->name }}</div>
-                                <div class="text-[10px] text-slate-400 font-mono">Old Unit: {{ $row->unit?->door_no }}{{ $row->unit?->unitType?->name ? '(' . $row->unit->unitType->name . ')' : '' }}{{ $row->unit?->floor?->name ? ' - ' . $row->unit->floor->name : '' }}</div>
+                                <div class="text-[10px] text-slate-400 font-mono">Old Unit: {{ $row->unit?->formatted_name ?? '—' }}</div>
                             </td>
                             <td class="px-5 py-3 text-right text-emerald-700">₹{{ number_format($row->transferred_equity, 2) }}</td>
                             <td class="px-5 py-3 text-right">₹{{ number_format($row->total_amount, 2) }}</td>

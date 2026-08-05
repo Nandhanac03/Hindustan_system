@@ -54,6 +54,42 @@ class Unit extends Model
         return (string) ($this->door_no ?? '');
     }
 
+    public function getFormattedNameAttribute(): string
+    {
+        $door = trim(explode(',', $this->door_no ?? '')[0]);
+        if (!$door) {
+            return '';
+        }
+
+        $type = '';
+        if ($this->unitType && $this->unitType->name) {
+            $tName = strtolower($this->unitType->name);
+            if ($tName === 'flat') {
+                $type = 'Apartment';
+            } elseif (str_contains($tName, 'parking')) {
+                $type = 'Parking';
+            } else {
+                $type = ucfirst($tName);
+            }
+        }
+
+        $floor = '';
+        if ($this->floor && $this->floor->name) {
+            $fName = trim($this->floor->name);
+            if (preg_match('/^(floor|fl)\b/i', $fName)) {
+                $floor = preg_replace('/^(floor|fl)\b/i', 'Floor', $fName);
+            } elseif (is_numeric($fName)) {
+                $floor = 'Floor ' . $fName;
+            } else {
+                $floor = ucfirst($fName);
+            }
+        }
+
+        $typeStr = $type ? "({$type})" : '';
+        $floorStr = $floor ? " - {$floor}" : '';
+        return "{$door}{$typeStr}{$floorStr}";
+    }
+
     public function setUnitNumberAttribute($value): void
     {
         $this->attributes['door_no'] = $value;
