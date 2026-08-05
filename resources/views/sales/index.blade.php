@@ -973,14 +973,24 @@
             </div>
             <form @submit.prevent="submitQuickCustomer()">
                 <div class="p-6 space-y-3">
-                    <input type="text" x-model="quickCustomer.name" placeholder="Full Name"
-                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary">
-                    <input type="email" x-model="quickCustomer.email" placeholder="Email"
-                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary">
-                    <input type="text" x-model="quickCustomer.phone" placeholder="Phone"
-                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary">
-                    <template x-if="quickCustomerErrors.name"><p class="text-[10px] text-rose-600 font-semibold" x-text="quickCustomerErrors.name[0]"></p></template>
-                    <template x-if="quickCustomerErrors.email"><p class="text-[10px] text-rose-600 font-semibold" x-text="quickCustomerErrors.email[0]"></p></template>
+                    <div>
+                        <input type="text" x-model="quickCustomer.name" placeholder="Full Name"
+                               :class="quickCustomerErrors.name ? 'border-rose-500 bg-rose-50/30 ring-2 ring-rose-500/20' : 'border-slate-250'"
+                               class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all">
+                        <template x-if="quickCustomerErrors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1 pl-1" x-text="quickCustomerErrors.name[0]"></p></template>
+                    </div>
+                    <div>
+                        <input type="email" x-model="quickCustomer.email" placeholder="Email"
+                               :class="quickCustomerErrors.email ? 'border-rose-500 bg-rose-50/30 ring-2 ring-rose-500/20' : 'border-slate-250'"
+                               class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all">
+                        <template x-if="quickCustomerErrors.email"><p class="text-[10px] text-rose-600 font-semibold mt-1 pl-1" x-text="quickCustomerErrors.email[0]"></p></template>
+                    </div>
+                    <div>
+                        <input type="text" x-model="quickCustomer.phone" placeholder="Phone"
+                               :class="quickCustomerErrors.phone ? 'border-rose-500 bg-rose-50/30 ring-2 ring-rose-500/20' : 'border-slate-250'"
+                               class="w-full px-3 py-2 bg-slate-50 border rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all">
+                        <template x-if="quickCustomerErrors.phone"><p class="text-[10px] text-rose-600 font-semibold mt-1 pl-1" x-text="quickCustomerErrors.phone[0]"></p></template>
+                    </div>
                 </div>
                 <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-2 bg-slate-50">
                     <button type="button" @click="modals.quickCustomer.open = false" class="px-4 py-2 border border-slate-200 text-slate-650 text-xs font-bold rounded-xl uppercase">Cancel</button>
