@@ -77,7 +77,7 @@ class ReportController extends Controller
         ];
         
         $shops = collect();
-        $flats = collect();
+        $apartments = collect();
         $parkings = collect();
         $others = collect();
         $groupedSummary = collect();
@@ -87,6 +87,10 @@ class ReportController extends Controller
         $approvalReportEntries = collect();
         $cashBookStats = [];
         $cashBookChartData = [];
+        $salesReturnChartData = [];
+        $floorMatrix = [];
+        $parkingRows = [];
+        $matrixColumns = [];
 
         $selectedCustomer = null;
         $totalDebits = 0;
@@ -117,8 +121,8 @@ class ReportController extends Controller
                 $name = strtolower($unit->unitType?->name ?? 'other');
                 if (str_contains($name, 'shop') || $unit->unitType?->category === 'commercial') {
                     return 'SHOP';
-                } elseif (str_contains($name, 'flat') || str_contains($name, 'bhk') || str_contains($name, 'villa') || $unit->unitType?->category === 'residential') {
-                    return 'FLAT';
+                } elseif (str_contains($name, 'flat') || str_contains($name, 'apartment') || str_contains($name, 'bhk') || str_contains($name, 'villa') || $unit->unitType?->category === 'residential') {
+                    return 'APARTMENT';
                 } elseif (str_contains($name, 'parking') || $unit->unitType?->category === 'parking') {
                     return 'PARKING';
                 } elseif (str_contains($name, 'counter')) {
@@ -137,11 +141,73 @@ class ReportController extends Controller
 
             // Split into sub-collections for the view (available units only)
             $shops = $availableUnits->filter(fn($u) => str_contains(strtolower($u->unitType?->name ?? ''), 'shop') || $u->unitType?->category === 'commercial')->values();
-            $flats = $availableUnits->filter(fn($u) => str_contains(strtolower($u->unitType?->name ?? ''), 'flat') || str_contains(strtolower($u->unitType?->name ?? ''), 'bhk') || str_contains(strtolower($u->unitType?->name ?? ''), 'villa') || $u->unitType?->category === 'residential')->values();
+            $apartments = $availableUnits->filter(fn($u) => str_contains(strtolower($u->unitType?->name ?? ''), 'flat') || str_contains(strtolower($u->unitType?->name ?? ''), 'apartment') || str_contains(strtolower($u->unitType?->name ?? ''), 'bhk') || str_contains(strtolower($u->unitType?->name ?? ''), 'villa') || $u->unitType?->category === 'residential')->values();
             $parkings = $availableUnits->filter(fn($u) => str_contains(strtolower($u->unitType?->name ?? ''), 'parking') || $u->unitType?->category === 'parking')->values();
-            $others = $availableUnits->filter(fn($u) => !$shops->contains('id', $u->id) && !$flats->contains('id', $u->id) && !$parkings->contains('id', $u->id))->values();
+            $others = $availableUnits->filter(fn($u) => !$shops->contains('id', $u->id) && !$apartments->contains('id', $u->id) && !$parkings->contains('id', $u->id))->values();
 
             $inventorySummary = $groupedSummary;
+
+            // Fetch floors and units to construct the Floor Matrix for this project
+            $floorsQuery = \App\Models\Floor::where('project_id', $request->project_id)
+                ->orderBy('floor_number', 'desc')
+                ->with(['units' => function($q) {
+                    $q->orderBy('door_no');
+                }, 'units.booking', 'units.unitType']);
+                
+            $floors = $floorsQuery->get();
+
+            $regularFloors = [];
+            foreach ($floors as $floor) {
+                $isParking = false;
+                if (stripos($floor->name, 'parking') !== false || stripos($floor->name, 'basement') !== false) {
+                    $isParking = true;
+                } else {
+                    $parkingUnitsCount = $floor->units->where('unit_type_id', 5)->count();
+                    if ($floor->units->isNotEmpty() && $parkingUnitsCount === $floor->units->count()) {
+                        $isParking = true;
+                    }
+                }
+
+                if ($isParking) {
+                    $rowUnits = $floor->units->sortBy('door_no')->values();
+                    $parkingRows[] = [
+                        'floor'        => $floor,
+                        'display_name' => $floor->name,
+                        'units'        => $rowUnits,
+                    ];
+                } else {
+                    $regularFloors[] = $floor;
+                }
+            }
+
+            $allDoorNos = collect();
+            foreach ($regularFloors as $floor) {
+                foreach ($floor->units as $unit) {
+                    $allDoorNos->push($unit->door_no);
+                }
+            }
+            $matrixColumns = $allDoorNos->unique()->sortBy(function($doorNo) {
+                return [strlen($doorNo), $doorNo];
+            })->values()->toArray();
+
+            foreach ($regularFloors as $floor) {
+                $unitsByDoor = $floor->units->keyBy('door_no');
+                $cols = [];
+                foreach ($matrixColumns as $doorNo) {
+                    $cols[$doorNo] = $unitsByDoor->get($doorNo);
+                }
+
+                $floorMatrix[] = [
+                    'floor'        => $floor,
+                    'display_name' => $floor->name,
+                    'columns'      => $cols,
+                ];
+            }
+
+            $parkingRows = array_map(function($pRow, $index) {
+                $pRow['display_name'] = 'P' . ($index + 1);
+                return $pRow;
+            }, $parkingRows, array_keys($parkingRows));
         }
 
         // 2. SALES REPORT
@@ -402,7 +468,7 @@ class ReportController extends Controller
 
         // 10. EXCHANGE REPORT
         if ($activeTab === 'exchange_report') {
-            $exQuery = Sale::with(['customer', 'unit', 'project'])->where('status', 'exchanged');
+            $exQuery = Sale::with(['customer', 'unit.unitType', 'unit.floor', 'project', 'statusLogs'])->where('status', 'exchanged');
             if ($request->filled('project_id')) {
                 $exQuery->where('project_id', $request->project_id);
             }
@@ -1256,13 +1322,16 @@ class ReportController extends Controller
             'cashBookStats',
             'cashBookChartData',
             'shops',
-            'flats',
+            'apartments',
             'parkings',
             'others',
             'groupedSummary',
             'floors',
             'gstReportEntries',
-            'gstStats'
+            'gstStats',
+            'floorMatrix',
+            'parkingRows',
+            'matrixColumns'
         ));
     }
 }

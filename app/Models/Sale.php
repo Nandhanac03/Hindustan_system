@@ -108,6 +108,18 @@ class Sale extends Model
     {
         return (float) $this->saleUnits->sum('brokerage_amount');
     }
+    
+    public function getTransferredEquityAttribute(): float
+    {
+        if ($this->status !== 'exchanged') {
+            return 0.00;
+        }
+        $log = $this->statusLogs->first(fn($l) => $l->event_type === 'exchanged');
+        if ($log && isset($log->snapshot_data['old_sale']['total_paid'])) {
+            return (float)$log->snapshot_data['old_sale']['total_paid'];
+        }
+        return (float)($this->refund_amount ?? 0.00);
+    }
 
     public function receipts(): HasMany
     {
