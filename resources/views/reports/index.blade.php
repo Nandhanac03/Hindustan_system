@@ -1619,8 +1619,10 @@
                                 <td class="px-5 py-3.5 font-sans">
                                     @if($cash->partner)
                                         <span class="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-100 inline-block">{{ $cash->partner->name }}</span>
+                                    @elseif(request('partner_id'))
+                                        <span class="px-2.5 py-1 rounded-full text-[9px] font-bold uppercase bg-amber-50 text-amber-700 border border-amber-100 inline-block">Partner Share</span>
                                     @else
-                                        <span class="text-slate-300 font-mono text-[10px]">—</span>
+                                        <span class="text-slate-300 font-mono text-[10px]">Project Intake</span>
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 font-sans">

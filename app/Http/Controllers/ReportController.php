@@ -353,15 +353,34 @@ class ReportController extends Controller
 
         // 5. CASH BOOK — Partner Analytics Dashboard
         if ($activeTab === 'cash_book') {
-            $cashQuery = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner']);
-
-            // Partner filter
             $selectedPartnerId = $request->filled('partner_id') ? (int)$request->partner_id : null;
+            $selectedProjectId = $request->filled('project_id') ? (int)$request->project_id : null;
+
+            // Fetch partner's shares if a partner is selected
+            $partnerShares = collect();
             if ($selectedPartnerId) {
-                $cashQuery->where('partner_id', $selectedPartnerId);
+                $pSharesQ = DB::table('partner_shares')->where('partner_id', $selectedPartnerId);
+                if ($selectedProjectId) {
+                    $pSharesQ->where('project_id', $selectedProjectId);
+                }
+                $partnerShares = $pSharesQ->get()->keyBy('project_id');
             }
 
-            // Payment mode filter
+            $cashQuery = Receipt::with(['customer', 'sale.project', 'sale.unit', 'partner']);
+
+            if ($selectedPartnerId) {
+                if ($partnerShares->isNotEmpty()) {
+                    $cashQuery->whereIn('project_id', $partnerShares->keys())
+                        ->where(function($q) use ($selectedPartnerId) {
+                            $q->whereNull('partner_id')->orWhere('partner_id', $selectedPartnerId);
+                        });
+                } else {
+                    $cashQuery->where('partner_id', $selectedPartnerId);
+                }
+            } elseif ($selectedProjectId) {
+                $cashQuery->where('project_id', $selectedProjectId);
+            }
+
             if ($request->filled('payment_mode')) {
                 $cashQuery->where('payment_mode', $request->payment_mode);
             }
@@ -371,36 +390,68 @@ class ReportController extends Controller
             if ($request->filled('date_to')) {
                 $cashQuery->whereDate('receipt_date', '<=', $request->date_to);
             }
-            if ($request->filled('project_id')) {
-                $cashQuery->where('project_id', $request->project_id);
-            }
 
             $cashBookEntries = $cashQuery->orderByDesc('receipt_date')->paginate(25);
 
-            // --- Summary Stats ---
+            // Helper to get partner's share ratio (multiplier) for a project
+            $getPartnerMultiplier = function($projId) use ($selectedPartnerId, $partnerShares) {
+                if (!$selectedPartnerId) return 1.0;
+                $sh = $partnerShares->get($projId);
+                return $sh ? ((float)$sh->share_pct / 100.0) : 1.0;
+            };
+
+            // Summary Stats Base Query
             $statsBaseQuery = Receipt::query();
             if ($selectedPartnerId) {
-                $statsBaseQuery->where('partner_id', $selectedPartnerId);
+                if ($partnerShares->isNotEmpty()) {
+                    $statsBaseQuery->whereIn('project_id', $partnerShares->keys())
+                        ->where(function($q) use ($selectedPartnerId) {
+                            $q->whereNull('partner_id')->orWhere('partner_id', $selectedPartnerId);
+                        });
+                } else {
+                    $statsBaseQuery->where('partner_id', $selectedPartnerId);
+                }
+            } elseif ($selectedProjectId) {
+                $statsBaseQuery->where('project_id', $selectedProjectId);
             }
+
             if ($request->filled('date_from')) {
                 $statsBaseQuery->whereDate('receipt_date', '>=', $request->date_from);
             }
             if ($request->filled('date_to')) {
                 $statsBaseQuery->whereDate('receipt_date', '<=', $request->date_to);
             }
-            if ($request->filled('project_id')) {
-                $statsBaseQuery->where('project_id', $request->project_id);
+
+            $allStatsReceipts = $statsBaseQuery->get();
+
+            $totalReceived = 0.0;
+            $cashReceived  = 0.0;
+            $bankReceived  = 0.0;
+
+            foreach ($allStatsReceipts as $rec) {
+                $mult = $getPartnerMultiplier($rec->project_id);
+                $amt = (float)$rec->amount * $mult;
+                $totalReceived += $amt;
+                if ($rec->payment_mode === 'Cash') {
+                    $cashReceived += $amt;
+                } else {
+                    $bankReceived += $amt;
+                }
             }
 
-            $totalReceived = (float)$statsBaseQuery->sum('amount');
-            $cashReceived  = (float)(clone $statsBaseQuery)->where('payment_mode', 'Cash')->sum('amount');
-            $bankReceived  = (float)(clone $statsBaseQuery)->whereIn('payment_mode', ['Bank Transfer', 'Cheque', 'Online', 'UPI'])->sum('amount');
-            // Pending = outstanding balance of active sales for partner's customers
-            $pendingQuery  = Sale::where('status', 'active')->where('remaining_balance', '>', 0);
-            if ($selectedPartnerId) {
-                $pendingQuery->whereHas('receipts', fn($q) => $q->where('partner_id', $selectedPartnerId));
+            // Pending balance for partner
+            $pendingQuery = Sale::where('status', 'active')->where('remaining_balance', '>', 0);
+            if ($selectedProjectId) {
+                $pendingQuery->where('project_id', $selectedProjectId);
+            } elseif ($selectedPartnerId && $partnerShares->isNotEmpty()) {
+                $pendingQuery->whereIn('project_id', $partnerShares->keys());
             }
-            $pendingBalance = (float)$pendingQuery->sum('remaining_balance');
+            $allPendingSales = $pendingQuery->get();
+            $pendingBalance = 0.0;
+            foreach ($allPendingSales as $psale) {
+                $mult = $getPartnerMultiplier($psale->project_id);
+                $pendingBalance += (float)$psale->remaining_balance * $mult;
+            }
 
             $cashBookStats = [
                 'total_received'  => $totalReceived,
@@ -410,70 +461,103 @@ class ReportController extends Controller
                 'selected_partner_id' => $selectedPartnerId,
             ];
 
-            // --- Monthly trend (last 12 months) ---
+            // Monthly trend (last 12 months)
             $monthlyData = [];
             for ($i = 11; $i >= 0; $i--) {
                 $month = Carbon::now()->subMonths($i);
-                $monthQ = Receipt::query()
+                $mQ = Receipt::query()
                     ->whereYear('receipt_date', $month->year)
                     ->whereMonth('receipt_date', $month->month);
+
                 if ($selectedPartnerId) {
-                    $monthQ->where('partner_id', $selectedPartnerId);
+                    if ($partnerShares->isNotEmpty()) {
+                        $mQ->whereIn('project_id', $partnerShares->keys())
+                           ->where(function($q) use ($selectedPartnerId) {
+                               $q->whereNull('partner_id')->orWhere('partner_id', $selectedPartnerId);
+                           });
+                    } else {
+                        $mQ->where('partner_id', $selectedPartnerId);
+                    }
+                } elseif ($selectedProjectId) {
+                    $mQ->where('project_id', $selectedProjectId);
                 }
-                if ($request->filled('project_id')) {
-                    $monthQ->where('project_id', $request->project_id);
+
+                $mRecs = $mQ->get();
+                $mAmt = 0.0;
+                foreach ($mRecs as $mr) {
+                    $mAmt += (float)$mr->amount * $getPartnerMultiplier($mr->project_id);
                 }
+
                 $monthlyData[] = [
                     'label'  => $month->format('M Y'),
-                    'amount' => (float)$monthQ->sum('amount'),
+                    'amount' => $mAmt,
                 ];
             }
 
-            // --- Payment mode distribution ---
-            $paymentModes = Receipt::query()
-                ->selectRaw('payment_mode, SUM(amount) as total')
-                ->whereNotNull('payment_mode')
-                ->where('payment_mode', '!=', '')
-                ->when($selectedPartnerId, fn($q) => $q->where('partner_id', $selectedPartnerId))
-                ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
-                ->when($request->filled('date_to'),   fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
-                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
-                ->groupBy('payment_mode')
-                ->orderByDesc('total')
-                ->get();
+            // Payment modes distribution
+            $pmQ = Receipt::query();
+            if ($selectedPartnerId) {
+                if ($partnerShares->isNotEmpty()) {
+                    $pmQ->whereIn('project_id', $partnerShares->keys())
+                        ->where(function($q) use ($selectedPartnerId) {
+                            $q->whereNull('partner_id')->orWhere('partner_id', $selectedPartnerId);
+                        });
+                } else {
+                    $pmQ->where('partner_id', $selectedPartnerId);
+                }
+            } elseif ($selectedProjectId) {
+                $pmQ->where('project_id', $selectedProjectId);
+            }
+            if ($request->filled('date_from')) $pmQ->whereDate('receipt_date', '>=', $request->date_from);
+            if ($request->filled('date_to')) $pmQ->whereDate('receipt_date', '<=', $request->date_to);
 
-            // --- Partner-wise breakdown ---
-            $partnerWise = Receipt::query()
-                ->selectRaw('partner_id, SUM(amount) as total')
-                ->with('partner')
-                ->whereNotNull('partner_id')
-                ->when($request->filled('date_from'), fn($q) => $q->whereDate('receipt_date', '>=', $request->date_from))
-                ->when($request->filled('date_to'),   fn($q) => $q->whereDate('receipt_date', '<=', $request->date_to))
-                ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+            $pmRecs = $pmQ->whereNotNull('payment_mode')->where('payment_mode', '!=', '')->get();
+            $paymentModes = $pmRecs->groupBy('payment_mode')->map(function($group, $mode) use ($getPartnerMultiplier) {
+                $sum = 0.0;
+                foreach ($group as $r) {
+                    $sum += (float)$r->amount * $getPartnerMultiplier($r->project_id);
+                }
+                return (object)['payment_mode' => $mode, 'total' => $sum];
+            })->values()->sortByDesc('total');
+
+            // Partner-wise breakdown (from partner allocations / project shares)
+            $partnerWise = PartnerAllocation::with('partner')
+                ->when($selectedProjectId, fn($q) => $q->where('project_id', $selectedProjectId))
+                ->selectRaw("partner_id, SUM(allocated_amount) as total")
                 ->groupBy('partner_id')
-                ->orderByDesc('total')
                 ->get();
 
-            // --- Daily trend (last 30 days) ---
+            // Daily trend (last 30 days)
             $dailyData = [];
             for ($i = 29; $i >= 0; $i--) {
                 $day = Carbon::now()->subDays($i);
-                $dayQ = Receipt::query()->whereDate('receipt_date', $day->toDateString());
+                $dQ = Receipt::query()->whereDate('receipt_date', $day->toDateString());
                 if ($selectedPartnerId) {
-                    $dayQ->where('partner_id', $selectedPartnerId);
+                    if ($partnerShares->isNotEmpty()) {
+                        $dQ->whereIn('project_id', $partnerShares->keys())
+                           ->where(function($q) use ($selectedPartnerId) {
+                               $q->whereNull('partner_id')->orWhere('partner_id', $selectedPartnerId);
+                           });
+                    } else {
+                        $dQ->where('partner_id', $selectedPartnerId);
+                    }
+                } elseif ($selectedProjectId) {
+                    $dQ->where('project_id', $selectedProjectId);
                 }
-                if ($request->filled('project_id')) {
-                    $dayQ->where('project_id', $request->project_id);
+                $dRecs = $dQ->get();
+                $dAmt = 0.0;
+                foreach ($dRecs as $dr) {
+                    $dAmt += (float)$dr->amount * $getPartnerMultiplier($dr->project_id);
                 }
                 $dailyData[] = [
                     'label'  => $day->format('d M'),
-                    'amount' => (float)$dayQ->sum('amount'),
+                    'amount' => $dAmt,
                 ];
             }
 
             $cashBookChartData = [
-                'monthly'      => $monthlyData,
-                'daily'        => $dailyData,
+                'monthly'       => $monthlyData,
+                'daily'         => $dailyData,
                 'payment_modes' => $paymentModes,
                 'partner_wise'  => $partnerWise,
             ];
