@@ -48,7 +48,7 @@ class UnitController extends Controller
 
         if ($request->wantsJson() || $request->ajax()) {
             $table = (new Unit)->getTable();
-            $query = Unit::with(['floor', 'unitType', 'rateLogs.user', 'booking'])
+            $query = Unit::with(['floor', 'unitType', 'rateLogs.user', 'booking', 'sale.customer'])
                 ->join('floors', "{$table}.floor_id", '=', 'floors.id')
                 ->where("{$table}.project_id", $project->id)
                 ->select("{$table}.*");
