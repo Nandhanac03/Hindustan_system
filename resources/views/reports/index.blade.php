@@ -1391,8 +1391,8 @@
 
             @if($selectedCustomer)
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="lg:col-span-2 border border-slate-200 rounded-2xl p-5 bg-slate-50/50 space-y-4">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Statement Information</h4>
+                <div class="lg:col-span-2 border border-[#a38c29]/30 rounded-2xl p-5 bg-gradient-to-r from-[#a38c29]/10 via-[#a38c29]/5 to-transparent space-y-4">
+                    <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">Statement Information</h4>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <span class="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">Customer Name</span>
@@ -1405,8 +1405,8 @@
                         </div>
                     </div>
                 </div>
-                <div class="lg:col-span-1 border border-slate-200 rounded-2xl p-4 bg-slate-50/50 flex flex-col justify-center">
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">History & Ledger Mix</h4>
+                <div class="lg:col-span-1 border border-[#a38c29]/30 rounded-2xl p-4 bg-gradient-to-r from-[#a38c29]/10 via-[#a38c29]/5 to-transparent flex flex-col justify-center">
+                    <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider mb-2">History & Ledger Mix</h4>
                     <div id="customerPaymentHistoryChart" class="w-full h-36"></div>
                 </div>
             </div>
@@ -1414,7 +1414,7 @@
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
+                        <tr class="bg-[#a38c29]/10 border-b border-[#a38c29]/30 text-[10px] font-black text-[#8a7522] uppercase tracking-widest">
                             <th class="px-5 py-3">Posting Date</th>
                             <th class="px-5 py-3">Voucher / Ref No.</th>
                             <th class="px-5 py-3">Narrative</th>
@@ -1475,12 +1475,12 @@
 
                 {{-- Table 1: All Customers Account Balances Register --}}
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                    <div class="px-6 py-4 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white flex items-center justify-between border-b border-[#8a7522]">
                         <div>
                             <h4 class="text-xs font-black uppercase tracking-wider text-white">All Customers Account Balances Directory</h4>
-                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Overview of customer agreements, total payments received, and current outstanding dues.</p>
+                            <p class="text-[10px] text-amber-100 font-medium mt-0.5">Overview of customer agreements, total payments received, and current outstanding dues.</p>
                         </div>
-                        <span class="px-3 py-1 bg-[#a38c29] text-white text-[10px] font-black uppercase tracking-wider rounded-lg">
+                        <span class="px-3 py-1 bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider rounded-lg">
                             {{ count($customerSummaryList) }} Customers
                         </span>
                     </div>
@@ -1488,7 +1488,7 @@
                     <div class="overflow-x-auto">
                         <table id="reportsTable" class="w-full text-xs text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-100 border-b border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                                <tr class="bg-[#a38c29]/10 border-b border-[#a38c29]/30 text-[10px] font-black text-[#8a7522] uppercase tracking-widest">
                                     <th class="px-5 py-3.5">SL NO</th>
                                     <th class="px-5 py-3.5">Customer Name & Contact</th>
                                     <th class="px-5 py-3.5">Project / Unit</th>
@@ -1501,7 +1501,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-medium">
                                 @forelse($customerSummaryList as $idx => $cs)
-                                <tr class="hover:bg-slate-50 transition-colors">
+                                <tr class="hover:bg-amber-50/30 transition-colors">
                                     <td class="px-5 py-4 font-mono font-bold text-slate-400">{{ $idx + 1 }}</td>
                                     <td class="px-5 py-4">
                                         <div class="font-extrabold text-slate-900 text-sm">{{ $cs['customer_name'] }}</div>
@@ -1547,19 +1547,19 @@
 
                 {{-- Table 2: System-Wide Customer Ledger Transaction Log --}}
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="px-6 py-4 bg-slate-800 text-white flex items-center justify-between">
+                    <div class="px-6 py-4 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white flex items-center justify-between border-b border-[#8a7522]">
                         <div>
                             <h4 class="text-xs font-black uppercase tracking-wider text-white">System-Wide Customer Ledger Transaction Log</h4>
-                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Chronological transaction history combining sale agreements and receipts across all customers.</p>
+                            <p class="text-[10px] text-amber-100 font-medium mt-0.5">Chronological transaction history combining sale agreements and receipts across all customers.</p>
                         </div>
-                        <span class="px-3 py-1 bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                        <span class="px-3 py-1 bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider rounded-lg">
                             {{ count($ledgerEntries) }} Transactions
                         </span>
                     </div>
 
                     <div class="overflow-x-auto max-h-[500px]">
                         <table id="reportsTable" class="w-full text-xs text-left border-collapse">
-                            <thead class="sticky top-0 z-10 bg-slate-100 border-b border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                            <thead class="sticky top-0 z-10 bg-[#a38c29]/15 border-b border-[#a38c29]/30 text-[10px] font-black text-[#8a7522] uppercase tracking-widest">
                                 <tr>
                                     <th class="px-5 py-3">Posting Date</th>
                                     <th class="px-5 py-3">Customer Name</th>
@@ -1572,7 +1572,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-100 font-mono text-slate-700">
                                 @forelse($ledgerEntries as $row)
-                                <tr class="hover:bg-slate-50 transition-colors">
+                                <tr class="hover:bg-amber-50/30 transition-colors">
                                     <td class="px-5 py-3.5 text-slate-500 font-sans text-[11px]">{{ $row['date'] }}</td>
                                     <td class="px-5 py-3.5 font-bold font-sans text-slate-900">{{ $row['customer_name'] ?? '-' }}</td>
                                     <td class="px-5 py-3.5 font-bold text-indigo-700">{{ $row['ref_no'] }}</td>
