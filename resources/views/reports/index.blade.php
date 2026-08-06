@@ -1373,7 +1373,7 @@
                             Select Customer for Ledger & Account Statement
                         </label>
                         <select name="customer_id" onchange="this.form.submit()" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29] cursor-pointer shadow-2xs">
-                            <option value="">-- Select a Customer to View Ledger Statement --</option>
+                            <option value="">-- All Customers (Default Full Ledger Display) --</option>
                             @foreach($customers as $c)
                                 <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>
                                     {{ $c->name }} {{ $c->phone ? '('.$c->phone.')' : '' }} {{ $c->email ? '• '.$c->email : '' }}
@@ -1444,7 +1444,155 @@
                 </table>
             </div>
             @else
-            <div class="p-8 text-center text-slate-400 italic">Please select a customer above to generate the ledger statement.</div>
+            {{-- DEFAULT FULL DISPLAY — ALL CUSTOMERS LEDGER SUMMARY --}}
+            <div class="space-y-6">
+                {{-- Executive KPI Summary Cards --}}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 shadow-2xs space-y-1">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Total Sales Agreements</span>
+                        <div class="text-xl font-mono font-black text-slate-900">₹{{ number_format($totalDebits, 2) }}</div>
+                        <span class="text-[10px] text-slate-400 font-semibold block">Combined sales value</span>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-emerald-50/40 shadow-2xs space-y-1">
+                        <span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest block">Total Collections</span>
+                        <div class="text-xl font-mono font-black text-emerald-700">₹{{ number_format($totalCredits, 2) }}</div>
+                        <span class="text-[10px] text-emerald-600/80 font-semibold block">Total receipts received</span>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-rose-50/40 shadow-2xs space-y-1">
+                        <span class="text-[9px] font-black text-rose-600 uppercase tracking-widest block">Net Outstanding Due</span>
+                        <div class="text-xl font-mono font-black text-rose-700">₹{{ number_format($closingBalance, 2) }}</div>
+                        <span class="text-[10px] text-rose-600/80 font-semibold block">Overall pending receivables</span>
+                    </div>
+
+                    <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-amber-50/40 shadow-2xs space-y-1">
+                        <span class="text-[9px] font-black text-[#a38c29] uppercase tracking-widest block">Active Customer Accounts</span>
+                        <div class="text-xl font-mono font-black text-slate-900">{{ count($customerSummaryList) }}</div>
+                        <span class="text-[10px] text-slate-400 font-semibold block">Customers with active sales</span>
+                    </div>
+                </div>
+
+                {{-- Table 1: All Customers Account Balances Register --}}
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+                        <div>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-white">All Customers Account Balances Directory</h4>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Overview of customer agreements, total payments received, and current outstanding dues.</p>
+                        </div>
+                        <span class="px-3 py-1 bg-[#a38c29] text-white text-[10px] font-black uppercase tracking-wider rounded-lg">
+                            {{ count($customerSummaryList) }} Customers
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table id="reportsTable" class="w-full text-xs text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-100 border-b border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                                    <th class="px-5 py-3.5">SL NO</th>
+                                    <th class="px-5 py-3.5">Customer Name & Contact</th>
+                                    <th class="px-5 py-3.5">Project / Unit</th>
+                                    <th class="px-5 py-3.5 text-right">Total Sale (₹)</th>
+                                    <th class="px-5 py-3.5 text-right">Total Paid (₹)</th>
+                                    <th class="px-5 py-3.5 text-right">Outstanding (₹)</th>
+                                    <th class="px-5 py-3.5 text-center">Last Payment</th>
+                                    <th class="px-5 py-3.5 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-medium">
+                                @forelse($customerSummaryList as $idx => $cs)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-5 py-4 font-mono font-bold text-slate-400">{{ $idx + 1 }}</td>
+                                    <td class="px-5 py-4">
+                                        <div class="font-extrabold text-slate-900 text-sm">{{ $cs['customer_name'] }}</div>
+                                        <div class="text-[11px] text-slate-400 font-medium mt-0.5">
+                                            {{ $cs['phone'] ?? 'No phone' }} {{ $cs['email'] ? '• '.$cs['email'] : '' }}
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-4">
+                                        <div class="font-bold text-slate-800">{{ $cs['project'] }}</div>
+                                        <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold border border-slate-200 text-slate-600 inline-block mt-0.5">
+                                            Unit: {{ $cs['unit'] }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-4 text-right font-mono font-bold text-slate-900">
+                                        ₹{{ number_format($cs['total_amount'], 2) }}
+                                    </td>
+                                    <td class="px-5 py-4 text-right font-mono font-bold text-emerald-700">
+                                        ₹{{ number_format($cs['paid_amount'], 2) }}
+                                    </td>
+                                    <td class="px-5 py-4 text-right font-mono font-black text-rose-600">
+                                        ₹{{ number_format($cs['outstanding'], 2) }}
+                                    </td>
+                                    <td class="px-5 py-4 text-center font-mono text-[11px] text-slate-500">
+                                        {{ $cs['last_payment'] }}
+                                    </td>
+                                    <td class="px-5 py-4 text-right">
+                                        <a href="?report=customer_ledger&customer_id={{ $cs['customer_id'] }}&project_id={{ request('project_id') }}"
+                                           class="px-3.5 py-1.5 bg-[#a38c29]/15 hover:bg-[#a38c29] text-[#8a7522] hover:text-white border border-[#a38c29]/30 rounded-xl text-[10px] font-black uppercase tracking-wider transition inline-flex items-center gap-1">
+                                            <span>View Ledger</span>
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">No active customer accounts found.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Table 2: System-Wide Customer Ledger Transaction Log --}}
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 bg-slate-800 text-white flex items-center justify-between">
+                        <div>
+                            <h4 class="text-xs font-black uppercase tracking-wider text-white">System-Wide Customer Ledger Transaction Log</h4>
+                            <p class="text-[10px] text-slate-400 font-medium mt-0.5">Chronological transaction history combining sale agreements and receipts across all customers.</p>
+                        </div>
+                        <span class="px-3 py-1 bg-slate-700 text-slate-200 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                            {{ count($ledgerEntries) }} Transactions
+                        </span>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-[500px]">
+                        <table id="reportsTable" class="w-full text-xs text-left border-collapse">
+                            <thead class="sticky top-0 z-10 bg-slate-100 border-b border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                                <tr>
+                                    <th class="px-5 py-3">Posting Date</th>
+                                    <th class="px-5 py-3">Customer Name</th>
+                                    <th class="px-5 py-3">Voucher / Ref No.</th>
+                                    <th class="px-5 py-3">Narrative Description</th>
+                                    <th class="px-5 py-3">Mode</th>
+                                    <th class="px-5 py-3 text-right">Debit (Agreement)</th>
+                                    <th class="px-5 py-3 text-right">Credit (Receipt)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-mono text-slate-700">
+                                @forelse($ledgerEntries as $row)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-5 py-3.5 text-slate-500 font-sans text-[11px]">{{ $row['date'] }}</td>
+                                    <td class="px-5 py-3.5 font-bold font-sans text-slate-900">{{ $row['customer_name'] ?? '-' }}</td>
+                                    <td class="px-5 py-3.5 font-bold text-indigo-700">{{ $row['ref_no'] }}</td>
+                                    <td class="px-5 py-3.5 font-sans text-slate-800">{{ $row['description'] }}</td>
+                                    <td class="px-5 py-3.5 font-sans">
+                                        <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 font-bold border border-slate-200 text-slate-600 inline-block">{{ $row['payment_mode'] }}</span>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-right text-rose-600 font-bold">{{ $row['debit'] > 0 ? '₹'.number_format($row['debit'], 2) : '—' }}</td>
+                                    <td class="px-5 py-3.5 text-right text-emerald-700 font-bold">{{ $row['credit'] > 0 ? '₹'.number_format($row['credit'], 2) : '—' }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center text-slate-400 italic font-sans">No customer ledger transactions found.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
             @endif
         </div>
         @endif

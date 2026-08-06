@@ -54,6 +54,7 @@ class ReportController extends Controller
         $salesList = collect();
         $emiCollectionsSummary = [];
         $ledgerEntries = collect();
+        $customerSummaryList = collect();
         $cashBookEntries = collect();
         $bankReportEntries = collect();
         $partnerAllocations = collect();
@@ -306,33 +307,37 @@ class ReportController extends Controller
         // 4. CUSTOMER LEDGER / STATEMENT
         if ($activeTab === 'customer_ledger') {
             if ($request->filled('customer_id')) {
-                $selectedCustomer = Customer::findOrFail($request->customer_id);
-                $sale = Sale::with(['project', 'unit', 'receipts'])
-                    ->where('customer_id', $request->customer_id)
-                    ->where('status', 'active')
-                    ->first();
+                $selectedCustomer = Customer::find($request->customer_id);
+                if ($selectedCustomer) {
+                    $salesQuery = Sale::with(['project', 'unit', 'receipts'])
+                        ->where('customer_id', $request->customer_id)
+                        ->where('status', 'active');
+                    if ($request->filled('project_id')) {
+                        $salesQuery->where('project_id', $request->project_id);
+                    }
+                    $sales = $salesQuery->get();
 
-                if ($sale) {
                     $ledgerQuery = collect();
-
-                    $ledgerQuery->push([
-                        'date' => Carbon::parse($sale->sale_date)->format('d M Y'),
-                        'description' => 'Sale Agreement Registration',
-                        'debit' => (float)$sale->total_amount,
-                        'credit' => 0.0,
-                        'payment_mode' => '—',
-                        'ref_no' => $sale->sale_number,
-                    ]);
-
-                    foreach ($sale->receipts as $receipt) {
+                    foreach ($sales as $sale) {
                         $ledgerQuery->push([
-                            'date' => Carbon::parse($receipt->receipt_date)->format('d M Y'),
-                            'description' => 'Payment Receipt' . ($receipt->remarks ? " — {$receipt->remarks}" : ""),
-                            'debit' => 0.0,
-                            'credit' => (float)$receipt->amount,
-                            'payment_mode' => $receipt->payment_mode,
-                            'ref_no' => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                            'date' => Carbon::parse($sale->sale_date)->format('d M Y'),
+                            'description' => 'Sale Agreement Registration' . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
+                            'debit' => (float)$sale->total_amount,
+                            'credit' => 0.0,
+                            'payment_mode' => '—',
+                            'ref_no' => $sale->sale_number,
                         ]);
+
+                        foreach ($sale->receipts as $receipt) {
+                            $ledgerQuery->push([
+                                'date' => Carbon::parse($receipt->receipt_date)->format('d M Y'),
+                                'description' => 'Payment Receipt' . ($receipt->remarks ? " — {$receipt->remarks}" : ""),
+                                'debit' => 0.0,
+                                'credit' => (float)$receipt->amount,
+                                'payment_mode' => $receipt->payment_mode,
+                                'ref_no' => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                            ]);
+                        }
                     }
 
                     $ledgerEntries = $ledgerQuery->sortBy(fn($r) => Carbon::parse($r['date']))->values();
@@ -344,10 +349,72 @@ class ReportController extends Controller
                         return $entry;
                     });
 
-                    $totalDebits = $ledgerEntries->sum('debit');
-                    $totalCredits = $ledgerEntries->sum('credit');
-                    $closingBalance = (float)$sale->remaining_balance;
+                    $totalDebits = (float)$ledgerEntries->sum('debit');
+                    $totalCredits = (float)$ledgerEntries->sum('credit');
+                    $closingBalance = max(0, $totalDebits - $totalCredits);
                 }
+            } else {
+                // DEFAULT FULL DISPLAY ACROSS ALL CUSTOMERS
+                $salesQuery = Sale::with(['customer', 'project', 'unit', 'receipts'])
+                    ->where('status', 'active');
+                if ($request->filled('project_id')) {
+                    $salesQuery->where('project_id', $request->project_id);
+                }
+                $allSales = $salesQuery->get();
+
+                $customerSummaryList = collect();
+                $ledgerQuery = collect();
+
+                foreach ($allSales as $sale) {
+                    $cName = $sale->customer?->name ?? 'Customer #' . $sale->customer_id;
+                    $totalSale = (float)$sale->total_amount;
+                    $paidAmount = (float)$sale->receipts->sum('amount');
+                    $outstanding = max(0, $totalSale - $paidAmount);
+                    $lastReceipt = $sale->receipts->sortByDesc('receipt_date')->first();
+
+                    $customerSummaryList->push([
+                        'customer_id'   => $sale->customer_id,
+                        'customer_name' => $cName,
+                        'phone'         => $sale->customer?->phone,
+                        'email'         => $sale->customer?->email,
+                        'project'       => $sale->project?->name ?? '-',
+                        'unit'          => $sale->unit?->door_no ?? '-',
+                        'sale_number'   => $sale->sale_number,
+                        'total_amount'  => $totalSale,
+                        'paid_amount'   => $paidAmount,
+                        'outstanding'   => $outstanding,
+                        'last_payment'  => $lastReceipt ? Carbon::parse($lastReceipt->receipt_date)->format('d M Y') : 'No receipts',
+                    ]);
+
+                    // Combined master ledger list
+                    $ledgerQuery->push([
+                        'customer_name' => $cName,
+                        'date'          => Carbon::parse($sale->sale_date)->format('d M Y'),
+                        'description'   => "Sale Agreement — {$cName}" . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
+                        'debit'         => $totalSale,
+                        'credit'        => 0.0,
+                        'payment_mode'  => 'Agreement',
+                        'ref_no'        => $sale->sale_number,
+                    ]);
+
+                    foreach ($sale->receipts as $receipt) {
+                        $ledgerQuery->push([
+                            'customer_name' => $cName,
+                            'date'          => Carbon::parse($receipt->receipt_date)->format('d M Y'),
+                            'description'   => "Payment Receipt — {$cName}" . ($receipt->remarks ? " ({$receipt->remarks})" : ""),
+                            'debit'         => 0.0,
+                            'credit'        => (float)$receipt->amount,
+                            'payment_mode'  => $receipt->payment_mode,
+                            'ref_no'        => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                        ]);
+                    }
+                }
+
+                $ledgerEntries = $ledgerQuery->sortByDesc(fn($r) => Carbon::parse($r['date']))->values();
+
+                $totalDebits = (float)$allSales->sum('total_amount');
+                $totalCredits = (float)Receipt::when($request->filled('project_id'), fn($q) => $q->whereHas('sale', fn($sq) => $sq->where('project_id', $request->project_id)))->sum('amount');
+                $closingBalance = max(0, $totalDebits - $totalCredits);
             }
         }
 
@@ -1689,6 +1756,7 @@ class ReportController extends Controller
             'salesList',
             'emiCollectionsSummary',
             'ledgerEntries',
+            'customerSummaryList',
             'selectedCustomer',
             'totalDebits',
             'totalCredits',
