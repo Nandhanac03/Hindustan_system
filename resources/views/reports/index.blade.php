@@ -902,6 +902,7 @@
                     <!-- Status Legends -->
                     <div class="flex flex-wrap items-center gap-3 sm:gap-5 text-[9px] font-black uppercase tracking-wider text-slate-655">
                         <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-emerald-500 shadow-xs border border-emerald-600"></span> Available</span>
+                        <span class="flex items-center gap-1.5"><span class="w-3.5 h-3.5 rounded bg-[#0b1e36] shadow-xs border border-slate-800"></span> Parking</span>
                     </div>
                 </div>
 
@@ -1059,10 +1060,10 @@
                                                             $isOccupied = in_array(strtolower($unit->status), ['sold', 'blocked']); 
                                                         @endphp
                                                         @if (!$isOccupied)
-                                                            <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: 'Available', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
+                                                            <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: 'Available', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}', type: 'parking' }; hoveredEl = $el"
                                                                  @mouseleave="hoveredUnit = null"
                                                                  @click="viewUnitDetails({{ $unit->id }})"
-                                                                 class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl border border-transparent transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer bg-emerald-500 text-white shadow-xs hover:border-emerald-400 duration-150">
+                                                                 class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl border border-transparent transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer bg-[#0b1e36] text-white shadow-xs hover:bg-[#152a47] duration-150">
                                                                 <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-xs">{{ $unit->door_no }}</span>
                                                                 <span class="text-[8.5px] font-bold mt-1 font-mono leading-none opacity-90 drop-shadow-xs">Parking</span>
                                                             </div>
@@ -1075,10 +1076,13 @@
                                                             $isAvailable = ($status === 'available');
                                                         @endphp
                                                         @if ($isAvailable)
-                                                            <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: 'Available', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}' }; hoveredEl = $el"
+                                                            @php
+                                                                $isParkingUnit = ($unit->unitType && (strtolower($unit->unitType->name) === 'parking' || strtolower($unit->unitType->category) === 'parking'));
+                                                            @endphp
+                                                            <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: 'Available', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}', type: '{{ $isParkingUnit ? 'parking' : 'unit' }}' }; hoveredEl = $el"
                                                                  @mouseleave="hoveredUnit = null"
                                                                  @click="viewUnitDetails({{ $unit->id }})"
-                                                                 class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl border border-transparent transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer bg-emerald-500 text-white shadow-xs hover:border-emerald-400 duration-150">
+                                                                 class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl border border-transparent transition-all hover:-translate-y-0.5 hover:shadow-md cursor-pointer {{ $isParkingUnit ? 'bg-[#0b1e36] hover:bg-[#152a47]' : 'bg-emerald-500 hover:border-emerald-400' }} text-white shadow-xs duration-150">
 
                                                                 <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-xs">
                                                                     {{ $unit->door_no }}
@@ -1114,7 +1118,7 @@
                                 <span class="text-xs font-black text-slate-800 uppercase tracking-wider" x-text="hoveredUnit?.door_no"></span>
                             </div>
                             <span class="text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-xs"
-                                  :class="{'bg-rose-600': hoveredUnit?.status === 'Sold', 'bg-blue-500': hoveredUnit?.status === 'Booked', 'bg-amber-500': hoveredUnit?.status === 'Blocked', 'bg-emerald-500': hoveredUnit?.status === 'Available', 'bg-slate-700': hoveredUnit?.status === 'Reserved'}"
+                                  :class="{'bg-[#0b1e36]': hoveredUnit?.type === 'parking', 'bg-rose-600': hoveredUnit?.type !== 'parking' && hoveredUnit?.status === 'Sold', 'bg-blue-500': hoveredUnit?.type !== 'parking' && hoveredUnit?.status === 'Booked', 'bg-amber-500': hoveredUnit?.type !== 'parking' && hoveredUnit?.status === 'Blocked', 'bg-emerald-500': hoveredUnit?.type !== 'parking' && hoveredUnit?.status === 'Available', 'bg-slate-700': hoveredUnit?.type !== 'parking' && hoveredUnit?.status === 'Reserved'}"
                                   x-text="hoveredUnit?.status"></span>
                         </div>
 
