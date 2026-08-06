@@ -1359,6 +1359,36 @@
         <div class="space-y-6">
             <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Customer Ledger Statement</h3>
 
+            {{-- Customer Selection Filter Bar --}}
+            <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
+                <form method="GET" action="{{ route('reports.index') }}" class="flex flex-col sm:flex-row items-end gap-4">
+                    <input type="hidden" name="report" value="customer_ledger">
+                    @if(request('project_id'))
+                        <input type="hidden" name="project_id" value="{{ request('project_id') }}">
+                    @endif
+                    
+                    <div class="flex-1 w-full">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            Select Customer for Ledger & Account Statement
+                        </label>
+                        <select name="customer_id" onchange="this.form.submit()" class="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29] cursor-pointer shadow-2xs">
+                            <option value="">-- Select a Customer to View Ledger Statement --</option>
+                            @foreach($customers as $c)
+                                <option value="{{ $c->id }}" {{ request('customer_id') == $c->id ? 'selected' : '' }}>
+                                    {{ $c->name }} {{ $c->phone ? '('.$c->phone.')' : '' }} {{ $c->email ? '• '.$c->email : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 self-stretch sm:self-auto shrink-0 flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span>Generate Statement</span>
+                    </button>
+                </form>
+            </div>
+
             @if($selectedCustomer)
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 border border-slate-200 rounded-2xl p-5 bg-slate-50/50 space-y-4">
@@ -1403,7 +1433,7 @@
                             <td class="px-5 py-3 font-sans text-slate-450">{{ $row['payment_mode'] }}</td>
                             <td class="px-5 py-3 text-right text-rose-600">{{ $row['debit'] > 0 ? '₹'.number_format($row['debit'], 2) : '—' }}</td>
                             <td class="px-5 py-3 text-right text-emerald-700">{{ $row['credit'] > 0 ? '₹'.number_format($row['credit'], 2) : '—' }}</td>
-                            <td class="px-5 py-3 text-right text-slate-900 font-extrabold">₹{{ number_format($row['balance'], 2) }}</td>
+                            <td class="px-5 py-3 text-right text-slate-900 font-extrabold">₹{{ number_format($row['balance'] ?? 0, 2) }}</td>
                         </tr>
                         @empty
                         <tr>

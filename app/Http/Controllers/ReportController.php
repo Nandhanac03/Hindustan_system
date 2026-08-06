@@ -338,11 +338,11 @@ class ReportController extends Controller
                     $ledgerEntries = $ledgerQuery->sortBy(fn($r) => Carbon::parse($r['date']))->values();
 
                     $runningBalance = 0;
-                    foreach ($ledgerEntries as &$entry) {
-                        $runningBalance += $entry['debit'] - $entry['credit'];
+                    $ledgerEntries = $ledgerEntries->map(function ($entry) use (&$runningBalance) {
+                        $runningBalance += ($entry['debit'] - $entry['credit']);
                         $entry['balance'] = $runningBalance;
-                    }
-                    unset($entry);
+                        return $entry;
+                    });
 
                     $totalDebits = $ledgerEntries->sum('debit');
                     $totalCredits = $ledgerEntries->sum('credit');
