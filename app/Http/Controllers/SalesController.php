@@ -42,6 +42,8 @@ class SalesController extends Controller
         }
         if ($request->filled('status')) {
             $query->where('status', $request->status);
+        } else {
+            $query->where('status', '!=', 'inactive');
         }
         if ($request->filled('date_from')) {
             $query->whereDate('sale_date', '>=', $request->date_from);
@@ -653,7 +655,7 @@ class SalesController extends Controller
     public function changeStatus(Request $request, int $id): JsonResponse
     {
         $validated = $request->validate([
-            'status'                 => ['required', Rule::in(['cancelled', 'returned', 'exchanged', 'resale'])],
+            'status'                 => ['required', Rule::in(['cancelled', 'returned', 'exchanged', 'resale', 'inactive'])],
             'reason'                 => ['required', 'string'],
             'cancellation_fee'       => ['nullable', 'numeric', 'min:0'],
             'refund_amount'          => ['nullable', 'numeric', 'min:0'],
@@ -855,13 +857,13 @@ class SalesController extends Controller
 
         $sale->update([
             'status'               => $validated['status'],
-            'cancellation_reason'  => in_array($validated['status'], ['cancelled', 'returned']) ? $validated['reason'] : $sale->cancellation_reason,
-            'cancelled_at'         => in_array($validated['status'], ['cancelled', 'returned']) ? now() : $sale->cancelled_at,
+            'cancellation_reason'  => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? $validated['reason'] : $sale->cancellation_reason,
+            'cancelled_at'         => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? now() : $sale->cancelled_at,
             'is_resale'            => $validated['status'] === 'resale' ? true : $sale->is_resale,
-            'cancellation_fee'     => in_array($validated['status'], ['cancelled', 'returned']) ? ($validated['cancellation_fee'] ?? 0.00) : $sale->cancellation_fee,
-            'refund_amount'        => in_array($validated['status'], ['cancelled', 'returned']) ? ($validated['refund_amount'] ?? 0.00) : $sale->refund_amount,
+            'cancellation_fee'     => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? ($validated['cancellation_fee'] ?? 0.00) : $sale->cancellation_fee,
+            'refund_amount'        => in_array($validated['status'], ['cancelled', 'returned', 'inactive']) ? ($validated['refund_amount'] ?? 0.00) : $sale->refund_amount,
         ]);
-        $shouldFreeUnit = in_array($validated['status'], ['cancelled', 'returned', 'resale']);
+        $shouldFreeUnit = in_array($validated['status'], ['cancelled', 'returned', 'resale', 'inactive']);
         if ($shouldFreeUnit) {
             foreach ($sale->saleUnits as $su) {
                 Unit::where('id', $su->unit_id)->update([

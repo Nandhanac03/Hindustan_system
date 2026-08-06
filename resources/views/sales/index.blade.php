@@ -65,6 +65,7 @@
                     <option value="returned">Returned</option>
                     <option value="exchanged">Exchanged</option>
                     <option value="resale">Resale</option>
+                    <option value="inactive">Inactive</option>
                 </select>
             </div>
 
@@ -138,8 +139,11 @@
                                     <button @click="openViewModal(sale.id)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Sale">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
-                                    <button x-show="!['cancelled', 'exchanged'].includes((sale.status || '').toLowerCase())" @click="openEditModal(sale.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Sale">
+                                    <button x-show="!['cancelled', 'exchanged', 'inactive'].includes((sale.status || '').toLowerCase())" @click="openEditModal(sale.id)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Sale">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    </button>
+                                    <button x-show="!['cancelled', 'exchanged', 'inactive', 'returned'].includes((sale.status || '').toLowerCase())" @click="deactivateSale(sale)" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition inline-flex items-center justify-center shadow-sm" title="Deactivate Sale">
+                                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                     </button>
                                 </div>
                             </td>
@@ -248,6 +252,62 @@
                     CONFIRM REMOVE
                 </button>
             </div> -->
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════
+         CUSTOM DEACTIVATE CONFIRMATION MODAL
+    ═══════════════════════════════════════════ --}}
+    <div x-show="confirmDeactivateModal.open" 
+          @click.stop
+          class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs" 
+          style="display: none;" 
+          x-transition:enter="transition ease-out duration-200"
+          x-transition:enter-start="opacity-0 scale-95"
+          x-transition:enter-end="opacity-100 scale-100"
+          x-transition:leave="transition ease-in duration-150"
+          x-transition:leave-start="opacity-100 scale-100"
+          x-transition:leave-end="opacity-0 scale-95">
+        <div class="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80" @click.stop>
+            {{-- Dark Header matching screenshot --}}
+            <div class="bg-[#1c1716] px-6 py-5 text-white flex items-center justify-between relative overflow-hidden">
+                <div class="space-y-1">
+                    <span class="px-2.5 py-0.5 rounded-md bg-rose-500/20 text-rose-400 text-[10px] font-extrabold uppercase tracking-widest inline-block">WARNING</span>
+                </div>
+                <button type="button" @click.stop="confirmDeactivateModal.open = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+            </div>
+            
+            {{-- Body matching screenshot --}}
+            <div class="p-6 space-y-4 text-slate-700 text-xs">
+                <p class="font-bold text-slate-900 text-sm">
+                    Are you sure you want to deactivate sale <span class="font-black text-rose-600 font-mono text-base" x-text="confirmDeactivateModal.saleNumber"></span>?
+                </p>
+
+                <div class="p-3.5 bg-amber-50/80 border border-amber-200 rounded-2xl space-y-1.5 text-amber-900 shadow-2xs">
+                    <p class="font-extrabold uppercase tracking-wider text-[10px] text-amber-800 flex items-center gap-1.5">
+                        <span>⚠️ Impact on Active Sale Contract</span>
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-700 font-medium leading-relaxed">
+                        <template x-if="confirmDeactivateModal.hasEmis">
+                            <li>EMI payment schedules / installments have already been created for this sale.</li>
+                        </template>
+                        <template x-if="confirmDeactivateModal.hasReceipts">
+                            <li>Payment receipts have already been generated for this sale.</li>
+                        </template>
+                        <li>Deactivating this sale will release the unit <span class="font-bold font-mono text-slate-900" x-text="confirmDeactivateModal.doorNo"></span> back to available.</li>
+                    </ul>
+                </div>
+            </div>
+
+            {{-- Footer matching screenshot --}}
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3 rounded-b-3xl">
+                <button type="button" @click.stop="confirmDeactivateModal.open = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold rounded-xl text-xs uppercase tracking-wider transition cursor-pointer">
+                    CANCEL
+                </button>
+                <button type="button" @click.stop="confirmExecuteDeactivate()" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition cursor-pointer">
+                    CONFIRM DEACTIVATE
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1921,6 +1981,7 @@ function salesApp() {
         filters: { search: '', project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', status: '', date_from: '', date_to: '' },
         modals: { add: { open: false }, edit: { open: false }, view: { open: false }, quickCustomer: { open: false } },
         confirmDeleteUnitModal: { open: false, index: null, mode: 'add', doorNo: '', hasEmis: false, hasReceipts: false, isEmiPlan: false },
+        confirmDeactivateModal: { open: false, saleId: null, saleNumber: '', doorNo: '', hasEmis: false, hasReceipts: false },
         availableUnits: { add: [], edit: [] },
         selectedUnit: { add: null, edit: null },
         customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'email' => $c->email, 'phone' => $c->phone]; })) !!},
@@ -2129,8 +2190,52 @@ function salesApp() {
                 case 'returned': return 'bg-amber-50 text-amber-700 border border-amber-100';
                 case 'exchanged': return 'bg-blue-50 text-blue-700 border border-blue-105';
                 case 'resale': return 'bg-primary-50 text-primary-700 border border-primary-100';
+                case 'inactive': return 'bg-slate-100 text-slate-600 border border-slate-200';
                 default: return 'bg-slate-50 text-slate-700 border border-slate-200';
             }
+        },
+        deactivateSale(sale) {
+            const hasEmis = (sale.payment_plan === 'emi') || (sale.emi_installment_count > 0);
+            const hasReceipts = (sale.receipts && sale.receipts.length > 0);
+            const doorNo = sale.unit ? sale.unit.door_no : (sale.sale_units && sale.sale_units[0] ? sale.sale_units[0].unit.door_no : 'Unknown Unit');
+            
+            this.confirmDeactivateModal = {
+                open: true,
+                saleId: sale.id,
+                saleNumber: sale.sale_number,
+                doorNo: doorNo,
+                hasEmis: hasEmis,
+                hasReceipts: hasReceipts
+            };
+        },
+        confirmExecuteDeactivate() {
+            const saleId = this.confirmDeactivateModal.saleId;
+            fetch(`{{ url('sales') }}/${saleId}/status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    status: 'inactive',
+                    reason: 'Deactivated by user request'
+                })
+            })
+            .then(res => {
+                if (res.ok) {
+                    this.showToast('Sale deactivated successfully.');
+                    this.confirmDeactivateModal.open = false;
+                    this.fetchSales();
+                } else {
+                    res.json().then(data => {
+                        this.showToast(data.message || 'Failed to deactivate sale.', 'error');
+                    });
+                }
+            })
+            .catch(err => {
+                this.showToast('An error occurred.', 'error');
+            });
         },
         showToast(message, type = 'success') {
             this.toast = { open: true, message, type };
