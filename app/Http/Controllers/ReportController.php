@@ -757,7 +757,9 @@ class ReportController extends Controller
 
         // 9. SALES RETURN REPORT
         if ($activeTab === 'sales_return') {
-            $retQuery = Sale::with(['customer', 'unit.unitType', 'project'])->whereIn('status', ['cancelled', 'returned']);
+            $retQuery = Sale::with(['customer', 'unit.unitType', 'project'])
+                ->withSum('receipts as total_paid', 'amount')
+                ->whereIn('status', ['cancelled', 'returned']);
             if ($request->filled('project_id')) {
                 $retQuery->where('project_id', $request->project_id);
             }
