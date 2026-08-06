@@ -2966,7 +2966,31 @@ function reportsApp() {
                         legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
                         dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
                         tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
-                        plotOptions: { pie: { donut: { size: '65%' } } }
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '72%',
+                                    labels: {
+                                        show: true,
+                                        name: { fontSize: '10px', fontWeight: 600, color: '#64748b' },
+                                        value: { fontSize: '11px', fontWeight: 700, color: '#0f172a' },
+                                        total: {
+                                            show: true,
+                                            label: 'Total',
+                                            fontSize: '10px',
+                                            fontWeight: 600,
+                                            color: '#64748b',
+                                            formatter: (w) => {
+                                                const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                                if (total >= 10000000) return '₹' + (total / 10000000).toFixed(2) + ' Cr';
+                                                if (total >= 100000) return '₹' + (total / 100000).toFixed(2) + ' L';
+                                                return '₹' + total.toLocaleString('en-IN');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }).render();
                 }
 
@@ -3004,7 +3028,31 @@ function reportsApp() {
                         legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
                         dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
                         tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
-                        plotOptions: { pie: { donut: { size: '65%', labels: { show: true, total: { show: true, label: 'Total', formatter: (w) => '₹' + w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString('en-IN') } } } } }
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '72%',
+                                    labels: {
+                                        show: true,
+                                        name: { fontSize: '10px', fontWeight: 600, color: '#64748b', offsetY: -2 },
+                                        value: { fontSize: '11px', fontWeight: 700, color: '#0f172a', offsetY: 2 },
+                                        total: {
+                                            show: true,
+                                            label: 'Total',
+                                            fontSize: '10px',
+                                            fontWeight: 600,
+                                            color: '#64748b',
+                                            formatter: (w) => {
+                                                const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                                if (total >= 10000000) return '₹' + (total / 10000000).toFixed(2) + ' Cr';
+                                                if (total >= 100000) return '₹' + (total / 100000).toFixed(2) + ' L';
+                                                return '₹' + total.toLocaleString('en-IN');
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }).render();
                 }
 
