@@ -221,7 +221,15 @@ class ReportController extends Controller
 
         // 2. SALES REPORT
         if ($activeTab === 'sales') {
-            $salesQuery = Sale::with(['customer', 'unit.unitType', 'project'])->where('status', 'active');
+            $salesQuery = Sale::with([
+                'customer', 
+                'unit.unitType', 
+                'unit.floor', 
+                'project', 
+                'broker', 
+                'saleUnits.unit.unitType', 
+                'saleUnits.unit.floor'
+            ])->where('status', 'active');
             if ($request->filled('project_id')) {
                 $salesQuery->where('project_id', $request->project_id);
             }
@@ -230,7 +238,7 @@ class ReportController extends Controller
                     $q->where('category', $request->category);
                 });
             }
-            $salesList = $salesQuery->orderByDesc('sale_date')->paginate(50);
+            $salesList = $salesQuery->orderByDesc('sale_date')->paginate(15);
 
             $monthlySales = Sale::where('status', 'active')
                 ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
