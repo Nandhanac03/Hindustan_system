@@ -225,7 +225,30 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/emi-collections/loans',                [\App\Http\Controllers\EmiCollectionController::class, 'loans'])->name('emi-collections.loans');
     Route::post('/emi-collections/loans',               [\App\Http\Controllers\EmiCollectionController::class, 'storeLoan'])->name('emi-collections.loans.store');
     Route::get('/emi-collections/loans/{loan}/amortization', [\App\Http\Controllers\EmiCollectionController::class, 'loanAmortization'])->name('emi-collections.loans.amortization');
-    Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+    // Reports Module (Separate Pages & Routes)
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\ReportController::class, 'index'])->name('index');
+        Route::get('/dashboard', [\App\Http\Controllers\ReportController::class, 'dashboard'])->name('dashboard');
+        Route::get('/gst', [\App\Http\Controllers\ReportController::class, 'gst'])->name('gst_report');
+        Route::get('/activity-statements', [\App\Http\Controllers\ReportController::class, 'activityStatements'])->name('activity_statements');
+        Route::get('/availability', [\App\Http\Controllers\ReportController::class, 'availability'])->name('availability');
+        Route::get('/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('sales');
+        Route::get('/emi-collections', [\App\Http\Controllers\ReportController::class, 'emiCollections'])->name('emi_collections');
+        Route::get('/customer-ledger', [\App\Http\Controllers\ReportController::class, 'customerLedger'])->name('customer_ledger');
+        Route::get('/cash-book', [\App\Http\Controllers\ReportController::class, 'cashBook'])->name('cash_book');
+        Route::get('/bank-reports', [\App\Http\Controllers\ReportController::class, 'bankReports'])->name('bank_reports');
+        Route::get('/partner-statements', [\App\Http\Controllers\ReportController::class, 'partnerStatements'])->name('partner_statements');
+        Route::get('/supplier-contractor', [\App\Http\Controllers\ReportController::class, 'supplierContractor'])->name('supplier_contractor');
+        Route::get('/sales-return', [\App\Http\Controllers\ReportController::class, 'salesReturn'])->name('sales_return');
+        Route::get('/exchange', [\App\Http\Controllers\ReportController::class, 'exchange'])->name('exchange_report');
+        Route::get('/petty-cash', [\App\Http\Controllers\ReportController::class, 'pettyCash'])->name('petty_cash');
+        Route::get('/loan-schedules', [\App\Http\Controllers\ReportController::class, 'loanSchedules'])->name('loan_schedules');
+        Route::get('/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->name('trial_balance');
+        Route::get('/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->name('profit_loss');
+        Route::get('/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('balance_sheet');
+        Route::get('/audit-trail', [\App\Http\Controllers\ReportController::class, 'auditTrail'])->name('audit_trail');
+        Route::get('/approvals', [\App\Http\Controllers\ReportController::class, 'approvals'])->name('approvals');
+    });
 
     // Sales Module
     Route::get('/sales', [\App\Http\Controllers\SalesController::class, 'index'])->name('sales.index');

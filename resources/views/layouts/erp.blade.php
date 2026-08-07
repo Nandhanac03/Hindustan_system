@@ -384,6 +384,7 @@
             <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
                 @php
                     $reportLinks = [
+                        'dashboard'           => 'Executive Dashboard',
                         'availability'        => 'Availability Report',
                         'sales'               => 'Sales Report',
                         'emi_collections'     => 'EMI & Collection Reports',
@@ -391,7 +392,8 @@
                         'customer_ledger'     => 'Customer Ledger / Account Stmt',
                         'cash_book'           => 'Cash Book',
                         'bank_reports'        => 'Bank Reports',
-                        'partner_statements'  => 'Supplier, Contractor & Partner Stmt',
+                        'partner_statements'  => 'Partner Statements',
+                        'supplier_contractor' => 'Supplier & Contractor Stmt',
                         'sales_return'        => 'Sales Cancel Report',
                         'exchange_report'     => 'Exchange Report',
                         'petty_cash'          => 'Petty Cash Book',
@@ -399,14 +401,16 @@
                         'trial_balance'       => 'Trial Balance',
                         'profit_loss'         => 'Profit & Loss',
                         'balance_sheet'       => 'Balance Sheet Summary',
+                        'audit_trail'         => 'Audit Trail Log',
+                        'approvals'           => 'Workflow Approvals',
                     ];
-                    $currentReport = Request::routeIs('reports.*') ? request('report', 'availability') : null;
                 @endphp
                 @foreach($reportLinks as $key => $label)
-                    <a href="{{ route('reports.index', ['report' => $key]) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ $currentReport === $key ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <a href="{{ route('reports.' . $key) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.' . $key) ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                         {{ $label }}
                     </a>
                 @endforeach
+
             </div>
         </div>
 
