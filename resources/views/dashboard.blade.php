@@ -52,10 +52,10 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2.5">
-                        <span class="badge border font-extrabold uppercase {{ $colorClass }} text-[11px] px-3 py-1.5 rounded-xl shadow-2xs">
+                        <span class="badge border font-extrabold uppercase {{ $colorClass }} text-[11px] px-3.5 py-1 rounded-full shadow-xs tracking-wider">
                             {{ str_replace('_', ' ', $activeProject->status) }}
                         </span>
-                        <a href="{{ route('units.index') }}" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white font-bold rounded-xl transition text-xs uppercase tracking-wide flex items-center gap-2 shadow-md shadow-[#a38c29]/20">
+                        <a href="{{ route('units.index') }}" class="px-4 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white font-bold rounded-full transition text-xs uppercase tracking-wide flex items-center gap-2 shadow-md shadow-[#a38c29]/20">
                             <span>Manage Project Units</span>
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                         </a>
@@ -258,9 +258,9 @@
                     </div>
                     <span class="text-xs font-bold uppercase tracking-widest opacity-80">Sold Units</span>
                 </div>
-                <a href="{{ route('units.index', ['status' => 'sold']) }}" class="text-[10px] font-bold bg-white/20 hover:bg-white/30 px-2.5 py-1 rounded-lg uppercase transition-colors flex items-center gap-1">
+                <a href="{{ route('units.index', ['status' => 'sold']) }}" class="text-[10px] font-bold bg-white/20 hover:bg-white text-white hover:text-emerald-800 px-3 py-1 rounded-full uppercase transition-all flex items-center gap-1 border border-white/30">
                     <span>View Sold</span>
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
             @php 
@@ -287,7 +287,10 @@
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Recent Units</h2>
                     <p class="text-xs text-slate-400 mt-0.5">Latest units added to inventory</p>
                 </div>
-                <a href="{{ route('units.index') }}" class="text-xs font-bold text-[#a38c29] hover:text-[#8a7522] uppercase tracking-wider transition-colors">View All</a>
+                <a href="{{ route('units.index') }}" class="px-3 py-1 text-[11px] font-bold text-[#a38c29] bg-[#a38c29]/10 border border-[#a38c29]/30 rounded-full uppercase tracking-wider hover:bg-[#a38c29] hover:text-white transition-all duration-200 shadow-sm flex items-center gap-1">
+                    <span>View All</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-xs">
@@ -411,7 +414,10 @@
                     <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Recent Bookings</h2>
                     <p class="text-xs text-slate-400 mt-0.5">Latest bookings across your units</p>
                 </div>
-                <a href="{{ route('sales.index') }}" class="text-xs font-bold text-[#a38c29] hover:text-[#8a7522] uppercase tracking-wider transition-colors">View All</a>
+                <a href="{{ route('sales.index') }}" class="px-3 py-1 text-[11px] font-bold text-[#a38c29] bg-[#a38c29]/10 border border-[#a38c29]/30 rounded-full uppercase tracking-wider hover:bg-[#a38c29] hover:text-white transition-all duration-200 shadow-sm flex items-center gap-1">
+                    <span>View All</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
             <div class="divide-y divide-slate-100 max-h-[350px] overflow-y-auto">
                 @forelse($recentBookings as $booking)
@@ -458,8 +464,9 @@
                         <h2 class="text-sm font-bold text-[#0B1E36] uppercase tracking-wider">EMI Pending Alerts</h2>
                         <p class="text-xs text-slate-400 mt-0.5">Active bank loan EMI repayment obligations</p>
                     </div>
-                    <a href="{{ route('loans.index') }}" class="text-[10px] font-extrabold text-[#a38c29] hover:underline uppercase tracking-wider">
-                        Show All
+                    <a href="{{ route('loans.index') }}" class="px-3 py-1 text-[11px] font-bold text-[#a38c29] bg-[#a38c29]/10 border border-[#a38c29]/30 rounded-full uppercase tracking-wider hover:bg-[#a38c29] hover:text-white transition-all duration-200 shadow-sm flex items-center gap-1">
+                        <span>Show All</span>
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
                     </a>
                 </div>
                 
@@ -483,7 +490,7 @@
                             </div>
                             <div class="text-right flex flex-col items-end gap-1">
                                 <span class="font-mono font-bold text-slate-900 text-xs">₹{{ number_format($alert->emi_amount, 2) }}</span>
-                                <a href="{{ $alert->loan ? route('loans.schedule', $alert->loan->id) : route('loans.index') }}" class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-250 transition tracking-wider">
+                                <a href="{{ $alert->loan ? route('loans.schedule', $alert->loan->id) : route('loans.index') }}" class="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 text-[9px] font-bold uppercase rounded-full border border-amber-300 transition tracking-wider shadow-2xs">
                                     Pay Now
                                 </a>
                             </div>

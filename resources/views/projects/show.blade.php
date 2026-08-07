@@ -75,6 +75,77 @@
                 <p class="text-xs text-slate-500 mt-0.5">Click a unit block to view its history logs, modify base rates, or transition its status.</p>
             </div>
 
+            @php
+                $allProjectUnits = $project->floors->flatMap(fn($f) => $f->units);
+                $totalUnitsCount = $allProjectUnits->count();
+                $countAvailable  = $allProjectUnits->where('status', 'available')->count();
+                $countBlocked    = $allProjectUnits->where('status', 'blocked')->count();
+                $countSold       = $allProjectUnits->where('status', 'sold')->count();
+                $countParking    = $allProjectUnits->filter(function($u) {
+                    return str_contains(strtolower($u->unitType->name ?? ''), 'park') 
+                        || str_contains(strtolower($u->unitType->name ?? ''), 'slot')
+                        || str_starts_with(strtoupper($u->door_no), 'P');
+                })->count();
+            @endphp
+
+            <!-- Summary Bar (White Theme) -->
+            <div class="bg-white border border-slate-200/80 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-2xs">
+                <!-- Summary Label -->
+                <div class="flex items-center gap-3 pr-4 border-r border-slate-200/80 shrink-0">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-800 flex items-center justify-center font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h10"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-black text-slate-900 tracking-wider uppercase">SUMMARY</span>
+                </div>
+
+                <!-- Metrics Columns -->
+                <div class="flex-1 flex flex-wrap items-center justify-around gap-4 divide-x divide-slate-200/80">
+                    <!-- Total Units -->
+                    <div class="px-4">
+                        <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">TOTAL UNITS</span>
+                        <span class="text-lg font-black text-slate-900 font-mono mt-0.5 block leading-tight">{{ number_format($totalUnitsCount) }}</span>
+                    </div>
+
+                    <!-- Available -->
+                    <div class="px-4 flex items-center gap-2.5">
+                        <span class="w-3.5 h-3.5 rounded-md bg-emerald-500 shrink-0"></span>
+                        <div>
+                            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">AVAILABLE</span>
+                            <span class="text-lg font-black text-slate-900 font-mono mt-0.5 block leading-tight">{{ number_format($countAvailable) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Blocked -->
+                    <div class="px-4 flex items-center gap-2.5">
+                        <span class="w-3.5 h-3.5 rounded-md bg-amber-500 shrink-0"></span>
+                        <div>
+                            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">BLOCKED</span>
+                            <span class="text-lg font-black text-slate-900 font-mono mt-0.5 block leading-tight">{{ number_format($countBlocked) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Sold -->
+                    <div class="px-4 flex items-center gap-2.5">
+                        <span class="w-3.5 h-3.5 rounded-md bg-rose-600 shrink-0"></span>
+                        <div>
+                            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">SOLD</span>
+                            <span class="text-lg font-black text-slate-900 font-mono mt-0.5 block leading-tight">{{ number_format($countSold) }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Parking -->
+                    <div class="px-4 flex items-center gap-2.5">
+                        <span class="w-3.5 h-3.5 rounded-md bg-[#0B1E36] shrink-0"></span>
+                        <div>
+                            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest block">PARKING</span>
+                            <span class="text-lg font-black text-slate-900 font-mono mt-0.5 block leading-tight">{{ number_format($countParking) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Color Palette legend -->
             <div class="flex flex-wrap items-center justify-between gap-4 py-2 border-y border-slate-100">
                 <div class="flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
