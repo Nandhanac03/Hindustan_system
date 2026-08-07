@@ -22,6 +22,7 @@ use App\Models\EmiSchedule;
 use App\Models\ActivityLog;
 use App\Models\Approval;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -423,6 +424,25 @@ class ReportController extends Controller
                 $totalDebits = (float)$allSales->sum('total_amount');
                 $totalCredits = (float)Receipt::when($request->filled('project_id'), fn($q) => $q->whereHas('sale', fn($sq) => $sq->where('project_id', $request->project_id)))->sum('amount');
                 $closingBalance = max(0, $totalDebits - $totalCredits);
+
+                $perPage = 10;
+                $customerPage = LengthAwarePaginator::resolveCurrentPage('customer_page');
+                $customerSummaryList = new LengthAwarePaginator(
+                    $customerSummaryList->forPage($customerPage, $perPage)->values(),
+                    $customerSummaryList->count(),
+                    $perPage,
+                    $customerPage,
+                    ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query(), 'pageName' => 'customer_page']
+                );
+
+                $ledgerPage = LengthAwarePaginator::resolveCurrentPage('ledger_page');
+                $ledgerEntries = new LengthAwarePaginator(
+                    $ledgerEntries->forPage($ledgerPage, $perPage)->values(),
+                    $ledgerEntries->count(),
+                    $perPage,
+                    $ledgerPage,
+                    ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query(), 'pageName' => 'ledger_page']
+                );
             }
         }
 
