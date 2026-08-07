@@ -1135,23 +1135,23 @@
                                             </div>
 
                                             <!-- Sale Details (Shown if unit is sold) -->
-                                            <div x-show="unit.status === 'sold'" class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 space-y-3 text-xs">
+                                            <div x-show="unit?.status === 'sold'" class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 space-y-3 text-xs">
                                                 <div class="flex items-center justify-between border-b border-emerald-100 pb-1.5">
                                                     <h4 class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-widest">Sale Information</h4>
-                                                    <span x-show="unit.sale" class="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded" x-text="unit.sale ? unit.sale.sale_number : ''"></span>
+                                                    <span x-show="unit?.sale" class="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded" x-text="unit?.sale ? unit.sale.sale_number : ''"></span>
                                                 </div>
                                                 <div class="grid grid-cols-2 gap-3.5">
                                                     <div class="col-span-2">
                                                         <span class="text-emerald-650 block font-medium">Customer / Sold To</span>
-                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.sale && unit.sale.customer ? unit.sale.customer.name : '-'"></strong>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.sale && unit.sale.customer ? unit.sale.customer.name : '-'"></strong>
                                                     </div>
-                                                    <div x-show="unit.sale && unit.sale.sale_date">
+                                                    <div x-show="unit?.sale && unit.sale.sale_date">
                                                         <span class="text-emerald-650 block font-medium">Sale Date</span>
-                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.sale ? new Date(unit.sale.sale_date).toLocaleDateString() : 'N/A'"></strong>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.sale ? new Date(unit.sale.sale_date).toLocaleDateString() : 'N/A'"></strong>
                                                     </div>
                                                     <div>
                                                         <span class="text-emerald-650 block font-medium">Sale Area (BUA)</span>
-                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.built_up_area ? unit.built_up_area + ' Sq Ft' : 'N/A'"></strong>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.built_up_area ? unit.built_up_area + ' Sq Ft' : 'N/A'"></strong>
                                                     </div>
                                                     <div>
                                                         <span class="text-emerald-650 block font-medium">Expected Rate / Sq Ft</span>
@@ -1173,35 +1173,35 @@
                                                         <span class="text-rose-600 block font-bold text-[9px] uppercase tracking-wider">Shortfall / Difference</span>
                                                         <strong class="text-rose-750 font-extrabold text-sm" x-text="unit ? '₹' + Number(unit.difference || 0).toLocaleString('en-US') : ''"></strong>
                                                     </div>
-                                                    <div x-show="unit.sale">
+                                                    <div x-show="unit?.sale">
                                                         <span class="text-emerald-650 block font-medium">Total Amount (Tax Inc.)</span>
-                                                        <strong class="text-emerald-850 font-extrabold" x-text="unit.sale ? '₹' + Number(unit.sale.total_amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                        <strong class="text-emerald-850 font-extrabold" x-text="unit?.sale ? '₹' + Number(unit.sale.total_amount || 0).toLocaleString('en-US') : ''"></strong>
                                                     </div>
-                                                    <div x-show="unit.sale">
+                                                    <div x-show="unit?.sale">
                                                         <span class="text-emerald-650 block font-medium">Remaining Bal.</span>
-                                                        <strong class="text-rose-750 font-extrabold" x-text="unit.sale ? '₹' + Number(unit.sale.remaining_balance || 0).toLocaleString('en-US') : ''"></strong>
+                                                        <strong class="text-rose-750 font-extrabold" x-text="unit?.sale ? '₹' + Number(unit.sale.remaining_balance || 0).toLocaleString('en-US') : ''"></strong>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <!-- Booking Details (Shown if unit is booked and has linked booking information) -->
-                                            <div x-show="unit.status === 'booked' && unit.booking" class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 space-y-3 text-xs">
+                                            <div x-show="unit?.status === 'booked' && unit?.booking" class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 space-y-3 text-xs">
                                                 <div class="flex items-center justify-between border-b border-blue-100 pb-1.5">
                                                     <h4 class="text-[10px] font-extrabold text-blue-800 uppercase tracking-widest">Booking Information</h4>
-                                                    <span class="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded" x-text="unit.booking ? unit.booking.booking_number : ''"></span>
+                                                    <span class="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded" x-text="unit?.booking ? unit.booking.booking_number : ''"></span>
                                                 </div>
                                                 <div class="grid grid-cols-2 gap-3.5">
                                                     <div class="col-span-2">
                                                         <span class="text-blue-650 block font-medium">Customer</span>
-                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.booking && unit.booking.customer ? unit.booking.customer.name : '-'"></strong>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.booking && unit.booking.customer ? unit.booking.customer.name : '-'"></strong>
                                                     </div>
                                                     <div>
                                                         <span class="text-blue-650 block font-medium">Booking Date</span>
-                                                        <strong class="text-slate-800 font-extrabold" x-text="unit.booking && unit.booking.agreement_date ? new Date(unit.booking.agreement_date).toLocaleDateString() : 'N/A'"></strong>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.booking && unit.booking.agreement_date ? new Date(unit.booking.agreement_date).toLocaleDateString() : 'N/A'"></strong>
                                                     </div>
                                                     <div>
                                                         <span class="text-blue-650 block font-medium">Booking Amount</span>
-                                                        <strong class="text-blue-850 font-extrabold" x-text="unit.booking ? '₹' + Number(unit.booking.amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                        <strong class="text-blue-850 font-extrabold" x-text="unit?.booking ? '₹' + Number(unit.booking.amount || 0).toLocaleString('en-US') : ''"></strong>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1211,7 +1211,7 @@
                                         <div x-show="activeTab === 'rates'" class="space-y-4">
                                             <h4 class="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-2">Pricing History Logs (Append-Only)</h4>
                                             <div class="relative pl-6 border-l border-slate-200 space-y-4">
-                                                <template x-for="log in unit.rate_logs" :key="log.id">
+                                                <template x-for="log in unit?.rate_logs" :key="log.id">
                                                     <div class="relative">
                                                         <!-- Icon indicator -->
                                                         <span class="absolute -left-[30px] top-0.5 bg-indigo-100 text-indigo-700 border-2 border-white rounded-full w-4 h-4 flex items-center justify-center">
@@ -1236,7 +1236,7 @@
                                         <div x-show="activeTab === 'status'" class="space-y-4">
                                             <h4 class="text-[10px] font-bold text-slate-455 uppercase tracking-widest mb-2">Status Change Logs (Append-Only)</h4>
                                             <div class="relative pl-6 border-l border-slate-200 space-y-4">
-                                                <template x-for="log in unit.status_logs" :key="log.id">
+                                                <template x-for="log in unit?.status_logs" :key="log.id">
                                                     <div class="relative">
                                                         <!-- Icon indicator -->
                                                         <span class="absolute -left-[30px] top-0.5 bg-slate-100 border-2 border-white rounded-full w-4 h-4 flex items-center justify-center">
