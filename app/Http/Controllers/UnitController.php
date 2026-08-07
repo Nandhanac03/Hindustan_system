@@ -118,7 +118,72 @@ class UnitController extends Controller
             ]);
         }
 
-        return view('units.index', compact('project', 'floors', 'unitTypes', 'projects'));
+        $floorMatrix = [];
+        $parkingRows = [];
+        $matrixColumns = [];
+
+        $matrixFloors = \App\Models\Floor::where('project_id', $project->id)
+            ->orderBy('floor_number', 'desc')
+            ->with(['units' => function($q) {
+                $q->orderBy('door_no');
+            }, 'units.booking', 'units.unitType', 'units.sale.customer'])
+            ->get();
+
+        $regularFloors = [];
+        foreach ($matrixFloors as $floor) {
+            $isParking = false;
+            if (stripos($floor->name, 'parking') !== false || stripos($floor->name, 'basement') !== false) {
+                $isParking = true;
+            } else {
+                $parkingUnitsCount = $floor->units->where('unit_type_id', 5)->count();
+                if ($floor->units->isNotEmpty() && $parkingUnitsCount === $floor->units->count()) {
+                    $isParking = true;
+                }
+            }
+
+            if ($isParking) {
+                $rowUnits = $floor->units->sortBy('door_no')->values();
+                $parkingRows[] = [
+                    'floor'        => $floor,
+                    'display_name' => $floor->name,
+                    'units'        => $rowUnits,
+                ];
+            } else {
+                $regularFloors[] = $floor;
+            }
+        }
+
+        $allDoorNos = collect();
+        foreach ($regularFloors as $floor) {
+            foreach ($floor->units as $unit) {
+                $allDoorNos->push($unit->door_no);
+            }
+        }
+        
+        $matrixColumns = $allDoorNos->unique()->sortBy(function($doorNo) {
+            return [strlen($doorNo), $doorNo];
+        })->values()->toArray();
+
+        foreach ($regularFloors as $floor) {
+            $unitsByDoor = $floor->units->keyBy('door_no');
+            $cols = [];
+            foreach ($matrixColumns as $doorNo) {
+                $cols[$doorNo] = $unitsByDoor->get($doorNo);
+            }
+
+            $floorMatrix[] = [
+                'floor'        => $floor,
+                'display_name' => $floor->name,
+                'columns'      => $cols,
+            ];
+        }
+
+        $parkingRows = array_map(function($pRow, $index) {
+            $pRow['display_name'] = 'P' . ($index + 1);
+            return $pRow;
+        }, $parkingRows, array_keys($parkingRows));
+
+        return view('units.index', compact('project', 'floors', 'unitTypes', 'projects', 'floorMatrix', 'parkingRows', 'matrixColumns'));
     }
 
     public function store(Request $request): JsonResponse
