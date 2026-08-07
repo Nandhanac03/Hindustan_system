@@ -5,26 +5,38 @@
     @include('reports.partials.nav')
 
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6">
-        <div class="space-y-6" x-data="{ 
+        <div class="space-y-6 relative"
+             @mousemove="mouseX = $event.clientX; mouseY = $event.clientY"
+             x-data="{ 
             currentSubTab: 'summary', 
             hoveredUnit: null, 
             hoveredEl: null, 
             unitModalOpen: false, 
             modalLoading: false, 
             selectedUnitDetails: null,
+            panelOpen: false,
+            unit: null,
+            loading: false,
+            activeTab: 'details',
+            mouseX: 0,
+            mouseY: 0,
             viewUnitDetails(unitId) {
-                this.modalLoading = true;
-                this.unitModalOpen = true;
+                this.loading = true;
+                this.panelOpen = true;
+                this.activeTab = 'details';
                 fetch(`{{ url('units') }}/${unitId}/json`)
-                    .then(res => res.json())
+                    .then(res => {
+                        if (!res.ok) throw new Error('Unauthorized');
+                        return res.json();
+                    })
                     .then(data => {
-                        this.selectedUnitDetails = data.unit;
-                        this.modalLoading = false;
+                        this.unit = data.unit;
+                        this.loading = false;
                     })
                     .catch(err => {
                         console.error(err);
-                        this.modalLoading = false;
-                        this.unitModalOpen = false;
+                        this.loading = false;
+                        this.panelOpen = false;
                     });
             }
         }">
@@ -469,70 +481,289 @@
                 @endif
             </div>
 
-            <!-- Unit Details Readonly Modal -->
-            <div x-show="unitModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" x-transition style="display: none;">
-                <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100" @click.away="unitModalOpen = false">
-                    <div class="px-6 py-4 bg-gradient-to-r from-[#a38c29] to-[#b89635] text-white flex items-center justify-between">
+            
+
+<!-- Hover Tooltip -->
+                <div class="fixed z-[150] bg-white border border-[#EAE3CD] rounded-2xl shadow-2xl p-4 w-[260px] pointer-events-none space-y-2"
+                     :style="`display: ${hoveredUnit ? 'block' : 'none'}; left: ${Math.max(10, Math.min(mouseX - 130, window.innerWidth - 270))}px; top: ${mouseY - 15}px; transform: translateY(-100%);`">
+
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
                         <div>
-                            <span class="block text-[8px] font-bold uppercase tracking-wider text-white/80" x-text="selectedUnitDetails?.floor?.name || 'Unit Detail'"></span>
-                            <h4 class="text-sm font-black uppercase tracking-wider text-white" x-text="selectedUnitDetails ? 'Unit ' + selectedUnitDetails.door_no : 'Loading...' "></h4>
+                            <span class="text-[8px] text-slate-400 font-bold uppercase tracking-wider block" x-text="hoveredUnit?.floor"></span>
+                            <span class="text-xs font-black text-slate-800 uppercase tracking-wider" x-text="hoveredUnit?.door_no"></span>
                         </div>
-                        <button type="button" @click="unitModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition text-xs">✕</button>
+                        <span class="text-[8px] font-black text-white px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm"
+                              :class="{'bg-rose-600': hoveredUnit?.status === 'Sold', 'bg-blue-500': hoveredUnit?.status === 'Booked', 'bg-amber-500': hoveredUnit?.status === 'Blocked', 'bg-emerald-500': hoveredUnit?.status === 'Available', 'bg-slate-700': hoveredUnit?.status === 'Reserved'}"
+                              x-text="hoveredUnit?.status"></span>
                     </div>
 
-                    <div class="p-6 space-y-4 text-xs">
-                        <div x-show="modalLoading" class="flex flex-col items-center justify-center py-12 space-y-3">
-                            <div class="w-8 h-8 rounded-full border-4 border-amber-500 border-t-transparent animate-spin"></div>
-                            <span class="text-slate-400 font-bold uppercase tracking-wider text-[10px]">Fetching Details...</span>
+                    <div class="grid grid-cols-2 gap-2 text-[9px] font-semibold text-slate-500 uppercase tracking-wider">
+                        <div>
+                            <span class="block text-[8px] text-slate-400 font-bold">Built Up Area</span>
+                            <span class="text-slate-800 font-extrabold" x-text="hoveredUnit?.area"></span>
                         </div>
-
-                        <div x-show="!modalLoading && selectedUnitDetails" class="space-y-4">
-                            <div class="grid grid-cols-2 gap-4 pb-3 border-b border-slate-100">
-                                <div>
-                                    <span class="block text-[9px] text-slate-400 font-bold uppercase">Project</span>
-                                    <span class="text-slate-800 font-bold" x-text="selectedUnitDetails?.project?.name || 'N/A'"></span>
-                                </div>
-                                <div>
-                                    <span class="block text-[9px] text-slate-400 font-bold uppercase">Unit Type</span>
-                                    <span class="text-slate-800 font-bold" x-text="selectedUnitDetails?.unit_type?.name || 'N/A'"></span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4 pb-3 border-b border-slate-100">
-                                <div>
-                                    <span class="block text-[9px] text-slate-400 font-bold uppercase">Built Up Area</span>
-                                    <span class="text-slate-800 font-mono font-bold" x-text="selectedUnitDetails?.built_up_area ? Number(selectedUnitDetails.built_up_area).toLocaleString() + ' Sq.ft' : 'N/A'"></span>
-                                </div>
-                                <div>
-                                    <span class="block text-[9px] text-slate-400 font-bold uppercase">Carpet Area</span>
-                                    <span class="text-slate-800 font-mono font-bold" x-text="selectedUnitDetails?.carpet_area ? Number(selectedUnitDetails.carpet_area).toLocaleString() + ' Sq.ft' : 'N/A'"></span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span class="block text-[9px] text-slate-400 font-bold uppercase">Expected Sale Value</span>
-                                    <span class="text-[#a38c29] font-mono font-bold" x-text="selectedUnitDetails?.expected_sale_amount ? '₹' + Number(selectedUnitDetails.expected_sale_amount).toLocaleString('en-IN', {minimumFractionDigits: 2}) : 'N/A'"></span>
-                                </div>
-                                <div>
-                                    <span class="block text-[9px] text-slate-400 font-bold uppercase">Status</span>
-                                    <span class="inline-block mt-1 px-3 py-1 rounded-full text-[9px] font-black uppercase text-white shadow-xs"
-                                          :class="{'bg-rose-600': selectedUnitDetails?.status === 'sold', 'bg-blue-500': selectedUnitDetails?.status === 'booked', 'bg-amber-500': selectedUnitDetails?.status === 'blocked', 'bg-emerald-500': selectedUnitDetails?.status === 'available', 'bg-slate-700': selectedUnitDetails?.status === 'reserved'}"
-                                          x-text="selectedUnitDetails?.status"></span>
-                                </div>
-                            </div>
+                        <div>
+                            <span class="block text-[8px] text-slate-400 font-bold">Expected Sale</span>
+                            <span class="text-[#a38c29] font-extrabold font-mono" x-text="hoveredUnit?.price"></span>
+                        </div>
+                        <div class="col-span-2" x-show="hoveredUnit?.customer">
+                            <span class="block text-[8px] text-slate-400 font-bold">Sold To</span>
+                            <span class="text-emerald-700 font-extrabold uppercase tracking-widest" x-text="hoveredUnit?.customer"></span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                        <button type="button" @click="unitModalOpen = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
+                
+
+<!-- Dynamic Drawer Slide-Over Panel -->
+            <div x-show="panelOpen" 
+                 class="fixed inset-0 z-[120] overflow-hidden" 
+                 style="display: none;"
+                 @keydown.window.escape="panelOpen = false">
+                <div class="absolute inset-0 overflow-hidden">
+                    <!-- Overlay Backdrop -->
+                    <div x-show="panelOpen" 
+                         x-transition:enter="ease-in-out duration-300"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="ease-in-out duration-300"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         @click="panelOpen = false" 
+                         class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+
+                    <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                        <div x-show="panelOpen" 
+                             x-transition:enter="transform transition ease-in-out duration-350"
+                             x-transition:enter-start="translate-x-full"
+                             x-transition:enter-end="translate-x-0"
+                             x-transition:leave="transform transition ease-in-out duration-350"
+                             x-transition:leave-start="translate-x-0"
+                             x-transition:leave-end="translate-x-full"
+                             class="pointer-events-auto w-screen max-w-md">
+                            
+                            <div class="flex h-full flex-col overflow-y-scroll bg-white shadow-2xl border-l border-slate-200">
+                                
+                                <!-- Header Info -->
+                                <div class="bg-slate-950 p-6 text-white border-b border-slate-900">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[9px] font-bold text-indigo-300 bg-indigo-950 px-2 py-0.5 rounded uppercase" 
+                                                  x-text="unit && unit.unit_type ? unit.unit_type.name : ''"></span>
+                                            <h2 class="text-sm font-bold tracking-tight uppercase" x-text="unit ? 'Unit ' + unit.door_no : ''"></h2>
+                                        </div>
+                                        <button @click="panelOpen = false" class="text-slate-400 hover:text-white rounded-lg transition-colors p-1.5">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-4 flex items-center justify-between text-xs text-slate-400 font-medium">
+                                        <span>Floor: <strong class="text-white" x-text="unit && unit.floor ? unit.floor.name : ''"></strong></span>
+                                        <span>Status: 
+                                            <span class="ml-1 uppercase text-[9px] font-bold px-2 py-0.5 rounded"
+                                                  :class="{
+                                                      'bg-emerald-950 text-emerald-400 border border-emerald-800': unit && unit.status === 'available',
+                                                      'bg-amber-950 text-amber-400 border border-amber-800': unit && unit.status === 'blocked',
+                                                      'bg-blue-950 text-blue-400 border border-blue-800': unit && unit.status === 'booked',
+                                                      'bg-rose-950 text-rose-400 border border-rose-800': unit && unit.status === 'sold',
+                                                      'bg-slate-900 text-slate-400 border border-slate-800': unit && (unit.status === 'on_hold' || unit.status === 'parking')
+                                                  }"
+                                                  x-text="unit ? unit.status : ''"></span>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Drawer Navigation Tabs -->
+                                <div class="flex border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-center">
+                                    <button @click="activeTab = 'details'" 
+                                            :class="activeTab === 'details' ? 'border-[#a38c29] text-[#a38c29] border-b-2' : 'text-slate-500 hover:text-slate-800'"
+                                            class="flex-1 py-3 transition">Details</button>
+                                    <button @click="activeTab = 'rates'" 
+                                            :class="activeTab === 'rates' ? 'border-[#a38c29] text-[#a38c29] border-b-2' : 'text-slate-500 hover:text-slate-800'"
+                                            class="flex-1 py-3 transition">Rate Logs</button>
+                                    <button @click="activeTab = 'status'" 
+                                            :class="activeTab === 'status' ? 'border-[#a38c29] text-[#a38c29] border-b-2' : 'text-slate-500 hover:text-slate-800'"
+                                            class="flex-1 py-3 transition">Status Logs</button>
+                                </div>
+
+                                <!-- Content Body -->
+                                <div class="flex-1 p-6 overflow-y-auto space-y-6">
+                                    
+                                    <!-- Loading Spinner -->
+                                    <div x-show="loading" class="flex flex-col items-center justify-center py-12 space-y-2">
+                                        <div class="animate-spin rounded-full h-8 w-8 border-2 border-[#a38c29] border-t-transparent"></div>
+                                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Loading details...</span>
+                                    </div>
+
+                                    <div x-show="!loading && unit">
+                                        
+                                        <!-- TAB 1: DETAILS -->
+                                        <div x-show="activeTab === 'details'" class="space-y-6">
+                                            <!-- Specs Matrix Card -->
+                                            <div class="bg-slate-50 border border-slate-200/60 rounded-xl p-4 space-y-3 text-xs">
+                                                <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Specifications</h4>
+                                                <div class="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <span class="text-slate-450 font-medium block">BUA Area</span>
+                                                        <strong class="text-slate-850" x-text="unit && unit.built_up_area ? unit.built_up_area + ' Sq Ft' : 'N/A'"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-455 font-medium block">Carpet Area</span>
+                                                        <strong class="text-slate-850" x-text="unit && unit.carpet_area ? unit.carpet_area + ' Sq Ft' : 'N/A'"></strong>
+                                                    </div>
+                                                    <div class="col-span-2 border-t border-slate-200/60 pt-2 grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <span class="text-slate-455 font-medium block">Expected Rate</span>
+                                                            <strong class="text-slate-850" x-text="unit ? '₹' + Number(unit.expected_rate_per_sqft || 0).toLocaleString('en-US') : ''"></strong>
+                                                        </div>
+                                                        <div>
+                                                            <span class="text-slate-455 font-medium block">Expected Sale</span>
+                                                            <strong class="text-emerald-700" x-text="unit ? '₹' + Number(unit.expected_sale_amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Sale Details (Shown if unit is sold) -->
+                                            <div x-show="unit?.status === 'sold'" class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-4 space-y-3 text-xs">
+                                                <div class="flex items-center justify-between border-b border-emerald-100 pb-1.5">
+                                                    <h4 class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-widest">Sale Information</h4>
+                                                    <span x-show="unit?.sale" class="text-[9px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded" x-text="unit?.sale ? unit.sale.sale_number : ''"></span>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-3.5">
+                                                    <div class="col-span-2">
+                                                        <span class="text-emerald-650 block font-medium">Customer / Sold To</span>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.sale && unit.sale.customer ? unit.sale.customer.name : '-'"></strong>
+                                                    </div>
+                                                    <div x-show="unit?.sale && unit.sale.sale_date">
+                                                        <span class="text-emerald-650 block font-medium">Sale Date</span>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.sale ? new Date(unit.sale.sale_date).toLocaleDateString() : 'N/A'"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-emerald-650 block font-medium">Sale Area (BUA)</span>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.built_up_area ? unit.built_up_area + ' Sq Ft' : 'N/A'"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-emerald-650 block font-medium">Expected Rate / Sq Ft</span>
+                                                        <strong class="text-slate-850 font-extrabold" x-text="unit ? '₹' + Number(unit.expected_rate_per_sqft || 0).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-emerald-650 block font-medium">Sale Rate / Sq Ft</span>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit ? '₹' + Number(unit.sale_rate_per_sqft || (unit.sale ? unit.sale.rate_per_sqft : 0)).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-emerald-650 block font-medium">Expected Price</span>
+                                                        <strong class="text-slate-850 font-extrabold" x-text="unit ? '₹' + Number(unit.expected_sale_amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-emerald-650 block font-medium">Actual Sale Price</span>
+                                                        <strong class="text-emerald-800 font-extrabold" x-text="unit ? '₹' + Number(unit.sale_amount || (unit.sale ? unit.sale.sale_amount : 0)).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                    <div class="col-span-2 bg-rose-50 border border-rose-100 rounded-lg p-2.5">
+                                                        <span class="text-rose-600 block font-bold text-[9px] uppercase tracking-wider">Shortfall / Difference</span>
+                                                        <strong class="text-rose-750 font-extrabold text-sm" x-text="unit ? '₹' + Number(unit.difference || 0).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                    <div x-show="unit?.sale">
+                                                        <span class="text-emerald-650 block font-medium">Total Amount (Tax Inc.)</span>
+                                                        <strong class="text-emerald-850 font-extrabold" x-text="unit?.sale ? '₹' + Number(unit.sale.total_amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                    <div x-show="unit?.sale">
+                                                        <span class="text-emerald-650 block font-medium">Remaining Bal.</span>
+                                                        <strong class="text-rose-750 font-extrabold" x-text="unit?.sale ? '₹' + Number(unit.sale.remaining_balance || 0).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Booking Details (Shown if unit is booked and has linked booking information) -->
+                                            <div x-show="unit?.status === 'booked' && unit?.booking" class="bg-blue-50/50 border border-blue-100 rounded-xl p-4 space-y-3 text-xs">
+                                                <div class="flex items-center justify-between border-b border-blue-100 pb-1.5">
+                                                    <h4 class="text-[10px] font-extrabold text-blue-800 uppercase tracking-widest">Booking Information</h4>
+                                                    <span class="text-[9px] font-bold text-blue-700 bg-blue-100 px-1.5 py-0.5 rounded" x-text="unit?.booking ? unit.booking.booking_number : ''"></span>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-3.5">
+                                                    <div class="col-span-2">
+                                                        <span class="text-blue-650 block font-medium">Customer</span>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.booking && unit.booking.customer ? unit.booking.customer.name : '-'"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-blue-650 block font-medium">Booking Date</span>
+                                                        <strong class="text-slate-800 font-extrabold" x-text="unit?.booking && unit.booking.agreement_date ? new Date(unit.booking.agreement_date).toLocaleDateString() : 'N/A'"></strong>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-blue-650 block font-medium">Booking Amount</span>
+                                                        <strong class="text-blue-850 font-extrabold" x-text="unit?.booking ? '₹' + Number(unit.booking.amount || 0).toLocaleString('en-US') : ''"></strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- TAB 2: RATE HISTORY -->
+                                        <div x-show="activeTab === 'rates'" class="space-y-4">
+                                            <h4 class="text-[10px] font-bold text-slate-450 uppercase tracking-widest mb-2">Pricing History Logs (Append-Only)</h4>
+                                            <div class="relative pl-6 border-l border-slate-200 space-y-4">
+                                                <template x-for="log in unit?.rate_logs" :key="log.id">
+                                                    <div class="relative">
+                                                        <!-- Icon indicator -->
+                                                        <span class="absolute -left-[30px] top-0.5 bg-indigo-100 text-indigo-700 border-2 border-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                            <span class="w-1.5 h-1.5 bg-[#a38c29] rounded-full"></span>
+                                                        </span>
+                                                        <div class="text-xs">
+                                                            <div class="flex items-center justify-between font-semibold text-slate-900">
+                                                                <span x-text="'₹' + Number(log.rate).toLocaleString('en-US')"></span>
+                                                                <span class="text-[10px] text-slate-400 font-medium" x-text="log.effective_from ? new Date(log.effective_from).toLocaleDateString() : 'N/A'"></span>
+                                                            </div>
+                                                            <p class="text-slate-500 font-medium mt-1" x-text="log.reason ?? 'No reason provided'"></p>
+                                                            <div class="text-[10px] text-slate-400 mt-0.5">
+                                                                Updated by: <span class="font-bold text-slate-650" x-text="log.user ? log.user.name : 'System'"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <!-- TAB 3: STATUS HISTORY -->
+                                        <div x-show="activeTab === 'status'" class="space-y-4">
+                                            <h4 class="text-[10px] font-bold text-slate-455 uppercase tracking-widest mb-2">Status Change Logs (Append-Only)</h4>
+                                            <div class="relative pl-6 border-l border-slate-200 space-y-4">
+                                                <template x-for="log in unit?.status_logs" :key="log.id">
+                                                    <div class="relative">
+                                                        <!-- Icon indicator -->
+                                                        <span class="absolute -left-[30px] top-0.5 bg-slate-100 border-2 border-white rounded-full w-4 h-4 flex items-center justify-center">
+                                                            <span class="w-1.5 h-1.5 bg-slate-500 rounded-full"></span>
+                                                        </span>
+                                                        <div class="text-xs">
+                                                            <div class="flex items-center gap-2 font-bold uppercase text-[9px]">
+                                                                <span class="text-slate-450" x-text="log.from_status ? log.from_status : 'NEW'"></span>
+                                                                <span class="text-slate-400">&rarr;</span>
+                                                                <span class="text-slate-800" x-text="log.to_status"></span>
+                                                            </div>
+                                                            <p class="text-slate-500 font-medium mt-1" x-text="log.reason ?? 'No reason provided'"></p>
+                                                            <div class="flex justify-between items-center text-[10px] text-slate-400 mt-1">
+                                                                <span x-text="log.user ? 'Changed by: ' + log.user.name : 'Changed by: System'"></span>
+                                                                <span x-text="new Date(log.created_at).toLocaleDateString()"></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+
+</div>
+</div>
 </div>
 
 @include('reports.partials.script')
 
 </x-erp-layout>
+
+
