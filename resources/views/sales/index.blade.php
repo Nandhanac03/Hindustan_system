@@ -2574,6 +2574,15 @@ function salesApp() {
                 if (gstType === 'exclusive') {
                     total = Math.round(base * 1.18 * 100) / 100;
                 }
+                // Carry forward the price of the parking unit if the old sale had one
+                const oldParking = (this.selectedExchangeSale?.sale_units || []).find(su => {
+                    const cat = (su.unit?.unit_type?.category || '').toLowerCase();
+                    const name = (su.unit?.unit_type?.name || '').toLowerCase();
+                    return cat === 'parking' || name === 'parking';
+                });
+                if (oldParking) {
+                    total += parseFloat(oldParking.line_total || oldParking.base_amount || 0);
+                }
                 this.exchangeForm.new_unit_value = total;
             } else {
                 this.exchangeForm.new_unit_value = 0;
@@ -2774,10 +2783,29 @@ function salesApp() {
             }
             return pages;
         },
+        isSaleEligibleForExchange(sale) {
+            if (!sale) return false;
+            // 0 or 1 unit sales are eligible
+            if (!sale.sale_units || sale.sale_units.length <= 1) {
+                return true;
+            }
+            // Exactly 2 units are eligible if one is a parking space and the other is an apartment or shop
+            if (sale.sale_units.length === 2) {
+                const u1 = sale.sale_units[0].unit;
+                const u2 = sale.sale_units[1].unit;
+                if (u1 && u2) {
+                    const isParking1 = (u1.unit_type?.category || '').toLowerCase() === 'parking' || (u1.unit_type?.name || '').toLowerCase() === 'parking';
+                    const isParking2 = (u2.unit_type?.category || '').toLowerCase() === 'parking' || (u2.unit_type?.name || '').toLowerCase() === 'parking';
+                    if ((isParking1 && !isParking2) || (!isParking1 && isParking2)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        },
         filteredExchangeSales() {
             return this.sales.filter(sale => {
-                // Only single-unit sales are eligible for exchange
-                if (sale.sale_units && sale.sale_units.length > 1) return false;
+                if (!this.isSaleEligibleForExchange(sale)) return false;
 
                 if (this.exchangeFilters.search) {
                     const q = this.exchangeFilters.search.toLowerCase();

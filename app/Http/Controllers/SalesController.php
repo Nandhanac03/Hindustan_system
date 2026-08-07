@@ -673,7 +673,7 @@ class SalesController extends Controller
             'bank_id'                => ['nullable', 'exists:banks,id'],
             'initial_payment_date'   => ['nullable', 'date'],
         ]);
-        $sale = Sale::with('saleUnits')->findOrFail($id);
+        $sale = Sale::with(['saleUnits.unit.unitType'])->findOrFail($id);
         $fromStatus = $sale->status;
         if ($validated['status'] === 'returned' && $fromStatus !== 'cancelled') {
             return response()->json([
@@ -715,7 +715,25 @@ class SalesController extends Controller
                 'cancellation_reason' => $validated['reason'],
                 'cancelled_at' => now(),
             ]);
+            // Identify if there is a parking unit in the old sale to keep
+            $parkingUnitId = null;
+            $parkingSaleUnit = null;
             foreach ($sale->saleUnits as $su) {
+                if ($su->unit && $su->unit->unitType) {
+                    $cat = strtolower($su->unit->unitType->category ?? '');
+                    $name = strtolower($su->unit->unitType->name ?? '');
+                    if ($cat === 'parking' || $name === 'parking') {
+                        $parkingUnitId = $su->unit_id;
+                        $parkingSaleUnit = $su;
+                        break;
+                    }
+                }
+            }
+
+            foreach ($sale->saleUnits as $su) {
+                if ($parkingUnitId && $su->unit_id === $parkingUnitId) {
+                    continue; // Do not free up the parking unit; it will carry forward
+                }
                 Unit::where('id', $su->unit_id)->update([
                     'status'             => 'available',
                     'sale_rate_per_sqft' => null,
@@ -736,6 +754,18 @@ class SalesController extends Controller
             }
             $baseAmount = $gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount;
             $totalAmount = $gstType === 'exclusive' ? round($newAmount + $gstAmount, 2) : $newAmount;
+
+            $finalSaleAmount = $newAmount;
+            $finalBaseAmount = $baseAmount;
+            $finalGstAmount = $gstAmount;
+            $finalTotalAmount = $totalAmount;
+
+            if ($parkingSaleUnit) {
+                $finalSaleAmount += (float)$parkingSaleUnit->base_amount;
+                $finalBaseAmount += (float)$parkingSaleUnit->base_amount;
+                $finalGstAmount += (float)$parkingSaleUnit->gst_amount;
+                $finalTotalAmount += (float)$parkingSaleUnit->line_total;
+            }
             
             $paymentPlan = $validated['payment_plan'] ?? $sale->payment_plan ?? 'lump_sum';
             $emiType = $validated['emi_type'] ?? $sale->emi_type ?? 'equal';
@@ -750,13 +780,13 @@ class SalesController extends Controller
                 'customer_id'            => $sale->customer_id,
                 'broker_id'              => $sale->broker_id,
                 'rate_per_sqft'          => $newRate,
-                'sale_amount'            => $newAmount,
-                'gst_applicable'         => $gstType !== 'none',
+                'sale_amount'            => $finalSaleAmount,
+                'gst_applicable'         => $gstType !== 'none' || ($parkingSaleUnit && (float)$parkingSaleUnit->gst_amount > 0),
                 'gst_type'               => $gstType,
                 'gst_percentage'         => $gstType !== 'none' ? 18 : null,
-                'gst_amount'             => $gstAmount,
-                'base_amount'            => $baseAmount,
-                'total_amount'           => $totalAmount,
+                'gst_amount'             => $finalGstAmount,
+                'base_amount'            => $finalBaseAmount,
+                'total_amount'           => $finalTotalAmount,
                 'sale_date'              => now(),
                 'agreement_date'         => now(),
                 'status'                 => 'active',
@@ -766,7 +796,7 @@ class SalesController extends Controller
                 'emi_installment_count'  => $emiCount,
                 'emi_frequency'          => $emiFreq,
                 'first_installment_date' => $firstDate,
-                'remaining_balance'      => $totalAmount,
+                'remaining_balance'      => $finalTotalAmount,
                 'notes'                  => 'Exchanged from sale ' . $sale->sale_number . '. ' . $validated['reason'],
                 'created_by'             => auth()->id(),
             ]);
@@ -787,6 +817,24 @@ class SalesController extends Controller
                 'brokerage_amount' => 0.0,
             ]);
 
+            if ($parkingSaleUnit) {
+                \App\Models\SaleUnit::create([
+                    'sale_id'          => $newSale->id,
+                    'unit_id'          => $parkingSaleUnit->unit_id,
+                    'wing'             => $parkingSaleUnit->wing,
+                    'rate_per_sqft'    => $parkingSaleUnit->rate_per_sqft,
+                    'area_sqft'        => $parkingSaleUnit->area_sqft,
+                    'base_amount'      => $parkingSaleUnit->base_amount,
+                    'gst_type'         => $parkingSaleUnit->gst_type,
+                    'gst_percentage'   => $parkingSaleUnit->gst_percentage,
+                    'gst_amount'       => $parkingSaleUnit->gst_amount,
+                    'line_total'       => $parkingSaleUnit->line_total,
+                    'brokerage_type'   => $parkingSaleUnit->brokerage_type,
+                    'brokerage_value'  => $parkingSaleUnit->brokerage_value,
+                    'brokerage_amount' => $parkingSaleUnit->brokerage_amount,
+                ]);
+            }
+
             // Create initial payment receipt if provided
             $initialPayment = (float)($validated['initial_payment_amount'] ?? 0);
             if ($initialPayment > 0) {
@@ -800,22 +848,27 @@ class SalesController extends Controller
                     'payment_mode' => $validated['payment_mode'] ?? 'Cash',
                     'reference_no' => $validated['reference_no'] ?? null,
                     'bank_id'      => $validated['bank_id'] ?? null,
-                    'remarks'      => 'Initial booking payment for exchanged unit',
+                    'remarks'      => 'Initial payment at sale creation',
                     'created_by'   => auth()->id(),
                 ]);
             }
 
             if (!empty($validated['carry_forward'])) {
+                // Rename old initial payment remark to avoid conflict with the new initial payment
+                Receipt::where('sale_id', $sale->id)
+                    ->where('remarks', 'Initial payment at sale creation')
+                    ->update(['remarks' => 'Initial payment from previous booking (' . $sale->sale_number . ')']);
+
                 Receipt::where('sale_id', $sale->id)->update([
                     'sale_id' => $newSale->id,
                     'project_id' => $newUnit->project_id,
                     'unit_id' => $newUnit->id,
                 ]);
                 $sale->update(['remaining_balance' => $sale->total_amount - $sale->receipts()->sum('amount')]);
-                $newSale->update(['remaining_balance' => $totalAmount - $newSale->receipts()->sum('amount')]);
+                $newSale->update(['remaining_balance' => $finalTotalAmount - $newSale->receipts()->sum('amount')]);
             } else {
                 if ($initialPayment > 0) {
-                    $newSale->update(['remaining_balance' => round($totalAmount - $initialPayment, 2)]);
+                    $newSale->update(['remaining_balance' => round($finalTotalAmount - $initialPayment, 2)]);
                 }
             }
             $newUnitDifference = (float)$newUnit->expected_sale_amount - $newAmount;

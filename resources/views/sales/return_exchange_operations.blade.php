@@ -437,7 +437,7 @@
                             <option value="" x-text="isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —'"></option>
                             <template x-for="sale in sales.filter(s => s.status === 'active')" :key="sale.id">
                                 <option :value="sale.id" 
-                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.unit ? sale.unit.door_no : (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
+                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
                             </template>
                         </select>
                     </div>
@@ -583,9 +583,9 @@
                         <select x-model="newExchangeSaleId" 
                                 class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800">
                             <option value="">— Select an Active/Cancelled Booking to Exchange —</option>
-                            <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && (!s.sale_units || s.sale_units.length <= 1))" :key="sale.id">
+                            <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleEligibleForExchange(s))" :key="sale.id">
                                 <option :value="sale.id" 
-                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.unit ? sale.unit.door_no : (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
+                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
                             </template>
                         </select>
                     </div>
@@ -612,16 +612,32 @@
                         </p>
 
                         <!-- Selected Old Unit Details Inline Info -->
-                        <div x-show="selectedExchangeSale && selectedExchangeSale.unit" x-transition.opacity
-                             class="flex flex-wrap items-center gap-x-2 gap-y-1.5 bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 shadow-2xs">
-                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 mr-1 select-none">
+                        <div x-show="selectedExchangeSale" x-transition.opacity
+                             class="flex flex-col gap-2 bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 shadow-2xs">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 select-none">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
-                                Old Unit:
+                                Old Unit(s):
                             </span>
-                            <span class="text-sm font-black text-slate-800" x-text="selectedExchangeSale.unit.door_no || '—'"></span>
-                            <span class="text-sm text-slate-500 font-semibold" x-text="selectedExchangeSale.unit.unit_type?.name ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span>
-                            <span class="text-slate-300 font-light text-sm">—</span>
-                            <span class="text-sm text-slate-600 font-medium" x-text="selectedExchangeSale.unit.floor?.name || '—'"></span>
+                            <template x-if="selectedExchangeSale && selectedExchangeSale.sale_units && selectedExchangeSale.sale_units.length > 0">
+                                <div class="space-y-1.5 pl-5">
+                                    <template x-for="su in selectedExchangeSale.sale_units" :key="su.id">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm font-black text-slate-800" x-text="su.unit ? su.unit.door_no : '—'"></span>
+                                            <span class="text-sm text-slate-500 font-semibold" x-text="su.unit && su.unit.unit_type?.name ? '(' + su.unit.unit_type.name + ')' : ''"></span>
+                                            <span class="text-slate-300 font-light text-sm">—</span>
+                                            <span class="text-sm text-slate-600 font-medium" x-text="su.unit && su.unit.floor?.name ? su.unit.floor.name : '—'"></span>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="selectedExchangeSale && (!selectedExchangeSale.sale_units || selectedExchangeSale.sale_units.length === 0) && selectedExchangeSale.unit">
+                                <div class="flex items-center gap-2 pl-5">
+                                    <span class="text-sm font-black text-slate-800" x-text="selectedExchangeSale.unit.door_no || '—'"></span>
+                                    <span class="text-sm text-slate-500 font-semibold" x-text="selectedExchangeSale.unit.unit_type?.name ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span>
+                                    <span class="text-slate-300 font-light text-sm">—</span>
+                                    <span class="text-sm text-slate-600 font-medium" x-text="selectedExchangeSale.unit.floor?.name || '—'"></span>
+                                </div>
+                            </template>
                         </div>
 
                         <!-- Target Unit Selections Heading -->
