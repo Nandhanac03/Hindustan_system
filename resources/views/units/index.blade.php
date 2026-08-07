@@ -240,6 +240,7 @@
                 <thead class="sticky top-0 z-10">
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">FLOOR</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm whitespace-nowrap">FLOOR NO.</th>
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">TYPE</th>
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">DOOR NO</th>
                         <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm">BUILT UP AREA (In Sq Ft)</th>
@@ -1445,7 +1446,7 @@ function unitsApp() {
             if (!tbody) return;
 
             if (this.units.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="12" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="13" class="px-6 py-10 text-center text-slate-400 italic">No units match the query filters.</td></tr>`;
                 return;
             }
 
@@ -1493,7 +1494,13 @@ function unitsApp() {
                     const expRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.expected_rate_per_sqft);
                     const saleRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.sale_rate_per_sqft);
 
+                    let saleAmountDisp = fmtMoney(unit.sale_amount);
+                    if (unit.status === 'sold' && unit.sale && unit.sale.customer) {
+                        saleAmountDisp += `<br><div class="mt-1.5 inline-flex items-center gap-1.5 bg-emerald-50/50 text-emerald-700 px-2.5 py-1 rounded-md shadow-sm border border-emerald-500"><span class="text-[9px] font-extrabold uppercase tracking-widest whitespace-nowrap text-emerald-700">Sold To: ${unit.sale.customer.name}</span></div>`;
+                    }
+
                     html += `
+                        <td class="px-3 py-3 border font-extrabold text-slate-800 whitespace-nowrap">${unit.floor ? unit.floor.name : ''}</td>
                         <td class="px-3 py-3 border text-slate-600">${unit.unit_type ? unit.unit_type.name : ''}</td>
                         <td class="px-3 py-3 border font-bold text-slate-900">${unit.door_no}</td>
                         <td class="px-3 py-3 border">${fmtArea(unit.built_up_area)}</td>
@@ -1501,7 +1508,7 @@ function unitsApp() {
                         <td class="px-3 py-3 border font-bold text-slate-900">${expRateDisp}</td>
                         <td class="px-3 py-3 border font-bold text-emerald-700">${fmtMoney(unit.expected_sale_amount)}</td>
                         <td class="px-3 py-3 border font-bold text-slate-900">${saleRateDisp}</td>
-                        <td class="px-3 py-3 border font-bold">${fmtMoney(unit.sale_amount)}</td>
+                        <td class="px-3 py-3 border font-bold">${saleAmountDisp}</td>
                         <td class="px-3 py-3 border font-bold">${fmtMoney(unit.difference)}</td>
                         <td class="px-3 py-3 border">${statusBadge(unit.status)}</td>
                         <td class="px-3 py-3 border text-right">${actionsBtns(unit)}</td>

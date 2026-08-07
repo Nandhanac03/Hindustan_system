@@ -221,7 +221,7 @@ class PartnerController extends Controller
                 ->orderBy('floor_number', 'desc')
                 ->with(['units' => function($q) {
                     $q->orderBy('door_no');
-                }, 'units.booking', 'units.unitType'])
+                }, 'units.booking', 'units.unitType', 'units.sale.customer'])
                 ->get();
 
             // Area Stats

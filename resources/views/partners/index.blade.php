@@ -675,6 +675,7 @@
 
         <!-- FLOOR MATRIX GRID -->
         <div class="bg-gradient-to-br from-white to-slate-50/80 border border-slate-200/80 rounded-3xl p-6 shadow-md shadow-slate-200/30 space-y-6 relative"
+             @mousemove="mouseX = $event.clientX; mouseY = $event.clientY"
              x-data="{
                  panelOpen: false,
                  unit: null,
@@ -683,6 +684,8 @@
                  activeTab: 'details',
                  hoveredUnit: null,
                  hoveredEl: null,
+                 mouseX: 0,
+                 mouseY: 0,
                  fetchUnit(unitId) {
                      this.loading = true;
                      this.panelOpen = true;
@@ -906,7 +909,7 @@
                                                         $isSold     = in_array($status, ['sold']);
                                                         $isBlocked  = ($status === 'blocked');
                                                     @endphp
-                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}' }; hoveredEl = $el"
+                                                    <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}', customer: '{{ $isSold && $unit->sale && $unit->sale->customer ? addslashes($unit->sale->customer->name) : '' }}' }; hoveredEl = $el"
                                                          @mouseleave="hoveredUnit = null"
                                                          @click="fetchUnit({{ $unit->id }})"
                                                          class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_6px_-2px_rgba(0,0,0,0.1)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-200/40 cursor-pointer duration-200
@@ -934,10 +937,8 @@
                 </div>
 
                 <!-- Hover Tooltip -->
-                <div x-show="hoveredUnit" 
-                     class="absolute z-50 bg-white border border-[#EAE3CD] rounded-2xl shadow-2xl p-4 w-[260px] pointer-events-none space-y-2 transition-all duration-150"
-                     :style="`left: ${hoveredEl ? Math.min(hoveredEl.getBoundingClientRect().left - $el.parentElement.getBoundingClientRect().left + 10, $el.parentElement.clientWidth - 270) : 0}px; top: ${hoveredEl ? hoveredEl.getBoundingClientRect().top - $el.parentElement.getBoundingClientRect().top - 130 : 0}px;`"
-                     x-transition>
+                <div class="fixed z-[150] bg-white border border-[#EAE3CD] rounded-2xl shadow-2xl p-4 w-[260px] pointer-events-none space-y-2"
+                     :style="`display: ${hoveredUnit ? 'block' : 'none'}; left: ${Math.max(10, Math.min(mouseX - 130, window.innerWidth - 270))}px; top: ${mouseY - 15}px; transform: translateY(-100%);`">
 
                     <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
                         <div>
@@ -957,6 +958,10 @@
                         <div>
                             <span class="block text-[8px] text-slate-400 font-bold">Expected Sale</span>
                             <span class="text-[#a38c29] font-extrabold font-mono" x-text="hoveredUnit?.price"></span>
+                        </div>
+                        <div class="col-span-2" x-show="hoveredUnit?.customer">
+                            <span class="block text-[8px] text-slate-400 font-bold">Sold To</span>
+                            <span class="text-emerald-700 font-extrabold uppercase tracking-widest" x-text="hoveredUnit?.customer"></span>
                         </div>
                     </div>
                 </div>
