@@ -508,7 +508,7 @@
                                                             {{ $unit->door_no }}
                                                         </span>
                                                         <span class="text-[8.5px] font-bold mt-1 font-mono leading-none opacity-90 drop-shadow-sm">
-                                                            {{ $unit->built_up_area ? number_format((float)$unit->built_up_area, 2) . ' Sq.ft' : 'N/A' }}
+                                                            {{ $unit->unitType?->name ? (strtolower($unit->unitType->name) === 'flat' ? 'Apartment' : ucfirst($unit->unitType->name)) : 'N/A' }}
                                                         </span>
                                                     </div>
                                                 @endif
@@ -2604,5 +2604,7 @@ function unitsApp() {
 </script>
 
 </x-erp-layout>
+
+
 
 
