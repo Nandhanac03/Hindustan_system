@@ -147,15 +147,7 @@
             </div>
 
             <!-- Color Palette legend -->
-            <div class="flex flex-wrap items-center justify-between gap-4 py-2 border-y border-slate-100">
-                <div class="flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-emerald-500 rounded border border-emerald-600"></span> Available</span>
-                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-amber-500 rounded border border-amber-600"></span> Blocked</span>
-                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-blue-500 rounded border border-blue-600"></span> Booked</span>
-                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-rose-500 rounded border border-rose-600"></span> Sold</span>
-                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-slate-400 rounded border border-slate-500"></span> On Hold</span>
-                </div>
-            </div>
+          
 
             <!-- Real-time Filter Controls -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 bg-slate-50 border border-slate-150 rounded-xl">
@@ -201,22 +193,30 @@
                         <div class="col-span-12 md:col-span-10 flex flex-nowrap overflow-x-auto gap-2 pb-2 scrollbar-thin scrollbar-thumb-slate-300">
                             @forelse($floor->units as $ut)
                                 @php
-                                    $unitClasses = [
-                                        'available' => 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70',
-                                        'blocked' => 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100/70',
-                                        'booked' => 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100/70',
-                                        'sold' => 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70',
-                                        'on_hold' => 'bg-slate-100 text-slate-650 border-slate-200 hover:bg-slate-200/70',
-                                    ];
-                                    $class = $unitClasses[$ut->status] ?? $unitClasses['available'];
+                                    $isParking = str_contains(strtolower($ut->unitType->name ?? ''), 'park')
+                                        || str_contains(strtolower($ut->unitType->name ?? ''), 'slot')
+                                        || str_starts_with(strtoupper($ut->door_no), 'P');
+
+                                    if ($isParking) {
+                                        $class = 'bg-[#0B1E36] text-white border-slate-700 shadow-slate-300/50 hover:bg-[#163459]';
+                                    } else {
+                                        $unitClasses = [
+                                            'available' => 'bg-emerald-500 text-white border-emerald-600 shadow-emerald-200/50 hover:bg-emerald-600',
+                                            'blocked'   => 'bg-amber-500 text-white border-amber-600 shadow-amber-200/50 hover:bg-amber-600',
+                                            'booked'    => 'bg-blue-600 text-white border-blue-700 shadow-blue-200/50 hover:bg-blue-700',
+                                            'sold'      => 'bg-rose-600 text-white border-rose-700 shadow-rose-200/50 hover:bg-rose-700',
+                                            'on_hold'   => 'bg-slate-600 text-white border-slate-700 shadow-slate-200/50 hover:bg-slate-700',
+                                        ];
+                                        $class = $unitClasses[$ut->status] ?? $unitClasses['available'];
+                                    }
                                 @endphp
                                 <button type="button" 
                                         @click="fetchUnit({{ $ut->id }})"
                                         x-show="(searchQuery === '' || '{{ strtolower($ut->door_no) }}'.includes(searchQuery.toLowerCase())) && (statusFilter === '' || '{{ $ut->status }}' === statusFilter) && (typeFilter === '' || '{{ $ut->unit_type_id }}' === typeFilter)"
-                                        class="flex flex-col items-start p-2.5 min-w-[84px] text-left border rounded-xl font-bold cursor-pointer transition select-none flex-shrink-0 {{ $class }}">
-                                    <span class="text-xs">{{ $ut->door_no }}</span>
-                                    <span class="text-[9px] uppercase font-bold tracking-wide mt-1 block opacity-70">{{ $ut->unitType->name }}</span>
-                                    <span class="text-[8px] mt-0.5 opacity-60">{{ $project->system->currency_code }} {{ number_format($ut->expected_rate_per_sqft) }}</span>
+                                        class="flex flex-col items-center justify-center p-3 min-w-[95px] text-center border rounded-xl font-bold cursor-pointer transition-all duration-200 select-none shadow-xs hover:-translate-y-1 hover:shadow-md shrink-0 {{ $class }}">
+                                    <span class="text-xs font-black uppercase tracking-wide leading-tight drop-shadow-2xs">{{ $ut->door_no }}</span>
+                                    <span class="text-[9px] font-bold tracking-wide mt-1 block opacity-90 uppercase leading-none">{{ $ut->unitType->name }}</span>
+                                    <span class="text-[8px] mt-1 font-mono font-medium opacity-80 leading-none">{{ $project->system->currency_code }} {{ number_format($ut->expected_rate_per_sqft) }}</span>
                                 </button>
                             @empty
                                 <span class="text-[10px] text-slate-400 italic">No units registered on this floor.</span>
