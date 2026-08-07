@@ -232,7 +232,7 @@
         </div>
 
         <!-- Partner Shares & Allocations Section -->
-        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
+        <!-- <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden p-6 space-y-4">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                     <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Project Partner Shares</h3>
@@ -271,7 +271,7 @@
                     </div>
                 @endforelse
             </div>
-        </div>
+        </div> -->
 
         <!-- Dynamic Drawer Slide-Over Panel -->
         <div x-show="panelOpen" 
