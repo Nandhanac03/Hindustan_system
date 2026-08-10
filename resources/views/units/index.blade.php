@@ -3015,7 +3015,7 @@ function unitsApp() {
             return;
         }
 
-        const filename = 'HindustanERP_Sales_Booking_Master.xlsx';
+        const filename = 'HindustanERP_Sales_Booking_Report.xlsx';
 
         // Create workbook and worksheet
         const workbook = new ExcelJS.Workbook();

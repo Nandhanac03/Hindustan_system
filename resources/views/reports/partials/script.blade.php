@@ -49,7 +49,7 @@ function reportsApp() {
                 const excelTable = document.querySelector("#salesExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Sales_Booking_Master.xlsx';
+                    filename = 'HindustanERP_Sales_Booking_Report.xlsx';
                     isSales = true;
                 }
             }
