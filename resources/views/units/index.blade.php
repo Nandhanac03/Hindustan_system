@@ -2850,17 +2850,59 @@ function unitsApp() {
             @foreach($salesList as $sale)
                 @php
                     $mainUnit = $sale->saleUnits->filter(fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->first() ?? $sale->saleUnits->first();
-                    
-                    // Format floor name
-                    $floorName = $mainUnit?->unit?->floor?->name ?? $sale->unit?->floor?->name ?? '';
-                    $floorClean = preg_replace('/[^0-9]/', '', $floorName);
-                    $floorDisplay = $floorClean ? $floorClean . (in_array((int)$floorClean % 100, [11, 12, 13]) ? 'TH' : (['TH', 'ST', 'ND', 'RD'][(int)$floorClean % 10] ?? 'TH')) : strtoupper($floorName);
-                    
-                    // Door number & Area
-                    $doorNo = $mainUnit?->unit?->door_no ?? $sale->unit?->door_no ?? '';
-                    $unitTypeDisplay = trim(explode(',', $doorNo)[0]);
-                    $areaSqft = (float)($mainUnit?->area_sqft ?? $sale->saleUnits->filter(fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking'))->sum('area_sqft') ?: $sale->saleUnits->sum('area_sqft'));
-                    
+
+                    // Collect non-parking units
+                    $nonParkingUnits = $sale->saleUnits->filter(
+                        fn($su) => !str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking')
+                    );
+
+                    // Helper: format floor name to ordinal (e.g. "Floor 11" → "11TH")
+                    $formatFloor = function(string $floorName): string {
+                        $clean = preg_replace('/[^0-9]/', '', $floorName);
+                        if ($clean !== '') {
+                            $n = (int)$clean;
+                            $suffix = in_array($n % 100, [11, 12, 13]) ? 'TH'
+                                : (['TH', 'ST', 'ND', 'RD'][$n % 10] ?? 'TH');
+                            return $clean . $suffix;
+                        }
+                        return strtoupper(trim($floorName));
+                    };
+
+                    // Comma-separated floors — all units including parking
+                    $floorParts = $sale->saleUnits
+                        ->map(fn($su) => $su->unit?->floor?->name ?? '')
+                        ->filter()
+                        ->map($formatFloor)
+                        ->unique()
+                        ->values()
+                        ->toArray();
+                    if (empty($floorParts)) {
+                        $fb = $sale->unit?->floor?->name ?? '';
+                        $floorParts = $fb ? [$formatFloor($fb)] : [];
+                    }
+                    $floorDisplay = implode(', ', $floorParts);
+
+                    // Comma-separated door numbers — parking units get "(Parking)" label
+                    $doorParts = $sale->saleUnits
+                        ->map(function($su) {
+                            $door = trim(explode(',', $su->unit?->door_no ?? '')[0]);
+                            if (!$door) return null;
+                            $isParking = str_contains(strtolower($su->unit?->unitType?->name ?? ''), 'parking');
+                            return $isParking ? $door . '(Parking)' : $door;
+                        })
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->toArray();
+                    if (empty($doorParts)) {
+                        $fallbackDoor = $sale->unit?->door_no ?? '';
+                        $doorParts = $fallbackDoor ? [trim(explode(',', $fallbackDoor)[0])] : [];
+                    }
+                    $unitTypeDisplay = implode(', ', $doorParts);
+
+                    // Area — sum of non-parking units
+                    $areaSqft = (float)($nonParkingUnits->sum('area_sqft') ?: $sale->saleUnits->sum('area_sqft'));
+
                     // Pricing values
                     $expectedRate = (float)($mainUnit?->unit?->expected_rate_per_sqft ?? 0.00);
                     $actualRate = (float)($mainUnit?->rate_per_sqft ?? 0.00);
@@ -2973,7 +3015,7 @@ function unitsApp() {
             return;
         }
 
-        const filename = 'HindustanERP_Sales_Booking_Master.xlsx';
+        const filename = 'HindustanERP_Sales_Booking_Report.xlsx';
 
         // Create workbook and worksheet
         const workbook = new ExcelJS.Workbook();
