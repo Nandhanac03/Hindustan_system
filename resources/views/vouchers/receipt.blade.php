@@ -882,13 +882,26 @@
                     this.$watch('filterCustomer', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
                     this.$watch('activeTab', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
 
-                    // AUTO-SELECT FIRST UNALLOCATED RECEIPT ON LOAD
+                    // AUTO-SWITCH TO ALLOCATED TAB when coming from "Receipt Allocated to Others" sidebar link
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('tab') === 'allocated') {
+                        this.activeTab = 'allocated';
+                    }
+
+                    // AUTO-SELECT FIRST UNALLOCATED RECEIPT ON LOAD (skip if showing allocated tab)
                     this.$nextTick(() => {
-                        const firstUnallocated = this.allReceipts.find(r => !r.is_allocated);
-                        if (firstUnallocated) {
-                            this.selectReceipt(firstUnallocated);
-                        } else if (this.allReceipts.length > 0) {
-                            this.selectReceipt(this.allReceipts[0]);
+                        if (this.activeTab === 'unallocated') {
+                            const firstUnallocated = this.allReceipts.find(r => !r.is_allocated);
+                            if (firstUnallocated) {
+                                this.selectReceipt(firstUnallocated);
+                            } else if (this.allReceipts.length > 0) {
+                                this.selectReceipt(this.allReceipts[0]);
+                            }
+                        } else {
+                            const firstAllocated = this.allReceipts.find(r => r.is_allocated);
+                            if (firstAllocated) {
+                                this.selectReceipt(firstAllocated);
+                            }
                         }
                     });
                 },

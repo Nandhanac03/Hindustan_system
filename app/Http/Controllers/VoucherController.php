@@ -949,6 +949,59 @@ class VoucherController extends Controller
         return view('vouchers.receipt_posted', compact('voucher', 'meta', 'splitRows', 'totalIn', 'totalOut'));
     }
 
+    /**
+     * Receipt Allocated to Others — dedicated listing page.
+     * Shows all receipts that have already been allocated (posted as vouchers).
+     */
+    public function allocatedReceipts()
+    {
+        $user     = Auth::user();
+        $systemId = $user->system_id;
+
+        // All voucher receipt IDs that have been allocated
+        $allocatedReceiptIds = DB::table('vouchers')
+            ->where('type', 'Receipt')
+            ->whereNotNull('reference_no')
+            ->get('reference_no')
+            ->map(fn($v) => json_decode($v->reference_no, true)['source_receipt_id'] ?? null)
+            ->filter()
+            ->values();
+
+        // Load allocated receipts with full eager-loading
+        $receipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'companyBankAccount'])
+            ->whereNull('partner_id')
+            ->whereIn('id', $allocatedReceiptIds->toArray())
+            ->orderByDesc('receipt_date')
+            ->orderByDesc('id')
+            ->get()
+            ->map(function ($r) use ($allocatedReceiptIds) {
+                $ref      = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
+                $bankName = $r->companyBankAccount?->bank_name ?: 'General Account';
+                $accNo    = $r->companyBankAccount?->account_number;
+                return [
+                    'id'                          => $r->id,
+                    'ref'                         => $ref,
+                    'amount'                      => (float)$r->amount,
+                    'date'                        => $r->receipt_date?->format('Y-m-d'),
+                    'customer_name'               => $r->customer?->name ?? '—',
+                    'payment_mode'                => $r->payment_mode,
+                    'company_bank_account_name'   => $bankName,
+                    'company_bank_account_number' => $accNo,
+                    'project_name'                => $r->sale?->project?->name ?? '—',
+                    'unit_name'                   => $r->sale?->unit?->door_no ?? '—',
+                    'sale_number'                 => $r->sale?->sale_number ?? '—',
+                ];
+            });
+
+        $totalAllocated       = $receipts->count();
+        $totalAllocatedAmount = $receipts->sum('amount');
+        $projects             = Project::orderBy('name')->get(['id', 'name']);
+
+        return view('vouchers.allocated_receipts', compact(
+            'receipts', 'totalAllocated', 'totalAllocatedAmount', 'projects'
+        ));
+    }
+
     public function createPayment()
     {
         $user = Auth::user();

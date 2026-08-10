@@ -230,6 +230,13 @@
     Receipt Allocation Management
 </a>
 
+<a href="{{ route('receipts.allocated-to-others') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('receipts.allocated-to-others') ? 'active text-white' : 'text-slate-300' }}">
+    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+    </svg>
+    Receipt Allocated to Others
+</a>
+
 <a href="{{ route('vouchers.ledger.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('vouchers.ledger.*') ? 'active text-white' : 'text-slate-300' }}">
     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a1 1 0 01-1.447.894L16 18.618l-2.553 1.276a1 1 0 01-.894 0L10 18.618l-2.553 1.276A1 1 0 016 19V5z"/>
