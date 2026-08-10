@@ -275,6 +275,15 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['get', 'post', 'delete'], '/bank/{bank}', [\App\Http\Controllers\BankController::class, 'destroy'])->name('bank.destroy');
     Route::match(['get', 'post', 'delete'], '/bank/{bank}/delete', [\App\Http\Controllers\BankController::class, 'destroy'])->name('bank.destroy.post');
 
+    // Dedicated Company Bank Account Master
+    Route::get('/company-bank-accounts', [\App\Http\Controllers\CompanyBankAccountController::class, 'index'])->name('company-bank-accounts.index');
+    Route::post('/company-bank-accounts', [\App\Http\Controllers\CompanyBankAccountController::class, 'store'])->name('company-bank-accounts.store');
+    Route::match(['put', 'post'], '/company-bank-accounts/{companyBankAccount}', [\App\Http\Controllers\CompanyBankAccountController::class, 'update'])->name('company-bank-accounts.update');
+    Route::match(['put', 'post'], '/company-bank-accounts/{companyBankAccount}/update', [\App\Http\Controllers\CompanyBankAccountController::class, 'update'])->name('company-bank-accounts.update.post');
+    Route::match(['get', 'post', 'delete'], '/company-bank-accounts/{companyBankAccount}', [\App\Http\Controllers\CompanyBankAccountController::class, 'destroy'])->name('company-bank-accounts.destroy');
+    Route::match(['get', 'post', 'delete'], '/company-bank-accounts/{companyBankAccount}/delete', [\App\Http\Controllers\CompanyBankAccountController::class, 'destroy'])->name('company-bank-accounts.destroy.post');
+
+
     // GST Master
     Route::get('/gst', function() {
         return view('gst.index');
