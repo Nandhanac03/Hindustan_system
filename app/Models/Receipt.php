@@ -9,16 +9,23 @@ class Receipt extends Model
     protected $fillable = [
         'sale_id', 'customer_id', 'project_id', 'unit_id',
         'receipt_date', 'amount', 'payment_mode', 'reference_no', 'bank_id',
+        'company_bank_account_id', 'is_allocated',
         'remarks', 'created_by', 'partner_id',
     ];
 
     protected $casts = [
         'receipt_date' => 'date',
+        'is_allocated' => 'boolean',
     ];
 
     protected $appends = [
         'bank_name',
     ];
+
+    public function companyBankAccount()
+    {
+        return $this->belongsTo(CompanyBankAccount::class, 'company_bank_account_id');
+    }
 
     public function sale()
     {

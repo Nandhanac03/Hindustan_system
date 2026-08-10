@@ -377,6 +377,13 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/payment-modes/{id}/update', [\App\Http\Controllers\PaymentModeController::class, 'update'])->name('payment-modes.update');
     Route::post('/payment-modes/{id}/delete', [\App\Http\Controllers\PaymentModeController::class, 'destroy'])->name('payment-modes.destroy');
     Route::post('/payment-modes/{id}/toggle-status', [\App\Http\Controllers\PaymentModeController::class, 'toggleStatus'])->name('payment-modes.toggle-status');
+
+    // Receipt Management Module
+    Route::get('/receipt-management', [\App\Http\Controllers\ReceiptManagementController::class, 'index'])->name('receipt-management.index');
+    Route::post('/receipt-management', [\App\Http\Controllers\ReceiptManagementController::class, 'store'])->name('receipt-management.store');
+    Route::post('/receipt-management/bulk-assign-bank', [\App\Http\Controllers\ReceiptManagementController::class, 'assignBankBulk'])->name('receipt-management.assign-bank-bulk');
+    Route::post('/receipt-management/{id}/assign-bank', [\App\Http\Controllers\ReceiptManagementController::class, 'assignBank'])->name('receipt-management.assign-bank');
+    Route::delete('/receipt-management/{id}', [\App\Http\Controllers\ReceiptManagementController::class, 'destroy'])->name('receipt-management.destroy');
 });
 
 require __DIR__ . '/auth.php';
