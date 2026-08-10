@@ -48,7 +48,7 @@ class UnitController extends Controller
 
         if ($request->wantsJson() || $request->ajax()) {
             $table = (new Unit)->getTable();
-            $query = Unit::with(['floor', 'unitType', 'rateLogs.user', 'booking', 'sale.customer'])
+            $query = Unit::with(['floor', 'unitType', 'rateLogs.user', 'booking', 'sale.customer', 'saleUnits.sale.customer'])
                 ->join('floors', "{$table}.floor_id", '=', 'floors.id')
                 ->where("{$table}.project_id", $project->id)
                 ->select("{$table}.*");
@@ -59,6 +59,18 @@ class UnitController extends Controller
 
             if ($request->filled('floor_id')) {
                 $query->where("{$table}.floor_id", $request->floor_id);
+            }
+
+            if ($request->filled('customer_id')) {
+                $query->where(function ($q) use ($request) {
+                    $q->whereHas('sale', function ($sq) use ($request) {
+                        $sq->where('customer_id', $request->customer_id)
+                           ->where('status', 'active');
+                    })->orWhereHas('saleUnits.sale', function ($sq) use ($request) {
+                        $sq->where('customer_id', $request->customer_id)
+                           ->where('status', 'active');
+                    });
+                });
             }
 
             if ($request->filled('status')) {
@@ -122,11 +134,24 @@ class UnitController extends Controller
         $parkingRows = [];
         $matrixColumns = [];
 
+        $selectedCustomerId = $request->input('customer_id');
+
         $matrixFloors = \App\Models\Floor::where('project_id', $project->id)
             ->orderBy('floor_number', 'desc')
-            ->with(['units' => function($q) {
+            ->with(['units' => function($q) use ($selectedCustomerId) {
                 $q->orderBy('door_no');
-            }, 'units.booking', 'units.unitType', 'units.sale.customer'])
+                if ($selectedCustomerId) {
+                    $q->where(function($uq) use ($selectedCustomerId) {
+                        $uq->whereHas('sale', function ($sq) use ($selectedCustomerId) {
+                            $sq->where('customer_id', $selectedCustomerId)
+                               ->where('status', 'active');
+                        })->orWhereHas('saleUnits.sale', function ($sq) use ($selectedCustomerId) {
+                            $sq->where('customer_id', $selectedCustomerId)
+                               ->where('status', 'active');
+                        });
+                    });
+                }
+            }, 'units.booking', 'units.unitType', 'units.sale.customer', 'units.saleUnits.sale.customer'])
             ->get();
 
         $regularFloors = [];
@@ -183,7 +208,25 @@ class UnitController extends Controller
             return $pRow;
         }, $parkingRows, array_keys($parkingRows));
 
-        return view('units.index', compact('project', 'floors', 'unitTypes', 'projects', 'floorMatrix', 'parkingRows', 'matrixColumns'));
+        $salesList = \App\Models\Sale::with([
+            'customer', 
+            'unit.unitType', 
+            'unit.floor', 
+            'project', 
+            'broker', 
+            'saleUnits.unit.unitType', 
+            'saleUnits.unit.floor',
+            'extraWorks'
+        ])
+        ->where('project_id', $project->id)
+        ->where('status', 'active')
+        ->when($selectedCustomerId, fn($q) => $q->where('customer_id', $selectedCustomerId))
+        ->orderByDesc('sale_date')
+        ->get();
+
+        $customers = \App\Models\Customer::orderBy('name')->get();
+
+        return view('units.index', compact('project', 'floors', 'unitTypes', 'projects', 'floorMatrix', 'parkingRows', 'matrixColumns', 'salesList', 'customers'));
     }
 
     public function store(Request $request): JsonResponse
