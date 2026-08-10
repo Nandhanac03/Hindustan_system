@@ -4,12 +4,12 @@
 
     {{-- Flash Notifications --}}
     @if(session('success'))
-        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
+        <div class="p-4 rounded-xl bg-[#a38c29]/10 border border-[#a38c29]/30 text-[#6b5d1c] text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <svg class="w-5 h-5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <span>{{ session('success') }}</span>
             </div>
-            <button onclick="this.parentElement.remove()" class="text-emerald-600 hover:opacity-75">✕</button>
+            <button onclick="this.parentElement.remove()" class="text-[#a38c29] hover:opacity-75">✕</button>
         </div>
     @endif
 
@@ -44,7 +44,7 @@
                     Attention: You have <strong class="text-amber-900">{{ $pendingEmisCount }}</strong> pending/overdue Loan EMI repayments due this month totaling <strong class="text-amber-900">₹{{ number_format($pendingEmisAmount, 2) }}</strong>.
                 </span>
             </div>
-            <a href="{{ route('loans.index') }}" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-[10px] font-bold uppercase tracking-wide transition shadow-sm">
+            <a href="{{ route('loans.index') }}" class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-[10px] font-bold uppercase tracking-wide transition shadow-sm">
                 View Repayments &rarr;
             </a>
         </div>
@@ -53,20 +53,20 @@
     {{-- Summary Executive KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {{-- Card 1: Total Liquid Balance --}}
-        <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+        <div class="bg-gradient-to-br from-black via-slate-900 to-black rounded-2xl p-5 text-white shadow-md relative overflow-hidden border border-[#a38c29]/30">
             <div class="flex items-center justify-between relative z-10">
                 <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Company Liquidity</span>
-                    <h3 class="text-2xl font-black tracking-tight mt-1 text-emerald-400">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#a38c29]">Total Company Liquidity</span>
+                    <h3 class="text-2xl font-black tracking-tight mt-1 text-white">
                         ₹{{ number_format($totalBalance ?? 0, 2) }}
                     </h3>
                 </div>
-                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <div class="w-12 h-12 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/40 text-[#a38c29] flex items-center justify-center">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div class="mt-3 flex items-center gap-1.5 text-[10px] text-slate-400 font-medium relative z-10">
-                <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="inline-block w-2 h-2 rounded-full bg-[#a38c29] animate-pulse"></span>
                 Combined current balance across all company accounts
             </div>
         </div>
@@ -78,11 +78,11 @@
                 <h3 class="text-2xl font-black text-slate-800 tracking-tight mt-1">
                     {{ $totalAccounts ?? 0 }}
                 </h3>
-                <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">
+                <span class="text-[10px] text-[#a38c29] font-bold mt-1 inline-block">
                     {{ $activeAccounts ?? 0 }} Active / {{ ($totalAccounts ?? 0) - ($activeAccounts ?? 0) }} Inactive
                 </span>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+            <div class="w-12 h-12 rounded-xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center border border-[#a38c29]/20">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
             </div>
         </div>
@@ -175,7 +175,7 @@
                                         <div class="flex items-center gap-1.5">
                                             <span class="font-extrabold text-slate-900 block text-sm leading-tight">{{ $account->bank_name }}</span>
                                             @if($account->is_default)
-                                                <span class="px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-black rounded border border-amber-300 uppercase tracking-wider flex items-center gap-0.5">
+                                                <span class="px-1.5 py-0.5 bg-[#a38c29]/15 text-[#a38c29] text-[9px] font-black rounded border border-[#a38c29]/40 uppercase tracking-wider flex items-center gap-0.5">
                                                     ★ PRIMARY
                                                 </span>
                                             @endif
@@ -213,7 +213,7 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3.5 border text-center">
-                                <span class="badge-pill inline-flex items-center justify-center px-2.5 py-1 rounded-md border font-bold text-[10px] uppercase tracking-wider {{ $account->status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                                <span class="badge-pill inline-flex items-center justify-center px-2.5 py-1 rounded-md border font-bold text-[10px] uppercase tracking-wider {{ $account->status === 'active' ? 'bg-[#a38c29]/15 text-[#8a7522] border-[#a38c29]/30' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
                                       {{ $account->status }}
                                 </span>
                             </td>
@@ -222,7 +222,7 @@
                                     <button @click="openViewModal({{ json_encode($account) }})" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" title="View Details">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
-                                    <button @click="openEditModal({{ json_encode($account) }})" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Bank">
+                                    <button @click="openEditModal({{ json_encode($account) }})" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Bank Account">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
                                     <button @click="openDeleteModal({{ json_encode($account) }})" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" title="Delete Bank">
@@ -245,19 +245,23 @@
     <div>
 
     {{-- Company Bank Add Modal --}}
-    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="addModalOpen = false">
-            <div class="p-6">
-                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-slate-100">
-                    <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center shadow-sm border border-[#a38c29]/20 flex-shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="addModalOpen = false">
+            {{-- Modal Header: BLACK with Gold Accents --}}
+            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-[#a38c29]/40">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#a38c29] border border-[#a38c29]/40 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     </div>
                     <div>
-                        <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">ADD COMPANY BANK ACCOUNT</h3>
-                        <p class="text-xs text-slate-500 font-medium">Configure corporate banking, routing, account numbers, and opening balances.</p>
+                        <h3 class="text-sm font-black text-white uppercase tracking-wider">ADD COMPANY BANK ACCOUNT</h3>
+                        <p class="text-[11px] text-slate-400 font-medium">Configure corporate banking, routing, account numbers, and balances.</p>
                     </div>
                 </div>
+                <button type="button" @click="addModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-[#a38c29] text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
+            </div>
 
+            <div class="p-6">
                 <form action="{{ route('company-bank-accounts.store') }}" method="POST" @submit="submitAddBank($event)" novalidate class="space-y-4">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -266,7 +270,7 @@
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bank Name <span class="text-rose-500">*</span></label>
                             <input type="text" name="bank_name" x-model="addForm.bank_name" required placeholder="e.g. HDFC Bank, ICICI Bank, SBI"
                                    :class="errors.bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                             <template x-if="errors.bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.bank_name) ? errors.bank_name[0] : errors.bank_name"></p></template>
                         </div>
 
@@ -274,21 +278,21 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Account Holder Name</label>
                             <input type="text" name="account_name" x-model="addForm.account_name" placeholder="e.g. Hindustan Real Estate Pvt Ltd"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Account Number --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Account Number</label>
                             <input type="text" name="account_number" x-model="addForm.account_number" placeholder="e.g. 50200012345678"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Account Type --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Account Type <span class="text-rose-500">*</span></label>
                             <select name="account_type" x-model="addForm.account_type" required
-                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
+                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
                                 <option value="Current">Current Account</option>
                                 <option value="Savings">Savings Account</option>
                                 <option value="Overdraft">Overdraft / OD Account</option>
@@ -302,7 +306,7 @@
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">IFSC Code <span class="text-rose-500">*</span></label>
                             <input type="text" name="ifsc_code" x-model="addForm.ifsc_code" required placeholder="e.g. HDFC0001234"
                                    :class="errors.ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
                             <template x-if="errors.ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.ifsc_code) ? errors.ifsc_code[0] : errors.ifsc_code"></p></template>
                         </div>
 
@@ -310,42 +314,42 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Branch Name</label>
                             <input type="text" name="branch_name" x-model="addForm.branch_name" placeholder="e.g. Main Branch, MG Road"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- SWIFT Code --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">SWIFT / BIC Code</label>
                             <input type="text" name="swift_code" x-model="addForm.swift_code" placeholder="e.g. HDFCINBBXXX"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
                         </div>
 
                         {{-- MICR Code --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">MICR Code</label>
                             <input type="text" name="micr_code" x-model="addForm.micr_code" placeholder="e.g. 500240002"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Opening Balance --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Opening Balance (₹)</label>
                             <input type="number" step="0.01" name="opening_balance" x-model="addForm.opening_balance" placeholder="0.00"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- UPI ID --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company UPI ID / VPA</label>
                             <input type="text" name="upi_id" x-model="addForm.upi_id" placeholder="e.g. hindustan@hdfcbank"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Status --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status <span class="text-rose-500">*</span></label>
                             <select name="status" x-model="addForm.status" required
-                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
+                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
@@ -374,19 +378,23 @@
     </div>
 
     {{-- Company Bank Edit Modal --}}
-    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="editModalOpen = false">
-            <div class="p-6">
-                <div class="flex items-center gap-3 pb-4 mb-4 border-b border-slate-100">
-                    <div class="w-12 h-12 rounded-2xl bg-[#09876B]/10 text-[#09876B] flex items-center justify-center shadow-sm border border-[#09876B]/20 flex-shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="editModalOpen = false">
+            {{-- Modal Header: BLACK with Gold Accents --}}
+            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-[#a38c29]/40">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#a38c29] border border-[#a38c29]/40 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                     </div>
                     <div>
-                        <h3 class="text-base font-black text-slate-900 uppercase tracking-tight">EDIT COMPANY BANK ACCOUNT</h3>
-                        <p class="text-xs text-slate-500 font-medium">Update bank name, account number, branch, or current balance.</p>
+                        <h3 class="text-sm font-black text-white uppercase tracking-wider">EDIT COMPANY BANK ACCOUNT</h3>
+                        <p class="text-[11px] text-slate-400 font-medium">Update bank name, account number, branch, or current balance.</p>
                     </div>
                 </div>
+                <button type="button" @click="editModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-[#a38c29] text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
+            </div>
 
+            <div class="p-6">
                 <form :action="editForm.action" method="POST" @submit="submitEditBank($event)" novalidate class="space-y-4">
                     @csrf
                     @method('PUT')
@@ -396,7 +404,7 @@
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bank Name <span class="text-rose-500">*</span></label>
                             <input type="text" name="bank_name" x-model="editForm.bank_name" required
                                    :class="errors.edit_bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                             <template x-if="errors.edit_bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_bank_name) ? errors.edit_bank_name[0] : errors.edit_bank_name"></p></template>
                         </div>
 
@@ -404,21 +412,21 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Account Holder Name</label>
                             <input type="text" name="account_name" x-model="editForm.account_name"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Account Number --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Account Number</label>
                             <input type="text" name="account_number" x-model="editForm.account_number"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Account Type --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Account Type <span class="text-rose-500">*</span></label>
                             <select name="account_type" x-model="editForm.account_type" required
-                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
+                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
                                 <option value="Current">Current Account</option>
                                 <option value="Savings">Savings Account</option>
                                 <option value="Overdraft">Overdraft / OD Account</option>
@@ -432,7 +440,7 @@
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">IFSC Code <span class="text-rose-500">*</span></label>
                             <input type="text" name="ifsc_code" x-model="editForm.ifsc_code" required
                                    :class="errors.edit_ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                                   class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
                             <template x-if="errors.edit_ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_ifsc_code) ? errors.edit_ifsc_code[0] : errors.edit_ifsc_code"></p></template>
                         </div>
 
@@ -440,42 +448,42 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Branch Name</label>
                             <input type="text" name="branch_name" x-model="editForm.branch_name"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- SWIFT Code --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">SWIFT / BIC Code</label>
                             <input type="text" name="swift_code" x-model="editForm.swift_code"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
                         </div>
 
                         {{-- MICR Code --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">MICR Code</label>
                             <input type="text" name="micr_code" x-model="editForm.micr_code"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Opening & Current Balance --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Current Balance (₹)</label>
                             <input type="number" step="0.01" name="current_balance" x-model="editForm.current_balance"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- UPI ID --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company UPI ID / VPA</label>
                             <input type="text" name="upi_id" x-model="editForm.upi_id"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Status --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status <span class="text-rose-500">*</span></label>
                             <select name="status" x-model="editForm.status" required
-                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
+                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all cursor-pointer">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
@@ -493,7 +501,7 @@
 
                     <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                         <button type="button" @click="editModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#09876B] hover:bg-[#076852] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
+                        <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#a38c29] hover:bg-[#8a7522] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Save Changes
                         </button>
@@ -504,38 +512,37 @@
     </div>
 
     {{-- View Details Modal --}}
-    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="viewModalOpen = false">
-            <div class="p-6">
-                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#a38c29] to-[#75631c] text-white flex items-center justify-center font-black text-lg shadow-md border border-[#8a7522]">
-                            <span x-text="viewForm.bank_name ? viewForm.bank_name.charAt(0) : 'B'"></span>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-base font-black text-slate-900 uppercase tracking-tight" x-text="viewForm.bank_name"></h3>
-                                <template x-if="viewForm.is_default">
-                                    <span class="px-2 py-0.5 bg-amber-100 text-amber-800 text-[9px] font-black rounded border border-amber-300 uppercase">PRIMARY</span>
-                                </template>
-                            </div>
-                            <p class="text-xs text-slate-500 font-medium" x-text="viewForm.account_name || 'Hindustan System Corporate Account'"></p>
-                        </div>
+    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="viewModalOpen = false">
+            {{-- Modal Header: BLACK with Gold Accents --}}
+            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-[#a38c29]/40">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#a38c29] border border-[#a38c29]/40 flex items-center justify-center font-black text-lg flex-shrink-0">
+                        <span x-text="viewForm.bank_name ? viewForm.bank_name.charAt(0) : 'B'"></span>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border"
-                          :class="viewForm.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
-                          x-text="viewForm.status"></span>
-                </div>
-
-                {{-- Account Summary Box --}}
-                <div class="my-5 p-4 rounded-2xl bg-slate-900 text-white shadow-inner flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Current Account Liquidity</span>
-                        <span class="text-2xl font-black text-emerald-400 block mt-0.5" x-text="'₹' + Number(viewForm.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-black text-white uppercase tracking-wider" x-text="viewForm.bank_name"></h3>
+                            <template x-if="viewForm.is_default">
+                                <span class="px-2 py-0.5 bg-[#a38c29] text-white text-[9px] font-black rounded uppercase">PRIMARY</span>
+                            </template>
+                        </div>
+                        <p class="text-[11px] text-slate-400 font-medium" x-text="viewForm.account_name || 'Hindustan System Corporate Account'"></p>
+                    </div>
+                </div>
+                <button type="button" @click="viewModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-[#a38c29] text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
+            </div>
+
+            <div class="p-6">
+                {{-- Account Summary Box --}}
+                <div class="mb-5 p-4 rounded-2xl bg-black text-white border border-[#a38c29]/40 shadow-inner flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] font-bold text-[#a38c29] uppercase tracking-wider block">Current Account Liquidity</span>
+                        <span class="text-2xl font-black text-white block mt-0.5" x-text="'₹' + Number(viewForm.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                     </div>
                     <div class="text-right">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Account Type</span>
-                        <span class="text-xs font-bold text-slate-200 block uppercase" x-text="(viewForm.account_type || 'Current') + ' A/C'"></span>
+                        <span class="text-xs font-bold text-[#a38c29] block uppercase" x-text="(viewForm.account_type || 'Current') + ' A/C'"></span>
                     </div>
                 </div>
 
@@ -573,22 +580,32 @@
                 </div>
 
                 <div class="mt-6 flex justify-end">
-                    <button type="button" @click="viewModalOpen = false" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors uppercase tracking-wide">Close</button>
+                    <button type="button" @click="viewModalOpen = false" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-black hover:bg-slate-900 border border-slate-800 transition-colors uppercase tracking-wide">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     {{-- Company Bank Delete Modal --}}
-    <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="deleteModalOpen = false">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center mb-4 shadow-sm border border-rose-100">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+    <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="deleteModalOpen = false">
+            {{-- Modal Header: BLACK --}}
+            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-rose-500/40">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-black text-white uppercase tracking-wider">DELETE BANK ACCOUNT</h3>
+                        <p class="text-[11px] text-slate-400 font-medium">Permanent removal of account record</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">DELETE COMPANY BANK ACCOUNT</h3>
-                <p class="text-xs text-slate-500 font-medium leading-relaxed mb-4">
-                    Are you sure you want to delete <span class="font-bold text-slate-800" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-700" x-text="deleteForm.ifsc_code"></span>)? This operation cannot be reversed.
+                <button type="button" @click="deleteModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-rose-600 text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
+            </div>
+
+            <div class="p-6 text-center">
+                <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">
+                    Are you sure you want to delete <span class="font-bold text-slate-900" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-700" x-text="deleteForm.ifsc_code"></span>)? This action cannot be undone.
                 </p>
 
                 <form :action="deleteForm.action" method="POST">
