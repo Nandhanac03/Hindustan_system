@@ -8,7 +8,7 @@ function reportsApp() {
     return {
         activeTab: '{{ $activeTab }}',
         customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'email' => $c->email]; })) !!},
-        selectedCustomerId: '{{ request('customer_id', '') }}',
+        selectedCustomerId: '{!! is_array(request('customer_id')) ? htmlspecialchars(request('customer_id')[0] ?? '', ENT_QUOTES) : htmlspecialchars(request('customer_id', ''), ENT_QUOTES) !!}',
 
         getFilteredCustomersList(search = '') {
             const q = (search || '').toLowerCase().trim();

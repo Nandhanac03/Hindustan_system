@@ -583,7 +583,8 @@ class ReportController extends Controller
             $salesQuery->where('project_id', $request->project_id);
         }
         if ($request->filled('customer_id')) {
-            $salesQuery->where('customer_id', $request->customer_id);
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $salesQuery->whereIn('customer_id', $customerIds);
         }
         if ($request->filled('category')) {
             $salesQuery->whereHas('unit.unitType', function ($q) use ($request) {
@@ -594,7 +595,7 @@ class ReportController extends Controller
 
         $monthlySales = Sale::where('status', 'active')
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
-            ->when($request->filled('customer_id'), fn($q) => $q->where('customer_id', $request->customer_id))
+            ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
             ->selectRaw("DATE_FORMAT(sale_date, '%b %Y') as m_label, DATE_FORMAT(sale_date, '%Y-%m') as ym, SUM(total_amount) as total")
             ->groupBy('ym', 'm_label')
             ->orderBy('ym')

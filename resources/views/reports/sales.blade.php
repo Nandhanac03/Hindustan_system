@@ -37,61 +37,84 @@
                     </div>
                     <p class="text-xs text-slate-600 mt-2 font-medium max-w-3xl">Comprehensive audit trail of property bookings, project distributions, total sale agreements, and active sales revenue tracking.</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-2.5 shrink-0 relative z-10">
-                    <button @click="printReport()" 
-                            class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Print Report
-                    </button>
-                    <button @click="exportCurrentTable()" 
-                            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Export Excel
-                    </button>
-                </div>
             </div>
 
-            {{-- Customer Selection Filter Bar --}}
-            <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
-                <form id="salesReportFilterForm" method="GET" action="{{ route('reports.sales') }}" class="flex flex-col sm:flex-row items-end gap-4">
+            {{-- Actions and Filters --}}
+            <div class="flex justify-end relative z-50">
+                <form id="salesReportFilterForm" method="GET" action="{{ route('reports.sales') }}" class="flex flex-wrap items-center gap-2.5 shrink-0 w-full">
                     @if(request('project_id'))
                         <input type="hidden" name="project_id" value="{{ request('project_id') }}">
                     @endif
                     @if(request('category'))
                         <input type="hidden" name="category" value="{{ request('category') }}">
                     @endif
-                    <input type="hidden" name="customer_id" :value="selectedCustomerId">
                     
-                    <div class="flex-1 w-full relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
-                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                            Filter by Individual Customer
-                        </label>
-                        
-                        <div class="relative flex-1">
-                            <button type="button" 
+                    {{-- Customer Selection Filter --}}
+                    <div class="flex-1 min-w-[250px] relative" 
+                         x-data="{ 
+                             open: false, 
+                             search: '',
+                             localSelectedIds: @js(is_array(request('customer_id')) ? request('customer_id') : (request('customer_id') ? [request('customer_id')] : [])),
+                             
+                             toggleCustomer(id) {
+                                 const strId = id.toString();
+                                 const idx = this.localSelectedIds.indexOf(strId);
+                                 if (idx > -1) {
+                                     this.localSelectedIds.splice(idx, 1);
+                                 } else {
+                                     this.localSelectedIds.push(strId);
+                                 }
+                                 this.submitForm();
+                             },
+                             
+                             submitForm() {
+                                 this.$nextTick(() => {
+                                     document.getElementById('salesReportFilterForm').submit();
+                                 });
+                             },
+                             
+                             get selectedCustomers() {
+                                 return this.customerList.filter(c => this.localSelectedIds.includes(c.id.toString()));
+                             }
+                         }" 
+                         @click.outside="open = false">
+                         
+                        <template x-for="id in localSelectedIds">
+                            <input type="hidden" name="customer_id[]" :value="id">
+                        </template>
+
+                        <div class="relative w-full">
+                            <div role="button" tabindex="0"
                                     @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
                                     :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'"
-                                    class="w-full h-10 px-3.5 py-2 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs">
-                                <template x-if="getSelectedCustomer()">
-                                    <div class="flex items-center gap-2 overflow-hidden min-w-0">
-                                        <div class="w-6 h-6 rounded-full bg-[#a38c29]/15 text-[#8a7522] font-bold text-xs flex items-center justify-center shrink-0" x-text="getSelectedCustomer().name.charAt(0).toUpperCase()"></div>
-                                        <span class="font-extrabold text-slate-900 truncate" x-text="getSelectedCustomer().name"></span>
-                                        <span class="text-xs font-bold text-slate-400 font-mono shrink-0" x-show="getSelectedCustomer().phone" x-text="'(' + getSelectedCustomer().phone + ')'"></span>
+                                    class="w-full min-h-[42px] px-2.5 py-1.5 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs">
+                                <template x-if="selectedCustomers.length > 0">
+                                    <div class="flex flex-wrap items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                                        <template x-for="c in selectedCustomers" :key="c.id">
+                                            <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/20 text-[10px] font-bold">
+                                                <span x-text="c.name" class="whitespace-nowrap max-w-[150px] truncate"></span>
+                                                <button type="button" @click.stop="toggleCustomer(c.id)" class="text-[#8a7522]/70 hover:text-rose-600 hover:bg-rose-50 rounded p-0.5 transition-colors">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </button>
+                                            </span>
+                                        </template>
                                     </div>
                                 </template>
-                                <template x-if="!getSelectedCustomer()">
-                                    <span class="text-slate-500 font-bold">— All Customers —</span>
+                                <template x-if="selectedCustomers.length === 0">
+                                    <div class="flex items-center gap-1.5 text-slate-500 font-bold px-1">
+                                        <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                        <span>Filter by Customers</span>
+                                    </div>
                                 </template>
                                 <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                                    <template x-if="getSelectedCustomer()">
-                                        <span @click.stop="selectCustomer(null); search = '';" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selected customer">
+                                    <template x-if="selectedCustomers.length > 0">
+                                        <span @click.stop="localSelectedIds = []; search = ''; submitForm();" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                         </span>
                                     </template>
                                     <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </div>
-                            </button>
+                            </div>
 
                             <div x-show="open"
                                  x-transition:enter="transition ease-out duration-200"
@@ -100,7 +123,7 @@
                                  x-transition:leave="transition ease-in duration-150"
                                  x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                                  x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-                                 class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50"
+                                 class="absolute right-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
                                  style="display: none;">
                                 
                                 <div class="p-2.5 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
@@ -118,24 +141,30 @@
                                     </div>
                                 </div>
 
-                                <button type="button" @click="selectCustomer(null); open = false; search = ''"
+                                <button type="button" @click="localSelectedIds = []; submitForm();"
                                         class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition">
                                     <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    <span>— All Customers —</span>
+                                    <span>— Clear Selection (All Customers) —</span>
                                 </button>
 
                                 <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
                                     <template x-for="customer in getFilteredCustomersList(search)" :key="customer.id">
                                         <button type="button"
-                                                @click="selectCustomer(customer); open = false; search = ''"
-                                                :class="selectedCustomerId == customer.id ? 'bg-[#a38c29]/10 border-[#a38c29]/20 text-[#8a7522] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                                @click="toggleCustomer(customer.id)"
+                                                :class="localSelectedIds.includes(customer.id.toString()) ? 'bg-[#a38c29]/10 border-[#a38c29]/20 text-[#8a7522] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
                                                 class="w-full p-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
                                             <div class="flex items-center gap-2.5 min-w-0">
-                                                <div :class="selectedCustomerId == customer.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
-                                                     class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-colors"
-                                                     x-text="(customer.name || '?').charAt(0).toUpperCase()"></div>
+                                                <div :class="localSelectedIds.includes(customer.id.toString()) ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                                     class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-colors">
+                                                     <template x-if="localSelectedIds.includes(customer.id.toString())">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                     </template>
+                                                     <template x-if="!localSelectedIds.includes(customer.id.toString())">
+                                                        <span x-text="(customer.name || '?').charAt(0).toUpperCase()"></span>
+                                                     </template>
+                                                </div>
                                                 <div class="min-w-0">
-                                                    <p class="font-bold text-xs truncate leading-snug" :class="selectedCustomerId == customer.id ? 'text-[#8a7522]' : 'text-slate-800'" x-text="customer.name"></p>
+                                                    <p class="font-bold text-xs truncate leading-snug" :class="localSelectedIds.includes(customer.id.toString()) ? 'text-[#8a7522]' : 'text-slate-800'" x-text="customer.name"></p>
                                                     <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 font-mono mt-0.5" x-show="customer.phone">
                                                         <span class="flex items-center gap-1">
                                                             <svg class="w-2.5 h-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
@@ -150,8 +179,20 @@
                             </div>
                         </div>
                     </div>
+
+                    <button type="button" @click="printReport()" 
+                            class="h-[42px] px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Print
+                    </button>
+                    <button type="button" @click="exportCurrentTable()" 
+                            class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Sale Report
+                    </button>
                 </form>
             </div>
+
 
             {{-- Sales Report Data Table Card --}}
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
@@ -174,9 +215,12 @@
                             }
                             $activeCustomerName = null;
                             if(request('customer_id')) {
-                                $activeCustomer = \App\Models\Customer::find(request('customer_id'));
-                                if($activeCustomer) {
-                                    $activeCustomerName = $activeCustomer->name;
+                                $reqIds = is_array(request('customer_id')) ? request('customer_id') : [request('customer_id')];
+                                $activeCustomers = \App\Models\Customer::whereIn('id', $reqIds)->get();
+                                if($activeCustomers->count() === 1) {
+                                    $activeCustomerName = $activeCustomers->first()->name;
+                                } elseif($activeCustomers->count() > 1) {
+                                    $activeCustomerName = $activeCustomers->count() . ' Customers Selected';
                                 }
                             }
                         @endphp
