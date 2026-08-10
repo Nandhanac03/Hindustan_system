@@ -576,10 +576,14 @@ class ReportController extends Controller
             'project', 
             'broker', 
             'saleUnits.unit.unitType', 
-            'saleUnits.unit.floor'
+            'saleUnits.unit.floor',
+            'extraWorks'
         ])->where('status', 'active');
         if ($request->filled('project_id')) {
             $salesQuery->where('project_id', $request->project_id);
+        }
+        if ($request->filled('customer_id')) {
+            $salesQuery->where('customer_id', $request->customer_id);
         }
         if ($request->filled('category')) {
             $salesQuery->whereHas('unit.unitType', function ($q) use ($request) {
@@ -590,6 +594,7 @@ class ReportController extends Controller
 
         $monthlySales = Sale::where('status', 'active')
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+            ->when($request->filled('customer_id'), fn($q) => $q->where('customer_id', $request->customer_id))
             ->selectRaw("DATE_FORMAT(sale_date, '%b %Y') as m_label, DATE_FORMAT(sale_date, '%Y-%m') as ym, SUM(total_amount) as total")
             ->groupBy('ym', 'm_label')
             ->orderBy('ym')
@@ -612,6 +617,7 @@ class ReportController extends Controller
 
         $projectSales = Sale::with('project')
             ->where('status', 'active')
+            ->when($request->filled('customer_id'), fn($q) => $q->where('customer_id', $request->customer_id))
             ->selectRaw("project_id, COUNT(*) as cnt, SUM(total_amount) as total")
             ->groupBy('project_id')
             ->get();
@@ -637,7 +643,7 @@ class ReportController extends Controller
             'outstanding'      => (float)Sale::where('status', 'active')->sum('remaining_balance'),
             'mtd_collections'  => (float)Receipt::whereMonth('receipt_date', now()->month)->whereYear('receipt_date', now()->year)->sum('amount'),
         ];
-        $cashBookEntries = Receipt::with(['customer', 'sale.project', 'sale.unit'])->orderByDesc('receipt_date')->paginate(50);
+        $cashBookEntries = Receipt::with(['customer', 'sale.project', 'sale.unit', 'bank'])->orderByDesc('receipt_date')->paginate(50);
 
         $monthlyEmi = Receipt::selectRaw("DATE_FORMAT(receipt_date, '%b %Y') as m_label, DATE_FORMAT(receipt_date, '%Y-%m') as ym, SUM(amount) as total")
             ->groupBy('ym', 'm_label')

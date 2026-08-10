@@ -1,5 +1,7 @@
 {{-- ApexCharts Library --}}
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+{{-- ExcelJS Library --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
 <script>
 function reportsApp() {
@@ -23,7 +25,7 @@ function reportsApp() {
         selectCustomer(customer) {
             this.selectedCustomerId = customer ? customer.id : '';
             this.$nextTick(() => {
-                const form = document.getElementById('customerLedgerForm');
+                const form = document.getElementById('customerLedgerForm') || document.getElementById('salesReportFilterForm');
                 if (form) form.submit();
             });
         },
@@ -39,21 +41,240 @@ function reportsApp() {
         },
 
         exportCurrentTable() {
-            const table = document.querySelector("#reportsTable");
+            let table = document.querySelector("#reportsTable");
+            let filename = 'HindustanERP_Report_' + this.activeTab + '.xlsx';
+            let isSales = false;
+
+            if (this.activeTab === 'sales') {
+                const excelTable = document.querySelector("#salesExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Sales_Booking_Master.xlsx';
+                    isSales = true;
+                }
+            }
+
             if (!table) {
                 alert("No table available on this report tab to export.");
                 return;
             }
-            let html = table.outerHTML;
-            // Remove styling and interactive components
-            html = html.replace(/<button[^>]*>([\s\S]*?)<\/button>/gi, '');
-            html = html.replace(/<input[^>]*>/gi, '');
-            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'HindustanERP_Report_' + this.activeTab + '.xls';
-            a.click();
+
+            // Create workbook and worksheet
+            const workbook = new ExcelJS.Workbook();
+            const sheetName = isSales ? 'Sales Booking Master' : 'Report Ledger';
+            const worksheet = workbook.addWorksheet(sheetName);
+
+            // Configure views and page setups
+            if (isSales) {
+                worksheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 3, activePane: 'bottomRight' }];
+                worksheet.pageSetup = {
+                    paperSize: 8, // A3
+                    orientation: 'landscape',
+                    fitToPage: true,
+                    fitToWidth: 1,
+                    fitToHeight: 0
+                };
+                worksheet.pageSetup.printTitles = '1:3';
+            } else {
+                worksheet.views = [{ showGridLines: true }];
+            }
+
+            // Set column widths from colgroup/cols
+            const cols = table.querySelectorAll("colgroup col");
+            if (cols.length > 0) {
+                worksheet.columns = Array.from(cols).map((col) => {
+                    const widthPt = col.style.width || col.getAttribute("width");
+                    let widthVal = 15; // default
+                    if (widthPt) {
+                        const match = widthPt.match(/[\d\.]+/);
+                        if (match) {
+                            const val = parseFloat(match[0]);
+                            if (widthPt.includes("pt")) {
+                                widthVal = val / 6.5;
+                            } else {
+                                widthVal = val / 7.5;
+                            }
+                        }
+                    }
+                    return { width: Math.max(widthVal, 8) };
+                });
+            }
+
+            // Helper to convert CSS color to Hex
+            function cssColorToHex(cssColor) {
+                if (!cssColor) return null;
+                cssColor = cssColor.trim();
+                if (cssColor.startsWith('#')) {
+                    let hex = cssColor.substring(1);
+                    if (hex.length === 3) {
+                        hex = hex.split('').map(c => c + c).join('');
+                    }
+                    return 'FF' + hex.toUpperCase();
+                }
+                if (cssColor.startsWith('rgb')) {
+                    const parts = cssColor.match(/\d+/g);
+                    if (parts && parts.length >= 3) {
+                        const r = parseInt(parts[0]).toString(16).padStart(2, '0');
+                        const g = parseInt(parts[1]).toString(16).padStart(2, '0');
+                        const b = parseInt(parts[2]).toString(16).padStart(2, '0');
+                        return 'FF' + (r + g + b).toUpperCase();
+                    }
+                }
+                const nameMap = {
+                    'white': 'FFFFFFFF',
+                    'black': 'FF000000',
+                    'red': 'FFFF0000',
+                    'green': 'FF00FF00',
+                    'blue': 'FF0000FF'
+                };
+                return nameMap[cssColor.toLowerCase()] || null;
+            }
+
+            // Parse grid rows and cells
+            const rows = table.querySelectorAll("tr");
+            const mergedCells = [];
+
+            function isMerged(r, c) {
+                return mergedCells.some(m => r >= m.s.r && r <= m.e.r && c >= m.s.c && c <= m.e.c);
+            }
+
+            rows.forEach((tr, rIdx) => {
+                const sheetRow = worksheet.getRow(rIdx + 1);
+                
+                // Set row height
+                const heightAttr = tr.getAttribute("height") || tr.style.height;
+                if (heightAttr) {
+                    const match = heightAttr.match(/[\d\.]+/);
+                    if (match) {
+                        sheetRow.height = parseFloat(match[0]);
+                    }
+                }
+
+                const cells = tr.cells;
+                let colIdx = 1;
+
+                for (let cIdx = 0; cIdx < cells.length; cIdx++) {
+                    const cell = cells[cIdx];
+
+                    // Find next free cell column in sheet
+                    while (isMerged(rIdx + 1, colIdx)) {
+                        colIdx++;
+                    }
+
+                    const colspan = parseInt(cell.getAttribute("colspan")) || 1;
+                    const rowspan = parseInt(cell.getAttribute("rowspan")) || 1;
+
+                    if (colspan > 1 || rowspan > 1) {
+                        worksheet.mergeCells(rIdx + 1, colIdx, rIdx + rowspan, colIdx + colspan - 1);
+                        mergedCells.push({
+                            s: { r: rIdx + 1, c: colIdx },
+                            e: { r: rIdx + rowspan, c: colIdx + colspan - 1 }
+                        });
+                    }
+
+                    const excelCell = worksheet.getCell(rIdx + 1, colIdx);
+                    const rawVal = cell.textContent ? cell.textContent.trim() : '';
+
+                    // Styling extractions (using inline style attributes directly to support hidden table)
+                    const bgColorAttr = cell.getAttribute("bgcolor") || cell.style.backgroundColor;
+                    const bgColorHex = cssColorToHex(bgColorAttr);
+                    
+                    const textColorAttr = cell.style.color;
+                    const textColorHex = cssColorToHex(textColorAttr) || 'FF000000';
+
+                    const isBold = cell.tagName === 'TH' || cell.style.fontWeight === 'bold';
+                    const fontSizeMatch = (cell.style.fontSize || '').match(/[\d\.]+/);
+                    const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[0]) : 10;
+
+                    // Alignments
+                    let horizAlign = cell.style.textAlign || (cell.tagName === 'TH' ? 'center' : 'left');
+                    if (horizAlign === 'start') horizAlign = 'left';
+                    if (horizAlign === 'end') horizAlign = 'right';
+
+                    let vertAlign = cell.style.verticalAlign || 'middle';
+
+                    // Formatting detection from custom mso-number-format
+                    const numberFormat = cell.style.msoNumberFormat || '';
+                    
+                    // Populate excelCell value and format
+                    if (numberFormat.includes('dd-mmm-yyyy') || numberFormat.includes('dd\\-mmm\\-yyyy')) {
+                        // Check if valid date string YYYY-MM-DD
+                        if (rawVal && /^\d{4}-\d{2}-\d{2}$/.test(rawVal)) {
+                            excelCell.value = new Date(rawVal);
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                        excelCell.numFormat = 'dd-mmm-yyyy';
+                    } else if (numberFormat.includes('0\\.0%') || numberFormat.includes('0.0%')) {
+                        const parsedFloat = parseFloat(rawVal);
+                        if (!isNaN(parsedFloat)) {
+                            excelCell.value = parsedFloat;
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                        excelCell.numFormat = '0.0%';
+                    } else if (numberFormat.includes('\\#\\,\\#\\#0') || numberFormat.includes('#,##0')) {
+                        const cleanVal = rawVal.replace(/[^\d\.\-]/g, '');
+                        const parsedNum = parseFloat(cleanVal);
+                        if (rawVal && !isNaN(parsedNum)) {
+                            excelCell.value = parsedNum;
+                        } else {
+                            excelCell.value = '';
+                        }
+                        excelCell.numFormat = '#,##0';
+                    } else {
+                        // General number parsing if it looks like a clean integer/float
+                        if (rawVal && /^\-?\d+(\.\d+)?$/.test(rawVal)) {
+                            excelCell.value = parseFloat(rawVal);
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                    }
+
+                    // Apply formatting styles
+                    excelCell.font = {
+                        name: 'Calibri',
+                        size: fontSize,
+                        bold: isBold,
+                        color: { argb: textColorHex }
+                    };
+
+                    if (bgColorHex) {
+                        excelCell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: bgColorHex }
+                        };
+                    }
+
+                    excelCell.alignment = {
+                        horizontal: horizAlign,
+                        vertical: vertAlign,
+                        wrapText: isSales || cell.style.whiteSpace === 'normal'
+                    };
+
+                    // Add thin gray borders
+                    excelCell.border = {
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+
+                    colIdx += colspan;
+                }
+            });
+
+            // Write workbook and download
+            workbook.xlsx.writeBuffer().then(function (data) {
+                const blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement("a");
+                anchor.href = url;
+                anchor.download = filename;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            });
         },
 
         renderAllCharts() {
