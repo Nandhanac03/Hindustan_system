@@ -120,6 +120,7 @@
             </div>
 
             @if($selectedCustomer)
+            <div id="ledger-results"></div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 border border-[#a38c29]/30 rounded-2xl p-5 bg-gradient-to-r from-[#a38c29]/10 via-[#a38c29]/5 to-transparent space-y-4">
                     <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">Statement Information</h4>
@@ -141,7 +142,7 @@
                 </div>
             </div>
 
-            <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <div class="overflow-x-auto border border-slate-200 rounded-xl" id="ledger-table">
                 <table id="reportsTable" class="w-full text-xs text-left">
                     <thead>
                         <tr class="bg-[#a38c29]/10 border-b border-[#a38c29]/30 text-[10px] font-black text-[#8a7522] uppercase tracking-widest">
@@ -341,5 +342,20 @@
 </div>
 
 @include('reports.partials.script')
+
+<script>
+    // Auto-scroll to ledger results after form submit (page reload)
+    document.addEventListener('DOMContentLoaded', function () {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('customer_id') && params.get('customer_id')) {
+            const target = document.getElementById('ledger-results');
+            if (target) {
+                setTimeout(function () {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 250);
+            }
+        }
+    });
+</script>
 
 </x-erp-layout>

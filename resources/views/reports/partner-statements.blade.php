@@ -48,10 +48,7 @@
                 </div>
             </div>
 
-            {{-- Filter, Print & Export Bar directly above Table --}}
-            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
-                @include('reports.partials.filter-bar', ['formId' => 'partnerStatementsFilterForm', 'actionRoute' => route('reports.partner_statements'), 'exportLabel' => 'Export Statement'])
-            </div>
+
 
                 <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
                 <table id="reportsTable" class="w-full text-xs text-left">
