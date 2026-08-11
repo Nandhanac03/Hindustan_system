@@ -1,28 +1,30 @@
 <x-erp-layout>
-    <x-slot:title>Receipt Allocation Management</x-slot:title>
-    <x-slot:headerTitle>Receipt Allocation Workspace</x-slot:headerTitle>
+    <x-slot:title>Allocate Receipt to Others</x-slot:title>
+    <x-slot:headerTitle>Allocate to Others Workspace</x-slot:headerTitle>
 
-    <div class="max-w-[1800px] mx-auto space-y-6" x-data="receiptAllocationWorkspace()" x-init="init()">
+    <div class="max-w-[1800px] mx-auto space-y-6" x-data="allocateToOthersWorkspace()" x-init="init()">
         
         <!-- Top Navigation Bar & Action Shortcut -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2">
             <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
                 <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
                 <span class="text-slate-300">›</span>
-                <span>Vouchers</span>
+                <span>Finance & Accounting</span>
                 <span class="text-slate-300">›</span>
-                <span class="text-[#a38c29] font-black">Receipt Allocation Workspace</span>
+                <a href="{{ route('receipts.allocated-to-others') }}" class="hover:text-slate-600 transition">Receipt Allocated to Others</a>
+                <span class="text-slate-300">›</span>
+                <span class="text-[#a38c29] font-black">Allocate to Others Workspace</span>
             </div>
 
-            <!-- Collect New Payment Shortcut -->
-            <a href="{{ route('emi-collections.receipts') }}" 
+            <!-- View Allocated List Shortcut -->
+            <a href="{{ route('receipts.allocated-to-others') }}" 
                class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm border border-slate-800 self-start sm:self-auto">
-                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                <span>+ Collect New Customer Payment</span>
+                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                <span>View Allocated Register</span>
             </a>
         </div>
 
-        <form action="{{ route('vouchers.receipt.store') }}" method="POST" @submit="onSubmit($event)">
+        <form action="{{ route('receipts.allocate-to-others.store') }}" method="POST" @submit="onSubmit($event)">
             @csrf
 
             <!-- Hidden input fields -->
@@ -57,7 +59,7 @@
                         </div>
                         <div>
                             <span class="text-xs font-black uppercase tracking-wider block" :class="step >= 1 ? 'text-slate-900' : 'text-slate-400'">1. Select Receipt</span>
-                            <span class="text-[11px] text-slate-500 font-semibold block mt-0.5" x-text="selectedReceiptId ? selectedReceipt.ref : 'Choose receipt to split'"></span>
+                            <span class="text-[11px] text-slate-500 font-semibold block mt-0.5" x-text="selectedReceiptId ? selectedReceipt.ref : 'Choose receipt to allocate'"></span>
                         </div>
                     </div>
 
@@ -118,12 +120,12 @@
                 <!-- Left Panel: Receipts Directory (2/3 width) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden lg:col-span-2 flex flex-col justify-between">
                     <div>
-                        <!-- Header with Filters (Light Theme) -->
+                        <!-- Header with Filters -->
                         <div class="px-6 py-5 bg-slate-50 text-slate-900 border-b border-slate-200">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div>
                                     <h3 class="text-sm font-black uppercase tracking-wider text-slate-900">Inbound Payment Receipts</h3>
-                                    <p class="text-xs text-slate-500 font-medium mt-0.5">Select any receipt to preview details and configure splits</p>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5">Select any receipt to preview details and configure allocations to others</p>
                                 </div>
                                 
                                 <div class="flex items-center gap-2">
@@ -250,14 +252,9 @@
                                     <!-- Allocated Rows -->
                                     <template x-if="activeTab === 'allocated'">
                                         <template x-for="r in filteredReceipts().filter(r => r.is_allocated).slice((allocatedPage - 1) * perPage, allocatedPage * perPage)" :key="r.id">
-                                            <tr @click="selectReceipt(r)"
-                                                :class="selectedReceiptId == r.id ? 'bg-emerald-50 border-l-4 border-l-emerald-600' : 'hover:bg-slate-50 cursor-pointer border-l-4 border-l-transparent'"
-                                                class="transition-all duration-150 group opacity-85">
-                                                
+                                            <tr class="transition-all duration-150 opacity-80 border-l-4 border-l-emerald-400">
                                                 <td class="px-4 py-4 text-center">
-                                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">
-                                                        View
-                                                    </span>
+                                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800">Allocated</span>
                                                 </td>
                                                 <td class="px-5 py-4 font-mono font-bold text-slate-700">
                                                     <div class="flex items-center gap-2">
@@ -290,7 +287,7 @@
                                                     <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
                                                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/></svg>
                                                     </div>
-                                                    <span class="text-slate-500 font-bold text-xs" x-text="activeTab === 'unallocated' ? 'No unallocated receipts found matching filters.' : 'No allocated receipts found matching filters.'"></span>
+                                                    <span class="text-slate-500 font-bold text-xs" x-text="activeTab === 'unallocated' ? 'No unallocated receipts found.' : 'No allocated receipts found.'"></span>
                                                 </div>
                                             </td>
                                         </tr>
@@ -313,7 +310,6 @@
                                 receipts
                             </span>
                         </div>
-
                         <div class="flex items-center gap-3">
                             <div class="flex items-center gap-1.5 text-xs text-slate-500">
                                 <span class="font-bold text-slate-400">Show:</span>
@@ -324,7 +320,6 @@
                                     <option value="25">25</option>
                                 </select>
                             </div>
-
                             <div class="flex items-center gap-1">
                                 <button type="button" 
                                         @click="activeTab === 'unallocated' ? (unallocatedPage > 1 && unallocatedPage--) : (allocatedPage > 1 && allocatedPage--)" 
@@ -332,18 +327,6 @@
                                         class="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-100 transition disabled:opacity-40 disabled:cursor-not-allowed">
                                     Prev
                                 </button>
-                                
-                                <template x-for="p in getPageNumbers()" :key="p">
-                                    <span class="inline-flex items-center">
-                                        <span x-show="p === '...'" class="px-2 text-slate-400 font-bold text-xs" x-text="p"></span>
-                                        <button type="button" x-show="p !== '...'"
-                                                @click="setPage(p)"
-                                                x-text="p"
-                                                class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
-                                                :class="(activeTab === 'unallocated' ? unallocatedPage : allocatedPage) === p ? 'bg-[#a38c29] text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'"></button>
-                                    </span>
-                                </template>
-                                
                                 <button type="button" 
                                         @click="activeTab === 'unallocated' ? (unallocatedPage < getTotalPages() && unallocatedPage++) : (allocatedPage < getTotalPages() && allocatedPage++)" 
                                         :disabled="activeTab === 'unallocated' ? unallocatedPage >= getTotalPages() : allocatedPage >= getTotalPages()"
@@ -355,10 +338,10 @@
                     </div>
                 </div>
 
-                <!-- Right Panel: PROFESSIONAL ENTERPRISE PAYMENT RECEIPT CARD (1/3 width) -->
+                <!-- Right Panel: Receipt Preview Card (1/3 width) -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between h-full min-h-[580px]">
                     
-                    <!-- Card Header (Luxury Gold Theme) -->
+                    <!-- Card Header -->
                     <div class="px-6 py-5 bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white border-b border-[#EAE3CD] text-slate-900 flex items-center justify-between">
                         <div>
                             <div class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest">OFFICIAL PAYMENT RECEIPT</div>
@@ -376,7 +359,7 @@
                         <template x-if="selectedReceipt">
                             <div class="space-y-4 text-xs">
                                 
-                                <!-- Enterprise Receipt Box -->
+                                <!-- Receipt Box -->
                                 <div class="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-3 relative overflow-hidden">
                                     <div class="absolute top-0 right-0 w-24 h-24 bg-[#a38c29]/5 rounded-bl-full pointer-events-none"></div>
                                     
@@ -402,7 +385,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Amount & Payment Mode (Luxury Gold Theme) -->
+                                <!-- Amount & Payment Mode -->
                                 <div class="grid grid-cols-2 gap-3 p-4 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] text-slate-900 rounded-2xl shadow-xs">
                                     <div>
                                         <div class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">COLLECTED AMOUNT</div>
@@ -435,23 +418,16 @@
                                 <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-300">
                                     <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
                                 </div>
-                                <span class="font-bold text-slate-500">Select any receipt from the left table to preview voucher details.</span>
+                                <span class="font-bold text-slate-500">Select any receipt from the left table to preview and configure allocation to others.</span>
                             </div>
                         </template>
                         
-                        <!-- CTA Buttons including 1-Click Quick Partner Split Shortcut -->
+                        <!-- CTA Buttons -->
                         <div class="pt-4 border-t border-slate-100 space-y-2">
-                            <button type="button" @click="quickSplitPartnerShares()" :disabled="!selectedReceiptId || selectedReceipt?.is_allocated"
-                                    :class="(!selectedReceiptId || selectedReceipt?.is_allocated) ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400' : 'bg-slate-900 hover:bg-slate-800 text-white shadow-md'"
-                                    class="w-full py-3 text-center text-xs font-black rounded-xl transition duration-200 uppercase tracking-wider flex items-center justify-center gap-2 border border-slate-800">
-                                <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span>⚡ 1-Click Quick Partner Equity Split</span>
-                            </button>
-
                             <button type="button" @click="step = 2" :disabled="!selectedReceiptId || selectedReceipt?.is_allocated"
                                     :class="(!selectedReceiptId || selectedReceipt?.is_allocated) ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed' : 'bg-[#a38c29] hover:bg-[#8f7a23] text-white shadow-md shadow-[#a38c29]/20'"
                                     class="w-full py-3.5 text-center text-xs font-black rounded-xl transition duration-200 uppercase tracking-wider flex items-center justify-center gap-2">
-                                <span x-text="selectedReceipt?.is_allocated ? 'Receipt Already Allocated' : 'Configure Custom Splits ➔'"></span>
+                                <span x-text="selectedReceipt?.is_allocated ? 'Receipt Already Allocated' : 'Configure Allocations to Others ➔'"></span>
                             </button>
                         </div>
                     </div>
@@ -493,7 +469,7 @@
                             </div>
                             <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                                 <div class="h-full bg-[#a38c29] rounded-full transition-all duration-300"
-                                     :style="'width: ' + (form.amount > 0 ? Math.min(100, (totalAllocated() / form.amount) * 100)) + '%'"></div>
+                                     :style="'width: ' + (form.amount > 0 ? Math.min(100, (totalAllocated() / form.amount) * 100) : 0) + '%'"></div>
                             </div>
                         </div>
                     </div>
@@ -525,7 +501,7 @@
                     </div>
                 </div>
 
-                <!-- CATEGORY QUICK-ADD PILLS & TOOLBAR (Luxury Gold Theme) -->
+                <!-- CATEGORY QUICK-ADD PILLS & TOOLBAR -->
                 <div class="bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white rounded-2xl p-4 text-slate-900 flex flex-wrap items-center justify-between gap-3 border border-[#EAE3CD] shadow-sm">
                     <div class="flex items-center gap-2">
                         <span class="text-xs font-black uppercase tracking-wider text-[#8a7522]">Quick Category Add:</span>
@@ -549,14 +525,9 @@
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2.5">
-                        <button type="button" @click="autoAllocatePartnerShares()"
+                        <button type="button" @click="allocateAllToGeneral()"
                                 class="px-3.5 py-2 bg-[#a38c29] hover:bg-[#8f7a23] text-white text-xs font-extrabold uppercase rounded-xl transition flex items-center gap-2 shadow-sm">
                             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                            <span>Auto-Split Partner Shares</span>
-                        </button>
-
-                        <button type="button" @click="allocateAllToGeneral()"
-                                class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold uppercase rounded-xl transition flex items-center gap-2 border border-slate-300 shadow-2xs">
                             <span>100% General Reserve</span>
                         </button>
 
@@ -612,7 +583,7 @@
                                             </select>
                                         </td>
 
-                                        <!-- Amount Field with Quick Fill Remaining Button -->
+                                        <!-- Amount Field -->
                                         <td class="px-4 py-3.5 align-top text-right">
                                             <div class="flex flex-col items-end gap-1.5 w-full">
                                                 <div class="flex items-center justify-end gap-1.5 w-full">
@@ -643,7 +614,7 @@
                                 <template x-if="allocations.length === 0">
                                     <tr>
                                         <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
-                                            No allocation rows added yet. Click "+ Add Custom Allocation Row" below to start.
+                                            No allocation rows added yet. Use the Quick Category Add buttons above to start.
                                         </td>
                                     </tr>
                                 </template>
@@ -710,10 +681,6 @@
                                 <div class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">General Reserve</div>
                                 <div class="mt-1 font-mono font-black text-emerald-800 text-base" x-text="'₹' + formatCurrency(getSummaryAmount('general'))"></div>
                             </div>
-                            <div class="p-3 bg-slate-100 rounded-xl">
-                                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Remaining Unallocated</div>
-                                <div class="mt-1 font-mono font-black text-slate-500 text-base">₹0.00</div>
-                            </div>
                         </div>
                     </div>
 
@@ -739,7 +706,7 @@
                                             <span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px]">DR</span>
                                             <span x-text="destAccountName || 'Destination Bank/Cash Account'"></span>
                                         </td>
-                                        <td class="px-6 py-4 text-slate-500 font-medium">Customer intake collection receipt split</td>
+                                        <td class="px-6 py-4 text-slate-500 font-medium">Customer intake collection receipt — allocate to others</td>
                                         <td class="px-6 py-4 text-right font-mono font-black text-rose-700 text-sm" x-text="'₹' + formatCurrency(form.amount)"></td>
                                         <td class="px-6 py-4 text-right font-mono text-slate-300">—</td>
                                     </tr>
@@ -787,7 +754,7 @@
                             <button type="submit"
                                     class="flex-[2] py-3 text-center bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 text-xs font-black uppercase rounded-xl transition flex items-center justify-center gap-2">
                                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                <span>Post Voucher & Split</span>
+                                <span>Post Voucher & Allocate</span>
                             </button>
                         </div>
                     </div>
@@ -798,8 +765,7 @@
         <!-- Validation Error Modal -->
         <div x-show="validationError" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="closeErrorModal()"></div>
-            
-            <div x-show="validationError" 
+            <div x-show="validationError"
                  x-transition:enter="ease-out duration-300"
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                  x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -807,18 +773,15 @@
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                  class="relative bg-white rounded-2xl shadow-xl overflow-hidden max-w-sm w-full transform transition-all border border-slate-200">
-                
                 <div class="p-6 text-center space-y-4">
                     <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto shadow-inner">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
-                    
                     <div>
                         <h3 class="text-lg font-black text-slate-900 tracking-tight mb-1">Limit Exceeded</h3>
                         <p class="text-sm text-slate-500 font-medium" x-text="validationError"></p>
                     </div>
                 </div>
-                
                 <div class="bg-slate-50 px-6 py-4 border-t border-slate-100">
                     <button type="button" @click="closeErrorModal()" class="w-full inline-flex justify-center rounded-xl border border-transparent bg-slate-900 px-4 py-2.5 text-sm font-black uppercase text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 transition">
                         Okay, got it
@@ -830,7 +793,7 @@
     </div>
     <!-- ── ALPINE JS CONTROLLER ── -->
     <script>
-        function receiptAllocationWorkspace() {
+        function allocateToOthersWorkspace() {
             return {
                 step: 1,
                 allReceipts: @json($recentReceipts->values()),
@@ -855,7 +818,7 @@
                     narration: '',
                 },
                 
-                targets: { partners: [], pending_bills: [], cancelled_sales: [], default_shares: [] },
+                targets: { partners: [], pending_bills: [], cancelled_sales: [], default_shares: [], pending_brokers: [] },
                 
                 searchQuery: '',
                 filterProject: '{{ request('project_id') ?: ($projects->first()?->id ?? "") }}',
@@ -882,26 +845,13 @@
                     this.$watch('filterCustomer', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
                     this.$watch('activeTab', () => { this.unallocatedPage = 1; this.allocatedPage = 1; });
 
-                    // AUTO-SWITCH TO ALLOCATED TAB when coming from "Receipt Allocated to Others" sidebar link
-                    const urlParams = new URLSearchParams(window.location.search);
-                    if (urlParams.get('tab') === 'allocated') {
-                        this.activeTab = 'allocated';
-                    }
-
-                    // AUTO-SELECT FIRST UNALLOCATED RECEIPT ON LOAD (skip if showing allocated tab)
+                    // AUTO-SELECT FIRST UNALLOCATED RECEIPT ON LOAD
                     this.$nextTick(() => {
-                        if (this.activeTab === 'unallocated') {
-                            const firstUnallocated = this.allReceipts.find(r => !r.is_allocated);
-                            if (firstUnallocated) {
-                                this.selectReceipt(firstUnallocated);
-                            } else if (this.allReceipts.length > 0) {
-                                this.selectReceipt(this.allReceipts[0]);
-                            }
-                        } else {
-                            const firstAllocated = this.allReceipts.find(r => r.is_allocated);
-                            if (firstAllocated) {
-                                this.selectReceipt(firstAllocated);
-                            }
+                        const firstUnallocated = this.allReceipts.find(r => !r.is_allocated);
+                        if (firstUnallocated) {
+                            this.selectReceipt(firstUnallocated);
+                        } else if (this.allReceipts.length > 0) {
+                            this.selectReceipt(this.allReceipts[0]);
                         }
                     });
                 },
@@ -921,31 +871,17 @@
                     return filtered;
                 },
                 selectReceipt(r) {
-                    if (this.selectedReceiptId == r.id && this.selectedReceiptId !== '') {
-                        // Keep selected
-                    } else {
-                        this.selectedReceiptId = r.id;
-                        this.selectedReceipt = r;
-                        this.selectedReceiptLabel = r.ref + ' — ' + r.customer_name;
-                        this.form.project_id = r.project_id || '';
-                        this.form.date = r.date || '{{ date('Y-m-d') }}';
-                        this.form.amount = parseFloat(r.amount) || 0.00;
-                        this.form.credit_account_id = r.customer_ledger_account_id || '';
-                        this.form.destination_account_id = r.resolved_destination_account_id || '';
-                        this.form.narration = r.remarks || '';
-
-                        this.fetchTargets();
-                    }
+                    this.selectedReceiptId = r.id;
+                    this.selectedReceipt = r;
+                    this.selectedReceiptLabel = r.ref + ' — ' + r.customer_name;
+                    this.form.project_id = r.project_id || '';
+                    this.form.date = r.date || '{{ date('Y-m-d') }}';
+                    this.form.amount = parseFloat(r.amount) || 0.00;
+                    this.form.credit_account_id = r.customer_ledger_account_id || '';
+                    this.form.destination_account_id = r.resolved_destination_account_id || '';
+                    this.form.narration = r.remarks || '';
+                    this.fetchTargets();
                     this.updateNames();
-                },
-                quickSplitPartnerShares() {
-                    if (!this.selectedReceiptId || this.selectedReceipt?.is_allocated) return;
-                    this.autoAllocatePartnerShares();
-                    if (this.isBalanced()) {
-                        this.step = 3;
-                    } else {
-                        this.step = 2;
-                    }
                 },
                 fetchTargets() {
                     const projectId = this.form.project_id || '';
@@ -958,94 +894,22 @@
                         .then(data => {
                             this.targets = data;
                             this.allocations = [];
-                            
-                            if (data.default_shares && data.default_shares.length > 0) {
-                                data.default_shares.forEach(share => {
-                                    this.allocations.push({
-                                        type: 'partner',
-                                        target_id: share.partner_id,
-                                        amount: 0.00,
-                                        remarks: `Partner Share (${share.share_pct}%)`
-                                    });
-                                });
-                            } else if (data.partners && data.partners.length > 0) {
-                                this.allocations.push({
-                                    type: 'partner',
-                                    target_id: data.partners[0].id,
-                                    amount: 0.00,
-                                    remarks: 'Partner Share allocation'
-                                });
-                            }
-
-                            if (data.pending_brokers && data.pending_brokers.length > 0) {
-                                this.allocations.push({
-                                    type: 'broker',
-                                    target_id: data.pending_brokers[0].id,
-                                    amount: 0.00,
-                                    remarks: 'Broker commission payout'
-                                });
-                            }
-
                             if (data.pending_bills && data.pending_bills.length > 0) {
-                                this.allocations.push({
-                                    type: 'supplier',
-                                    target_id: data.pending_bills[0].id,
-                                    amount: 0.00,
-                                    remarks: 'Supplier liability clearing'
-                                });
+                                this.allocations.push({ type: 'supplier', target_id: data.pending_bills[0].id, amount: 0.00, remarks: 'Supplier liability clearing' });
                             }
-
-                            if (data.cancelled_sales && data.cancelled_sales.length > 0) {
-                                this.allocations.push({
-                                    type: 'refund',
-                                    target_id: data.cancelled_sales[0].id,
-                                    amount: 0.00,
-                                    remarks: 'Customer cancellation refund'
-                                });
+                            if (data.pending_brokers && data.pending_brokers.length > 0) {
+                                this.allocations.push({ type: 'broker', target_id: data.pending_brokers[0].id, amount: 0.00, remarks: 'Broker commission payout' });
                             }
-
                             this.recalculatePartnerSplits();
                         })
                         .catch(() => {
                             this.targets = { partners: [], pending_bills: [], cancelled_sales: [], default_shares: [], pending_brokers: [] };
                         });
                 },
-                autoAllocatePartnerShares() {
-                    const nonPartnerRows = this.allocations.filter(a => a.type !== 'partner');
-                    this.allocations = [...nonPartnerRows];
-                    
-                    if (this.targets.default_shares && this.targets.default_shares.length > 0) {
-                        this.targets.default_shares.forEach(share => {
-                            this.allocations.push({
-                                type: 'partner',
-                                target_id: share.partner_id,
-                                amount: 0.00,
-                                remarks: `Partner Share (${share.share_pct}%)`,
-                                is_locked: false
-                            });
-                        });
-                    } else if (this.targets.partners && this.targets.partners.length > 0) {
-                        this.targets.partners.forEach(p => {
-                            this.allocations.push({
-                                type: 'partner',
-                                target_id: p.id,
-                                amount: 0.00,
-                                remarks: 'Partner Share allocation',
-                                is_locked: false
-                            });
-                        });
-                    }
-                    this.recalculatePartnerSplits();
-                },
                 allocateAllToGeneral() {
                     this.allocations = [];
                     const genAccount = this.generalFunds[0];
-                    this.allocations.push({
-                        type: 'general',
-                        target_id: genAccount ? genAccount.id : '',
-                        amount: parseFloat(this.form.amount) || 0.00,
-                        remarks: '100% General Fund Reserve allocation'
-                    });
+                    this.allocations.push({ type: 'general', target_id: genAccount ? genAccount.id : '', amount: parseFloat(this.form.amount) || 0.00, remarks: '100% General Fund Reserve allocation' });
                 },
                 clearAllAllocations() {
                     this.allocations = [];
@@ -1066,67 +930,39 @@
                         targetId = this.targets.partners[0].id;
                         remarks = 'Partner Share allocation';
                     }
-                    this.allocations.push({
-                        type: type,
-                        target_id: targetId,
-                        amount: 0.00,
-                        remarks: remarks
-                    });
-                },
-                fillRemainingBalance(idx) {
-                    const current = parseFloat(this.allocations[idx].amount) || 0.0;
-                    const remaining = this.remainingBalance() + current;
-                    this.allocations[idx].amount = Math.max(0, parseFloat(remaining.toFixed(2)));
-                    this.recalculatePartnerSplits();
+                    this.allocations.push({ type: type, target_id: targetId, amount: 0.00, remarks: remarks });
                 },
                 addAllocationRow() {
-                    this.allocations.push({
-                        type: 'partner',
-                        target_id: '',
-                        amount: 0.00,
-                        remarks: ''
-                    });
+                    this.allocations.push({ type: 'general', target_id: this.generalFunds[0]?.id || '', amount: 0.00, remarks: '' });
                 },
                 removeAllocationRow(idx) {
                     this.allocations.splice(idx, 1);
                 },
                 recalculatePartnerSplits() {
-                    if (!this.targets.default_shares || this.targets.default_shares.length === 0) {
-                        return;
-                    }
+                    if (!this.targets.default_shares || this.targets.default_shares.length === 0) return;
                     const nonPartnerRows = this.allocations.filter(a => a.type !== 'partner');
                     const nonPartnerSum = nonPartnerRows.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
-                    
                     const partnerRows = this.allocations.filter(a => a.type === 'partner');
                     if (partnerRows.length === 0) return;
-
                     const lockedPartners = partnerRows.filter(a => a.is_locked);
                     const lockedSum = lockedPartners.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
-                    
                     const unlockedPartners = partnerRows.filter(a => !a.is_locked);
                     if (unlockedPartners.length === 0) return;
-
                     const balanceToSplit = parseFloat((this.form.amount - nonPartnerSum - lockedSum).toFixed(2));
-
-                    // Calculate total relative percentage weight of currently UNLOCKED partners
                     let totalRelativePct = 0.0;
                     unlockedPartners.forEach(row => {
                         const share = this.targets.default_shares.find(s => s.partner_id == row.target_id);
                         if (share) totalRelativePct += parseFloat(share.share_pct);
                     });
-
                     if (totalRelativePct === 0) return;
-
                     let distributedAmount = 0.0;
                     unlockedPartners.forEach((row, index) => {
                         const share = this.targets.default_shares.find(s => s.partner_id == row.target_id);
                         const originalPct = share ? parseFloat(share.share_pct) : 0.0;
-                        
                         let amt = 0.0;
                         if (index === unlockedPartners.length - 1) {
                             amt = parseFloat(Math.max(0, balanceToSplit - distributedAmount).toFixed(2));
                         } else {
-                            // Split based on their relative share weight against the total weight of remaining partners
                             amt = parseFloat(Math.max(0, balanceToSplit * (originalPct / totalRelativePct)).toFixed(2));
                             distributedAmount += amt;
                         }
@@ -1136,11 +972,7 @@
                 },
                 validateNonPartnerAmount(row) {
                     if (row.type === 'partner') return;
-                    if (row.type === 'general') {
-                        this.recalculatePartnerSplits();
-                        return;
-                    }
-                    
+                    if (row.type === 'general') { this.recalculatePartnerSplits(); return; }
                     let maxAllowed = null;
                     if (row.type === 'broker' && this.targets.pending_brokers) {
                         const broker = this.targets.pending_brokers.find(b => b.id == row.target_id);
@@ -1152,26 +984,20 @@
                         const sale = this.targets.cancelled_sales.find(s => s.id == row.target_id);
                         if (sale) maxAllowed = parseFloat(sale.remaining);
                     }
-
                     if (maxAllowed !== null && parseFloat(row.amount) > maxAllowed) {
                         row.amount = maxAllowed;
                         this.validationError = `Amount cannot exceed the pending balance (₹${maxAllowed}) for this target.`;
                     }
-
                     this.recalculatePartnerSplits();
                 },
                 handlePartnerInput(row) {
                     if (row.type !== 'partner') return;
                     row.is_locked = true;
-                    
                     const nonPartnerRows = this.allocations.filter(a => a.type !== 'partner');
                     const nonPartnerSum = nonPartnerRows.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
-                    
                     const otherLockedPartners = this.allocations.filter(a => a.type === 'partner' && a.is_locked && a !== row);
                     const otherLockedSum = otherLockedPartners.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
-                    
                     const maxAllowed = parseFloat((this.form.amount - nonPartnerSum - otherLockedSum).toFixed(2));
-                    
                     if (parseFloat(row.amount) > maxAllowed) {
                         row.amount = maxAllowed;
                         this.validationError = `Amount cannot exceed the total remaining balance (₹${maxAllowed}).`;
@@ -1179,66 +1005,24 @@
                     this.recalculatePartnerSplits();
                 },
                 getFilteredTargets(type) {
-                    if (type === 'partner') {
-                        return this.targets.partners.map(p => ({ id: p.id, name: p.name }));
-                    }
-                    if (type === 'broker') {
-                        return (this.targets.pending_brokers || []).map(b => ({
-                            id: b.id,
-                            name: b.name
-                        }));
-                    }
-                    if (type === 'supplier') {
-                        return this.targets.pending_bills.map(b => ({
-                            id: b.id,
-                            name: `${b.bill_number} — ${b.supplier_name} (Bal: ₹${this.formatCurrency(b.balance)})`
-                        }));
-                    }
-                    if (type === 'refund') {
-                        return this.targets.cancelled_sales.map(s => ({ id: s.id, name: s.label }));
-                    }
-                    if (type === 'general') {
-                        return this.generalFunds.map(gf => ({ id: gf.id, name: gf.name }));
-                    }
+                    if (type === 'partner') return this.targets.partners.map(p => ({ id: p.id, name: p.name }));
+                    if (type === 'broker') return (this.targets.pending_brokers || []).map(b => ({ id: b.id, name: b.name }));
+                    if (type === 'supplier') return this.targets.pending_bills.map(b => ({ id: b.id, name: `${b.bill_number} — ${b.supplier_name} (Bal: ₹${this.formatCurrency(b.balance)})` }));
+                    if (type === 'refund') return this.targets.cancelled_sales.map(s => ({ id: s.id, name: s.label }));
+                    if (type === 'general') return this.generalFunds.map(gf => ({ id: gf.id, name: gf.name }));
                     return [];
                 },
-                totalAllocated() {
-                    return this.allocations.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
-                },
-                remainingBalance() {
-                    const amt = parseFloat(this.form.amount) || 0.0;
-                    return parseFloat((amt - this.totalAllocated()).toFixed(2));
-                },
-                isBalanced() {
-                    return Math.abs(this.remainingBalance()) < 0.01 && this.form.amount > 0;
-                },
-                getSummaryAmount(type) {
-                    return this.allocations
-                        .filter(a => a.type === type)
-                        .reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0);
-                },
-                goToStep3() {
-                    if (this.isBalanced()) {
-                        this.step = 3;
-                    }
-                },
+                totalAllocated() { return this.allocations.reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0); },
+                remainingBalance() { return parseFloat((parseFloat(this.form.amount) - this.totalAllocated()).toFixed(2)); },
+                isBalanced() { return Math.abs(this.remainingBalance()) < 0.01 && this.form.amount > 0; },
+                getSummaryAmount(type) { return this.allocations.filter(a => a.type === type).reduce((sum, a) => sum + (parseFloat(a.amount) || 0.0), 0); },
+                goToStep3() { if (this.isBalanced()) { this.step = 3; } },
                 getPreviewAccountName(alloc) {
-                    if (alloc.type === 'partner') {
-                        const p = this.targets.partners.find(x => x.id == alloc.target_id);
-                        return p ? `${p.name} (Partner Capital Share)` : 'Partner Account';
-                    } else if (alloc.type === 'broker') {
-                        const b = (this.targets.pending_brokers || []).find(x => x.id == alloc.target_id);
-                        return b ? `Broker Commission Payable — ${b.name.split(' (A/C:')[0]}` : 'Broker Commission Account';
-                    } else if (alloc.type === 'supplier') {
-                        const b = this.targets.pending_bills.find(x => x.id == alloc.target_id);
-                        return b ? `${b.supplier_name} (Supplier Account Payable)` : 'Supplier Account';
-                    } else if (alloc.type === 'refund') {
-                        const r = this.targets.cancelled_sales.find(x => x.id == alloc.target_id);
-                        return r ? `Customer Cancellation Refund [${r.label.split(' — ')[0] || 'N/A'}]` : 'Customer Refund Ledger';
-                    } else if (alloc.type === 'general') {
-                        const gf = this.generalFunds.find(x => x.id == alloc.target_id);
-                        return gf ? gf.name : 'General Reserve';
-                    }
+                    if (alloc.type === 'partner') { const p = this.targets.partners.find(x => x.id == alloc.target_id); return p ? `${p.name} (Partner Capital Share)` : 'Partner Account'; }
+                    if (alloc.type === 'broker') { const b = (this.targets.pending_brokers || []).find(x => x.id == alloc.target_id); return b ? `Broker Commission Payable — ${b.name.split(' (A/C:')[0]}` : 'Broker Commission Account'; }
+                    if (alloc.type === 'supplier') { const b = this.targets.pending_bills.find(x => x.id == alloc.target_id); return b ? `${b.supplier_name} (Supplier Account Payable)` : 'Supplier Account'; }
+                    if (alloc.type === 'refund') { const r = this.targets.cancelled_sales.find(x => x.id == alloc.target_id); return r ? `Customer Cancellation Refund [${r.label.split(' — ')[0] || 'N/A'}]` : 'Customer Refund Ledger'; }
+                    if (alloc.type === 'general') { const gf = this.generalFunds.find(x => x.id == alloc.target_id); return gf ? gf.name : 'General Reserve'; }
                     return 'Particular Ledger';
                 },
                 getPreviewNarration(alloc) {
@@ -1247,11 +1031,8 @@
                     else if (alloc.type === 'broker') text = 'Broker commission cash payout';
                     else if (alloc.type === 'supplier') text = 'Clear pending supplier invoice';
                     else if (alloc.type === 'refund') text = 'Customer booking cancellation refund';
-                    else if (alloc.type === 'general') text = 'Fund transfer to ledger';
-
-                    if (alloc.remarks) {
-                        text += ` (${alloc.remarks})`;
-                    }
+                    else if (alloc.type === 'general') text = 'Fund transfer to ledger — allocate to others';
+                    if (alloc.remarks) { text += ` (${alloc.remarks})`; }
                     return text;
                 },
                 updateNames() {
@@ -1267,137 +1048,40 @@
                         const supplierAmt = this.getSummaryAmount('supplier');
                         const refundAmt = this.getSummaryAmount('refund');
                         const generalAmt = this.getSummaryAmount('general');
-
                         const options = {
-                            chart: {
-                                type: 'donut',
-                                height: 300
-                            },
+                            chart: { type: 'donut', height: 300 },
                             series: [partnerAmt, brokerAmt, supplierAmt, refundAmt, generalAmt],
                             labels: ['Partner Share', 'Broker Commission', 'Supplier Bills', 'Customer Refund', 'General Fund'],
                             colors: ['#a38c29', '#d97706', '#3b82f6', '#f43f5e', '#10b981'],
-                            legend: {
-                                position: 'bottom',
-                                fontSize: '12px',
-                                fontFamily: 'Inter, sans-serif',
-                                labels: { colors: '#334155' }
-                            },
+                            legend: { position: 'bottom', fontSize: '12px', fontFamily: 'Inter, sans-serif', labels: { colors: '#334155' } },
                             dataLabels: {
                                 enabled: true,
                                 style: { fontSize: '11px', fontFamily: 'Inter, sans-serif' },
                                 formatter: function (val, opts) {
-                                    return opts.w.globals.series[opts.seriesIndex].toLocaleString('en-IN', {
-                                        style: 'currency',
-                                        currency: 'INR',
-                                        maximumFractionDigits: 0
-                                    });
+                                    return opts.w.globals.series[opts.seriesIndex].toLocaleString('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
                                 }
                             }
                         };
-                        
                         const chartEl = document.querySelector("#splitChart");
-                        if (chartEl) {
-                            chartEl.innerHTML = '';
-                            const chart = new ApexCharts(chartEl, options);
-                            chart.render();
-                        }
+                        if (chartEl) { chartEl.innerHTML = ''; const chart = new ApexCharts(chartEl, options); chart.render(); }
                     });
                 },
                 onSubmit(e) {
-                    if (!this.form.destination_account_id) {
-                        e.preventDefault();
-                        alert('Please select a destination Bank / Cash Account.');
-                        return false;
-                    }
+                    if (!this.form.destination_account_id) { e.preventDefault(); alert('Please select a destination Bank / Cash Account.'); return false; }
                     for (let i = 0; i < this.allocations.length; i++) {
                         const row = this.allocations[i];
-                        const amt = parseFloat(row.amount) || 0.0;
-                        if (amt > 0 && !row.target_id) {
-                            e.preventDefault();
-                            alert(`Please select a target destination for row #${i + 1} (${row.type}).`);
-                            return false;
-                        }
+                        if (parseFloat(row.amount) > 0 && !row.target_id) { e.preventDefault(); alert(`Please select a target destination for row #${i + 1} (${row.type}).`); return false; }
                     }
-                    if (!this.isBalanced()) {
-                        e.preventDefault();
-                        alert('Remaining balance must be balanced to zero to post splits.');
-                        return false;
-                    }
+                    if (!this.isBalanced()) { e.preventDefault(); alert('Remaining balance must be balanced to zero to post splits.'); return false; }
                     return true;
                 },
                 formatCurrency(val) {
                     const num = typeof val === 'number' ? val : parseFloat(val);
-                    return isNaN(num) ? '0.00' : num.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                },
-                amountInWords(amount) {
-                    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return '';
-                    const num = Math.floor(parseFloat(amount));
-                    const paise = Math.round((parseFloat(amount) - num) * 100);
-
-                    const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
-                                   'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-                    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-                    function convert(n) {
-                        if (n < 20) return units[n];
-                        if (n < 100) return tens[Math.floor(n / 10)] + (n % 10 ? ' ' + units[n % 10] : '');
-                        if (n < 1000) return units[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + convert(n % 100) : '');
-                        if (n < 100000) return convert(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + convert(n % 1000) : '');
-                        if (n < 10000000) return convert(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + convert(n % 100000) : '');
-                        return convert(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + convert(n % 10000000) : '');
-                    }
-
-                    let words = convert(num);
-                    if (!words) return '';
-                    let result = words + ' Rupees';
-                    if (paise > 0) {
-                        result += ' and ' + convert(paise) + ' Paise';
-                    }
-                    result += ' Only';
-                    return result;
-                },
-                getPageNumbers() {
-                    let list = this.filteredReceipts().filter(r => this.activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated);
-                    let totalItems = list.length;
-                    let last = Math.max(1, Math.ceil(totalItems / (this.perPage || 10)));
-                    let current = this.activeTab === 'unallocated' ? this.unallocatedPage : this.allocatedPage;
-                    let range = [];
-                    let rangeWithDots = [];
-                    let l;
-
-                    for (let i = 1; i <= last; i++) {
-                        if (i === 1 || i === last || (i >= current - 2 && i <= current + 2)) {
-                            range.push(i);
-                        }
-                    }
-
-                    for (let i of range) {
-                        if (l) {
-                            if (i - l === 2) {
-                                rangeWithDots.push(l + 1);
-                            } else if (i - l !== 1) {
-                                rangeWithDots.push('...');
-                            }
-                        }
-                        rangeWithDots.push(i);
-                        l = i;
-                    }
-
-                    return rangeWithDots;
+                    return isNaN(num) ? '0.00' : num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
                 getTotalPages() {
                     let list = this.filteredReceipts().filter(r => this.activeTab === 'unallocated' ? !r.is_allocated : r.is_allocated);
                     return Math.max(1, Math.ceil(list.length / (this.perPage || 10)));
-                },
-                setPage(p) {
-                    if (this.activeTab === 'unallocated') {
-                        this.unallocatedPage = p;
-                    } else {
-                        this.allocatedPage = p;
-                    }
                 }
             }
         }

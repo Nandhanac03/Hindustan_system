@@ -356,6 +356,10 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'createReceipt'])->name('vouchers.receipt.create');
     Route::post('/vouchers/receipt', [\App\Http\Controllers\VoucherController::class, 'storeReceipt'])->name('vouchers.receipt.store');
     Route::get('/vouchers/receipt/{id}/posted', [\App\Http\Controllers\VoucherController::class, 'receiptPosted'])->name('vouchers.receipt.posted');
+    Route::get('/receipts/allocated-to-others', [\App\Http\Controllers\VoucherController::class, 'allocatedReceipts'])->name('receipts.allocated-to-others');
+    Route::get('/receipts/allocate-to-others', [\App\Http\Controllers\VoucherController::class, 'allocateToOthersWorkspace'])->name('receipts.allocate-to-others');
+    Route::post('/receipts/allocate-to-others', [\App\Http\Controllers\VoucherController::class, 'storeAllocateToOthers'])->name('receipts.allocate-to-others.store');
+    Route::get('/receipts/allocate-to-others/{id}/posted', [\App\Http\Controllers\VoucherController::class, 'allocateToOthersPosted'])->name('receipts.allocate-to-others.posted');
     Route::get('/api/receipt/targets', [\App\Http\Controllers\VoucherController::class, 'receiptTargets'])->name('api.receipt.targets');
     Route::get('/api/receipt/{id}/detail', [\App\Http\Controllers\VoucherController::class, 'receiptDetail'])->name('api.receipt.detail');
     Route::get('/api/receipts/unallocated', [\App\Http\Controllers\VoucherController::class, 'unallocatedReceipts'])->name('api.receipts.unallocated');

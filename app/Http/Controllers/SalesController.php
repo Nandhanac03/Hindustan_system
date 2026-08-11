@@ -109,6 +109,7 @@ class SalesController extends Controller
                     'unit_type_id'           => $unit->unit_type_id,
                     'unit_type_name'         => $unit->unitType?->name ?? '',
                     'unit_type_category'     => $unit->unitType?->category ?? '',
+                    'gst_behavior'           => $unit->gst_behavior ?? 'none',
                 ];
             })
             ->values();
@@ -715,24 +716,50 @@ class SalesController extends Controller
                 'cancellation_reason' => $validated['reason'],
                 'cancelled_at' => now(),
             ]);
-            // Identify if there is a parking unit in the old sale to keep
-            $parkingUnitId = null;
-            $parkingSaleUnit = null;
-            foreach ($sale->saleUnits as $su) {
-                if ($su->unit && $su->unit->unitType) {
-                    $cat = strtolower($su->unit->unitType->category ?? '');
-                    $name = strtolower($su->unit->unitType->name ?? '');
-                    if ($cat === 'parking' || $name === 'parking') {
-                        $parkingUnitId = $su->unit_id;
-                        $parkingSaleUnit = $su;
-                        break;
+            // Determine if the target unit is a parking unit
+            $newUnitIsParking = false;
+            if ($newUnit->unitType) {
+                $newCat = strtolower($newUnit->unitType->category ?? '');
+                $newName = strtolower($newUnit->unitType->name ?? '');
+                if ($newCat === 'parking' || $newName === 'parking') {
+                    $newUnitIsParking = true;
+                }
+            }
+
+            // Identify the unit to carry forward from the old sale:
+            // - If the target unit is a parking unit, we carry forward the non-parking unit (apartment)
+            // - If the target unit is a non-parking unit, we carry forward the parking unit
+            $carryUnitId = null;
+            $carrySaleUnit = null;
+            if ($sale->saleUnits->count() > 1) {
+                foreach ($sale->saleUnits as $su) {
+                    if ($su->unit && $su->unit->unitType) {
+                        $cat = strtolower($su->unit->unitType->category ?? '');
+                        $name = strtolower($su->unit->unitType->name ?? '');
+                        $isParking = ($cat === 'parking' || $name === 'parking');
+                        
+                        if ($newUnitIsParking) {
+                            // Carrying forward apartment (non-parking)
+                            if (!$isParking) {
+                                $carryUnitId = $su->unit_id;
+                                $carrySaleUnit = $su;
+                                break;
+                            }
+                        } else {
+                            // Carrying forward parking
+                            if ($isParking) {
+                                $carryUnitId = $su->unit_id;
+                                $carrySaleUnit = $su;
+                                break;
+                            }
+                        }
                     }
                 }
             }
 
             foreach ($sale->saleUnits as $su) {
-                if ($parkingUnitId && $su->unit_id === $parkingUnitId) {
-                    continue; // Do not free up the parking unit; it will carry forward
+                if ($carryUnitId && $su->unit_id === $carryUnitId) {
+                    continue; // Do not free up the carried forward unit; it will carry forward
                 }
                 Unit::where('id', $su->unit_id)->update([
                     'status'             => 'available',
@@ -745,7 +772,7 @@ class SalesController extends Controller
             }
             $newAmount = (float)$newUnit->expected_sale_amount;
             $newRate = (float)$newUnit->expected_rate_per_sqft;
-            $gstType = $sale->gst_type ?? 'none';
+            $gstType = $newUnit->gst_behavior ?? $sale->gst_type ?? 'none';
             $gstAmount = 0.0;
             if ($gstType === 'exclusive') {
                 $gstAmount = round($newAmount * 0.18, 2);
@@ -760,11 +787,11 @@ class SalesController extends Controller
             $finalGstAmount = $gstAmount;
             $finalTotalAmount = $totalAmount;
 
-            if ($parkingSaleUnit) {
-                $finalSaleAmount += (float)$parkingSaleUnit->base_amount;
-                $finalBaseAmount += (float)$parkingSaleUnit->base_amount;
-                $finalGstAmount += (float)$parkingSaleUnit->gst_amount;
-                $finalTotalAmount += (float)$parkingSaleUnit->line_total;
+            if ($carrySaleUnit) {
+                $finalSaleAmount += (float)$carrySaleUnit->base_amount;
+                $finalBaseAmount += (float)$carrySaleUnit->base_amount;
+                $finalGstAmount += (float)$carrySaleUnit->gst_amount;
+                $finalTotalAmount += (float)$carrySaleUnit->line_total;
             }
             
             $paymentPlan = $validated['payment_plan'] ?? $sale->payment_plan ?? 'lump_sum';
@@ -781,7 +808,7 @@ class SalesController extends Controller
                 'broker_id'              => $sale->broker_id,
                 'rate_per_sqft'          => $newRate,
                 'sale_amount'            => $finalSaleAmount,
-                'gst_applicable'         => $gstType !== 'none' || ($parkingSaleUnit && (float)$parkingSaleUnit->gst_amount > 0),
+                'gst_applicable'         => $gstType !== 'none' || ($carrySaleUnit && (float)$carrySaleUnit->gst_amount > 0),
                 'gst_type'               => $gstType,
                 'gst_percentage'         => $gstType !== 'none' ? 18 : null,
                 'gst_amount'             => $finalGstAmount,
@@ -817,21 +844,21 @@ class SalesController extends Controller
                 'brokerage_amount' => 0.0,
             ]);
 
-            if ($parkingSaleUnit) {
+            if ($carrySaleUnit) {
                 \App\Models\SaleUnit::create([
                     'sale_id'          => $newSale->id,
-                    'unit_id'          => $parkingSaleUnit->unit_id,
-                    'wing'             => $parkingSaleUnit->wing,
-                    'rate_per_sqft'    => $parkingSaleUnit->rate_per_sqft,
-                    'area_sqft'        => $parkingSaleUnit->area_sqft,
-                    'base_amount'      => $parkingSaleUnit->base_amount,
-                    'gst_type'         => $parkingSaleUnit->gst_type,
-                    'gst_percentage'   => $parkingSaleUnit->gst_percentage,
-                    'gst_amount'       => $parkingSaleUnit->gst_amount,
-                    'line_total'       => $parkingSaleUnit->line_total,
-                    'brokerage_type'   => $parkingSaleUnit->brokerage_type,
-                    'brokerage_value'  => $parkingSaleUnit->brokerage_value,
-                    'brokerage_amount' => $parkingSaleUnit->brokerage_amount,
+                    'unit_id'          => $carrySaleUnit->unit_id,
+                    'wing'             => $carrySaleUnit->wing,
+                    'rate_per_sqft'    => $carrySaleUnit->rate_per_sqft,
+                    'area_sqft'        => $carrySaleUnit->area_sqft,
+                    'base_amount'      => $carrySaleUnit->base_amount,
+                    'gst_type'         => $carrySaleUnit->gst_type,
+                    'gst_percentage'   => $carrySaleUnit->gst_percentage,
+                    'gst_amount'       => $carrySaleUnit->gst_amount,
+                    'line_total'       => $carrySaleUnit->line_total,
+                    'brokerage_type'   => $carrySaleUnit->brokerage_type,
+                    'brokerage_value'  => $carrySaleUnit->brokerage_value,
+                    'brokerage_amount' => $carrySaleUnit->brokerage_amount,
                 ]);
             }
 

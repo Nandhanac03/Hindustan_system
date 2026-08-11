@@ -949,6 +949,277 @@ class VoucherController extends Controller
         return view('vouchers.receipt_posted', compact('voucher', 'meta', 'splitRows', 'totalIn', 'totalOut'));
     }
 
+    /**
+     * Receipt Allocated to Others — dedicated listing page.
+     * Shows all receipts that have already been allocated (posted as vouchers).
+     */
+    public function allocatedReceipts()
+    {
+        $user     = Auth::user();
+        $systemId = $user->system_id;
+
+        // All voucher receipt IDs that have been allocated
+        $allocatedReceiptIds = DB::table('vouchers')
+            ->where('type', 'Receipt')
+            ->whereNotNull('reference_no')
+            ->get('reference_no')
+            ->map(fn($v) => json_decode($v->reference_no, true)['source_receipt_id'] ?? null)
+            ->filter()
+            ->values();
+
+        // Load allocated receipts with full eager-loading
+        $receipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'companyBankAccount'])
+            ->whereNull('partner_id')
+            ->whereIn('id', $allocatedReceiptIds->toArray())
+            ->orderByDesc('receipt_date')
+            ->orderByDesc('id')
+            ->get()
+            ->map(function ($r) use ($allocatedReceiptIds) {
+                $ref      = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
+                $bankName = $r->companyBankAccount?->bank_name ?: 'General Account';
+                $accNo    = $r->companyBankAccount?->account_number;
+                return [
+                    'id'                          => $r->id,
+                    'ref'                         => $ref,
+                    'amount'                      => (float)$r->amount,
+                    'date'                        => $r->receipt_date?->format('Y-m-d'),
+                    'customer_name'               => $r->customer?->name ?? '—',
+                    'payment_mode'                => $r->payment_mode,
+                    'company_bank_account_name'   => $bankName,
+                    'company_bank_account_number' => $accNo,
+                    'project_name'                => $r->sale?->project?->name ?? '—',
+                    'unit_name'                   => $r->sale?->unit?->door_no ?? '—',
+                    'sale_number'                 => $r->sale?->sale_number ?? '—',
+                ];
+            });
+
+        $totalAllocated       = $receipts->count();
+        $totalAllocatedAmount = $receipts->sum('amount');
+        $projects             = Project::orderBy('name')->get(['id', 'name']);
+
+        // Pre-select the default project: if only 1 project exists, use it; otherwise use is_default
+        $defaultProject = $projects->count() === 1
+            ? $projects->first()
+            : $projects->firstWhere('is_default', true) ?? $projects->first();
+
+        return view('vouchers.allocated_receipts', compact(
+            'receipts', 'totalAllocated', 'totalAllocatedAmount', 'projects', 'defaultProject'
+        ));
+    }
+
+    /**
+     * Allocate to Others Workspace — 3-step allocation workspace.
+     * Mirrors the existing Receipt Allocation workspace (createReceipt) but
+     * branded for "Allocate to Others" and uses route receipts.allocate-to-others.
+     */
+    public function allocateToOthersWorkspace()
+    {
+        $user     = Auth::user();
+        $systemId = $user->system_id;
+        $this->ensureDefaultAccounts($systemId);
+
+        $accounts      = Account::where('system_id', $systemId)->where('is_active', true)->get();
+        $assetAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset');
+
+        // Load customer profiles and map to ledgers
+        $customers = Customer::all();
+        foreach ($customers as $customer) {
+            $customerAcc = Account::firstOrCreate(
+                ['system_id' => $systemId, 'code' => 'CUST-REC-' . $customer->id],
+                ['name' => $customer->name . ' (Receivable)', 'type' => 'Liability', 'is_active' => true]
+            );
+            $customer->ledger_account_id = $customerAcc->id;
+        }
+
+        $creditAccounts = $accounts->filter(fn($acc) => in_array(strtolower($acc->type), ['liability', 'income', 'equity']));
+
+        // Generate voucher number with AO- prefix for Allocate to Others
+        $currentYear = date('Y');
+        $lastVoucher = Voucher::where('system_id', $systemId)
+            ->where('type', 'Receipt')
+            ->where('voucher_number', 'LIKE', "AO-{$currentYear}-%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        $nextNum = 1;
+        if ($lastVoucher) {
+            $parts       = explode('-', $lastVoucher->voucher_number);
+            $lastSegment = end($parts);
+            if (is_numeric($lastSegment)) {
+                $nextNum = (int)$lastSegment + 1;
+            }
+        }
+        $voucherNumber = 'AO-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+
+        $projects = Project::all();
+        $partners = Payee::where('system_id', $systemId)->where('type', 'Partner')->orderBy('name')->get();
+
+        $pendingBills = DB::table('bills')
+            ->join('payees', 'bills.payee_id', '=', 'payees.id')
+            ->where('bills.system_id', $systemId)
+            ->whereIn('bills.status', ['approved_unpaid', 'partially_paid'])
+            ->select('bills.id', 'bills.bill_number', 'bills.final_amount', 'payees.name as supplier_name')
+            ->orderBy('bills.bill_number')
+            ->get();
+
+        // Fetch cancelled sales with refund due
+        $postedVouchers   = DB::table('vouchers')->where('type', 'Receipt')->where('status', 'Posted')->whereNotNull('reference_no')->get(['reference_no']);
+        $refundsPaidBySale = [];
+        foreach ($postedVouchers as $v) {
+            $refData = json_decode($v->reference_no, true);
+            if (!empty($refData['allocations']) && is_array($refData['allocations'])) {
+                foreach ($refData['allocations'] as $alloc) {
+                    if (($alloc['type'] ?? '') === 'refund' && !empty($alloc['target_id'])) {
+                        $sId = (int)$alloc['target_id'];
+                        $refundsPaidBySale[$sId] = ($refundsPaidBySale[$sId] ?? 0.0) + (float)($alloc['amount'] ?? 0);
+                    }
+                }
+            }
+        }
+
+        $projectIds     = Project::where('system_id', $systemId)->pluck('id');
+        $cancelledSales = Sale::where('status', 'cancelled')
+            ->where(function ($q) use ($projectIds) {
+                $q->whereIn('project_id', $projectIds)->orWhereNull('project_id');
+            })
+            ->with(['customer', 'unit'])
+            ->get()
+            ->map(function ($sale) use ($refundsPaidBySale) {
+                $customerIntake  = (float)$sale->receipts->filter(fn($r) => !$r->partner_id)->sum('amount');
+                $cancellationFee = (float)($sale->cancellation_fee ?? 0.00);
+                $totalRefundDue  = max(0.00, $customerIntake - $cancellationFee);
+                $alreadyPaid     = $refundsPaidBySale[$sale->id] ?? 0.00;
+                $remainingRefund = max(0.00, round($totalRefundDue - $alreadyPaid, 2));
+                $sale->remaining_refund = $remainingRefund;
+                return $sale;
+            })
+            ->filter(fn($sale) => $sale->remaining_refund > 0.001)
+            ->values();
+
+        // Load recent receipts (same as createReceipt)
+        $allocatedReceiptIds = DB::table('vouchers')
+            ->where('type', 'Receipt')
+            ->whereNotNull('reference_no')
+            ->get('reference_no')
+            ->map(fn($v) => json_decode($v->reference_no, true)['source_receipt_id'] ?? null)
+            ->filter()
+            ->values();
+
+        $customerAccountMap = $customers->pluck('ledger_account_id', 'id')->toArray();
+        $cashAccountId      = Account::where('system_id', $systemId)->where('code', 'CASH-HAND')->value('id');
+        $bankAccountId      = Account::where('system_id', $systemId)->where('code', 'BANK-KAR-213')->value('id');
+
+        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit'])
+            ->whereNull('partner_id')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->take(100)
+            ->get()
+            ->map(function ($r) use ($allocatedReceiptIds, $customerAccountMap, $cashAccountId, $bankAccountId) {
+                $isAllocated = $allocatedReceiptIds->contains($r->id);
+                $ref         = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
+                return [
+                    'id'                              => $r->id,
+                    'label'                           => $ref . ' — ' . ($r->customer?->name ?? 'Unknown') . ' — ₹' . number_format((float)$r->amount, 2) . ' [' . ($isAllocated ? '🟢 Allocated' : '🔴 Unallocated') . ']',
+                    'ref'                             => $ref,
+                    'amount'                          => (float)$r->amount,
+                    'date'                            => $r->receipt_date?->format('Y-m-d'),
+                    'customer_name'                   => $r->customer?->name ?? '—',
+                    'customer_id'                     => $r->customer_id,
+                    'customer_ledger_account_id'      => $customerAccountMap[$r->customer_id] ?? null,
+                    'payment_mode'                    => $r->payment_mode,
+                    'project_id'                      => $r->project_id,
+                    'project_name'                    => $r->sale?->project?->name ?? '—',
+                    'unit_id'                         => $r->unit_id,
+                    'unit_name'                       => $r->sale?->unit?->door_no ?? '—',
+                    'sale_number'                     => $r->sale?->sale_number ?? '—',
+                    'is_allocated'                    => $isAllocated,
+                    'resolved_destination_account_id' => (strtolower($r->payment_mode ?? '') === 'cash') ? $cashAccountId : $bankAccountId,
+                ];
+            });
+
+        return view('vouchers.allocate_to_others', compact(
+            'assetAccounts', 'creditAccounts', 'customers', 'voucherNumber',
+            'projects', 'partners', 'pendingBills', 'cancelledSales', 'recentReceipts'
+        ));
+    }
+
+    /**
+     * Store an "Allocate to Others" voucher.
+     * The accounting logic is identical to storeReceipt — we forward the request
+     * to that method and intercept the redirect to point to our own posted page.
+     */
+    public function storeAllocateToOthers(Request $request)
+    {
+        $request->validate([
+            'voucher_number'         => 'required|string',
+            'date'                   => 'required|date',
+            'destination_account_id' => 'required|exists:accounts,id',
+            'credit_account_id'      => 'required|exists:accounts,id',
+            'amount'                 => 'required|numeric|min:0.01',
+            'gst_behavior'           => 'required|in:inclusive,exclusive',
+            'narration'              => 'nullable|string',
+            'project_id'             => 'nullable|integer',
+            'payment_mode'           => 'nullable|string',
+            'gst_rate'               => 'nullable|numeric',
+            'split_active'           => 'nullable',
+            'allocations'            => 'nullable|string',
+            'source_receipt_id'      => 'nullable|integer',
+        ]);
+
+        // Capture the response from storeReceipt, extract voucher id from the redirect URL
+        $storeResponse = $this->storeReceipt($request);
+
+        // storeReceipt redirects to vouchers.receipt.posted/{id} — extract the id
+        $targetUrl = $storeResponse->getTargetUrl();
+        $parts     = explode('/', rtrim($targetUrl, '/'));
+        // The URL is: /vouchers/receipt/{id}/posted — id is 3rd from end
+        $voucherId = null;
+        foreach ($parts as $i => $part) {
+            if ($part === 'posted' && isset($parts[$i - 1]) && is_numeric($parts[$i - 1])) {
+                $voucherId = (int)$parts[$i - 1];
+                break;
+            }
+        }
+
+        if ($voucherId) {
+            return redirect()->route('receipts.allocate-to-others.posted', ['id' => $voucherId]);
+        }
+
+        // Fallback: return original redirect if id extraction failed
+        return $storeResponse;
+    }
+
+    /**
+     * Posted confirmation for Allocate to Others.
+     */
+    public function allocateToOthersPosted(int $id)
+    {
+        $user     = Auth::user();
+        $systemId = $user->system_id;
+
+        $voucher = Voucher::where('system_id', $systemId)
+            ->where('type', 'Receipt')
+            ->with(['lines' => function ($q) { $q->with('account'); }])
+            ->findOrFail($id);
+
+        $meta     = json_decode($voucher->reference_no ?? '{}', true) ?? [];
+        $splitRows = $voucher->lines->map(function ($line) {
+            return [
+                'narration' => $line->line_narration,
+                'debit'     => (float)$line->debit,
+                'credit'    => (float)$line->credit,
+                'account'   => $line->account?->name ?? 'N/A',
+            ];
+        });
+
+        $totalIn  = $splitRows->sum('debit');
+        $totalOut = $splitRows->sum('credit');
+
+        return view('vouchers.receipt_posted', compact('voucher', 'meta', 'splitRows', 'totalIn', 'totalOut'));
+    }
+
+
     public function createPayment()
     {
         $user = Auth::user();

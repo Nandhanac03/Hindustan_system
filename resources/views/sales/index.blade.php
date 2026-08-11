@@ -2568,20 +2568,34 @@ function salesApp() {
             const unit = this.exchangeAvailableUnits.find(u => u.id == this.exchangeForm.new_unit_id);
             this.exchangeSelectedUnit = unit;
             if (unit) {
+                // Determine if target unit is a parking unit
+                const targetCat = (unit.unit_type_category || '').toLowerCase();
+                const targetName = (unit.unit_type_name || '').toLowerCase();
+                const targetIsParking = targetCat === 'parking' || targetName === 'parking';
+
                 let base = parseFloat(unit.expected_sale_amount) || 0;
-                let gstType = this.selectedExchangeSale.gst_type || 'none';
+                let gstType = unit.gst_behavior || (this.selectedExchangeSale.gst_type || 'none');
                 let total = base;
                 if (gstType === 'exclusive') {
                     total = Math.round(base * 1.18 * 100) / 100;
                 }
-                // Carry forward the price of the parking unit if the old sale had one
-                const oldParking = (this.selectedExchangeSale?.sale_units || []).find(su => {
-                    const cat = (su.unit?.unit_type?.category || '').toLowerCase();
-                    const name = (su.unit?.unit_type?.name || '').toLowerCase();
-                    return cat === 'parking' || name === 'parking';
-                });
-                if (oldParking) {
-                    total += parseFloat(oldParking.line_total || oldParking.base_amount || 0);
+
+                // Carry forward the price of the OTHER unit type if it exists in the old sale:
+                // - If target is parking, we carry forward the apartment (non-parking) unit's price
+                // - If target is non-parking, we carry forward the parking unit's price
+                const saleUnits = this.selectedExchangeSale?.sale_units || [];
+                let carryUnit = null;
+                if (saleUnits.length > 1) {
+                    carryUnit = saleUnits.find(su => {
+                        const cat = (su.unit?.unit_type?.category || '').toLowerCase();
+                        const name = (su.unit?.unit_type?.name || '').toLowerCase();
+                        const isParking = cat === 'parking' || name === 'parking';
+                        return targetIsParking ? !isParking : isParking;
+                    });
+                }
+                
+                if (carryUnit) {
+                    total += parseFloat(carryUnit.line_total || carryUnit.base_amount || 0);
                 }
                 this.exchangeForm.new_unit_value = total;
             } else {
