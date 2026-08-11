@@ -13,12 +13,15 @@
                     <p class="text-xs text-slate-400 mt-0.5">Track project construction loan repayments, principal amortization, and monthly interest dues.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
+                    @include('reports.partials.header-badges')
                     <div class="px-4 py-2 bg-indigo-50 border border-indigo-200 rounded-xl">
                         <span class="block text-[9px] font-black uppercase tracking-widest text-indigo-700">Total Scheduled Principal</span>
                         <span class="text-base font-black text-indigo-950 font-mono">₹{{ number_format($loanSchedules->sum('principal_component'), 2) }}</span>
                     </div>
                 </div>
             </div>
+
+
 
             @if($loanSchedules->count() > 0)
             {{-- Stacked EMI Repayment Chart --}}
@@ -33,6 +36,11 @@
                 <div id="bankLoanEmiChart" class="w-full h-56"></div>
             </div>
             @endif
+
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'loanSchedulesFilterForm', 'actionRoute' => route('reports.loan_schedules'), 'exportLabel' => 'Export Loan Schedule'])
+            </div>
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">

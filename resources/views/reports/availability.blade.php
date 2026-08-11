@@ -40,11 +40,15 @@
                     });
             }
         }">
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-3">
+            {{-- Header Title and Status Badges --}}
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                 <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Property Availability Matrix</h3>
-                
-                {{-- Sub-tab Navigation --}}
-                <div class="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl">
+                @include('reports.partials.header-badges')
+            </div>
+            
+            {{-- Controls Bar: Sub-tab Navigation (Left) & Filter Bar (Right) --}}
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-50">
+                <div class="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
                     <button type="button" @click="currentSubTab = 'summary'"
                             :class="currentSubTab === 'summary' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
                             class="px-3.5 py-1.5 rounded-lg text-[10px] uppercase tracking-wider transition-all">
@@ -77,6 +81,10 @@
                         Other
                     </button>
                     @endif
+                </div>
+
+                <div class="flex justify-end">
+                    @include('reports.partials.filter-bar', ['formId' => 'availabilityFilterForm', 'actionRoute' => route('reports.availability'), 'exportLabel' => 'Export Matrix'])
                 </div>
             </div>
 

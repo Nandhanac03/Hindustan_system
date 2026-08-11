@@ -21,18 +21,6 @@
                     </div>
                     <p class="text-xs text-slate-600 mt-2 font-medium max-w-3xl">Verified database audit trail of Output Tax (Sales & Extra Works), Input Tax Credit (Suppliers & Services), CGST, SGST, and statutory net tax liabilities.</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-2.5 shrink-0 relative z-10">
-                    <button @click="printReport()" 
-                            class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Print Report
-                    </button>
-                    <button @click="exportCurrentTable()" 
-                            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Export Excel
-                    </button>
-                </div>
             </div>
 
             {{-- Section-Wise Filter Segment Navigation Bar --}}
@@ -118,6 +106,11 @@
                 </div>
             </div>
 
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'gstFilterForm', 'actionRoute' => route('reports.gst_report'), 'exportLabel' => 'Export Tax Report'])
+            </div>
+
             {{-- GST Tax Report Data Display Table Card --}}
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
                 <div class="px-6 py-4 bg-amber-50/40 border-b border-slate-200/90 flex items-center justify-between">
@@ -128,20 +121,9 @@
                         </h4>
                         <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Database-verified statutory tax breakdown log for audit & tax filing.</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        @php
-                            $activeProjectName = 'All Projects (Default)';
-                            if(request('project_id')) {
-                                $activeProject = \App\Models\Project::find(request('project_id'));
-                                if($activeProject) {
-                                    $activeProjectName = $activeProject->name;
-                                }
-                            }
-                        @endphp
-                        <span class="px-4 py-1.5 bg-slate-800 text-white border border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xs flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Active Project: {{ $activeProjectName }}
-                        </span>
+
+                    <div class="flex items-center gap-3">
+                        @include('reports.partials.header-badges')
                         <span class="px-4 py-1.5 bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider shadow-2xs">
                             Showing {{ count($gstReportEntries) }} Tax Records
                         </span>

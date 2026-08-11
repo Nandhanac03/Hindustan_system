@@ -5,10 +5,19 @@
     @include('reports.partials.nav')
 
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6">
-        <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Supplier, Contractor & Broker Payables</h3>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-3">
+                <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Supplier, Contractor & Broker Payables</h3>
+                @include('reports.partials.header-badges')
+            </div>
+
+
 
             <div id="supplierPayablesChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
+
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'supplierContractorFilterForm', 'actionRoute' => route('reports.supplier_contractor'), 'exportLabel' => 'Export Payables'])
+            </div>
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">

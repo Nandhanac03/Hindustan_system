@@ -18,7 +18,7 @@
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6">
         <div class="space-y-6">
             
-            {{-- Top Header & Action Banner (Matching Sales Report style) --}}
+            {{-- Top Header & Action Banner --}}
             <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-slate-50 p-6 rounded-2xl border border-[#a38c29]/30 shadow-sm text-slate-900 relative overflow-hidden">
                 <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-[#a38c29]/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10">
@@ -32,18 +32,6 @@
                         </div>
                     </div>
                     <p class="text-xs text-slate-600 mt-2 font-medium max-w-3xl">Real-time collection analytics, payment trends, and outstanding receivables tracker.</p>
-                </div>
-                <div class="flex flex-wrap items-center gap-2.5 shrink-0 relative z-10 print:hidden">
-                    <button @click="printReport()" 
-                            class="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        Print Report
-                    </button>
-                    <button @click="exportCurrentTable()" 
-                            class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        Export Excel
-                    </button>
                 </div>
             </div>
 
@@ -72,7 +60,12 @@
                 </div>
             </div>
 
-            {{-- Table section (Matching Sales Report table wrapper style) --}}
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'emiCollectionsFilterForm', 'actionRoute' => route('reports.emi_collections'), 'exportLabel' => 'Export Excel'])
+            </div>
+
+            {{-- Table section --}}
             <div class="bg-white rounded-2xl border border-slate-200/90 shadow-md overflow-hidden">
                 <div class="px-6 py-4 bg-amber-50/40 border-b border-slate-200/90 flex items-center justify-between">
                     <div>
@@ -82,21 +75,7 @@
                         </h4>
                         <p class="text-[10px] text-slate-500 mt-0.5 font-medium">Chronological listing of cash/bank collections and receipt vouchers.</p>
                     </div>
-                    <div class="flex items-center gap-2">
-                        @php
-                            $activeProjectName = 'All Projects (Default)';
-                            if(request('project_id')) {
-                                $activeProject = \App\Models\Project::find(request('project_id'));
-                                if($activeProject) {
-                                    $activeProjectName = $activeProject->name;
-                                }
-                            }
-                        @endphp
-                        <span class="px-4 py-1.5 bg-slate-800 text-white border border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xs flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Active Project: {{ $activeProjectName }}
-                        </span>
-                    </div>
+                    @include('reports.partials.header-badges')
                 </div>
                 
                 <div class="w-full">

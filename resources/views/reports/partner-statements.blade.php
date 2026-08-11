@@ -13,12 +13,15 @@
                     <p class="text-xs text-slate-400 mt-0.5">Track capital allocations, profit shares, and mapping of receipt distributions across project partners.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
+                    @include('reports.partials.header-badges')
                     <div class="px-4 py-2 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-[#a38c29]/30 rounded-xl">
                         <span class="block text-[9px] font-black uppercase tracking-widest text-[#a38c29]">Total Allocated Outflow</span>
                         <span class="text-base font-black text-slate-900 font-mono">₹{{ number_format($partnerChartData['total_allocated'] ?? 0, 2) }}</span>
                     </div>
                 </div>
             </div>
+
+
 
             {{-- Dual Interactive Charts Grid --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -45,8 +48,12 @@
                 </div>
             </div>
 
-            {{-- Allocations Table --}}
-            <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'partnerStatementsFilterForm', 'actionRoute' => route('reports.partner_statements'), 'exportLabel' => 'Export Statement'])
+            </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-2xs">
                 <table id="reportsTable" class="w-full text-xs text-left">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">

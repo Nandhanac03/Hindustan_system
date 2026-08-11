@@ -26,8 +26,12 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-3">
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Profit & Loss Statement Workspace</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Dual-panel workspace balancing Expenses (Direct, Gross Profit, Indirect) on Left vs Incomes (Direct, Indirect) on Right.</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Dual-panel workspace balancing Expenses on Left vs Incomes on Right.</p>
                 </div>
+                @include('reports.partials.header-badges')
+            </div>
+
+
                 <div class="flex gap-2">
                     <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-mono font-bold">
                         Gross Margin: {{ $profitLossEntries['gross_margin_pct'] ?? 0 }}%
@@ -63,6 +67,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            {{-- Filter, Print & Export Bar directly above P&L Tables --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'profitLossFilterForm', 'actionRoute' => route('reports.profit_loss'), 'exportLabel' => 'Export P&L'])
             </div>
 
             {{-- DUAL PANEL WORKSPACE LAYOUT (Expenses Left vs Incomes Right) --}}

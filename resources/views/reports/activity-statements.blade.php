@@ -11,7 +11,17 @@
                     <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Customer & Supplier Activity Statements</h3>
                     <p class="text-[11px] text-slate-400 mt-1">Passbook-style transaction history for customers (receivables) and suppliers (payables).</p>
                 </div>
-                <span class="px-3 py-1 bg-primary/10 text-primary-700 border border-primary/20 rounded-xl text-[10px] font-extrabold uppercase tracking-wider">Audit Trail</span>
+                <div class="flex items-center gap-2">
+                    @include('reports.partials.header-badges')
+                    <span class="px-3 py-1 bg-primary/10 text-primary-700 border border-primary/20 rounded-xl text-[10px] font-extrabold uppercase tracking-wider">Audit Trail</span>
+                </div>
+            </div>
+
+
+
+            {{-- Filter, Print & Export Bar directly above Activity Tables --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'activityStatementsFilterForm', 'actionRoute' => route('reports.activity_statements'), 'exportLabel' => 'Export Activity'])
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

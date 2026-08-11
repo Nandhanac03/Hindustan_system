@@ -29,8 +29,12 @@
                         <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Consolidated Trial Balance Summary Grid</h3>
                         <span class="px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[9px] font-extrabold uppercase">Checkpoint Verified</span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-0.5">Aggregated multi-level groupings (Liabilities, Loans, Fixed Assets, Current Assets, Incomes & Expenses) with sharp Closing Balance Debit vs Credit alignment.</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Aggregated multi-level groupings with sharp Closing Balance Debit vs Credit alignment.</p>
                 </div>
+                @include('reports.partials.header-badges')
+            </div>
+
+
                 <div class="flex gap-2">
                     <span class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-700">
                         Total Debits: <span class="text-slate-900 font-extrabold">₹{{ number_format($trialBalanceEntries['grand_total_debit'] ?? 0, 2) }}</span>
@@ -42,6 +46,11 @@
             </div>
 
             <div id="trialBalanceChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
+
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'trialBalanceFilterForm', 'actionRoute' => route('reports.trial_balance'), 'exportLabel' => 'Export Trial Balance'])
+            </div>
 
             <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
                 <table id="reportsTable" class="w-full text-xs text-left border-collapse">

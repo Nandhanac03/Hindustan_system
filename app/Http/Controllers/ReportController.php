@@ -163,7 +163,8 @@ class ReportController extends Controller
                 $salesQuery->where('project_id', $request->project_id);
             }
             if ($request->filled('customer_id')) {
-                $salesQuery->where('customer_id', $request->customer_id);
+                $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+                $salesQuery->whereIn('customer_id', $customerIds);
             }
             if ($request->filled('date_from')) {
                 $salesQuery->whereDate('sale_date', '>=', $request->date_from);
@@ -281,7 +282,8 @@ class ReportController extends Controller
                     $extraQuery->where('sales.project_id', $request->project_id);
                 }
                 if ($request->filled('customer_id')) {
-                    $extraQuery->where('sales.customer_id', $request->customer_id);
+                    $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+                    $extraQuery->whereIn('sales.customer_id', $customerIds);
                 }
                 if ($request->filled('date_from')) {
                     $extraQuery->whereDate('sale_extra_works.created_at', '>=', $request->date_from);
@@ -644,9 +646,19 @@ class ReportController extends Controller
             'outstanding'      => (float)Sale::where('status', 'active')->sum('remaining_balance'),
             'mtd_collections'  => (float)Receipt::whereMonth('receipt_date', now()->month)->whereYear('receipt_date', now()->year)->sum('amount'),
         ];
-        $cashBookEntries = Receipt::with(['customer', 'sale.project', 'sale.unit', 'bank'])->orderByDesc('receipt_date')->paginate(50);
+        $cbQuery = Receipt::with(['customer', 'sale.project', 'sale.unit', 'bank']);
+        if ($request->filled('customer_id')) {
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $cbQuery->whereIn('customer_id', $customerIds);
+        }
+        $cashBookEntries = $cbQuery->orderByDesc('receipt_date')->paginate(50);
 
-        $monthlyEmi = Receipt::selectRaw("DATE_FORMAT(receipt_date, '%b %Y') as m_label, DATE_FORMAT(receipt_date, '%Y-%m') as ym, SUM(amount) as total")
+        $mEmiQuery = Receipt::query();
+        if ($request->filled('customer_id')) {
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $mEmiQuery->whereIn('customer_id', $customerIds);
+        }
+        $monthlyEmi = $mEmiQuery->selectRaw("DATE_FORMAT(receipt_date, '%b %Y') as m_label, DATE_FORMAT(receipt_date, '%Y-%m') as ym, SUM(amount) as total")
             ->groupBy('ym', 'm_label')
             ->orderBy('ym')
             ->get();
@@ -687,10 +699,11 @@ class ReportController extends Controller
         $customerSummaryList = collect();
 
         if ($request->filled('customer_id')) {
-            $selectedCustomer = Customer::find($request->customer_id);
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $selectedCustomer = Customer::whereIn('id', $customerIds)->first();
             if ($selectedCustomer) {
                 $salesQuery = Sale::with(['project', 'unit', 'receipts'])
-                    ->where('customer_id', $request->customer_id)
+                    ->whereIn('customer_id', $customerIds)
                     ->where('status', 'active');
                 if ($request->filled('project_id')) {
                     $salesQuery->where('project_id', $request->project_id);
@@ -849,6 +862,10 @@ class ReportController extends Controller
 
         if ($request->filled('payment_mode')) {
             $cashQuery->where('payment_mode', $request->payment_mode);
+        }
+        if ($request->filled('customer_id')) {
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $cashQuery->whereIn('customer_id', $customerIds);
         }
         if ($request->filled('date_from')) {
             $cashQuery->whereDate('receipt_date', '>=', $request->date_from);
@@ -1033,6 +1050,10 @@ class ReportController extends Controller
         if ($request->filled('bank_name')) {
             $bankQuery->where('bank_name', 'like', "%{$request->bank_name}%");
         }
+        if ($request->filled('customer_id')) {
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $bankQuery->whereIn('customer_id', $customerIds);
+        }
         if ($request->filled('date_from')) {
             $bankQuery->whereDate('receipt_date', '>=', $request->date_from);
         }
@@ -1176,10 +1197,15 @@ class ReportController extends Controller
                 $q->where('category', $cat);
             });
         }
+        if ($request->filled('customer_id')) {
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $retQuery->whereIn('customer_id', $customerIds);
+        }
         $salesReturns = $retQuery->orderByDesc('cancelled_at')->paginate(50);
 
         $allReturns = Sale::whereIn('status', ['cancelled', 'returned'])
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+            ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
             ->get();
 
         $totalFee = (float)$allReturns->sum('cancellation_fee');
@@ -1188,6 +1214,7 @@ class ReportController extends Controller
 
         $monthlyReturns = Sale::whereIn('status', ['cancelled', 'returned'])
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+            ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
             ->selectRaw("DATE_FORMAT(cancelled_at, '%b %Y') as m_label, DATE_FORMAT(cancelled_at, '%Y-%m') as ym, COUNT(*) as cnt, SUM(cancellation_fee) as total_fee, SUM(refund_amount) as total_refund")
             ->groupBy('ym', 'm_label')
             ->orderBy('ym')
@@ -1235,11 +1262,16 @@ class ReportController extends Controller
         if ($request->filled('project_id')) {
             $exQuery->where('project_id', $request->project_id);
         }
+        if ($request->filled('customer_id')) {
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $exQuery->whereIn('customer_id', $customerIds);
+        }
         $exchangeEntries = $exQuery->orderByDesc('sale_date')->paginate(50);
 
         $allExSales = Sale::with('statusLogs')
             ->where('status', 'exchanged')
             ->when($request->filled('project_id'), fn($q) => $q->where('project_id', $request->project_id))
+            ->when($request->filled('customer_id'), fn($q) => $q->whereIn('customer_id', is_array($request->customer_id) ? $request->customer_id : [$request->customer_id]))
             ->get();
 
         $monthlyGrouped = $allExSales->groupBy(fn($s) => $s->sale_date ? $s->sale_date->format('M Y') : 'Unknown');
@@ -1276,6 +1308,10 @@ class ReportController extends Controller
         $activeTab = 'petty_cash';
 
         $pettyQuery = Receipt::with(['customer', 'sale.project'])->where('payment_mode', 'Cash');
+        if ($request->filled('customer_id')) {
+            $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+            $pettyQuery->whereIn('customer_id', $customerIds);
+        }
         if ($request->filled('date_from')) {
             $pettyQuery->whereDate('receipt_date', '>=', $request->date_from);
         }

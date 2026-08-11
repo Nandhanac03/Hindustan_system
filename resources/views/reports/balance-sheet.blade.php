@@ -26,8 +26,12 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-3">
                 <div>
                     <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-widest">Balance Sheet Summary Panel</h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Split layout template presenting business net worth: Assets (equipment, cash lines, receivables) balanced against Liabilities & Equity.</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Split layout template presenting business net worth: Assets balanced against Liabilities & Equity.</p>
                 </div>
+                @include('reports.partials.header-badges')
+            </div>
+
+
                 <span class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-extrabold uppercase flex items-center gap-1.5">
                     <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Balance Sheet Verified
@@ -59,6 +63,11 @@
             </div>
 
             <div id="balanceSheetRatioChart" class="w-full h-44 bg-slate-50 border border-slate-150 rounded-2xl p-4"></div>
+
+            {{-- Filter, Print & Export Bar directly above Balance Sheet Tables --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'balanceSheetFilterForm', 'actionRoute' => route('reports.balance_sheet'), 'exportLabel' => 'Export Balance Sheet'])
+            </div>
 
             {{-- SPLIT LAYOUT TEMPLATE (Assets Left vs Liabilities & Equity Right) --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">

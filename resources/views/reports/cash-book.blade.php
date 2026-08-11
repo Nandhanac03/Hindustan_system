@@ -9,9 +9,12 @@
 
             {{-- Section Header with partner context --}}
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-4">
-                <div>
-                    <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Partner Cash Book Analytics</h3>
-                    <p class="text-[10px] text-slate-400 mt-0.5">Real-time collection register with partner-wise breakdown and trend analytics.</p>
+                <div class="flex items-center gap-3">
+                    <div>
+                        <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest">Partner Cash Book Analytics</h3>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Real-time collection register with partner-wise breakdown and trend analytics.</p>
+                    </div>
+                    @include('reports.partials.header-badges')
                 </div>
                 {{-- Partner Quick-filter pill tabs --}}
                 <div class="flex flex-wrap gap-2">
@@ -29,6 +32,8 @@
                     @endforeach
                 </div>
             </div>
+
+
 
             {{-- KPI Summary Cards --}}
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -153,11 +158,18 @@
             </div>
             @endif
 
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'cashBookFilterForm', 'actionRoute' => route('reports.cash_book'), 'exportLabel' => 'Export Cash Book'])
+            </div>
+
             {{-- Transaction Table --}}
             <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/50">
                     <h4 class="text-[10px] font-extrabold text-slate-700 uppercase tracking-widest">Recent Cash Book Entries</h4>
-                    <span class="text-[9px] text-slate-400 font-mono">{{ $cashBookEntries->total() }} records</span>
+                    <div class="flex items-center gap-3">
+                        <span class="text-[9px] text-slate-400 font-mono">{{ $cashBookEntries->total() }} records</span>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table id="reportsTable" class="w-full text-xs text-left">

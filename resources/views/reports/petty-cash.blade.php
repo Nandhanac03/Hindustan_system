@@ -13,12 +13,15 @@
                     <p class="text-xs text-slate-400 mt-0.5">Track daily cash receipts, petty cash disbursements, and physical cash register balances.</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
+                    @include('reports.partials.header-badges')
                     <div class="px-4 py-2 bg-gradient-to-r from-amber-500/10 to-amber-500/5 border border-[#a38c29]/30 rounded-xl">
                         <span class="block text-[9px] font-black uppercase tracking-widest text-[#a38c29]">Total Cash Inflow</span>
                         <span class="text-base font-black text-slate-900 font-mono">₹{{ number_format($pettyCashChartData['total_amount'] ?? 0, 2) }}</span>
                     </div>
                 </div>
             </div>
+
+
 
             {{-- 4 Stat Badges Grid --}}
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -63,6 +66,11 @@
                     </div>
                     <div id="pettyCashChart" class="w-full h-56"></div>
                 </div>
+            </div>
+
+            {{-- Filter, Print & Export Bar directly above Table --}}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+                @include('reports.partials.filter-bar', ['formId' => 'pettyCashFilterForm', 'actionRoute' => route('reports.petty_cash'), 'exportLabel' => 'Export Petty Cash'])
             </div>
 
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
