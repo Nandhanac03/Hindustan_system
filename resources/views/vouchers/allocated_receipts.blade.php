@@ -224,7 +224,7 @@
         return {
             allReceipts:   @json($receipts->values()),
             searchQuery:   '',
-            filterProject: '',
+            filterProject: '{{ $defaultProject?->name ?? '' }}',
             filterMode:    '',
             currentPage:   1,
             perPage:       20,
