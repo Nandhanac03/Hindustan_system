@@ -62,12 +62,13 @@ class UnitController extends Controller
             }
 
             if ($request->filled('customer_id')) {
-                $query->where(function ($q) use ($request) {
-                    $q->whereHas('sale', function ($sq) use ($request) {
-                        $sq->where('customer_id', $request->customer_id)
+                $cIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
+                $query->where(function ($q) use ($cIds) {
+                    $q->whereHas('sale', function ($sq) use ($cIds) {
+                        $sq->whereIn('customer_id', $cIds)
                            ->where('status', 'active');
-                    })->orWhereHas('saleUnits.sale', function ($sq) use ($request) {
-                        $sq->where('customer_id', $request->customer_id)
+                    })->orWhereHas('saleUnits.sale', function ($sq) use ($cIds) {
+                        $sq->whereIn('customer_id', $cIds)
                            ->where('status', 'active');
                     });
                 });
@@ -135,23 +136,25 @@ class UnitController extends Controller
         $matrixColumns = [];
 
         $selectedCustomerId = $request->input('customer_id');
+        $selectedCustomerIds = is_array($selectedCustomerId) ? $selectedCustomerId : ($selectedCustomerId ? [$selectedCustomerId] : []);
 
         $matrixFloors = \App\Models\Floor::where('project_id', $project->id)
             ->orderBy('floor_number', 'desc')
-            ->with(['units' => function($q) use ($selectedCustomerId) {
-                $q->orderBy('door_no');
-                if ($selectedCustomerId) {
-                    $q->where(function($uq) use ($selectedCustomerId) {
-                        $uq->whereHas('sale', function ($sq) use ($selectedCustomerId) {
-                            $sq->where('customer_id', $selectedCustomerId)
+            ->with(['units' => function($q) use ($selectedCustomerIds) {
+                $q->with(['booking', 'unitType', 'sale.customer', 'saleUnits.sale.customer'])
+                  ->orderBy('door_no');
+                if (!empty($selectedCustomerIds)) {
+                    $q->where(function($uq) use ($selectedCustomerIds) {
+                        $uq->whereHas('sale', function ($sq) use ($selectedCustomerIds) {
+                            $sq->whereIn('customer_id', $selectedCustomerIds)
                                ->where('status', 'active');
-                        })->orWhereHas('saleUnits.sale', function ($sq) use ($selectedCustomerId) {
-                            $sq->where('customer_id', $selectedCustomerId)
+                        })->orWhereHas('saleUnits.sale', function ($sq) use ($selectedCustomerIds) {
+                            $sq->whereIn('customer_id', $selectedCustomerIds)
                                ->where('status', 'active');
                         });
                     });
                 }
-            }, 'units.booking', 'units.unitType', 'units.sale.customer', 'units.saleUnits.sale.customer'])
+            }])
             ->get();
 
         $regularFloors = [];
@@ -220,7 +223,7 @@ class UnitController extends Controller
         ])
         ->where('project_id', $project->id)
         ->where('status', 'active')
-        ->when($selectedCustomerId, fn($q) => $q->where('customer_id', $selectedCustomerId))
+        ->when(!empty($selectedCustomerIds), fn($q) => $q->whereIn('customer_id', $selectedCustomerIds))
         ->orderByDesc('sale_date')
         ->get();
 
@@ -471,10 +474,7 @@ class UnitController extends Controller
 
         try {
             \Illuminate\Support\Facades\DB::transaction(function () use ($unit) {
-                // Delete associated rate/status logs and cancelled bookings before deleting unit
-                $unit->rateLogs()->delete();
-                $unit->statusLogs()->delete();
-                \App\Models\Booking::where('unit_id', $unit->id)->delete();
+                // We no longer hard-delete associated logs/bookings because Unit uses SoftDeletes
                 $unit->delete();
             });
 

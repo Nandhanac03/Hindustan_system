@@ -29,12 +29,6 @@
         </div>
 
         <div class="flex items-center gap-2.5">
-            <button onclick="exportCurrentTable()" 
-                    class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Export Excel
-            </button>
-
             <template x-if="permissions.manage">
                 <div class="flex items-center gap-2">
 
@@ -149,7 +143,9 @@
             @if(request('project'))
                 <input type="hidden" name="project" value="{{ request('project') }}">
             @endif
-            <input type="hidden" name="customer_id" :value="selectedCustomerId">
+            <template x-for="id in localSelectedIds">
+                <input type="hidden" name="customer_id[]" :value="id">
+            </template>
             
             <div class="flex-1 w-full relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
@@ -161,20 +157,30 @@
                     <button type="button" 
                             @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
                             :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'"
-                            class="w-full h-10 px-3.5 py-2 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs text-slate-700">
-                        <template x-if="getSelectedCustomer()">
-                            <div class="flex items-center gap-2 overflow-hidden min-w-0">
-                                <div class="w-6 h-6 rounded-full bg-[#a38c29]/15 text-[#8a7522] font-bold text-xs flex items-center justify-center shrink-0" x-text="getSelectedCustomer().name.charAt(0).toUpperCase()"></div>
-                                <span class="font-extrabold text-slate-900 truncate" x-text="getSelectedCustomer().name"></span>
-                                <span class="text-xs font-bold text-slate-400 font-mono shrink-0" x-show="getSelectedCustomer().phone" x-text="'(' + getSelectedCustomer().phone + ')'"></span>
+                            class="w-full min-h-[42px] px-2.5 py-1.5 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs text-slate-700">
+                        
+                        <template x-if="selectedCustomers.length > 0">
+                            <div class="flex flex-wrap items-center gap-1.5 overflow-hidden min-w-0 flex-1">
+                                <template x-for="c in selectedCustomers" :key="c.id">
+                                    <span class="inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-lg bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/20 text-[10px] font-bold">
+                                        <span x-text="c.name" class="whitespace-nowrap max-w-[150px] truncate"></span>
+                                        <button type="button" @click.stop="toggleCustomer(c.id)" class="text-[#8a7522]/70 hover:text-rose-600 hover:bg-rose-50 rounded p-0.5 transition-colors">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </span>
+                                </template>
                             </div>
                         </template>
-                        <template x-if="!getSelectedCustomer()">
-                            <span class="text-slate-500 font-bold">— All Customers —</span>
+
+                        <template x-if="selectedCustomers.length === 0">
+                            <div class="flex items-center gap-1.5 text-slate-500 font-bold px-1">
+                                <span>— Filter by Customers —</span>
+                            </div>
                         </template>
+
                         <div class="flex items-center gap-1.5 shrink-0 ml-2">
-                            <template x-if="getSelectedCustomer()">
-                                <span @click.stop="selectCustomer(null); search = '';" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition animate-fade-in" title="Clear selected customer">
+                            <template x-if="selectedCustomers.length > 0">
+                                <span @click.stop="localSelectedIds = []; search = ''; $nextTick(() => document.getElementById('unitsCustomerFilterForm').submit());" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition animate-fade-in" title="Clear selection">
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </span>
                             </template>
@@ -189,7 +195,7 @@
                          x-transition:leave="transition ease-in duration-150"
                          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                          x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-                         class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50 animate-slide-up"
+                         class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
                          style="display: none;">
                         
                         <div class="p-2.5 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
@@ -207,24 +213,30 @@
                             </div>
                         </div>
 
-                        <button type="button" @click="selectCustomer(null); open = false; search = ''"
+                        <button type="button" @click="localSelectedIds = []; open = false; search = ''; $nextTick(() => document.getElementById('unitsCustomerFilterForm').submit());"
                                 class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            <span>— All Customers —</span>
+                            <span>— Clear Selection (All Customers) —</span>
                         </button>
 
                         <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
                             <template x-for="customer in getFilteredCustomersList(search)" :key="customer.id">
                                 <button type="button"
-                                        @click="selectCustomer(customer); open = false; search = ''"
-                                        :class="selectedCustomerId == customer.id ? 'bg-[#a38c29]/10 border-[#a38c29]/20 text-[#8a7522] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                        @click="toggleCustomer(customer.id); search = ''"
+                                        :class="localSelectedIds.includes(customer.id.toString()) ? 'bg-[#a38c29]/10 border-[#a38c29]/20 text-[#8a7522] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
                                         class="w-full p-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
                                     <div class="flex items-center gap-2.5 min-w-0">
-                                        <div :class="selectedCustomerId == customer.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
-                                             class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-colors"
-                                             x-text="(customer.name || '?').charAt(0).toUpperCase()"></div>
+                                        <div :class="localSelectedIds.includes(customer.id.toString()) ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                             class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-colors">
+                                             <template x-if="localSelectedIds.includes(customer.id.toString())">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                             </template>
+                                             <template x-if="!localSelectedIds.includes(customer.id.toString())">
+                                                <span x-text="(customer.name || '?').charAt(0).toUpperCase()"></span>
+                                             </template>
+                                        </div>
                                         <div class="min-w-0">
-                                            <p class="font-bold text-xs truncate leading-snug" :class="selectedCustomerId == customer.id ? 'text-[#8a7522]' : 'text-slate-800'" x-text="customer.name"></p>
+                                            <p class="font-bold text-xs truncate leading-snug" :class="localSelectedIds.includes(customer.id.toString()) ? 'text-[#8a7522]' : 'text-slate-800'" x-text="customer.name"></p>
                                             <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 font-mono mt-0.5" x-show="customer.phone">
                                                 <span class="flex items-center gap-1">
                                                     <svg class="w-2.5 h-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
@@ -239,6 +251,12 @@
                     </div>
                 </div>
             </div>
+            
+            <button onclick="exportCurrentTable()" type="button"
+                    class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Export Excel
+            </button>
         </form>
     </div>
 
@@ -1957,6 +1975,317 @@
     </div>
 
     </div>
+    
+        {{-- ═══════════════════════════════════════════
+         VIEW SALE MODAL (read-only)
+    ═══════════════════════════════════════════ --}}
+    <div x-show="modals.viewSale.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeViewSaleModal()">
+            {{-- Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Agreement Details</span>
+                            <span class="badge-pill text-[9px] whitespace-nowrap" :class="getStatusBadgeClass(activeSale.status)" x-text="activeSale.status"></span>
+                        </div>
+                        <h2 class="text-xl font-extrabold text-white tracking-tight truncate break-all" x-text="activeSale.sale_number"></h2>
+                    </div>
+                    <button @click="closeViewSaleModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                </div>
+            </div>
+            {{-- Scrollable Container --}}
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                {{-- Row 1: Sale Profile --}}
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {{-- Project Card --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Project Name</span>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.project ? activeSale.project.name : '—'"></strong>
+                        </div>
+                    </div>
+                    {{-- Unit Card --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Unit & Floor</span>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="activeSale.sale_units && activeSale.sale_units.length ? activeSale.sale_units.map(su => su.unit ? su.unit.door_no : '').join(', ') : (activeSale.unit ? activeSale.unit.door_no + ' — ' + (activeSale.unit.floor ? activeSale.unit.floor.name : '') : '—')"></strong>
+                        </div>
+                    </div>
+                    {{-- Customer Card --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600 flex-shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <div class="overflow-hidden">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Customer Details</span>
+                            <strong class="text-slate-800 text-xs block mt-1 truncate" x-text="activeSale.customer ? activeSale.customer.name : '—'"></strong>
+                            <span class="text-slate-450 text-[10px] block mt-0.5 truncate" x-text="activeSale.customer ? activeSale.customer.phone : ''"></span>
+                        </div>
+                    </div>
+                </div>
+                {{-- Multi Unit Details Table --}}
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3" x-show="activeSale.sale_units && activeSale.sale_units.length > 0">
+                    <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">🏢 Booked Inventory / Units</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px] border-collapse min-w-[500px]">
+                            <thead>
+                                <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider text-[9px]">
+                                    <th class="py-2 px-2">Unit</th>
+                                    <th class="py-2 px-2">Floor</th>
+                                    <th class="py-2 px-2">Area (Sq.Ft)</th>
+                                    <th class="py-2 px-2">Rate/Sq.Ft</th>
+                                    <th class="py-2 px-2">GST</th>
+                                    <th class="py-2 px-2 text-right">Line Total</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                                <template x-for="su in activeSale.sale_units" :key="su.id">
+                                    <tr class="hover:bg-slate-50/50 transition-colors">
+                                        <td class="py-2 px-2 font-bold text-indigo-700" x-text="su.unit ? su.unit.door_no : '—'"></td>
+                                        <td class="py-2 px-2" x-text="su.unit && su.unit.floor ? su.unit.floor.name : '—'"></td>
+                                        <td class="py-2 px-2 font-mono" x-text="Number(su.area_sqft).toLocaleString()"></td>
+                                        <td class="py-2 px-2 font-mono" x-text="'₹' + Number(su.rate_per_sqft).toLocaleString()"></td>
+                                        <td class="py-2 px-2 whitespace-nowrap" x-text="su.gst_type !== 'none' ? '₹' + Number(su.gst_amount).toLocaleString() + ' (' + su.gst_type + ')' : 'None'"></td>
+                                        <td class="py-2 px-2 text-right font-mono text-slate-900" x-text="'₹' + Number(su.line_total).toLocaleString()"></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{-- Row 1.5: Extra Works Details --}}
+                <template x-if="activeSale.extra_works && activeSale.extra_works.length > 0">
+                    <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden mb-6">
+                        <div class="p-4 border-b border-slate-100 bg-slate-55/30">
+                            <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest">🛠️ Custom Alterations / Extra Work Details</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-xs text-left">
+                                <thead>
+                                    <tr class="bg-slate-50/50 text-[9px] font-bold text-slate-455 uppercase tracking-wider border-b border-slate-100">
+                                        <th class="px-4 py-3">Description</th>
+                                        <th class="px-4 py-3 text-right">Amount</th>
+                                        <th class="px-4 py-3">GST Type</th>
+                                        <th class="px-4 py-3">GST (%)</th>
+                                        <th class="px-4 py-3 text-right">GST Amount</th>
+                                        <th class="px-4 py-3 text-right font-bold text-emerald-800">Total Payable</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 font-semibold text-slate-700">
+                                    <template x-for="ew in activeSale.extra_works" :key="ew.id">
+                                        <tr class="hover:bg-slate-55/40 transition-colors">
+                                            <td class="px-4 py-3 font-bold text-slate-900" x-text="ew.description"></td>
+                                            <td class="px-4 py-3 text-right font-mono" x-text="'₹' + Number(ew.amount).toLocaleString()"></td>
+                                            <td class="px-4 py-3 uppercase" x-text="ew.gst_type"></td>
+                                            <td class="px-4 py-3" x-text="ew.gst_percentage + '%'"></td>
+                                            <td class="px-4 py-3 text-right font-mono" x-text="'₹' + Number(ew.gst_amount).toLocaleString()"></td>
+                                            <td class="px-4 py-3 text-right font-mono text-emerald-800 font-bold" x-text="'₹' + Number(ew.line_total).toLocaleString()"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+                {{-- Row 2: Financial Summary Card --}}
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                    <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">💰 Pricing & GST Breakdown</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Agreed Rate / Sqft</span>
+                            <span class="font-extrabold text-slate-850 text-sm mt-1 block font-mono" x-text="activeSale.rate_per_sqft > 0 ? '₹' + Number(activeSale.rate_per_sqft).toLocaleString() : '₹0 (Flat Price)'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total Base Amount</span>
+                            <span class="font-bold text-slate-800 text-sm mt-1 block font-mono" x-text="activeSale.base_amount ? '₹' + Number(activeSale.base_amount).toLocaleString() : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total GST Amount</span>
+                            <span class="font-bold text-slate-800 text-sm mt-1 block" x-text="activeSale.gst_amount > 0 ? '₹' + Number(activeSale.gst_amount || 0).toLocaleString() : 'None / Excluded'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total Contract Value</span>
+                            <span class="font-extrabold text-[#a38c29] text-base mt-1 block font-mono" x-text="'₹' + Number(activeSale.total_amount || 0).toLocaleString()"></span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-100 bg-slate-50/50 -mx-5 -mb-5 p-5 rounded-b-xl">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Agreement Date</span>
+                            <span class="font-bold text-slate-800 mt-1 block" x-text="formatSaleDate(activeSale.sale_date)"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Registration Date</span>
+                            <span class="font-bold text-slate-800 mt-1 block" x-text="formatSaleDate(activeSale.registration_date)"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Selected Plan</span>
+                            <span class="font-extrabold text-indigo-600 mt-1 block uppercase" x-text="activeSale.payment_plan === 'emi' ? 'EMI (' + (activeSale.emi_installment_count || 12) + '-Mo ' + (activeSale.emi_frequency || 'Monthly') + ')' : 'Lump Sum'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-455 font-bold uppercase block tracking-wider">Remaining Balance</span>
+                            <span class="font-extrabold text-sm mt-1 block font-mono" :class="activeSale.remaining_balance > 0 ? 'text-rose-600' : 'text-emerald-700'" x-text="'₹' + Number(activeSale.remaining_balance || 0).toLocaleString()"></span>
+                        </div>
+                    </div>
+                </div>
+                {{-- Row 3: Receipts Ledger --}}
+                <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 bg-slate-55/30">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest">💳 Collection Receipts History</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead>
+                                <tr class="bg-slate-50/50 text-[9px] font-bold text-slate-450 uppercase tracking-wider border-b border-slate-100">
+                                    <th class="px-4 py-3">Receipt No</th>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3">Payment Mode</th>
+                                    <th class="px-4 py-3 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="r in activeSale.receipts" :key="r.id">
+                                    <tr class="hover:bg-slate-50/40 transition-colors">
+                                        <td class="px-4 py-3 font-bold text-slate-900" x-text="'REC-' + String(r.id).padStart(5, '0') + (r.reference_no ? ' (' + r.reference_no + ')' : '')"></td>
+                                        <td class="px-4 py-3 text-slate-500" x-text="formatSaleDate(r.receipt_date)"></td>
+                                        <td class="px-4 py-3 text-slate-500 uppercase" x-text="r.payment_mode"></td>
+                                        <td class="px-4 py-3 text-right font-extrabold text-emerald-700 font-mono" x-text="'₹' + Number(r.amount).toLocaleString()"></td>
+                                    </tr>
+                                </template>
+                                <template x-if="!activeSale.receipts || activeSale.receipts.length === 0">
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-6 text-center text-slate-400 italic bg-white">No receipts recorded for this sale.</td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {{-- Row 4: Broker details --}}
+                <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+                    <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 mb-3">💼 Broker & Commission Details</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" x-show="activeSale.brokerage">
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Broker Name</span>
+                            <span class="font-bold text-slate-800 mt-1 block" x-text="activeSale.broker ? activeSale.broker.name : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Commission Structure</span>
+                            <span class="font-bold text-slate-855 mt-1 block" x-text="activeSale.brokerage ? (activeSale.brokerage.commission_type === 'percentage' ? activeSale.brokerage.commission_percent + '% of Sale Price' : 'Fixed Commission') : '—'"></span>
+                        </div>
+                        <div>
+                            <span class="text-[9px] text-slate-455 font-bold uppercase block tracking-wider">Payout Amount / Status</span>
+                            <div class="flex items-center gap-1.5 mt-1">
+                                <span class="font-extrabold text-slate-900 font-mono" x-text="activeSale.brokerage ? '₹' + Number(activeSale.brokerage.commission_amount).toLocaleString() : '—'"></span>
+                                <span class="px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider inline-block"
+                                      :class="activeSale.brokerage && activeSale.brokerage.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+                                      x-text="activeSale.brokerage ? activeSale.brokerage.status : ''"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div x-show="!activeSale.brokerage" class="text-slate-400 italic text-[11px] py-1">
+                        No broker was associated with this transaction (Direct Sale).
+                    </div>
+                </div>
+                {{-- Row 5: Logs & Remarks --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {{-- Transition logs --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm space-y-2.5">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center justify-between">
+                            <span>📜 Transition History Logs</span>
+                            <span class="text-[9px] font-bold text-slate-400 font-mono" x-text="(activeSale.status_logs ? activeSale.status_logs.length : 0) + ' Logs'"></span>
+                        </p>
+                        <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            <template x-for="log in activeSale.status_logs" :key="log.id">
+                                <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 text-[10px] space-y-1.5" x-data="{ openSnap: false }">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="font-bold text-slate-800 uppercase tracking-wide" x-text="(log.from_status || 'created') + ' → ' + log.to_status"></span>
+                                            <template x-if="log.snapshot_data">
+                                                <span class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 text-[8px] font-extrabold uppercase">Archived Log</span>
+                                            </template>
+                                        </div>
+                                        <span class="text-slate-400 font-mono text-[9px]" x-text="formatSaleDate(log.created_at)"></span>
+                                    </div>
+                                    <p class="text-slate-600 italic font-sans" x-text="log.reason || 'No narrative provided'"></p>
+
+                                    {{-- Archived Unit Snapshot Viewer --}}
+                                    <template x-if="log.snapshot_data">
+                                        <div class="mt-2 pt-2 border-t border-slate-200/80">
+                                            <button type="button" @click="openSnap = !openSnap"
+                                                    class="text-[9px] font-extrabold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
+                                                <span x-text="openSnap ? 'Hide Archived Unit Log' : '📦 View Archived Unit Log Snapshot'"></span>
+                                                <svg class="w-3 h-3 transition-transform" :class="openSnap ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                            </button>
+
+                                            <div x-show="openSnap" class="mt-2 p-2.5 bg-white rounded-lg border border-blue-200 space-y-2 text-[10px] font-sans">
+                                                <div class="grid grid-cols-2 gap-2 border-b border-slate-100 pb-1.5">
+                                                    <div>
+                                                        <span class="text-slate-400 font-bold block text-[8px] uppercase">Old Unit</span>
+                                                        <span class="font-extrabold text-slate-800" x-text="log.snapshot_data.old_unit ? log.snapshot_data.old_unit.door_no : 'N/A'"></span>
+                                                        <span class="text-slate-500 text-[9px]" x-text="log.snapshot_data.old_unit && log.snapshot_data.old_unit.floor_name ? ' (' + log.snapshot_data.old_unit.floor_name + ')' : ''"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-400 font-bold block text-[8px] uppercase">Old Sale No</span>
+                                                        <span class="font-extrabold text-slate-800 font-mono" x-text="log.snapshot_data.old_sale ? log.snapshot_data.old_sale.sale_number : 'N/A'"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="grid grid-cols-3 gap-1 bg-slate-50 p-1.5 rounded-md text-center font-mono">
+                                                    <div>
+                                                        <span class="text-[7px] text-slate-400 font-bold uppercase block">Contract Value</span>
+                                                        <span class="font-bold text-slate-800" x-text="log.snapshot_data.old_sale ? fmtSale(log.snapshot_data.old_sale.total_amount) : '₹0'"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-[7px] text-slate-400 font-bold uppercase block">Total Paid</span>
+                                                        <span class="font-bold text-emerald-700" x-text="log.snapshot_data.old_sale ? fmtSale(log.snapshot_data.old_sale.total_paid) : '₹0'"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-[7px] text-slate-400 font-bold uppercase block">Balance</span>
+                                                        <span class="font-bold text-slate-700" x-text="log.snapshot_data.old_sale ? fmtSale(log.snapshot_data.old_sale.remaining_balance) : '₹0'"></span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex justify-between items-center text-[9px] text-slate-500 pt-1 font-semibold">
+                                                    <span>Receipts Recorded: <strong class="text-slate-800 font-mono" x-text="log.snapshot_data.receipts ? log.snapshot_data.receipts.length : 0"></strong></span>
+                                                    <span>EMI Schedule Count: <strong class="text-slate-800 font-mono" x-text="log.snapshot_data.installments ? log.snapshot_data.installments.length : 0"></strong></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="!activeSale.status_logs || activeSale.status_logs.length === 0">
+                                <p class="text-xs text-slate-400 italic py-2">No transition history logged for this agreement.</p>
+                            </template>
+                        </div>
+                    </div>
+                    {{-- Remarks --}}
+                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex flex-col">
+                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2">💬 Agreement Notes & Remarks</p>
+                        <div class="flex-1 mt-3">
+                            <p class="text-slate-650 font-sans text-xs bg-slate-50 p-3 rounded-lg border border-slate-200/80 h-full min-h-[80px]" x-text="activeSale.notes || 'No remarks recorded for this agreement.'"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50">
+                <a :href="'{{ url('/emi-collections/ledger') }}/' + activeSale.id" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md inline-flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EMI & Collection Ledger</span>
+                </a>
+                <button @click="closeViewSaleModal()" class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">Close</button>
+            </div>
+        </div>
+    </div>
 
 </div>
 
@@ -1979,7 +2308,7 @@ function unitsApp() {
             per_page: 50
         },
         customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'email' => $c->email]; })) !!},
-        selectedCustomerId: '{{ request('customer_id', '') }}',
+        localSelectedIds: @js(is_array(request('customer_id')) ? request('customer_id') : (request('customer_id') ? [request('customer_id')] : [])),
         filters: {
             search: '',
             floor_id: '',
@@ -1996,9 +2325,12 @@ function unitsApp() {
             bulk: { open: false },
             delete: { open: false },
             view: { open: false },
-            rateHistory: { open: false }
+            rateHistory: { open: false },
+            viewSale: { open: false }
         },
         viewTarget: null,
+        activeSale: {},
+        loadingSaleDetails: false,
         rateHistoryTarget: null,
         rateHistoryLogs: [],
         loadingRateHistory: false,
@@ -2060,12 +2392,17 @@ function unitsApp() {
                 (c.phone && c.phone.toLowerCase().includes(q))
             );
         },
-        getSelectedCustomer() {
-            if (!this.selectedCustomerId) return null;
-            return this.customerList.find(c => c.id == this.selectedCustomerId) || null;
+        get selectedCustomers() {
+            return this.customerList.filter(c => this.localSelectedIds.includes(c.id.toString()));
         },
-        selectCustomer(customer) {
-            this.selectedCustomerId = customer ? customer.id : '';
+        toggleCustomer(id) {
+            const strId = id.toString();
+            const idx = this.localSelectedIds.indexOf(strId);
+            if (idx > -1) {
+                this.localSelectedIds.splice(idx, 1);
+            } else {
+                this.localSelectedIds.push(strId);
+            }
             this.$nextTick(() => {
                 const form = document.getElementById('unitsCustomerFilterForm');
                 if (form) form.submit();
@@ -2090,7 +2427,7 @@ function unitsApp() {
             if (urlParams.get('floor_id'))     this.filters.floor_id     = urlParams.get('floor_id');
             if (urlParams.get('search'))       this.filters.search       = urlParams.get('search');
             if (urlParams.get('unit_type_id')) this.filters.unit_type_id = urlParams.get('unit_type_id');
-            if (urlParams.get('customer_id'))   this.selectedCustomerId   = urlParams.get('customer_id');
+            // handled via localSelectedIds array from server
             this.fetchUnits();
         },
 
@@ -2103,7 +2440,11 @@ function unitsApp() {
             if (this.filters.floor_id) params.append('floor_id', this.filters.floor_id);
             if (this.filters.unit_type_id) params.append('unit_type_id', this.filters.unit_type_id);
             if (this.filters.status) params.append('status', this.filters.status);
-            if (this.selectedCustomerId) params.append('customer_id', this.selectedCustomerId);
+            if (this.localSelectedIds && this.localSelectedIds.length > 0) {
+                this.localSelectedIds.forEach(id => {
+                    params.append('customer_id[]', id);
+                });
+            }
 
             fetch('{{ route('units.index') }}?' + params.toString(), {
                 headers: {
@@ -2245,10 +2586,14 @@ function unitsApp() {
                     const saleRateDisp = isParkingUnit ? 'N/A' : fmtMoney(unit.sale_rate_per_sqft);
 
                     let saleAmountDisp = fmtMoney(unit.sale_amount);
+                    let saleCellAttrs = 'class="px-3 py-3 border font-bold"';
                     if (unit.status === 'sold') {
                         const activeSale = this.getUnitActiveSale(unit);
-                        if (activeSale && activeSale.customer) {
-                            saleAmountDisp += `<br><div class="mt-1.5 inline-flex items-center gap-1.5 bg-emerald-50/50 text-emerald-700 px-2.5 py-1 rounded-md shadow-sm border border-emerald-500"><span class="text-[9px] font-extrabold uppercase tracking-widest whitespace-nowrap text-emerald-700">Sold To: ${activeSale.customer.name}</span></div>`;
+                        if (activeSale) {
+                            saleCellAttrs = `class="px-3 py-3 border font-bold cursor-pointer hover:bg-emerald-50 text-emerald-700 transition-colors" data-sale-id="${activeSale.id}" title="Click to view sale details"`;
+                            if (activeSale.customer) {
+                                saleAmountDisp += `<br><div class="mt-1.5 inline-flex items-center gap-1.5 bg-emerald-50/50 text-emerald-700 px-2.5 py-1 rounded-md shadow-sm border border-emerald-500"><span class="text-[9px] font-extrabold uppercase tracking-widest whitespace-nowrap text-emerald-700">Sold To: ${activeSale.customer.name}</span></div>`;
+                            }
                         }
                     }
 
@@ -2261,7 +2606,7 @@ function unitsApp() {
                         <td class="px-3 py-3 border font-bold text-slate-900">${expRateDisp}</td>
                         <td class="px-3 py-3 border font-bold text-emerald-700">${fmtMoney(unit.expected_sale_amount)}</td>
                         <td class="px-3 py-3 border font-bold text-slate-900">${saleRateDisp}</td>
-                        <td class="px-3 py-3 border font-bold">${saleAmountDisp}</td>
+                        <td ${saleCellAttrs}>${saleAmountDisp}</td>
                         <td class="px-3 py-3 border font-bold">${fmtMoney(unit.difference)}</td>
                         <td class="px-3 py-3 border">${statusBadge(unit.status)}</td>
                         <td class="px-3 py-3 border text-right">${actionsBtns(unit)}</td>
@@ -2290,6 +2635,12 @@ function unitsApp() {
                     if (unit) {
                         self.openViewModal(unit);
                     }
+                });
+            });
+            tbody.querySelectorAll('[data-sale-id]').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    self.openViewSaleModal(this.dataset.saleId);
                 });
             });
         },
@@ -2335,6 +2686,49 @@ function unitsApp() {
         openViewModal(unit) {
             this.viewTarget = unit;
             this.modals.view.open = true;
+        },
+
+        openViewSaleModal(saleId) {
+            if (!saleId) return;
+            this.loadingSaleDetails = true;
+            fetch(`{{ url('sales') }}/${saleId}/json`, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.activeSale = data.sale || data;
+                this.modals.viewSale.open = true;
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Failed to load sale details.', 'error');
+            })
+            .finally(() => {
+                this.loadingSaleDetails = false;
+            });
+        },
+        closeViewSaleModal() {
+            this.modals.viewSale.open = false;
+        },
+        formatSaleDate(val) {
+            if (!val) return '—';
+            try {
+                const clean = val.replace('Z', '').split('T')[0];
+                const parts = clean.split('-');
+                if (parts.length === 3) {
+                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const yr = parts[0];
+                    const mo = months[parseInt(parts[1], 10) - 1];
+                    const dy = parts[2];
+                    return `${dy} ${mo} ${yr}`;
+                }
+                return clean;
+            } catch(e) {
+                return val.split('T')[0];
+            }
+        },
+        fmtSale(value) {
+            return '₹' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         },
 
         openRateHistoryModal(unit) {
