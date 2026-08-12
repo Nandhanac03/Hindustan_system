@@ -1,7 +1,8 @@
 @props([
     'formId' => 'reportFilterForm',
     'actionRoute' => '',
-    'exportLabel' => 'Export Excel'
+    'exportLabel' => 'Export Excel',
+    'showCustomer' => true
 ])
 
 <form id="{{ $formId }}" method="GET" action="{{ $actionRoute }}" class="flex flex-wrap items-center gap-2.5 shrink-0 w-full">
@@ -30,6 +31,7 @@
         <input type="hidden" name="broker_id" value="{{ request('broker_id') }}">
     @endif
 
+    @if($showCustomer)
     {{-- Customer Multi-Select Dropdown Filter --}}
     <div class="flex-1 min-w-[250px] relative" 
          x-data="{ 
@@ -160,6 +162,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     {{-- Print & Export Action Buttons --}}
     <button type="button" @click="printReport()" 

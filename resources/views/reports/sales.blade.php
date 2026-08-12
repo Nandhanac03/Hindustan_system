@@ -230,17 +230,17 @@
             <col width="170" style="width: 128pt;" />  {{-- GRAND TOTAL DEAL PRICE --}}
             {{-- Section 4 --}}
             <col width="160" style="width: 120pt;" />  {{-- TOTAL CHEQUE VALUE --}}
-            <col width="150" style="width: 113pt;" />  {{-- CHEQUE RECEIVED --}}
+            <col width="160" style="width: 120pt;" />  {{-- TOTAL RECEIVED CHEQUE --}}
             <col width="150" style="width: 113pt;" />  {{-- CHEQUE RECEIPT DATE --}}
-            {{-- Section 5 --}}
             <col width="160" style="width: 120pt;" />  {{-- CHEQUE BALANCE DUE --}}
             <col width="110" style="width: 83pt;" />   {{-- INSTALMENT --}}
             <col width="160" style="width: 120pt;" />  {{-- CHEQUE COLLECTION % --}}
+            <col width="160" style="width: 120pt;" />  {{-- PROFIT / LOSS --}}
         </colgroup>
         <thead>
             {{-- Title Header Row (Exact A3 print layout friendly combined 1 row title) --}}
             <tr height="45" style="height: 45pt;">
-                <th colspan="22" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                <th colspan="23" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
                     HINDUSTAN ERP: REAL ESTATE SALES BOOKING MASTER (WITH AUDIT DATES & DUAL-TRACK SPLIT)
                 </th>
             </tr>
@@ -249,8 +249,7 @@
                 <th colspan="7" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">1. UNIT & CUSTOMER INFORMATION</th>
                 <th colspan="4" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. PRICING & RATE VARIANCE</th>
                 <th colspan="5" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">3. TAXES & ADD-ONS</th>
-                <th colspan="3" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">4. CHEQUE VALUE</th>
-                <!-- <th colspan="3" bgcolor="#15803d" style="background-color: #15803d; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">5. BALANCE & COLLECTION</th> -->
+                <th colspan="7" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">4. CHEQUE VALUE</th>
             </tr>
             {{-- Main Column Headers --}}
             <tr height="40" style="height: 40pt;">
@@ -274,14 +273,13 @@
                 <th width="140" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 105pt;">ADDITIONAL WORK</th>
                 <th width="170" bgcolor="#334155" x:autofilter="all" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 128pt;">TOTAL AMOUNT INCLUDING GST /PARKING/ADDITIONAL</th>
                 {{-- Section 4 --}}
-                <!-- <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">TOTAL CHEQUE VALUE</th> -->
-                <th width="150" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 113pt;">CHEQUE RECEIVED</th>
+                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">TOTAL CHEQUE VALUE</th>
+                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">TOTAL RECEIVED CHEQUE</th>
                 <th width="150" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 113pt;">CHEQUE RECEIPT DATE</th>
+                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">CHEQUE BALANCE DUE</th>
                 <th width="110" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 83pt;">INSTALMENT</th>
-                <!-- <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">CHEQUE COLLECTION %</th> -->
-                {{-- Section 5 --}}
-                <!-- <th width="160" bgcolor="#17365D" x:autofilter="all" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">CHEQUE BALANCE DUE</th> -->
-
+                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">CHEQUE COLLECTION %</th>
+                <th width="160" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; white-space: normal; mso-wrap-text: true; width: 120pt;">PROFIT / LOSS</th>
             </tr>
         </thead>
         <tbody>
@@ -296,7 +294,9 @@
                     'grand_total' => 0,
                     'cheque_value' => 0,
                     'cheque_received' => 0,
-                    'cheque_due' => 0
+                    'total_received_cheque' => 0,
+                    'cheque_due' => 0,
+                    'profit_loss' => 0
                 ];
             @endphp
             @foreach($salesList as $sale)
@@ -370,16 +370,29 @@
                     
                     // Track A
                     $totalChequeValue = (float)$sale->total_amount;
-                    $chequeReceived = (float)$sale->receipts->sum('amount');
+                    $chequeReceived = (float)$sale->receipts->where('payment_mode', 'Cheque')->sum('amount');
+                    $totalReceivedCheque = (float)$sale->receipts->sum('amount');
                     $chequeBalanceDue = (float)$sale->remaining_balance;
                     
                     // Receipt details
-                    $latestReceipt = $sale->receipts->sortByDesc('receipt_date')->first();
-                    $receiptDate = $latestReceipt?->receipt_date?->format('Y-m-d') ?? '';
+                    $latestChequeReceipt = $sale->receipts->where('payment_mode', 'Cheque')->sortByDesc('receipt_date')->first();
+                    $receiptDate = $latestChequeReceipt?->receipt_date?->format('Y-m-d') ?? '';
                     $bookingDate = $sale->sale_date?->format('Y-m-d') ?? '';
                     $agreementDate = $sale->agreement_date?->format('Y-m-d') ?? $sale->sale_date?->format('Y-m-d') ?? '';
                     $installmentsCount = $sale->emi_installment_count ?? '';
-                    $collectionPct = $totalChequeValue > 0 ? ($chequeReceived / $totalChequeValue) * 100 : 0.00;
+                    $collectionPct = $totalChequeValue > 0 ? ($totalReceivedCheque / $totalChequeValue) * 100 : 0.00;
+
+                    // Profit / Loss calculation (Sale Amount minus expected sale units amount)
+                    $expectedAmount = 0.00;
+                    if ($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                        foreach ($sale->saleUnits as $su) {
+                            $expectedAmount += (float)($su->unit?->expected_sale_amount ?? 0.00);
+                        }
+                    } else {
+                        $expectedAmount = (float)($sale->unit?->expected_sale_amount ?? 0.00);
+                    }
+                    $saleAmount = (float)($sale->sale_amount ?? 0.00);
+                    $profitLoss = $saleAmount - $expectedAmount;
  
                     // Increment totals
                     $totals['area'] += $areaSqft;
@@ -391,7 +404,9 @@
                     $totals['grand_total'] += $grandTotalDeal;
                     $totals['cheque_value'] += $totalChequeValue;
                     $totals['cheque_received'] += $chequeReceived;
+                    $totals['total_received_cheque'] += $totalReceivedCheque;
                     $totals['cheque_due'] += $chequeBalanceDue;
+                    $totals['profit_loss'] += $profitLoss;
  
                     // Row Zebra striping
                     $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
@@ -415,6 +430,14 @@
                         $pctStyle = 'background-color: #fef9c3; color: #854d0e; font-weight: bold;';
                     } else {
                         $pctStyle = 'background-color: #fee2e2; color: #991b1b; font-weight: bold;';
+                    }
+
+                    // Conditional highlights for Profit/Loss (Loss < 0 = Red text, Profit > 0 = Green text)
+                    $profitLossStyle = '';
+                    if ($profitLoss < 0) {
+                        $profitLossStyle = 'color: #991b1b; font-weight: bold;';
+                    } elseif ($profitLoss > 0) {
+                        $profitLossStyle = 'color: #166534; font-weight: bold;';
                     }
                 @endphp
                 <tr height="25" style="height: 25pt; text-align: center; vertical-align: middle; {{ $rowBg }}">
@@ -441,15 +464,13 @@
                     <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #f1f5f9; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $grandTotalDeal }}</td>
                     
                     {{-- Section 4 --}}
-                    <!-- <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #dcfce7; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalChequeValue }}</td> -->
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $chequeReceived }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #dcfce7; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalChequeValue }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalReceivedCheque }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $receiptDate }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $balanceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $chequeBalanceDue }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $installmentsCount }}</td>
-                    <!-- <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; {{ $pctStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '0\.0%';">{{ $collectionPct / 100 }}</td> -->
-
-                    
-                    {{-- Section 5 --}}
-                    <!-- <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $balanceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $chequeBalanceDue }}</td> -->
+                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; {{ $pctStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '0\.0%';">{{ $collectionPct / 100 }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $profitLossStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $profitLoss != 0 ? abs($profitLoss) : '0' }}</td>
                 </tr>
             @endforeach
  
@@ -468,18 +489,18 @@
                 <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['additional'] }}</td>
                 <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['grand_total'] }}</td>
                 {{-- Section 4 Totals --}}
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_received'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_value'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['total_received_cheque'] }}</td>
                 <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                {{-- Section 5 Totals --}}
-                <!-- <td bgcolor="#17365D" style="background-color: #17365D; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif;"></td> -->
-                <!-- <td bgcolor="#17365D" style="background-color: #17365D; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td> -->
-                <!-- @php
-                    $overallCollectionPct = $totals['cheque_value'] > 0 ? ($totals['cheque_received'] / $totals['cheque_value'] * 100) : 0.00;
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_due'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
+                @php
+                    $overallCollectionPct = $totals['cheque_value'] > 0 ? ($totals['total_received_cheque'] / $totals['cheque_value'] * 100) : 0.00;
+                    $profitLossTotalStyle = $totals['profit_loss'] < 0 ? 'color: #fee2e2;' : ($totals['profit_loss'] > 0 ? 'color: #dcfce7;' : 'color: #ffffff;');
                 @endphp
-                <td bgcolor="#17365D" style="background-color: #17365D; text-align: center; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '0\.0%';">{{ $overallCollectionPct / 100 }}</td> -->
-            </tr>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '0\.0%';">{{ $overallCollectionPct / 100 }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; {{ $profitLossTotalStyle }} text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 9pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['profit_loss'] }}</td>
+              </tr>
         </tbody>
     </table>
 </div>

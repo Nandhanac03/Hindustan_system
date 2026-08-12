@@ -47,7 +47,7 @@
             </div>
             
             {{-- Controls Bar: Sub-tab Navigation (Left) & Filter Bar (Right) --}}
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-50">
+            <div class="flex flex-row items-center justify-end gap-4 relative z-50">
                 <div class="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
                     <button type="button" @click="currentSubTab = 'summary'"
                             :class="currentSubTab === 'summary' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
@@ -83,9 +83,7 @@
                     @endif
                 </div>
 
-                <div class="flex justify-end">
-                    @include('reports.partials.filter-bar', ['formId' => 'availabilityFilterForm', 'actionRoute' => route('reports.availability'), 'exportLabel' => 'Export Matrix'])
-                </div>
+
             </div>
 
             {{-- SUMMARY SUB-TAB --}}
@@ -362,18 +360,22 @@
                                     
                                     $validParking = [];
                                     foreach($parkingRows as $pRow) {
-                                        if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
+                                        if ($pRow['units']->count() == 0) continue;
                                         
-                                        $dName = $pRow['display_name'];
-                                        if ($dName === 'P1') $dName = 'Floor 4';
-                                        if ($dName === 'P2') $dName = 'Floor 5';
+                                        $dName = $pRow['floor']->name;
                                         
                                         $validParking[] = [
                                             'display_name' => $dName,
+                                            'floor_number' => $pRow['floor']->floor_number ?? 0,
                                             'is_parking_row' => true,
                                             'columns' => collect($pRow['units'])->sortBy('door_no', SORT_NATURAL | SORT_FLAG_CASE)->values()->all()
                                         ];
                                     }
+                                    
+                                    // Sort parking rows in ascending order
+                                    usort($validParking, function($a, $b) {
+                                        return $a['floor_number'] <=> $b['floor_number'];
+                                    });
                                     
                                     foreach($reversedFloors as $row) {
                                         $row['is_parking_row'] = false;
