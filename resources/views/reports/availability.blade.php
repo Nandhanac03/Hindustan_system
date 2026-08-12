@@ -47,7 +47,7 @@
             </div>
             
             {{-- Controls Bar: Sub-tab Navigation (Left) & Filter Bar (Right) --}}
-            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-50">
+            <div class="flex flex-row items-center justify-end gap-4 relative z-50">
                 <div class="flex flex-wrap gap-1 bg-slate-100 p-1 rounded-xl shrink-0">
                     <button type="button" @click="currentSubTab = 'summary'"
                             :class="currentSubTab === 'summary' ? 'bg-white text-primary shadow-sm font-extrabold' : 'text-slate-550 hover:text-slate-700 font-bold'"
@@ -83,9 +83,7 @@
                     @endif
                 </div>
 
-                <div class="flex justify-end">
-                    @include('reports.partials.filter-bar', ['formId' => 'availabilityFilterForm', 'actionRoute' => route('reports.availability'), 'exportLabel' => 'Export Matrix'])
-                </div>
+
             </div>
 
             {{-- SUMMARY SUB-TAB --}}
