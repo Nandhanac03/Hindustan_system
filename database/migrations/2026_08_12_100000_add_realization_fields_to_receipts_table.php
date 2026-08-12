@@ -14,6 +14,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        Schema::table('receipts', function (Blueprint $table) {
+            if (!Schema::hasColumn('receipts', 'company_bank_account_id')) {
+                $table->foreignId('company_bank_account_id')->nullable()->after('bank_id')->constrained('company_bank_accounts')->nullOnDelete();
+            }
+        });
+
         if (!Schema::hasColumn('receipts', 'realization_status')) {
             Schema::table('receipts', function (Blueprint $table) {
                 // Status lifecycle: pending → cheque_in_hand → deposited → realized / bounced / cancelled
@@ -68,14 +74,23 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('receipts', function (Blueprint $table) {
-            $table->dropForeign(['realized_by']);
-            $table->dropColumn([
-                'realization_status',
-                'cheque_date',
-                'drawee_bank',
-                'realized_at',
-                'realized_by',
-            ]);
+            if (Schema::hasColumn('receipts', 'company_bank_account_id')) {
+                $table->dropForeign(['company_bank_account_id']);
+                $table->dropColumn('company_bank_account_id');
+            }
+            if (Schema::hasColumn('receipts', 'realized_by')) {
+                $table->dropForeign(['realized_by']);
+            }
+            
+            $dropCols = [];
+            foreach (['realization_status', 'cheque_date', 'drawee_bank', 'realized_at', 'realized_by'] as $col) {
+                if (Schema::hasColumn('receipts', $col)) {
+                    $dropCols[] = $col;
+                }
+            }
+            if (!empty($dropCols)) {
+                $table->dropColumn($dropCols);
+            }
         });
     }
 };
