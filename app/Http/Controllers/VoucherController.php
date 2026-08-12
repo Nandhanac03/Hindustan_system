@@ -7,17 +7,21 @@ namespace App\Http\Controllers;
 use App\Models\Account;
 use App\Models\Broker;
 use App\Models\Brokerage;
+use App\Models\CompanyBankAccount;
 use App\Models\Customer;
+use App\Models\PaymentMode;
+use App\Models\Payee;
 use App\Models\Receipt;
 use App\Models\Voucher;
 use App\Models\VoucherLine;
 use App\Models\LedgerEntry;
 use App\Models\Project;
-use App\Models\Payee;
 use App\Models\Sale;
 use App\Models\PartnerAllocation;
 use App\Models\Unit;
+use App\Services\ChequeRealizationService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
  
@@ -953,58 +957,14 @@ class VoucherController extends Controller
      * Receipt Allocated to Others — dedicated listing page.
      * Shows all receipts that have already been allocated (posted as vouchers).
      */
+    /**
+     * Receipt Allocated to Others — dedicated listing page.
+     * Shows all receipts that have already been allocated (posted as vouchers).
+     */
     public function allocatedReceipts()
     {
-        $user     = Auth::user();
-        $systemId = $user->system_id;
-
-        // All voucher receipt IDs that have been allocated
-        $allocatedReceiptIds = DB::table('vouchers')
-            ->where('type', 'Receipt')
-            ->whereNotNull('reference_no')
-            ->get('reference_no')
-            ->map(fn($v) => json_decode($v->reference_no, true)['source_receipt_id'] ?? null)
-            ->filter()
-            ->values();
-
-        // Load allocated receipts with full eager-loading
-        $receipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'companyBankAccount'])
-            ->whereNull('partner_id')
-            ->whereIn('id', $allocatedReceiptIds->toArray())
-            ->orderByDesc('receipt_date')
-            ->orderByDesc('id')
-            ->get()
-            ->map(function ($r) use ($allocatedReceiptIds) {
-                $ref      = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
-                $bankName = $r->companyBankAccount?->bank_name ?: 'General Account';
-                $accNo    = $r->companyBankAccount?->account_number;
-                return [
-                    'id'                          => $r->id,
-                    'ref'                         => $ref,
-                    'amount'                      => (float)$r->amount,
-                    'date'                        => $r->receipt_date?->format('Y-m-d'),
-                    'customer_name'               => $r->customer?->name ?? '—',
-                    'payment_mode'                => $r->payment_mode,
-                    'company_bank_account_name'   => $bankName,
-                    'company_bank_account_number' => $accNo,
-                    'project_name'                => $r->sale?->project?->name ?? '—',
-                    'unit_name'                   => $r->sale?->unit?->door_no ?? '—',
-                    'sale_number'                 => $r->sale?->sale_number ?? '—',
-                ];
-            });
-
-        $totalAllocated       = $receipts->count();
-        $totalAllocatedAmount = $receipts->sum('amount');
-        $projects             = Project::orderBy('name')->get(['id', 'name']);
-
-        // Pre-select the default project: if only 1 project exists, use it; otherwise use is_default
-        $defaultProject = $projects->count() === 1
-            ? $projects->first()
-            : $projects->firstWhere('is_default', true) ?? $projects->first();
-
-        return view('vouchers.allocated_receipts', compact(
-            'receipts', 'totalAllocated', 'totalAllocatedAmount', 'projects', 'defaultProject'
-        ));
+        $payload = $this->getAllocateToOthersPayload('register');
+        return view('vouchers.allocated_receipts', $payload);
     }
 
     /**
@@ -1013,6 +973,12 @@ class VoucherController extends Controller
      * branded for "Allocate to Others" and uses route receipts.allocate-to-others.
      */
     public function allocateToOthersWorkspace()
+    {
+        $payload = $this->getAllocateToOthersPayload('workspace');
+        return view('vouchers.allocate_to_others', $payload);
+    }
+
+    private function getAllocateToOthersPayload(string $defaultTab = 'workspace'): array
     {
         $user     = Auth::user();
         $systemId = $user->system_id;
@@ -1051,7 +1017,7 @@ class VoucherController extends Controller
         }
         $voucherNumber = 'AO-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
 
-        $projects = Project::all();
+        $projects = Project::orderBy('name')->get();
         $partners = Payee::where('system_id', $systemId)->where('type', 'Partner')->orderBy('name')->get();
 
         $pendingBills = DB::table('bills')
@@ -1109,7 +1075,7 @@ class VoucherController extends Controller
         $cashAccountId      = Account::where('system_id', $systemId)->where('code', 'CASH-HAND')->value('id');
         $bankAccountId      = Account::where('system_id', $systemId)->where('code', 'BANK-KAR-213')->value('id');
 
-        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit'])
+        $recentReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'companyBankAccount'])
             ->whereNull('partner_id')
             ->orderByDesc('created_at')
             ->orderByDesc('id')
@@ -1118,6 +1084,8 @@ class VoucherController extends Controller
             ->map(function ($r) use ($allocatedReceiptIds, $customerAccountMap, $cashAccountId, $bankAccountId) {
                 $isAllocated = $allocatedReceiptIds->contains($r->id);
                 $ref         = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
+                $bankName    = $r->companyBankAccount?->bank_name ?: 'General Account';
+                $accNo       = $r->companyBankAccount?->account_number;
                 return [
                     'id'                              => $r->id,
                     'label'                           => $ref . ' — ' . ($r->customer?->name ?? 'Unknown') . ' — ₹' . number_format((float)$r->amount, 2) . ' [' . ($isAllocated ? '🟢 Allocated' : '🔴 Unallocated') . ']',
@@ -1126,6 +1094,8 @@ class VoucherController extends Controller
                     'date'                            => $r->receipt_date?->format('Y-m-d'),
                     'customer_name'                   => $r->customer?->name ?? '—',
                     'customer_id'                     => $r->customer_id,
+                    'company_bank_account_name'       => $bankName,
+                    'company_bank_account_number'     => $accNo,
                     'customer_ledger_account_id'      => $customerAccountMap[$r->customer_id] ?? null,
                     'payment_mode'                    => $r->payment_mode,
                     'project_id'                      => $r->project_id,
@@ -1138,10 +1108,44 @@ class VoucherController extends Controller
                 ];
             });
 
-        return view('vouchers.allocate_to_others', compact(
+        // Load allocated receipts register list
+        $allocatedRegisterReceipts = Receipt::with(['customer', 'sale.project', 'sale.unit', 'companyBankAccount'])
+            ->whereNull('partner_id')
+            ->whereIn('id', $allocatedReceiptIds->toArray())
+            ->orderByDesc('receipt_date')
+            ->orderByDesc('id')
+            ->get()
+            ->map(function ($r) {
+                $ref      = $r->reference_no ?? 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT);
+                $bankName = $r->companyBankAccount?->bank_name ?: 'General Account';
+                $accNo    = $r->companyBankAccount?->account_number;
+                return [
+                    'id'                          => $r->id,
+                    'ref'                         => $ref,
+                    'amount'                      => (float)$r->amount,
+                    'date'                        => $r->receipt_date?->format('Y-m-d'),
+                    'customer_name'               => $r->customer?->name ?? '—',
+                    'payment_mode'                => $r->payment_mode,
+                    'company_bank_account_name'   => $bankName,
+                    'company_bank_account_number' => $accNo,
+                    'project_name'                => $r->sale?->project?->name ?? '—',
+                    'unit_name'                   => $r->sale?->unit?->door_no ?? '—',
+                    'sale_number'                 => $r->sale?->sale_number ?? '—',
+                ];
+            });
+
+        $totalAllocated       = $allocatedRegisterReceipts->count();
+        $totalAllocatedAmount = $allocatedRegisterReceipts->sum('amount');
+        $receipts             = $allocatedRegisterReceipts;
+        $defaultProject       = $projects->count() === 1
+            ? $projects->first()
+            : $projects->firstWhere('is_default', true) ?? $projects->first();
+
+        return compact(
             'assetAccounts', 'creditAccounts', 'customers', 'voucherNumber',
-            'projects', 'partners', 'pendingBills', 'cancelledSales', 'recentReceipts'
-        ));
+            'projects', 'partners', 'pendingBills', 'cancelledSales', 'recentReceipts',
+            'allocatedRegisterReceipts', 'receipts', 'totalAllocated', 'totalAllocatedAmount', 'defaultProject', 'defaultTab'
+        );
     }
 
     /**
@@ -2274,5 +2278,86 @@ class VoucherController extends Controller
             'entries', 'startDate', 'endDate',
             'totalDebit', 'totalCredit', 'balance', 'openingBalance'
         ));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // STEP 5.5 + 5.6 — Treasury Payment & Payment Voucher Generation
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Show the Treasury Disbursement form.
+     */
+    public function treasuryPaymentIndex(): \Illuminate\View\View
+    {
+        $companyBankAccounts = CompanyBankAccount::where('status', 'active')
+            ->orderByDesc('is_default')
+            ->orderBy('bank_name')
+            ->get();
+
+        $payees = Payee::orderBy('name')->get(['id', 'name', 'type']);
+
+        $paymentModes = class_exists(PaymentMode::class)
+            ? PaymentMode::where('status', 'active')->orderBy('name')->get(['id', 'name', 'code'])
+            : collect([]);
+
+        $purposes = [
+            'supplier_payment' => '🏗️ Supplier Payment',
+            'customer_refund'  => '🔄 Customer Refund',
+            'site_expense'     => '🧱 Site Expense',
+            'other'            => '📋 Other',
+        ];
+
+        return view('vouchers.treasury-payment', compact(
+            'companyBankAccounts', 'payees', 'paymentModes', 'purposes'
+        ));
+    }
+
+    /**
+     * Step 5.5: Process outward treasury payment.
+     * Step 5.6: Generate official Payment Voucher for the payee.
+     */
+    public function treasuryPayment(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
+            'payee_id'                => ['nullable', 'exists:payees,id'],
+            'payee_name'              => ['nullable', 'string', 'max:255'],
+            'amount'                  => ['required', 'numeric', 'min:0.01'],
+            'payment_date'            => ['required', 'date'],
+            'payment_mode'            => ['required', 'string'],
+            'reference_no'            => ['nullable', 'string', 'max:100'],
+            'purpose'                 => ['required', 'in:supplier_payment,customer_refund,site_expense,other'],
+            'narration'               => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $service = app(ChequeRealizationService::class);
+
+        try {
+            $voucher = $service->recordPayment(array_merge($validated, [
+                'created_by' => auth()->id(),
+                'system_id'  => auth()->user()->system_id ?? 1,
+            ]));
+
+            $bankName = CompanyBankAccount::find($validated['company_bank_account_id'])?->bank_name ?? 'Bank';
+            $amount   = number_format((float) $validated['amount'], 2);
+
+            return redirect()->route('vouchers.payment-voucher-print', $voucher->id)
+                ->with('success', "✅ Payment Voucher {$voucher->voucher_number} generated! ₹{$amount} debited from {$bankName}.");
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage())->withInput();
+        }
+    }
+
+    /**
+     * Step 5.6: Display printable Payment Voucher.
+     */
+    public function printPaymentVoucher(int $id): \Illuminate\View\View
+    {
+        $voucher = Voucher::with(['lines.account', 'creator'])
+            ->findOrFail($id);
+
+        return view('vouchers.payment-voucher-print', compact('voucher'));
     }
 }

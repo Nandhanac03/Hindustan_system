@@ -202,6 +202,7 @@
                                         <th class="px-5 py-3.5">Receipt #</th>
                                         <th class="px-5 py-3.5">Date</th>
                                         <th class="px-5 py-3.5">Customer Name</th>
+                                        <th class="px-5 py-3.5">Company Bank Account</th>
                                         <th class="px-5 py-3.5">Project / Unit</th>
                                         <th class="px-5 py-3.5 text-right">Intake Amount</th>
                                         <th class="px-5 py-3.5 text-center min-w-[130px] whitespace-nowrap">Mode</th>
@@ -230,6 +231,13 @@
                                                 </td>
                                                 <td class="px-5 py-4 font-medium text-slate-500" x-text="r.date"></td>
                                                 <td class="px-5 py-4 font-bold text-slate-900" x-text="r.customer_name"></td>
+                                                <td class="px-5 py-4">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="w-5 h-5 rounded bg-[#a38c29]/20 text-[#a38c29] text-[9px] font-black flex items-center justify-center shrink-0"
+                                                              x-text="(r.company_bank_account_name || 'G').charAt(0)"></span>
+                                                        <span class="font-bold text-slate-800" x-text="r.company_bank_account_name || 'General Account'"></span>
+                                                    </div>
+                                                </td>
                                                 <td class="px-5 py-4">
                                                     <span class="font-bold text-slate-800" x-text="r.project_name"></span>
                                                     <span class="text-slate-400 mx-1">•</span>
@@ -265,6 +273,13 @@
                                                 <td class="px-5 py-4 font-medium text-slate-400" x-text="r.date"></td>
                                                 <td class="px-5 py-4 font-bold text-slate-700" x-text="r.customer_name"></td>
                                                 <td class="px-5 py-4">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="w-5 h-5 rounded bg-emerald-100 text-emerald-800 text-[9px] font-black flex items-center justify-center shrink-0"
+                                                              x-text="(r.company_bank_account_name || 'G').charAt(0)"></span>
+                                                        <span class="font-bold text-slate-700" x-text="r.company_bank_account_name || 'General Account'"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-5 py-4">
                                                     <span class="font-bold text-slate-700" x-text="r.project_name"></span>
                                                     <span class="text-slate-300 mx-1">•</span>
                                                     <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold" x-text="r.unit_name"></span>
@@ -282,7 +297,7 @@
                                     <!-- Empty State -->
                                     <template x-if="(activeTab === 'unallocated' && filteredReceipts().filter(r => !r.is_allocated).length === 0) || (activeTab === 'allocated' && filteredReceipts().filter(r => r.is_allocated).length === 0)">
                                         <tr>
-                                            <td colspan="7" class="px-6 py-16 text-center">
+                                            <td colspan="8" class="px-6 py-16 text-center">
                                                 <div class="flex flex-col items-center gap-3">
                                                     <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400">
                                                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6M9 16h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8l4 4v12a2 2 0 01-2 2z"/></svg>
@@ -385,23 +400,16 @@
                                     </div>
                                 </div>
 
-                                <!-- Amount & Payment Mode -->
+                                <!-- Amount & Payment Mode & Company Bank -->
                                 <div class="grid grid-cols-2 gap-3 p-4 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] text-slate-900 rounded-2xl shadow-xs">
                                     <div>
                                         <div class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">COLLECTED AMOUNT</div>
                                         <div class="mt-1 font-mono font-black text-[#a38c29] text-lg" x-text="'₹' + formatCurrency(selectedReceipt.amount)"></div>
                                     </div>
                                     <div>
-                                        <div class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">PAYMENT MODE</div>
-                                        <div class="mt-1.5">
-                                            <span :class="
-                                                selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cash' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
-                                                (selectedReceipt.payment_mode && selectedReceipt.payment_mode.toLowerCase() === 'cheque' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
-                                                'bg-blue-100 text-blue-800 border border-blue-300')
-                                            " class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider whitespace-nowrap inline-block shadow-2xs">
-                                                <span x-text="selectedReceipt.payment_mode || 'N/A'"></span>
-                                            </span>
-                                        </div>
+                                        <div class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">STORED BANK ACCOUNT</div>
+                                        <div class="mt-1 font-bold text-slate-900 text-xs truncate" x-text="selectedReceipt.company_bank_account_name || 'General Account'"></div>
+                                        <div class="text-[10px] text-slate-500 font-mono" x-text="selectedReceipt.company_bank_account_number ? 'Acc: ' + selectedReceipt.company_bank_account_number : ''"></div>
                                     </div>
                                 </div>
 

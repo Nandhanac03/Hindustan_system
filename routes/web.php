@@ -388,6 +388,17 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/receipt-management/bulk-assign-bank', [\App\Http\Controllers\ReceiptManagementController::class, 'assignBankBulk'])->name('receipt-management.assign-bank-bulk');
     Route::post('/receipt-management/{id}/assign-bank', [\App\Http\Controllers\ReceiptManagementController::class, 'assignBank'])->name('receipt-management.assign-bank');
     Route::delete('/receipt-management/{id}', [\App\Http\Controllers\ReceiptManagementController::class, 'destroy'])->name('receipt-management.destroy');
+
+    // Cheque Realization Workflow (Steps 5.2 – 5.4)
+    Route::get('/receipt-management/realization-queue', [\App\Http\Controllers\ReceiptManagementController::class, 'realizationQueue'])->name('receipt-management.realization-queue');
+    Route::post('/receipt-management/{id}/realize', [\App\Http\Controllers\ReceiptManagementController::class, 'realize'])->name('receipt-management.realize');
+    Route::post('/receipt-management/{id}/bounced', [\App\Http\Controllers\ReceiptManagementController::class, 'markBounced'])->name('receipt-management.bounced');
+    Route::post('/receipt-management/{id}/advance-status', [\App\Http\Controllers\ReceiptManagementController::class, 'advanceStatus'])->name('receipt-management.advance-status');
+
+    // Treasury Disbursement & Payment Voucher (Steps 5.5 – 5.6)
+    Route::get('/vouchers/treasury-payment', [\App\Http\Controllers\VoucherController::class, 'treasuryPaymentIndex'])->name('vouchers.treasury-payment.index');
+    Route::post('/vouchers/treasury-payment', [\App\Http\Controllers\VoucherController::class, 'treasuryPayment'])->name('vouchers.treasury-payment');
+    Route::get('/vouchers/{id}/payment-voucher-print', [\App\Http\Controllers\VoucherController::class, 'printPaymentVoucher'])->name('vouchers.payment-voucher-print');
 });
 
 require __DIR__ . '/auth.php';

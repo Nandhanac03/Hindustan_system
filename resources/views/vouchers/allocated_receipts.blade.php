@@ -4,7 +4,7 @@
 
     <div class="max-w-[1600px] mx-auto space-y-6" x-data="allocatedReceiptsPage()" x-init="init()">
 
-        {{-- ── BREADCRUMB ── --}}
+        {{-- ── BREADCRUMB & HEADER ACTIONS ── --}}
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2">
             <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
                 <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
@@ -13,12 +13,12 @@
                 <span class="text-slate-300">›</span>
                 <span class="text-[#a38c29] font-black">Receipt Allocated to Others</span>
             </div>
-            <a href="{{ route('vouchers.receipt.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm border border-slate-800 self-start sm:self-auto">
-                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14h6M9 10h6M7 3h10a2 2 0 012 2v14l-2-1-2 1-2-1-2 1-2-1-2 1V5a2 2 0 012-2z"/>
+            <a href="{{ route('receipts.allocate-to-others') }}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md border border-[#a38c29] self-start sm:self-auto cursor-pointer">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
                 </svg>
-                Go to Allocation Workspace
+                <span>➕ ALLOCATE STORED BANK RECEIPT TO OTHERS</span>
             </a>
         </div>
 
@@ -54,6 +54,49 @@
                 </div>
                 <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+                </div>
+            </div>
+        </div>
+
+        {{-- ── HOW IT WORKS GUIDE CARD ── --}}
+        <div class="bg-gradient-to-r from-amber-50/80 via-amber-50/30 to-white rounded-2xl border border-amber-200 p-5 shadow-xs">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-[#a38c29]">How To Allocate Stored Bank Receipts to Others</span>
+                        <span class="px-2 py-0.5 rounded-full bg-[#a38c29]/15 text-[#a38c29] text-[9px] font-black">3-STEP WORKFLOW</span>
+                    </div>
+                    <h3 class="text-sm font-black text-slate-900 mt-1">Split any stored bank receipt across Partners, Vendors, Refunds, or Expense Head accounts</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                        <div class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-amber-100 shadow-2xs">
+                            <span class="w-6 h-6 rounded-lg bg-amber-500 text-white text-xs font-black flex items-center justify-center shrink-0">1</span>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Select Stored Receipt</span>
+                                <span class="text-[10px] text-slate-500 font-medium">Pick stored bank intake (e.g. ₹10 Lakhs in Karnataka Bank).</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-amber-100 shadow-2xs">
+                            <span class="w-6 h-6 rounded-lg bg-amber-500 text-white text-xs font-black flex items-center justify-center shrink-0">2</span>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Split Funds to Payees</span>
+                                <span class="text-[10px] text-slate-500 font-medium">Distribute across partner shares, supplier bills, or refunds.</span>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2.5 bg-white p-3 rounded-xl border border-amber-100 shadow-2xs">
+                            <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white text-xs font-black flex items-center justify-center shrink-0">3</span>
+                            <div>
+                                <span class="text-xs font-bold text-slate-900 block">Post Journal Voucher</span>
+                                <span class="text-[10px] text-slate-500 font-medium">Generates allocation voucher &amp; updates partner/vendor ledgers.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="shrink-0 flex items-center">
+                    <a href="{{ route('receipts.allocate-to-others') }}"
+                       class="px-5 py-3 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md flex items-center gap-2">
+                        <span>⚡ Launch Allocation Workspace</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                    </a>
                 </div>
             </div>
         </div>
@@ -224,7 +267,7 @@
         return {
             allReceipts:   @json($receipts->values()),
             searchQuery:   '',
-            filterProject: '{{ $defaultProject?->name ?? '' }}',
+            filterProject: '',
             filterMode:    '',
             currentPage:   1,
             perPage:       20,
