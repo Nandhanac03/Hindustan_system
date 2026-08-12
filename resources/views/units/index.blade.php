@@ -255,7 +255,7 @@
             <button onclick="exportCurrentTable()" type="button"
                     class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Unit Details 
+                Sale Report 
             </button>
         </form>
     </div>
@@ -525,18 +525,22 @@
                                 
                                 $validParking = [];
                                 foreach($parkingRows as $pRow) {
-                                    if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
+                                    if ($pRow['units']->count() == 0) continue;
                                     
-                                    $dName = $pRow['display_name'];
-                                    if ($dName === 'P1') $dName = 'Floor 4';
-                                    if ($dName === 'P2') $dName = 'Floor 5';
+                                    $dName = $pRow['floor']->name;
                                     
                                     $validParking[] = [
                                         'display_name' => $dName,
+                                        'floor_number' => $pRow['floor']->floor_number ?? 0,
                                         'is_parking_row' => true,
                                         'columns' => collect($pRow['units'])->sortBy('door_no', SORT_NATURAL | SORT_FLAG_CASE)->values()->all()
                                     ];
                                 }
+
+                                // Sort parking rows in ascending order
+                                usort($validParking, function($a, $b) {
+                                    return $a['floor_number'] <=> $b['floor_number'];
+                                });
                                 
                                 foreach($reversedFloors as $row) {
                                     $row['is_parking_row'] = false;
