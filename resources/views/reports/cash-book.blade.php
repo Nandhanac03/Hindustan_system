@@ -245,6 +245,89 @@
     </div>
 </div>
 
+<div class="hidden" style="display: none;">
+    <table id="cashBookExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="120" style="width: 90pt;" />   {{-- Date --}}
+            <col width="140" style="width: 105pt;" />  {{-- Voucher No --}}
+            <col width="260" style="width: 195pt;" />  {{-- Customer / Unit --}}
+            <col width="160" style="width: 120pt;" />  {{-- Partner --}}
+            <col width="120" style="width: 90pt;" />   {{-- Mode --}}
+            <col width="140" style="width: 105pt;" />  {{-- Bank Ref --}}
+            <col width="180" style="width: 135pt;" />  {{-- Amount --}}
+        </colgroup>
+        <thead>
+            {{-- Empty Spacer Row Top --}}
+            <tr height="20" style="height: 20pt;" data-no-border="true">
+                <th colspan="7" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="7" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    HINDUSTAN ERP : PARTNER CASH BOOK ANALYTICS
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="7" bgcolor="#007398" style="background-color: #007398; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    Cash & Bank Collection Register
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="7" bgcolor="#006039" style="background-color: #006039; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    TRANSACTION DETAILS
+                </th>
+            </tr>
+            {{-- Empty Spacer Row Middle --}}
+            <tr height="15" style="height: 15pt;" data-no-border="true">
+                <th colspan="7" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Date</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Voucher No</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">Customer / Unit</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Partner</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Mode</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Bank Ref</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $totalAmount = 0; @endphp
+            @foreach($cashBookEntries as $index => $cash)
+                @php 
+                    $totalAmount += (float)$cash->amount;
+                    $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF';
+                    
+                    $partnerText = 'Project Intake';
+                    if ($cash->partner) {
+                        $partnerText = $cash->partner->name;
+                    } elseif (request('partner_id')) {
+                        $partnerText = 'Partner Share';
+                    }
+
+                    $customerText = ($cash->customer?->name ?? '—') . ' (' . ($cash->sale?->project?->name ?? '') . ' - ' . ($cash->sale?->unit?->door_no ?? '') . ')';
+                @endphp
+                <tr height="25" style="height: 25pt;">
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; mso-number-format:'yyyy-mm-dd'; color: #000000;">{{ $cash->receipt_date?->format('Y-m-d') }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">REC-{{ sprintf("%05d", $cash->id) }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; font-weight: bold; color: #000000;">{{ $customerText }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $partnerText }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $cash->payment_mode }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $cash->reference_no ?? '—' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #008000;">{{ $cash->amount }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        @if(count($cashBookEntries) > 0)
+        <tfoot>
+            <tr height="30" style="height: 30pt;">
+                <td colspan="6" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; font-size: 11pt;">TOTAL CASH BOOK TRANSACTIONS</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalAmount }}</td>
+            </tr>
+        </tfoot>
+        @endif
+    </table>
+</div>
+
 @include('reports.partials.script')
 
 </x-erp-layout>

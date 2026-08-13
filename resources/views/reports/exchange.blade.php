@@ -59,6 +59,84 @@
     </div>
 </div>
 
+<div class="hidden" style="display: none;">
+    <table id="exchangeExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="140" style="width: 105pt;" />  {{-- Exchange Date --}}
+            <col width="260" style="width: 195pt;" />  {{-- Customer Name --}}
+            <col width="300" style="width: 225pt;" />  {{-- Transferred Unit --}}
+            <col width="180" style="width: 135pt;" />  {{-- Equity Applied --}}
+            <col width="180" style="width: 135pt;" />  {{-- Contract Value --}}
+            <col width="120" style="width: 90pt;" />   {{-- Status --}}
+        </colgroup>
+        <thead>
+            {{-- Empty Spacer Row Top --}}
+            <tr height="20" style="height: 20pt;" data-no-border="true">
+                <th colspan="6" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="6" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    HINDUSTAN ERP : UNIT EXCHANGE REPORT
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="6" bgcolor="#007398" style="background-color: #007398; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    Unit Transfer & Exchange Audit
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="6" bgcolor="#006039" style="background-color: #006039; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    TRANSACTION DETAILS
+                </th>
+            </tr>
+            {{-- Empty Spacer Row Middle --}}
+            <tr height="15" style="height: 15pt;" data-no-border="true">
+                <th colspan="6" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Exchange Date</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">Customer Name</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">Transferred Unit</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Equity Applied (Paid) (₹)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Contract Value (₹)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php 
+                $totalEquity = 0;
+                $totalContract = 0;
+            @endphp
+            @foreach($exchangeEntries as $index => $row)
+                @php 
+                    $totalEquity += (float)$row->transferred_equity;
+                    $totalContract += (float)$row->total_amount;
+                    $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; // Light blue for zebra striping
+                    $unitDetails = ($row->project?->name ?? '—') . ' (Old Unit: ' . ($row->unit?->formatted_name ?? '—') . ')';
+                @endphp
+                <tr height="25" style="height: 25pt;">
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; mso-number-format:'yyyy-mm-dd'; color: #000000;">{{ $row->sale_date?->format('Y-m-d') }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; font-weight: bold; color: #000000;">{{ $row->customer?->name ?? '—' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $unitDetails }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #008000;">{{ $row->transferred_equity }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $row->total_amount }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #1d4ed8;">Exchanged</td>
+                </tr>
+            @endforeach
+        </tbody>
+        @if(count($exchangeEntries) > 0)
+        <tfoot>
+            <tr height="30" style="height: 30pt;">
+                <td colspan="3" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; font-size: 11pt;">TOTAL EXCHANGE EQUITY</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalEquity }}</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalContract }}</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; border: 1px solid #475569;"></td>
+            </tr>
+        </tfoot>
+        @endif
+    </table>
+</div>
+
 @include('reports.partials.script')
 
 </x-erp-layout>

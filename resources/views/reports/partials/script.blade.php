@@ -64,6 +64,30 @@ function reportsApp() {
                     table = excelTable;
                     filename = 'HindustanERP_GST_Statutory_Report.xlsx';
                 }
+            } else if (this.activeTab === 'cash_book') {
+                const excelTable = document.querySelector("#cashBookExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Cash_Book_Analytics.xlsx';
+                }
+            } else if (this.activeTab === 'bank_reports') {
+                const excelTable = document.querySelector("#bankExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Bank_Transaction_Statement.xlsx';
+                }
+            } else if (this.activeTab === 'sales_return') {
+                const excelTable = document.querySelector("#saleReturnExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Sales_Cancellation_Report.xlsx';
+                }
+            } else if (this.activeTab === 'exchange_report') {
+                const excelTable = document.querySelector("#exchangeExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Unit_Exchange_Report.xlsx';
+                }
             }
 
             if (!table) {

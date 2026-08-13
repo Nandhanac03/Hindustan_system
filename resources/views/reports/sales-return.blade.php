@@ -119,6 +119,92 @@
     </div>
 </div>
 
+<div class="hidden" style="display: none;">
+    <table id="saleReturnExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="140" style="width: 105pt;" />  {{-- Ref Code No. --}}
+            <col width="260" style="width: 195pt;" />  {{-- Customer Entity --}}
+            <col width="300" style="width: 225pt;" />  {{-- Returned Property Unit --}}
+            <col width="160" style="width: 120pt;" />  {{-- Contract Value --}}
+            <col width="160" style="width: 120pt;" />  {{-- Paid Amount --}}
+            <col width="160" style="width: 120pt;" />  {{-- Cancellation Fee --}}
+            <col width="160" style="width: 120pt;" />  {{-- Refund Amount --}}
+        </colgroup>
+        <thead>
+            {{-- Empty Spacer Row Top --}}
+            <tr height="20" style="height: 20pt;" data-no-border="true">
+                <th colspan="7" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="7" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    HINDUSTAN ERP : SALES CANCELLATION REPORT
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="7" bgcolor="#007398" style="background-color: #007398; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    Cancellation & Refund Audit Trail
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="7" bgcolor="#006039" style="background-color: #006039; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    LEDGER DETAILS
+                </th>
+            </tr>
+            {{-- Empty Spacer Row Middle --}}
+            <tr height="15" style="height: 15pt;" data-no-border="true">
+                <th colspan="7" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Ref Code No.</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">Customer Entity</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">Returned Property Unit</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Contract Value (₹)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Paid Amount (₹)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Cancellation Fee (₹)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Refund Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php 
+                $totalContract = 0;
+                $totalPaid = 0;
+                $totalFee = 0;
+                $totalRefund = 0;
+            @endphp
+            @foreach($salesReturns as $index => $ret)
+                @php 
+                    $totalContract += (float)$ret->total_amount;
+                    $totalPaid += (float)($ret->total_paid ?? 0);
+                    $totalFee += (float)$ret->cancellation_fee;
+                    $totalRefund += (float)$ret->refund_amount;
+                    $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; // Light blue for zebra striping
+                    $unitDetails = ($ret->project?->name ?? '—') . ' (Unit: ' . ($ret->unit?->door_no ?? '—') . ')';
+                @endphp
+                <tr height="25" style="height: 25pt;">
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000; mso-number-format:'\@';">{{ $ret->sale_number }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; font-weight: bold; color: #000000;">{{ $ret->customer?->name ?? '—' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $unitDetails }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $ret->total_amount }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #008000;">{{ $ret->total_paid ?? 0.00 }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $ret->cancellation_fee }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #008000;">{{ $ret->refund_amount }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        @if(count($salesReturns) > 0)
+        <tfoot>
+            <tr height="30" style="height: 30pt;">
+                <td colspan="3" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; font-size: 11pt;">TOTAL CANCELLATION LEDGER</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalContract }}</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalPaid }}</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalFee }}</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalRefund }}</td>
+            </tr>
+        </tfoot>
+        @endif
+    </table>
+</div>
+
 @include('reports.partials.script')
 
 </x-erp-layout>
