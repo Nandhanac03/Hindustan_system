@@ -139,6 +139,83 @@
     </div>
 </div>
 
+<div class="hidden" style="display: none;">
+    <table id="emiExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="60" style="width: 45pt;" />    {{-- Sl.No --}}
+            <col width="120" style="width: 90pt;" />   {{-- Date --}}
+            <col width="120" style="width: 90pt;" />   {{-- Voucher No --}}
+            <col width="220" style="width: 165pt;" />  {{-- Customer --}}
+            <col width="140" style="width: 105pt;" />  {{-- Payment Method --}}
+            <col width="140" style="width: 105pt;" />  {{-- Inflow Amount --}}
+        </colgroup>
+        <thead>
+            {{-- Empty Spacer Row Top --}}
+            <tr height="20" style="height: 20pt;" data-no-border="true">
+                <th colspan="6" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="6" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    HINDUSTAN ERP : EMI COLLECTION REPORT
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="6" bgcolor="#007398" style="background-color: #007398; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    EMI / Customer Payment Collection Ledger
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="6" bgcolor="#006039" style="background-color: #006039; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    EMI COLLECTION / PAYMENT DETAILS
+                </th>
+            </tr>
+            {{-- Empty Spacer Row Middle --}}
+            <tr height="15" style="height: 15pt;" data-no-border="true">
+                <th colspan="6" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Sl.No</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Date</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Voucher No</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">Customer</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Payment Method</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Inflow Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php $totalAmount = 0; @endphp
+            @foreach($cashBookEntries as $index => $receipt)
+                @php 
+                    $totalAmount += (float)$receipt->amount;
+                    $slNo = $loop->iteration + ($cashBookEntries->currentPage() - 1) * $cashBookEntries->perPage();
+                    $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF'; // F0F8FF is AliceBlue, alternating color like the image
+                    
+                    $paymentColor = '#000000';
+                    if ($receipt->payment_mode === 'Cash') {
+                        $paymentColor = '#008000'; // Green
+                    } elseif ($receipt->payment_mode === 'Cheque') {
+                        $paymentColor = '#008080'; // Teal
+                    }
+                @endphp
+                <tr height="25" style="height: 25pt;">
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: normal; color: #000000;">{{ $slNo }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; mso-number-format:'yyyy-mm-dd'; color: #000000;">{{ $receipt->receipt_date?->format('Y-m-d') }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">REC-{{ sprintf("%05d", $receipt->id) }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; color: #000000;">{{ $receipt->customer?->name ?? '—' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: {{ $paymentColor }}; font-weight: bold;">{{ $receipt->payment_mode }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $receipt->amount }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr height="30" style="height: 30pt;">
+                <td colspan="5" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; font-size: 11pt;">TOTAL EMI COLLECTION</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $totalAmount }}</td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
 @include('reports.partials.script')
 
 </x-erp-layout>

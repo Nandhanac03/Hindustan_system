@@ -52,6 +52,12 @@ function reportsApp() {
                     filename = 'HindustanERP_Sales_Booking_Report.xlsx';
                     isSales = true;
                 }
+            } else if (this.activeTab === 'emi_collections') {
+                const excelTable = document.querySelector("#emiExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_EMI_Collection_Report.xlsx';
+                }
             }
 
             if (!table) {
@@ -254,12 +260,14 @@ function reportsApp() {
                     };
 
                     // Add thin gray borders
-                    excelCell.border = {
-                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-                    };
+                    if (cell.getAttribute("data-no-border") !== "true" && tr.getAttribute("data-no-border") !== "true") {
+                        excelCell.border = {
+                            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                        };
+                    }
 
                     colIdx += colspan;
                 }
