@@ -703,6 +703,7 @@ class ReportController extends Controller
         $activeTab = 'customer_ledger';
 
         $selectedCustomer = null;
+        $selectedCustomers = collect();
         $totalDebits = 0;
         $totalCredits = 0;
         $closingBalance = 0;
@@ -711,9 +712,10 @@ class ReportController extends Controller
 
         if ($request->filled('customer_id')) {
             $customerIds = is_array($request->customer_id) ? $request->customer_id : [$request->customer_id];
-            $selectedCustomer = Customer::whereIn('id', $customerIds)->first();
-            if ($selectedCustomer) {
-                $salesQuery = Sale::with(['project', 'unit', 'receipts'])
+            $selectedCustomers = Customer::whereIn('id', $customerIds)->get();
+            $selectedCustomer = $selectedCustomers->first();
+            if ($selectedCustomer && $selectedCustomers->isNotEmpty()) {
+                $salesQuery = Sale::with(['project', 'unit', 'receipts', 'customer'])
                     ->whereIn('customer_id', $customerIds)
                     ->where('status', 'active');
                 if ($request->filled('project_id')) {
@@ -723,23 +725,28 @@ class ReportController extends Controller
 
                 $ledgerQuery = collect();
                 foreach ($sales as $sale) {
+                    $cName = $sale->customer?->name ?? 'Customer #' . $sale->customer_id;
                     $ledgerQuery->push([
-                        'date' => Carbon::parse($sale->sale_date)->format('d M Y'),
-                        'description' => 'Sale Agreement Registration' . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
-                        'debit' => (float)$sale->total_amount,
-                        'credit' => 0.0,
-                        'payment_mode' => '—',
-                        'ref_no' => $sale->sale_number,
+                        'customer_id'   => $sale->customer_id,
+                        'customer_name' => $cName,
+                        'date'          => Carbon::parse($sale->sale_date)->format('d M Y'),
+                        'description'   => 'Sale Agreement Registration' . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
+                        'debit'         => (float)$sale->total_amount,
+                        'credit'        => 0.0,
+                        'payment_mode'  => '—',
+                        'ref_no'        => $sale->sale_number,
                     ]);
 
                     foreach ($sale->receipts as $receipt) {
                         $ledgerQuery->push([
-                            'date' => Carbon::parse($receipt->receipt_date)->format('d M Y'),
-                            'description' => 'Payment Receipt' . ($receipt->remarks ? " — {$receipt->remarks}" : ""),
-                            'debit' => 0.0,
-                            'credit' => (float)$receipt->amount,
-                            'payment_mode' => $receipt->payment_mode,
-                            'ref_no' => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                            'customer_id'   => $sale->customer_id,
+                            'customer_name' => $cName,
+                            'date'          => Carbon::parse($receipt->receipt_date)->format('d M Y'),
+                            'description'   => 'Payment Receipt' . ($receipt->remarks ? " — {$receipt->remarks}" : ""),
+                            'debit'         => 0.0,
+                            'credit'        => (float)$receipt->amount,
+                            'payment_mode'  => $receipt->payment_mode,
+                            'ref_no'        => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
                         ]);
                     }
                 }
@@ -836,7 +843,7 @@ class ReportController extends Controller
             );
         }
 
-        return view('reports.customer-ledger', array_merge($lookups, compact('activeTab', 'selectedCustomer', 'ledgerEntries', 'customerSummaryList', 'totalDebits', 'totalCredits', 'closingBalance')));
+        return view('reports.customer-ledger', array_merge($lookups, compact('activeTab', 'selectedCustomer', 'selectedCustomers', 'ledgerEntries', 'customerSummaryList', 'totalDebits', 'totalCredits', 'closingBalance')));
     }
 
     public function cashBook(Request $request): View
