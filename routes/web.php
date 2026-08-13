@@ -283,6 +283,27 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['get', 'post', 'delete'], '/company-bank-accounts/{companyBankAccount}', [\App\Http\Controllers\CompanyBankAccountController::class, 'destroy'])->name('company-bank-accounts.destroy');
     Route::match(['get', 'post', 'delete'], '/company-bank-accounts/{companyBankAccount}/delete', [\App\Http\Controllers\CompanyBankAccountController::class, 'destroy'])->name('company-bank-accounts.destroy.post');
 
+    // Chart of Accounts Master Module
+    Route::get('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'index'])->name('chart-of-accounts.index');
+    Route::post('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'store'])->name('chart-of-accounts.store');
+    Route::match(['put', 'post'], '/chart-of-accounts/{chartOfAccount}', [\App\Http\Controllers\ChartOfAccountController::class, 'update'])->name('chart-of-accounts.update');
+    Route::match(['get', 'post', 'delete'], '/chart-of-accounts/{chartOfAccount}', [\App\Http\Controllers\ChartOfAccountController::class, 'destroy'])->name('chart-of-accounts.destroy');
+    Route::post('/chart-of-accounts/{chartOfAccount}/toggle-status', [\App\Http\Controllers\ChartOfAccountController::class, 'toggleStatus'])->name('chart-of-accounts.toggle-status');
+
+    // Voucher Type Master Module
+    Route::get('/voucher-types', [\App\Http\Controllers\VoucherTypeController::class, 'index'])->name('voucher-types.index');
+    Route::post('/voucher-types', [\App\Http\Controllers\VoucherTypeController::class, 'store'])->name('voucher-types.store');
+    Route::match(['put', 'post'], '/voucher-types/{voucherType}', [\App\Http\Controllers\VoucherTypeController::class, 'update'])->name('voucher-types.update');
+    Route::match(['get', 'post', 'delete'], '/voucher-types/{voucherType}', [\App\Http\Controllers\VoucherTypeController::class, 'destroy'])->name('voucher-types.destroy');
+    Route::post('/voucher-types/{voucherType}/toggle-status', [\App\Http\Controllers\VoucherTypeController::class, 'toggleStatus'])->name('voucher-types.toggle-status');
+
+    // Engineer Master Module
+    Route::get('/engineers', [\App\Http\Controllers\EngineerController::class, 'index'])->name('engineers.index');
+    Route::post('/engineers', [\App\Http\Controllers\EngineerController::class, 'store'])->name('engineers.store');
+    Route::match(['put', 'post'], '/engineers/{engineer}', [\App\Http\Controllers\EngineerController::class, 'update'])->name('engineers.update');
+    Route::match(['get', 'post', 'delete'], '/engineers/{engineer}', [\App\Http\Controllers\EngineerController::class, 'destroy'])->name('engineers.destroy');
+    Route::post('/engineers/{engineer}/toggle-status', [\App\Http\Controllers\EngineerController::class, 'toggleStatus'])->name('engineers.toggle-status');
+
 
     // GST Master
     Route::get('/gst', function() {
