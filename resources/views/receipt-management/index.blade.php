@@ -56,8 +56,8 @@
             </div>
         </div>
 
-        <!-- ── KPI EXECUTIVE CARDS BAR (Matching Brokerage Management 3-Card Colors & Box Effect) ── -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+        <!-- ── KPI EXECUTIVE CARDS BAR ── -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Card 1: Total Collections (Gold Accent) -->
             <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
                 <div>
@@ -101,6 +101,21 @@
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </div>
             </div>
+
+            <!-- Card 4: Bounced Receipts (Rose Accent) -->
+            <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-rose-600 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">Bounced Receipts</span>
+                        <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[9px] font-black uppercase tracking-wider">DISHONOURED</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">{{ $bouncedCount ?? 0 }}</h3>
+                    <span class="text-[10px] text-rose-700 font-bold block mt-0.5">₹{{ number_format($bouncedAmount ?? 0, 2) }} Total Bounced</span>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                </div>
+            </div>
         </div>
 
         <!-- ── TAB CONTROL: SEPARATE VIEWS FOR INBOUND RECEIPTS vs STORED BANK RECEIPTS (RECEIPT_STORES) ── -->
@@ -134,26 +149,25 @@
             <!-- Left Panel: Inbound Payment Receipts Directory (2/3 width) -->
             <div class="w-2/3 min-w-0 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between shrink-0">
                 <div>
-                    <!-- Header with Filters -->
-                    <div class="px-6 py-5 bg-slate-50 text-slate-900 border-b border-slate-200">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h3 class="text-sm font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                                    <span>INBOUND CHEQUE & PAYMENT RECEIPTS</span>
-                                    <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-black uppercase" x-text="filterPaymentMode ? filterPaymentMode + ' MODE' : 'ALL MODES'"></span>
-                                </h3>
-                                <p class="text-xs text-slate-500 font-medium mt-0.5">Select single or multiple receipts to store amounts in company bank account</p>
-                            </div>
-                            
-                            <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-800">
-                                <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
-                                <span class="text-xs font-black" x-text="filteredReceipts().length"></span>
-                                <span class="text-xs font-bold text-amber-900">Receipts Found</span>
-                            </div>
+                    <!-- Section Title Bar (gold header style matching ERP) -->
+                    <div class="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                INBOUND CHEQUE & PAYMENT RECEIPTS
+                                <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-black uppercase" x-text="filterPaymentMode ? filterPaymentMode + ' MODE' : 'ALL MODES'"></span>
+                            </h3>
+                            <p class="text-xs text-slate-500 font-medium mt-0.5">Select single or multiple receipts to store amounts in company bank account</p>
                         </div>
+                        <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-100 border border-amber-300 text-amber-800">
+                            <div class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></div>
+                            <span class="text-xs font-black" x-text="filteredReceipts().length"></span>
+                            <span class="text-xs font-bold text-amber-900">Receipts Found</span>
+                        </div>
+                    </div>
 
-                        <!-- Filters Grid (Default Payment Mode: Cheque Only) -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+                    <!-- Separate Filter Bar (matching ERP design) -->
+                    <div class="px-6 py-4 bg-white border-b border-slate-200">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                             <div class="relative flex items-center">
                                 <span class="absolute left-3.5 text-slate-400">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -161,9 +175,8 @@
                                 <input type="text" x-model="searchQuery" placeholder="Search receipt #, customer..."
                                        class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-300 hover:border-slate-400 rounded-xl text-xs font-semibold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#a38c29] transition-all">
                             </div>
-                            
                             {{-- Payment Mode Filter --}}
-                            <div class="relative flex items-center">
+                            <div>
                                 <select x-model="filterPaymentMode" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]">
                                     <option value="">All Payment Modes (Default)</option>
                                     <option value="Cheque">Cheque Payment Mode Only</option>
@@ -173,8 +186,7 @@
                                     <option value="Cash">Cash Deposit</option>
                                 </select>
                             </div>
-
-                            <div class="relative flex items-center">
+                            <div>
                                 <select x-model="filterBank" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]">
                                     <option value="">All Company Bank Accounts</option>
                                     @foreach($companyBankAccounts as $bAcc)
@@ -182,8 +194,7 @@
                                     @endforeach
                                 </select>
                             </div>
-
-                            <div class="relative flex items-center">
+                            <div>
                                 <select x-model="filterStorageStatus" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]">
                                     <option value="">All Storage Statuses (Default)</option>
                                     <option value="unstored">Unstored Receipts Only</option>
@@ -250,15 +261,15 @@
                                         {{-- Quick Realize / Bounce Actions with Custom Styled Modals --}}
                                         <td class="px-4 py-3.5 text-center" @click.stop>
                                             <template x-if="r.can_realize && r.realization_status !== 'realized'">
-                                                <div class="flex items-center justify-center gap-1">
+                                                <div class="flex items-center justify-center gap-1.5 flex-wrap">
                                                     <button type="button"
                                                             @click.prevent.stop="openRealizeModal(r)"
-                                                            class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[9px] font-black uppercase transition cursor-pointer shadow-2xs">
+                                                            class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer shadow-sm">
                                                         ✅ REALIZE
                                                     </button>
                                                     <button type="button"
                                                             @click.prevent.stop="openBounceModal(r)"
-                                                            class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[9px] font-black uppercase transition cursor-pointer shadow-2xs">
+                                                            class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-black uppercase tracking-wider transition cursor-pointer shadow-sm">
                                                         ❌ BOUNCE
                                                     </button>
                                                 </div>

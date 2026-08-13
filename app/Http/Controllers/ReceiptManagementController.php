@@ -138,6 +138,8 @@ class ReceiptManagementController extends Controller
         $pendingRealizationAmount= (float) Receipt::whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited'])->sum('amount');
         $storedCount            = $storedReceiptsFormatted->count();
         $totalTransferredAmount = (float) ReceiptStore::sum('amount');
+        $bouncedCount           = Receipt::where('realization_status', 'bounced')->count();
+        $bouncedAmount          = (float) Receipt::where('realization_status', 'bounced')->sum('amount');
 
         $companyBankAccounts = CompanyBankAccount::orderByDesc('is_default')
             ->orderBy('bank_name')
@@ -165,6 +167,8 @@ class ReceiptManagementController extends Controller
             'pendingRealizationAmount',
             'storedCount',
             'totalTransferredAmount',
+            'bouncedCount',
+            'bouncedAmount',
             'companyBankAccounts',
             'totalLiquidity',
             'defaultBankAccount',
