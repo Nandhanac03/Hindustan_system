@@ -58,6 +58,12 @@ function reportsApp() {
                     table = excelTable;
                     filename = 'HindustanERP_EMI_Collection_Report.xlsx';
                 }
+            } else if (this.activeTab === 'gst' || this.activeTab === 'gst_report') {
+                const excelTable = document.querySelector("#gstExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_GST_Statutory_Report.xlsx';
+                }
             }
 
             if (!table) {

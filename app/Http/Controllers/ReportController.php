@@ -444,6 +444,17 @@ class ReportController extends Controller
             'active_section' => $sectionFilter,
         ];
 
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $perPage = 50;
+        $currentPageItems = $gstReportEntries->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $gstReportEntries = new LengthAwarePaginator(
+            $currentPageItems, 
+            $gstReportEntries->count(), 
+            $perPage, 
+            $currentPage, 
+            ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
+        );
+
         return view('reports.gst', array_merge($lookups, compact('activeTab', 'gstReportEntries', 'gstStats')));
     }
 

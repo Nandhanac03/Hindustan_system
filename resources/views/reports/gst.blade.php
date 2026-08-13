@@ -172,20 +172,107 @@
                         </tbody>
                         @if(count($gstReportEntries) > 0)
                         <tfoot>
-                            <tr class="bg-slate-900 text-white border-t-2 border-[#a38c29] text-xs font-black">
-                                <td colspan="5" class="px-3 py-4 text-left uppercase tracking-wider text-slate-200">Total Combined GST Statutory Summary</td>
-                                <td class="px-3 py-4 text-right font-mono text-white">₹{{ number_format($gstStats['total_taxable'] ?? 0, 2) }}</td>
+                            <tr class="bg-slate-50 text-slate-900 border-t-2 border-[#a38c29] text-xs font-black">
+                                <td colspan="5" class="px-3 py-4 text-left uppercase tracking-wider text-slate-700">Total Combined GST Statutory Summary</td>
+                                <td class="px-3 py-4 text-right font-mono text-slate-900">₹{{ number_format($gstStats['total_taxable'] ?? 0, 2) }}</td>
                                 <td class="px-3 py-4 text-center font-mono text-slate-400">—</td>
-                                <td class="px-3 py-4 text-right font-mono text-[#d4af37] text-sm font-black">₹{{ number_format($gstStats['total_tax'] ?? 0, 2) }}</td>
-                                <td class="px-3 py-4 text-right font-mono text-white text-sm font-black">₹{{ number_format(($gstStats['total_taxable'] ?? 0) + ($gstStats['total_tax'] ?? 0), 2) }}</td>
+                                <td class="px-3 py-4 text-right font-mono text-[#a38c29] text-sm font-black">₹{{ number_format($gstStats['total_tax'] ?? 0, 2) }}</td>
+                                <td class="px-3 py-4 text-right font-mono text-slate-900 text-sm font-black">₹{{ number_format(($gstStats['total_taxable'] ?? 0) + ($gstStats['total_tax'] ?? 0), 2) }}</td>
                             </tr>
                         </tfoot>
                         @endif
                     </table>
                 </div>
+                @if($gstReportEntries->hasPages())
+                    <div class="px-6 py-4 border-t border-slate-200/90 bg-slate-50">
+                        {{ $gstReportEntries->appends(request()->query())->links() }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>
+</div>
+
+<div class="hidden" style="display: none;">
+    <table id="gstExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="160" style="width: 120pt;" />  {{-- Tax Nature / Section --}}
+            <col width="140" style="width: 105pt;" />  {{-- Invoice No --}}
+            <col width="120" style="width: 90pt;" />   {{-- Date --}}
+            <col width="240" style="width: 180pt;" />  {{-- Customer / Entity --}}
+            <col width="140" style="width: 105pt;" />  {{-- GSTIN / PAN --}}
+            <col width="140" style="width: 105pt;" />  {{-- Taxable Base --}}
+            <col width="80"  style="width: 60pt;" />   {{-- GST % --}}
+            <col width="140" style="width: 105pt;" />  {{-- GST Amount --}}
+            <col width="140" style="width: 105pt;" />  {{-- Invoice Total --}}
+        </colgroup>
+        <thead>
+            {{-- Empty Spacer Row Top --}}
+            <tr height="20" style="height: 20pt;" data-no-border="true">
+                <th colspan="9" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="9" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    HINDUSTAN ERP : GST STATUTORY REPORT
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="9" bgcolor="#007398" style="background-color: #007398; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    GST Tax Categories Ledger
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="9" bgcolor="#006039" style="background-color: #006039; color: #ffffff; font-weight: bold; font-size: 11pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">
+                    STATUTORY GST TRANSACTIONS & TAX AUDIT
+                </th>
+            </tr>
+            {{-- Empty Spacer Row Middle --}}
+            <tr height="15" style="height: 15pt;" data-no-border="true">
+                <th colspan="9" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Tax Nature / Section</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Invoice No</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">Date</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px;">Customer / Entity</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">GSTIN / PAN</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Taxable Base (₹)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">GST (%)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">GST Amount (₹)</th>
+                <th bgcolor="#34495E" style="background-color: #34495E; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px;">Invoice Total (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($gstReportEntries as $index => $row)
+                @php 
+                    $bgColor = $loop->iteration % 2 == 0 ? '#FFFFFF' : '#F0F8FF';
+                    $taxNatureColor = ($row->tax_nature ?? 'output') === 'output' ? '#8a7522' : '#334155';
+                @endphp
+                <tr height="25" style="height: 25pt;">
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: {{ $taxNatureColor }}; font-weight: bold;">{{ $row->type ?? 'GST' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; color: #000000;">{{ $row->invoice_number ?? 'N/A' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $row->date ?? '' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: left; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-left: 8px; font-weight: bold; color: #000000;">{{ $row->entity_name ?? $row->customer_name ?? 'N/A' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; color: #000000;">{{ $row->gstin ?? 'N/A' }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $row->taxable_value ?? 0 }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: center; vertical-align: middle; border: 0.5pt solid #cbd5e1; font-weight: bold; mso-number-format:'0\.0%'; color: #8a7522;">{{ ($row->gst_rate ?? 0) / 100 }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #8a7522;">{{ $row->total_tax ?? 0 }}</td>
+                    <td bgcolor="{{ $bgColor }}" style="background-color: {{ $bgColor }}; text-align: right; vertical-align: middle; border: 0.5pt solid #cbd5e1; padding-right: 8px; font-weight: bold; mso-number-format:'\#\,\#\#0\.00'; color: #000000;">{{ $row->grand_total ?? 0 }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        @if(count($gstReportEntries) > 0)
+        <tfoot>
+            <tr height="30" style="height: 30pt;">
+                <td colspan="5" bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; font-size: 11pt;">Total Combined GST Statutory Summary</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $gstStats['total_taxable'] ?? 0 }}</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #475569; font-size: 11pt;">—</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #d4af37; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ $gstStats['total_tax'] ?? 0 }}</td>
+                <td bgcolor="#2C3E50" style="background-color: #2C3E50; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; font-size: 11pt; mso-number-format:'\#\,\#\#0\.00';">{{ ($gstStats['total_taxable'] ?? 0) + ($gstStats['total_tax'] ?? 0) }}</td>
+            </tr>
+        </tfoot>
+        @endif
+    </table>
 </div>
 
 @include('reports.partials.script')
