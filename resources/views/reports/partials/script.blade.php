@@ -88,6 +88,12 @@ function reportsApp() {
                     table = excelTable;
                     filename = 'HindustanERP_Unit_Exchange_Report.xlsx';
                 }
+            } else if (this.activeTab === 'loan_schedules') {
+                const excelTable = document.querySelector("#loanScheduleExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Loan_Schedules_Report.xlsx';
+                }
             }
 
             if (!table) {
