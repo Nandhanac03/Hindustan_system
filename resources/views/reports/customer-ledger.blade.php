@@ -232,32 +232,88 @@
 
                 @if($selectedCustomers && $selectedCustomers->isNotEmpty())
                 <div id="ledger-results"></div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 border border-[#a38c29]/30 rounded-2xl p-5 bg-gradient-to-r from-[#a38c29]/10 via-[#a38c29]/5 to-transparent space-y-4">
-                        <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider">Statement Information</h4>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">
-                                    {{ $selectedCustomers->count() > 1 ? 'Selected Customers (' . $selectedCustomers->count() . ')' : 'Customer Name' }}
-                                </span>
-                                <strong class="text-slate-900 text-sm block mt-0.5">{{ $selectedCustomers->pluck('name')->implode(', ') }}</strong>
-                                @if($selectedCustomers->count() === 1)
-                                    <span class="text-slate-500 block text-[10px] mt-0.5">{{ $selectedCustomers->first()->phone }}</span>
-                                @else
-                                    <span class="text-slate-500 block text-[10px] mt-0.5">Combined Ledger & Account Statement</span>
-                                @endif
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                    {{-- Card 1: Customer Statement & Financial Overview (Light Theme) --}}
+                    <div class="lg:col-span-7 bg-white rounded-2xl p-5 border border-[#a38c29]/30 shadow-2xs flex flex-col justify-between space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-xl bg-[#a38c29]/15 border border-[#a38c29]/30 flex items-center justify-center text-[#8a7522] font-bold shrink-0">
+                                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-[9px] font-black text-[#8a7522] uppercase tracking-widest block">Statement Target</span>
+                                    <h4 class="text-sm font-extrabold text-slate-900 truncate max-w-md">
+                                        {{ $selectedCustomers->pluck('name')->implode(', ') }}
+                                    </h4>
+                                </div>
                             </div>
-                            <div class="text-right">
-                                <span class="text-[9px] text-slate-400 uppercase tracking-widest block font-bold">Net Outstanding Due</span>
-                                <strong class="text-rose-600 font-mono text-lg block mt-0.5">₹{{ number_format($closingBalance, 2) }}</strong>
+                            <span class="px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200/80 text-[10px] font-extrabold text-[#8a7522] uppercase tracking-wider shrink-0 ml-2">
+                                {{ $selectedCustomers->count() > 1 ? $selectedCustomers->count() . ' Customers Selected' : ($selectedCustomers->first()->phone ?? 'Single Account') }}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3 pt-1">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Total Billed / Sale</span>
+                                <span class="text-sm font-mono font-black text-slate-900 block">₹{{ number_format($totalDebits, 2) }}</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/80 space-y-1">
+                                <span class="text-[9px] font-bold text-emerald-700 uppercase tracking-wider block">Total Paid Receipts</span>
+                                <span class="text-sm font-mono font-black text-emerald-700 block">₹{{ number_format($totalCredits, 2) }}</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200/80 space-y-1">
+                                <span class="text-[9px] font-bold text-rose-700 uppercase tracking-wider block">Net Outstanding</span>
+                                <span class="text-sm font-mono font-black text-rose-700 block">₹{{ number_format($closingBalance, 2) }}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="lg:col-span-1 border border-[#a38c29]/30 rounded-2xl p-4 bg-gradient-to-r from-[#a38c29]/10 via-[#a38c29]/5 to-transparent flex flex-col justify-center">
-                        <h4 class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider mb-2">History & Ledger Mix</h4>
-                        <div id="customerPaymentHistoryChart" class="w-full h-36"
-                             data-credits='@js(($ledgerEntries ?? collect())->where("credit", ">", 0)->pluck("credit")->map(fn($v) => (float)$v)->values())'
-                             data-dates='@js(($ledgerEntries ?? collect())->where("credit", ">", 0)->pluck("date")->values())'></div>
+
+                    {{-- Card 2: Financial Ledger Mix & Recovery Donut Visualizer --}}
+                    <div class="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                            <div>
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-800">Financial Ledger Mix</h4>
+                                <p class="text-[10px] text-slate-400 font-medium">Collections vs Pending Dues Balance</p>
+                            </div>
+                            @php
+                                $pct = $totalDebits > 0 ? min(100, round(($totalCredits / $totalDebits) * 100, 1)) : 0;
+                            @endphp
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-black">
+                                {{ $pct }}% Collected
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-12 items-center gap-2">
+                            <div class="col-span-6 flex justify-center">
+                                <div id="customerLedgerDonutChart" class="w-full h-32" 
+                                     data-credits="{{ $totalCredits }}" 
+                                     data-dues="{{ $closingBalance }}"></div>
+                            </div>
+                            <div class="col-span-6 space-y-2 text-[11px] font-medium pl-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                    <div class="min-w-0">
+                                        <span class="text-slate-400 block text-[9px] uppercase font-bold">Collected</span>
+                                        <span class="font-mono font-bold text-slate-800 truncate block">₹{{ number_format($totalCredits, 0) }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></span>
+                                    <div class="min-w-0">
+                                        <span class="text-slate-400 block text-[9px] uppercase font-bold">Outstanding</span>
+                                        <span class="font-mono font-bold text-slate-800 truncate block">₹{{ number_format($closingBalance, 0) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Progress Bar --}}
+                        <div class="space-y-1 pt-1">
+                            <div class="w-full h-2 rounded-full bg-rose-100 overflow-hidden flex">
+                                <div class="h-full bg-emerald-500 transition-all duration-500" style="width: {{ $pct }}%"></div>
+                                <div class="h-full bg-rose-500 transition-all duration-500" style="width: {{ 100 - $pct }}%"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
