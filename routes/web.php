@@ -410,6 +410,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/payment-modes/{id}/delete', [\App\Http\Controllers\PaymentModeController::class, 'destroy'])->name('payment-modes.destroy');
     Route::post('/payment-modes/{id}/toggle-status', [\App\Http\Controllers\PaymentModeController::class, 'toggleStatus'])->name('payment-modes.toggle-status');
 
+    // Cheque Status Master Module
+    Route::resource('cheque-statuses', \App\Http\Controllers\ChequeStatusController::class)->except(['create', 'show', 'edit']);
+
     // Receipt Management Module
     Route::get('/receipt-management', [\App\Http\Controllers\ReceiptManagementController::class, 'index'])->name('receipt-management.index');
     Route::post('/receipt-management', [\App\Http\Controllers\ReceiptManagementController::class, 'store'])->name('receipt-management.store');
@@ -428,6 +431,21 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/vouchers/treasury-payment', [\App\Http\Controllers\VoucherController::class, 'treasuryPaymentIndex'])->name('vouchers.treasury-payment.index');
     Route::post('/vouchers/treasury-payment', [\App\Http\Controllers\VoucherController::class, 'treasuryPayment'])->name('vouchers.treasury-payment');
     Route::get('/vouchers/{id}/payment-voucher-print', [\App\Http\Controllers\VoucherController::class, 'printPaymentVoucher'])->name('vouchers.payment-voucher-print');
+
+    Route::get('/treasury/dashboard', [\App\Http\Controllers\TreasuryController::class, 'dashboard'])->name('treasury.dashboard');
+    
+    // Outward Payments Workflow (Screens 5.5 - 5.6)
+    Route::get('/outward-payments/create', [\App\Http\Controllers\OutwardPaymentController::class, 'create'])->name('outward-payments.create');
+    Route::post('/outward-payments', [\App\Http\Controllers\OutwardPaymentController::class, 'store'])->name('outward-payments.store');
+    Route::get('/outward-payments/voucher', [\App\Http\Controllers\OutwardPaymentController::class, 'voucher'])->name('outward-payments.voucher');
+    
+    // Cheque Realization Workflow (Steps 5.2 – 5.4)
+    Route::get('/cheque-realization/queue', [\App\Http\Controllers\ChequeRealizationController::class, 'realizationQueue'])->name('cheque-realization.queue');
+    Route::get('/cheque-realization/realized', [\App\Http\Controllers\ChequeRealizationController::class, 'realizedReceipts'])->name('cheque-realization.realized');
+    Route::get('/cheque-realization/{id}/process', [\App\Http\Controllers\ChequeRealizationController::class, 'showRealizationProcess'])->name('cheque-realization.process');
+    Route::post('/cheque-realization/{id}/realize', [\App\Http\Controllers\ChequeRealizationController::class, 'realize'])->name('cheque-realization.realize');
+    Route::post('/cheque-realization/{id}/bounced', [\App\Http\Controllers\ChequeRealizationController::class, 'markBounced'])->name('cheque-realization.bounced');
+    Route::post('/cheque-realization/{id}/advance-status', [\App\Http\Controllers\ChequeRealizationController::class, 'advanceStatus'])->name('cheque-realization.advance-status');
 });
 
 require __DIR__ . '/auth.php';
