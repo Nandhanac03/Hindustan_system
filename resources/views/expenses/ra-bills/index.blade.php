@@ -250,21 +250,30 @@
                             <!-- ACTIONS -->
                             <td class="px-3 py-3.5 text-center">
                                 <div class="inline-flex items-center gap-1.5">
-                                    <!-- Verify Button -->
-                                    <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                            class="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 shadow-2xs"
-                                            title="Engineer Sign-off & Apply Correction">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span>Verify</span>
-                                    </button>
+                                    <!-- Verify Button / Verified Done Badge -->
+                                    @if($bill->verified_date)
+                                        <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-extrabold uppercase transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
+                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            <span>VERIFIED DONE</span>
+                                        </button>
+                                    @else
+                                        <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                title="Engineer Sign-off & Apply Correction">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>VERIFY</span>
+                                        </button>
+                                    @endif
 
                                     <!-- Pay Installment Button -->
                                     @if((float)$bill->balance_amount > 0)
                                         <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
-                                                class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 shadow-2xs"
+                                                class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 shadow-2xs cursor-pointer"
                                                 title="Disburse Staggered Payment">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                            <span>Pay</span>
+                                            <span>PAY</span>
                                         </button>
                                     @endif
                                 </div>
@@ -412,27 +421,36 @@
             <form :action="selectedBill ? `/expenses/ra-bills/${selectedBill.id}/verify` : '#'" method="POST" class="p-5 space-y-4">
                 @csrf
                 
-                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1 text-xs">
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5 text-xs">
                     <div class="flex justify-between font-bold text-amber-900">
                         <span>RA BILL NO: <span x-text="selectedBill ? selectedBill.ra_bill_number : ''"></span></span>
                         <span>GROSS CLAIMED: <span x-text="selectedBill ? '₹' + numberFormat(selectedBill.gross_amount) : ''"></span></span>
                     </div>
+                    <template x-if="selectedBill && selectedBill.verified_date">
+                        <div class="text-[11px] text-emerald-800 font-extrabold pt-1.5 border-t border-amber-200/80 flex items-center justify-between">
+                            <span class="flex items-center gap-1 text-emerald-700">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>VERIFICATION ALREADY DONE</span>
+                            </span>
+                            <span x-text="'Verified By: ' + (selectedBill.engineer_name || 'Engineer')"></span>
+                        </div>
+                    </template>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">VERIFIED DATE *</label>
-                        <input type="date" name="verified_date" value="{{ date('Y-m-d') }}" required
+                        <input type="date" name="verified_date" x-model="verifyDateInput" required
                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                     </div>
 
                     <div>
                         <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">SITE ENGINEER (FROM MASTER) *</label>
-                        <select name="engineer_id" required
+                        <select name="engineer_id" x-model="selectedEngineerId" required
                                 class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
                             <option value="">Select Verifying Engineer</option>
                             @foreach($engineers as $eng)
-                                <option value="{{ $eng->id }}">
+                                <option value="{{ $eng->id }}" :selected="selectedEngineerId == {{ $eng->id }}">
                                     {{ $eng->name }} {{ $eng->designation ? '('.$eng->designation.')' : '' }}
                                 </option>
                             @endforeach
@@ -456,13 +474,14 @@
 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">VERIFICATION REMARKS</label>
-                    <textarea name="remarks" rows="2" placeholder="Details of corrections/retentions applied..."
+                    <textarea name="remarks" rows="2" x-model="verifyRemarksInput" placeholder="Details of corrections/retentions applied..."
                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button type="button" @click="verifyModalOpen = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md">Confirm Sign-Off</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md"
+                            x-text="selectedBill && selectedBill.verified_date ? 'Update Verification Sign-Off' : 'Confirm Sign-Off'"></button>
                 </div>
             </form>
         </div>
@@ -556,6 +575,10 @@ function raBillManagement() {
         selectedProjectId: '{{ old('project_id') }}',
         allUnits: @json($units),
         availableUnits: [],
+        allEngineers: @json($engineers),
+        selectedEngineerId: '',
+        verifyDateInput: '{{ date("Y-m-d") }}',
+        verifyRemarksInput: '',
 
         init() {
             this.filterUnits();
@@ -573,6 +596,17 @@ function raBillManagement() {
             this.selectedBill = bill;
             this.correctionInput = bill.correction_amount || 0;
             this.calculatedNet = Math.max(0, bill.gross_amount - this.correctionInput);
+            this.verifyRemarksInput = bill.remarks || '';
+            
+            if (bill.verified_date) {
+                this.verifyDateInput = String(bill.verified_date).substring(0, 10);
+            } else {
+                this.verifyDateInput = '{{ date("Y-m-d") }}';
+            }
+
+            let matchedEng = this.allEngineers.find(e => bill.engineer_name && bill.engineer_name.toLowerCase().includes(e.name.toLowerCase()));
+            this.selectedEngineerId = matchedEng ? matchedEng.id : (bill.engineer_id || '');
+
             this.verifyModalOpen = true;
         },
 
