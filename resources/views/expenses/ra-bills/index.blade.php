@@ -135,7 +135,7 @@
                 <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider sticky top-0 z-10">
                     <tr>
                         <th class="px-3 py-3.5 text-center">RA BILL NO</th>
-                        <th class="px-3 py-3.5">CONTRACTOR / PROJECT</th>
+                        <th class="px-3 py-3.5">CONTRACTOR / PROJECT / UNIT</th>
                         <th class="px-3 py-3.5 text-center">SUBMIT DATE</th>
                         <th class="px-3 py-3.5 text-right">RA BILL AMOUNT</th>
                         <th class="px-3 py-3.5 text-center">VERIFIED DATE</th>
@@ -157,10 +157,16 @@
                                 {{ $bill->ra_bill_number }}
                             </td>
 
-                            <!-- CONTRACTOR / PROJECT -->
+                            <!-- CONTRACTOR / PROJECT / UNIT -->
                             <td class="px-3 py-3.5">
                                 <div class="font-bold text-slate-900">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
-                                <div class="text-[10px] text-slate-500 font-semibold">{{ $bill->project->name ?? 'Site Project' }}</div>
+                                <div class="text-[10px] text-slate-500 font-semibold flex items-center gap-1.5 mt-0.5">
+                                    <span>{{ $bill->project->name ?? 'Site Project' }}</span>
+                                    @if($bill->unit_name || $bill->unit)
+                                        <span class="text-slate-300">•</span>
+                                        <span class="bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded text-[9px] font-bold">Unit: {{ $bill->unit_name ?: ($bill->unit->door_no ?? '') }}</span>
+                                    @endif
+                                </div>
                             </td>
 
                             <!-- RA BILL SUBMIT DATE -->
@@ -292,50 +298,88 @@
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">RA BILL NO *</label>
-                        <input type="text" name="ra_bill_number" placeholder="e.g. 1 or RA-001" required
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : 'text-slate-600' }}">RA BILL NO *</label>
+                        <input type="text" name="ra_bill_number" value="{{ old('ra_bill_number') }}" placeholder="e.g. 1 or RA-001" required
+                               class="w-full px-3 py-2 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]' }}">
+                        @error('ra_bill_number')
+                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">CONTRACTOR SUBMIT DATE *</label>
-                        <input type="date" name="submit_date" value="{{ date('Y-m-d') }}" required
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('submit_date') ? 'text-rose-600' : 'text-slate-600' }}">CONTRACTOR SUBMIT DATE *</label>
+                        <input type="date" name="submit_date" value="{{ old('submit_date', date('Y-m-d')) }}" required
+                               class="w-full px-3 py-2 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]' }}">
+                        @error('submit_date')
+                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">CONTRACTOR NAME  *</label>
-                        <select name="contractor_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                            <option value="">Select Contractor </option>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('contractor_id') ? 'text-rose-600' : 'text-slate-600' }}">CONTRACTOR NAME *</label>
+                        <select name="contractor_id" required 
+                                class="w-full px-3 py-2 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]' }}">
+                            <option value="">Select Contractor</option>
                             @foreach($contractors as $contractor)
-                                <option value="{{ $contractor->id }}">{{ $contractor->name }}</option>
+                                <option value="{{ $contractor->id }}" {{ old('contractor_id') == $contractor->id ? 'selected' : '' }}>{{ $contractor->name }}</option>
                             @endforeach
                         </select>
+                        @error('contractor_id')
+                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">SITE PROJECT</label>
-                        <select name="project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('project_id') ? 'text-rose-600' : 'text-slate-600' }}">SITE PROJECT *</label>
+                        <select name="project_id" x-model="selectedProjectId" @change="filterUnits()" required 
+                                class="w-full px-3 py-2 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]' }}">
                             <option value="">Select Project</option>
                             @foreach($projects as $proj)
-                                <option value="{{ $proj->id }}">{{ $proj->name }}</option>
+                                <option value="{{ $proj->id }}" {{ old('project_id') == $proj->id ? 'selected' : '' }}>{{ $proj->name }}</option>
                             @endforeach
                         </select>
+                        @error('project_id')
+                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">RA BILL GROSS AMOUNT (₹) *</label>
-                        <input type="number" step="0.01" name="gross_amount" placeholder="5000000" required
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-black text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('unit_id') ? 'text-rose-600' : 'text-slate-600' }}">UNIT *</label>
+                        <select name="unit_id" required 
+                                class="w-full px-3 py-2 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('unit_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]' }}">
+                            <option value="">Select Unit</option>
+                            <template x-for="u in availableUnits" :key="u.id">
+                                <option :value="u.id" x-text="u.door_no" :selected="u.id == {{ old('unit_id', 0) }}"></option>
+                            </template>
+                            @if(empty(old('project_id')))
+                                @foreach($units as $u)
+                                    <option value="{{ $u->id }}" {{ old('unit_id') == $u->id ? 'selected' : '' }}>{{ $u->door_no }}</option>
+                                @endforeach
+                            @endif
+                        </select>
+                        @error('unit_id')
+                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                        @enderror
                     </div>
 
                     <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 {{ $errors->has('gross_amount') ? 'text-rose-600' : 'text-slate-600' }}">RA BILL GROSS AMOUNT (₹) *</label>
+                        <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
+                               class="w-full px-3 py-2 rounded-xl text-xs font-mono font-black focus:outline-none transition-all {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]' }}">
+                        @error('gross_amount')
+                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
                         <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">RA BILL DUE DATE</label>
-                        <input type="date" name="due_date"
+                        <input type="date" name="due_date" value="{{ old('due_date') }}"
                                class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
                     </div>
                 </div>
@@ -343,7 +387,7 @@
                 <div class="border-t border-slate-100 pt-3">
                     <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">REMARKS / NOTES</label>
                     <textarea name="remarks" rows="2" placeholder="Notes regarding progress work done..."
-                              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none"></textarea>
+                              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">{{ old('remarks') }}</textarea>
                 </div>
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
@@ -503,12 +547,27 @@
 function raBillManagement() {
     return {
         searchQuery: '',
-        addModalOpen: false,
+        addModalOpen: {{ $errors->any() ? 'true' : 'false' }},
         verifyModalOpen: false,
         disburseModalOpen: false,
         selectedBill: null,
         correctionInput: 0,
         calculatedNet: 0,
+        selectedProjectId: '{{ old('project_id') }}',
+        allUnits: @json($units),
+        availableUnits: [],
+
+        init() {
+            this.filterUnits();
+        },
+
+        filterUnits() {
+            if (!this.selectedProjectId) {
+                this.availableUnits = this.allUnits;
+            } else {
+                this.availableUnits = this.allUnits.filter(u => u.project_id == this.selectedProjectId);
+            }
+        },
 
         openVerifyModal(bill) {
             this.selectedBill = bill;

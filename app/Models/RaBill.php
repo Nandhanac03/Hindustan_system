@@ -18,6 +18,8 @@ class RaBill extends Model
         'contractor_id',
         'contractor_name',
         'project_id',
+        'unit_id',
+        'unit_name',
         'submit_date',
         'gross_amount',
         'verified_date',
@@ -51,6 +53,11 @@ class RaBill extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class, 'project_id');
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class, 'unit_id');
     }
 
     public function payments(): HasMany

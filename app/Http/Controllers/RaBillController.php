@@ -9,6 +9,7 @@ use App\Models\Payee;
 use App\Models\Project;
 use App\Models\RaBill;
 use App\Models\RaBillPayment;
+use App\Models\Unit;
 use App\Services\ChequeRealizationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -27,7 +28,7 @@ class RaBillController extends Controller
     {
         $systemId = Auth::user()->system_id ?? 1;
 
-        $raBills = RaBill::with(['contractor', 'project', 'payments.companyBankAccount', 'payments.voucher'])
+        $raBills = RaBill::with(['contractor', 'project', 'unit', 'payments.companyBankAccount', 'payments.voucher'])
             ->where('system_id', $systemId)
             ->orderBy('id', 'desc')
             ->get();
@@ -47,6 +48,8 @@ class RaBillController extends Controller
         $projects = Project::where('system_id', $systemId)
             ->orderBy('name')
             ->get(['id', 'name']);
+
+        $units = Unit::orderBy('door_no')->get(['id', 'door_no', 'project_id']);
 
         $engineers = Engineer::where('is_active', true)->orderBy('name')->get();
         if ($engineers->isEmpty()) {
@@ -72,6 +75,7 @@ class RaBillController extends Controller
             'raBills',
             'contractors',
             'projects',
+            'units',
             'engineers',
             'companyBankAccounts',
             'totalGross',
@@ -91,9 +95,10 @@ class RaBillController extends Controller
 
         $validated = $request->validate([
             'ra_bill_number'    => ['required', 'string', 'unique:ra_bills,ra_bill_number'],
-            'contractor_id'     => ['nullable', 'exists:payees,id'],
+            'contractor_id'     => ['required', 'exists:payees,id'],
             'contractor_name'   => ['nullable', 'string', 'max:255'],
-            'project_id'        => ['nullable', 'exists:projects,id'],
+            'project_id'        => ['required', 'exists:projects,id'],
+            'unit_id'           => ['required', 'exists:units,id'],
             'submit_date'       => ['required', 'date'],
             'gross_amount'      => ['required', 'numeric', 'min:0.01'],
             'verified_date'     => ['nullable', 'date'],
@@ -101,6 +106,13 @@ class RaBillController extends Controller
             'correction_amount' => ['nullable', 'numeric', 'min:0'],
             'due_date'          => ['nullable', 'date'],
             'remarks'           => ['nullable', 'string', 'max:500'],
+        ], [
+            'ra_bill_number.required' => 'The RA Bill Number field is required.',
+            'contractor_id.required'  => 'The Contractor field is required.',
+            'project_id.required'     => 'The Site Project field is required.',
+            'unit_id.required'        => 'The Unit field is required.',
+            'submit_date.required'    => 'The Submit Date field is required.',
+            'gross_amount.required'   => 'The Gross Amount field is required.',
         ]);
 
         $gross = (float) $validated['gross_amount'];
@@ -112,12 +124,19 @@ class RaBillController extends Controller
             $contractorName = Payee::find($validated['contractor_id'])?->name;
         }
 
+        $unitName = null;
+        if (!empty($validated['unit_id'])) {
+            $unitName = Unit::find($validated['unit_id'])?->door_no;
+        }
+
         RaBill::create([
             'system_id'           => $systemId,
             'ra_bill_number'      => $validated['ra_bill_number'],
             'contractor_id'       => $validated['contractor_id'] ?? null,
             'contractor_name'     => $contractorName,
             'project_id'          => $validated['project_id'] ?? null,
+            'unit_id'             => $validated['unit_id'] ?? null,
+            'unit_name'           => $unitName,
             'submit_date'         => $validated['submit_date'],
             'gross_amount'        => $gross,
             'verified_date'       => $validated['verified_date'] ?? null,
