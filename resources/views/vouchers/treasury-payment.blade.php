@@ -20,7 +20,10 @@
                     <span class="text-slate-300">›</span>
                     <span class="text-[#a38c29] font-black">Treasury Disbursement</span>
                 </div>
-                <h1 class="text-xl font-black text-slate-900 mt-1">💸 Treasury Disbursement Workspace</h1>
+                <h1 class="text-xl font-black text-slate-900 mt-1 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span>Treasury Disbursement Workspace</span>
+                </h1>
                 <p class="text-xs text-slate-500 font-medium mt-0.5">Disburse payments for Supplier Payables, Customer Refunds, or Site Expenses from verified bank balances.</p>
             </div>
             <div class="flex items-center gap-2">
@@ -203,7 +206,7 @@
                             onclick="return confirm('Confirm payment disbursement?\n\nThis will deduct the amount from treasury balance and generate a Payment Voucher.')"
                             class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-black uppercase tracking-wider transition shadow-md hover:shadow-lg flex items-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>💸 PROCESS PAYMENT &amp; GENERATE VOUCHER</span>
+                        <span>PROCESS PAYMENT &amp; GENERATE VOUCHER</span>
                     </button>
                 </div>
             </form>

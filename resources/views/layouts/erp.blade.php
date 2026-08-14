@@ -343,8 +343,17 @@
         {{-- ═══ EXPENSES & VENDORS ═══ --}}
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expenses & Vendors</p>
 
+  <a href="{{ route('expenses.ra-bills.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('expenses.ra-bills.*') ? 'active text-white bg-[#a38c29]/20 text-[#a38c29]' : 'text-slate-300' }}">
+            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            Contractor RA Bills
+        </a>
+
+
+
         <div x-data="{ openExpenses: {{ Request::is('expenses*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openExpenses = !openExpenses" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::is('expenses*') ? 'text-white' : 'text-slate-300' }}">
+            <!-- <button @click="openExpenses = !openExpenses" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::is('expenses*') ? 'text-white' : 'text-slate-300' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
@@ -354,8 +363,8 @@
                 <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openExpenses ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
-            </button>
-            <div x-show="openExpenses" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+            </button> -->
+            <!-- <div x-show="openExpenses" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
                 <a href="{{ route('expenses.bills.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.bills.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Add New Bill
                 </a>
@@ -365,14 +374,17 @@
                 <a href="{{ route('expenses.bills.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.bills.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Bills List
                 </a>
-            </div>
+                <a href="{{ route('expenses.ra-bills.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    Contractor RA Bills
+                </a>
+            </div> -->
         </div>
 
         <a href="{{ route('suppliers.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('suppliers.*') ? 'active text-white' : 'text-slate-300' }}">
             <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
             </svg>
-            Suppliers
+            Suppliers & Contractors
         </a>
 
         <a href="{{ route('partners.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('partners.*') ? 'active text-white' : 'text-slate-300' }}">
