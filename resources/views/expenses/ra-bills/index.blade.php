@@ -227,53 +227,57 @@
                             </td>
 
                             <!-- STATUS -->
-                            <td class="px-3 py-3.5 text-center">
+                            <td class="px-3 py-3.5 text-center whitespace-nowrap">
                                 @if($bill->status === 'cleared')
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 inline-block">
-                                        ✅ CLEARED
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1.5 shadow-2xs">
+                                        <svg class="w-3.5 h-3.5 text-[#087443]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span>Cleared</span>
                                     </span>
                                 @elseif($bill->status === 'partially_paid')
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-300 inline-block">
-                                        🔵 PARTIALLY PAID
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                                        <span>Partially Paid</span>
                                     </span>
                                 @elseif($bill->verified_date)
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-300 inline-block">
-                                        ⏳ VERIFIED PAYABLE
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 inline-flex items-center gap-1.5 shadow-2xs">
+                                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                        <span>Verified</span>
                                     </span>
                                 @else
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-300 inline-block">
-                                        📝 SUBMITTED
+                                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1.5 shadow-2xs">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                        <span>Submitted</span>
                                     </span>
                                 @endif
                             </td>
 
                             <!-- ACTIONS -->
-                            <td class="px-3 py-3.5 text-center">
+                            <td class="px-3 py-3.5 text-center whitespace-nowrap">
                                 <div class="inline-flex items-center gap-1.5">
-                                    <!-- Verify Button / Verified Done Badge -->
+                                    <!-- Verify Button / Verified Button -->
                                     @if($bill->verified_date)
                                         <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-extrabold uppercase transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                class="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs font-bold transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
                                                 title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
-                                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                            <span>VERIFIED DONE</span>
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            <span>Verified</span>
                                         </button>
                                     @else
                                         <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                class="px-3 py-1 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-full text-xs font-bold transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
                                                 title="Engineer Sign-off & Apply Correction">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                            <span>VERIFY</span>
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                            <span>Verify</span>
                                         </button>
                                     @endif
 
                                     <!-- Pay Installment Button -->
                                     @if((float)$bill->balance_amount > 0)
                                         <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
-                                                class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold transition inline-flex items-center gap-1.5 shadow-2xs cursor-pointer"
                                                 title="Disburse Staggered Payment">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                            <span>PAY</span>
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            <span>Pay</span>
                                         </button>
                                     @endif
                                 </div>
