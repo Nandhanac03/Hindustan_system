@@ -26,7 +26,7 @@
             <button type="button" @click="addModalOpen = true"
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-[#a38c29]/40">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>Log Contractor RA Bill</span>
+                <span> Contractor RA Bill</span>
             </button>
         </div>
     </div>
@@ -267,7 +267,7 @@
                     @empty
                         <tr>
                             <td colspan="13" class="px-4 py-8 text-center text-slate-400 italic font-medium">
-                                No Contractor RA Progress Bills recorded yet. Click "+ Log Contractor RA Bill" to create one.
+                                No Contractor RA Progress Bills recorded yet. Click "+  Contractor RA Bill" to create one.
                             </td>
                         </tr>
                     @endforelse
@@ -282,7 +282,7 @@
             <div class="bg-gradient-to-r from-[#a38c29] to-[#8a7522] p-4 text-white flex items-center justify-between">
                 <h3 class="font-black text-sm uppercase tracking-wider flex items-center gap-2">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    <span>Log New Contractor RA Progress Bill</span>
+                    <span> New Contractor RA Progress Bill</span>
                 </h3>
                 <button type="button" @click="addModalOpen = false" class="text-white/80 hover:text-white font-bold">✕</button>
             </div>
@@ -306,9 +306,9 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">CONTRACTOR NAME (FROM MASTER) *</label>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">CONTRACTOR NAME  *</label>
                         <select name="contractor_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
-                            <option value="">Select Contractor (From Master)</option>
+                            <option value="">Select Contractor </option>
                             @foreach($contractors as $contractor)
                                 <option value="{{ $contractor->id }}">{{ $contractor->name }}</option>
                             @endforeach
