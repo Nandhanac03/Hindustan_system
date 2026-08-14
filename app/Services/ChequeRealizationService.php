@@ -43,28 +43,48 @@ class ChequeRealizationService
             );
         }
 
-        if (!$receipt->company_bank_account_id) {
+        $bankAccountId = $data['company_bank_account_id'] ?? $receipt->company_bank_account_id;
+
+        if (!$bankAccountId) {
             throw new \Exception(
-                "Receipt #{$receipt->id} has no Company Bank Account assigned. Please assign one first."
+                "Receipt #{$receipt->id} has no Company Bank Account assigned. Please select a Company Bank Account."
             );
         }
 
-        return DB::transaction(function () use ($receipt, $data) {
-            $oldStatus = $receipt->realization_status;
-            $userId    = $data['realized_by'];
-            $remarks   = $data['remarks'] ?? 'Cheque cleared by bank.';
+        return DB::transaction(function () use ($receipt, $data, $bankAccountId) {
+            $oldStatus  = $receipt->realization_status;
+            $userId     = $data['realized_by'];
+            $remarks    = $data['remarks'] ?? 'Cheque cleared by bank.';
+            $realizedAt = !empty($data['realized_at']) ? \Carbon\Carbon::parse($data['realized_at']) : now();
 
-            // 1. Update receipt status
+            // 1. Update receipt status and bank account
             $receipt->update([
-                'realization_status' => 'realized',
-                'realized_at'        => now(),
-                'realized_by'        => $userId,
+                'company_bank_account_id' => $bankAccountId,
+                'realization_status'      => 'realized',
+                'realized_at'             => $realizedAt,
+                'realized_by'             => $userId,
             ]);
 
             // 2. Credit company bank account balance (Step 5.4)
-            $bankAccount = CompanyBankAccount::lockForUpdate()
-                ->findOrFail($receipt->company_bank_account_id);
+            $bankAccount = CompanyBankAccount::lockForUpdate()->findOrFail($bankAccountId);
             $bankAccount->increment('current_balance', $receipt->amount);
+
+            // Also update ReceiptStore record
+            \App\Models\ReceiptStore::updateOrCreate(
+                ['receipt_id' => $receipt->id],
+                [
+                    'company_bank_account_id' => $bankAccountId,
+                    'customer_id'             => $receipt->customer_id,
+                    'project_id'              => $receipt->project_id,
+                    'receipt_date'            => $receipt->receipt_date,
+                    'amount'                  => $receipt->amount,
+                    'payment_mode'            => $receipt->payment_mode ?: 'Cheque',
+                    'reference_no'            => $receipt->reference_no,
+                    'remarks'                 => $remarks,
+                    'status'                  => 'realized',
+                    'created_by'              => $userId,
+                ]
+            );
 
             // 3. Write audit log
             ReceiptRealizationLog::create([
@@ -109,6 +129,43 @@ class ChequeRealizationService
                 'old_status' => $oldStatus,
                 'new_status' => 'bounced',
                 'remarks'    => $data['remarks'] ?? 'Cheque dishonoured by bank.',
+                'changed_by' => $data['changed_by'],
+            ]);
+
+            return $receipt->fresh();
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Re-Initialize Bounced Cheque (Bounced → Cheque in Hand)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Re-initialize a bounced cheque instrument back into 'cheque_in_hand' status for re-presentation.
+     *
+     * @param  Receipt $receipt
+     * @param  array   $data  { changed_by: int, remarks?: string }
+     * @return Receipt
+     * @throws \Exception
+     */
+    public function reinitialize(Receipt $receipt, array $data): Receipt
+    {
+        if ($receipt->realization_status !== 'bounced') {
+            throw new \Exception(
+                "Receipt #{$receipt->id} is not in bounced status (current: '{$receipt->realization_status}')."
+            );
+        }
+
+        return DB::transaction(function () use ($receipt, $data) {
+            $oldStatus = $receipt->realization_status;
+
+            $receipt->update(['realization_status' => 'cheque_in_hand']);
+
+            ReceiptRealizationLog::create([
+                'receipt_id' => $receipt->id,
+                'old_status' => $oldStatus,
+                'new_status' => 'cheque_in_hand',
+                'remarks'    => $data['remarks'] ?? 'Cheque re-initialized for re-presentation to bank.',
                 'changed_by' => $data['changed_by'],
             ]);
 

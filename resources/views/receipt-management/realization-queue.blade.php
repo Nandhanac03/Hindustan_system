@@ -167,8 +167,14 @@
                                 $rObj = [
                                     'id' => $receipt->id,
                                     'ref' => $receipt->reference_no ?: 'REC-' . str_pad((string)$receipt->id, 5, '0', STR_PAD_LEFT),
-                                    'customer_name' => $receipt->customer?->name ?? '—',
-                                    'company_bank_account_name' => $receipt->companyBankAccount?->bank_name ?? '—',
+                                    'customer_name' => $receipt->customer?->name ?? ($receipt->payer_name ?? ($receipt->sale?->customer?->name ?? 'General Payer')),
+                                    'payer_name' => $receipt->payer_name,
+                                    'company_bank_account_name' => $receipt->companyBankAccount?->bank_name ?? 'General Account',
+                                    'company_bank_account_number' => $receipt->companyBankAccount?->account_number ?? '—',
+                                    'source_bank' => $receipt->drawee_bank ?: 'Customer Bank / Payer Instrument',
+                                    'destination_bank' => ($receipt->companyBankAccount?->bank_name ?? 'General Account') . ($receipt->companyBankAccount?->account_number ? ' (A/C: '.$receipt->companyBankAccount->account_number.')' : ''),
+                                    'drawee_bank' => $receipt->drawee_bank ?: '',
+                                    'cheque_date' => $receipt->cheque_date?->format('d M Y') ?: '',
                                     'amount' => $receipt->amount,
                                 ];
                             @endphp
@@ -177,7 +183,7 @@
                                     {{ $rObj['ref'] }}
                                 </td>
                                 <td class="px-4 py-3.5 text-slate-500 font-medium">{{ $receipt->receipt_date?->format('d M Y') }}</td>
-                                <td class="px-4 py-3.5 font-bold text-slate-900">{{ $receipt->customer?->name ?? '—' }}</td>
+                                <td class="px-4 py-3.5 font-bold text-slate-900">{{ $rObj['customer_name'] }}</td>
                                 <td class="px-4 py-3.5">
                                     @if($receipt->companyBankAccount)
                                         <div class="font-extrabold text-slate-800">{{ $receipt->companyBankAccount->bank_name }}</div>
@@ -213,16 +219,17 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3.5 text-center">
-                                    <div class="flex items-center justify-center gap-1">
+                                    <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
                                         {{-- Realize Button --}}
                                         @if($receipt->companyBankAccount)
                                             <button type="button"
                                                     @click="openRealizeModal({{ json_encode($rObj) }})"
-                                                    class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition shadow-2xs flex items-center gap-1 cursor-pointer">
-                                                ✅ REALIZE
+                                                    class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-extrabold uppercase tracking-wider shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-150 cursor-pointer">
+                                                <svg class="w-3.5 h-3.5 text-emerald-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                <span>REALIZE</span>
                                             </button>
                                         @else
-                                            <span class="text-[9px] text-rose-500 font-bold">⚠ Assign Bank First</span>
+                                            <span class="px-2 py-1 bg-rose-50 text-rose-600 border border-rose-200 rounded-lg text-[9px] font-extrabold uppercase tracking-wider">⚠ Assign Bank First</span>
                                         @endif
 
                                         {{-- Advance Status Button --}}
@@ -232,8 +239,8 @@
                                                 <input type="hidden" name="new_status"
                                                        value="{{ $receipt->realization_status === 'pending' ? 'cheque_in_hand' : 'deposited' }}">
                                                 <button type="submit"
-                                                        class="px-2 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition shadow-2xs cursor-pointer">
-                                                    {{ $receipt->realization_status === 'pending' ? '🖐 MARK IN HAND' : '🏦 MARK DEPOSITED' }}
+                                                        class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 hover:border-sky-300 rounded-xl text-[11px] font-extrabold uppercase tracking-wider shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer">
+                                                    <span>{{ $receipt->realization_status === 'pending' ? '🖐 IN HAND' : '🏦 DEPOSITED' }}</span>
                                                 </button>
                                             </form>
                                         @endif
@@ -241,8 +248,9 @@
                                         {{-- Bounce Button --}}
                                         <button type="button"
                                                 @click="openBounceModal({{ json_encode($rObj) }})"
-                                                class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[9px] font-black uppercase tracking-wider transition shadow-2xs cursor-pointer">
-                                            ❌ BOUNCE
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 hover:border-rose-300 rounded-xl text-[11px] font-extrabold uppercase tracking-wider shadow-2xs hover:shadow-xs transition-all duration-150 cursor-pointer">
+                                            <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            <span>BOUNCE</span>
                                         </button>
                                     </div>
                                 </td>
@@ -291,22 +299,40 @@
 
                 <div class="p-6 space-y-4">
                     <template x-if="targetReceipt">
-                        <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-2">
+                        <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-2.5">
                             <div class="flex justify-between items-center text-emerald-950 font-bold border-b border-emerald-200 pb-2">
                                 <span class="text-[10px] text-emerald-700 uppercase tracking-wider font-black">Instrument Reference</span>
-                                <span class="font-mono font-black" x-text="targetReceipt ? targetReceipt.ref : ''"></span>
+                                <div class="text-right">
+                                    <span class="font-mono font-black text-slate-900 block" x-text="targetReceipt ? targetReceipt.ref : ''"></span>
+                                    <span class="text-[10px] text-slate-500 font-medium block" x-show="targetReceipt && targetReceipt.cheque_date" x-text="targetReceipt ? 'Date: ' + targetReceipt.cheque_date : ''"></span>
+                                </div>
                             </div>
                             <div class="flex justify-between items-center text-slate-800">
-                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Customer</span>
-                                <span class="font-bold text-slate-900" x-text="targetReceipt ? targetReceipt.customer_name : ''"></span>
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Customer / Payer</span>
+                                <span class="font-black text-slate-900 text-sm" x-text="targetReceipt ? (targetReceipt.customer_name && targetReceipt.customer_name !== '—' ? targetReceipt.customer_name : (targetReceipt.payer_name || 'General Payer')) : ''"></span>
                             </div>
-                            <div class="flex justify-between items-center text-slate-800">
-                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Company Bank</span>
-                                <span class="font-extrabold text-slate-900" x-text="targetReceipt ? targetReceipt.company_bank_account_name : ''"></span>
+
+                            <!-- SOURCE BANK (Customer / Drawee Bank) -->
+                            <div class="flex justify-between items-center text-slate-800 bg-white/80 p-2 rounded-xl border border-slate-200/80">
+                                <div class="flex items-center gap-1.5 text-[#a38c29] font-black text-[10px] uppercase tracking-wider">
+                                    <span>📥 SOURCE BANK</span>
+                                    <span class="text-slate-400 font-normal">(Customer / Drawee)</span>
+                                </div>
+                                <span class="font-extrabold text-slate-900 text-xs" x-text="targetReceipt ? (targetReceipt.source_bank || targetReceipt.drawee_bank || 'Customer Bank / Payer Instrument') : 'Customer Bank'"></span>
                             </div>
-                            <div class="flex justify-between items-center text-slate-900 pt-1 border-t border-emerald-200">
+
+                            <!-- DESTINATION BANK (Our Company Bank Account) -->
+                            <div class="flex justify-between items-center text-slate-800 bg-emerald-100/70 p-2 rounded-xl border border-emerald-200">
+                                <div class="flex items-center gap-1.5 text-emerald-800 font-black text-[10px] uppercase tracking-wider">
+                                    <span>🏦 DESTINATION BANK</span>
+                                    <span class="text-emerald-600 font-normal">(Our Company Account)</span>
+                                </div>
+                                <span class="font-extrabold text-emerald-950 text-xs" x-text="targetReceipt ? (targetReceipt.destination_bank || targetReceipt.company_bank_account_name || 'General Account') : 'Company Bank'"></span>
+                            </div>
+
+                            <div class="flex justify-between items-center text-slate-900 pt-2 border-t border-emerald-200">
                                 <span class="text-[10px] text-emerald-800 uppercase tracking-wider font-black">Realization Amount</span>
-                                <span class="font-mono font-black text-emerald-900 text-base" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''"></span>
+                                <span class="font-mono font-black text-emerald-900 text-lg" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''"></span>
                             </div>
                         </div>
                     </template>
@@ -315,14 +341,34 @@
                         Are you sure you want to mark this instrument as <strong class="text-emerald-700">REALIZED</strong>? This will credit the funds directly to the company bank account treasury balance.
                     </p>
 
-                    <form :action="targetReceipt ? `/receipt-management/${targetReceipt.id}/realize` : '#'" method="POST" class="pt-2 flex items-center justify-end gap-3">
+                    <form :action="targetReceipt ? `/receipt-management/${targetReceipt.id}/realize` : '#'" method="POST" class="pt-2 space-y-3">
                         @csrf
-                        <button type="button" @click="realizeModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer">
-                            <span>✅ Confirm Realize</span>
-                        </button>
+                        <div>
+                            <label class="block text-[10px] font-bold text-emerald-800 uppercase tracking-wider mb-1">🏦 DESTINATION COMPANY BANK ACCOUNT (WHERE CLEARANCE CREDITED)</label>
+                            <select name="company_bank_account_id" :value="targetReceipt ? targetReceipt.company_bank_account_id : ''" required
+                                    class="w-full px-3 py-2 bg-emerald-50 border border-emerald-300 rounded-xl text-xs font-extrabold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition cursor-pointer">
+                                @foreach($companyBankAccounts as $bAcc)
+                                    <option value="{{ $bAcc->id }}">
+                                        {{ $bAcc->bank_name }} — A/C: {{ $bAcc->account_number ?: 'N/A' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">📅 BANK CLEARANCE / REALIZATION DATE</label>
+                            <input type="date" name="realized_at" :value="new Date().toISOString().split('T')[0]" required
+                                   class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition">
+                        </div>
+
+                        <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+                            <button type="button" @click="realizeModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition">
+                                Cancel
+                            </button>
+                            <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer">
+                                <span>✅ Confirm Realize & Credit Treasury</span>
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -346,18 +392,22 @@
 
                 <div class="p-6 space-y-4">
                     <template x-if="targetReceipt">
-                        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs space-y-2">
+                        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs space-y-2.5">
                             <div class="flex justify-between items-center text-rose-950 font-bold border-b border-rose-200 pb-2">
                                 <span class="text-[10px] text-rose-700 uppercase tracking-wider font-black">Instrument Reference</span>
                                 <span class="font-mono font-black" x-text="targetReceipt ? targetReceipt.ref : ''"></span>
                             </div>
                             <div class="flex justify-between items-center text-slate-800">
-                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Customer</span>
-                                <span class="font-bold text-slate-900" x-text="targetReceipt ? targetReceipt.customer_name : ''"></span>
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Customer / Payer</span>
+                                <span class="font-black text-slate-900 text-sm" x-text="targetReceipt ? (targetReceipt.customer_name && targetReceipt.customer_name !== '—' ? targetReceipt.customer_name : (targetReceipt.payer_name || 'General Payer')) : ''"></span>
                             </div>
-                            <div class="flex justify-between items-center text-slate-900 pt-1 border-t border-rose-200">
+                            <div class="flex justify-between items-center text-slate-800" x-show="targetReceipt && targetReceipt.drawee_bank">
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Drawee Bank</span>
+                                <span class="font-bold text-slate-800" x-text="targetReceipt ? targetReceipt.drawee_bank : ''"></span>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-900 pt-2 border-t border-rose-200">
                                 <span class="text-[10px] text-rose-800 uppercase tracking-wider font-black">Amount</span>
-                                <span class="font-mono font-black text-rose-900 text-base" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''"></span>
+                                <span class="font-mono font-black text-rose-900 text-lg" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''"></span>
                             </div>
                         </div>
                     </template>

@@ -244,6 +244,34 @@ class Receipt extends Model
     }
 
     /**
+     * Re-initialize a bounced receipt back into 'cheque_in_hand' state for re-presentation.
+     */
+    public function reinitialize(int $userId, ?string $remarks = null): self
+    {
+        if ($this->realization_status !== 'bounced') {
+            throw new \Exception("Only bounced instruments can be re-initialized.");
+        }
+
+        DB::transaction(function () use ($userId, $remarks) {
+            $oldStatus = $this->realization_status;
+
+            $this->update([
+                'realization_status' => 'cheque_in_hand',
+            ]);
+
+            ReceiptRealizationLog::create([
+                'receipt_id'  => $this->id,
+                'old_status'  => $oldStatus,
+                'new_status'  => 'cheque_in_hand',
+                'remarks'     => $remarks ?? 'Cheque re-initialized for re-presentation.',
+                'changed_by'  => $userId,
+            ]);
+        });
+
+        return $this->fresh();
+    }
+
+    /**
      * Advance the status (e.g., pending → cheque_in_hand → deposited).
      */
     public function advanceStatus(string $newStatus, int $userId, ?string $remarks = null): self

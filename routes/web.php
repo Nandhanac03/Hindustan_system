@@ -414,6 +414,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/receipt-management/realization-queue', [\App\Http\Controllers\ReceiptManagementController::class, 'realizationQueue'])->name('receipt-management.realization-queue');
     Route::post('/receipt-management/{id}/realize', [\App\Http\Controllers\ReceiptManagementController::class, 'realize'])->name('receipt-management.realize');
     Route::post('/receipt-management/{id}/bounced', [\App\Http\Controllers\ReceiptManagementController::class, 'markBounced'])->name('receipt-management.bounced');
+    Route::post('/receipt-management/{id}/reinitialize', [\App\Http\Controllers\ReceiptManagementController::class, 'reinitialize'])->name('receipt-management.reinitialize');
     Route::post('/receipt-management/{id}/advance-status', [\App\Http\Controllers\ReceiptManagementController::class, 'advanceStatus'])->name('receipt-management.advance-status');
 
     // Treasury Disbursement & Payment Voucher (Steps 5.5 – 5.6)

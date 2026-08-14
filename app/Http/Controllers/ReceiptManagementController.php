@@ -80,7 +80,8 @@ class ReceiptManagementController extends Controller
                 'ref'                         => $r->reference_no ?: 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT),
                 'amount'                      => (float)$r->amount,
                 'date'                        => $r->receipt_date?->format('Y-m-d'),
-                'customer_name'               => $r->customer?->name ?? '—',
+                'customer_name'               => $r->customer?->name ?? ($r->payer_name ?? ($r->sale?->customer?->name ?? 'General Payer')),
+                'payer_name'                  => $r->payer_name,
                 'customer_id'                 => $r->customer_id,
                 'payment_mode'                => $r->payment_mode,
                 'company_bank_account_id'     => $r->company_bank_account_id,
@@ -101,7 +102,10 @@ class ReceiptManagementController extends Controller
                 'realization_status_color'    => $r->realization_status_color,
                 'is_cheque_instrument'        => $r->isChequeInstrument(),
                 'can_realize'                 => !$r->isTerminal(),
+                'can_reinitialize'            => $r->realization_status === 'bounced',
                 'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
+                'source_bank'                 => $r->drawee_bank ?: ($r->bank?->bank_name ?: 'Customer Bank / Payer Instrument'),
+                'destination_bank'            => $bankName . ($accNo ? " (A/C: {$accNo})" : ''),
                 'drawee_bank'                 => $r->drawee_bank,
                 'realized_at'                 => $r->realized_at?->format('d M Y, h:i A'),
             ];
@@ -309,23 +313,27 @@ class ReceiptManagementController extends Controller
     public function realize(Request $request, int $id): RedirectResponse
     {
         $validated = $request->validate([
-            'remarks' => ['nullable', 'string', 'max:500'],
+            'company_bank_account_id' => ['nullable', 'exists:company_bank_accounts,id'],
+            'realized_at'             => ['nullable', 'date'],
+            'remarks'                 => ['nullable', 'string', 'max:500'],
         ]);
 
         $receipt = Receipt::findOrFail($id);
 
         try {
             $this->realizationService->realize($receipt, [
-                'realized_by' => auth()->id(),
-                'remarks'     => $validated['remarks'] ?? null,
+                'company_bank_account_id' => $validated['company_bank_account_id'] ?? null,
+                'realized_at'             => $validated['realized_at'] ?? null,
+                'realized_by'             => auth()->id(),
+                'remarks'                 => $validated['remarks'] ?? null,
             ]);
 
-            $bankName = $receipt->companyBankAccount?->bank_name ?? 'Company Bank Account';
+            $bankName = $receipt->fresh()->companyBankAccount?->bank_name ?? 'Company Bank Account';
             $amount   = number_format((float) $receipt->amount, 2);
 
             return redirect()->back()->with(
                 'success',
-                "✅ Receipt #{$id} Realized! ₹{$amount} credited to {$bankName}. Treasury balance updated."
+                "✅ Receipt #{$id} Realized! ₹{$amount} credited to {$bankName}. Active treasury balance updated."
             );
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
@@ -353,6 +361,35 @@ class ReceiptManagementController extends Controller
             return redirect()->back()->with(
                 'success',
                 "❌ Receipt #{$id} marked as Bounced. No balance change. Audit log recorded."
+            );
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RE-INITIALIZE — Re-present Bounced Cheque
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function reinitialize(Request $request, int $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'remarks' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $receipt = Receipt::findOrFail($id);
+
+        try {
+            $this->realizationService->reinitialize($receipt, [
+                'changed_by' => auth()->id(),
+                'remarks'    => $validated['remarks'] ?? 'Re-initialized bounced cheque for clearance re-presentation.',
+            ]);
+
+            $ref = $receipt->reference_no ?: "REC-{$id}";
+
+            return redirect()->back()->with(
+                'success',
+                "🔄 Receipt #{$id} ({$ref}) Re-Initialized! Status reset to 'Cheque in Hand'. Ready for bank clearance."
             );
         } catch (\Exception $e) {
             return redirect()->back()->with('error', $e->getMessage());
