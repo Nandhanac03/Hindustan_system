@@ -43,12 +43,15 @@ class ChequeRealizationController extends Controller
             ->sum('amount');
 
         $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name']);
+        
+        $chequeStatuses = \App\Models\ChequeStatus::where('is_active', 1)->get();
 
         return view('cheque-realization.queue', compact(
             'pendingReceipts',
             'companyBankAccounts',
             'totalPendingAmount',
-            'customers'
+            'customers',
+            'chequeStatuses'
         ));
     }
 
@@ -79,12 +82,15 @@ class ChequeRealizationController extends Controller
             ->sum('amount');
 
         $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name']);
+        
+        $chequeStatuses = \App\Models\ChequeStatus::where('is_active', 1)->get();
 
         return view('cheque-realization.queue', compact(
             'pendingReceipts',
             'companyBankAccounts',
             'totalPendingAmount',
-            'customers'
+            'customers',
+            'chequeStatuses'
         ));
     }
 
@@ -100,7 +106,9 @@ class ChequeRealizationController extends Controller
             ->orderBy('bank_name')
             ->get();
 
-        return view('cheque-realization.detail', compact('receipt', 'companyBankAccounts'));
+        $chequeStatuses = \App\Models\ChequeStatus::where('is_active', 1)->get();
+
+        return view('cheque-realization.detail', compact('receipt', 'companyBankAccounts', 'chequeStatuses'));
     }
 
     /**
@@ -170,8 +178,10 @@ class ChequeRealizationController extends Controller
     public function advanceStatus(Request $request, int $id): RedirectResponse
     {
         $validated = $request->validate([
-            'new_status' => ['required', 'in:cheque_in_hand,deposited,cancelled'],
+            'new_status' => ['required', 'in:pending,cheque_in_hand,deposited,in_clearing,cancelled'],
             'remarks'    => ['nullable', 'string', 'max:500'],
+            'company_bank_account_id' => ['nullable', 'exists:company_bank_accounts,id'],
+            'bank_reference_no' => ['nullable', 'string', 'max:255'],
         ]);
 
         $receipt = Receipt::findOrFail($id);
@@ -180,6 +190,8 @@ class ChequeRealizationController extends Controller
             $this->realizationService->advanceStatus($receipt, $validated['new_status'], [
                 'changed_by' => auth()->id(),
                 'remarks'    => $validated['remarks'] ?? null,
+                'company_bank_account_id' => $validated['company_bank_account_id'] ?? null,
+                'bank_reference_no' => $validated['bank_reference_no'] ?? null,
             ]);
 
             $label = Receipt::STATUSES[$validated['new_status']] ?? $validated['new_status'];

@@ -25,14 +25,14 @@
 
         {{-- Summary Cards --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-6">
-                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Total Bank Balance (All Accounts)</h3>
-                <p class="text-3xl font-black text-indigo-700">₹{{ number_format($totalBalance, 2) }}</p>
+            <div class="bg-primary-50/50 border border-primary-100 rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-slate-800 mb-2">Total Bank Balance (All Accounts)</h3>
+                <p class="text-2xl font-semibold text-primary-700">₹ {{ number_format($totalBalance, 2) }}</p>
             </div>
             
-            <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-6">
-                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Available Balance (All Accounts)</h3>
-                <p class="text-3xl font-black text-emerald-700">₹{{ number_format($availableBalance, 2) }}</p>
+            <div class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-5">
+                <h3 class="text-sm font-semibold text-slate-800 mb-2">Available Balance (All Accounts)</h3>
+                <p class="text-2xl font-semibold text-emerald-700">₹ {{ number_format($availableBalance, 2) }}</p>
             </div>
         </div>
 
@@ -54,13 +54,13 @@
                 </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-slate-600">
-                    <thead class="bg-slate-50 text-xs uppercase font-semibold text-slate-700 border-b border-slate-200">
+                    <thead class="bg-slate-50 text-xs font-bold text-slate-700 border-b border-slate-200">
                         <tr>
                             <th class="px-6 py-4 w-12">#</th>
                             <th class="px-6 py-4">Bank Account</th>
                             <th class="px-6 py-4">Account No.</th>
-                            <th class="px-6 py-4 text-right">Current Balance (₹)</th>
-                            <th class="px-6 py-4 text-right">Available Balance (₹)</th>
+                            <th class="px-6 py-4 text-center">Current Balance (₹)</th>
+                            <th class="px-6 py-4 text-center">Available Balance (₹)</th>
                             <th class="px-6 py-4 text-center">Actions</th>
                         </tr>
                     </thead>
@@ -70,16 +70,16 @@
                                 :class="activeBank === {{ $account->id }} ? 'border-2 border-emerald-400 bg-emerald-50/20' : ''"
                                 @click="activeBank = {{ $account->id }}; activeBankName = '{{ $account->bank_name }}'; activeBankAcct = '{{ substr($account->account_number, -4) }}'">
                                 <td class="px-6 py-4">{{ $index + 1 }}</td>
-                                <td class="px-6 py-4 font-bold text-blue-600">{{ $account->bank_name }}</td>
-                                <td class="px-6 py-4 font-medium">{{ substr($account->account_number, -4) }}</td>
-                                <td class="px-6 py-4 text-right font-black" :class="activeBank === {{ $account->id }} ? 'text-emerald-600' : '{{ $account->current_balance > 0 ? 'text-emerald-600' : 'text-slate-900' }}'">
+                                <td class="px-6 py-4 font-semibold text-primary-700">{{ $account->bank_name }}</td>
+                                <td class="px-6 py-4">{{ substr($account->account_number, -4) }}</td>
+                                <td class="px-6 py-4 text-center font-semibold" :class="activeBank === {{ $account->id }} ? 'text-emerald-600' : '{{ $account->current_balance > 0 ? 'text-emerald-600' : 'text-slate-900' }}'">
                                     {{ number_format($account->current_balance, 2) }}
                                 </td>
-                                <td class="px-6 py-4 text-right font-black" :class="activeBank === {{ $account->id }} ? 'text-emerald-600' : '{{ $account->current_balance > 0 ? 'text-emerald-600' : 'text-slate-900' }}'">
+                                <td class="px-6 py-4 text-center font-semibold" :class="activeBank === {{ $account->id }} ? 'text-emerald-600' : '{{ $account->current_balance > 0 ? 'text-emerald-600' : 'text-slate-900' }}'">
                                     {{ number_format($account->current_balance, 2) }}
                                 </td>
                                 <td class="px-6 py-4 text-center">
-                                    <button class="p-2 transition" :class="activeBank === {{ $account->id }} ? 'text-blue-600 bg-blue-50 rounded-full' : 'text-slate-400 hover:text-blue-600'">
+                                    <button class="p-2 transition" :class="activeBank === {{ $account->id }} ? 'text-primary-700 bg-primary-50 rounded-full' : 'text-slate-400 hover:text-primary-700'">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
                                 </td>
@@ -119,7 +119,7 @@
                             <template x-for="txn in activeTransactions" :key="txn.voucher_no">
                                 <tr class="hover:bg-slate-50 transition">
                                     <td class="px-6 py-4" x-text="txn.date"></td>
-                                    <td class="px-6 py-4 text-blue-600 text-xs" x-text="txn.voucher_no"></td>
+                                    <td class="px-6 py-4 text-primary-700 font-medium text-xs" x-text="txn.voucher_no"></td>
                                     <td class="px-6 py-4 text-xs text-slate-700" x-text="txn.narration"></td>
                                     <td class="px-6 py-4 font-semibold text-xs" :class="txn.type === 'Credit' ? 'text-emerald-600' : 'text-rose-600'" x-text="txn.type"></td>
                                     <td class="px-6 py-4 text-right text-xs" x-text="(Number(txn.amount) || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></td>

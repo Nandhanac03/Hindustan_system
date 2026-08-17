@@ -1,11 +1,48 @@
 <x-erp-layout title="Cheque Clearance Queue" headerTitle="Cheque Clearance Queue">
 
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="{
-        realizeModalOpen: false,
-        bounceModalOpen: false,
+        processModalOpen: false,
         targetReceipt: null,
-        openRealizeModal(r) { this.targetReceipt = r; this.realizeModalOpen = true; },
-        openBounceModal(r) { this.targetReceipt = r; this.bounceModalOpen = true; }
+        selectedStatusId: '',
+        statusName: '',
+        selectedBankId: '',
+        remarksText: '',
+        banks: {{ json_encode($companyBankAccounts->map->only('id', 'bank_name', 'account_name', 'account_number', 'branch_name')) }},
+        chequeStatuses: {{ json_encode($chequeStatuses->map->only('id', 'name', 'system_name')) }},
+        formAction: '#',
+        
+        openProcessModal(r) { 
+            this.targetReceipt = r;
+            this.selectedBankId = r.company_bank_account_id || '';
+            this.remarksText = r.remarksText || '';
+            
+            let statusLower = (r.realization_status || '').replace(/_/g, ' ').toLowerCase();
+            let matched = this.chequeStatuses.find(s => s.name.toLowerCase() === statusLower || s.system_name === r.realization_status);
+            this.selectedStatusId = matched ? matched.id : '';
+            this.updateStatusName();
+            
+            this.processModalOpen = true; 
+        },
+        
+        updateStatusName() {
+            let status = this.chequeStatuses.find(s => s.id == this.selectedStatusId);
+            this.statusName = status ? status.name.toLowerCase() : '';
+            
+            if(!this.targetReceipt) return;
+            
+            if(this.statusName === 'realized') {
+                this.formAction = `/cheque-realization/${this.targetReceipt.id}/realize`;
+            } else if(this.statusName === 'bounced') {
+                this.formAction = `/cheque-realization/${this.targetReceipt.id}/bounced`;
+            } else {
+                this.formAction = `/cheque-realization/${this.targetReceipt.id}/advance-status`;
+            }
+        },
+        
+        get mappedNewStatus() {
+            const map = {'pending': 'pending', 'cancelled': 'cancelled', 'cheque in hand': 'cheque_in_hand', 'deposited': 'deposited', 'in clearing': 'in_clearing'};
+            return map[this.statusName] || '';
+        }
     }">
 
         {{-- Flash Notifications --}}
@@ -25,6 +62,19 @@
                     <span>{{ session('error') }}</span>
                 </div>
                 <button onclick="this.parentElement.remove()" class="text-rose-600 hover:opacity-75 font-black">✕</button>
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs font-bold uppercase tracking-wide shadow-xs mb-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Validation Errors:</span>
+                </div>
+                <ul class="list-disc pl-8 lowercase normal-case text-[11px] font-medium space-y-1">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
@@ -228,10 +278,16 @@
                             @php
                                 $rObj = [
                                     'id' => $receipt->id,
+                                    'receipt_no' => $receipt->receipt_no ?? 'RV/2025-26/'.str_pad($receipt->id, 6, '0', STR_PAD_LEFT),
                                     'ref' => $receipt->reference_no ?: 'REC-' . str_pad((string)$receipt->id, 5, '0', STR_PAD_LEFT),
                                     'customer_name' => $receipt->customer?->name ?? '—',
                                     'company_bank_account_name' => $receipt->companyBankAccount?->bank_name ?? '—',
                                     'amount' => $receipt->amount,
+                                    'instrument_date' => $receipt->cheque_date ? $receipt->cheque_date->format('d/m/Y') : 'N/A',
+                                    'drawee_bank' => $receipt->drawee_bank ?? 'N/A',
+                                    'realization_status' => $receipt->realization_status,
+                                    'company_bank_account_id' => $receipt->company_bank_account_id,
+                                    'remarksText' => $receipt->realizationLogs->first()?->remarks ?? $receipt->remarks ?? '',
                                 ];
                             @endphp
                             <tr class="hover:bg-slate-50 transition-all duration-150 border-l-4 border-l-amber-500">
@@ -263,31 +319,45 @@
                                 </td>
                                 <td class="px-4 py-3.5 text-center">
                                     @php
-                                        $statusConfig = [
-                                            'pending'        => ['bg-slate-100 text-slate-800 border-slate-300', '⏳'],
-                                            'cheque_in_hand' => ['bg-amber-100 text-amber-800 border-amber-300', '🖐'],
-                                            'deposited'      => ['bg-blue-100 text-blue-800 border-blue-300', '🏦'],
-                                            'in_clearing'    => ['bg-indigo-100 text-indigo-800 border-indigo-300', '🔄'],
-                                            'realized'       => ['bg-emerald-100 text-emerald-800 border-emerald-300', '✅'],
-                                            'bounced'        => ['bg-rose-100 text-rose-800 border-rose-300', '❌'],
-                                            'cancelled'      => ['bg-slate-200 text-slate-800 border-slate-400', '🚫'],
+                                        $statusNameLower = strtolower(str_replace('_', ' ', $receipt->realization_status));
+                                        $matchedStatus = $chequeStatuses->first(function($item) use ($statusNameLower, $receipt) {
+                                            return strtolower($item->name) === $statusNameLower || 
+                                                   strtolower($item->name) === strtolower($receipt->realization_status);
+                                        });
+
+                                        $icons = [
+                                            'pending'        => '⏳',
+                                            'cheque_in_hand' => '🖐',
+                                            'deposited'      => '🏦',
+                                            'in_clearing'    => '🔄',
+                                            'realized'       => '✅',
+                                            'bounced'        => '❌',
+                                            'cancelled'      => '🚫',
                                         ];
-                                        $sc = $statusConfig[$receipt->realization_status] ?? ['bg-slate-100 text-slate-600 border-slate-300', '•'];
+                                        $icon = $icons[$receipt->realization_status] ?? '•';
+
+                                        $label = $matchedStatus ? $matchedStatus->name : (\App\Models\Receipt::STATUSES[$receipt->realization_status] ?? $receipt->realization_status);
+                                        
+                                        $colorCode = $matchedStatus ? strtolower($matchedStatus->color_code) : 'slate-500';
+                                        if (!str_contains($colorCode, '-')) {
+                                            $colorCode .= '-500';
+                                        }
+                                        $baseColor = explode('-', $colorCode)[0];
                                     @endphp
-                                    <span class="px-2.5 py-1 rounded-full {{ $sc[0] }} border text-[10px] font-black uppercase tracking-wider inline-block">
-                                        {{ $sc[1] }} {{ \App\Models\Receipt::STATUSES[$receipt->realization_status] ?? $receipt->realization_status }}
+                                    <span class="px-2.5 py-1 rounded-full bg-{{ $baseColor }}-100 text-{{ $baseColor }}-800 border border-{{ $baseColor }}-300 text-[10px] font-black uppercase tracking-wider inline-block">
+                                        {{ $icon }} {{ $label }}
                                     </span>
                                 </td>
                                 @unless(request()->routeIs('cheque-realization.realized'))
                                     <td class="px-4 py-3.5 text-center">
                                         <div class="flex items-center justify-center gap-1">
                                             @if(!in_array($receipt->realization_status, ['bounced', 'cancelled']))
-                                                <a href="{{ route('cheque-realization.process', $receipt->id) }}" class="p-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors group relative" title="Process Instrument">
+                                                <button type="button" @click.prevent="openProcessModal({{ json_encode($rObj) }})" class="p-2 text-[#a38c29] hover:bg-[#a38c29]/10 hover:text-[#8a7522] rounded-lg transition-colors group relative cursor-pointer" title="Process Instrument">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                                                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap">
+                                                    <span class="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-slate-800 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition pointer-events-none whitespace-nowrap z-50">
                                                         Process
                                                     </span>
-                                                </a>
+                                                </button>
                                             @else
                                                 <span class="text-xs text-slate-400 italic">Terminal State</span>
                                             @endif
@@ -320,107 +390,146 @@
             @endif
         </div>
 
-        {{-- Custom Realize Confirmation Modal --}}
-        <div x-show="realizeModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-            <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-emerald-500" @click.away="realizeModalOpen = false">
-                <div class="bg-gradient-to-r from-emerald-700 to-emerald-900 text-white px-6 py-5 flex items-center justify-between border-b border-emerald-600">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-white/20 text-white border border-white/30 flex items-center justify-center text-lg font-black shrink-0">
-                            ✅
-                        </div>
+        {{-- Unified Process Modal --}}
+        <div x-show="processModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+            <div class="w-full max-w-5xl bg-white rounded-xl shadow-2xl overflow-y-auto max-h-[90vh] border border-[#a38c29]" @click.away="processModalOpen = false">
+                <div class="relative overflow-hidden rounded-t-xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-slate-700">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <h3 class="text-sm font-black text-white uppercase tracking-wider">CONFIRM CHEQUE REALIZATION</h3>
-                            <p class="text-[11px] text-emerald-100 font-medium">Clear instrument &amp; credit bank balance</p>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Cheque Clearance Queue</p>
+                            <h2 class="text-lg font-extrabold text-white">Process Instrument</h2>
                         </div>
+                        <button type="button" @click="processModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
                     </div>
-                    <button type="button" @click="realizeModalOpen = false" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 text-white transition flex items-center justify-center font-bold text-sm">✕</button>
                 </div>
 
-                <div class="p-6 space-y-4">
-                    <template x-if="targetReceipt">
-                        <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs space-y-2">
-                            <div class="flex justify-between items-center text-emerald-950 font-bold border-b border-emerald-200 pb-2">
-                                <span class="text-[10px] text-emerald-700 uppercase tracking-wider font-black">Instrument Reference</span>
-                                <span class="font-mono font-black" x-text="targetReceipt ? targetReceipt.ref : ''"></span>
-                            </div>
-                            <div class="flex justify-between items-center text-slate-800">
-                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Customer</span>
-                                <span class="font-bold text-slate-900" x-text="targetReceipt ? targetReceipt.customer_name : ''"></span>
-                            </div>
-                            <div class="flex justify-between items-center text-slate-800">
-                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Company Bank</span>
-                                <span class="font-extrabold text-slate-900" x-text="targetReceipt ? targetReceipt.company_bank_account_name : ''"></span>
-                            </div>
-                            <div class="flex justify-between items-center text-slate-900 pt-1 border-t border-emerald-200">
-                                <span class="text-[10px] text-emerald-800 uppercase tracking-wider font-black">Realization Amount</span>
-                                <span class="font-mono font-black text-emerald-900 text-base" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''"></span>
-                            </div>
-                        </div>
-                    </template>
-
-                    <p class="text-xs font-semibold text-slate-600">
-                        Are you sure you want to mark this instrument as <strong class="text-emerald-700">REALIZED</strong>? This will credit the funds directly to the company bank account treasury balance.
-                    </p>
-
-                    <form :action="targetReceipt ? `/receipt-management/${targetReceipt.id}/realize` : '#'" method="POST" class="pt-2 flex items-center justify-end gap-3">
+                <div class="p-6">
+                    <form :action="formAction" method="POST">
                         @csrf
-                        <button type="button" @click="realizeModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer">
-                            <span>✅ Confirm Realize</span>
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        {{-- Custom Bounce Confirmation Modal --}}
-        <div x-show="bounceModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-            <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-rose-500" @click.away="bounceModalOpen = false">
-                <div class="bg-gradient-to-r from-rose-700 to-rose-900 text-white px-6 py-5 flex items-center justify-between border-b border-rose-600">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-white/20 text-white border border-white/30 flex items-center justify-center text-lg font-black shrink-0">
-                            ❌
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-black text-white uppercase tracking-wider">CONFIRM CHEQUE BOUNCE</h3>
-                            <p class="text-[11px] text-rose-100 font-medium">Mark instrument as dishonoured</p>
-                        </div>
-                    </div>
-                    <button type="button" @click="bounceModalOpen = false" class="w-8 h-8 rounded-full bg-black/20 hover:bg-black/40 text-white transition flex items-center justify-center font-bold text-sm">✕</button>
-                </div>
-
-                <div class="p-6 space-y-4">
-                    <template x-if="targetReceipt">
-                        <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs space-y-2">
-                            <div class="flex justify-between items-center text-rose-950 font-bold border-b border-rose-200 pb-2">
-                                <span class="text-[10px] text-rose-700 uppercase tracking-wider font-black">Instrument Reference</span>
-                                <span class="font-mono font-black" x-text="targetReceipt ? targetReceipt.ref : ''"></span>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                            
+                            {{-- Left Column (Instrument Info) --}}
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Receipt No.</label>
+                                    <input type="text" x-bind:value="targetReceipt ? targetReceipt.receipt_no : ''" class="w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700" readonly>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Customer</label>
+                                    <input type="text" x-bind:value="targetReceipt ? targetReceipt.customer_name : ''" class="w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700" readonly>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Instrument No.</label>
+                                    <input type="text" x-bind:value="targetReceipt ? targetReceipt.ref : ''" class="w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700" readonly>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Instrument Date</label>
+                                    <input type="text" x-bind:value="targetReceipt ? targetReceipt.instrument_date : ''" class="w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700" readonly>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Bank of Instrument</label>
+                                    <input type="text" x-bind:value="targetReceipt ? targetReceipt.drawee_bank : ''" class="w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700" readonly>
+                                </div>
+                                
+                                <div class="flex items-center">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Amount (₹)</label>
+                                    <input type="text" x-bind:value="targetReceipt ? parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''" class="w-2/3 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700 font-semibold" readonly>
+                                </div>
                             </div>
-                            <div class="flex justify-between items-center text-slate-800">
-                                <span class="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Customer</span>
-                                <span class="font-bold text-slate-900" x-text="targetReceipt ? targetReceipt.customer_name : ''"></span>
-                            </div>
-                            <div class="flex justify-between items-center text-slate-900 pt-1 border-t border-rose-200">
-                                <span class="text-[10px] text-rose-800 uppercase tracking-wider font-black">Amount</span>
-                                <span class="font-mono font-black text-rose-900 text-base" x-text="targetReceipt ? '₹' + parseFloat(targetReceipt.amount).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2}) : ''"></span>
+
+                            {{-- Right Column (Realization Info) --}}
+                            <div class="space-y-4">
+                                <div class="flex items-center" x-show="!['bounced', 'cancelled'].includes(statusName)">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Realization Date</label>
+                                    <input type="date" name="realization_date" value="{{ date('Y-m-d') }}" class="w-2/3 px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500" x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
+                                </div>
+                                
+                                <div class="flex items-center" x-show="!['bounced', 'cancelled'].includes(statusName)">
+                                    <label class="w-1/3 text-xs font-medium text-slate-600">Deposit To Account</label>
+                                    <select name="company_bank_account_id" x-model="selectedBankId" class="w-2/3 px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500" x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
+                                        <option value="">Select Account</option>
+                                        <template x-for="b in banks" :key="b.id">
+                                            <option :value="b.id" x-text="b.bank_name + (b.account_number ? ' - ' + b.account_number.slice(-4) : '')"></option>
+                                        </template>
+                                    </select>
+                                </div>
+
+                                {{-- Company Bank Account Details Card --}}
+                                <div x-show="selectedBankId && !['bounced', 'cancelled'].includes(statusName)" class="mt-4 border border-slate-200 rounded-lg p-4 bg-slate-50" style="display: none;" x-transition>
+                                    <h4 class="text-[11px] font-bold text-slate-800 mb-3 uppercase tracking-wide">Company Bank Account</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between">
+                                            <span class="text-xs text-slate-500">Bank Name</span>
+                                            <span class="text-xs font-medium text-slate-700" x-text="banks.find(b => b.id == selectedBankId)?.bank_name || 'N/A'"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-xs text-slate-500">Account Name</span>
+                                            <span class="text-xs font-medium text-slate-700" x-text="banks.find(b => b.id == selectedBankId)?.account_name || 'N/A'"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-xs text-slate-500">Account No.</span>
+                                            <span class="text-xs font-medium text-slate-700" x-text="banks.find(b => b.id == selectedBankId)?.account_number || 'N/A'"></span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-xs text-slate-500">Branch</span>
+                                            <span class="text-xs font-medium text-slate-700" x-text="banks.find(b => b.id == selectedBankId)?.branch_name || 'N/A'"></span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </template>
 
-                    <p class="text-xs font-semibold text-slate-600">
-                        Are you sure you want to mark this instrument as <strong class="text-rose-700">BOUNCED / DISHONOURED</strong>? No balance change will occur.
-                    </p>
+                        <hr class="my-8 border-slate-200">
 
-                    <form :action="targetReceipt ? `/receipt-management/${targetReceipt.id}/bounced` : '#'" method="POST" class="pt-2 flex items-center justify-end gap-3">
-                        @csrf
-                        <button type="button" @click="bounceModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition">
-                            Cancel
-                        </button>
-                        <button type="submit" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer">
-                            <span>❌ Mark Bounced</span>
-                        </button>
+                        {{-- Realization Details --}}
+                        <h3 class="text-sm font-bold text-slate-800 mb-4">Realization Details</h3>
+                        
+                        <div class="space-y-4 max-w-3xl">
+                            <div class="flex items-center">
+                                <label class="w-1/3 md:w-1/4 text-xs font-medium text-slate-600">Status</label>
+                                <div class="w-2/3 md:w-3/4">
+                                    <select x-model="selectedStatusId" @change="updateStatusName()" class="w-full px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500" required>
+                                        <option value="">Select Status</option>
+                                        <template x-for="s in chequeStatuses" :key="s.id">
+                                            <option :value="s.id" x-text="s.name"></option>
+                                        </template>
+                                    </select>
+                                    <input type="hidden" name="new_status" :value="mappedNewStatus" x-bind:disabled="!mappedNewStatus">
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <label class="w-1/3 md:w-1/4 text-xs font-medium text-slate-600 pt-2" 
+                                       x-text="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Reason for ' + (statusName.charAt(0).toUpperCase() + statusName.slice(1)) : 'Remarks'">Remarks</label>
+                                <textarea name="remarks" rows="2" class="w-2/3 md:w-3/4 px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500" 
+                                          :placeholder="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Enter reason...' : 'Enter remarks (Optional)'" x-model="remarksText"></textarea>
+                            </div>
+                            <div class="flex items-center">
+                                <label class="w-1/3 md:w-1/4 text-xs font-medium text-slate-600">Reference No.</label>
+                                <input type="text" name="bank_reference_no" placeholder="e.g. NEFT/INWARD/5187" class="w-2/3 md:w-3/4 px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            
+                            <div class="flex items-center">
+                                <label class="w-1/3 md:w-1/4 text-xs font-medium text-slate-600">Realized By</label>
+                                <input type="text" value="{{ auth()->user()->name ?? 'Owner' }}" class="w-2/3 md:w-3/4 px-3 py-2 bg-slate-50 border border-slate-200 rounded text-xs text-slate-700" readonly>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 flex items-center justify-between pt-4 border-t border-slate-100">
+                            <button type="button" @click="processModalOpen = false" class="px-5 py-2 bg-white border border-slate-300 text-slate-700 rounded text-xs font-semibold hover:bg-slate-50 transition cursor-pointer">
+                                ← Back to Queue
+                            </button>
+                            <button type="submit" class="px-6 py-2 bg-[#a38c29] text-white rounded text-xs font-bold uppercase tracking-wider hover:bg-[#8a7522] transition shadow-sm border border-[#a38c29] cursor-pointer">
+                                Submit
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>

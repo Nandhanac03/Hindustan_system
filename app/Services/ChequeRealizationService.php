@@ -187,7 +187,7 @@ class ChequeRealizationService
      */
     public function advanceStatus(Receipt $receipt, string $newStatus, array $data): Receipt
     {
-        $allowed = ['cheque_in_hand', 'deposited', 'cancelled'];
+        $allowed = ['pending', 'cheque_in_hand', 'deposited', 'in_clearing', 'cancelled'];
 
         if (!in_array($newStatus, $allowed, true)) {
             throw new \InvalidArgumentException(
@@ -204,13 +204,22 @@ class ChequeRealizationService
         return DB::transaction(function () use ($receipt, $newStatus, $data) {
             $oldStatus = $receipt->realization_status;
 
-            $receipt->update(['realization_status' => $newStatus]);
+            $updateData = ['realization_status' => $newStatus];
+            if (!empty($data['company_bank_account_id'])) {
+                $updateData['company_bank_account_id'] = $data['company_bank_account_id'];
+            }
+            $receipt->update($updateData);
+
+            $remarks = $data['remarks'] ?? null;
+            if (!empty($data['bank_reference_no'])) {
+                $remarks = ($remarks ? $remarks . ' ' : '') . '(Bank Ref: ' . $data['bank_reference_no'] . ')';
+            }
 
             ReceiptRealizationLog::create([
                 'receipt_id' => $receipt->id,
                 'old_status' => $oldStatus,
                 'new_status' => $newStatus,
-                'remarks'    => $data['remarks'] ?? null,
+                'remarks'    => $remarks,
                 'changed_by' => $data['changed_by'],
             ]);
 
