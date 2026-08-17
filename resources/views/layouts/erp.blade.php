@@ -412,8 +412,8 @@
         </div>
 
         <!-- 🏦 Bank & Treasury Management -->
-        <div x-data="{ openTreasury: {{ Request::routeIs('company-bank-accounts.*') || Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') || Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openTreasury = !openTreasury" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('company-bank-accounts.*') || Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') || Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openTreasury: {{ Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openTreasury = !openTreasury" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/>
@@ -425,15 +425,6 @@
                 </svg>
             </button>
             <div x-show="openTreasury" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Banking Master (Company Bank Accounts)
-                </a>
-                <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Loan Repayment
-                </a>
-                <a href="{{ route('reports.loan_schedules') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.loan_schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Bank Loan EMI Schedules
-                </a>
                 <a href="{{ route('reports.cash_book') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.cash_book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cash Book
                 </a>
@@ -480,6 +471,46 @@
                 </a>
                 <a href="{{ route('reports.audit_trail') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.audit_trail') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Audit Trail Log
+                </a>
+            </div>
+        </div>
+
+        <!-- 💸 Loans & Debt Servicing -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Loans & Debt Servicing</p>
+        
+        <div x-data="{ openLoansDebt: {{ Request::routeIs('bank.*') || Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('bank.*') || Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Loans & Debt Servicing</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openLoansDebt ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openLoansDebt" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Bank Accounts
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Bank Loan Master
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Loan Disbursal Entry
+                </a>
+                <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    EMI & Interest Payment Release
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Loan Foreclosure & Pre-payment
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Loan Outstanding Summary
+                </a>
+                <a href="{{ route('reports.loan_schedules') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.loan_schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    EMI & Interest Schedule
                 </a>
             </div>
         </div>
