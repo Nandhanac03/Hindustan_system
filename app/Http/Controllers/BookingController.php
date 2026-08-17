@@ -134,7 +134,7 @@ class BookingController extends Controller
     {
         $validated = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
-            'unit_id' => ['required', 'exists:units,id'],
+            'unit_id' => ['required', 'exists:hindustan_units,id'],
             'sales_executive_id' => ['required', 'exists:sales_executives,id'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'agreement_date' => ['nullable', 'date'],

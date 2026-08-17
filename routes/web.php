@@ -360,8 +360,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     // Contractor Progress Billing (RA Bills) Module
     Route::get('/expenses/ra-bills', [\App\Http\Controllers\RaBillController::class, 'index'])->name('expenses.ra-bills.index');
     Route::post('/expenses/ra-bills', [\App\Http\Controllers\RaBillController::class, 'store'])->name('expenses.ra-bills.store');
-    Route::post('/expenses/ra-bills/{id}/verify', [\App\Http\Controllers\RaBillController::class, 'verify'])->name('expenses.ra-bills.verify');
-    Route::post('/expenses/ra-bills/{id}/disburse', [\App\Http\Controllers\RaBillController::class, 'disburse'])->name('expenses.ra-bills.disburse');
+    Route::match(['put', 'post'], '/expenses/ra-bills/{id}/verify', [\App\Http\Controllers\RaBillController::class, 'verify'])->name('expenses.ra-bills.verify');
+    Route::match(['put', 'post'], '/expenses/ra-bills/{id}/disburse', [\App\Http\Controllers\RaBillController::class, 'disburse'])->name('expenses.ra-bills.disburse');
     Route::delete('/expenses/ra-bills/{id}', [\App\Http\Controllers\RaBillController::class, 'destroy'])->name('expenses.ra-bills.destroy');
 
     // Suppliers Master Module
