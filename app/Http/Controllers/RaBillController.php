@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 use App\Models\Engineer;
@@ -28,7 +29,14 @@ class RaBillController extends Controller
     {
         $systemId = Auth::user()->system_id ?? 1;
 
-        $raBills = RaBill::with(['contractor', 'project', 'unit', 'payments.companyBankAccount', 'payments.voucher'])
+        $raBills = RaBill::with([
+            'contractor',
+            'project',
+            'unit',
+            'payments' => function ($query) {
+                $query->orderBy('payment_date', 'asc')->orderBy('id', 'asc')->with(['companyBankAccount', 'voucher']);
+            }
+        ])
             ->where('system_id', $systemId)
             ->orderBy('id', 'desc')
             ->get();
@@ -93,12 +101,18 @@ class RaBillController extends Controller
     {
         $systemId = Auth::user()->system_id ?? 1;
 
+        // FIX #2: RA Bill Number uniqueness is now scoped per system_id (tenant),
+        // instead of being globally unique across every company using the ERP.
         $validated = $request->validate([
-            'ra_bill_number'    => ['required', 'string', 'unique:ra_bills,ra_bill_number'],
+            'ra_bill_number' => [
+                'required',
+                'string',
+                Rule::unique('ra_bills', 'ra_bill_number')->where('system_id', $systemId),
+            ],
             'contractor_id'     => ['required', 'exists:payees,id'],
             'contractor_name'   => ['nullable', 'string', 'max:255'],
             'project_id'        => ['required', 'exists:projects,id'],
-            'unit_id'           => ['required', 'exists:units,id'],
+            'unit_id'           => ['required', 'exists:hindustan_units,id'],
             'submit_date'       => ['required', 'date'],
             'gross_amount'      => ['required', 'numeric', 'min:0.01'],
             'verified_date'     => ['nullable', 'date'],
@@ -108,6 +122,7 @@ class RaBillController extends Controller
             'remarks'           => ['nullable', 'string', 'max:500'],
         ], [
             'ra_bill_number.required' => 'The RA Bill Number field is required.',
+            'ra_bill_number.unique'   => 'This RA Bill Number already exists for your company.',
             'contractor_id.required'  => 'The Contractor field is required.',
             'project_id.required'     => 'The Site Project field is required.',
             'unit_id.required'        => 'The Unit field is required.',
@@ -162,13 +177,19 @@ class RaBillController extends Controller
     {
         $raBill = RaBill::findOrFail($id);
 
+        // FIX #3: correction_amount can no longer exceed the bill's gross_amount.
+        // Previously an oversized correction silently clamped Net Approved to ₹0
+        // with no validation error surfaced to the user.
         $validated = $request->validate([
             'verified_date'     => ['required', 'date'],
             'engineer_id'       => ['nullable', 'exists:engineers,id'],
             'engineer_name'     => ['nullable', 'string', 'max:255'],
-            'correction_amount' => ['required', 'numeric', 'min:0'],
+            'correction_amount' => ['required', 'numeric', 'min:0', 'max:' . (float) $raBill->gross_amount],
             'due_date'          => ['nullable', 'date'],
             'remarks'           => ['nullable', 'string', 'max:500'],
+        ], [
+            'correction_amount.max' => 'Correction cannot exceed the Gross Bill Amount of ₹'
+                . number_format((float) $raBill->gross_amount, 2) . '.',
         ]);
 
         $engineerName = $validated['engineer_name'] ?? null;
@@ -219,9 +240,20 @@ class RaBillController extends Controller
     {
         $raBill = RaBill::findOrFail($id);
 
+        if (!$raBill->verified_date) {
+            return redirect()->back()->with('error', '⚠️ Payment disbursement can only be processed after Site Engineer Verification Sign-Off.');
+        }
+
+        // FIX #4: Block disbursement entirely once the bill is fully cleared.
+        // Previously max(0.01, $raBill->balance_amount) allowed a ₹0.01 payment
+        // to slip through server-side validation even when balance_amount was 0.00.
+        if ((float) $raBill->balance_amount <= 0.00) {
+            return redirect()->back()->with('error', '⚠️ This RA Bill is already fully cleared. No further disbursement is allowed.');
+        }
+
         $validated = $request->validate([
             'payment_date'            => ['required', 'date'],
-            'paid_amount'             => ['required', 'numeric', 'min:0.01', 'max:' . max(0.01, (float) $raBill->balance_amount)],
+            'paid_amount'             => ['required', 'numeric', 'min:0.01', 'max:' . (float) $raBill->balance_amount],
             'payment_mode'            => ['required', 'string'],
             'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
             'reference_no'            => ['nullable', 'string', 'max:100'],

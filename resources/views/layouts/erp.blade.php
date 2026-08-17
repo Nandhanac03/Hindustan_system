@@ -103,347 +103,421 @@
 
         
         <!-- Navigation -->
-    <nav id="sidebar-nav" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav id="sidebar-nav" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
 
-        <!-- Dashboard -->
-        <a href="{{ route('dashboard') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('dashboard') ? 'active text-white' : 'text-slate-300' }}">
+        <!-- 📊 Executive Dashboard -->
+        <a href="{{ route('dashboard') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('dashboard') ? 'active text-white' : 'text-white/90' }}">
             <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
             </svg>
             Dashboard
         </a>
 
-        {{-- ═══ PROJECTS & PROPERTIES ═══ --}}
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Projects & Properties</p>
-
-        @if(auth()->user()->hasAnyPermission(['projects.manage', 'projects.view']))
-        <a href="{{ route('projects.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('projects.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/>
-            </svg>
-            Projects
-        </a>
-        @endif
-
-        <a href="{{ route('units.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('units.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-            </svg>
-            Units
-        </a>
-
-        {{-- ═══ SALES & CUSTOMERS ═══ --}}
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Sales & Customers</p>
-
-        <div x-data="{ openSales: {{ Request::routeIs('sales.*') || request('tab') === 'sale-return' || request('tab') === 'exchange' ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openSales = !openSales" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') ? 'text-white bg-slate-800/20' : 'text-slate-300' }}">
+        <!-- 🏗️ Projects & Configuration -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Projects & Configuration</p>
+        
+        <div x-data="{ openProjects: {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openProjects = !openProjects" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/>
                     </svg>
-                    <span>Sales</span>
+                    <span>Projects & Configuration</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSales ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openProjects ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openSales" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('sales.index') }}"
-                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Sales Register
+            <div x-show="openProjects" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                @if(auth()->user()->hasAnyPermission(['projects.manage', 'projects.view']))
+                <a href="{{ route('projects.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('projects.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Projects
                 </a>
-                <a href="{{ route('sales.index') }}?tab=sale-return"
-                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Cancellation / Return
+                @endif
+                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Tower / Block Master
+                </a> -->
+                <a href="{{ route('units.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('units.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Units (Unit Master)
                 </a>
-                <a href="{{ route('sales.index') }}?tab=exchange"
-                   class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Unit Exchange
+                <a href="{{ route('partners.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('partners.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Partner Management
+                </a>
+                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Project Settings & Defaults
+                </a> -->
+            </div>
+        </div>
+
+        <!-- 🏠 Sales & Property Management -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Sales & Property Management</p>
+        
+        <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    <span>Sales & Property</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSalesProperty ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openSalesProperty" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Unit Matrix / Availability Grid
+                </a>
+                <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    New Booking / Sales Register
+                </a>
+                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Agreement Register
+                </a> -->
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Rate Revision Engine
+                </a>
+                <a href="{{ route('reports.availability') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.availability') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Availability Report
                 </a>
             </div>
         </div>
 
-        <div x-data="{ openEMI: {{ Request::routeIs('emi-collections.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openEMI = !openEMI" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('emi-collections.*') ? 'text-white bg-slate-800/20' : 'text-slate-300' }}">
+        <!-- 🔄 Property Transfer & Exchange -->
+        <div x-data="{ openTransfer: {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openTransfer = !openTransfer" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    <span>Property Transfer & Exchange</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openTransfer ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openTransfer" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('sales.index', ['tab'=>'sale-return']) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'sale-return' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Sale Return / Cancellation
+                </a>
+                <a href="{{ route('sales.index', ['tab'=>'exchange']) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ request('tab') === 'exchange' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Unit Exchange
+                </a>
+                <a href="{{ route('reports.sales_return') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.sales_return') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Sales Cancel Report
+                </a>
+                <a href="{{ route('reports.exchange_report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.exchange_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Exchange Report
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Customer Resale & Ownership Transfer
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Cancellation Charges & Additional Work
+                </a>
+            </div>
+        </div>
+
+        <!-- 💳 Customer Management & Collections -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Customer Management & Collections</p>
+        
+        <div x-data="{ openCustomerColls: {{ Request::routeIs('customers.*') || Request::routeIs('reports.customer_ledger') || Request::routeIs('receipt-management.*') || Request::routeIs('receipts.allocated-to-others') || Request::routeIs('emi-collections.*') || Request::routeIs('reports.emi_collections') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openCustomerColls = !openCustomerColls" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('customers.*') || Request::routeIs('reports.customer_ledger') || Request::routeIs('receipt-management.*') || Request::routeIs('receipts.allocated-to-others') || Request::routeIs('emi-collections.*') || Request::routeIs('reports.emi_collections') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span>Customers & Collections</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openCustomerColls ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openCustomerColls" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('customers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('customers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Customer Directory
+                </a>
+                <a href="{{ route('reports.customer_ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.customer_ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Customer Ledger & Statement
+                </a>
+                <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.index') || Request::routeIs('emi-collections.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Payment Milestone Schedules
+                </a>
+                <a href="{{ route('receipt-management.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('receipt-management.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Cheque & Receipt Entry
+                </a>
+                <a href="{{ route('receipts.allocated-to-others') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('receipts.allocated-to-others') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Allocate Payments
+                </a>
+                <a href="{{ route('emi-collections.cash-book') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.cash-book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Collections (Cash Book)
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Cheque Realization Console
+                </a>
+                <a href="{{ route('emi-collections.outstanding') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.outstanding') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Dues & Outstanding
+                </a>
+                <a href="{{ route('reports.emi_collections') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.emi_collections') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    EMI & Collection Reports
+                </a>
+            </div>
+        </div>
+
+        <!-- 🛠️ Contractor Operations (RA Bills) -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Contractor Operations</p>
+
+        <div x-data="{ openContractors: {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openContractors = !openContractors" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    <span>Contractor Operations</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openContractors ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openContractors" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('suppliers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('suppliers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Contractor
+                </a>
+
+                <a href="{{ route('expenses.ra-bills.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    RA Bill Verification
+                </a>
+                <!-- <a href="{{ route('reports.supplier_contractor') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.supplier_contractor') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Supplier & Contractor Statement
+                </a> -->
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Contractor Payment Release
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Contractor Ledger View
+                </a>
+            </div>
+        </div>
+
+        <!-- 🤝 Agents & Brokerage -->
+        <div x-data="{ openBrokers: {{ Request::routeIs('brokers.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openBrokers = !openBrokers" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('brokers.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                    <span>Agents & Brokerage</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openBrokers ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openBrokers" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('brokers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Agent Master Directory
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Commission Ledger
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Broker Payout Release
+                </a>
+            </div>
+        </div>
+
+        <!-- 💵 Petty Cash & Site Expense -->
+        <div x-data="{ openPettyCash: {{ Request::routeIs('reports.petty_cash') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openPettyCash = !openPettyCash" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.petty_cash') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    <span>EMI & Payments</span>
+                    <span>Petty Cash & Site Expense</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openEMI ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openPettyCash ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openEMI" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('emi-collections.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.index') || Request::routeIs('emi-collections.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Customer EMI
+            <div x-show="openPettyCash" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Petty Cash Balance Register
                 </a>
-                <!-- <a href="{{ route('emi-collections.receipts') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.receipts') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Collect Payment
-                </a> -->
-                <a href="{{ route('emi-collections.outstanding') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('emi-collections.outstanding') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Dues & Outstanding
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Bank Cash Withdrawal (Contra)
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Daily Site Expenses
+                </a>
+                <a href="{{ route('reports.petty_cash') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.petty_cash') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Petty Cash Book (report)
                 </a>
             </div>
         </div>
 
-        <a href="{{ route('customers.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('customers.*') ? 'active text-white' : 'text-slate-300' }}">
+        <!-- 📂 Document Management (DMS) -->
+        <a href="#" class="nav-item flex items-center gap-3 px-3 py-2.5 mt-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors text-white/90">
             <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            Customers
+            Document Management
         </a>
 
-        <a href="{{ route('brokers.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('brokers.*') ? 'active text-white' : 'text-slate-300' }}">
+        <!-- 📑 Approvals Center -->
+        <a href="{{ route('reports.approvals') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 mt-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('reports.approvals') ? 'active text-white' : 'text-white/90' }}">
             <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
-            Brokerage Management
+            Workflow Approvals
         </a>
 
- 
-
-
-
-        {{-- ═══ FINANCE & ACCOUNTING ═══ --}}
-        <!-- <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Finance & Accounting</p>
-
-
-<a href="{{ route('vouchers.receipt.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.receipt.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Receipt Vouchers
-                </a>
- -->
-
-<!-- Finance & Accounting -->
-{{-- Finance & Accounting --}}
-<p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Finance & Accounting</p>
-
-<!-- <a href="{{ route('receipt-management.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('receipt-management.*') ? 'active text-white bg-[#a38c29]/20 text-[#a38c29]' : 'text-slate-300' }}">
-    <svg class="w-[18px] h-[18px] text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-    </svg>
-    Receipt Management
-</a> -->
-
-<a href="{{ route('receipt-management.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('receipt-management.*') ? 'active text-white bg-[#a38c29]/20 text-[#a38c29]' : 'text-slate-300' }}">
-     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
-    </svg>
-   Payments & Receipts
-</a>
-<div x-data="{ openChequeRealisation: {{ Request::routeIs('cheque-realization.queue') || Request::routeIs('cheque-realization.realized') || Request::routeIs('cheque-realization.process') ? 'true' : 'false' }} }" class="space-y-1 mt-1">
-    <button @click="openChequeRealisation = !openChequeRealisation" class="w-full text-left nav-item flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('cheque-realization.queue') || Request::routeIs('cheque-realization.realized') || Request::routeIs('cheque-realization.process') ? 'text-white bg-[#a38c29]/20 text-[#a38c29]' : 'text-slate-300 hover:bg-slate-800/30' }}">
-        <div class="flex items-center gap-3">
-            <svg class="w-[18px] h-[18px] {{ Request::routeIs('cheque-realization.queue') || Request::routeIs('cheque-realization.realized') || Request::routeIs('cheque-realization.process') ? 'text-[#a38c29]' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-            </svg>
-            Cheque Realisation
-        </div>
-        <svg class="w-4 h-4 transition-transform duration-200" :class="openChequeRealisation ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-    </button>
-    
-    <div x-show="openChequeRealisation" x-collapse class="pl-9 pr-3 py-1 space-y-1">
-        <a href="{{ route('cheque-realization.queue') }}" class="block px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-realization.queue') || Request::routeIs('cheque-realization.process') ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
-            Pending Realization
-        </a>
-        <a href="{{ route('cheque-realization.realized') }}" class="block px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-realization.realized') ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
-            Realized Receipts
-        </a>
-        <a href="{{ route('treasury.dashboard') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('treasury.dashboard') ? 'active text-white bg-[#a38c29]/20 text-[#a38c29]' : 'text-slate-300' }} mt-1">
-            <!-- <svg class="w-[18px] h-[18px] {{ Request::routeIs('treasury.dashboard') ? 'text-[#a38c29]' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg> -->
-            Treasury Dashboard
-        </a>
-    </div>
-</div>
-
-<!-- <a href="{{ route('vouchers.receipt.create') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('vouchers.receipt.*') ? 'active text-white' : 'text-slate-300' }}">
-    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14h6M9 10h6M7 3h10a2 2 0 012 2v14l-2-1-2 1-2-1-2 1-2-1-2 1V5a2 2 0 012-2z"/>
-    </svg>
-    Receipt Allocation Management
-</a> -->
-
-<!-- <a href="{{ route('receipts.allocated-to-others') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('receipts.allocated-to-others') ? 'active text-white' : 'text-slate-300' }}">
-    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-    </svg>
-    Receipt Allocated to Others
-</a> -->
-
-<a href="{{ route('receipts.allocated-to-others') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('receipts.allocated-to-others') ? 'active text-white' : 'text-slate-300' }}">
-    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-    </svg>
-     Allocate Payments
-</a>
-
-<a href="{{ route('vouchers.ledger.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('vouchers.ledger.*') ? 'active text-white' : 'text-slate-300' }}">
-    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a2 2 0 012-2h12a2 2 0 012 2v14a1 1 0 01-1.447.894L16 18.618l-2.553 1.276a1 1 0 01-.894 0L10 18.618l-2.553 1.276A1 1 0 016 19V5z"/>
-    </svg>
-    Ledger & Accounts
-</a>
-
-        <!-- Vouchers -->
-        <!-- <div x-data="{ openVoucher: {{ Request::routeIs('vouchers.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openVoucher = !openVoucher" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('vouchers.*') ? 'text-white' : 'text-slate-300' }}">
+        <!-- 💰 Project Profitability & Costing -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Finance & Analytics</p>
+        
+        <div x-data="{ openProfitability: {{ Request::routeIs('reports.partner_statements') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.partner_statements') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/>
                     </svg>
-                    Vouchers 
+                    <span>Project Profitability & Costing</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openVoucher ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openProfitability ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openVoucher" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('vouchers.payment.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.payment.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Payment Vouchers
+            <div x-show="openProfitability" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('reports.partner_statements') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_statements') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Partner Statements
                 </a>
-                <a href="{{ route('vouchers.receipt.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.receipt.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Receipt Vouchers
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Project Costing Summary
                 </a>
-                <a href="{{ route('vouchers.contra.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.contra.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Contra Vouchers
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Revenue vs. Cost Breakdown
                 </a>
-                <a href="{{ route('vouchers.journal.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.journal.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Journal Vouchers
-                </a>
-                <a href="{{ route('vouchers.sales-purchase.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.sales-purchase.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Sales & Purchases
-                </a>
-                <a href="{{ route('vouchers.ledger.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Ledger Directory
-                </a>
-                <a href="{{ route('vouchers.cash-book') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.cash-book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Cash Book
-                </a>
-                <a href="{{ route('vouchers.bank-book') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.bank-book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Bank Book
-                </a>
-                <a href="{{ route('vouchers.entity-ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.entity-ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Entity Sub-Ledger
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Project Margin Analysis
                 </a>
             </div>
-        </div> -->
+        </div>
 
-        <!-- Bank & Loans -->
-        <div x-data="{ openBankLoans: {{ Request::routeIs('bank.*') || Request::routeIs('company-bank-accounts.*') || Request::routeIs('loans.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openBankLoans = !openBankLoans" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('bank.*') || Request::routeIs('company-bank-accounts.*') || Request::routeIs('loans.*') ? 'text-white' : 'text-slate-300' }}">
+        <!-- 🏦 Bank & Treasury Management -->
+        <div x-data="{ openTreasury: {{ Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openTreasury = !openTreasury" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.cash_book') || Request::routeIs('reports.bank_reports') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/>
                     </svg>
-                    Banking & Loans
+                    <span>Bank & Treasury Management</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openBankLoans ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openTreasury ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
-            <div x-show="openBankLoans" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') || Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Company Bank Accounts
+            <div x-show="openTreasury" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('reports.cash_book') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.cash_book') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Cash Book
                 </a>
-              
-                <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Loan Repayment
+                <a href="{{ route('reports.bank_reports') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.bank_reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Bank Reports
                 </a>
-                <!-- <a href="{{ route('vouchers.ledger.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Chart of Accounts
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Internal Contra Transfers
+                </a>
+                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Bank Reconciliation (BRS)
                 </a> -->
             </div>
         </div>
 
-        <!-- Collections -->
-        <a href="{{ route('emi-collections.cash-book') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('emi-collections.cash-book') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z"/>
-            </svg>
-            Collections
-        </a>
-
-        {{-- ═══ EXPENSES & VENDORS ═══ --}}
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Expenses & Vendors</p>
-
-  <a href="{{ route('expenses.ra-bills.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('expenses.ra-bills.*') ? 'active text-white bg-[#a38c29]/20 text-[#a38c29]' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-            </svg>
-            Contractor RA Bills
-        </a>
-
-
-
-        <div x-data="{ openExpenses: {{ Request::is('expenses*') ? 'true' : 'false' }} }" class="space-y-1">
-            <!-- <button @click="openExpenses = !openExpenses" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::is('expenses*') ? 'text-white' : 'text-slate-300' }}">
+        <!-- 📈 Accounting & Financial Reports (Restricted) -->
+        <div x-data="{ openAccounting: {{ Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openAccounting = !openAccounting" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
                     </svg>
-                    Site Expenses
+                    <span>Accounting & Financial Reports</span>
                 </div>
-                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openExpenses ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openAccounting ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
-            </button> -->
-            <!-- <div x-show="openExpenses" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('expenses.bills.create') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.bills.create') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Add New Bill
+            </button>
+            <div x-show="openAccounting" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('reports.trial_balance') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.trial_balance') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Trial Balance
                 </a>
-                <a href="{{ route('expenses.ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Expense Ledger
+                <a href="{{ route('reports.profit_loss') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.profit_loss') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Profit & Loss
                 </a>
-                <a href="{{ route('expenses.bills.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.bills.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Bills List
+                <a href="{{ route('reports.balance_sheet') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.balance_sheet') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Balance Sheet Summary
                 </a>
-                <a href="{{ route('expenses.ra-bills.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('expenses.ra-bills.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Contractor RA Bills
+                <a href="{{ route('reports.gst_report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.gst_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    GST & Tax Report
                 </a>
-            </div> -->
+                <a href="{{ route('vouchers.ledger.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Ledger & Accounts
+                </a>
+                <a href="{{ route('reports.audit_trail') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.audit_trail') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Audit Trail Log
+                </a>
+            </div>
         </div>
 
-        <a href="{{ route('suppliers.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('suppliers.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-            </svg>
-            Suppliers & Contractors
-        </a>
+        <!-- 💸 Loans & Debt Servicing -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Loans & Debt Servicing</p>
+        
+        <div x-data="{ openLoansDebt: {{ Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Loans & Debt Servicing</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openLoansDebt ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
+            <div x-show="openLoansDebt" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Bank Loan Master
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Loan Disbursal Entry
+                </a>
+                <a href="{{ route('loans.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('loans.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    EMI & Interest Payment Release
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Loan Foreclosure & Pre-payment
+                </a>
+                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Loan Outstanding Summary
+                </a>
+                <a href="{{ route('reports.loan_schedules') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.loan_schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    EMI & Interest Schedule
+                </a>
+            </div>
+        </div>
 
-        <a href="{{ route('partners.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('partners.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-            </svg>
-            Partners Directory
-        </a>
-
-        <!-- <a href="{{ route('employees.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('employees.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-            Employees Master
-        </a> -->
-
-        {{-- ═══ REPORTS & ANALYTICS ═══ --}}
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Reports & Analytics</p>
-
-        <div x-data="{ openReports: {{ Request::routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <div class="w-full flex items-center justify-between rounded-lg hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.*') ? 'bg-slate-800/20' : '' }}">
-                <a href="{{ route('reports.index', ['report' => 'dashboard']) }}" class="flex-1 flex items-center gap-3 px-3 py-2.5 text-xs font-semibold hover:text-primary-300 transition-colors {{ Request::routeIs('reports.*') ? 'text-white' : 'text-slate-300' }}">
+        <!-- 📊 Reports & Analytics -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Reports & Analytics</p>
+        
+        <div x-data="{ openReports: {{ Request::routeIs('reports.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openReports = !openReports" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"/>
                     </svg>
-                    Reports & Analytics
-                </a>
-                <button @click.prevent="openReports = !openReports" class="p-2.5 text-slate-400 hover:text-primary-300 transition-colors focus:outline-none">
-                    <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openReports ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                </button>
-            </div>
+                    <span>Reports & Analytics</span>
+                </div>
+                <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openReports ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </button>
             <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
                 @php
                     $reportLinks = [
@@ -469,75 +543,71 @@
                     ];
                 @endphp
                 @foreach($reportLinks as $key => $label)
-                    <a href="{{ route('reports.' . $key) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.' . $key) ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <a href="{{ route('reports.' . $key) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.' . $key) ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                         {{ $label }}
                     </a>
                 @endforeach
-
             </div>
         </div>
 
-        {{-- ═══ ADMINISTRATION & SETTINGS ═══ --}}
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Administration</p>
-
-        <!-- Configurations -->
-        <div x-data="{ openMaster: {{ Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('gst.*') || Request::routeIs('company-bank-accounts.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('engineers.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openMaster = !openMaster" class="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('gst.*') || Request::routeIs('company-bank-accounts.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('engineers.*') ? 'text-white bg-slate-800/20' : 'text-slate-300' }}">
+        <!-- ⚙️ System Settings & Administration -->
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Administration</p>
+        
+        <!-- Master Configuration -->
+        <div x-data="{ openMaster: {{ Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
                     </svg>
-                    Master
+                    <span>Master</span>
                 </div>
                 <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openMaster ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
             <div x-show="openMaster" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('chart-of-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('chart-of-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('chart-of-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('chart-of-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Chart of Accounts
                 </a>
-                <a href="{{ route('voucher-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('voucher-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('voucher-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('voucher-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Voucher Types Master
                 </a>
-                <a href="{{ route('engineers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                    Opening Balance Migration Tool
+                </a> -->
+                <a href="{{ route('engineers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Engineer Master
                 </a>
-                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Banking Master (Company Bank Accounts)
-                </a>
-                <a href="{{ route('payment-modes.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payment-modes.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Payment Modes Master
+                <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Banking Master (Company Bank)
                 </a>
                 <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                     Cheque Status Master
                 </a>
-                <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Cheque Status Master
+                </a>
+                <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Floor Master
                 </a>
-                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Unit Type Master
                 </a>
             </div>
         </div>
 
-        <!-- Users & Roles -->
-        <a href="{{ route('admin.users.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('admin.users.*') ? 'active text-white' : 'text-slate-300' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-            Users & Roles
-        </a>
-
-        <!-- System Settings -->
-        <!-- <button @click="openHeaderSettings = !openHeaderSettings" type="button" class="w-full text-left nav-item flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors text-slate-300 hover:bg-slate-800/30 cursor-pointer">
-            <svg class="w-[18px] h-[18px] text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-            </svg>
-            Settings
-        </button> -->
+        <div class="pt-1 mt-2 space-y-1">
+            <a href="{{ route('admin.users.index') }}" class="flex items-center gap-3 px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('admin.users.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span>Users & Roles</span>
+            </a>
+        </div>
 
     </nav>
+
         
         <!-- Workspace Footer Status -->
        
