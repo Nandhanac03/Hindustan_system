@@ -448,6 +448,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/cheque-realization/{id}/realize', [\App\Http\Controllers\ChequeRealizationController::class, 'realize'])->name('cheque-realization.realize');
     Route::post('/cheque-realization/{id}/bounced', [\App\Http\Controllers\ChequeRealizationController::class, 'markBounced'])->name('cheque-realization.bounced');
     Route::post('/cheque-realization/{id}/advance-status', [\App\Http\Controllers\ChequeRealizationController::class, 'advanceStatus'])->name('cheque-realization.advance-status');
+    
+    // Cancellation Charges & Additional Work
+    Route::get('/cancellation-additional-work', [\App\Http\Controllers\CancellationAdditionalWorkController::class, 'index'])->name('cancellation-additional-work.index');
 });
 
 require __DIR__ . '/auth.php';

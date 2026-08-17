@@ -152,8 +152,8 @@
         <!-- 🏠 Sales & Property Management -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Sales & Property Management</p>
         
-        <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -184,8 +184,8 @@
         </div>
 
         <!-- 🔄 Property Transfer & Exchange -->
-        <div x-data="{ openTransfer: {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openTransfer = !openTransfer" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openTransfer: {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') || Request::routeIs('cancellation-additional-work.index') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openTransfer = !openTransfer" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ (Request::routeIs('sales.index') && (request('tab') === 'sale-return' || request('tab') === 'exchange')) || Request::routeIs('reports.sales_return') || Request::routeIs('reports.exchange_report') || Request::routeIs('cancellation-additional-work.index') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
@@ -212,7 +212,7 @@
                 <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
                     Customer Resale & Ownership Transfer
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('cancellation-additional-work.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cancellation-additional-work.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cancellation Charges & Additional Work
                 </a>
             </div>
