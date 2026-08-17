@@ -99,13 +99,13 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="bg-slate-900 text-slate-300 uppercase tracking-wider font-bold border-b border-slate-800">
-                        <th class="px-4 py-3.5">Code</th>
-                        <th class="px-4 py-3.5">Engineer Name</th>
-                        <th class="px-4 py-3.5">Designation & Specialization</th>
-                        <th class="px-4 py-3.5">Contact Details</th>
-                        <th class="px-4 py-3.5">Assigned Project</th>
-                        <th class="px-4 py-3.5 text-center">Status</th>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
+                        <th class="px-4 py-3.5">CODE</th>
+                        <th class="px-4 py-3.5">ENGINEER NAME</th>
+                        <th class="px-4 py-3.5">DESIGNATION & SPECIALIZATION</th>
+                        <th class="px-4 py-3.5">CONTACT DETAILS</th>
+                        <th class="px-4 py-3.5">ASSIGNED PROJECT</th>
+                        <th class="px-4 py-3.5 text-center">STATUS</th>
                         <th class="px-4 py-3.5 text-right pr-4">ACTIONS</th>
                     </tr>
                 </thead>
@@ -174,187 +174,223 @@
     </div>
 
     <!-- View Modal -->
-    <div x-show="openViewModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5" @click.outside="openViewModal = false">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-900 text-base">Engineer Profile Details</h3>
-                <button @click="openViewModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+    <div x-show="openViewModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col" @click.outside="openViewModal = false">
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">ENGINEER MASTER</p>
+                        <h2 class="text-lg font-extrabold text-white">Engineer Profile Details</h2>
+                    </div>
+                    <button type="button" @click="openViewModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
-            <div class="space-y-3 text-xs">
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Engineer Code</span>
+            <div class="p-6 space-y-3.5 text-xs bg-white">
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">ENGINEER CODE</span>
                     <span class="font-bold font-mono text-[#a38c29]" x-text="viewEngineer.engineer_code"></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Full Name</span>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">FULL NAME</span>
                     <span class="font-bold text-slate-900" x-text="viewEngineer.name"></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Designation</span>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">DESIGNATION</span>
                     <span class="font-bold text-slate-800" x-text="viewEngineer.designation"></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Specialization</span>
-                    <span class="font-medium text-slate-700" x-text="viewEngineer.specialization || '—'"></span>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">SPECIALIZATION</span>
+                    <span class="font-bold text-slate-700" x-text="viewEngineer.specialization || '—'"></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Phone Number</span>
-                    <span class="font-mono text-slate-800" x-text="viewEngineer.phone || '—'"></span>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">PHONE NUMBER</span>
+                    <span class="font-mono font-bold text-slate-800" x-text="viewEngineer.phone || '—'"></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Email Address</span>
-                    <span class="text-slate-800" x-text="viewEngineer.email || '—'"></span>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">EMAIL ADDRESS</span>
+                    <span class="font-bold text-slate-800" x-text="viewEngineer.email || '—'"></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Assigned Project</span>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">ASSIGNED PROJECT</span>
                     <span class="font-bold text-blue-700" x-text="viewEngineer.project_name"></span>
                 </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2">
-                    <span class="text-slate-500 font-medium">Active Status</span>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">ACTIVE STATUS</span>
                     <span class="font-bold" :class="viewEngineer.is_active ? 'text-emerald-600' : 'text-slate-500'" x-text="viewEngineer.is_active ? 'Active' : 'Inactive'"></span>
                 </div>
-            </div>
-            <div class="flex justify-end pt-2">
-                <button type="button" @click="openViewModal = false" class="px-4 py-2 bg-slate-800 text-white text-xs font-bold rounded-lg shadow-sm">Close</button>
+                <div class="flex justify-end pt-3">
+                    <button type="button" @click="openViewModal = false" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase rounded-xl transition shadow-sm cursor-pointer">CLOSE</button>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Add Modal -->
-    <div x-show="openAddModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5" @click.outside="openAddModal = false">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-900 text-base">Add Site Engineer</h3>
-                <button @click="openAddModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+    <div x-show="openAddModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col" @click.outside="openAddModal = false">
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">ENGINEER MASTER</p>
+                        <h2 class="text-lg font-extrabold text-white">Add Site Engineer</h2>
+                    </div>
+                    <button type="button" @click="openAddModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
-            <form action="{{ route('engineers.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Engineer Code *</label>
-                    <input type="text" name="engineer_code" required placeholder="e.g., ENG-004" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg uppercase focus:ring-2 focus:ring-[#a38c29]">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
-                    <input type="text" name="name" required placeholder="e.g., Vikram Sharma" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
+            <form action="{{ route('engineers.store') }}" method="POST" class="flex flex-col">
+                <div class="p-6 space-y-4">
+                    @csrf
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                        <input type="text" name="phone" placeholder="9876543210" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ENGINEER CODE <span class="text-rose-500 font-bold">*</span></label>
+                        <input type="text" name="engineer_code" required placeholder="e.g., ENG-004" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold uppercase text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                        <input type="email" name="email" placeholder="engineer@hindustan.com" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">FULL NAME <span class="text-rose-500 font-bold">*</span></label>
+                        <input type="text" name="name" required placeholder="e.g., Vikram Sharma" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                     </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">PHONE NUMBER</label>
+                            <input type="text" name="phone" placeholder="9876543210" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">EMAIL ADDRESS</label>
+                            <input type="email" name="email" placeholder="engineer@hindustan.com" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">DESIGNATION <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="text" name="designation" required value="Site Engineer" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">SPECIALIZATION</label>
+                            <input type="text" name="specialization" placeholder="e.g. Civil / RA Bills" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                    </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Designation *</label>
-                        <input type="text" name="designation" required value="Site Engineer" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ASSIGNED PROJECT</label>
+                        <select name="project_id" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]">
+                            <option value="">-- Global / Unassigned --</option>
+                            @foreach($projects as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Specialization</label>
-                        <input type="text" name="specialization" placeholder="e.g. Civil / RA Bills" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                    <div class="flex items-center gap-2 pt-1">
+                        <input type="checkbox" name="is_active" id="eng_add_active" value="1" checked class="w-4 h-4 rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
+                        <label for="eng_add_active" class="text-xs font-bold text-slate-700">Active Engineer Status</label>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Assigned Project</label>
-                    <select name="project_id" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
-                        <option value="">-- Global / Unassigned --</option>
-                        @foreach($projects as $p)
-                        <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" name="is_active" id="eng_add_active" value="1" checked class="rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
-                    <label for="eng_add_active" class="text-xs font-semibold text-slate-700">Active Status</label>
-                </div>
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" @click="openAddModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg shadow-sm">Save Engineer</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
+                    <button type="button" @click="openAddModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">SAVE ENGINEER</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Edit Modal -->
-    <div x-show="openEditModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5" @click.outside="openEditModal = false">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 class="font-bold text-slate-900 text-base">Edit Site Engineer</h3>
-                <button @click="openEditModal = false" class="text-slate-400 hover:text-slate-600">✕</button>
+    <div x-show="openEditModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col" @click.outside="openEditModal = false">
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">ENGINEER MASTER</p>
+                        <h2 class="text-lg font-extrabold text-white">Edit Site Engineer</h2>
+                    </div>
+                    <button type="button" @click="openEditModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
-            <form :action="'/engineers/' + editEngineer.id" method="POST" class="space-y-4">
-                @csrf
-                @method('PUT')
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Engineer Code *</label>
-                    <input type="text" name="engineer_code" x-model="editEngineer.engineer_code" required class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg uppercase focus:ring-2 focus:ring-[#a38c29]">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Full Name *</label>
-                    <input type="text" name="name" x-model="editEngineer.name" required class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
+            <form :action="'/engineers/' + editEngineer.id" method="POST" class="flex flex-col">
+                <div class="p-6 space-y-4">
+                    @csrf
+                    @method('PUT')
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Phone Number</label>
-                        <input type="text" name="phone" x-model="editEngineer.phone" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ENGINEER CODE <span class="text-rose-500 font-bold">*</span></label>
+                        <input type="text" name="engineer_code" x-model="editEngineer.engineer_code" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold uppercase text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                        <input type="email" name="email" x-model="editEngineer.email" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">FULL NAME <span class="text-rose-500 font-bold">*</span></label>
+                        <input type="text" name="name" x-model="editEngineer.name" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                     </div>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">PHONE NUMBER</label>
+                            <input type="text" name="phone" x-model="editEngineer.phone" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">EMAIL ADDRESS</label>
+                            <input type="email" name="email" x-model="editEngineer.email" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">DESIGNATION <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="text" name="designation" x-model="editEngineer.designation" required class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">SPECIALIZATION</label>
+                            <input type="text" name="specialization" x-model="editEngineer.specialization" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+                    </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Designation *</label>
-                        <input type="text" name="designation" x-model="editEngineer.designation" required class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">ASSIGNED PROJECT</label>
+                        <select name="project_id" x-model="editEngineer.project_id" class="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]">
+                            <option value="">-- Global / Unassigned --</option>
+                            @foreach($projects as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 mb-1">Specialization</label>
-                        <input type="text" name="specialization" x-model="editEngineer.specialization" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
+                    <div class="flex items-center gap-2 pt-1">
+                        <input type="checkbox" name="is_active" id="eng_edit_active" value="1" :checked="editEngineer.is_active" class="w-4 h-4 rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
+                        <label for="eng_edit_active" class="text-xs font-bold text-slate-700">Active Engineer Status</label>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 mb-1">Assigned Project</label>
-                    <select name="project_id" x-model="editEngineer.project_id" class="w-full px-3 py-2 text-xs border border-slate-250 rounded-lg focus:ring-2 focus:ring-[#a38c29]">
-                        <option value="">-- Global / Unassigned --</option>
-                        @foreach($projects as $p)
-                        <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="flex items-center gap-2 pt-2">
-                    <input type="checkbox" name="is_active" id="eng_edit_active" value="1" :checked="editEngineer.is_active" class="rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
-                    <label for="eng_edit_active" class="text-xs font-semibold text-slate-700">Active Status</label>
-                </div>
-                <div class="flex justify-end gap-2 pt-4">
-                    <button type="button" @click="openEditModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg shadow-sm">Update Engineer</button>
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
+                    <button type="button" @click="openEditModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">UPDATE ENGINEER</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Delete Modal -->
-    <div x-show="openDeleteModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4" @click.outside="openDeleteModal = false">
-            <div class="text-center">
-                <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
+    <div x-show="openDeleteModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden flex flex-col" @click.outside="openDeleteModal = false">
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-rose-950 to-rose-900 px-6 py-5 flex-shrink-0 border-b border-rose-800">
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-rose-300 text-[10px] font-semibold uppercase tracking-widest mb-1">CONFIRMATION</p>
+                        <h2 class="text-lg font-extrabold text-white">Delete Site Engineer</h2>
+                    </div>
+                    <button type="button" @click="openDeleteModal = false" class="text-rose-200 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <h3 class="font-bold text-slate-900 text-base">Delete Engineer</h3>
-                <p class="text-xs text-slate-500 mt-1">Are you sure you want to delete <span class="font-bold text-slate-800" x-text="deleteEngineer.name"></span>?</p>
             </div>
-            <form :action="'/engineers/' + deleteEngineer.id" method="POST" class="flex justify-center gap-2 pt-2">
-                @csrf
-                @method('DELETE')
-                <button type="button" @click="openDeleteModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-                <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm">Confirm Delete</button>
-            </form>
+            <div class="p-6 space-y-4 text-center bg-white">
+                <p class="text-xs font-semibold text-slate-600">Are you sure you want to delete <span class="font-bold text-slate-900" x-text="deleteEngineer.name"></span>?</p>
+                <form :action="'/engineers/' + deleteEngineer.id" method="POST" class="flex justify-center gap-3 pt-2">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" @click="openDeleteModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">CONFIRM DELETE</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

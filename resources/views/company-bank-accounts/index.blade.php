@@ -247,18 +247,13 @@
     {{-- Company Bank Add Modal --}}
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="addModalOpen = false">
-            {{-- Modal Header: BLACK with Gold Accents --}}
-            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-[#a38c29]/40">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#a38c29] border border-[#a38c29]/40 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-black text-white uppercase tracking-wider">ADD COMPANY BANK ACCOUNT</h3>
-                        <p class="text-[11px] text-slate-400 font-medium">Configure corporate banking, routing, account numbers, and balances.</p>
-                    </div>
+            {{-- Modal Header: Dark-Gold Hero Header --}}
+            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
+                <div>
+                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">BANK ACCOUNTS MASTER</span>
+                    <h3 class="font-black text-base uppercase tracking-wider text-white">ADD COMPANY BANK ACCOUNT</h3>
                 </div>
-                <button type="button" @click="addModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-[#a38c29] text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
+                <button type="button" @click="addModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
             <div class="p-6">
@@ -380,18 +375,13 @@
     {{-- Company Bank Edit Modal --}}
     <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
         <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="editModalOpen = false">
-            {{-- Modal Header: BLACK with Gold Accents --}}
-            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-[#a38c29]/40">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#a38c29] border border-[#a38c29]/40 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-black text-white uppercase tracking-wider">EDIT COMPANY BANK ACCOUNT</h3>
-                        <p class="text-[11px] text-slate-400 font-medium">Update bank name, account number, branch, or current balance.</p>
-                    </div>
+            {{-- Modal Header: Dark-Gold Hero Header --}}
+            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
+                <div>
+                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">BANK ACCOUNTS MASTER</span>
+                    <h3 class="font-black text-base uppercase tracking-wider text-white">EDIT COMPANY BANK ACCOUNT</h3>
                 </div>
-                <button type="button" @click="editModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-[#a38c29] text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
+                <button type="button" @click="editModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
             <div class="p-6">

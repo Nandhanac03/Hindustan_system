@@ -14,7 +14,7 @@
 
             <button @click="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 self-start sm:self-auto">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span>+ Add Payment Mode</span>
+                <span> Add Payment Mode</span>
             </button>
         </div>
 
@@ -113,14 +113,14 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-100 border-b border-slate-200 text-[11px] font-black text-slate-600 uppercase tracking-widest">
+                        <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
                             <th class="px-5 py-3.5">SL NO</th>
-                            <th class="px-5 py-3.5">Mode Name</th>
-                            <th class="px-5 py-3.5">System Code</th>
-                            <th class="px-5 py-3.5">Txn Ref # Required</th>
-                            <th class="px-5 py-3.5">Issuing Bank Required</th>
-                            <th class="px-5 py-3.5 text-center">Status</th>
-                            <th class="px-5 py-3.5 text-right">Actions</th>
+                            <th class="px-5 py-3.5">MODE NAME</th>
+                            <th class="px-5 py-3.5">SYSTEM CODE</th>
+                            <th class="px-5 py-3.5">TXN REF # REQUIRED</th>
+                            <th class="px-5 py-3.5">ISSUING BANK REQUIRED</th>
+                            <th class="px-5 py-3.5 text-center">STATUS</th>
+                            <th class="px-5 py-3.5 text-right">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -207,56 +207,67 @@
 
         <!-- ── ADD PAYMENT MODE MODAL ── -->
         <div x-show="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition>
-            <div @click.away="showAddModal = false" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
-                <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-                    <h3 class="text-xs font-black uppercase tracking-wider">Add New Payment Mode</h3>
-                    <button type="button" @click="showAddModal = false" class="text-slate-400 hover:text-white font-bold text-base">✕</button>
+            <div @click.away="showAddModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col">
+                {{-- Dark Header --}}
+                <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">PAYMENT MODES MASTER</p>
+                            <h2 class="text-lg font-extrabold text-white">Add New Payment Mode</h2>
+                        </div>
+                        <button type="button" @click="showAddModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <form action="{{ route('payment-modes.store') }}" method="POST" class="p-6 space-y-4">
-                    @csrf
-                    
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Mode Name <span class="text-rose-500">*</span></label>
-                        <input type="text" name="name" required placeholder="e.g. UPI / GooglePay, Demand Draft..."
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                <form action="{{ route('payment-modes.store') }}" method="POST" class="flex flex-col">
+                    <div class="p-6 space-y-4">
+                        @csrf
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Mode Name <span class="text-rose-500">*</span></label>
+                            <input type="text" name="name" required placeholder="e.g. UPI / GooglePay, Demand Draft..."
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">System Code (Optional)</label>
+                            <input type="text" name="code" placeholder="e.g. UPI, CHEQUE, DD (Auto-generated if empty)"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition uppercase">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Description / Notes</label>
+                            <textarea name="description" rows="2" placeholder="Enter mode details or instructions..."
+                                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none"></textarea>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="requires_reference" value="1" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
+                                <span class="text-xs font-bold text-slate-700">Requires Txn Reference # (Cheque No / UTR / Txn ID)</span>
+                            </label>
+
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="requires_bank" value="1" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
+                                <span class="text-xs font-bold text-slate-700">Requires Issuing Bank Selection</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
+                            <select name="status" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">System Code (Optional)</label>
-                        <input type="text" name="code" placeholder="e.g. UPI, CHEQUE, DD (Auto-generated if empty)"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition uppercase">
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Description / Notes</label>
-                        <textarea name="description" rows="2" placeholder="Enter mode details or instructions..."
-                                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition resize-none"></textarea>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-100">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" name="requires_reference" value="1" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
-                            <span class="text-xs font-extrabold text-slate-800">Requires Txn Reference # (Cheque No / UTR / Txn ID)</span>
-                        </label>
-
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" name="requires_bank" value="1" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
-                            <span class="text-xs font-extrabold text-slate-800">Requires Issuing Bank Selection</span>
-                        </label>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Status</label>
-                        <select name="status" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-                        <button type="button" @click="showAddModal = false" class="px-4 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold uppercase rounded-xl hover:bg-slate-200 transition">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] text-white text-xs font-black uppercase rounded-xl hover:bg-[#8a7522] transition shadow-md shadow-[#a38c29]/20">+ Save Payment Mode</button>
+                    <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
+                        <button type="button" @click="showAddModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">SAVE PAYMENT MODE</button>
                     </div>
                 </form>
             </div>
@@ -264,56 +275,67 @@
 
         <!-- ── EDIT PAYMENT MODE MODAL ── -->
         <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition>
-            <div @click.away="showEditModal = false" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
-                <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-                    <h3 class="text-xs font-black uppercase tracking-wider">Edit Payment Mode</h3>
-                    <button type="button" @click="showEditModal = false" class="text-slate-400 hover:text-white font-bold text-base">✕</button>
+            <div @click.away="showEditModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col">
+                {{-- Dark Header --}}
+                <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">PAYMENT MODES MASTER</p>
+                            <h2 class="text-lg font-extrabold text-white">Edit Payment Mode</h2>
+                        </div>
+                        <button type="button" @click="showEditModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <form :action="editFormAction" method="POST" class="p-6 space-y-4">
-                    @csrf
-                    
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Mode Name <span class="text-rose-500">*</span></label>
-                        <input type="text" name="name" x-model="editItem.name" required
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                <form :action="editFormAction" method="POST" class="flex flex-col">
+                    <div class="p-6 space-y-4">
+                        @csrf
+                        
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Mode Name <span class="text-rose-500">*</span></label>
+                            <input type="text" name="name" x-model="editItem.name" required
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">System Code</label>
+                            <input type="text" name="code" x-model="editItem.code" required
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition uppercase">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Description / Notes</label>
+                            <textarea name="description" x-model="editItem.description" rows="2"
+                                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none"></textarea>
+                        </div>
+
+                        <div class="space-y-2 pt-2 border-t border-slate-100">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="requires_reference" value="1" :checked="editItem.requires_reference" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
+                                <span class="text-xs font-bold text-slate-700">Requires Txn Reference #</span>
+                            </label>
+
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" name="requires_bank" value="1" :checked="editItem.requires_bank" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
+                                <span class="text-xs font-bold text-slate-700">Requires Issuing Bank Selection</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Status</label>
+                            <select name="status" x-model="editItem.status" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29]">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">System Code</label>
-                        <input type="text" name="code" x-model="editItem.code" required
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition uppercase">
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Description / Notes</label>
-                        <textarea name="description" x-model="editItem.description" rows="2"
-                                  class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition resize-none"></textarea>
-                    </div>
-
-                    <div class="space-y-2 pt-2 border-t border-slate-100">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" name="requires_reference" value="1" :checked="editItem.requires_reference" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
-                            <span class="text-xs font-extrabold text-slate-800">Requires Txn Reference #</span>
-                        </label>
-
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" name="requires_bank" value="1" :checked="editItem.requires_bank" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]">
-                            <span class="text-xs font-extrabold text-slate-800">Requires Issuing Bank Selection</span>
-                        </label>
-                    </div>
-
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Status</label>
-                        <select name="status" x-model="editItem.status" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-                        <button type="button" @click="showEditModal = false" class="px-4 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold uppercase rounded-xl hover:bg-slate-200 transition">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] text-white text-xs font-black uppercase rounded-xl hover:bg-[#8a7522] transition shadow-md shadow-[#a38c29]/20">Update Payment Mode</button>
+                    <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
+                        <button type="button" @click="showEditModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">UPDATE PAYMENT MODE</button>
                     </div>
                 </form>
             </div>
@@ -321,41 +343,49 @@
 
         <!-- ── VIEW DETAILS MODAL ── -->
         <div x-show="showViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition>
-            <div @click.away="showViewModal = false" class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden">
-                <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
-                    <h3 class="text-xs font-black uppercase tracking-wider">Payment Mode Details</h3>
-                    <button type="button" @click="showViewModal = false" class="text-slate-400 hover:text-white font-bold text-base">✕</button>
+            <div @click.away="showViewModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-md flex flex-col">
+                {{-- Dark Header --}}
+                <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">PAYMENT MODES MASTER</p>
+                            <h2 class="text-lg font-extrabold text-white">Payment Mode Details</h2>
+                        </div>
+                        <button type="button" @click="showViewModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="p-6 space-y-4 text-xs">
-                    <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">MODE NAME</div>
-                        <div class="text-base font-black text-slate-900" x-text="viewItem.name"></div>
-
-                        <div class="pt-2 border-t border-slate-200/60 flex justify-between items-center">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">SYSTEM CODE</span>
-                            <span class="font-mono font-bold text-[#a38c29]" x-text="viewItem.code"></span>
-                        </div>
+                <div class="p-6 space-y-3.5 text-xs bg-white">
+                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">MODE NAME</span>
+                        <span class="font-bold text-slate-900 text-sm" x-text="viewItem.name"></span>
                     </div>
-
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase block">TXN REF #</span>
-                            <span class="font-bold text-slate-800 mt-0.5 block" x-text="viewItem.requires_reference ? 'Required' : 'Optional'"></span>
-                        </div>
-                        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase block">BANK SELECT</span>
-                            <span class="font-bold text-slate-800 mt-0.5 block" x-text="viewItem.requires_bank ? 'Required' : 'Optional'"></span>
-                        </div>
+                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">SYSTEM CODE</span>
+                        <span class="font-mono font-bold text-[#a38c29]" x-text="viewItem.code"></span>
                     </div>
-
-                    <div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase block mb-1">DESCRIPTION</span>
-                        <p class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium" x-text="viewItem.description || 'No description provided.'"></p>
+                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">TXN REF # REQUIRED</span>
+                        <span class="font-bold text-slate-800" x-text="viewItem.requires_reference ? 'Required' : 'Optional / No'"></span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">ISSUING BANK REQUIRED</span>
+                        <span class="font-bold text-slate-800" x-text="viewItem.requires_bank ? 'Required' : 'Optional / No'"></span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">STATUS</span>
+                        <span class="font-bold uppercase" :class="viewItem.status === 'active' ? 'text-emerald-600' : 'text-slate-500'" x-text="viewItem.status"></span>
+                    </div>
+                    <div x-show="viewItem.description" class="pt-1">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px] block mb-1">DESCRIPTION / NOTES</span>
+                        <p class="text-slate-700 font-medium bg-slate-50 p-3 rounded-xl border border-slate-200" x-text="viewItem.description"></p>
                     </div>
 
                     <div class="pt-3 border-t border-slate-100 flex justify-end">
-                        <button type="button" @click="showViewModal = false" class="px-5 py-2 bg-slate-900 text-white text-xs font-bold uppercase rounded-xl">Close</button>
+                        <button type="button" @click="showViewModal = false" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase rounded-xl transition shadow-sm cursor-pointer">CLOSE</button>
                     </div>
                 </div>
             </div>
