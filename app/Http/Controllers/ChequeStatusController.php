@@ -13,7 +13,7 @@ class ChequeStatusController extends Controller
     public function index()
     {
         $statuses = ChequeStatus::orderBy('name')->get();
-        return view('masters.cheque-statuses.index', compact('statuses'));
+        return view('cheque-statuses.index', compact('statuses'));
     }
 
     /**
