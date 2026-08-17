@@ -409,6 +409,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/payment-modes/{id}/update', [\App\Http\Controllers\PaymentModeController::class, 'update'])->name('payment-modes.update');
     Route::post('/payment-modes/{id}/delete', [\App\Http\Controllers\PaymentModeController::class, 'destroy'])->name('payment-modes.destroy');
     Route::post('/payment-modes/{id}/toggle-status', [\App\Http\Controllers\PaymentModeController::class, 'toggleStatus'])->name('payment-modes.toggle-status');
+    // Cheque Status Master Module
+    Route::resource('cheque-statuses', \App\Http\Controllers\ChequeStatusController::class)->except(['create', 'show', 'edit']);
 
     // Receipt Management Module
     Route::get('/receipt-management', [\App\Http\Controllers\ReceiptManagementController::class, 'index'])->name('receipt-management.index');

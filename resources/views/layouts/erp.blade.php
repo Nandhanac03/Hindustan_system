@@ -116,8 +116,8 @@
         <!-- 🏗️ Projects & Configuration -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Projects & Configuration</p>
         
-        <div x-data="{ openProjects: {{ Request::routeIs('projects.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openProjects = !openProjects" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('projects.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openProjects: {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openProjects = !openProjects" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('projects.*') || Request::routeIs('units.*') || Request::routeIs('partners.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/>
@@ -137,12 +137,6 @@
                 <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
                     Tower / Block Master
                 </a> -->
-                <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Floor Master
-                </a>
-                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Unit Type Master
-                </a>
                 <a href="{{ route('units.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('units.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Units (Unit Master)
                 </a>
@@ -158,8 +152,8 @@
         <!-- 🏠 Sales & Property Management -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Sales & Property Management</p>
         
-        <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || Request::routeIs('payment-modes.*') || (Request::routeIs('reports.availability')) ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || Request::routeIs('payment-modes.*') || (Request::routeIs('reports.availability')) ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
@@ -182,9 +176,6 @@
                 </a> -->
                 <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
                     Rate Revision Engine
-                </a>
-                <a href="{{ route('payment-modes.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('payment-modes.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Payment Modes Master
                 </a>
                 <a href="{{ route('reports.availability') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.availability') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Availability Report
@@ -478,8 +469,8 @@
         <!-- 💸 Loans & Debt Servicing -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Loans & Debt Servicing</p>
         
-        <div x-data="{ openLoansDebt: {{ Request::routeIs('bank.*') || Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('bank.*') || Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openLoansDebt: {{ Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -491,9 +482,6 @@
                 </svg>
             </button>
             <div x-show="openLoansDebt" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Bank Accounts
-                </a>
                 <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
                     Bank Loan Master
                 </a>
@@ -566,8 +554,8 @@
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Administration</p>
         
         <!-- Master Configuration -->
-        <div x-data="{ openMaster: {{ Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openMaster: {{ Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openMaster = !openMaster" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('engineers.*') || Request::routeIs('chart-of-accounts.*') || Request::routeIs('voucher-types.*') || Request::routeIs('bank.*') || Request::routeIs('payment-modes.*') || Request::routeIs('cheque-statuses.*') || Request::routeIs('floors.*') || Request::routeIs('unit-types.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
@@ -590,6 +578,21 @@
                 </a> -->
                 <a href="{{ route('engineers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Engineer Master
+                </a>
+                <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Banking Master (Company Bank)
+                </a>
+                <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    Cheque Status Master
+                </a>
+                <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Cheque Status Master
+                </a>
+                <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Floor Master
+                </a>
+                <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Unit Type Master
                 </a>
             </div>
         </div>
