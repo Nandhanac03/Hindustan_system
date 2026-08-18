@@ -1,27 +1,30 @@
 <x-erp-layout>
-    <x-slot:title>Supplier Master - HindustanERP</x-slot:title>
-    <x-slot:headerTitle>Suppliers > Supplier Master</x-slot:headerTitle>
+    <x-slot:title>Contractor Master - HindustanERP</x-slot:title>
+    <x-slot:headerTitle>Contractors > Contractor Master</x-slot:headerTitle>
 
-    <div class="max-w-[1800px] mx-auto space-y-6" x-data="supplierDirectory()">
+    <div class="max-w-[1800px] mx-auto space-y-6" x-data="contractorDirectory()">
         <!-- Section Header -->
         <div class="flex items-center justify-between bg-white px-6 py-4 rounded-2xl border border-slate-200 shadow-sm">
             <div>
-                <h1 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Supplier Master Directory</h1>
-                <p class="text-xs text-slate-450 mt-1">Manage external contractors, vendors, and suppliers associated with site development expenses.</p>
+                <h1 class="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <svg class="w-5 h-5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <span>Contractor Master Directory</span>
+                </h1>
+                <p class="text-xs text-slate-500 mt-1 font-semibold">Manage civil contractors, labor agencies, and subcontractors associated with site construction & RA bills.</p>
             </div>
             <div class="flex items-center gap-4">
-                <span class="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold" x-text="'Registered Suppliers: ' + suppliers.length"></span>
+                <span class="px-3 py-1 bg-[#a38c29]/15 text-[#a38c29] border border-[#a38c29]/30 rounded-xl text-xs font-black uppercase tracking-wider" x-text="'Registered Contractors: ' + suppliers.length"></span>
             </div>
         </div>
 
         @if(session('status'))
-            <div class="p-4 bg-emerald-50 border border-emerald-250 text-emerald-800 text-xs font-bold rounded-2xl shadow-2xs">
+            <div class="p-4 bg-emerald-50 border border-emerald-250 text-emerald-800 text-xs font-extrabold rounded-2xl shadow-2xs">
                 {{ session('status') }}
             </div>
         @endif
 
         @if ($errors->any())
-            <div class="p-4 bg-rose-50 border border-rose-250 text-rose-800 text-xs font-bold rounded-2xl shadow-2xs">
+            <div class="p-4 bg-rose-50 border border-rose-250 text-rose-800 text-xs font-extrabold rounded-2xl shadow-2xs">
                 <ul class="list-disc list-inside">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -33,68 +36,69 @@
         <!-- Two Column Content Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             
-            <!-- Left Card: Add New Supplier Form -->
+            <!-- Left Card: Add New Contractor Form -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                <div class="px-6 py-5 bg-white border-b border-slate-100">
-                    <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Register New Supplier</h3>
+                <div class="px-6 py-4 bg-[#2a2415] text-white border-b border-[#a38c29]/30 flex items-center justify-between">
+                    <h3 class="text-xs font-black uppercase tracking-wider text-white">Register New Contractor</h3>
+                    <span class="px-2 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] rounded text-[9px] font-black uppercase">MASTER</span>
                 </div>
-                <form action="{{ route('suppliers.store') }}" method="POST" class="p-6 space-y-4">
+                <form action="{{ route('contractors.store') }}" method="POST" class="p-6 space-y-4">
                     @csrf
-                    <!-- Supplier Name -->
+                    <!-- Contractor Name -->
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Supplier / Contractor Name <span class="text-rose-500">*</span></label>
+                        <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Contractor / Company Name <span class="text-rose-500">*</span></label>
                         <input type="text" name="name" required placeholder="e.g. BuildRight Constructions Pvt. Ltd."
-                               class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-blue-500/20 rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition">
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] rounded-xl text-xs text-slate-900 font-bold focus:outline-none transition shadow-2xs">
                     </div>
 
                     <!-- Phone & Email -->
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Phone Number</label>
+                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Phone Number</label>
                             <input type="text" name="phone" placeholder="e.g. +91 9876543210"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Email Address</label>
-                            <input type="email" name="email" placeholder="e.g. contact@supplier.com"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
+                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Email Address</label>
+                            <input type="email" name="email" placeholder="e.g. contact@builder.com"
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                         </div>
                     </div>
 
                     <!-- GSTIN & PAN -->
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier GSTIN</label>
+                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Contractor GSTIN</label>
                             <input type="text" name="gstin" placeholder="e.g. 33AABCB1234C1Z5" minlength="15" maxlength="15" pattern="[a-zA-Z0-9]{15}" title="GSTIN must be exactly 15 alphanumeric characters"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition uppercase">
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition uppercase">
                         </div>
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier PAN</label>
+                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Contractor PAN</label>
                             <input type="text" name="pan" placeholder="e.g. AABCB1234C"
-                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none transition">
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition uppercase">
                         </div>
                     </div>
 
                     <!-- Address -->
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Office Address</label>
-                        <textarea name="address" rows="2" placeholder="Postal address details..."
-                                  class="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none"></textarea>
+                        <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Office Address</label>
+                        <textarea name="address" rows="2" placeholder="Street, City, Pin details..."
+                                  class="w-full bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 px-3.5 py-2.5 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition resize-none font-semibold"></textarea>
                     </div>
 
                     <!-- Submit -->
                     <div class="pt-2">
-                        <button type="submit" class="w-full py-2.5 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
-                            Save Supplier
+                        <button type="submit" class="w-full py-3 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black rounded-xl transition shadow-md uppercase tracking-wider border border-[#a38c29]/40 cursor-pointer">
+                            SAVE CONTRACTOR
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Right Card: Registered Suppliers Directory (Span 2) -->
+            <!-- Right Card: Registered Contractors Directory (Span 2) -->
             <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="px-6 py-5 bg-white border-b border-slate-100 flex items-center justify-between">
-                    <h3 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Registered Suppliers Directory</h3>
+                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Registered Contractors Directory</h3>
                     
                     <!-- Search Input -->
                     <div class="relative group w-72">
@@ -114,48 +118,48 @@
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-extrabold uppercase tracking-widest">
-                                <th class="px-5 py-4 text-white">Supplier Name / Info</th>
-                                <th class="px-5 py-4 text-white">Tax / Legal IDs</th>
-                                <th class="px-5 py-4 text-white">Contact details</th>
-                                <th class="px-5 py-4 text-white">Office Address</th>
-                                <th class="px-5 py-4 text-white text-center">Actions</th>
+                            <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-widest">
+                                <th class="px-5 py-3.5 text-white">Contractor Name / Account Code</th>
+                                <th class="px-5 py-3.5 text-white">Tax & Legal IDs</th>
+                                <th class="px-5 py-3.5 text-white">Contact Details</th>
+                                <th class="px-5 py-3.5 text-white">Office Address</th>
+                                <th class="px-5 py-3.5 text-white text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
+                        <tbody class="divide-y divide-slate-100 text-xs font-semibold">
                             <template x-for="sup in filteredSuppliers()" :key="sup.id">
-                                <tr class="hover:bg-slate-50/50 transition">
+                                <tr class="hover:bg-amber-50/20 transition">
                                     <td class="px-5 py-4">
-                                        <div class="font-bold text-slate-800 text-xs" x-text="sup.name"></div>
-                                        <div class="font-mono text-[9px] text-blue-600 font-bold mt-1" x-text="sup.linked_account ? sup.linked_account.code : 'SUP-ACC-xxxx'"></div>
+                                        <div class="font-black text-slate-900 text-xs" x-text="sup.name"></div>
+                                        <div class="font-mono text-[9.5px] text-blue-600 font-bold mt-1" x-text="sup.linked_account ? sup.linked_account.code : 'SUP-ACC-xxxx'"></div>
                                     </td>
                                     <td class="px-5 py-4">
-                                        <div class="font-semibold text-slate-700">GSTIN: <span class="font-mono text-slate-900" x-text="sup.gstin || 'N/A'"></span></div>
-                                        <div class="text-[10px] text-slate-450 mt-0.5">PAN: <span class="font-mono text-slate-900" x-text="sup.pan || 'N/A'"></span></div>
+                                        <div class="font-semibold text-slate-700">GSTIN: <span class="font-mono font-bold text-slate-900" x-text="sup.gstin || 'N/A'"></span></div>
+                                        <div class="text-[10px] text-slate-500 mt-0.5">PAN: <span class="font-mono font-bold text-slate-900" x-text="sup.pan || 'N/A'"></span></div>
                                     </td>
                                     <td class="px-5 py-4">
-                                        <div class="font-semibold text-slate-600" x-text="sup.phone || 'No Phone'"></div>
-                                        <div class="text-slate-405" x-text="sup.email || 'No Email'"></div>
+                                        <div class="font-bold text-slate-800" x-text="sup.phone || 'No Phone'"></div>
+                                        <div class="text-slate-500 text-[10px]" x-text="sup.email || 'No Email'"></div>
                                     </td>
-                                    <td class="px-5 py-4 text-slate-500 font-semibold" x-text="sup.address || 'N/A'"></td>
+                                    <td class="px-5 py-4 text-slate-600 font-semibold" x-text="sup.address || 'N/A'"></td>
                                     <td class="px-5 py-4 text-center">
-                                        <div class="flex items-center justify-center gap-1.5">
+                                        <div class="flex items-center justify-center gap-2">
                                             <!-- Edit trigger -->
-                                            <button type="button" @click="editSupplier(sup)" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" title="Edit Supplier">
-                                                <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                            <button type="button" @click="editSupplier(sup)" class="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 transition inline-flex items-center justify-center shadow-2xs border border-blue-200 cursor-pointer" title="Edit Contractor">
+                                                <svg class="w-4 h-4 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                             </button>
                                             
                                             <!-- Delete -->
-                                            <button type="button" @click="confirmDelete(sup)" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm" title="Delete Supplier">
-                                                <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <button type="button" @click="confirmDelete(sup)" class="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 transition inline-flex items-center justify-center shadow-2xs border border-rose-200 cursor-pointer" title="Delete Contractor">
+                                                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             </button>
                                         </div>
                                     </td>
                                 </tr>
                             </template>
                             <tr x-show="filteredSuppliers().length === 0">
-                                <td colspan="5" class="px-6 py-12 text-center text-slate-450 font-bold">
-                                    No registered suppliers match the search query.
+                                <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic font-semibold">
+                                    No registered contractors match the search query.
                                 </td>
                             </tr>
                         </tbody>
@@ -166,76 +170,75 @@
 
         <!-- Edit Popup Modal Wrapper -->
         <div x-show="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-             <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showEditModal = false">
+             <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="showEditModal = false">
                   {{-- Header --}}
-                  <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
-                      <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                  <div class="relative overflow-hidden bg-[#2a2415] px-6 py-5 border-b border-[#a38c29]/30">
                       <div class="relative z-10 flex items-center justify-between gap-4">
                           <div>
-                              <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Supplier Management</span>
-                              <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Edit Supplier Details</h2>
+                              <span class="px-2.5 py-0.5 rounded bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-widest whitespace-nowrap border border-[#a38c29]/40">Contractor Master</span>
+                              <h2 class="text-sm font-black text-white uppercase tracking-wider mt-1">Edit Contractor Details</h2>
                           </div>
-                          <button type="button" @click="showEditModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                          <button type="button" @click="showEditModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs font-bold cursor-pointer">✕</button>
                       </div>
                   </div>
 
-                  <form :action="'{{ url('/suppliers') }}/' + editForm.id" method="POST">
+                  <form :action="'{{ url('/contractors') }}/' + editForm.id" method="POST">
                       @csrf
                       @method('PUT')
                       
                       <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
-                          <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                              <!-- Supplier Name -->
+                          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                              <!-- Contractor Name -->
                               <div class="space-y-1.5">
-                                  <label class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Supplier Name <span class="text-rose-500">*</span></label>
+                                  <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Contractor Name <span class="text-rose-500">*</span></label>
                                   <input type="text" name="name" required x-model="editForm.name"
-                                         class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm">
+                                         class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] rounded-xl text-xs text-slate-900 font-bold focus:outline-none transition shadow-2xs">
                               </div>
 
                               <!-- Phone & Email -->
                               <div class="grid grid-cols-2 gap-4">
                                   <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Phone Number</label>
+                                      <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Phone Number</label>
                                       <input type="text" name="phone" x-model="editForm.phone"
-                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700">
+                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition text-slate-800">
                                   </div>
                                   <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Email Address</label>
+                                      <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Email Address</label>
                                       <input type="email" name="email" x-model="editForm.email"
-                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700">
+                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition text-slate-800">
                                   </div>
                               </div>
 
                               <!-- GSTIN & PAN -->
                               <div class="grid grid-cols-2 gap-4">
                                   <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier GSTIN</label>
+                                      <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Contractor GSTIN</label>
                                       <input type="text" name="gstin" x-model="editForm.gstin" minlength="15" maxlength="15" pattern="[a-zA-Z0-9]{15}" title="GSTIN must be exactly 15 alphanumeric characters"
-                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700 font-mono uppercase">
+                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#a38c29] rounded-xl text-xs font-mono font-bold focus:outline-none transition text-slate-800 uppercase">
                                   </div>
                                   <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Supplier PAN</label>
+                                      <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Contractor PAN</label>
                                       <input type="text" name="pan" x-model="editForm.pan"
-                                             class="w-full px-3 py-2 bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold focus:outline-none transition shadow-sm text-slate-700 font-mono">
+                                             class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#a38c29] rounded-xl text-xs font-mono font-bold focus:outline-none transition text-slate-800 uppercase">
                                   </div>
                               </div>
 
                               <!-- Address -->
                               <div class="space-y-1.5">
-                                  <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Office Address</label>
+                                  <label class="text-[10px] font-bold text-slate-700 uppercase tracking-widest block">Office Address</label>
                                   <textarea name="address" rows="2" x-model="editForm.address"
-                                            class="w-full bg-slate-50 border border-slate-255 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none shadow-sm font-semibold"></textarea>
+                                            class="w-full bg-slate-50 border border-slate-200 focus:ring-2 focus:ring-[#a38c29] rounded-xl text-xs text-slate-800 px-3.5 py-2.5 focus:outline-none transition resize-none font-semibold"></textarea>
                               </div>
                           </div>
                       </div>
 
-                      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                      <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
                           <button type="button" @click="showEditModal = false"
-                                  class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
-                              Cancel
+                                  class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black rounded-xl transition uppercase tracking-wider cursor-pointer">
+                              CANCEL
                           </button>
-                          <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wider">
-                              Save Changes
+                          <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black rounded-xl transition shadow-md uppercase tracking-wider cursor-pointer border border-[#a38c29]/40">
+                              SAVE CHANGES
                           </button>
                       </div>
                   </form>
@@ -244,28 +247,28 @@
 
         <!-- Delete Confirmation Modal -->
         <div x-show="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-             <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="showDeleteModal = false">
+             <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="showDeleteModal = false">
                   <div class="p-6">
-                      <div class="flex items-center justify-center w-16 h-16 mx-auto bg-red-100 rounded-full mb-4 shadow-sm shadow-red-200/50">
-                          <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div class="flex items-center justify-center w-16 h-16 mx-auto bg-rose-100 rounded-full mb-4 shadow-sm shadow-rose-200/50">
+                          <svg class="w-8 h-8 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                           </svg>
                       </div>
-                      <h3 class="text-lg font-black text-slate-900 text-center uppercase tracking-wider mb-2">Delete Supplier?</h3>
-                      <p class="text-sm text-slate-500 text-center mb-6">
-                          Are you sure you want to permanently remove <span class="font-bold text-slate-800" x-text="supplierToDelete ? supplierToDelete.name : ''"></span>? This action cannot be undone.
+                      <h3 class="text-lg font-black text-slate-900 text-center uppercase tracking-wider mb-2">Delete Contractor?</h3>
+                      <p class="text-xs font-semibold text-slate-500 text-center mb-6">
+                          Are you sure you want to permanently remove <span class="font-bold text-slate-900" x-text="supplierToDelete ? supplierToDelete.name : ''"></span>? This action cannot be undone.
                       </p>
                       
                       <div class="flex items-center justify-center gap-3">
-                          <button type="button" @click="showDeleteModal = false" class="px-5 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider">
-                              Cancel
+                          <button type="button" @click="showDeleteModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black rounded-xl transition uppercase tracking-wider cursor-pointer">
+                              CANCEL
                           </button>
-                          <form :action="supplierToDelete ? '{{ url('/suppliers') }}/' + supplierToDelete.id : ''" method="POST" class="inline">
+                          <form :action="supplierToDelete ? '{{ url('/contractors') }}/' + supplierToDelete.id : '#'" method="POST" class="inline">
                               @csrf
                               @method('DELETE')
-                              <button type="submit" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-red-600/20 uppercase tracking-wider flex items-center gap-2">
+                              <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition shadow-md uppercase tracking-wider flex items-center gap-2 cursor-pointer">
                                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                  Yes, Delete
+                                  <span>YES, DELETE CONTRACTOR</span>
                               </button>
                           </form>
                       </div>
@@ -275,7 +278,7 @@
     </div>
 
     <script>
-        function supplierDirectory() {
+        function contractorDirectory() {
             return {
                 suppliers: @json($suppliers),
                 searchQuery: '',

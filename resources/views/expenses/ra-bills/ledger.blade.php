@@ -18,16 +18,16 @@
             <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                 <svg class="w-6 h-6 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 <span>Contractor Account Statement Ledger</span>
-                <span class="text-xs bg-[#a38c29]/15 text-[#a38c29] px-2.5 py-0.5 rounded-full font-bold">Account Statement & Directory</span>
+                <span class="text-xs bg-[#a38c29]/15 text-[#a38c29] px-2.5 py-0.5 rounded-full font-bold">Account Statement</span>
             </h1>
         </div>
 
         <div class="flex items-center gap-3">
-            <button type="button" @click="addContractorModalOpen = true"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-[#a38c29]/40">
+            <a href="{{ route('contractors.index') }}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-[#a38c29]/40">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
-                <span>+ Register Contractor Master</span>
-            </button>
+                <span>⚙️ Manage Contractor Master</span>
+            </a>
         </div>
     </div>
 
@@ -166,126 +166,6 @@
         </div>
     </div>
 
-    <!-- ── CONTRACTOR MASTER DIRECTORY TABLE ── -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Contractor Master Directory</span>
-                <span class="text-[11px] bg-[#a38c29]/15 text-[#a38c29] px-2.5 py-0.5 rounded-full font-bold">{{ count($contractorLedgerSummaries ?? []) }} Registered</span>
-            </div>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-[#2a2415] text-white text-[9.5px] font-black uppercase tracking-wider">
-                    <tr>
-                        <th class="px-4 py-3">CONTRACTOR NAME / ACCOUNT CODE</th>
-                        <th class="px-4 py-3">TAX & LEGAL IDS</th>
-                        <th class="px-4 py-3">CONTACT INFO</th>
-                        <th class="px-4 py-3 text-right">TOTAL CLAIMED (₹)</th>
-                        <th class="px-4 py-3 text-right">TOTAL DISBURSED (₹)</th>
-                        <th class="px-4 py-3 text-right">BALANCE PAYABLE (₹)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-xs font-semibold">
-                    @forelse(($contractorLedgerSummaries ?? []) as $cSummary)
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="px-4 py-3">
-                                <div class="font-black text-slate-900">{{ $cSummary['name'] }}</div>
-                                <div class="font-mono text-[10px] text-blue-600 font-bold mt-0.5">{{ $cSummary['account_code'] }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-slate-700">
-                                <div>GSTIN: <span class="font-mono font-bold">{{ $cSummary['gstin'] ?: 'N/A' }}</span></div>
-                                <div class="text-[10px] text-slate-400">PAN: <span class="font-mono font-bold">{{ $cSummary['pan'] ?: 'N/A' }}</span></div>
-                            </td>
-                            <td class="px-4 py-3 text-slate-700">
-                                <div>{{ $cSummary['phone'] ?: 'No Phone' }}</div>
-                                <div class="text-[10px] text-slate-400">{{ $cSummary['email'] ?: 'No Email' }}</div>
-                            </td>
-                            <td class="px-4 py-3 text-right font-mono font-bold text-slate-900">
-                                ₹{{ number_format($cSummary['total_net_approved'], 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right font-mono font-bold text-emerald-700">
-                                ₹{{ number_format($cSummary['total_paid'], 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right font-mono font-black text-rose-700">
-                                ₹{{ number_format($cSummary['total_balance'], 2) }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-4 py-6 text-center text-slate-400 italic">
-                                No contractor master accounts registered.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ── MODAL: REGISTER NEW CONTRACTOR MASTER ── -->
-    <div x-show="addContractorModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="addContractorModalOpen = false">
-            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">CONTRACTOR MASTER</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">REGISTER NEW CONTRACTOR MASTER</h3>
-                </div>
-                <button type="button" @click="addContractorModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
-            </div>
-
-            <form action="{{ route('expenses.ra-bills.contractor.store') }}" method="POST" class="p-6 space-y-4 text-xs font-semibold">
-                @csrf
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">CONTRACTOR / COMPANY NAME <span class="text-rose-500 font-bold">*</span></label>
-                    <input type="text" name="name" required placeholder="e.g. BuildRight Constructions Pvt Ltd"
-                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PHONE NUMBER</label>
-                        <input type="text" name="phone" placeholder="e.g. +91 9876543210"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">EMAIL ADDRESS</label>
-                        <input type="email" name="email" placeholder="e.g. contact@builder.com"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">GSTIN</label>
-                        <input type="text" name="gstin" placeholder="33AABCB1234C1Z5" minlength="15" maxlength="15"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all uppercase">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PAN NUMBER</label>
-                        <input type="text" name="pan" placeholder="AABCB1234C"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all uppercase">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">OFFICE ADDRESS</label>
-                    <textarea name="address" rows="2" placeholder="Street, City, Pin details..."
-                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
-                </div>
-
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button type="button" @click="addContractorModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md border border-[#a38c29]/40 cursor-pointer">SAVE CONTRACTOR</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
 </div>
 
 <script>
@@ -293,8 +173,6 @@ function raBillLedger() {
     return {
         ledgerSearchQuery: '',
         selectedLedgerContractorId: '',
-        addContractorModalOpen: {{ $errors->has('name') ? 'true' : 'false' }},
-        contractorLedgerSummaries: @json($contractorLedgerSummaries ?? []),
         allLedgerEntries: @json($allLedgerEntries ?? []),
 
         filteredLedgerEntries() {

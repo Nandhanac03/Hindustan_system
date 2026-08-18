@@ -370,11 +370,16 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['put', 'post'], '/expenses/ra-bills/{id}/disburse', [\App\Http\Controllers\RaBillController::class, 'disburse'])->name('expenses.ra-bills.disburse');
     Route::delete('/expenses/ra-bills/{id}', [\App\Http\Controllers\RaBillController::class, 'destroy'])->name('expenses.ra-bills.destroy');
 
-    // Suppliers Master Module
-    Route::get('/suppliers', [\App\Http\Controllers\SupplierController::class, 'index'])->name('suppliers.index');
-    Route::post('/suppliers', [\App\Http\Controllers\SupplierController::class, 'store'])->name('suppliers.store');
-    Route::match(['put', 'post'], '/suppliers/{supplier}', [\App\Http\Controllers\SupplierController::class, 'update'])->name('suppliers.update');
-    Route::match(['get', 'post', 'delete'], '/suppliers/{supplier}', [\App\Http\Controllers\SupplierController::class, 'destroy'])->name('suppliers.destroy');
+    // Contractor Master Module
+    Route::get('/contractors', [\App\Http\Controllers\SupplierController::class, 'index'])->name('contractors.index');
+    Route::post('/contractors', [\App\Http\Controllers\SupplierController::class, 'store'])->name('contractors.store');
+    Route::match(['put', 'post'], '/contractors/{supplier}', [\App\Http\Controllers\SupplierController::class, 'update'])->name('contractors.update');
+    Route::match(['get', 'post', 'delete'], '/contractors/{supplier}', [\App\Http\Controllers\SupplierController::class, 'destroy'])->name('contractors.destroy');
+
+    // Legacy fallback redirect for /suppliers
+    Route::get('/suppliers', function () {
+        return redirect()->route('contractors.index');
+    })->name('suppliers.index');
 
     // Employee Master Module
     Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('employees.index');

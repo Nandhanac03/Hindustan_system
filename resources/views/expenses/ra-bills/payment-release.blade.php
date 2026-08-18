@@ -86,14 +86,14 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-slate-900 text-white border-b border-slate-800 text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
+                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
                     <tr class="text-left">
-                        <th class="px-3 py-3 text-left w-[85px]">RA BILL NO</th>
+                        <th class="px-3 py-3 text-left w-[130px]">RA BILL NO</th>
                         <th class="px-3 py-3 text-left w-[180px]">CONTRACTOR / PROJECT</th>
                         <th class="px-3 py-3 text-left w-[110px]">VERIFIED DATE</th>
-                        <th class="px-3 py-3 text-left bg-slate-800 w-[110px]">NET APPROVED (₹)</th>
-                        <th class="px-3 py-3 text-left text-emerald-300 w-[110px]">PAID AMOUNT (₹)</th>
-                        <th class="px-3 py-3 text-left text-rose-300 w-[110px]">BALANCE DUE (₹)</th>
+                        <th class="px-3 py-3 text-left w-[110px]">NET APPROVED (₹)</th>
+                        <th class="px-3 py-3 text-left text-emerald-100 w-[110px]">PAID AMOUNT (₹)</th>
+                        <th class="px-3 py-3 text-left text-rose-100 w-[110px]">BALANCE DUE (₹)</th>
                         <th class="px-3 py-3 text-left w-[95px]">STATUS</th>
                         <th class="px-3 py-3 text-right w-[120px]">ACTION</th>
                     </tr>
@@ -103,71 +103,150 @@
                         @php
                             $isCleared = ((float)$bill->balance_amount <= 0.001);
                             $isVerified = !empty($bill->verified_date);
+                            $paymentCount = $bill->payments->count();
                         @endphp
-                        <tr class="hover:bg-slate-50 transition-colors border-b border-slate-100">
-                            <td class="px-3 py-3 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
-                                <span class="inline-block px-2 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10.5px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
-                            </td>
-
-                            <td class="px-3 py-3 align-middle">
-                                <div class="font-black text-slate-900 text-[11.5px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
-                                <div class="text-[10px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
-                            </td>
-
-                            <td class="px-3 py-3 text-left font-mono align-middle">
-                                @if($bill->verified_date)
-                                    <div class="text-[10.5px] text-emerald-700 font-bold">
-                                        {{ $bill->verified_date->format('d/m/Y') }}
+                        <tbody x-data="{ showHistory: false }" class="border-b border-slate-100">
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="px-3 py-3 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
+                                    <div class="flex flex-col gap-1 items-start">
+                                        <span class="inline-block px-2 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10.5px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
+                                        @if($paymentCount > 0)
+                                            <button type="button" @click="showHistory = !showHistory"
+                                                    class="px-1.5 py-0.5 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded font-black text-[9px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40"
+                                                    title="Toggle Part-by-Part Payment History">
+                                                <span x-text="showHistory ? '▲ Hide History' : '▼ ' + {{ $paymentCount }} + ' Part Paid'"></span>
+                                            </button>
+                                        @endif
                                     </div>
-                                    <div class="text-[8.5px] text-slate-500 truncate max-w-[100px]">By: {{ $bill->engineer_name ?: 'Engineer' }}</div>
-                                @else
-                                    <span class="text-amber-600 text-[9.5px] italic font-semibold">Verification Pending</span>
-                                @endif
-                            </td>
+                                </td>
 
-                            <td class="px-3 py-3 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
-                                ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
-                            </td>
+                                <td class="px-3 py-3 align-middle">
+                                    <div class="font-black text-slate-900 text-[11.5px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
+                                    <div class="text-[10px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
+                                </td>
 
-                            <td class="px-3 py-3 text-left font-mono font-bold text-emerald-700 align-middle">
-                                ₹{{ number_format((float) $bill->paid_amount, 2) }}
-                            </td>
+                                <td class="px-3 py-3 text-left font-mono align-middle">
+                                    @if($bill->verified_date)
+                                        <div class="text-[10.5px] text-emerald-700 font-bold">
+                                            {{ $bill->verified_date->format('d/m/Y') }}
+                                        </div>
+                                        <div class="text-[8.5px] text-slate-500 truncate max-w-[100px]">By: {{ $bill->engineer_name ?: 'Engineer' }}</div>
+                                    @else
+                                        <span class="text-amber-600 text-[9.5px] italic font-semibold">Verification Pending</span>
+                                    @endif
+                                </td>
 
-                            <td class="px-3 py-3 text-left font-mono font-black align-middle {{ $isCleared ? 'text-slate-400' : 'text-rose-700' }}">
-                                ₹{{ number_format((float) $bill->balance_amount, 2) }}
-                            </td>
+                                <td class="px-3 py-3 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
+                                    ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
+                                </td>
 
-                            <td class="px-3 py-3 text-left whitespace-nowrap align-middle">
-                                @if($isCleared)
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                        <svg class="w-2.5 h-2.5 text-[#087443]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                        <span>CLEARED</span>
-                                    </span>
-                                @elseif($isVerified)
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                                        <span>PENDING RELEASE</span>
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">UNVERIFIED</span>
-                                @endif
-                            </td>
+                                <td class="px-3 py-3 text-left font-mono font-bold text-emerald-700 align-middle">
+                                    <div>₹{{ number_format((float) $bill->paid_amount, 2) }}</div>
+                                    @if($paymentCount > 0)
+                                        <div class="text-[8.5px] text-[#7a681d] font-bold">{{ $paymentCount }} Installment(s)</div>
+                                    @endif
+                                </td>
 
-                            <td class="px-3 py-3 text-right whitespace-nowrap align-middle">
-                                @if($isVerified && !$isCleared)
-                                    <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
-                                            class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10.5px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                            title="Disburse Staggered Payment Release">
-                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                        <span>Disburse Payment</span>
-                                    </button>
-                                @elseif($isCleared)
-                                    <span class="text-[10px] text-slate-400 font-bold uppercase">Fully Paid</span>
-                                @else
-                                    <span class="text-[9.5px] text-amber-600 font-semibold italic">Requires Verification</span>
-                                @endif
-                            </td>
-                        </tr>
+                                <td class="px-3 py-3 text-left font-mono font-black align-middle {{ $isCleared ? 'text-slate-400' : 'text-rose-700' }}">
+                                    ₹{{ number_format((float) $bill->balance_amount, 2) }}
+                                </td>
+
+                                <td class="px-3 py-3 text-left whitespace-nowrap align-middle">
+                                    @if($isCleared)
+                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                            <svg class="w-2.5 h-2.5 text-[#087443]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                            <span>CLEARED</span>
+                                        </span>
+                                    @elseif($isVerified)
+                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                            <span>PENDING RELEASE</span>
+                                        </span>
+                                    @else
+                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">UNVERIFIED</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-3 py-3 text-right whitespace-nowrap align-middle">
+                                    @if($isVerified && !$isCleared)
+                                        <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
+                                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10.5px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                title="Disburse Staggered Payment Release">
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                            <span>Disburse Payment</span>
+                                        </button>
+                                    @elseif($isCleared)
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase">Fully Paid</span>
+                                    @else
+                                        <span class="text-[9.5px] text-amber-600 font-semibold italic">Requires Verification</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            <!-- Part-by-Part Payment History Expandable Accordion -->
+                            @if($paymentCount > 0)
+                                <tr x-show="showHistory" x-cloak class="bg-amber-50/20 border-b border-[#a38c29]/30" x-transition.opacity>
+                                    <td colspan="8" class="p-4">
+                                        <div class="bg-white rounded-xl p-4 border border-[#a38c29]/30 shadow-sm space-y-3">
+                                            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                                                <span class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                                                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                                                    <span>PART-BY-PART PAYMENT DISBURSEMENT HISTORY — RA BILL #{{ $bill->ra_bill_number }}</span>
+                                                </span>
+                                                <span class="text-[10.5px] font-bold text-slate-600">Total Outflow Disbursed: <strong class="text-emerald-700 font-mono font-black text-xs">₹{{ number_format((float)$bill->paid_amount, 2) }}</strong></span>
+                                            </div>
+
+                                            <div class="overflow-x-auto">
+                                                <table class="w-full text-left border-collapse text-[10.5px]">
+                                                    <thead>
+                                                        <tr class="bg-[#a38c29] text-white text-[9px] font-black uppercase tracking-wider border-b border-[#8a7522]">
+                                                            <th class="px-3 py-2">INSTALLMENT #</th>
+                                                            <th class="px-3 py-2">DISBURSEMENT DATE</th>
+                                                            <th class="px-3 py-2">CORPORATE BANK ACCOUNT</th>
+                                                            <th class="px-3 py-2">PAYMENT MODE & REF #</th>
+                                                            <th class="px-3 py-2 text-right text-emerald-100">DISBURSED AMOUNT (₹)</th>
+                                                            <th class="px-3 py-2 text-right">ACTION</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-slate-100 font-semibold text-slate-800">
+                                                        @foreach($bill->payments as $index => $pay)
+                                                            <tr class="hover:bg-amber-50/30">
+                                                                <td class="px-3 py-2 font-black text-slate-800">
+                                                                    <span class="px-2 py-0.5 bg-[#a38c29]/15 text-[#a38c29] rounded font-mono text-[9.5px] font-bold">Part {{ $index + 1 }}</span>
+                                                                </td>
+                                                                <td class="px-3 py-2 font-mono text-slate-900 font-bold">
+                                                                    {{ $pay->payment_date ? $pay->payment_date->format('d/m/Y') : '—' }}
+                                                                </td>
+                                                                <td class="px-3 py-2">
+                                                                    <div class="font-bold text-slate-900">{{ $pay->companyBankAccount->bank_name ?? 'Corporate Bank Account' }}</div>
+                                                                    <div class="text-[9px] text-slate-500 font-mono">A/C: {{ $pay->companyBankAccount->account_number ?? '—' }}</div>
+                                                                </td>
+                                                                <td class="px-3 py-2">
+                                                                    <span class="px-1.5 py-0.2 rounded bg-blue-100 text-blue-900 text-[8.5px] font-black uppercase">{{ $pay->payment_mode }}</span>
+                                                                    <span class="font-mono text-slate-700 font-bold ml-1">{{ $pay->reference_no ?: '—' }}</span>
+                                                                </td>
+                                                                <td class="px-3 py-2 text-right font-mono font-black text-emerald-800 bg-emerald-50/30">
+                                                                    ₹{{ number_format((float)$pay->paid_amount, 2) }}
+                                                                </td>
+                                                                <td class="px-3 py-2 text-right">
+                                                                    @if($pay->voucher_id)
+                                                                        <a href="/vouchers/{{ $pay->voucher_id }}/payment-voucher-print" target="_blank"
+                                                                           class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9px] font-bold inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                                                                           title="Print Voucher for Part {{ $index + 1 }}">
+                                                                            <span>🖨 Print Voucher</span>
+                                                                        </a>
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endif
+                        </tbody>
                     @empty
                         <tr>
                             <td colspan="8" class="px-4 py-8 text-center text-slate-400 italic font-medium">
