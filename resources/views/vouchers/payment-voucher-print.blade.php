@@ -299,7 +299,7 @@
         @if(session('success'))
             <span style="color:#86efac; font-family:Arial; font-size:10pt; font-weight:bold;">✅ {{ session('success') }}</span>
         @endif
-        <a href="{{ route('receipt-management.index') }}" class="btn-back">← Back</a>
+        <a href="{{ route('expenses.ra-bills.payment-release') }}" onclick="if(window.history.length > 1) { history.back(); return false; }" class="btn-back">← Back to Payment Release Desk</a>
         <button onclick="window.print()" class="btn-print">🖨 Print Voucher</button>
     </div>
 

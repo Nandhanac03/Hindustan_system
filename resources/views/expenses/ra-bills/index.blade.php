@@ -1,6 +1,6 @@
 @extends('layouts.erp')
 
-@section('title', 'Contractor RA Progress Bills Directory')
+@section('title', 'Contractor RA Progress Bills Directory & Ledger')
 
 @section('content')
 <div x-data="raBillManagement()" class="p-6 space-y-6 bg-slate-50 min-h-screen">
@@ -13,20 +13,26 @@
                 <span>›</span>
                 <span>EXPENSES & VENDORS</span>
                 <span>›</span>
-                <span class="text-[#a38c29] font-bold">CONTRACTOR RA PROGRESS BILLS</span>
+                <span class="text-[#a38c29] font-bold">CONTRACTOR RA PROGRESS BILLS & LEDGER</span>
             </nav>
             <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                 <svg class="w-6 h-6 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                <span>Contractor Running Account (RA) Bills</span>
-                <span class="text-xs bg-[#a38c29]/15 text-[#a38c29] px-2.5 py-0.5 rounded-full font-bold">Progress Billing</span>
+                <span>Contractor Running Account (RA) Bills & Ledger</span>
+                <span class="text-xs bg-[#a38c29]/15 text-[#a38c29] px-2.5 py-0.5 rounded-full font-bold">Progress Billing & Statement</span>
             </h1>
         </div>
 
         <div class="flex items-center gap-3">
+            <button type="button" @click="addContractorModalOpen = true"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-slate-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                <span>+ Register Contractor</span>
+            </button>
+
             <button type="button" @click="addModalOpen = true"
                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-[#a38c29]/40">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span> Contractor RA Bill</span>
+                <span>+ Contractor RA Bill</span>
             </button>
         </div>
     </div>
@@ -51,343 +57,559 @@
         </div>
     @endif
 
-    <!-- ── EXECUTIVE KPI METRICS BAR (MATCHING EXECUTIVE DASHBOARD) ── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <!-- Metric 1: Total Gross Claimed -->
-        <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-slate-800 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">TOTAL RA CLAIMED</span>
-                <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 group-hover:scale-110 group-hover:bg-slate-200 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </span>
-            </div>
-            <div class="text-xl font-mono font-black text-slate-900 mt-2">₹{{ number_format((float) $totalGross, 2) }}</div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-1">{{ $raBills->count() }} Total RA Bills</div>
-        </div>
+    <!-- ── TOP SECTION TAB NAVIGATION SWITCHER ── -->
+    <div class="flex items-center gap-3 border-b border-slate-200/80 pb-1">
+        <button type="button" @click="activeTab = 'bills'"
+                :class="activeTab === 'bills' ? 'bg-[#a38c29] text-white shadow-md border-[#8a7522]' : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'"
+                class="px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 cursor-pointer border">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>SECTION 1: RA BILLS & PAYMENT RELEASE</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="activeTab === 'bills' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">{{ $raBills->count() }} Records</span>
+        </button>
 
-        <!-- Metric 2: Total Corrections -->
-        <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-amber-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">TOTAL CORRECTIONS</span>
-                <span class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 group-hover:bg-amber-100 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                </span>
-            </div>
-            <div class="text-xl font-mono font-black text-amber-700 mt-2">-₹{{ number_format((float) $totalCorrections, 2) }}</div>
-            <div class="text-[10px] text-amber-600 font-semibold mt-1">Site Engineer Adjustments</div>
-        </div>
-
-        <!-- Metric 3: Total Net Approved Payable -->
-        <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-blue-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">NET APPROVED PAYABLE</span>
-                <span class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 group-hover:bg-blue-100 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
-            </div>
-            <div class="text-xl font-mono font-black text-blue-900 mt-2">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
-            <div class="text-[10px] text-blue-600 font-semibold mt-1">Approved for Disbursement</div>
-        </div>
-
-        <!-- Metric 4: Total Paid -->
-        <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-emerald-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">TOTAL DISBURSED (PAID)</span>
-                <span class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                </span>
-            </div>
-            <div class="text-xl font-mono font-black text-emerald-800 mt-2">₹{{ number_format((float) $totalPaid, 2) }}</div>
-            <div class="text-[10px] text-emerald-600 font-semibold mt-1">Corporate Treasury Outflow</div>
-        </div>
-
-        <!-- Metric 5: Balance Amount -->
-        <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-rose-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
-            <div class="flex items-center justify-between">
-                <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BALANCE</span>
-                <span class="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 group-hover:scale-110 group-hover:bg-rose-100 transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
-            </div>
-            <div class="text-xl font-mono font-black text-rose-800 mt-2">₹{{ number_format((float) $totalBalance, 2) }}</div>
-            <div class="text-[10px] text-rose-600 font-semibold mt-1">Pending Future Release</div>
-        </div>
+        <button type="button" @click="activeTab = 'ledger'"
+                :class="activeTab === 'ledger' ? 'bg-[#a38c29] text-white shadow-md border-[#8a7522]' : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'"
+                class="px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2.5 cursor-pointer border">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            <span>SECTION 2: CONTRACTOR MASTER & LEDGER VIEW</span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold" :class="activeTab === 'ledger' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'">{{ count($contractorLedgerSummaries ?? []) }} Contractors</span>
+        </button>
     </div>
 
-    <!-- ── EXCEL-MATCHED RA PROGRESS BILLS TABLE ── -->
-    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+    <!-- ========================================================================= -->
+    <!-- ── SECTION 1: CONTRACTOR RA PROGRESS BILLS & DISBURSEMENTS TABLE ── -->
+    <!-- ========================================================================= -->
+    <div x-show="activeTab === 'bills'" x-cloak class="space-y-6">
 
-        <!-- Table Control Toolbar -->
-        <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Contractor RA Bills Register</span>
-                <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">{{ $raBills->count() }} Records</span>
+        <!-- Executive KPI Metrics Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <!-- Metric 1: Total Gross Claimed -->
+            <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-slate-800 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">TOTAL RA CLAIMED</span>
+                    <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 group-hover:scale-110 group-hover:bg-slate-200 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    </span>
+                </div>
+                <div class="text-xl font-mono font-black text-slate-900 mt-2">₹{{ number_format((float) $totalGross, 2) }}</div>
+                <div class="text-[10px] text-slate-400 font-semibold mt-1">{{ $raBills->count() }} Total RA Bills</div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <input type="text" x-model="searchQuery" placeholder="Search RA Bill #, Contractor..."
-                       class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-72 shadow-2xs">
+            <!-- Metric 2: Total Corrections -->
+            <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-amber-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">TOTAL CORRECTIONS</span>
+                    <span class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 group-hover:scale-110 group-hover:bg-amber-100 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                    </span>
+                </div>
+                <div class="text-xl font-mono font-black text-amber-700 mt-2">-₹{{ number_format((float) $totalCorrections, 2) }}</div>
+                <div class="text-[10px] text-amber-600 font-semibold mt-1">Site Engineer Adjustments</div>
+            </div>
+
+            <!-- Metric 3: Total Net Approved Payable -->
+            <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-blue-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">NET APPROVED PAYABLE</span>
+                    <span class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:scale-110 group-hover:bg-blue-100 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
+                <div class="text-xl font-mono font-black text-blue-900 mt-2">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
+                <div class="text-[10px] text-blue-600 font-semibold mt-1">Approved for Disbursement</div>
+            </div>
+
+            <!-- Metric 4: Total Paid -->
+            <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-emerald-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">TOTAL DISBURSED (PAID)</span>
+                    <span class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:scale-110 group-hover:bg-emerald-100 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </span>
+                </div>
+                <div class="text-xl font-mono font-black text-emerald-800 mt-2">₹{{ number_format((float) $totalPaid, 2) }}</div>
+                <div class="text-[10px] text-emerald-600 font-semibold mt-1">Corporate Treasury Outflow</div>
+            </div>
+
+            <!-- Metric 5: Balance Amount -->
+            <div class="group bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-rose-500 shadow-xs hover:-translate-y-1 hover:shadow-lg transition-all duration-200 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BALANCE</span>
+                    <span class="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 group-hover:scale-110 group-hover:bg-rose-100 transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                </div>
+                <div class="text-xl font-mono font-black text-rose-800 mt-2">₹{{ number_format((float) $totalBalance, 2) }}</div>
+                <div class="text-[10px] text-rose-600 font-semibold mt-1">Pending Future Release</div>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
-                    <tr class="text-left">
-                        <th class="px-2 py-2.5 text-left w-[75px]">RA BILL NO</th>
-                        <th class="px-2 py-2.5 text-left w-[145px]">CONTRACTOR / PROJECT / UNIT</th>
-                        <th class="px-2 py-2.5 text-left w-[100px]">SUBMIT / VERIFIED</th>
-                        <th class="px-2 py-2.5 text-left w-[90px]">RA BILL AMOUNT</th>
-                        <th class="px-2 py-2.5 text-left w-[80px]">CORRECTION</th>
-                        <th class="px-2 py-2.5 text-left bg-[#8a7522]/40 w-[90px]">AFTER CORRECTION</th>
-                        <th class="px-2 py-2.5 text-left w-[100px]">DUE / PAID DATE</th>
-                        <th class="px-2 py-2.5 text-left text-emerald-200 w-[85px]">PAID AMOUNT</th>
-                        <th class="px-2 py-2.5 text-left text-rose-200 w-[85px]">BALANCE AMOUNT</th>
-                        <th class="px-2 py-2.5 text-left w-[75px]">STATUS</th>
-                        <th class="px-2 py-2.5 text-left w-[105px]">ACTIONS</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
-                    @forelse($raBills as $bill)
-                        @php
-                            $payments = $bill->payments;
-                            $netApproved = (float) $bill->net_approved_amount;
-                            $runningBal = $netApproved;
-                            $totalInstallments = $payments->count();
-                            $rowspan = max(1, $totalInstallments);
-                        @endphp
+        <!-- Excel-Matched RA Progress Bills Register Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <!-- Table Control Toolbar -->
+            <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Contractor RA Bills Register</span>
+                    <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">{{ $raBills->count() }} Records</span>
+                </div>
 
-                        @if($totalInstallments === 0)
-                            <!-- Bill with 0 payment disbursements -->
-                            <tr class="hover:bg-amber-50/20 transition-colors border-b-2 border-slate-200">
-                                <td class="px-2 py-2 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
-                                    <span class="inline-block px-1.5 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
-                                </td>
+                <div class="flex items-center gap-3">
+                    <input type="text" x-model="searchQuery" placeholder="Search RA Bill #, Contractor..."
+                           class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-72 shadow-2xs">
+                </div>
+            </div>
 
-                                <td class="px-2 py-2 align-middle">
-                                    <div class="font-black text-slate-900 text-[11px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
-                                    <div class="text-[9.5px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
-                                    @if($bill->unit_name || $bill->unit)
-                                        <div class="mt-0.5">
-                                            <span class="inline-flex items-center gap-1 px-1 py-0.2 bg-amber-100/90 text-amber-950 border border-amber-300/70 rounded text-[8.5px] font-black uppercase tracking-wider whitespace-nowrap shadow-2xs">
-                                                <span>Unit: {{ $bill->unit_name ?: ($bill->unit->door_no ?? '') }}</span>
-                                            </span>
-                                        </div>
-                                    @endif
-                                </td>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
+                        <tr class="text-left">
+                            <th class="px-2 py-2.5 text-left w-[75px]">RA BILL NO</th>
+                            <th class="px-2 py-2.5 text-left w-[145px]">CONTRACTOR / PROJECT / UNIT</th>
+                            <th class="px-2 py-2.5 text-left w-[100px]">SUBMIT / VERIFIED</th>
+                            <th class="px-2 py-2.5 text-left w-[90px]">RA BILL AMOUNT</th>
+                            <th class="px-2 py-2.5 text-left w-[80px]">CORRECTION</th>
+                            <th class="px-2 py-2.5 text-left bg-[#8a7522]/40 w-[90px]">AFTER CORRECTION</th>
+                            <th class="px-2 py-2.5 text-left w-[100px]">DUE / PAID DATE</th>
+                            <th class="px-2 py-2.5 text-left text-emerald-200 w-[85px]">PAID AMOUNT</th>
+                            <th class="px-2 py-2.5 text-left text-rose-200 w-[85px]">BALANCE AMOUNT</th>
+                            <th class="px-2 py-2.5 text-left w-[75px]">STATUS</th>
+                            <th class="px-2 py-2.5 text-left w-[105px]">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
+                        @forelse($raBills as $bill)
+                            @php
+                                $payments = $bill->payments;
+                                $netApproved = (float) $bill->net_approved_amount;
+                                $runningBal = $netApproved;
+                                $totalInstallments = $payments->count();
+                                $rowspan = max(1, $totalInstallments);
+                            @endphp
 
-                                <td class="px-2 py-2 text-left font-mono align-middle">
-                                    <div class="text-slate-700 font-bold text-[10px]">
-                                        {{ $bill->submit_date ? $bill->submit_date->format('d/m/Y') : '—' }}
-                                    </div>
-                                    @if($bill->verified_date)
-                                        <div class="text-[9.5px] text-emerald-700 font-bold mt-0.5 whitespace-nowrap" title="Verified By: {{ $bill->engineer_name }}">
-                                            Ver: {{ $bill->verified_date->format('d/m/Y') }}
-                                        </div>
-                                        <div class="text-[8.5px] text-slate-500 font-semibold truncate max-w-[95px]">
-                                            By: {{ $bill->engineer_name ?: 'Engineer' }}
-                                        </div>
-                                    @else
-                                        <div class="text-[9.5px] text-amber-600 italic font-medium mt-0.5">Unverified</div>
-                                    @endif
-                                </td>
+                            @if($totalInstallments === 0)
+                                <!-- Bill with 0 payment disbursements -->
+                                <tr class="hover:bg-amber-50/20 transition-colors border-b-2 border-slate-200">
+                                    <td class="px-2 py-2 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
+                                        <span class="inline-block px-1.5 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
+                                    </td>
 
-                                <td class="px-2 py-2 text-left font-mono font-bold text-slate-900 align-middle">
-                                    ₹{{ number_format((float) $bill->gross_amount, 2) }}
-                                </td>
-
-                                <td class="px-2 py-2 text-left font-mono text-amber-700 font-bold align-middle">
-                                    {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
-                                </td>
-
-                                <td class="px-2 py-2 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
-                                    ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
-                                </td>
-
-                                <td class="px-2 py-2 text-left font-mono align-middle">
-                                    <div class="text-slate-700 font-bold text-[10px]">
-                                        Due: {{ $bill->due_date ? $bill->due_date->format('d/m/Y') : '—' }}
-                                    </div>
-                                    <div class="text-[9.5px] text-slate-400 font-semibold mt-0.5">Paid: —</div>
-                                </td>
-
-                                <td class="px-2 py-2 text-left font-mono font-bold text-slate-400 align-middle">₹0.00</td>
-                                <td class="px-2 py-2 text-left font-mono font-black text-rose-700 align-middle">
-                                    ₹{{ number_format((float) $bill->balance_amount, 2) }}
-                                </td>
-
-                                <td class="px-2 py-2 text-left whitespace-nowrap align-middle">
-                                    @if($bill->verified_date)
-                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                                            <span>PENDING</span>
-                                        </span>
-                                    @else
-                                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                                            <span>SUBMITTED</span>
-                                        </span>
-                                    @endif
-                                </td>
-
-                                <td class="px-2 py-2 text-left whitespace-nowrap align-middle">
-                                    <div class="inline-flex items-center justify-start gap-1">
-                                        @if($bill->verified_date)
-                                            <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                    class="px-2 py-0.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer border border-[#a38c29]/40"
-                                                    title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
-                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                <span>Verified</span>
-                                            </button>
-                                        @else
-                                            <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                    class="px-2 py-0.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                                    title="Engineer Sign-off & Apply Correction">
-                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                <span>Verify</span>
-                                            </button>
-                                        @endif
-
-                                        @if($bill->verified_date && (float)$bill->balance_amount > 0)
-                                            <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
-                                                    class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                                    title="Disburse Staggered Payment">
-                                                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                                <span>Pay</span>
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                        @else
-                            <!-- Case 2: Bill with 1 or more payment installments (Excel Multi-Row Installment Layout) -->
-                            @foreach($payments as $pIdx => $payment)
-                                @php
-                                    $paidInst = (float) $payment->paid_amount;
-                                    $runningBal = max(0.00, $runningBal - $paidInst);
-                                    $isCleared = ($runningBal <= 0.001);
-                                    $isLastPayment = ($pIdx === $totalInstallments - 1);
-                                @endphp
-                                <tr class="hover:bg-amber-50/20 transition-colors {{ $isLastPayment ? 'border-b-2 border-slate-200' : 'border-b border-slate-100' }} {{ $pIdx > 0 ? 'bg-slate-50/30' : '' }}">
-                                    @if($pIdx === 0)
-                                        <td class="px-2 py-2 text-left align-middle border-r border-slate-200/50 bg-slate-50/50" rowspan="{{ $rowspan }}">
-                                            <span class="inline-block px-1.5 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
-                                        </td>
-
-                                        <td class="px-2 py-2 align-middle" rowspan="{{ $rowspan }}">
-                                            <div class="font-black text-slate-900 text-[11px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
-                                            <div class="text-[9.5px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
-                                            @if($bill->unit_name || $bill->unit)
-                                                <div class="mt-0.5">
-                                                    <span class="inline-flex items-center gap-1 px-1 py-0.2 bg-amber-100/90 text-amber-950 border border-amber-300/70 rounded text-[8.5px] font-black uppercase tracking-wider whitespace-nowrap shadow-2xs">
-                                                        <span>Unit: {{ $bill->unit_name ?: ($bill->unit->door_no ?? '') }}</span>
-                                                    </span>
-                                                </div>
-                                            @endif
-                                        </td>
-
-                                        <td class="px-2 py-2 text-left font-mono align-middle" rowspan="{{ $rowspan }}">
-                                            <div class="text-slate-700 font-bold text-[10px]">
-                                                {{ $bill->submit_date ? $bill->submit_date->format('d/m/Y') : '—' }}
+                                    <td class="px-2 py-2 align-middle">
+                                        <div class="font-black text-slate-900 text-[11px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
+                                        <div class="text-[9.5px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
+                                        @if($bill->unit_name || $bill->unit)
+                                            <div class="mt-0.5">
+                                                <span class="inline-flex items-center gap-1 px-1 py-0.2 bg-amber-100/90 text-amber-950 border border-amber-300/70 rounded text-[8.5px] font-black uppercase tracking-wider whitespace-nowrap shadow-2xs">
+                                                    <span>Unit: {{ $bill->unit_name ?: ($bill->unit->door_no ?? '') }}</span>
+                                                </span>
                                             </div>
-                                            @if($bill->verified_date)
-                                                <div class="text-[9.5px] text-emerald-700 font-bold mt-0.5 whitespace-nowrap" title="Verified By: {{ $bill->engineer_name }}">
-                                                    Ver: {{ $bill->verified_date->format('d/m/Y') }}
-                                                </div>
-                                                <div class="text-[8.5px] text-slate-500 font-semibold truncate max-w-[95px]">
-                                                    By: {{ $bill->engineer_name ?: 'Engineer' }}
-                                                </div>
-                                            @else
-                                                <div class="text-[9.5px] text-amber-600 italic font-medium mt-0.5">Unverified</div>
-                                            @endif
-                                        </td>
+                                        @endif
+                                    </td>
 
-                                        <td class="px-2 py-2 text-left font-mono font-bold text-slate-900 align-middle" rowspan="{{ $rowspan }}">
-                                            ₹{{ number_format((float) $bill->gross_amount, 2) }}
-                                        </td>
+                                    <td class="px-2 py-2 text-left font-mono align-middle">
+                                        <div class="text-slate-700 font-bold text-[10px]">
+                                            {{ $bill->submit_date ? $bill->submit_date->format('d/m/Y') : '—' }}
+                                        </div>
+                                        @if($bill->verified_date)
+                                            <div class="text-[9.5px] text-emerald-700 font-bold mt-0.5 whitespace-nowrap" title="Verified By: {{ $bill->engineer_name }}">
+                                                Ver: {{ $bill->verified_date->format('d/m/Y') }}
+                                            </div>
+                                            <div class="text-[8.5px] text-slate-500 font-semibold truncate max-w-[95px]">
+                                                By: {{ $bill->engineer_name ?: 'Engineer' }}
+                                            </div>
+                                        @else
+                                            <div class="text-[9.5px] text-amber-600 italic font-medium mt-0.5">Unverified</div>
+                                        @endif
+                                    </td>
 
-                                        <td class="px-2 py-2 text-left font-mono text-amber-700 font-bold align-middle" rowspan="{{ $rowspan }}">
-                                            {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
-                                        </td>
+                                    <td class="px-2 py-2 text-left font-mono font-bold text-slate-900 align-middle">
+                                        ₹{{ number_format((float) $bill->gross_amount, 2) }}
+                                    </td>
 
-                                        <td class="px-2 py-2 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle" rowspan="{{ $rowspan }}">
-                                            ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
-                                        </td>
-                                    @endif
+                                    <td class="px-2 py-2 text-left font-mono text-amber-700 font-bold align-middle">
+                                        {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
+                                    </td>
 
-                                    <!-- Installment Row Specific Columns -->
+                                    <td class="px-2 py-2 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
+                                        ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
+                                    </td>
+
                                     <td class="px-2 py-2 text-left font-mono align-middle">
                                         <div class="text-slate-700 font-bold text-[10px]">
                                             Due: {{ $bill->due_date ? $bill->due_date->format('d/m/Y') : '—' }}
                                         </div>
-                                        <div class="text-[9.5px] text-emerald-700 font-bold mt-0.5 whitespace-nowrap">
-                                            Paid: {{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : '—' }}
-                                        </div>
+                                        <div class="text-[9.5px] text-slate-400 font-semibold mt-0.5">Paid: —</div>
                                     </td>
 
-                                    <td class="px-2 py-2 text-left font-mono font-bold text-emerald-700 align-middle">
-                                        ₹{{ number_format($paidInst, 2) }}
+                                    <td class="px-2 py-2 text-left font-mono font-bold text-slate-400 align-middle">₹0.00</td>
+                                    <td class="px-2 py-2 text-left font-mono font-black text-rose-700 align-middle">
+                                        ₹{{ number_format((float) $bill->balance_amount, 2) }}
                                     </td>
 
-                                    <td class="px-2 py-2 text-left font-mono font-black align-middle {{ $isCleared ? 'text-slate-500' : 'text-rose-700' }}">
-                                        ₹{{ number_format($runningBal, 2) }}
-                                    </td>
-
-                                    <!-- Excel Matched Status Column -->
                                     <td class="px-2 py-2 text-left whitespace-nowrap align-middle">
-                                        @if($isCleared)
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider whitespace-nowrap">
-                                                <svg class="w-2.5 h-2.5 text-[#087443] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                <span>CLEARED</span>
+                                        @if($bill->verified_date)
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                                <span>PENDING</span>
                                             </span>
                                         @else
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider whitespace-nowrap">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
-                                                <span>PENDING</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                                <span>SUBMITTED</span>
                                             </span>
                                         @endif
                                     </td>
 
-                                    @if($pIdx === 0)
-                                        <td class="px-2 py-2 text-left whitespace-nowrap align-middle" rowspan="{{ $rowspan }}">
-                                            <div class="inline-flex items-center justify-start gap-1">
-                                                @if($bill->verified_date)
-                                                    <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                            class="px-2 py-0.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer border border-[#a38c29]/40"
-                                                            title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
-                                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                        <span>Verified</span>
-                                                    </button>
-                                                @else
-                                                    <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
-                                                            class="px-2 py-0.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                                            title="Engineer Sign-off & Apply Correction">
-                                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                                        <span>Verify</span>
-                                                    </button>
-                                                @endif
+                                    <td class="px-2 py-2 text-left whitespace-nowrap align-middle">
+                                        <div class="inline-flex items-center justify-start gap-1">
+                                            @if($bill->verified_date)
+                                                <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                        class="px-2 py-0.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer border border-[#a38c29]/40"
+                                                        title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
+                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    <span>Verified</span>
+                                                </button>
+                                            @else
+                                                <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                        class="px-2 py-0.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                        title="Engineer Sign-off & Apply Correction">
+                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                    <span>Verify</span>
+                                                </button>
+                                            @endif
 
-                                                @if($bill->verified_date && (float)$bill->balance_amount > 0)
-                                                    <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
-                                                            class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
-                                                            title="Disburse Staggered Payment">
-                                                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                                        <span>Pay</span>
-                                                    </button>
+                                            @if($bill->verified_date && (float)$bill->balance_amount > 0)
+                                                <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
+                                                        class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                        title="Disburse Staggered Payment">
+                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                    <span>Pay</span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @else
+                                <!-- Multi-Installment Disbursements Row -->
+                                @foreach($payments as $pIdx => $payment)
+                                    @php
+                                        $paidInst = (float) $payment->paid_amount;
+                                        $runningBal = max(0.00, $runningBal - $paidInst);
+                                        $isCleared = ($runningBal <= 0.001);
+                                        $isLastPayment = ($pIdx === $totalInstallments - 1);
+                                    @endphp
+                                    <tr class="hover:bg-amber-50/20 transition-colors {{ $isLastPayment ? 'border-b-2 border-slate-200' : 'border-b border-slate-100' }} {{ $pIdx > 0 ? 'bg-slate-50/30' : '' }}">
+                                        @if($pIdx === 0)
+                                            <td class="px-2 py-2 text-left align-middle border-r border-slate-200/50 bg-slate-50/50" rowspan="{{ $rowspan }}">
+                                                <span class="inline-block px-1.5 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
+                                            </td>
+
+                                            <td class="px-2 py-2 align-middle" rowspan="{{ $rowspan }}">
+                                                <div class="font-black text-slate-900 text-[11px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
+                                                <div class="text-[9.5px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
+                                                @if($bill->unit_name || $bill->unit)
+                                                    <div class="mt-0.5">
+                                                        <span class="inline-flex items-center gap-1 px-1 py-0.2 bg-amber-100/90 text-amber-950 border border-amber-300/70 rounded text-[8.5px] font-black uppercase tracking-wider whitespace-nowrap shadow-2xs">
+                                                            <span>Unit: {{ $bill->unit_name ?: ($bill->unit->door_no ?? '') }}</span>
+                                                        </span>
+                                                    </div>
                                                 @endif
+                                            </td>
+
+                                            <td class="px-2 py-2 text-left font-mono align-middle" rowspan="{{ $rowspan }}">
+                                                <div class="text-slate-700 font-bold text-[10px]">
+                                                    {{ $bill->submit_date ? $bill->submit_date->format('d/m/Y') : '—' }}
+                                                </div>
+                                                @if($bill->verified_date)
+                                                    <div class="text-[9.5px] text-emerald-700 font-bold mt-0.5 whitespace-nowrap" title="Verified By: {{ $bill->engineer_name }}">
+                                                        Ver: {{ $bill->verified_date->format('d/m/Y') }}
+                                                    </div>
+                                                    <div class="text-[8.5px] text-slate-500 font-semibold truncate max-w-[95px]">
+                                                        By: {{ $bill->engineer_name ?: 'Engineer' }}
+                                                    </div>
+                                                @else
+                                                    <div class="text-[9.5px] text-amber-600 italic font-medium mt-0.5">Unverified</div>
+                                                @endif
+                                            </td>
+
+                                            <td class="px-2 py-2 text-left font-mono font-bold text-slate-900 align-middle" rowspan="{{ $rowspan }}">
+                                                ₹{{ number_format((float) $bill->gross_amount, 2) }}
+                                            </td>
+
+                                            <td class="px-2 py-2 text-left font-mono text-amber-700 font-bold align-middle" rowspan="{{ $rowspan }}">
+                                                {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
+                                            </td>
+
+                                            <td class="px-2 py-2 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle" rowspan="{{ $rowspan }}">
+                                                ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
+                                            </td>
+                                        @endif
+
+                                        <td class="px-2 py-2 text-left font-mono align-middle">
+                                            <div class="text-slate-700 font-bold text-[10px]">
+                                                Due: {{ $bill->due_date ? $bill->due_date->format('d/m/Y') : '—' }}
+                                            </div>
+                                            <div class="text-[9.5px] text-emerald-700 font-bold mt-0.5 whitespace-nowrap">
+                                                Paid: {{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : '—' }}
                                             </div>
                                         </td>
-                                    @endif
-                                </tr>
-                            @endforeach
-                        @endif
-                    @empty
+
+                                        <td class="px-2 py-2 text-left font-mono font-bold text-emerald-700 align-middle">
+                                            ₹{{ number_format($paidInst, 2) }}
+                                        </td>
+
+                                        <td class="px-2 py-2 text-left font-mono font-black align-middle {{ $isCleared ? 'text-slate-500' : 'text-rose-700' }}">
+                                            ₹{{ number_format($runningBal, 2) }}
+                                        </td>
+
+                                        <td class="px-2 py-2 text-left whitespace-nowrap align-middle">
+                                            @if($isCleared)
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider whitespace-nowrap">
+                                                    <svg class="w-2.5 h-2.5 text-[#087443] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    <span>CLEARED</span>
+                                                </span>
+                                            @else
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider whitespace-nowrap">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
+                                                    <span>PENDING</span>
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        @if($pIdx === 0)
+                                            <td class="px-2 py-2 text-left whitespace-nowrap align-middle" rowspan="{{ $rowspan }}">
+                                                <div class="inline-flex items-center justify-start gap-1">
+                                                    @if($bill->verified_date)
+                                                        <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                                class="px-2 py-0.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer border border-[#a38c29]/40"
+                                                                title="Verified By: {{ $bill->engineer_name }}. Click to view or update sign-off.">
+                                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                            <span>Verified</span>
+                                                        </button>
+                                                    @else
+                                                        <button type="button" @click="openVerifyModal({{ json_encode($bill) }})"
+                                                                class="px-2 py-0.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                                title="Engineer Sign-off & Apply Correction">
+                                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                            <span>Verify</span>
+                                                        </button>
+                                                    @endif
+
+                                                    @if($bill->verified_date && (float)$bill->balance_amount > 0)
+                                                        <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
+                                                                class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-[10px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                                title="Disburse Staggered Payment">
+                                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                            <span>Pay</span>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            @endif
+                        @empty
+                            <tr>
+                                <td colspan="11" class="px-4 py-8 text-center text-slate-400 italic font-medium">
+                                    No Contractor RA Progress Bills recorded yet. Click "+ Contractor RA Bill" to create one.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- ── SECTION 2: CONTRACTOR MASTER & LEDGER VIEW ── -->
+    <!-- ========================================================================= -->
+    <div x-show="activeTab === 'ledger'" x-cloak class="space-y-6">
+
+        <!-- Toolbar & Filter Header -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex flex-col md:flex-row md:items-center gap-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Contractor</label>
+                    <select x-model="selectedLedgerContractorId"
+                            class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-64 shadow-2xs">
+                        <option value="">All Contractors</option>
+                        @foreach($contractors as $cont)
+                            <option value="{{ $cont->id }}">{{ $cont->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Search Particulars / Ref #</label>
+                    <input type="text" x-model="ledgerSearchQuery" placeholder="Search bill #, voucher #..."
+                           class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-64 shadow-2xs">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button type="button" @click="addContractorModalOpen = true"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all shadow-sm cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Register Contractor Master</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtered Contractor Ledger KPI Summary -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-blue-600 shadow-xs">
+                <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">TOTAL NET CLAIMS ACCRUED</span>
+                <div class="text-xl font-mono font-black text-blue-900 mt-1" x-text="'₹' + numberFormat(getLedgerTotals().netClaimed)"></div>
+                <div class="text-[10px] text-slate-400 font-semibold mt-1">Verified RA Bill Liability</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-emerald-600 shadow-xs">
+                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">TOTAL DISBURSEMENTS RELEASED</span>
+                <div class="text-xl font-mono font-black text-emerald-800 mt-1" x-text="'₹' + numberFormat(getLedgerTotals().paid)"></div>
+                <div class="text-[10px] text-slate-400 font-semibold mt-1">Paid Outflow via Treasury</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-rose-600 shadow-xs">
+                <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">OUTSTANDING LEDGER BALANCE</span>
+                <div class="text-xl font-mono font-black text-rose-800 mt-1" x-text="'₹' + numberFormat(getLedgerTotals().balance)"></div>
+                <div class="text-[10px] text-slate-400 font-semibold mt-1">Payable Remaining</div>
+            </div>
+
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-slate-800 shadow-xs">
+                <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">REGISTERED CONTRACTORS</span>
+                <div class="text-xl font-mono font-black text-slate-900 mt-1">{{ count($contractors) }} Payees</div>
+                <div class="text-[10px] text-slate-400 font-semibold mt-1">Master Accounts Linked</div>
+            </div>
+        </div>
+
+        <!-- ── SUB-SECTION 2A: CONTRACTOR RUNNING ACCOUNT LEDGER STATEMENT TABLE ── -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Contractor Account Statement Ledger</span>
+                    <span class="text-[11px] bg-blue-100 text-blue-800 px-2.5 py-0.5 rounded-full font-bold" x-text="filteredLedgerEntries().length + ' Transactions'"></span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-slate-900 text-white border-b border-slate-800 text-[9.5px] font-black uppercase tracking-wider">
                         <tr>
-                            <td colspan="11" class="px-4 py-8 text-center text-slate-400 italic font-medium">
-                                No Contractor RA Progress Bills recorded yet. Click "+ Contractor RA Bill" to create one.
+                            <th class="px-3 py-3 text-left w-[95px]">DATE</th>
+                            <th class="px-3 py-3 text-left w-[150px]">CONTRACTOR</th>
+                            <th class="px-3 py-3 text-left w-[130px]">PROJECT / UNIT</th>
+                            <th class="px-3 py-3 text-left">EVENT PARTICULARS</th>
+                            <th class="px-3 py-3 text-left w-[110px]">REF / VOUCHER #</th>
+                            <th class="px-3 py-3 text-right w-[95px]">GROSS (₹)</th>
+                            <th class="px-3 py-3 text-right w-[90px]">CORR. (₹)</th>
+                            <th class="px-3 py-3 text-right text-blue-300 w-[110px]">NET ACCRUED (₹)</th>
+                            <th class="px-3 py-3 text-right text-emerald-300 w-[110px]">RELEASED (₹)</th>
+                            <th class="px-3 py-3 text-right text-rose-300 w-[110px]">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
+                        <template x-for="(entry, index) in filteredLedgerEntries()" :key="index">
+                            <tr class="hover:bg-slate-50 transition" :class="entry.type === 'CLAIM' ? 'bg-white' : 'bg-emerald-50/20'">
+                                <td class="px-3 py-2.5 font-mono text-slate-700" x-text="entry.date_formatted"></td>
+                                <td class="px-3 py-2.5 font-bold text-slate-900" x-text="entry.contractor_name"></td>
+                                <td class="px-3 py-2.5">
+                                    <div class="text-slate-900 font-bold text-[10.5px]" x-text="entry.project_name"></div>
+                                    <div class="text-[9px] text-slate-500" x-show="entry.unit_name" x-text="'Unit: ' + entry.unit_name"></div>
+                                </td>
+                                <td class="px-3 py-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <span x-show="entry.type === 'CLAIM'" class="px-1.5 py-0.2 rounded text-[8.5px] font-black bg-blue-100 text-blue-900 uppercase">VERIFIED CLAIM</span>
+                                        <span x-show="entry.type === 'DISBURSEMENT'" class="px-1.5 py-0.2 rounded text-[8.5px] font-black bg-emerald-100 text-emerald-900 uppercase">PAYMENT RELEASE</span>
+                                        <span class="text-slate-800 text-[11px]" x-text="entry.particulars"></span>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2.5 font-mono font-bold text-slate-700" x-text="entry.ref_no"></td>
+                                <td class="px-3 py-2.5 text-right font-mono text-slate-800" x-text="entry.gross_amount > 0 ? '₹' + numberFormat(entry.gross_amount) : '—'"></td>
+                                <td class="px-3 py-2.5 text-right font-mono text-amber-700" x-text="entry.correction_amount > 0 ? '-₹' + numberFormat(entry.correction_amount) : '—'"></td>
+                                <td class="px-3 py-2.5 text-right font-mono font-black text-blue-900 bg-blue-50/30" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
+                                <td class="px-3 py-2.5 text-right font-mono font-black text-emerald-800 bg-emerald-50/30" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
+                                <td class="px-3 py-2.5 text-right">
+                                    <template x-if="entry.voucher_id">
+                                        <a :href="'/vouchers/' + entry.voucher_id + '/payment-voucher-print'" target="_blank"
+                                           class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9.5px] font-bold inline-flex items-center gap-1">
+                                            <span>Voucher</span>
+                                        </a>
+                                    </template>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="filteredLedgerEntries().length === 0">
+                            <td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">
+                                No ledger transactions found matching the filter criteria.
                             </td>
                         </tr>
-                       <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── SUB-SECTION 2B: CONTRACTOR MASTER DIRECTORY TABLE ── -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-800 uppercase tracking-wider">Contractor Master Directory</span>
+                    <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">{{ count($contractorLedgerSummaries ?? []) }} Registered</span>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-[#2a2415] text-white text-[9.5px] font-black uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3">CONTRACTOR NAME / ACCOUNT CODE</th>
+                            <th class="px-4 py-3">TAX & LEGAL IDS</th>
+                            <th class="px-4 py-3">CONTACT INFO</th>
+                            <th class="px-4 py-3 text-right">TOTAL CLAIMED (₹)</th>
+                            <th class="px-4 py-3 text-right">TOTAL DISBURSED (₹)</th>
+                            <th class="px-4 py-3 text-right">BALANCE PAYABLE (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-xs font-semibold">
+                        @forelse(($contractorLedgerSummaries ?? []) as $cSummary)
+                            <tr class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-3">
+                                    <div class="font-black text-slate-900">{{ $cSummary['name'] }}</div>
+                                    <div class="font-mono text-[10px] text-blue-600 font-bold mt-0.5">{{ $cSummary['account_code'] }}</div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-700">
+                                    <div>GSTIN: <span class="font-mono font-bold">{{ $cSummary['gstin'] ?: 'N/A' }}</span></div>
+                                    <div class="text-[10px] text-slate-400">PAN: <span class="font-mono font-bold">{{ $cSummary['pan'] ?: 'N/A' }}</span></div>
+                                </td>
+                                <td class="px-4 py-3 text-slate-700">
+                                    <div>{{ $cSummary['phone'] ?: 'No Phone' }}</div>
+                                    <div class="text-[10px] text-slate-400">{{ $cSummary['email'] ?: 'No Email' }}</div>
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono font-bold text-slate-900">
+                                    ₹{{ number_format($cSummary['total_net_approved'], 2) }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono font-bold text-emerald-700">
+                                    ₹{{ number_format($cSummary['total_paid'], 2) }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-mono font-black text-rose-700">
+                                    ₹{{ number_format($cSummary['total_balance'], 2) }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-6 text-center text-slate-400 italic">
+                                    No contractor master accounts registered.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="addModalOpen = false">
             <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
@@ -695,9 +917,65 @@
                 </div>
             </form>
         </div>
-    </div>g>
-                        <span>Release Payment & Print Voucher</span>
-                    </button>
+    </div>
+
+    <!-- ── MODAL 4: REGISTER NEW CONTRACTOR MASTER ── -->
+    <div x-show="addContractorModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="addContractorModalOpen = false">
+            <div class="bg-slate-900 p-5 text-white flex items-center justify-between border-b border-slate-800">
+                <div>
+                    <span class="inline-block px-2.5 py-0.5 bg-blue-500/20 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded border border-blue-500/40 mb-1">CONTRACTOR MASTER</span>
+                    <h3 class="font-black text-base uppercase tracking-wider text-white">REGISTER NEW CONTRACTOR MASTER</h3>
+                </div>
+                <button type="button" @click="addContractorModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+            </div>
+
+            <form action="{{ route('expenses.ra-bills.contractor.store') }}" method="POST" class="p-6 space-y-4 text-xs font-semibold">
+                @csrf
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">CONTRACTOR / COMPANY NAME <span class="text-rose-500 font-bold">*</span></label>
+                    <input type="text" name="name" required placeholder="e.g. BuildRight Constructions Pvt Ltd"
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PHONE NUMBER</label>
+                        <input type="text" name="phone" placeholder="e.g. +91 9876543210"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">EMAIL ADDRESS</label>
+                        <input type="email" name="email" placeholder="e.g. contact@builder.com"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">GSTIN</label>
+                        <input type="text" name="gstin" placeholder="33AABCB1234C1Z5" minlength="15" maxlength="15"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all uppercase">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PAN NUMBER</label>
+                        <input type="text" name="pan" placeholder="AABCB1234C"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all uppercase">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">OFFICE ADDRESS</label>
+                    <textarea name="address" rows="2" placeholder="Street, City, Pin details..."
+                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
+                </div>
+
+                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                    <button type="button" @click="addContractorModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">SAVE CONTRACTOR</button>
                 </div>
             </form>
         </div>
@@ -708,8 +986,12 @@
 <script>
 function raBillManagement() {
     return {
+        activeTab: '{{ request('tab', 'bills') }}',
         searchQuery: '',
-        addModalOpen: {{ $errors->any() ? 'true' : 'false' }},
+        ledgerSearchQuery: '',
+        selectedLedgerContractorId: '',
+        addModalOpen: {{ $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount') ? 'true' : 'false' }},
+        addContractorModalOpen: {{ $errors->has('name') ? 'true' : 'false' }},
         verifyModalOpen: false,
         disburseModalOpen: false,
         selectedBill: null,
@@ -726,6 +1008,8 @@ function raBillManagement() {
         selectedEngineerId: '',
         verifyDateInput: '{{ date("Y-m-d") }}',
         verifyRemarksInput: '',
+        contractorLedgerSummaries: @json($contractorLedgerSummaries ?? []),
+        allLedgerEntries: @json($allLedgerEntries ?? []),
 
         init() {
             if (!this.selectedContractorId && this.allContractors && this.allContractors.length === 1) {
@@ -746,6 +1030,34 @@ function raBillManagement() {
             if (!this.selectedUnitId && this.availableUnits && this.availableUnits.length === 1) {
                 this.selectedUnitId = String(this.availableUnits[0].id);
             }
+        },
+
+        filteredLedgerEntries() {
+            let entries = this.allLedgerEntries;
+            if (this.selectedLedgerContractorId) {
+                entries = entries.filter(e => e.contractor_id == this.selectedLedgerContractorId);
+            }
+            if (this.ledgerSearchQuery) {
+                const q = this.ledgerSearchQuery.toLowerCase();
+                entries = entries.filter(e =>
+                    (e.contractor_name && e.contractor_name.toLowerCase().includes(q)) ||
+                    (e.particulars && e.particulars.toLowerCase().includes(q)) ||
+                    (e.ra_bill_number && e.ra_bill_number.toLowerCase().includes(q)) ||
+                    (e.ref_no && e.ref_no.toLowerCase().includes(q))
+                );
+            }
+            return entries;
+        },
+
+        getLedgerTotals() {
+            const entries = this.filteredLedgerEntries();
+            const netClaimed = entries.reduce((acc, e) => acc + (parseFloat(e.net_approved) || 0), 0);
+            const paid = entries.reduce((acc, e) => acc + (parseFloat(e.paid_amount) || 0), 0);
+            return {
+                netClaimed: netClaimed,
+                paid: paid,
+                balance: netClaimed - paid
+            };
         },
 
         openVerifyModal(bill) {
@@ -774,8 +1086,6 @@ function raBillManagement() {
         recalcNet() {
             if (!this.selectedBill) return;
             const gross = parseFloat(this.selectedBill.gross_amount) || 0;
-            // FIX #3 (client-side mirror): clamp correction input to gross amount
-            // so the UI preview matches what the server will actually accept.
             let corr = parseFloat(this.correctionInput) || 0;
             if (corr > gross) {
                 corr = gross;

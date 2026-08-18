@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\CompanyBankAccount;
 use App\Models\Payee;
 use App\Models\Project;
@@ -19,13 +20,49 @@ use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 use App\Models\Engineer;
+use App\Models\PaymentMode;
 
 class RaBillController extends Controller
 {
     /**
-     * Display the Contractor RA Progress Bills Directory (Excel-matched layout).
+     * Index redirect to main verification page.
      */
-    public function index(): View
+    public function index(): RedirectResponse
+    {
+        return redirect()->route('expenses.ra-bills.verification');
+    }
+
+    /**
+     * Page 2: Dedicated RA Bill Verification & Inward Claims Page.
+     */
+    public function verification(): View
+    {
+        $data = $this->getCommonData();
+        return view('expenses.ra-bills.verification', $data);
+    }
+
+    /**
+     * Page 3: Dedicated Contractor Payment Release Page.
+     */
+    public function paymentRelease(): View
+    {
+        $data = $this->getCommonData();
+        return view('expenses.ra-bills.payment-release', $data);
+    }
+
+    /**
+     * Page 4: Dedicated Contractor Ledger View Page.
+     */
+    public function ledger(): View
+    {
+        $data = $this->getCommonData();
+        return view('expenses.ra-bills.ledger', $data);
+    }
+
+    /**
+     * Helper method to retrieve common data models and aggregations.
+     */
+    private function getCommonData(): array
     {
         $systemId = Auth::user()->system_id ?? 1;
 
@@ -43,14 +80,16 @@ class RaBillController extends Controller
 
         $contractors = Payee::where('system_id', $systemId)
             ->where('type', 'Contractor')
+            ->with('linkedAccount')
             ->orderBy('name')
-            ->get(['id', 'name', 'type']);
+            ->get();
 
         if ($contractors->isEmpty()) {
             $contractors = Payee::where('system_id', $systemId)
                 ->whereIn('type', ['Contractor', 'Supplier'])
+                ->with('linkedAccount')
                 ->orderBy('name')
-                ->get(['id', 'name', 'type']);
+                ->get();
         }
 
         $projects = Project::where('system_id', $systemId)
@@ -72,6 +111,26 @@ class RaBillController extends Controller
             ->orderBy('bank_name')
             ->get();
 
+        // Payment Modes from PaymentMode Master
+        $paymentModes = PaymentMode::where('system_id', $systemId)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        }
+
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = collect([
+                (object) ['code' => 'NEFT', 'name' => 'NEFT Transfer'],
+                (object) ['code' => 'RTGS', 'name' => 'RTGS Transfer'],
+                (object) ['code' => 'Cheque', 'name' => 'Cheque'],
+                (object) ['code' => 'UPI', 'name' => 'UPI / Net Banking'],
+                (object) ['code' => 'Cash', 'name' => 'Cash'],
+            ]);
+        }
+
         // Calculate KPI summaries
         $totalGross = $raBills->sum('gross_amount');
         $totalCorrections = $raBills->sum('correction_amount');
@@ -79,7 +138,85 @@ class RaBillController extends Controller
         $totalPaid = $raBills->sum('paid_amount');
         $totalBalance = $raBills->sum('balance_amount');
 
-        return view('expenses.ra-bills.index', compact(
+        // Section 2: Contractor Master & Ledger Aggregations
+        $contractorLedgerSummaries = $contractors->map(function ($c) use ($raBills) {
+            $cBills = $raBills->filter(fn($b) => $b->contractor_id == $c->id);
+            return [
+                'id'                 => $c->id,
+                'name'               => $c->name,
+                'type'               => $c->type,
+                'phone'              => $c->phone,
+                'email'              => $c->email,
+                'gstin'              => $c->gstin,
+                'pan'                => $c->pan,
+                'address'            => $c->address,
+                'account_code'       => $c->linkedAccount?->code ?? 'N/A',
+                'total_gross'        => (float) $cBills->sum('gross_amount'),
+                'total_corrections'  => (float) $cBills->sum('correction_amount'),
+                'total_net_approved' => (float) $cBills->sum('net_approved_amount'),
+                'total_paid'         => (float) $cBills->sum('paid_amount'),
+                'total_balance'      => (float) $cBills->sum('balance_amount'),
+                'bills_count'        => $cBills->count(),
+            ];
+        });
+
+        // Detailed Ledger Statement Entries (Claims & Payment Releases)
+        $allLedgerEntries = collect();
+        foreach ($raBills as $bill) {
+            $cName = $bill->contractor_name ?: ($bill->contractor?->name ?? 'Contractor');
+            $pName = $bill->project?->name ?? 'Site Project';
+            $uName = $bill->unit_name ?: ($bill->unit?->door_no ?? '');
+
+            // 1. Verified RA Bill Claim (Accrued Credit)
+            $allLedgerEntries->push([
+                'type'              => 'CLAIM',
+                'date'              => $bill->verified_date ? $bill->verified_date->format('Y-m-d') : ($bill->submit_date ? $bill->submit_date->format('Y-m-d') : null),
+                'date_formatted'    => $bill->verified_date ? $bill->verified_date->format('d/m/Y') : ($bill->submit_date ? $bill->submit_date->format('d/m/Y') : '—'),
+                'contractor_id'     => $bill->contractor_id,
+                'contractor_name'   => $cName,
+                'project_name'      => $pName,
+                'unit_name'         => $uName,
+                'ra_bill_id'        => $bill->id,
+                'ra_bill_number'    => $bill->ra_bill_number,
+                'particulars'       => "RA Bill #{$bill->ra_bill_number} Verification Sign-off" . ($bill->engineer_name ? " (By: {$bill->engineer_name})" : ''),
+                'gross_amount'      => (float) $bill->gross_amount,
+                'correction_amount' => (float) $bill->correction_amount,
+                'net_approved'      => (float) $bill->net_approved_amount,
+                'paid_amount'       => 0.00,
+                'status'            => $bill->verified_date ? 'Verified' : 'Submitted',
+                'voucher_id'        => null,
+                'ref_no'            => "RA-{$bill->ra_bill_number}",
+            ]);
+
+            // 2. Disbursed Payment Release (Payment Debit)
+            foreach ($bill->payments as $pay) {
+                $bankName = $pay->companyBankAccount?->bank_name ?? 'Bank';
+                $allLedgerEntries->push([
+                    'type'              => 'DISBURSEMENT',
+                    'date'              => $pay->payment_date ? $pay->payment_date->format('Y-m-d') : null,
+                    'date_formatted'    => $pay->payment_date ? $pay->payment_date->format('d/m/Y') : '—',
+                    'contractor_id'     => $bill->contractor_id,
+                    'contractor_name'   => $cName,
+                    'project_name'      => $pName,
+                    'unit_name'         => $uName,
+                    'ra_bill_id'        => $bill->id,
+                    'ra_bill_number'    => $bill->ra_bill_number,
+                    'particulars'       => "Payment Released for RA Bill #{$bill->ra_bill_number} via {$bankName} ({$pay->payment_mode})",
+                    'gross_amount'      => 0.00,
+                    'correction_amount' => 0.00,
+                    'net_approved'      => 0.00,
+                    'paid_amount'       => (float) $pay->paid_amount,
+                    'status'            => 'Disbursed',
+                    'voucher_id'        => $pay->voucher_id,
+                    'ref_no'            => $pay->reference_no ?: "VCH-{$pay->voucher_id}",
+                ]);
+            }
+        }
+
+        // Sort ledger entries chronologically
+        $allLedgerEntries = $allLedgerEntries->sortBy('date')->values();
+
+        return compact(
             'raBills',
             'contractors',
             'projects',
@@ -90,8 +227,11 @@ class RaBillController extends Controller
             'totalCorrections',
             'totalNetApproved',
             'totalPaid',
-            'totalBalance'
-        ));
+            'totalBalance',
+            'contractorLedgerSummaries',
+            'allLedgerEntries',
+            'paymentModes'
+        );
     }
 
     /**
@@ -101,8 +241,6 @@ class RaBillController extends Controller
     {
         $systemId = Auth::user()->system_id ?? 1;
 
-        // FIX #2: RA Bill Number uniqueness is now scoped per system_id (tenant),
-        // instead of being globally unique across every company using the ERP.
         $validated = $request->validate([
             'ra_bill_number' => [
                 'required',
@@ -166,7 +304,7 @@ class RaBillController extends Controller
             'created_by'          => Auth::id(),
         ]);
 
-        return redirect()->route('expenses.ra-bills.index')
+        return redirect()->back()
             ->with('success', "✅ Contractor RA Bill #{$validated['ra_bill_number']} logged successfully!");
     }
 
@@ -177,9 +315,6 @@ class RaBillController extends Controller
     {
         $raBill = RaBill::findOrFail($id);
 
-        // FIX #3: correction_amount can no longer exceed the bill's gross_amount.
-        // Previously an oversized correction silently clamped Net Approved to ₹0
-        // with no validation error surfaced to the user.
         $validated = $request->validate([
             'verified_date'     => ['required', 'date'],
             'engineer_id'       => ['nullable', 'exists:engineers,id'],
@@ -229,7 +364,7 @@ class RaBillController extends Controller
             ]);
         });
 
-        return redirect()->route('expenses.ra-bills.index')
+        return redirect()->back()
             ->with('success', "✅ Site Engineer Verification & Corrections applied for RA Bill #{$raBill->ra_bill_number}!");
     }
 
@@ -244,9 +379,6 @@ class RaBillController extends Controller
             return redirect()->back()->with('error', '⚠️ Payment disbursement can only be processed after Site Engineer Verification Sign-Off.');
         }
 
-        // FIX #4: Block disbursement entirely once the bill is fully cleared.
-        // Previously max(0.01, $raBill->balance_amount) allowed a ₹0.01 payment
-        // to slip through server-side validation even when balance_amount was 0.00.
         if ((float) $raBill->balance_amount <= 0.00) {
             return redirect()->back()->with('error', '⚠️ This RA Bill is already fully cleared. No further disbursement is allowed.');
         }
@@ -266,7 +398,6 @@ class RaBillController extends Controller
             $voucher = DB::transaction(function () use ($raBill, $validated, $service) {
                 $contractorName = $raBill->contractor_name ?: ($raBill->contractor?->name ?? 'Contractor');
 
-                // Step 2.5 & 5.6: Generate Payment Voucher and deduct corporate treasury balance
                 $voucher = $service->recordPayment([
                     'company_bank_account_id' => (int) $validated['company_bank_account_id'],
                     'payee_id'                => $raBill->contractor_id,
@@ -281,7 +412,6 @@ class RaBillController extends Controller
                     'system_id'               => Auth::user()->system_id ?? 1,
                 ]);
 
-                // Create RA Bill Payment Record
                 RaBillPayment::create([
                     'system_id'               => Auth::user()->system_id ?? 1,
                     'ra_bill_id'              => $raBill->id,
@@ -296,7 +426,6 @@ class RaBillController extends Controller
                     'created_by'              => Auth::id(),
                 ]);
 
-                // Recalculate RA Bill balances and status
                 $raBill->recalculateBalances();
 
                 return $voucher;
@@ -327,7 +456,67 @@ class RaBillController extends Controller
 
         $raBill->delete();
 
-        return redirect()->route('expenses.ra-bills.index')
+        return redirect()->back()
             ->with('success', 'RA Bill deleted successfully.');
+    }
+
+    /**
+     * Store a new Contractor Master record with auto-linked liability ledger account.
+     */
+    public function storeContractor(Request $request): RedirectResponse
+    {
+        $systemId = Auth::user()->system_id ?? 1;
+
+        $request->validate([
+            'name'    => 'required|string|max:191|unique:payees,name,NULL,id,system_id,' . $systemId . ',type,Contractor',
+            'phone'   => 'nullable|string|max:50',
+            'email'   => 'nullable|email|max:191',
+            'gstin'   => 'nullable|string|size:15|alpha_num',
+            'pan'     => 'nullable|string|max:100',
+            'address' => 'nullable|string',
+        ], [
+            'name.required' => 'Contractor Name is required.',
+            'name.unique'   => 'A Contractor or Payee with this name already exists.',
+        ]);
+
+        DB::transaction(function () use ($request, $systemId) {
+            $baseCode = 'SUP-ACC-';
+            $existingCodes = Account::where('system_id', $systemId)
+                ->where('code', 'like', $baseCode . '%')
+                ->pluck('code');
+
+            $maxId = 0;
+            foreach ($existingCodes as $code) {
+                $idPart = (int) str_replace($baseCode, '', $code);
+                if ($idPart > $maxId) {
+                    $maxId = $idPart;
+                }
+            }
+            $nextId = $maxId + 1;
+            $accountCode = $baseCode . str_pad((string)$nextId, 4, '0', STR_PAD_LEFT);
+
+            $account = Account::create([
+                'system_id' => $systemId,
+                'code'      => $accountCode,
+                'name'      => $request->name . ' (Payable)',
+                'type'      => 'Liability',
+                'is_active' => true,
+            ]);
+
+            Payee::create([
+                'system_id'         => $systemId,
+                'type'              => 'Contractor',
+                'name'              => $request->name,
+                'phone'             => $request->phone,
+                'email'             => $request->email,
+                'gstin'             => $request->gstin,
+                'pan'               => $request->pan,
+                'address'           => $request->address,
+                'linked_account_id' => $account->id,
+            ]);
+        });
+
+        return redirect()->back()
+            ->with('success', '✅ Contractor registered successfully and ledger account created!');
     }
 }
