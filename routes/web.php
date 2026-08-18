@@ -462,6 +462,11 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     
     // Cancellation Charges & Additional Work
     Route::get('/cancellation-additional-work', [\App\Http\Controllers\CancellationAdditionalWorkController::class, 'index'])->name('cancellation-additional-work.index');
+
+    // Petty Cash Module
+    Route::get('/petty-cash/balance-register', [\App\Http\Controllers\PettyCashController::class, 'balanceRegister'])->name('petty-cash.balance-register');
+    Route::get('/petty-cash/export', [\App\Http\Controllers\PettyCashController::class, 'export'])->name('petty-cash.export');
+    Route::get('/petty-cash/transactions/{transaction}', [\App\Http\Controllers\PettyCashController::class, 'transactionDetails'])->name('petty-cash.transactions.details');
 });
 
 require __DIR__ . '/auth.php';
