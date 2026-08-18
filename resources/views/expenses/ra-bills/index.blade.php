@@ -428,22 +428,75 @@
 
         <!-- Toolbar & Filter Header -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div class="flex flex-col md:flex-row md:items-center gap-3">
-                <div>
+            <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Searchable Contractor Select Dropdown -->
+                <div class="relative w-full" x-data="{ open: false, search: '' }" @click.outside="open = false">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Contractor</label>
-                    <select x-model="selectedLedgerContractorId"
-                            class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-64 shadow-2xs">
-                        <option value="">All Contractors</option>
-                        @foreach($contractors as $cont)
-                            <option value="{{ $cont->id }}">{{ $cont->name }}</option>
-                        @endforeach
-                    </select>
+                    
+                    <button type="button" @click="open = !open" 
+                            class="px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-full shadow-2xs flex items-center justify-between gap-2 hover:border-[#a38c29] transition">
+                        <span class="truncate" x-text="getSelectedContractorName()"></span>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <template x-if="selectedLedgerContractorId">
+                                <span @click.stop="selectedLedgerContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition" title="Clear selection">✕</span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <!-- Searchable Dropdown Menu -->
+                    <div x-show="open" x-transition.opacity.duration.150ms 
+                         class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                         style="display: none;">
+                        
+                        <div class="relative">
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" x-model="search" placeholder="Type contractor name to filter..." 
+                                   class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
+                                   @keydown.escape="open = false" autofocus>
+                            <template x-if="search">
+                                <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                            </template>
+                        </div>
+
+                        <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
+                            <button type="button" @click="selectedLedgerContractorId = ''; open = false; search = '';" 
+                                    class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                    :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !selectedLedgerContractorId }">
+                                <span>All Contractors</span>
+                                <span class="text-[10px] text-slate-400 font-normal" x-text="'(' + (allContractors ? allContractors.length : 0) + ')'"></span>
+                            </button>
+                            
+                            <template x-for="cont in getFilteredContractorsList(search)" :key="cont.id">
+                                <button type="button" @click="selectedLedgerContractorId = cont.id; open = false; search = '';" 
+                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': selectedLedgerContractorId == cont.id }">
+                                    <span class="truncate" x-text="cont.name"></span>
+                                    <span class="text-[9px] text-slate-400 font-mono" x-text="cont.gstin || cont.type || ''"></span>
+                                </button>
+                            </template>
+                            
+                            <div x-show="getFilteredContractorsList(search).length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
+                                No contractors found.
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div>
+                <!-- Enhanced Search Particulars / Ref # -->
+                <div class="w-full">
                     <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Search Particulars / Ref #</label>
-                    <input type="text" x-model="ledgerSearchQuery" placeholder="Search bill #, voucher #..."
-                           class="px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-64 shadow-2xs">
+                    <div class="relative w-full">
+                        <input type="text" x-model="ledgerSearchQuery" placeholder="Search bill #, voucher #, project..."
+                               class="w-full px-3.5 py-2.5 pr-7 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none shadow-2xs">
+                        <template x-if="ledgerSearchQuery">
+                            <button type="button" @click="ledgerSearchQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                        </template>
+                    </div>
                 </div>
             </div>
 
@@ -1032,15 +1085,29 @@ function raBillManagement() {
             }
         },
 
+        getSelectedContractorName() {
+            if (!this.selectedLedgerContractorId) return 'All Contractors';
+            const c = (this.allContractors || []).find(x => x.id == this.selectedLedgerContractorId);
+            return c ? c.name : 'All Contractors';
+        },
+
+        getFilteredContractorsList(search = '') {
+            if (!search) return this.allContractors || [];
+            const q = search.toLowerCase().trim();
+            return (this.allContractors || []).filter(c => (c.name || '').toLowerCase().includes(q));
+        },
+
         filteredLedgerEntries() {
             let entries = this.allLedgerEntries;
             if (this.selectedLedgerContractorId) {
                 entries = entries.filter(e => e.contractor_id == this.selectedLedgerContractorId);
             }
             if (this.ledgerSearchQuery) {
-                const q = this.ledgerSearchQuery.toLowerCase();
+                const q = this.ledgerSearchQuery.toLowerCase().trim();
                 entries = entries.filter(e =>
                     (e.contractor_name && e.contractor_name.toLowerCase().includes(q)) ||
+                    (e.project_name && e.project_name.toLowerCase().includes(q)) ||
+                    (e.unit_name && e.unit_name.toLowerCase().includes(q)) ||
                     (e.particulars && e.particulars.toLowerCase().includes(q)) ||
                     (e.ra_bill_number && e.ra_bill_number.toLowerCase().includes(q)) ||
                     (e.ref_no && e.ref_no.toLowerCase().includes(q))
