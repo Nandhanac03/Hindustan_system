@@ -234,6 +234,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/availability', [\App\Http\Controllers\ReportController::class, 'availability'])->name('availability');
         Route::get('/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('sales');
         Route::get('/emi-collections', [\App\Http\Controllers\ReportController::class, 'emiCollections'])->name('emi_collections');
+        Route::get('/collection-forecast', [\App\Http\Controllers\ReportController::class, 'collectionForecast'])->name('collection_forecast');
+        Route::post('/collection-forecast/reminders', [\App\Http\Controllers\ReportController::class, 'generateReminders'])->name('collection_forecast.reminders');
         Route::get('/customer-ledger', [\App\Http\Controllers\ReportController::class, 'customerLedger'])->name('customer_ledger');
         Route::get('/cash-book', [\App\Http\Controllers\ReportController::class, 'cashBook'])->name('cash_book');
         Route::get('/bank-reports', [\App\Http\Controllers\ReportController::class, 'bankReports'])->name('bank_reports');

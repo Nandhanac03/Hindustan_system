@@ -80,4 +80,9 @@ class CustomerInstallment extends Model
             }
         }
     }
+
+    public function collectionReminders()
+    {
+        return $this->hasMany(CollectionReminder::class, 'installment_id');
+    }
 }
