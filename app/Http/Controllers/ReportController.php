@@ -2055,4 +2055,239 @@ class ReportController extends Controller
 
         return back()->with('success', "{$count} reminders have been generated and queued for sending.");
     }
+
+    /**
+     * Dedicated Page: Project Costing Summary Report
+     */
+    public function projectCostingSummary(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+        $activeTab = 'project_costing_summary';
+
+        $projectsQuery = Project::where('is_active', true);
+        if ($request->filled('project_id')) {
+            $projectsQuery->where('id', $request->project_id);
+        }
+        $projects = $projectsQuery->get();
+
+        $costingSummary = $projects->map(function ($proj) {
+            $expectedRev = (float) Unit::where('project_id', $proj->id)->sum('expected_sale_amount');
+            $actualRev = (float) Sale::where('project_id', $proj->id)->where('status', 'active')->sum('total_amount');
+            $partnerPayouts = (float) PartnerAllocation::where('project_id', $proj->id)->sum('allocated_amount');
+            
+            $brokerageCosts = (float) Brokerage::whereHas('sale', function ($q) use ($proj) {
+                $q->where('project_id', $proj->id);
+            })->sum('paid_amount');
+
+            // Material Bills
+            $materialCosts = (float) DB::table('bills')
+                ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                ->where('bills.project_id', $proj->id)
+                ->where('payees.type', 'Supplier')
+                ->sum('bills.final_amount');
+
+            // Contractor RA Progress Bills
+            $contractorBills = (float) DB::table('ra_bills')
+                ->where('project_id', $proj->id)
+                ->sum('net_approved_amount');
+
+            if ($contractorBills == 0) {
+                $contractorBills = (float) DB::table('bills')
+                    ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                    ->where('bills.project_id', $proj->id)
+                    ->where('payees.type', 'Contractor')
+                    ->sum('bills.final_amount');
+            }
+
+            // General Site & Administrative Expenses
+            $siteExpenses = (float) DB::table('bills')
+                ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                ->where('bills.project_id', $proj->id)
+                ->whereNotIn('payees.type', ['Supplier', 'Contractor', 'Partner'])
+                ->sum('bills.final_amount');
+
+            $totalCost = $materialCosts + $contractorBills + $brokerageCosts + $partnerPayouts + $siteExpenses;
+            $budgetVariance = $expectedRev - $totalCost;
+            $netProfit = $actualRev - $totalCost;
+            $profitMargin = $actualRev > 0 ? ($netProfit / $actualRev) * 100 : 0.0;
+
+            return (object) [
+                'project_id'          => $proj->id,
+                'project_name'        => $proj->name,
+                'code'                => $proj->code ?? 'PRJ-' . $proj->id,
+                'location'            => $proj->location ?? 'N/A',
+                'expected_revenue'    => $expectedRev,
+                'actual_revenue'      => $actualRev,
+                'material_costs'      => $materialCosts,
+                'contractor_bills'    => $contractorBills,
+                'brokerage_costs'     => $brokerageCosts,
+                'partner_payouts'     => $partnerPayouts,
+                'site_expenses'       => $siteExpenses,
+                'total_cost'          => $totalCost,
+                'budget_variance'     => $budgetVariance,
+                'net_profit'          => $netProfit,
+                'profit_margin'       => $profitMargin,
+            ];
+        });
+
+        $totals = (object) [
+            'expected_revenue' => $costingSummary->sum('expected_revenue'),
+            'actual_revenue'   => $costingSummary->sum('actual_revenue'),
+            'material_costs'   => $costingSummary->sum('material_costs'),
+            'contractor_bills' => $costingSummary->sum('contractor_bills'),
+            'brokerage_costs'  => $costingSummary->sum('brokerage_costs'),
+            'partner_payouts'  => $costingSummary->sum('partner_payouts'),
+            'site_expenses'    => $costingSummary->sum('site_expenses'),
+            'total_cost'       => $costingSummary->sum('total_cost'),
+            'net_profit'       => $costingSummary->sum('net_profit'),
+        ];
+
+        return view('reports.project-costing-summary', array_merge($lookups, compact('activeTab', 'costingSummary', 'totals')));
+    }
+
+    /**
+     * Dedicated Page: Revenue vs. Cost Breakdown Report
+     */
+    public function revenueCostBreakdown(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+        $activeTab = 'revenue_cost_breakdown';
+
+        $projectId = $request->query('project_id');
+
+        $salesQuery = Sale::where('status', 'active');
+        if ($projectId) {
+            $salesQuery->where('project_id', $projectId);
+        }
+
+        $salesRevenue = (float) $salesQuery->sum('total_amount');
+        $extraWorksRevenue = (float) DB::table('sale_extra_works')
+            ->join('sales', 'sale_extra_works.sale_id', '=', 'sales.id')
+            ->when($projectId, fn($q) => $q->where('sales.project_id', $projectId))
+            ->sum('sale_extra_works.amount');
+
+        $totalCollectionsReceived = (float) Receipt::when($projectId, function($q) use ($projectId) {
+            $q->whereHas('sale', fn($sq) => $sq->where('project_id', $projectId));
+        })->sum('amount');
+
+        $materialPurchases = (float) DB::table('bills')
+            ->join('payees', 'bills.payee_id', '=', 'payees.id')
+            ->when($projectId, fn($q) => $q->where('bills.project_id', $projectId))
+            ->where('payees.type', 'Supplier')
+            ->sum('bills.final_amount');
+
+        $contractorProgressClaims = (float) DB::table('ra_bills')
+            ->when($projectId, fn($q) => $q->where('project_id', $projectId))
+            ->sum('net_approved_amount');
+
+        $brokeragePaid = (float) Brokerage::when($projectId, function($q) use ($projectId) {
+            $q->whereHas('sale', fn($sq) => $sq->where('project_id', $projectId));
+        })->sum('paid_amount');
+
+        $financingInterest = (float) EmiSchedule::where('status', 'Paid')->sum('interest_component');
+
+        $siteExpenses = (float) DB::table('bills')
+            ->join('payees', 'bills.payee_id', '=', 'payees.id')
+            ->when($projectId, fn($q) => $q->where('bills.project_id', $projectId))
+            ->whereNotIn('payees.type', ['Supplier', 'Contractor', 'Partner'])
+            ->sum('bills.final_amount');
+
+        $revenueBreakdown = [
+            'Unit Sales Agreements' => $salesRevenue,
+            'Extra Works & Upgrades' => $extraWorksRevenue,
+            'Cash & Bank Collections' => $totalCollectionsReceived,
+        ];
+
+        $costBreakdown = [
+            'Material Purchases'        => $materialPurchases,
+            'Contractor Progress Claims' => $contractorProgressClaims,
+            'Brokerage & Commissions'   => $brokeragePaid,
+            'Loan Financing & Interest'  => $financingInterest,
+            'Site & General Expenses'   => $siteExpenses,
+        ];
+
+        $totalRevenue = $salesRevenue + $extraWorksRevenue;
+        $totalCosts = array_sum($costBreakdown);
+        $netSurplus = $totalRevenue - $totalCosts;
+
+        return view('reports.revenue-cost-breakdown', array_merge($lookups, compact(
+            'activeTab', 'revenueBreakdown', 'costBreakdown', 'totalRevenue', 'totalCosts', 'netSurplus'
+        )));
+    }
+
+    /**
+     * Dedicated Page: Project Margin Analysis Report
+     */
+    public function projectMarginAnalysis(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+        $activeTab = 'project_margin_analysis';
+
+        $projects = Project::where('is_active', true)->get();
+
+        $marginAnalysis = $projects->map(function ($proj) {
+            $units = Unit::where('project_id', $proj->id)->get();
+            $totalUnits = $units->count();
+            $totalArea = (float) $units->sum('built_up_area');
+            if ($totalArea == 0) {
+                $totalArea = (float) $units->sum('carpet_area');
+            }
+
+            $actualRev = (float) Sale::where('project_id', $proj->id)->where('status', 'active')->sum('total_amount');
+            $materialCosts = (float) DB::table('bills')
+                ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                ->where('bills.project_id', $proj->id)
+                ->where('payees.type', 'Supplier')
+                ->sum('bills.final_amount');
+
+            $contractorBills = (float) DB::table('ra_bills')
+                ->where('project_id', $proj->id)
+                ->sum('net_approved_amount');
+
+            $otherCosts = (float) DB::table('bills')
+                ->join('payees', 'bills.payee_id', '=', 'payees.id')
+                ->where('bills.project_id', $proj->id)
+                ->whereNotIn('payees.type', ['Supplier', 'Contractor', 'Partner'])
+                ->sum('bills.final_amount');
+
+            $brokerageCosts = (float) Brokerage::whereHas('sale', function ($q) use ($proj) {
+                $q->where('project_id', $proj->id);
+            })->sum('paid_amount');
+
+            $totalCosts = $materialCosts + $contractorBills + $otherCosts + $brokerageCosts;
+            $grossProfit = max(0, $actualRev - ($materialCosts + $contractorBills));
+            $netProfit = $actualRev - $totalCosts;
+            $grossMarginPct = $actualRev > 0 ? ($grossProfit / $actualRev) * 100 : 0.0;
+            $netMarginPct = $actualRev > 0 ? ($netProfit / $actualRev) * 100 : 0.0;
+            $costPerSqFt = $totalArea > 0 ? ($totalCosts / $totalArea) : 0.0;
+            $revenuePerSqFt = $totalArea > 0 ? ($actualRev / $totalArea) : 0.0;
+
+            $healthStatus = 'Healthy';
+            if ($netMarginPct >= 25) {
+                $healthStatus = 'High Margin';
+            } elseif ($netMarginPct >= 12) {
+                $healthStatus = 'Healthy';
+            } else {
+                $healthStatus = 'At Risk / Low Margin';
+            }
+
+            return (object) [
+                'project_id'      => $proj->id,
+                'project_name'    => $proj->name,
+                'total_units'     => $totalUnits,
+                'total_area'      => $totalArea,
+                'actual_revenue'  => $actualRev,
+                'total_costs'     => $totalCosts,
+                'gross_profit'    => $grossProfit,
+                'net_profit'      => $netProfit,
+                'gross_margin'    => $grossMarginPct,
+                'net_margin'      => $netMarginPct,
+                'cost_per_sqft'   => $costPerSqFt,
+                'rev_per_sqft'    => $revenuePerSqFt,
+                'health_status'   => $healthStatus,
+            ];
+        });
+
+        return view('reports.project-margin-analysis', array_merge($lookups, compact('activeTab', 'marginAnalysis')));
+    }
 }

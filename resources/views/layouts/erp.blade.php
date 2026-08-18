@@ -375,8 +375,8 @@
         <!-- 💰 Project Profitability & Costing -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Finance & Analytics</p>
         
-        <div x-data="{ openProfitability: {{ Request::routeIs('reports.partner_statements') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.partner_statements') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openProfitability: {{ Request::routeIs('reports.partner_statements') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openProfitability = !openProfitability" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.partner_statements') || Request::routeIs('reports.project_costing_summary') || Request::routeIs('reports.revenue_cost_breakdown') || Request::routeIs('reports.project_margin_analysis') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/>
@@ -392,13 +392,13 @@
                 <a href="{{ route('reports.partner_statements') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.partner_statements') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Partner Statements
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('reports.project_costing_summary') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.project_costing_summary') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Project Costing Summary
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('reports.revenue_cost_breakdown') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.revenue_cost_breakdown') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Revenue vs. Cost Breakdown
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('reports.project_margin_analysis') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.project_margin_analysis') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Project Margin Analysis
                 </a>
             </div>

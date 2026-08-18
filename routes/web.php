@@ -240,6 +240,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/cash-book', [\App\Http\Controllers\ReportController::class, 'cashBook'])->name('cash_book');
         Route::get('/bank-reports', [\App\Http\Controllers\ReportController::class, 'bankReports'])->name('bank_reports');
         Route::get('/partner-statements', [\App\Http\Controllers\ReportController::class, 'partnerStatements'])->name('partner_statements');
+        Route::get('/project-costing-summary', [\App\Http\Controllers\ReportController::class, 'projectCostingSummary'])->name('project_costing_summary');
+        Route::get('/revenue-cost-breakdown', [\App\Http\Controllers\ReportController::class, 'revenueCostBreakdown'])->name('revenue_cost_breakdown');
+        Route::get('/project-margin-analysis', [\App\Http\Controllers\ReportController::class, 'projectMarginAnalysis'])->name('project_margin_analysis');
         Route::get('/supplier-contractor', [\App\Http\Controllers\ReportController::class, 'supplierContractor'])->name('supplier_contractor');
         Route::get('/sales-return', [\App\Http\Controllers\ReportController::class, 'salesReturn'])->name('sales_return');
         Route::get('/exchange', [\App\Http\Controllers\ReportController::class, 'exchange'])->name('exchange_report');
