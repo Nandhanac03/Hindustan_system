@@ -23,7 +23,7 @@
                         </div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Cancellation Charges</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded border border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Collected</span>
+                    <!-- <span class="px-2 py-0.5 rounded border border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Collected</span> -->
                 </div>
                 <div>
                     <h3 class="text-2xl font-black text-slate-900 tracking-tight">₹{{ number_format($cancellationCharges->sum('cancellation_fee'), 2) }}</h3>
@@ -40,7 +40,7 @@
                         </div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Additional Work</span>
                     </div>
-                    <span class="px-2 py-0.5 rounded border border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Completed</span>
+                    <!-- <span class="px-2 py-0.5 rounded border border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Completed</span> -->
                 </div>
                 <div>
                     <h3 class="text-2xl font-black text-slate-900 tracking-tight">₹{{ number_format($additionalWorks->sum('amount'), 2) }}</h3>
