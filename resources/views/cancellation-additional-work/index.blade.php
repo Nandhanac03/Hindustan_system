@@ -15,35 +15,35 @@
         {{-- Summary Cards (Treasury Style) --}}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             {{-- Card 1: Total Cancellation Charges --}}
-            <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between">
-                <div class="flex justify-between items-start mb-4">
+            <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.2)] hover:border-r-[#a38c29]/20 hover:border-y-[#a38c29]/20">
+                <div class="flex justify-between items-start mb-4 relative z-10">
                     <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29]">
+                        <div class="w-6 h-6 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Cancellation Charges</span>
                     </div>
                     <!-- <span class="px-2 py-0.5 rounded border border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Collected</span> -->
                 </div>
-                <div>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">₹{{ number_format($cancellationCharges->sum('cancellation_fee'), 2) }}</h3>
+                <div class="relative z-10">
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-[#a38c29]">₹{{ number_format($cancellationCharges->sum('cancellation_fee'), 2) }}</h3>
                     <p class="text-[10px] font-bold text-slate-400 mt-1">Total Accumulated</p>
                 </div>
             </div>
             
             {{-- Card 2: Total Additional Work --}}
-            <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between">
-                <div class="flex justify-between items-start mb-4">
+            <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20">
+                <div class="flex justify-between items-start mb-4 relative z-10">
                     <div class="flex items-center gap-2">
-                        <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                        <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Additional Work</span>
                     </div>
                     <!-- <span class="px-2 py-0.5 rounded border border-slate-200 text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50">Completed</span> -->
                 </div>
-                <div>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight">₹{{ number_format($additionalWorks->sum('amount'), 2) }}</h3>
+                <div class="relative z-10">
+                    <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-emerald-600">₹{{ number_format($additionalWorks->sum('amount'), 2) }}</h3>
                     <p class="text-[10px] font-bold text-slate-400 mt-1">Total Accumulated</p>
                 </div>
             </div>
