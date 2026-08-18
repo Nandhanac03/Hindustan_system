@@ -136,6 +136,11 @@ class Sale extends Model
         return $this->hasMany(EmiSchedule::class, 'sale_id')->orderBy('installment_no');
     }
 
+    public function customerInstallments(): HasMany
+    {
+        return $this->hasMany(CustomerInstallment::class, 'sale_id')->orderBy('installment_no');
+    }
+
     public function brokerage(): HasOne
     {
         return $this->hasOne(Brokerage::class, 'sale_id');

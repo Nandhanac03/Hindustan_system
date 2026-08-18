@@ -1869,7 +1869,7 @@ class ReportController extends Controller
 
         $asOfDate = $request->filled('as_of_date') ? Carbon::parse($request->as_of_date) : Carbon::today();
 
-        $query = CustomerInstallment::with(['sale.customer', 'sale.project', 'sale.unit.unitType', 'sale.unit.floor', 'sale.saleUnits.unit.unitType', 'sale.saleUnits.unit.floor', 'collectionReminders' => function($q) {
+        $query = CustomerInstallment::with(['sale.customer', 'sale.project', 'sale.unit.unitType', 'sale.unit.floor', 'sale.saleUnits.unit.unitType', 'sale.saleUnits.unit.floor', 'sale.customerInstallments', 'collectionReminders' => function($q) {
             $q->orderByDesc('created_at');
         }])
         ->whereNotIn('status', ['paid'])

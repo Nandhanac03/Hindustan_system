@@ -341,8 +341,56 @@
                                 {{ $inst->last_reminder ? $inst->last_reminder->created_at->format('d/m/Y') : '-' }}
                             </td>
                             <td class="px-5 py-3 text-center">
+                                @php
+                                    $modalPayload = [
+                                        'customer' => [
+                                            'name' => $inst->sale->customer->name ?? '-',
+                                            'mobile' => $inst->sale->customer->phone ?? '-',
+                                            'email' => $inst->sale->customer->email ?? '-',
+                                            'address' => $inst->sale->customer->address ?? '-'
+                                        ],
+                                        'booking' => [
+                                            'sale_no' => $inst->sale->sale_number,
+                                            'project' => $inst->sale->project->name ?? '-',
+                                            'unit' => $inst->sale->saleUnits->count() > 0 ? $inst->sale->saleUnits->map(fn($su) => $su->unit ? $su->unit->formatted_name : '')->filter()->implode(', ') : ($inst->sale->unit ? $inst->sale->unit->formatted_name : '-'),
+                                            'booking_date' => $inst->sale->agreement_date ? \Carbon\Carbon::parse($inst->sale->agreement_date)->format('d-M-Y') : '-',
+                                            'possession_date' => '-'
+                                        ],
+                                        'summary' => [
+                                            'total_outstanding' => preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($inst->sale->customerInstallments->sum(fn($i) => max(0, $i->amount - $i->paid_amount)), 0)),
+                                            'total_overdue' => preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($inst->calculated_outstanding, 0)),
+                                            'days_overdue' => $inst->days_overdue > 0 ? $inst->days_overdue : 0,
+                                            'ageing_bucket' => $inst->ageing_bucket,
+                                            'risk_level' => $inst->risk_level
+                                        ],
+                                        'installments' => $inst->sale->customerInstallments->map(function($i) use ($inst) {
+                                            $out = max(0, $i->amount - $i->paid_amount);
+                                            return [
+                                                'no' => $i->installment_no,
+                                                'inst_date' => $i->installment_date ? \Carbon\Carbon::parse($i->installment_date)->format('d-M-Y') : '-',
+                                                'due_date' => $i->due_date ? \Carbon\Carbon::parse($i->due_date)->format('d-M-Y') : '-',
+                                                'amount' => preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($i->amount, 0)),
+                                                'paid' => preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($i->paid_amount, 0)),
+                                                'outstanding' => preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($out, 0)),
+                                                'status' => $i->status,
+                                                'is_current' => $i->id === $inst->id
+                                            ];
+                                        })->sortBy('no')->values()->toArray(),
+                                        'reminders' => $inst->collectionReminders->map(function($r) {
+                                            return [
+                                                'no' => 'RMND-' . str_pad($r->id, 5, '0', STR_PAD_LEFT),
+                                                'date' => $r->created_at->format('d-M-Y'),
+                                                'type' => $r->reminder_level,
+                                                'channel' => 'SMS / Email',
+                                                'status' => 'Sent'
+                                            ];
+                                        })->toArray()
+                                    ];
+                                @endphp
                                 <div class="flex items-center justify-center gap-3">
-                                    <a href="#" class="text-blue-500 hover:text-blue-700" title="View"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></a>
+                                    <button type="button" @click.prevent="openModal(JSON.parse(atob($el.dataset.payload)))" data-payload="{{ base64_encode(json_encode($modalPayload)) }}" class="text-blue-500 hover:text-blue-700 transition-colors" title="View Details">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                    </button>
                                     <a href="#" class="text-blue-500 hover:text-blue-700" title="Message"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg></a>
                                     <a href="#" class="text-blue-500 hover:text-blue-700" title="Call"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg></a>
                                 </div>
@@ -366,11 +414,197 @@
         </div>
     </div>
 
+    <!-- OVERDUE INSTALLMENT DETAILS MODAL -->
+    <div x-show="isModalOpen" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden bg-slate-900/60 backdrop-blur-sm"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         style="display: none;">
+        
+        <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl my-8 overflow-hidden" @click.outside="closeModal()">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-6 border-b border-slate-100">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 tracking-tight">Overdue Installment Details</h3>
+                    <p class="text-xs font-medium text-slate-500 mt-1">Detailed view of overdue installment and customer information</p>
+                </div>
+                <button type="button" @click="closeModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto max-h-[calc(100vh-200px)] custom-scrollbar space-y-6" x-show="modalData">
+                <template x-if="modalData">
+                    <div>
+                        <!-- Section 1: Customer & Booking Details -->
+                        <div class="border border-slate-200 rounded-xl p-5 bg-white relative">
+                            <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-4 absolute -top-2.5 left-4 bg-white px-2">Customer & Booking Details</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
+                                <div class="grid grid-cols-[120px_auto] gap-2 items-start text-xs">
+                                    <span class="font-bold text-slate-500">Customer Name</span>
+                                    <span class="font-black text-slate-800 flex gap-2">: <span x-text="modalData.customer.name"></span></span>
+                                    
+                                    <span class="font-bold text-slate-500">Mobile Number</span>
+                                    <span class="font-black text-slate-800 flex gap-2 text-blue-600">: <span x-text="modalData.customer.mobile"></span></span>
+                                    
+                                    <span class="font-bold text-slate-500">Email ID</span>
+                                    <span class="font-black text-slate-800 flex gap-2 text-blue-600">: <span x-text="modalData.customer.email"></span></span>
+                                    
+                                    <span class="font-bold text-slate-500">Address</span>
+                                    <span class="font-medium text-slate-600 flex gap-2 leading-tight">: <span x-text="modalData.customer.address"></span></span>
+                                </div>
+                                <div class="grid grid-cols-[120px_auto] gap-2 items-start text-xs">
+                                    <span class="font-bold text-slate-500">Sale No.</span>
+                                    <span class="font-black text-slate-800 flex gap-2">: <span x-text="modalData.booking.sale_no"></span></span>
+                                    
+                                    <span class="font-bold text-slate-500">Project</span>
+                                    <span class="font-bold text-slate-600 flex gap-2">: <span x-text="modalData.booking.project"></span></span>
+                                    
+                                    <span class="font-bold text-slate-500">Unit</span>
+                                    <span class="font-bold text-slate-600 flex gap-2">: <span x-text="modalData.booking.unit"></span></span>
+                                    
+                                    <span class="font-bold text-slate-500">Booking Date</span>
+                                    <span class="font-bold text-slate-600 flex gap-2">: <span x-text="modalData.booking.booking_date"></span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Outstanding Summary -->
+                        <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-3 mt-6">Outstanding Summary</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-center">
+                                <div class="text-sm font-black text-indigo-900">₹ <span x-text="modalData.summary.total_outstanding"></span></div>
+                                <div class="text-[9px] font-bold text-indigo-600 uppercase tracking-wider mt-1">Total Outstanding</div>
+                            </div>
+                            <div class="bg-amber-50/50 border border-amber-100 rounded-xl p-3 text-center">
+                                <div class="text-sm font-black text-amber-900">₹ <span x-text="modalData.summary.total_overdue"></span></div>
+                                <div class="text-[9px] font-bold text-amber-700 uppercase tracking-wider mt-1">Total Overdue</div>
+                            </div>
+                            <div class="bg-rose-50/50 border border-rose-100 rounded-xl p-3 text-center">
+                                <div class="text-sm font-black text-rose-600"><span x-text="modalData.summary.days_overdue"></span> Days</div>
+                                <div class="text-[9px] font-bold text-rose-500 uppercase tracking-wider mt-1">Days Overdue</div>
+                            </div>
+                            <div class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3 text-center">
+                                <div class="text-sm font-black text-emerald-700"><span x-text="modalData.summary.ageing_bucket"></span></div>
+                                <div class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1">Ageing Bucket</div>
+                            </div>
+                            <div class="bg-purple-50/50 border border-purple-100 rounded-xl p-3 text-center">
+                                <div class="text-sm font-black text-purple-700" x-text="modalData.summary.risk_level"></div>
+                                <div class="text-[9px] font-bold text-purple-600 uppercase tracking-wider mt-1">Risk Level</div>
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Installment Summary -->
+                        <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-3 mt-6">Installment Summary</h4>
+                        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200">
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-center">Inst. No.</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Inst. Date</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Due Date</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Inst. Amount</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Paid Amount</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Outst. Amount</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="inst in modalData.installments" :key="inst.no">
+                                        <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors" :class="inst.is_current ? 'bg-amber-50/40' : ''">
+                                            <td class="px-4 py-2 text-xs font-black text-slate-500 text-center" x-text="inst.no"></td>
+                                            <td class="px-4 py-2 text-xs font-bold text-slate-600" x-text="inst.inst_date"></td>
+                                            <td class="px-4 py-2 text-xs font-bold text-slate-600" x-text="inst.due_date"></td>
+                                            <td class="px-4 py-2 text-xs font-black text-slate-800 text-right">₹ <span x-text="inst.amount"></span></td>
+                                            <td class="px-4 py-2 text-xs font-black text-slate-600 text-right">₹ <span x-text="inst.paid"></span></td>
+                                            <td class="px-4 py-2 text-xs font-black text-slate-800 text-right" :class="inst.outstanding !== '0' ? 'text-rose-600' : ''">₹ <span x-text="inst.outstanding"></span></td>
+                                            <td class="px-4 py-2 text-center">
+                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest inline-flex"
+                                                      :class="inst.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : (inst.status === 'unpaid' && inst.outstanding !== '0' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-600')"
+                                                      x-text="inst.status === 'unpaid' && inst.outstanding !== '0' ? 'Overdue' : inst.status">
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Section 4: Reminder History -->
+                        <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-3 mt-6">Reminder History</h4>
+                        <div class="border border-slate-200 rounded-xl overflow-hidden bg-white mb-4">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-200">
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Reminder No.</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Reminder Date</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Reminder Type</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Channel</th>
+                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-if="modalData.reminders.length === 0">
+                                        <tr>
+                                            <td colspan="5" class="px-4 py-6 text-center text-xs font-bold text-slate-400 italic">No reminders sent yet.</td>
+                                        </tr>
+                                    </template>
+                                    <template x-for="rem in modalData.reminders" :key="rem.no">
+                                        <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                                            <td class="px-4 py-2 text-xs font-black text-slate-600" x-text="rem.no"></td>
+                                            <td class="px-4 py-2 text-xs font-bold text-slate-600" x-text="rem.date"></td>
+                                            <td class="px-4 py-2 text-xs font-bold text-slate-600" x-text="rem.type"></td>
+                                            <td class="px-4 py-2 text-xs font-bold text-slate-500" x-text="rem.channel"></td>
+                                            <td class="px-4 py-2 text-center">
+                                                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold uppercase tracking-widest">Sent</span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
+                <button type="button" @click="closeModal()" class="px-5 py-2 border border-slate-300 bg-white text-slate-600 text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:bg-slate-50 transition-colors">
+                    Close
+                </button>
+                <a :href="'tel:' + (modalData ? modalData.customer.mobile : '')" class="px-5 py-2 border border-[#3b82f6] bg-white text-[#3b82f6] text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:bg-blue-50 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    Call Customer
+                </a>
+                <button type="button" class="px-5 py-2 bg-[#3b82f6] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:bg-blue-600 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                    Send Reminder
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
 function collectionForecastApp() {
     return {
+        isModalOpen: false,
+        modalData: null,
+        openModal(data) {
+            this.modalData = data;
+            this.isModalOpen = true;
+            document.body.style.overflow = 'hidden';
+        },
+        closeModal() {
+            this.isModalOpen = false;
+            document.body.style.overflow = '';
+            setTimeout(() => { this.modalData = null; }, 300);
+        },
         init() {
             this.renderDonutChart();
             this.renderBarChart();
