@@ -11,18 +11,18 @@
     </div>
 
     <!-- Filter Bar -->
-    <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <form id="collectionForecastFilterForm" method="GET" action="{{ route('reports.collection_forecast') }}" class="flex flex-wrap items-end gap-4">
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
+        <form id="collectionForecastFilterForm" method="GET" action="{{ route('reports.collection_forecast') }}" class="flex flex-wrap items-end gap-5">
             <div class="flex-1 min-w-[150px]">
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">As On Date</label>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">As On Date</label>
                 <div class="relative">
-                    <input type="date" name="as_of_date" value="{{ request('as_of_date', now()->format('Y-m-d')) }}" class="w-full text-sm rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10 pl-3 pr-10">
+                    <input type="date" name="as_of_date" value="{{ request('as_of_date', now()->format('Y-m-d')) }}" onchange="this.form.submit()" class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors">
                 </div>
             </div>
             
             <div class="flex-1 min-w-[180px]">
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Project</label>
-                <select name="project_id" class="w-full text-sm rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Project</label>
+                <select name="project_id" onchange="this.form.submit()" class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors">
                     <option value="">All</option>
                     @foreach($projects as $project)
                         <option value="{{ $project->id }}" {{ request('project_id') == $project->id ? 'selected' : '' }}>{{ $project->name }}</option>
@@ -30,19 +30,70 @@
                 </select>
             </div>
 
-            <div class="flex-1 min-w-[180px]">
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Customer</label>
-                <select name="customer_id" class="w-full text-sm rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10">
-                    <option value="">All</option>
-                    @foreach($customers as $customer)
-                        <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>{{ $customer->name }}</option>
-                    @endforeach
-                </select>
+            <div class="flex-1 min-w-[220px]" x-data="{ open: false, search: '', selectedId: '{{ request('customer_id') }}', selectedName: '{{ request('customer_id') ? addslashes($customers->firstWhere('id', request('customer_id'))->name ?? '') : '' }}' }" @click.outside="open = false">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Customer</label>
+                <div class="relative">
+                    <input type="hidden" name="customer_id" :value="selectedId">
+                    <button type="button" 
+                            @click="open = !open; if(open) $nextTick(() => $refs.customerSearch.focus())"
+                            class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors flex items-center justify-between shadow-sm">
+                        <span x-text="selectedId ? selectedName : 'All Customers'" :class="!selectedId ? 'text-slate-500' : ''" class="truncate pr-2"></span>
+                        <div class="flex items-center gap-1 shrink-0 ml-1">
+                            <span x-show="selectedId" @click.stop="selectedId = ''; selectedName = ''; document.getElementById('collectionForecastFilterForm').submit()" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition" title="Clear customer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                         class="absolute left-0 top-full mt-1.5 w-72 bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50"
+                         style="display: none;">
+                         
+                         <div class="p-2 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                             <div class="relative">
+                                 <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                 <input type="text"
+                                        x-model="search"
+                                        x-ref="customerSearch"
+                                        placeholder="Search customer..."
+                                        @keydown.escape="open = false"
+                                        class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                 <button x-show="search" type="button" @click="search = ''; $refs.customerSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                             </div>
+                         </div>
+                         
+                         <div class="overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
+                             <button type="button"
+                                     @click="selectedId = ''; selectedName = ''; open = false; document.getElementById('collectionForecastFilterForm').submit()"
+                                     x-show="search === ''"
+                                     class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-500 font-bold">
+                                 All Customers
+                             </button>
+                             @foreach($customers as $customer)
+                                 <button type="button"
+                                         x-show="'{{ strtolower(addslashes($customer->name)) }}'.includes(search.toLowerCase())"
+                                         @click="selectedId = '{{ $customer->id }}'; selectedName = '{{ addslashes($customer->name) }}'; open = false; document.getElementById('collectionForecastFilterForm').submit()"
+                                         class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-800 font-bold"
+                                         :class="selectedId == '{{ $customer->id }}' ? 'bg-[#a38c29]/5 text-[#a38c29]' : ''">
+                                     {{ $customer->name }}
+                                 </button>
+                             @endforeach
+                         </div>
+                    </div>
+                </div>
             </div>
 
             <div class="flex-1 min-w-[150px]">
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Ageing Bucket</label>
-                <select name="ageing_bucket" class="w-full text-sm rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Ageing Bucket</label>
+                <select name="ageing_bucket" onchange="this.form.submit()" class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors">
                     <option value="All">All</option>
                     <option value="Current" {{ request('ageing_bucket') == 'Current' ? 'selected' : '' }}>Current (Not Due)</option>
                     <option value="0-30" {{ request('ageing_bucket') == '0-30' ? 'selected' : '' }}>0-30 Days</option>
@@ -54,8 +105,8 @@
             </div>
 
             <div class="flex-1 min-w-[150px]">
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Risk Level</label>
-                <select name="risk_level" class="w-full text-sm rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Risk Level</label>
+                <select name="risk_level" onchange="this.form.submit()" class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors">
                     <option value="All">All</option>
                     <option value="None" {{ request('risk_level') == 'None' ? 'selected' : '' }}>None</option>
                     <option value="Low" {{ request('risk_level') == 'Low' ? 'selected' : '' }}>Low</option>
@@ -67,8 +118,8 @@
             </div>
 
             <div class="flex-1 min-w-[150px]">
-                <label class="block text-xs font-semibold text-slate-600 mb-1.5">Reminder Status</label>
-                <select name="reminder_status" class="w-full text-sm rounded-lg border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10">
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Reminder Status</label>
+                <select name="reminder_status" onchange="this.form.submit()" class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors">
                     <option value="All">All</option>
                     <option value="Sent" {{ request('reminder_status') == 'Sent' ? 'selected' : '' }}>Sent</option>
                     <option value="Pending" {{ request('reminder_status') == 'Pending' ? 'selected' : '' }}>Pending</option>
@@ -76,11 +127,8 @@
                 </select>
             </div>
 
-            <div class="flex-none flex gap-2 h-10">
-                <button type="submit" class="px-5 py-2 bg-[#3b82f6] text-white text-sm font-medium rounded-lg hover:bg-blue-600 shadow-sm transition-colors">
-                    Filter
-                </button>
-                <a href="{{ route('reports.collection_forecast') }}" class="px-5 py-2 bg-white text-slate-700 border border-slate-200 text-sm font-medium rounded-lg hover:bg-slate-50 shadow-sm transition-colors flex items-center">
+            <div class="flex-none flex gap-3 h-11">
+                <a href="{{ route('reports.collection_forecast') }}" class="px-6 py-0 bg-white text-slate-500 border border-slate-200 text-[11px] font-black uppercase tracking-wider rounded-xl shadow-sm hover:bg-slate-50 hover:text-slate-700 transition-colors flex items-center justify-center">
                     Reset
                 </a>
             </div>
@@ -90,50 +138,66 @@
     <!-- KPIs -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
         <!-- Total Outstanding -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.2)] hover:border-r-[#a38c29]/20 hover:border-y-[#a38c29]/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Outstanding</span>
+                </div>
             </div>
-            <div>
-                <div class="text-xs font-semibold text-slate-500 mb-1">Total Outstanding</div>
-                <div class="text-2xl font-bold text-slate-800">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['total_outstanding'], 0)) }}</div>
-                <div class="text-xs text-orange-500 font-medium mt-1">{{ $kpis['total_customers'] }} Customers</div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-[#a38c29]">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['total_outstanding'], 0)) }}</h3>
+                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-[#a38c29]">{{ $kpis['total_customers'] }} Customers</span></p>
             </div>
         </div>
 
         <!-- Total Overdue -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-rose-50 flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="bg-white border-y border-r border-l-4 border-l-rose-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.2)] hover:border-r-rose-500/20 hover:border-y-rose-500/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Overdue</span>
+                </div>
             </div>
-            <div>
-                <div class="text-xs font-semibold text-slate-500 mb-1">Total Overdue</div>
-                <div class="text-2xl font-bold text-slate-800">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['total_overdue'], 0)) }}</div>
-                <div class="text-xs text-rose-500 font-medium mt-1">{{ $kpis['overdue_customers'] }} Customers</div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-rose-600">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['total_overdue'], 0)) }}</h3>
+                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-rose-500">{{ $kpis['overdue_customers'] }} Customers</span></p>
             </div>
         </div>
 
         <!-- Current / Not Due -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Current / Not Due</span>
+                </div>
             </div>
-            <div>
-                <div class="text-xs font-semibold text-slate-500 mb-1">Current / Not Due</div>
-                <div class="text-2xl font-bold text-slate-800">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['current_not_due'], 0)) }}</div>
-                <div class="text-xs text-emerald-500 font-medium mt-1">{{ $kpis['total_customers'] - $kpis['overdue_customers'] }} Customers</div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-emerald-600">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['current_not_due'], 0)) }}</h3>
+                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-emerald-500">{{ $kpis['total_customers'] - $kpis['overdue_customers'] }} Customers</span></p>
             </div>
         </div>
 
         <!-- Expected Collection -->
-        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex items-center gap-4">
-            <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        <div class="bg-white border-y border-r border-l-4 border-l-[#3b82f6] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.2)] hover:border-r-[#3b82f6]/20 hover:border-y-[#3b82f6]/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Expected Collection (This Month)</span>
+                </div>
             </div>
-            <div>
-                <div class="text-xs font-semibold text-slate-500 mb-1">Expected Collection (This Month)</div>
-                <div class="text-2xl font-bold text-slate-800">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['expected_collection'], 0)) }}</div>
-                <a href="#" class="text-xs text-blue-500 font-medium mt-1 hover:underline inline-block">View Forecast</a>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-blue-600">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($kpis['expected_collection'], 0)) }}</h3>
+                <a href="#" class="text-[10px] font-black uppercase tracking-widest text-[#3b82f6] mt-1 hover:underline inline-block transition-colors duration-300 group-hover:text-blue-700">View Forecast</a>
             </div>
         </div>
     </div>
@@ -187,7 +251,13 @@
     <!-- Table -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white">
-            <h3 class="text-base font-bold text-slate-800">Overdue Installments</h3>
+            <div>
+                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                    <div class="w-1 h-4 bg-[#a38c29] rounded-full"></div>
+                    Overdue Installments Directory
+                </h3>
+                <p class="text-[10px] font-bold text-slate-500 mt-1 pl-3">Directory of all overdue installments and forecast status.</p>
+            </div>
             <div class="flex items-center gap-3">
                 <form action="{{ route('reports.collection_forecast.reminders') }}" method="POST" onsubmit="return confirm('Generate and send reminders for all overdue items currently shown on this page?');">
                     @csrf
@@ -209,8 +279,8 @@
         </div>
         <div class="w-full overflow-x-auto">
             <table class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
+                    <tr>
                         <th class="px-5 py-3">Customer</th>
                         <th class="px-5 py-3">Sale No.</th>
                         <th class="px-5 py-3">Project</th>
@@ -243,26 +313,32 @@
                             if($inst->risk_level == 'Severe') $riskColorClass = 'text-red-600 font-bold';
                             if($inst->risk_level == 'None') $riskColorClass = 'text-slate-500';
                         @endphp
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            <td class="px-5 py-3 font-medium text-slate-800">{{ $inst->sale->customer->name }}</td>
-                            <td class="px-5 py-3 text-blue-600 font-medium">{{ $inst->sale->sale_number }}</td>
-                            <td class="px-5 py-3 text-slate-600">{{ $inst->sale->project->name }}</td>
-                            <td class="px-5 py-3 text-slate-600">{{ $inst->sale->unit->door_no }}</td>
-                            <td class="px-5 py-3 text-center text-slate-800">{{ $inst->installment_no }}</td>
-                            <td class="px-5 py-3 text-slate-600">{{ $inst->due_date->format('d-M-Y') }}</td>
-                            <td class="px-5 py-3 text-right font-medium text-slate-800">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($inst->calculated_outstanding, 0)) }}</td>
-                            <td class="px-5 py-3 text-center font-medium text-slate-800">{{ $inst->days_overdue > 0 ? $inst->days_overdue : '-' }}</td>
-                            <td class="px-5 py-3 text-center font-medium {{ $ageingColorClass }}">
+                        <tr class="hover:bg-slate-50 transition-colors group">
+                            <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $inst->sale->customer->name }}</td>
+                            <td class="px-5 py-3 text-xs font-black text-slate-800 uppercase tracking-wide">{{ $inst->sale->sale_number }}</td>
+                            <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $inst->sale->project->name }}</td>
+                            <td class="px-5 py-3 text-xs font-bold text-slate-500 leading-tight max-w-[200px] truncate" title="{{ $inst->sale->saleUnits->count() > 0 ? $inst->sale->saleUnits->map(fn($su) => $su->unit ? $su->unit->formatted_name : '')->filter()->implode(', ') : ($inst->sale->unit ? $inst->sale->unit->formatted_name : '-') }}">
+                                @if($inst->sale->saleUnits && $inst->sale->saleUnits->count() > 0)
+                                    {{ $inst->sale->saleUnits->map(fn($su) => $su->unit ? $su->unit->formatted_name : '')->filter()->implode(', ') }}
+                                @else
+                                    {{ $inst->sale->unit ? $inst->sale->unit->formatted_name : '-' }}
+                                @endif
+                            </td>
+                            <td class="px-5 py-3 text-center text-xs font-black text-slate-400">{{ $inst->installment_no }}</td>
+                            <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $inst->due_date->format('d/m/Y') }}</td>
+                            <td class="px-5 py-3 text-right text-xs font-black text-slate-800 tracking-tight">₹ {{ preg_replace("/(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?/i", "$1,", number_format($inst->calculated_outstanding, 0)) }}</td>
+                            <td class="px-5 py-3 text-center text-xs font-black text-slate-500">{{ $inst->days_overdue > 0 ? $inst->days_overdue : '-' }}</td>
+                            <td class="px-5 py-3 text-center text-xs font-black {{ $ageingColorClass }}">
                                 {{ str_replace('+', ' > 120', $inst->ageing_bucket) }}
                             </td>
-                            <td class="px-5 py-3 text-center {{ $riskColorClass }}">
+                            <td class="px-5 py-3 text-center text-xs font-black {{ $riskColorClass }}">
                                 {{ $inst->risk_level }}
                             </td>
-                            <td class="px-5 py-3 text-center text-slate-800 font-medium">
+                            <td class="px-5 py-3 text-center text-xs font-black text-slate-600">
                                 {{ $inst->last_reminder ? $inst->last_reminder->reminder_level : ($inst->days_overdue > 0 ? $inst->suggested_reminder_level : '-') }}
                             </td>
-                            <td class="px-5 py-3 text-center text-slate-600">
-                                {{ $inst->last_reminder ? $inst->last_reminder->created_at->format('d-M-Y') : '-' }}
+                            <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">
+                                {{ $inst->last_reminder ? $inst->last_reminder->created_at->format('d/m/Y') : '-' }}
                             </td>
                             <td class="px-5 py-3 text-center">
                                 <div class="flex items-center justify-center gap-3">

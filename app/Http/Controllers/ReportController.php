@@ -1869,7 +1869,7 @@ class ReportController extends Controller
 
         $asOfDate = $request->filled('as_of_date') ? Carbon::parse($request->as_of_date) : Carbon::today();
 
-        $query = CustomerInstallment::with(['sale.customer', 'sale.project', 'sale.unit', 'collectionReminders' => function($q) {
+        $query = CustomerInstallment::with(['sale.customer', 'sale.project', 'sale.unit.unitType', 'sale.unit.floor', 'sale.saleUnits.unit.unitType', 'sale.saleUnits.unit.floor', 'collectionReminders' => function($q) {
             $q->orderByDesc('created_at');
         }])
         ->whereNotIn('status', ['paid'])
@@ -1992,6 +1992,9 @@ class ReportController extends Controller
             'current_not_due' => $currentNotDue,
             'expected_collection' => $totalForecast,
         ];
+
+        // Sort by highest risk (days overdue descending) first
+        $overdueInstallments = $overdueInstallments->sortByDesc('days_overdue')->values();
 
         // Paginate all (overdue + current) installments
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
