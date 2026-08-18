@@ -16,7 +16,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
-
 use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
@@ -24,17 +23,14 @@ class ProjectController extends Controller
     public function index(): View
     {
         $user = Auth::user();
-        // SystemScope auto-scopes by logged-in user unless Owner
         $projects = Project::withCount('units')->latest()->paginate(50);
 
-        // Fetch counts of available units per project
         foreach ($projects as $project) {
             $project->available_units_count = Unit::where('project_id', $project->id)
                 ->where('status', 'available')
                 ->count();
         }
 
-        // Fetch systems if user has permission to manage projects
         $systems = collect();
         if ($user->hasPermissionTo('projects.manage')) {
             if ($user->hasMultiSystemAccess()) {
@@ -75,10 +71,9 @@ class ProjectController extends Controller
             'expected_completion_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
             'description' => ['nullable', 'string'],
-            'image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,svg,bmp,heic', 'max:10240'],
         ];
 
-        // Default system_id to logged-in user's system_id if not present
         if (!$request->filled('system_id')) {
             $request->merge(['system_id' => $user->system_id ?? 1]);
         }
@@ -96,14 +91,11 @@ class ProjectController extends Controller
             $path = $request->file('image')->store('projects', 'public');
             $validated['image_url'] = $path;
 
-            // Sync copy to public/storage if public/storage is a physical directory (shared hosting fallback)
-            if (is_dir(public_path('storage')) && !is_link(public_path('storage'))) {
-                @mkdir(public_path('storage/projects'), 0755, true);
-                @copy(storage_path('app/public/' . $path), public_path('storage/' . $path));
-            }
+            // Shared hosting copy fallback to ensure public availability on servers
+            $this->syncToPublicStorage($path);
         }
 
-        // Generate short code (first letters of each word)
+        // Generate short code
         $words = explode(' ', $validated['name']);
         $code = '';
         foreach ($words as $word) {
@@ -121,7 +113,6 @@ class ProjectController extends Controller
 
     public function show(Project $project): View
     {
-        // View unit details, floor configuration and bulk tools
         $project->load(['floors.units.unitType', 'floors.units.rateLogs.user', 'floors.units.statusLogs.user', 'partnerShares.partner']);
         $unitTypes = UnitType::where('is_active', true)->get();
 
@@ -138,62 +129,83 @@ class ProjectController extends Controller
         return view('projects.edit', compact('project'));
     }
 
-public function update(Request $request, Project $project): RedirectResponse
-{
-    $user = Auth::user();
+    public function update(Request $request, Project $project): RedirectResponse
+    {
+        $user = Auth::user();
 
-    if (!$user->hasPermissionTo('projects.manage')) {
-        abort(403);
-    }
+        if (!$user->hasPermissionTo('projects.manage')) {
+            abort(403);
+        }
 
-    $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'code' => ['nullable', 'string', 'max:50'],
-        'location' => ['required', 'string', 'max:255'],
-        'city' => ['required', 'string', 'max:100'],
-        'state_or_emirate' => ['required', 'string', 'max:100'],
-        'country' => ['required', 'string', 'max:100'],
-        'total_floors' => ['required', 'integer', 'min:1'],
-        'start_date' => ['nullable', 'date'],
-        'expected_completion_date' => ['nullable', 'date'],
-        'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
-        'description' => ['nullable', 'string'],
-        'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-    ]);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'code' => ['nullable', 'string', 'max:50'],
+            'location' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:100'],
+            'state_or_emirate' => ['required', 'string', 'max:100'],
+            'country' => ['required', 'string', 'max:100'],
+            'total_floors' => ['required', 'integer', 'min:1'],
+            'start_date' => ['nullable', 'date'],
+            'expected_completion_date' => ['nullable', 'date'],
+            'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
+            'description' => ['nullable', 'string'],
+            'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,svg,bmp,heic', 'max:10240'],
+        ]);
 
-    // Upload new image
-    if ($request->hasFile('image')) {
-
-        // Delete old image
-        if (!empty($project->image_url) && Storage::disk('public')->exists($project->image_url)) {
-            Storage::disk('public')->delete($project->image_url);
-            if (is_dir(public_path('storage')) && !is_link(public_path('storage'))) {
-                @unlink(public_path('storage/' . $project->image_url));
+        // Upload new image
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if (!empty($project->image_url)) {
+                if (Storage::disk('public')->exists($project->image_url)) {
+                    Storage::disk('public')->delete($project->image_url);
+                }
+                if (file_exists(public_path('storage/' . $project->image_url))) {
+                    @unlink(public_path('storage/' . $project->image_url));
+                }
             }
+
+            // Store new image
+            $path = $request->file('image')->store('projects', 'public');
+            $validated['image_url'] = $path;
+
+            // Shared hosting copy fallback to ensure public availability on servers
+            $this->syncToPublicStorage($path);
         }
 
-        // Store new image
-        $path = $request->file('image')->store('projects', 'public');
-        $validated['image_url'] = $path;
+        // Update project
+        $project->update($validated);
 
-        // Sync copy to public/storage if public/storage is a physical directory (shared hosting fallback)
-        if (is_dir(public_path('storage')) && !is_link(public_path('storage'))) {
-            @mkdir(public_path('storage/projects'), 0755, true);
-            @copy(storage_path('app/public/' . $path), public_path('storage/' . $path));
-        }
+        return redirect()
+            ->route('projects.index')
+            ->with('status', 'Project details updated successfully.');
     }
-
-    // Update project
-    $project->update($validated);
-
-    return redirect()
-        ->route('projects.index')
-        ->with('status', 'Project details updated successfully.');
-}
 
     /**
-     * Show bulk generate form
+     * Shared hosting fallback helper to mirror uploaded files to public/storage
      */
+    private function syncToPublicStorage(string $path): void
+    {
+        try {
+            $source = storage_path('app/public/' . $path);
+            $target = public_path('storage/' . $path);
+
+            if (!file_exists($source)) {
+                return;
+            }
+
+            $targetDir = dirname($target);
+            if (!file_exists($targetDir)) {
+                @mkdir($targetDir, 0755, true);
+            }
+
+            if (!file_exists($target) || (realpath($source) !== realpath($target))) {
+                @copy($source, $target);
+            }
+        } catch (\Throwable $e) {
+            // Silence permission errors if symlink handles it
+        }
+    }
+
     public function bulkGenerateShow(Project $project): View
     {
         if (!Auth::user()->hasPermissionTo('projects.manage')) {
@@ -205,9 +217,6 @@ public function update(Request $request, Project $project): RedirectResponse
         return view('project.bulk-generate', compact('project', 'unitTypes'));
     }
 
-    /**
-     * Store bulk generated floors and units
-     */
     public function bulkGenerateStore(Request $request, Project $project): RedirectResponse
     {
         if (!Auth::user()->hasPermissionTo('projects.manage')) {
@@ -236,7 +245,6 @@ public function update(Request $request, Project $project): RedirectResponse
 
         DB::transaction(function () use ($project, $request, $start, $end, $unitsPerFloor, $prefix, $buaArea, $carpetArea, $baseRate) {
             for ($f = $start; $f <= $end; $f++) {
-                // Determine floor name
                 if ($f < 0) {
                     $floorName = "Basement " . abs($f);
                 } elseif ($f === 0) {
@@ -245,7 +253,6 @@ public function update(Request $request, Project $project): RedirectResponse
                     $floorName = "Floor " . $f;
                 }
 
-                // Create floor
                 $floor = Floor::firstOrCreate(
                     [
                         'project_id' => $project->id,
@@ -256,12 +263,10 @@ public function update(Request $request, Project $project): RedirectResponse
                     ]
                 );
 
-                // Create units for this floor
                 for ($u = 1; $u <= $unitsPerFloor; $u++) {
                     $floorPrefix = Floor::getDoorPrefix($f);
                     $unitNumber = trim($prefix . ' ' . $floorPrefix) . ' ' . $u;
 
-                    // Check unique constraint per project + floor + unit type
                     $exists = Unit::where('project_id', $project->id)
                         ->where('floor_id', $floor->id)
                         ->where('unit_type_id', $request->unit_type_id)
@@ -286,7 +291,6 @@ public function update(Request $request, Project $project): RedirectResponse
                         'status' => 'available',
                     ]);
 
-                    // Append initial rate log
                     UnitRateLog::create([
                         'unit_id' => $unit->id,
                         'rate' => $request->base_rate,
@@ -295,7 +299,6 @@ public function update(Request $request, Project $project): RedirectResponse
                         'reason' => 'Bulk floor/unit generation',
                     ]);
 
-                    // Append initial status log
                     UnitStatusLog::create([
                         'unit_id' => $unit->id,
                         'from_status' => null,
@@ -318,24 +321,22 @@ public function update(Request $request, Project $project): RedirectResponse
             abort(403);
         }
 
-        // Delete project image if exists
-        if (!empty($project->image_url) && Storage::disk('public')->exists($project->image_url)) {
-            Storage::disk('public')->delete($project->image_url);
+        if (!empty($project->image_url)) {
+            if (Storage::disk('public')->exists($project->image_url)) {
+                Storage::disk('public')->delete($project->image_url);
+            }
+            if (file_exists(public_path('storage/' . $project->image_url))) {
+                @unlink(public_path('storage/' . $project->image_url));
+            }
         }
 
-        // Delete floors and units related to the project in a transaction
         DB::transaction(function () use ($project) {
             $unitIds = $project->units()->pluck('id');
             UnitStatusLog::whereIn('unit_id', $unitIds)->delete();
             UnitRateLog::whereIn('unit_id', $unitIds)->delete();
 
-            // Delete units
             $project->units()->delete();
-
-            // Delete floors
             $project->floors()->delete();
-
-            // Delete the project
             $project->delete();
         });
 
