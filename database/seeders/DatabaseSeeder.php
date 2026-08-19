@@ -40,8 +40,8 @@ class DatabaseSeeder extends Seeder
         $unitTypes = [
             ['name' => 'Flat', 'category' => 'residential'],
             ['name' => 'Shop', 'category' => 'commercial'],
-            ['name' => 'Office', 'category' => 'commercial'],
-            ['name' => 'Villa', 'category' => 'residential'],
+            // ['name' => 'Office', 'category' => 'commercial'],
+            // ['name' => 'Villa', 'category' => 'residential'],
             ['name' => 'Parking', 'category' => 'parking'],
         ];
         foreach ($unitTypes as $ut) {
@@ -118,191 +118,191 @@ class DatabaseSeeder extends Seeder
         $siteIn->assignRole('Site');
 
         // 4. Create Projects
-        $projectsData = [
-            [
-                'system_id' => $india->id,
-                'name' => 'Hindustan Emerald Valley',
-                'code' => 'HEV-01',
-                'location' => 'Sector 62',
-                'city' => 'Noida',
-                'state_or_emirate' => 'Uttar Pradesh',
-                'country' => 'India',
-                'total_floors' => 5,
-                'status' => 'ongoing',
-            ],
-            [
-                'system_id' => $india->id,
-                'name' => 'Hindustan Sapphire Heights',
-                'code' => 'HSH-01',
-                'location' => 'Sector 150',
-                'city' => 'Noida',
-                'state_or_emirate' => 'Uttar Pradesh',
-                'country' => 'India',
-                'total_floors' => 5,
-                'status' => 'completed',
-            ],
-            [
-                'system_id' => $uae->id,
-                'name' => 'Hindustan Grand Plaza',
-                'code' => 'HGP-01',
-                'location' => 'Dubai Marina',
-                'city' => 'Dubai',
-                'state_or_emirate' => 'Dubai',
-                'country' => 'UAE',
-                'total_floors' => 5,
-                'status' => 'ongoing',
-            ],
-        ];
+        // $projectsData = [
+        //     [
+        //         'system_id' => $india->id,
+        //         'name' => 'Hindustan Emerald Valley',
+        //         'code' => 'HEV-01',
+        //         'location' => 'Sector 62',
+        //         'city' => 'Noida',
+        //         'state_or_emirate' => 'Uttar Pradesh',
+        //         'country' => 'India',
+        //         'total_floors' => 5,
+        //         'status' => 'ongoing',
+        //     ],
+        //     [
+        //         'system_id' => $india->id,
+        //         'name' => 'Hindustan Sapphire Heights',
+        //         'code' => 'HSH-01',
+        //         'location' => 'Sector 150',
+        //         'city' => 'Noida',
+        //         'state_or_emirate' => 'Uttar Pradesh',
+        //         'country' => 'India',
+        //         'total_floors' => 5,
+        //         'status' => 'completed',
+        //     ],
+        //     [
+        //         'system_id' => $uae->id,
+        //         'name' => 'Hindustan Grand Plaza',
+        //         'code' => 'HGP-01',
+        //         'location' => 'Dubai Marina',
+        //         'city' => 'Dubai',
+        //         'state_or_emirate' => 'Dubai',
+        //         'country' => 'UAE',
+        //         'total_floors' => 5,
+        //         'status' => 'ongoing',
+        //     ],
+        // ];
 
-        $projects = [];
-        foreach ($projectsData as $data) {
-            $projects[] = Project::create($data);
-        }
+        // $projects = [];
+        // foreach ($projectsData as $data) {
+        //     $projects[] = Project::create($data);
+        // }
 
-        // 4.5. Create Floors for each project
-        foreach ($projects as $proj) {
-            for ($f = 1; $f <= $proj->total_floors; $f++) {
-                Floor::create([
-                    'project_id' => $proj->id,
-                    'floor_number' => $f,
-                    'name' => "Floor " . $f,
-                ]);
-            }
-        }
+        // // 4.5. Create Floors for each project
+        // foreach ($projects as $proj) {
+        //     for ($f = 1; $f <= $proj->total_floors; $f++) {
+        //         Floor::create([
+        //             'project_id' => $proj->id,
+        //             'floor_number' => $f,
+        //             'name' => "Floor " . $f,
+        //         ]);
+        //     }
+        // }
 
         // 5. Create Customers
-        $customersData = [
-            ['name' => 'Vijay Malhotra', 'email' => 'vijay@gmail.com', 'phone' => '+91 98765 43212', 'avatar_url' => 'VM'],
-            ['name' => 'Neha Kapoor', 'email' => 'neha@gmail.com', 'phone' => '+91 98765 43213', 'avatar_url' => 'NK'],
-            ['name' => 'Rajesh Gupta', 'email' => 'rajesh@gmail.com', 'phone' => '+91 98765 43214', 'avatar_url' => 'RG'],
-        ];
+        // $customersData = [
+        //     ['name' => 'Vijay Malhotra', 'email' => 'vijay@gmail.com', 'phone' => '+91 98765 43212', 'avatar_url' => 'VM'],
+        //     ['name' => 'Neha Kapoor', 'email' => 'neha@gmail.com', 'phone' => '+91 98765 43213', 'avatar_url' => 'NK'],
+        //     ['name' => 'Rajesh Gupta', 'email' => 'rajesh@gmail.com', 'phone' => '+91 98765 43214', 'avatar_url' => 'RG'],
+        // ];
 
-        $customers = [];
-        foreach ($customersData as $data) {
-            $customers[] = Customer::create($data);
-        }
+        // $customers = [];
+        // foreach ($customersData as $data) {
+        //     $customers[] = Customer::create($data);
+        // }
 
         // 6. Create Units
         $ownerIn = User::where('email', 'owner@hindustan.com')->first();
         $flatType = UnitType::where('name', 'Flat')->first();
-        foreach ($projects as $proj) {
-            $floorsList = $proj->floors;
-            foreach ($floorsList as $floor) {
-                for ($i = 1; $i <= 4; $i++) {
-                    $status = ($i === 1) ? 'sold' : (($i === 2) ? 'booked' : 'available');
-                    $expectedRate = 4500.00;
-                    $bua = 1200.00;
-                    $expectedSale = $bua * $expectedRate;
+        // foreach ($projects as $proj) {
+        //     $floorsList = $proj->floors;
+        //     foreach ($floorsList as $floor) {
+        //         for ($i = 1; $i <= 4; $i++) {
+        //             $status = ($i === 1) ? 'sold' : (($i === 2) ? 'booked' : 'available');
+        //             $expectedRate = 4500.00;
+        //             $bua = 1200.00;
+        //             $expectedSale = $bua * $expectedRate;
 
-                    $saleRate = null;
-                    $saleAmount = null;
-                    $difference = null;
+        //             $saleRate = null;
+        //             $saleAmount = null;
+        //             $difference = null;
 
-                    if ($status === 'booked' || $status === 'sold') {
-                        $saleRate = 4500.00;
-                        $saleAmount = $bua * $saleRate;
-                        $difference = $expectedSale - $saleAmount;
-                    }
+        //             if ($status === 'booked' || $status === 'sold') {
+        //                 $saleRate = 4500.00;
+        //                 $saleAmount = $bua * $saleRate;
+        //                 $difference = $expectedSale - $saleAmount;
+        //             }
 
-                    $unit = Unit::create([
-                        'project_id' => $proj->id,
-                        'floor_id' => $floor->id,
-                        'unit_type_id' => $flatType->id,
-                        'door_no' => Floor::getDoorPrefix($floor->floor_number) . ' ' . $i,
-                        'built_up_area' => $bua,
-                        'carpet_area' => 1000.00,
-                        'expected_rate_per_sqft' => $expectedRate,
-                        'expected_sale_amount' => $expectedSale,
-                        'sale_rate_per_sqft' => $saleRate,
-                        'sale_amount' => $saleAmount,
-                        'difference' => $difference,
-                        'status' => $status,
-                    ]);
+        //             $unit = Unit::create([
+        //                 'project_id' => $proj->id,
+        //                 'floor_id' => $floor->id,
+        //                 'unit_type_id' => $flatType->id,
+        //                 'door_no' => Floor::getDoorPrefix($floor->floor_number) . ' ' . $i,
+        //                 'built_up_area' => $bua,
+        //                 'carpet_area' => 1000.00,
+        //                 'expected_rate_per_sqft' => $expectedRate,
+        //                 'expected_sale_amount' => $expectedSale,
+        //                 'sale_rate_per_sqft' => $saleRate,
+        //                 'sale_amount' => $saleAmount,
+        //                 'difference' => $difference,
+        //                 'status' => $status,
+        //             ]);
 
-                    // Append initial rate log
-                    UnitRateLog::create([
-                        'unit_id' => $unit->id,
-                        'rate' => 4500.00,
-                        'effective_from' => now()->toDateString(),
-                        'changed_by' => $ownerIn->id,
-                        'reason' => 'Initial seeding',
-                    ]);
+        //             // Append initial rate log
+        //             UnitRateLog::create([
+        //                 'unit_id' => $unit->id,
+        //                 'rate' => 4500.00,
+        //                 'effective_from' => now()->toDateString(),
+        //                 'changed_by' => $ownerIn->id,
+        //                 'reason' => 'Initial seeding',
+        //             ]);
 
-                    // Append initial status log
-                    UnitStatusLog::create([
-                        'unit_id' => $unit->id,
-                        'from_status' => null,
-                        'to_status' => $status,
-                        'changed_by' => $ownerIn->id,
-                        'reason' => 'Initial seeding',
-                    ]);
-                }
-            }
-        }
+        //             // Append initial status log
+        //             UnitStatusLog::create([
+        //                 'unit_id' => $unit->id,
+        //                 'from_status' => null,
+        //                 'to_status' => $status,
+        //                 'changed_by' => $ownerIn->id,
+        //                 'reason' => 'Initial seeding',
+        //             ]);
+        //         }
+        //     }
+        // }
 
         // 7. Create Sales Executives
         $executivesData = [
-            ['name' => 'Vikram Sharma', 'email' => 'vikram@hindustan.com', 'avatar_url' => 'VS'],
-            ['name' => 'Priya Nair', 'email' => 'priya@hindustan.com', 'avatar_url' => 'PN'],
-        ];
+        //     ['name' => 'Vikram Sharma', 'email' => 'vikram@hindustan.com', 'avatar_url' => 'VS'],
+        //     ['name' => 'Priya Nair', 'email' => 'priya@hindustan.com', 'avatar_url' => 'PN'],
+        // ];
 
-        $executives = [];
-        foreach ($executivesData as $data) {
-            $executives[] = SalesExecutive::create($data);
-        }
+        // $executives = [];
+        // foreach ($executivesData as $data) {
+        //     $executives[] = SalesExecutive::create($data);
+        // }
 
         // 8. Create Bookings & Payments
-        $booking = Booking::create([
-            'booking_number' => 'BK-0001',
-            'customer_id' => $customers[0]->id,
-            'project_id' => $projects[0]->id,
-            'unit_id' => Unit::first()->id,
-            'sales_executive_id' => $executives[0]->id,
-            'amount' => 5000000.00,
-            'status' => 'approved',
-        ]);
+        // $booking = Booking::create([
+        //     'booking_number' => 'BK-0001',
+        //     'customer_id' => $customers[0]->id,
+        //     'project_id' => $projects[0]->id,
+        //     'unit_id' => Unit::first()->id,
+        //     'sales_executive_id' => $executives[0]->id,
+        //     'amount' => 5000000.00,
+        //     'status' => 'approved',
+        // ]);
 
-        Payment::create([
-            'receipt_number' => 'REC-00001',
-            'customer_id' => $customers[0]->id,
-            'project_id' => $projects[0]->id,
-            'booking_id' => $booking->id,
-            'amount' => 2000000.00,
-            'payment_mode' => 'Bank Transfer',
-            'status' => 'completed',
-            'payment_date' => now(),
-        ]);
+        // Payment::create([
+        //     'receipt_number' => 'REC-00001',
+        //     'customer_id' => $customers[0]->id,
+        //     'project_id' => $projects[0]->id,
+        //     'booking_id' => $booking->id,
+        //     'amount' => 2000000.00,
+        //     'payment_mode' => 'Bank Transfer',
+        //     'status' => 'completed',
+        //     'payment_date' => now(),
+        // ]);
 
-        // 9. Create Approval Rules
-        ApprovalRule::create([
-            'module' => 'discount',
-            'min_role' => 'Owner',
-            'threshold_amount' => 100000.00,
-            'is_active' => true,
-        ]);
+        // // 9. Create Approval Rules
+        // ApprovalRule::create([
+        //     'module' => 'discount',
+        //     'min_role' => 'Owner',
+        //     'threshold_amount' => 100000.00,
+        //     'is_active' => true,
+        // ]);
 
-        // Seed some brokers and partners for India system
-        $brokerAcc = Account::create([
-            'system_id' => $india->id,
-            'code' => 'BRK-ACC-01',
-            'name' => 'Broker Commissions Payable',
-            'type' => 'liability',
-            'is_active' => true,
-        ]);
+        // // Seed some brokers and partners for India system
+        // $brokerAcc = Account::create([
+        //     'system_id' => $india->id,
+        //     'code' => 'BRK-ACC-01',
+        //     'name' => 'Broker Commissions Payable',
+        //     'type' => 'liability',
+        //     'is_active' => true,
+        // ]);
 
-        \App\Models\Broker::create([
-            'system_id' => $india->id,
-            'name' => 'Apex Realty Brokers',
-            'default_commission_pct' => 2.50,
-            'linked_account_id' => $brokerAcc->id,
-        ]);
+        // \App\Models\Broker::create([
+        //     'system_id' => $india->id,
+        //     'name' => 'Apex Realty Brokers',
+        //     'default_commission_pct' => 2.50,
+        //     'linked_account_id' => $brokerAcc->id,
+        // ]);
 
-        \App\Models\Broker::create([
-            'system_id' => $india->id,
-            'name' => 'Metro Homes Agents',
-            'default_commission_pct' => 1.75,
-            'linked_account_id' => $brokerAcc->id,
-        ]);
+        // \App\Models\Broker::create([
+        //     'system_id' => $india->id,
+        //     'name' => 'Metro Homes Agents',
+        //     'default_commission_pct' => 1.75,
+        //     'linked_account_id' => $brokerAcc->id,
+        // ]);
 
         // Seed some partners
         $partner1Acc = Account::create([
@@ -352,10 +352,11 @@ class DatabaseSeeder extends Seeder
         \App\Models\Bank::firstOrCreate(['ifsc_code' => 'SBIN0000456'], ['bank_name' => 'State Bank of India', 'status' => 'active']);
         \App\Models\Bank::firstOrCreate(['ifsc_code' => 'FDRL0000789'], ['bank_name' => 'Federal Bank', 'status' => 'inactive']);
 
-        // 9.6 Seed Master Tables (Voucher Types, Chart of Accounts, Engineers)
+        // 9.6 Seed Master Tables (Voucher Types, Chart of Accounts, Engineers, Cheque Statuses)
         $this->call(VoucherTypeSeeder::class);
         $this->call(ChartOfAccountSeeder::class);
         $this->call(EngineerSeeder::class);
+        $this->call(ChequeStatusSeeder::class);
 
         // 10. Record default activity log entries using the new record helper
         ActivityLog::record('System Booted', 'System initialized and default seed data populated.');
