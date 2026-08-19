@@ -84,80 +84,87 @@
                 <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
                     <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
                     <span class="text-slate-300">›</span>
-                    <span class="text-slate-300">Finance & Accounting</span>
-                    <!-- <a href="{{ route('receipt-management.index') }}" class="hover:text-slate-600 transition">Receipt Management</a> -->
+                    <span class="text-slate-300">Customer Management & Collections</span>
                     <span class="text-slate-300">›</span>
                     <span class="text-[#a38c29] font-black">Cheque Clearance Queue</span>
                 </div>
-                <h1 class="text-xl font-black text-slate-900 mt-1">⏳ Cheque Clearance Queue</h1>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Instruments awaiting bank clearance. Mark as Realized to credit the treasury balance.</p>
+                <p class="text-[11px] text-slate-500 font-medium mt-1.5">Instruments awaiting bank clearance. Mark as Realized to credit the treasury balance.</p>
             </div>
         </div>
 
         {{-- ── KPI EXECUTIVE CARDS BAR ── --}}
-        {{-- ── KPI EXECUTIVE CARDS BAR ── --}}
         @if(request()->routeIs('cheque-realization.realized'))
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {{-- Card 1: Total Realized Amount (Emerald Accent) --}}
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-emerald-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">Total Realized Amount</span>
-                        <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{{ number_format($totalPendingAmount ?? 0, 2) }}</h3>
-                        <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">Value of all realized instruments</span>
+                <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20 cursor-default group">
+                    <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                        <span>Total Realized Amount</span>
+                        <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
                     </div>
-                    <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="text-base font-black font-mono text-slate-900">
+                        ₹{{ number_format($totalPendingAmount ?? 0, 2) }}
                     </div>
+                    <div class="text-[10px] font-medium text-slate-400">Value of all realized instruments</div>
                 </div>
 
                 {{-- Card 2: Total Instruments (Sky Accent) --}}
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-sky-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-sky-700">Realized Instruments</span>
-                        <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">{{ $pendingReceipts->total() }}</h3>
-                        <span class="text-[10px] text-sky-700 font-bold block mt-0.5">Total count of realized cheques</span>
+                <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-sky-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(14,165,233,0.2)] hover:border-r-sky-500/20 hover:border-y-sky-500/20 cursor-default group">
+                    <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                        <span>Realized Instruments</span>
+                        <div class="w-6 h-6 rounded-md bg-sky-50 text-sky-600 border border-sky-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-sky-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        </div>
                     </div>
-                    <div class="w-11 h-11 rounded-xl bg-sky-50 text-sky-600 border border-sky-200 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <div class="text-base font-black font-mono text-slate-900">
+                        {{ $pendingReceipts->total() }}
                     </div>
+                    <div class="text-[10px] font-medium text-slate-400">Total count of realized cheques</div>
                 </div>
             </div>
         @else
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {{-- Card 1: Total Pending Amount (Gold Accent) --}}
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-[#a38c29]">Total Pending Amount</span>
-                        <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{{ number_format($totalPendingAmount ?? 0, 2) }}</h3>
-                        <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">{{ $pendingReceipts->total() }} Instruments Uncleared</span>
+                <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.2)] hover:border-r-[#a38c29]/20 hover:border-y-[#a38c29]/20 cursor-default group">
+                    <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                        <span>Total Pending Amount</span>
+                        <div class="w-6 h-6 rounded-md bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        </div>
                     </div>
-                    <div class="w-11 h-11 rounded-xl bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    <div class="text-base font-black font-mono text-slate-900">
+                        ₹{{ number_format($totalPendingAmount ?? 0, 2) }}
                     </div>
+                    <div class="text-[10px] font-medium text-slate-400">{{ $pendingReceipts->total() }} Instruments Uncleared</div>
                 </div>
 
                 {{-- Card 2: Pending Action (Amber/Orange Accent) --}}
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-orange-500 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-orange-700">Pending Action</span>
-                        <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">{{ $pendingReceipts->where('realization_status', 'pending')->count() }}</h3>
-                        <span class="text-[10px] text-orange-700 font-bold block mt-0.5">Newly received, awaiting process</span>
+                <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-orange-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(249,115,22,0.2)] hover:border-r-orange-500/20 hover:border-y-orange-500/20 cursor-default group">
+                    <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                        <span>Pending Action</span>
+                        <div class="w-6 h-6 rounded-md bg-orange-50 text-orange-600 border border-orange-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-orange-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
                     </div>
-                    <div class="w-11 h-11 rounded-xl bg-orange-50 text-orange-600 border border-orange-200 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="text-base font-black font-mono text-slate-900">
+                        {{ $pendingReceipts->where('realization_status', 'pending')->count() }}
                     </div>
+                    <div class="text-[10px] font-medium text-slate-400">Newly received, awaiting process</div>
                 </div>
 
                 {{-- Card 3: In Progress (Blue/Indigo Accent) --}}
-                <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-blue-600 shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-between">
-                    <div>
-                        <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">In Progress</span>
-                        <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">{{ $pendingReceipts->whereIn('realization_status', ['cheque_in_hand', 'deposited', 'in_clearing'])->count() }}</h3>
-                        <span class="text-[10px] text-blue-700 font-bold block mt-0.5">In hand or sent to bank</span>
+                <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-blue-600 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(37,99,235,0.2)] hover:border-r-blue-600/20 hover:border-y-blue-600/20 cursor-default group">
+                    <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                        <span>In Progress</span>
+                        <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        </div>
                     </div>
-                    <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                    <div class="text-base font-black font-mono text-slate-900">
+                        {{ $pendingReceipts->whereIn('realization_status', ['cheque_in_hand', 'deposited', 'in_clearing'])->count() }}
                     </div>
+                    <div class="text-[10px] font-medium text-slate-400">In hand or sent to bank</div>
                 </div>
             </div>
         @endif

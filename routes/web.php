@@ -427,10 +427,15 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     // Cheque Status Master Module
     Route::resource('cheque-statuses', \App\Http\Controllers\ChequeStatusController::class)->except(['create', 'show', 'edit']);
 
-    // Cheque Status Master Module
-    Route::resource('cheque-statuses', \App\Http\Controllers\ChequeStatusController::class)->except(['create', 'show', 'edit']);
+    // Cheque Receipt Entry
+    Route::get('/cheque-receipt-entry', [\App\Http\Controllers\ChequeReceiptEntryController::class, 'index'])->name('cheque-receipt-entry.index');
+    Route::post('/cheque-receipt-entry', [\App\Http\Controllers\ChequeReceiptEntryController::class, 'store'])->name('cheque-receipt-entry.store');
+    Route::post('/cheque-receipt-entry/{id}/realize', [\App\Http\Controllers\ChequeReceiptEntryController::class, 'realize'])->name('cheque-receipt-entry.realize');
+    Route::post('/cheque-receipt-entry/{id}/bounced', [\App\Http\Controllers\ChequeReceiptEntryController::class, 'markBounced'])->name('cheque-receipt-entry.bounced');
+    Route::post('/cheque-receipt-entry/{id}/reinitialize', [\App\Http\Controllers\ChequeReceiptEntryController::class, 'reinitialize'])->name('cheque-receipt-entry.reinitialize');
+    Route::post('/cheque-receipt-entry/{id}/advance-status', [\App\Http\Controllers\ChequeReceiptEntryController::class, 'advanceStatus'])->name('cheque-receipt-entry.advance-status');
+    Route::delete('/cheque-receipt-entry/{id}', [\App\Http\Controllers\ChequeReceiptEntryController::class, 'destroy'])->name('cheque-receipt-entry.destroy');
 
-    // Receipt Management Module
     Route::get('/receipt-management', [\App\Http\Controllers\ReceiptManagementController::class, 'index'])->name('receipt-management.index');
     Route::post('/receipt-management', [\App\Http\Controllers\ReceiptManagementController::class, 'store'])->name('receipt-management.store');
     Route::post('/receipt-management/bulk-assign-bank', [\App\Http\Controllers\ReceiptManagementController::class, 'assignBankBulk'])->name('receipt-management.assign-bank-bulk');
