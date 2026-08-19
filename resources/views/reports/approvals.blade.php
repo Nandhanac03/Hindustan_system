@@ -11,13 +11,13 @@
             <div class="overflow-x-auto border border-slate-200 rounded-xl">
                 <table id="reportsTable" class="w-full text-xs text-left">
                     <thead>
-                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
-                            <th class="px-5 py-3">Requested Date</th>
-                            <th class="px-5 py-3">Rule Subject Type</th>
-                            <th class="px-5 py-3">Requester User</th>
-                            <th class="px-5 py-3">Approver User</th>
-                            <th class="px-5 py-3">Decision Status</th>
-                            <th class="px-5 py-3">Reason narrative</th>
+                        <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                            <th class="px-5 py-3.5 text-white font-extrabold">Requested Date</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold">Rule Subject Type</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold">Requester User</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold">Approver User</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold">Decision Status</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold">Reason narrative</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-slate-650 font-mono">

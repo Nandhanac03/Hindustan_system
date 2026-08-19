@@ -157,17 +157,17 @@
                 <div class="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-sm">
                     <table id="reportsTable" class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[10px]">
-                                <th class="px-4 py-3 rounded-tl-2xl">Project</th>
-                                <th class="px-4 py-3 text-right">Expected Revenue</th>
-                                <th class="px-4 py-3 text-right">Actual Revenue</th>
-                                <th class="px-4 py-3 text-right">Partner Payouts</th>
-                                <th class="px-4 py-3 text-right">Brokerage</th>
-                                <th class="px-4 py-3 text-right">Material Costs</th>
-                                <th class="px-4 py-3 text-right">Contractor Payments</th>
-                                <th class="px-4 py-3 text-right">Total Cost</th>
-                                <th class="px-4 py-3 text-right">Net Profit</th>
-                                <th class="px-4 py-3 text-right rounded-tr-2xl">Margin %</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-4 py-3.5 text-white font-extrabold rounded-tl-2xl">Project</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Expected Revenue</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Actual Revenue</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Partner Payouts</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Brokerage</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Material Costs</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Contractor Payments</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Total Cost</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold">Net Profit</th>
+                                <th class="px-4 py-3.5 text-right text-white font-extrabold rounded-tr-2xl">Margin %</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-mono text-slate-700">

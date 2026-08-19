@@ -320,17 +320,17 @@
                 <div class="overflow-x-auto border border-slate-200 rounded-xl" id="ledger-table">
                     <table id="reportsTable" class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-[#a38c29]/10 border-b border-[#a38c29]/30 text-[10px] font-black text-[#8a7522] uppercase tracking-widest">
-                                <th class="px-5 py-3">Posting Date</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-5 py-3.5 text-white font-extrabold">Posting Date</th>
                                 @if($selectedCustomers->count() > 1)
-                                    <th class="px-5 py-3">Customer Name</th>
+                                    <th class="px-5 py-3.5 text-white font-extrabold">Customer Name</th>
                                 @endif
-                                <th class="px-5 py-3">Voucher / Ref No.</th>
-                                <th class="px-5 py-3">Narrative</th>
-                                <th class="px-5 py-3">Mode</th>
-                                <th class="px-5 py-3 text-right">Debit (Due)</th>
-                                <th class="px-5 py-3 text-right">Credit (Receipt)</th>
-                                <th class="px-5 py-3 text-right">Running Balance</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Voucher / Ref No.</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Narrative</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Mode</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Debit (Due)</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Credit (Receipt)</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Running Balance</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-650 font-mono">
@@ -403,15 +403,15 @@
                         <div class="overflow-x-auto">
                             <table id="reportsTable" class="w-full text-xs text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-[#a38c29]/10 border-b border-[#a38c29]/30 text-[10px] font-black text-[#8a7522] uppercase tracking-widest">
-                                        <th class="px-5 py-3.5">SL NO</th>
-                                        <th class="px-5 py-3.5">Customer Name & Contact</th>
-                                        <th class="px-5 py-3.5">Project / Unit</th>
-                                        <th class="px-5 py-3.5 text-right">Total Sale (₹)</th>
-                                        <th class="px-5 py-3.5 text-right">Total Paid (₹)</th>
-                                        <th class="px-5 py-3.5 text-right">Outstanding (₹)</th>
-                                        <th class="px-5 py-3.5 text-center">Last Payment</th>
-                                        <th class="px-5 py-3.5 text-right">Action</th>
+                                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                        <th class="px-5 py-3.5 text-white font-extrabold">SL NO</th>
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Customer Name & Contact</th>
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Project / Unit</th>
+                                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Sale (₹)</th>
+                                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Paid (₹)</th>
+                                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Outstanding (₹)</th>
+                                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Last Payment</th>
+                                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 font-medium">
@@ -478,15 +478,15 @@
 
                         <div class="overflow-x-auto max-h-[500px]">
                             <table id="reportsTable" class="w-full text-xs text-left border-collapse">
-                                <thead class="sticky top-0 z-10 bg-[#a38c29]/15 border-b border-[#a38c29]/30 text-[10px] font-black text-[#8a7522] uppercase tracking-widest">
-                                    <tr>
-                                        <th class="px-5 py-3">Posting Date</th>
-                                        <th class="px-5 py-3">Customer Name</th>
-                                        <th class="px-5 py-3">Voucher / Ref No.</th>
-                                        <th class="px-5 py-3">Narrative Description</th>
-                                        <th class="px-5 py-3">Mode</th>
-                                        <th class="px-5 py-3 text-right">Debit (Agreement)</th>
-                                        <th class="px-5 py-3 text-right">Credit (Receipt)</th>
+                                <thead class="sticky top-0 z-10">
+                                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Posting Date</th>
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Customer Name</th>
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Voucher / Ref No.</th>
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Narrative Description</th>
+                                        <th class="px-5 py-3.5 text-white font-extrabold">Mode</th>
+                                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Debit (Agreement)</th>
+                                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Credit (Receipt)</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 font-mono text-slate-700">

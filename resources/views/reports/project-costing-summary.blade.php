@@ -84,18 +84,18 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
+                <thead class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest sticky top-0 z-10 shadow-xs">
                     <tr>
-                        <th class="px-3 py-3 text-left">PROJECT</th>
-                        <th class="px-3 py-3 text-right">ACTUAL REVENUE</th>
-                        <th class="px-3 py-3 text-right">MATERIAL COSTS</th>
-                        <th class="px-3 py-3 text-right">CONTRACTOR RA BILLS</th>
-                        <th class="px-3 py-3 text-right">BROKERAGE</th>
-                        <th class="px-3 py-3 text-right">PARTNER PAYOUTS</th>
-                        <th class="px-3 py-3 text-right">SITE EXPENSES</th>
-                        <th class="px-3 py-3 text-right bg-[#8a7522]/40">TOTAL COST</th>
-                        <th class="px-3 py-3 text-right">NET SURPLUS</th>
-                        <th class="px-3 py-3 text-center">MARGIN %</th>
+                        <th class="px-3 py-3.5 text-left text-white font-extrabold">PROJECT</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold">ACTUAL REVENUE</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold">MATERIAL COSTS</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold">CONTRACTOR RA BILLS</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold">BROKERAGE</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold">PARTNER PAYOUTS</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold">SITE EXPENSES</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold bg-[#8a7522]/40">TOTAL COST</th>
+                        <th class="px-3 py-3.5 text-right text-white font-extrabold">NET SURPLUS</th>
+                        <th class="px-3 py-3.5 text-center text-white font-extrabold">MARGIN %</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">

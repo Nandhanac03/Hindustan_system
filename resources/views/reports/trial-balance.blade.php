@@ -55,12 +55,12 @@
             <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-sm">
                 <table id="reportsTable" class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-900 text-white font-extrabold uppercase tracking-wider text-[10px]">
-                            <th class="px-5 py-3.5">Account Code</th>
-                            <th class="px-5 py-3.5">Financial Group / Head Name</th>
-                            <th class="px-5 py-3.5">Category</th>
-                            <th class="px-5 py-3.5 text-right bg-slate-800">Closing Balance Debit (₹)</th>
-                            <th class="px-5 py-3.5 text-right bg-slate-800">Closing Balance Credit (₹)</th>
+                        <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                            <th class="px-5 py-3.5 text-white font-extrabold">Account Code</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold">Financial Group / Head Name</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold">Category</th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold">Closing Balance Debit (₹)</th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold">Closing Balance Credit (₹)</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-150 text-slate-700">

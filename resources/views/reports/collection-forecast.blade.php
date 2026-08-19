@@ -277,23 +277,23 @@
                 </button>
             </div>
         </div>
-        <div class="w-full overflow-x-auto">
+         <div class="w-full overflow-x-auto">
             <table class="w-full text-xs text-left">
-                <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
-                    <tr>
-                        <th class="px-5 py-3">Customer</th>
-                        <th class="px-5 py-3">Sale No.</th>
-                        <th class="px-5 py-3">Project</th>
-                        <th class="px-5 py-3">Unit</th>
-                        <th class="px-5 py-3 text-center">Inst. No.</th>
-                        <th class="px-5 py-3">Due Date</th>
-                        <th class="px-5 py-3 text-right">Outstanding</th>
-                        <th class="px-5 py-3 text-center">Days Overdue</th>
-                        <th class="px-5 py-3 text-center">Ageing</th>
-                        <th class="px-5 py-3 text-center">Risk</th>
-                        <th class="px-5 py-3 text-center">Reminder Level</th>
-                        <th class="px-5 py-3 text-center">Last Reminder</th>
-                        <th class="px-5 py-3 text-center">Action</th>
+                <thead>
+                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                        <th class="px-5 py-3.5 text-white font-extrabold">Customer</th>
+                        <th class="px-5 py-3.5 text-white font-extrabold">Sale No.</th>
+                        <th class="px-5 py-3.5 text-white font-extrabold">Project</th>
+                        <th class="px-5 py-3.5 text-white font-extrabold">Unit</th>
+                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Inst. No.</th>
+                        <th class="px-5 py-3.5 text-white font-extrabold">Due Date</th>
+                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Outstanding</th>
+                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Days Overdue</th>
+                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Ageing</th>
+                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Risk</th>
+                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Reminder Level</th>
+                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Last Reminder</th>
+                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
@@ -504,14 +504,14 @@
                         <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-200">
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-center">Inst. No.</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Inst. Date</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Due Date</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Inst. Amount</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Paid Amount</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-right">Outst. Amount</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-center">Status</th>
+                                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider text-center">Inst. No.</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider">Inst. Date</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider">Due Date</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider text-right">Inst. Amount</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider text-right">Paid Amount</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider text-right">Outst. Amount</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider text-center">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -540,12 +540,12 @@
                         <div class="border border-slate-200 rounded-xl overflow-hidden bg-white mb-4">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-200">
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Reminder No.</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Reminder Date</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Reminder Type</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider">Channel</th>
-                                        <th class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-wider text-center">Status</th>
+                                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider">Reminder No.</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider">Reminder Date</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider">Reminder Type</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider">Channel</th>
+                                        <th class="px-4 py-2.5 text-[10px] font-black text-white uppercase tracking-wider text-center">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody>

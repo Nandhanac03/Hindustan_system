@@ -99,14 +99,14 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
                     <table class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="px-5 py-3">Type</th>
-                                <th class="px-5 py-3 text-center">Nos</th>
-                                <th class="px-5 py-3 text-right">Built Up Area (In Sq Ft)</th>
-                                <th class="px-5 py-3 text-right">Carpet Area (In Sq Ft)</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-5 py-3.5 text-white font-extrabold">Type</th>
+                                <th class="px-5 py-3.5 text-center text-white font-extrabold">Nos</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Built Up Area (In Sq Ft)</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Carpet Area (In Sq Ft)</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
@@ -121,7 +121,7 @@
                                     $totalBuilt += $row->built_up_area;
                                     $totalCarpet += $row->carpet_area;
                                 @endphp
-                                <tr class="hover:bg-slate-50/60">
+                                <tr class="hover:bg-amber-50/30 transition-colors">
                                     <td class="px-5 py-3.5 font-sans font-bold text-slate-900">{{ $row->type }}</td>
                                     <td class="px-5 py-3.5 text-center text-slate-650">{{ $row->nos }}</td>
                                     <td class="px-5 py-3.5 text-right">
@@ -132,7 +132,7 @@
                                     </td>
                                 </tr>
                             @endforeach
-                            <tr class="bg-slate-50/80 font-bold text-slate-900">
+                            <tr class="bg-amber-50/80 font-bold text-slate-900">
                                 <td class="px-5 py-4 font-sans uppercase">Total</td>
                                 <td class="px-5 py-4 text-center">{{ $totalNos }}</td>
                                 <td class="px-5 py-4 text-right">{{ number_format($totalBuilt, 2) }}</td>
@@ -145,22 +145,22 @@
 
             {{-- SHOP SUB-TAB --}}
             <div x-show="currentSubTab === 'shop'" class="space-y-4" x-transition style="display: none;">
-                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
                     <table class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="px-5 py-3 w-16 text-center">No</th>
-                                <th class="px-5 py-3">Floor</th>
-                                <th class="px-5 py-3">Type</th>
-                                <th class="px-5 py-3">Door No</th>
-                                <th class="px-5 py-3 text-right">Built Up Area (Sq Ft)</th>
-                                <th class="px-5 py-3 text-right">Carpet Area (Sq Ft)</th>
-                                <th class="px-5 py-3 text-center">Availability</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-5 py-3.5 w-16 text-center text-white font-extrabold">No</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Floor</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Type</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Door No</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Built Up Area (Sq Ft)</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Carpet Area (Sq Ft)</th>
+                                <th class="px-5 py-3.5 text-center text-white font-extrabold">Availability</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
                             @forelse($shops as $index => $row)
-                                <tr class="hover:bg-slate-50/60">
+                                <tr class="hover:bg-amber-50/30 transition-colors">
                                     <td class="px-5 py-3.5 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
                                     <td class="px-5 py-3.5 font-sans text-slate-500">{{ $row->floor?->name ?? '—' }}</td>
                                     <td class="px-5 py-3.5 font-sans text-slate-900 font-bold">{{ $row->unitType?->name }}</td>
@@ -183,22 +183,22 @@
 
             {{-- APARTMENT SUB-TAB --}}
             <div x-show="currentSubTab === 'apartment'" class="space-y-4" x-transition style="display: none;">
-                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
                     <table class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="px-5 py-3 w-16 text-center">No</th>
-                                <th class="px-5 py-3">Floor</th>
-                                <th class="px-5 py-3">Type</th>
-                                <th class="px-5 py-3">Door No</th>
-                                <th class="px-5 py-3 text-right">Built Up Area (Sq Ft)</th>
-                                <th class="px-5 py-3 text-right">Carpet Area (Sq Ft)</th>
-                                <th class="px-5 py-3 text-center">Availability</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-5 py-3.5 w-16 text-center text-white font-extrabold">No</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Floor</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Type</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Door No</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Built Up Area (Sq Ft)</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Carpet Area (Sq Ft)</th>
+                                <th class="px-5 py-3.5 text-center text-white font-extrabold">Availability</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
                             @forelse($apartments as $index => $row)
-                                <tr class="hover:bg-slate-50/60">
+                                <tr class="hover:bg-amber-50/30 transition-colors">
                                     <td class="px-5 py-3.5 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
                                     <td class="px-5 py-3.5 font-sans text-slate-500">{{ $row->floor?->name ?? '—' }}</td>
                                     <td class="px-5 py-3.5 font-sans text-slate-900 font-bold">{{ $row->unitType?->name }}</td>
@@ -221,21 +221,21 @@
 
             {{-- PARKING SUB-TAB --}}
             <div x-show="currentSubTab === 'parking'" class="space-y-4" x-transition style="display: none;">
-                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
                     <table class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="px-5 py-3 w-16 text-center">No</th>
-                                <th class="px-5 py-3">Floor</th>
-                                <th class="px-5 py-3">Type</th>
-                                <th class="px-5 py-3">Parking No</th>
-                                <th class="px-5 py-3">Sold/Booked To</th>
-                                <th class="px-5 py-3 text-center">Availability</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-5 py-3.5 w-16 text-center text-white font-extrabold">No</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Floor</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Type</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Parking No</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Sold/Booked To</th>
+                                <th class="px-5 py-3.5 text-center text-white font-extrabold">Availability</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">
                             @forelse($parkings as $index => $row)
-                                <tr class="hover:bg-slate-50/60">
+                                <tr class="hover:bg-amber-50/30 transition-colors">
                                     <td class="px-5 py-3.5 text-center text-slate-400 font-normal">{{ $index + 1 }}</td>
                                     <td class="px-5 py-3.5 font-sans text-slate-500">{{ $row->floor?->name ?? '—' }}</td>
                                     <td class="px-5 py-3.5 font-sans text-slate-900 font-bold">{{ $row->unitType?->name }}</td>
@@ -265,17 +265,17 @@
             {{-- OTHER SUB-TAB --}}
             @if(isset($others) && $others->isNotEmpty())
             <div x-show="currentSubTab === 'other'" class="space-y-4" x-transition style="display: none;">
-                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white">
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
                     <table class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-50/60 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="px-5 py-3 w-16 text-center">No</th>
-                                <th class="px-5 py-3">Floor</th>
-                                <th class="px-5 py-3">Type</th>
-                                <th class="px-5 py-3">Door No</th>
-                                <th class="px-5 py-3 text-right">Built Up Area (Sq Ft)</th>
-                                <th class="px-5 py-3 text-right">Carpet Area (Sq Ft)</th>
-                                <th class="px-5 py-3 text-center">Availability</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-5 py-3.5 w-16 text-center text-white font-extrabold">No</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Floor</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Type</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Door No</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Built Up Area (Sq Ft)</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Carpet Area (Sq Ft)</th>
+                                <th class="px-5 py-3.5 text-center text-white font-extrabold">Availability</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 font-semibold text-slate-700 font-mono">

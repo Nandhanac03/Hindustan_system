@@ -174,14 +174,14 @@
                 <div class="overflow-x-auto">
                     <table id="reportsTable" class="w-full text-xs text-left">
                         <thead>
-                            <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider text-[9px]">
-                                <th class="px-5 py-3">Date</th>
-                                <th class="px-5 py-3">Voucher #</th>
-                                <th class="px-5 py-3">Customer / Unit</th>
-                                <th class="px-5 py-3">Partner</th>
-                                <th class="px-5 py-3">Mode</th>
-                                <th class="px-5 py-3">Bank Ref</th>
-                                <th class="px-5 py-3 text-right">Amount</th>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                <th class="px-5 py-3.5 text-white font-extrabold">Date</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Voucher #</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Customer / Unit</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Partner</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Mode</th>
+                                <th class="px-5 py-3.5 text-white font-extrabold">Bank Ref</th>
+                                <th class="px-5 py-3.5 text-right text-white font-extrabold">Amount</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-slate-700">

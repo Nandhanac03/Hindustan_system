@@ -51,12 +51,12 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                    <th class="px-4 py-3">Date</th>
-                                    <th class="px-4 py-3">Description</th>
-                                    <th class="px-4 py-3 text-right">Debit (₹)</th>
-                                    <th class="px-4 py-3 text-right">Credit (₹)</th>
-                                    <th class="px-4 py-3 text-right">Balance (₹)</th>
+                                <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                    <th class="px-4 py-3 text-white font-extrabold">Date</th>
+                                    <th class="px-4 py-3 text-white font-extrabold">Description</th>
+                                    <th class="px-4 py-3 text-right text-white font-extrabold">Debit (₹)</th>
+                                    <th class="px-4 py-3 text-right text-white font-extrabold">Credit (₹)</th>
+                                    <th class="px-4 py-3 text-right text-white font-extrabold">Balance (₹)</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-xs">
@@ -139,13 +139,13 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
-                                <tr class="bg-slate-50 border-b border-slate-200 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                    <th class="px-4 py-3">Date</th>
-                                    <th class="px-4 py-3">Bill No.</th>
-                                    <th class="px-4 py-3 text-right">Billed (₹)</th>
-                                    <th class="px-4 py-3 text-right">Paid (₹)</th>
-                                    <th class="px-4 py-3 text-right">Balance (₹)</th>
-                                    <th class="px-4 py-3 text-center">Status</th>
+                                <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
+                                    <th class="px-4 py-3 text-white font-extrabold">Date</th>
+                                    <th class="px-4 py-3 text-white font-extrabold">Bill No.</th>
+                                    <th class="px-4 py-3 text-right text-white font-extrabold">Billed (₹)</th>
+                                    <th class="px-4 py-3 text-right text-white font-extrabold">Paid (₹)</th>
+                                    <th class="px-4 py-3 text-right text-white font-extrabold">Balance (₹)</th>
+                                    <th class="px-4 py-3 text-center text-white font-extrabold">Status</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-xs">
