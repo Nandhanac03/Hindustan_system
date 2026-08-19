@@ -47,8 +47,22 @@ class ChequeReceiptEntryController extends Controller
             $query->where('company_bank_account_id', $request->input('company_bank_account_id'));
         }
 
+        if ($request->filled('customer_id')) {
+            $custId = $request->input('customer_id');
+            $query->where(function ($q) use ($custId) {
+                $q->where('customer_id', $custId)
+                  ->orWhereHas('sale', function ($sq) use ($custId) {
+                      $sq->where('customer_id', $custId);
+                  });
+            });
+        }
+
         if ($request->filled('realization_status')) {
-            $query->where('realization_status', $request->input('realization_status'));
+            $statusVal = strtolower(str_replace(' ', '_', trim($request->input('realization_status'))));
+            $query->where(function ($q) use ($statusVal, $request) {
+                $q->where('realization_status', $statusVal)
+                  ->orWhere('realization_status', $request->input('realization_status'));
+            });
         }
 
         if ($request->filled('payment_mode')) {

@@ -34,13 +34,13 @@
             </div>
 
             <!-- Intake Modal Button (Brand Gold Matching) -->
-            <div class="flex items-center gap-2 flex-wrap">
+            <!-- <div class="flex items-center gap-2 flex-wrap">
                 <button type="button" @click="openAddModal()" 
                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md border border-[#a38c29]/40 cursor-pointer">
                     <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                     <span>RECORD NEW CHEQUE / RECEIPT ENTRY</span>
                 </button>
-            </div>
+            </div> -->
         </div>
 
         <!-- ── TOP EXECUTIVE KPI SUMMARY CARDS GRID (WITH RICH ICONS & UNIT EXCHANGE STYLE) ── -->
@@ -105,43 +105,118 @@
             </a>
         </div>
 
-        <!-- ── TAB NAVIGATION BAR (FLOATING ICONS BUTTONS) ── -->
-        <div class="flex items-center justify-between gap-2 w-full">
-            <!-- Tab 1: All Receipts -->
-            <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'all']) }}"
-               class="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition whitespace-nowrap border {{ $activeTab === 'all' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-md' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs' }}">
-                <svg class="w-3.5 h-3.5 shrink-0 {{ $activeTab === 'all' ? 'text-white' : 'text-[#a38c29]' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span class="truncate">All Receipts</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[9px] font-mono leading-none flex items-center justify-center shrink-0 border {{ $activeTab === 'all' ? 'bg-white/20 text-white border-white/20' : 'bg-slate-100 text-slate-700 border-slate-200' }}">{{ $totalReceiptsCount }}</span>
-            </a>
+        <!-- ── SALES REPORT STYLE FILTER CARD BAR ── -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs relative z-50">
+            <form id="chequeReceiptFilterForm" method="GET" action="{{ route('cheque-receipt-entry.index') }}" class="flex flex-wrap items-center gap-3 w-full">
 
-            <!-- Dynamic Status Tabs from Cheque Status Master Table -->
-            @foreach($chequeStatusesMap as $stKey => $stData)
-                <a href="{{ route('cheque-receipt-entry.index', ['tab' => $stKey]) }}"
-                   class="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition whitespace-nowrap border {{ $activeTab === $stKey ? $stData['tab_active_classes'] . ' border-transparent' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs' }}">
-                    <svg class="w-3.5 h-3.5 shrink-0 {{ $activeTab === $stKey ? 'text-white' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        @if($stKey === 'realized')
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        @elseif($stKey === 'bounced')
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        @elseif($stKey === 'cancelled')
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                        @elseif($stKey === 'deposited')
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/>
-                        @elseif($stKey === 'in_clearing')
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                        @elseif($stKey === 'cheque_in_hand' || $stKey === 'pending')
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        @else
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                        @endif
-                    </svg>
-                    <span class="truncate">{{ $stData['name'] }}</span>
-                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-mono leading-none flex items-center justify-center shrink-0 border {{ $activeTab === $stKey ? 'bg-white/20 text-white border-white/20' : 'bg-slate-100 text-slate-700 border-slate-200' }}">{{ $stData['count'] }}</span>
-                </a>
-            @endforeach
+                {{-- 1. Customer Selection (Sales Report Style Dropdown) --}}
+                <div class="flex-1 min-w-[260px] relative" 
+                     x-data="{ open: false, searchCust: '', selectedId: '{{ request('customer_id') }}' }" 
+                     @click.outside="open = false">
+                    <input type="hidden" name="customer_id" id="customerIdInput" :value="selectedId">
+                    
+                    <div role="button" tabindex="0"
+                         @click="open = !open; if (open) { $nextTick(() => $refs.custSearchInput?.focus()); }"
+                         :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'"
+                         class="w-full min-h-[42px] px-3 py-2 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs">
+                        
+                        <div class="flex items-center gap-2 text-slate-700 font-bold truncate">
+                            <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="truncate">
+                                @php
+                                    $selectedCustomer = request('customer_id') ? $customers->firstWhere('id', request('customer_id')) : null;
+                                @endphp
+                                @if($selectedCustomer)
+                                    <span class="text-[#8a7522] font-black">{{ $selectedCustomer->name }}</span>
+                                @else
+                                    <span class="text-slate-500 font-bold">Filter by Customers</span>
+                                @endif
+                            </span>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="selectedId">
+                                <span @click.stop="selectedId = ''; document.getElementById('customerIdInput').value = ''; document.getElementById('chequeReceiptFilterForm').submit();" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear customer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- Customer Search Dropdown Menu --}}
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                         class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
+                         style="display: none;">
+                        
+                        <div class="p-2.5 bg-slate-50 border-b border-slate-100 sticky top-0 z-10">
+                            <div class="relative">
+                                <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <input type="text"
+                                       x-model="searchCust"
+                                       x-ref="custSearchInput"
+                                       placeholder="Type customer name or phone..."
+                                       class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                <template x-if="searchCust">
+                                    <button type="button" @click="searchCust = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <button type="button" @click="selectedId = ''; open = false; document.getElementById('customerIdInput').value = ''; document.getElementById('chequeReceiptFilterForm').submit();"
+                                class="w-full px-3.5 py-2 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>— All Customers —</span>
+                        </button>
+
+                        <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
+                            @foreach($customers as $c)
+                                <button type="button"
+                                        x-show="!searchCust || '{{ strtolower($c->name) }}'.includes(searchCust.toLowerCase()) || '{{ $c->phone }}'.includes(searchCust)"
+                                        @click="selectedId = '{{ $c->id }}'; open = false; document.getElementById('customerIdInput').value = '{{ $c->id }}'; document.getElementById('chequeReceiptFilterForm').submit();"
+                                        :class="selectedId == '{{ $c->id }}' ? 'bg-[#a38c29]/10 border-[#a38c29]/20 text-[#8a7522]' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                        class="w-full p-2 text-left text-xs rounded-xl border transition-all flex items-center justify-between gap-2 cursor-pointer font-medium">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div :class="selectedId == '{{ $c->id }}' ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600'"
+                                             class="w-6 h-6 rounded-full font-bold text-[10px] flex items-center justify-center shrink-0">
+                                            <span>{{ strtoupper(substr($c->name, 0, 1)) }}</span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="font-bold text-xs truncate leading-snug text-slate-800">{{ $c->name }}</p>
+                                            @if($c->phone)<p class="text-[10px] text-slate-400 font-mono">{{ $c->phone }}</p>@endif
+                                        </div>
+                                    </div>
+                                    <span x-show="selectedId == '{{ $c->id }}'" class="text-[#a38c29] font-bold">✓</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2. Cheque Status Filter (Sales Report Style Dropdown) --}}
+                <div class="min-w-[600px] relative">
+                    <select name="realization_status" @change="document.getElementById('chequeReceiptFilterForm').submit()"
+                            class="w-full min-h-[42px] px-3.5 py-2 bg-white border border-slate-300 hover:border-slate-400 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29] shadow-2xs transition cursor-pointer">
+                        <option  value="">Filter by Cheque Status</option>
+                        @foreach($chequeStatusesMap as $stKey => $stData)
+                            <option value="{{ $stKey }}" {{ request('realization_status') === $stKey ? 'selected' : '' }}>
+                                {{ $stData['name'] }} ({{ $stData['count'] }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- 3. Search Keyword Input (Optional Search) --}}
+               
+
+              
+            </form>
         </div>
 
         <!-- ── MAIN CHEQUE & RECEIPT REGISTER TABLE (READ-ONLY DISPLAY WITH STATUS) ── -->
@@ -150,38 +225,11 @@
                 <div class="flex items-center gap-2">
                     <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                        @if($activeTab === 'all') All Receipts Display Register
-                        @elseif($activeTab === 'cheques') Pending Cheque Intake Queue Display
-                        @elseif($activeTab === 'realized') Realized Collections Display Register
-                        @elseif($activeTab === 'bounced') Dishonoured / Bounced Cheques Log Display
-                        @else {{ strtoupper(str_replace('_', ' ', $activeTab)) }} Display Register
-                        @endif
+                        Cheque & Receipt Display Register
                     </span>
                     <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">
                         {{ count($allReceiptsFormatted) }} Records
                     </span>
-                </div>
-
-                {{-- Filter Bar --}}
-                <div class="flex items-center gap-3 flex-wrap">
-                    <form method="GET" action="{{ route('cheque-receipt-entry.index') }}" class="flex items-center gap-2">
-                        <input type="hidden" name="tab" value="{{ $activeTab }}">
-                        <div class="relative flex items-center">
-                            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search receipt #, customer..."
-                                   class="pl-8 pr-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-60 shadow-2xs">
-                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        </div>
-
-                        <select name="payment_mode" @change="$el.form.submit()" class="px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]">
-                            <option value="">All Payment Modes</option>
-                            <option value="Cheque" {{ request('payment_mode') === 'Cheque' ? 'selected' : '' }}>Cheque</option>
-                            <option value="NEFT/RTGS" {{ request('payment_mode') === 'NEFT/RTGS' ? 'selected' : '' }}>NEFT / RTGS</option>
-                            <option value="UPI" {{ request('payment_mode') === 'UPI' ? 'selected' : '' }}>UPI</option>
-                            <option value="Cash" {{ request('payment_mode') === 'Cash' ? 'selected' : '' }}>Cash</option>
-                        </select>
-
-                        <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-2xs transition cursor-pointer">Filter</button>
-                    </form>
                 </div>
             </div>
 
