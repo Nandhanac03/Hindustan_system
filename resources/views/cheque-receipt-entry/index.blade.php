@@ -43,84 +43,95 @@
             </div>
         </div>
 
-        <!-- ── KPI EXECUTIVE CARDS BAR ── -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- ── TOP EXECUTIVE KPI SUMMARY CARDS GRID (WITH RICH ICONS & UNIT EXCHANGE STYLE) ── -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <!-- Card 1: Total Realized Collections -->
-            <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'realized']) }}" class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs hover:shadow-md transition-all flex items-center justify-between group">
-                <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-[#a38c29] block">Total Realized Collections</span>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{{ number_format($totalCollectionAmount ?? 0, 2) }}</h3>
-                    <span class="text-[10px] text-slate-500 font-semibold block mt-0.5">{{ $totalReceiptsCount ?? 0 }} Total Receipts Logged</span>
+            <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'realized']) }}"
+               class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-pointer block group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>Total Realized Collections</span>
+                    <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="text-base font-black font-mono text-slate-900">
+                    ₹{{ number_format($totalCollectionAmount ?? 0, 2) }}
                 </div>
+                <div class="text-[10px] font-medium text-slate-400">{{ $totalReceiptsCount ?? 0 }} Total Receipts Logged</div>
             </a>
 
             <!-- Card 2: Cheques Pending Clearance -->
-            <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'cheques']) }}" class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-amber-500 shadow-xs hover:shadow-md transition-all flex items-center justify-between group">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">Cheques Pending Clearance</span>
-                        <span class="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[9px] font-black uppercase tracking-wider animate-pulse">UNCLEARED</span>
+            <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'cheques']) }}"
+               class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-pointer block group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>Cheques Pending Clearance</span>
+                    <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{{ number_format($pendingRealizationAmount ?? 0, 2) }}</h3>
-                    <span class="text-[10px] text-amber-700 font-bold block mt-0.5">{{ $pendingRealizationCount ?? 0 }} Cheques Awaiting Clearance</span>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="text-base font-black font-mono text-slate-900">
+                    ₹{{ number_format($pendingRealizationAmount ?? 0, 2) }}
                 </div>
+                <div class="text-[10px] font-medium text-slate-400">{{ $pendingRealizationCount ?? 0 }} Cheques Awaiting Clearance</div>
             </a>
 
             <!-- Card 3: Total Treasury Liquidity -->
-            <div class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-blue-600 shadow-xs flex items-center justify-between">
-                <div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-blue-700 block">Total Treasury Liquidity</span>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">₹{{ number_format($totalLiquidity ?? 0, 2) }}</h3>
-                    <span class="text-[10px] text-blue-700 font-bold block mt-0.5">{{ count($companyBankAccounts ?? []) }} Active Bank Accounts</span>
+            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-blue-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>Total Treasury Liquidity</span>
+                    <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/></svg>
+                    </div>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/></svg>
+                <div class="text-base font-black font-mono text-slate-900">
+                    ₹{{ number_format($totalLiquidity ?? 0, 2) }}
                 </div>
+                <div class="text-[10px] font-medium text-slate-400">{{ count($companyBankAccounts ?? []) }} Active Bank Accounts</div>
             </div>
 
-            <!-- Card 4: Dishonoured / Bounced Cheques -->
-            <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'bounced']) }}" class="bg-white rounded-2xl p-5 border border-slate-200 border-l-4 border-l-rose-600 shadow-xs hover:shadow-md transition-all flex items-center justify-between group">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">Bounced Cheques</span>
-                        <span class="px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[9px] font-black uppercase tracking-wider">DISHONOURED</span>
+            <!-- Card 4: Bounced Cheques -->
+            <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'bounced']) }}"
+               class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-rose-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-pointer block group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>Bounced Cheques</span>
+                    <div class="w-6 h-6 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <h3 class="text-2xl font-black text-slate-900 tracking-tight mt-1">{{ $bouncedCount ?? 0 }}</h3>
-                    <span class="text-[10px] text-rose-700 font-bold block mt-0.5">₹{{ number_format($bouncedAmount ?? 0, 2) }} Total Bounced</span>
                 </div>
-                <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="text-base font-black font-mono text-slate-900">
+                    {{ $bouncedCount ?? 0 }}
                 </div>
+                <div class="text-[10px] font-medium text-slate-400">₹{{ number_format($bouncedAmount ?? 0, 2) }} Total Bounced</div>
             </a>
         </div>
 
-        <!-- ── TAB NAVIGATION BAR (1 SINGLE ROW FIT - EQUAL FLEX DISTRIBUTION) ── -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-1.5 flex items-center justify-between gap-1 w-full overflow-hidden">
+        <!-- ── TAB NAVIGATION BAR (FLOATING ICONS BUTTONS) ── -->
+        <div class="flex items-center justify-between gap-2 w-full">
             <!-- Tab 1: All Receipts -->
             <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'all']) }}"
-               class="flex-1 min-w-0 inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition whitespace-nowrap {{ $activeTab === 'all' ? 'bg-[#a38c29] text-white shadow-md' : 'text-slate-600 hover:bg-slate-100' }}">
+               class="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition whitespace-nowrap border {{ $activeTab === 'all' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-md' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs' }}">
                 <svg class="w-3.5 h-3.5 shrink-0 {{ $activeTab === 'all' ? 'text-white' : 'text-[#a38c29]' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
                 <span class="truncate">All Receipts</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[9px] font-mono leading-none flex items-center justify-center shrink-0 {{ $activeTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700' }}">{{ $totalReceiptsCount }}</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[9px] font-mono leading-none flex items-center justify-center shrink-0 border {{ $activeTab === 'all' ? 'bg-white/20 text-white border-white/20' : 'bg-slate-100 text-slate-700 border-slate-200' }}">{{ $totalReceiptsCount }}</span>
             </a>
 
             <!-- Dynamic Status Tabs from Cheque Status Master Table -->
             @foreach($chequeStatusesMap as $stKey => $stData)
                 <a href="{{ route('cheque-receipt-entry.index', ['tab' => $stKey]) }}"
-                   class="flex-1 min-w-0 inline-flex items-center justify-center gap-1 px-2 py-2 rounded-xl text-[10px] font-black uppercase tracking-tight transition whitespace-nowrap {{ $activeTab === $stKey ? $stData['tab_active_classes'] : 'text-slate-600 hover:bg-slate-100' }}">
+                   class="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 px-2.5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-tight transition whitespace-nowrap border {{ $activeTab === $stKey ? $stData['tab_active_classes'] . ' border-transparent' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300 shadow-2xs' }}">
                     <svg class="w-3.5 h-3.5 shrink-0 {{ $activeTab === $stKey ? 'text-white' : 'text-slate-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         @if($stKey === 'realized')
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         @elseif($stKey === 'bounced')
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        @elseif($stKey === 'cancelled')
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        @elseif($stKey === 'deposited')
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/>
+                        @elseif($stKey === 'in_clearing')
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         @elseif($stKey === 'cheque_in_hand' || $stKey === 'pending')
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         @else
@@ -128,7 +139,7 @@
                         @endif
                     </svg>
                     <span class="truncate">{{ $stData['name'] }}</span>
-                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-mono leading-none flex items-center justify-center shrink-0 {{ $activeTab === $stKey ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700' }}">{{ $stData['count'] }}</span>
+                    <span class="px-1.5 py-0.5 rounded-full text-[9px] font-mono leading-none flex items-center justify-center shrink-0 border {{ $activeTab === $stKey ? 'bg-white/20 text-white border-white/20' : 'bg-slate-100 text-slate-700 border-slate-200' }}">{{ $stData['count'] }}</span>
                 </a>
             @endforeach
         </div>
@@ -175,51 +186,53 @@
             </div>
 
             <div class="overflow-x-auto">
-                {{-- 📋 MAIN RECEIPTS DISPLAY REGISTER TABLE --}}
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
+                {{-- 📋 MAIN RECEIPTS DISPLAY REGISTER TABLE (SALES EXCHANGE TABLE EFFECT) --}}
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-extrabold uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
                         <tr class="text-left">
-                            <th class="px-3 py-3 w-[100px]">RECEIPT #</th>
-                            <th class="px-3 py-3 w-[100px]">DATE</th>
-                            <th class="px-3 py-3 w-[180px]">CUSTOMER / PAYER</th>
-                            <th class="px-3 py-3 w-[180px]">COMPANY BANK ACCOUNT</th>
-                            <th class="px-3 py-3 text-right w-[110px]">AMOUNT</th>
-                            <th class="px-3 py-3 text-center w-[100px]">MODE</th>
-                            <th class="px-3 py-3 text-center w-[140px]">REALIZATION STATUS</th>
+                            <th class="px-3.5 py-3.5 w-[110px]">RECEIPT #</th>
+                            <th class="px-3.5 py-3.5 w-[100px]">DATE</th>
+                            <th class="px-3.5 py-3.5 w-[200px]">CUSTOMER / PAYER</th>
+                            <th class="px-3.5 py-3.5 w-[200px]">COMPANY BANK ACCOUNT</th>
+                            <th class="px-3.5 py-3.5 text-right w-[120px]">AMOUNT</th>
+                            <th class="px-3.5 py-3.5 text-center w-[110px]">MODE</th>
+                            <th class="px-3.5 py-3.5 text-center w-[150px]">REALIZATION STATUS</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
+                    <tbody class="divide-y divide-slate-100 text-[11px] font-semibold bg-white text-slate-700">
                         @forelse($allReceiptsFormatted as $r)
-                            <tr class="hover:bg-amber-50/20 transition-colors border-b border-slate-100">
-                                <td class="px-3 py-3 text-left font-mono font-bold text-slate-900">
+                            <tr class="hover:bg-slate-50/60 transition-colors border-b border-slate-100">
+                                <td class="px-3.5 py-3.5 text-left font-mono font-bold text-slate-900">
                                     {{ $r['ref'] }}
                                 </td>
 
-                                <td class="px-3 py-3 text-left text-slate-600 font-medium">
+                                <td class="px-3.5 py-3.5 text-left text-slate-600 font-medium">
                                     {{ $r['date'] }}
                                 </td>
 
-                                <td class="px-3 py-3 text-left">
+                                <td class="px-3.5 py-3.5 text-left">
                                     <div class="font-black text-slate-900 text-[11.5px]">{{ $r['customer_name'] }}</div>
                                     <div class="text-[9.5px] text-slate-500 font-semibold mt-0.5">{{ $r['project_name'] }} {{ $r['unit_name'] !== '—' ? '('.$r['unit_name'].')' : '' }}</div>
                                 </td>
 
-                                <td class="px-3 py-3 text-left">
+                                <td class="px-3.5 py-3.5 text-left">
                                     <div class="font-extrabold text-slate-800 text-[11px]">{{ $r['company_bank_account_name'] }}</div>
                                     @if($r['company_bank_account_number'])
                                         <div class="text-[9.5px] font-mono text-slate-500">A/C: {{ $r['company_bank_account_number'] }}</div>
                                     @endif
                                 </td>
 
-                                <td class="px-3 py-3 text-right font-mono font-black text-slate-950 text-sm">
+                                <td class="px-3.5 py-3.5 text-right font-mono font-black text-slate-950 text-sm">
                                     ₹{{ number_format((float) $r['amount'], 2) }}
                                 </td>
 
-                                <td class="px-3 py-3 text-center">
+                                <td class="px-3.5 py-3.5 text-center">
                                     <span class="px-2.5 py-0.5 rounded-md text-[9.5px] font-black uppercase tracking-wider inline-block {{ $r['payment_mode'] === 'Cheque' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-blue-100 text-blue-800 border border-blue-200' }}">
                                         {{ $r['payment_mode'] ?: 'Cheque' }}
                                     </span>
-                                <td class="px-3 py-3 text-center">
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-center">
                                     @php
                                         $rst = strtolower($r['realization_status'] ?? 'pending');
                                         $rstMaster = $chequeStatusesMap[$rst] ?? null;
@@ -250,7 +263,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-4 py-8 text-center text-slate-400 italic font-medium">
+                                <td colspan="7" class="px-4 py-8 text-center text-slate-400 italic font-medium">
                                     No Cheque & Receipt entries found for this view.
                                 </td>
                             </tr>
@@ -259,11 +272,17 @@
                 </table>
             </div>
 
-            @if(method_exists($receipts, 'links'))
-                <div class="p-4 bg-slate-50 border-t border-slate-100">
-                    {{ $receipts->links() }}
+            {{-- Table Footer Pagination Bar Matching Sales Exchange Effect --}}
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    SHOWING 1 TO {{ count($allReceiptsFormatted) }} OF {{ count($allReceiptsFormatted) }} RECORDS
                 </div>
-            @endif
+                <div class="flex items-center gap-1.5">
+                    <button type="button" disabled class="px-2.5 py-1 bg-white border border-slate-200 text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider opacity-50 cursor-not-allowed shadow-2xs">PREV</button>
+                    <button type="button" class="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#a38c29] text-white border border-[#a38c29] shadow-2xs">1</button>
+                    <button type="button" disabled class="px-2.5 py-1 bg-white border border-slate-200 text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider opacity-50 cursor-not-allowed shadow-2xs">NEXT</button>
+                </div>
+            </div>
         </div>
 
         <!-- ── MODAL: INTAKE NEW CHEQUE & RECEIPT ENTRY ── -->
