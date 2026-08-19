@@ -190,7 +190,7 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
                         @forelse($allReceiptsFormatted as $r)
-                            <tr class="hover:bg-amber-50/20 transition-colors border-b border-slate-100 cursor-pointer" @click="openViewModal({{ json_encode($r) }})">
+                            <tr class="hover:bg-amber-50/20 transition-colors border-b border-slate-100">
                                 <td class="px-3 py-3 text-left font-mono font-bold text-slate-900">
                                     {{ $r['ref'] }}
                                 </td>
