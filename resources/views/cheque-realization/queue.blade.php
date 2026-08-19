@@ -84,13 +84,11 @@
                 <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
                     <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
                     <span class="text-slate-300">›</span>
-                    <span class="text-slate-300">Finance & Accounting</span>
-                    <!-- <a href="{{ route('receipt-management.index') }}" class="hover:text-slate-600 transition">Receipt Management</a> -->
+                    <span class="text-slate-300">Customer Management & Collections</span>
                     <span class="text-slate-300">›</span>
                     <span class="text-[#a38c29] font-black">Cheque Clearance Queue</span>
                 </div>
-                <h1 class="text-xl font-black text-slate-900 mt-1">⏳ Cheque Clearance Queue</h1>
-                <p class="text-xs text-slate-500 font-medium mt-0.5">Instruments awaiting bank clearance. Mark as Realized to credit the treasury balance.</p>
+                <p class="text-[11px] text-slate-500 font-medium mt-1.5">Instruments awaiting bank clearance. Mark as Realized to credit the treasury balance.</p>
             </div>
         </div>
 
