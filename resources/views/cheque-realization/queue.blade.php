@@ -86,9 +86,9 @@
                     <span class="text-slate-300">›</span>
                     <span class="text-slate-300">Customer Management & Collections</span>
                     <span class="text-slate-300">›</span>
-                    <span class="text-[#a38c29] font-black">Cheque Clearance Queue</span>
+                    <span class="text-[#a38c29] font-black">{{ request()->routeIs('cheque-realization.realized') ? 'Realized Cheques Data' : 'Cheque Clearance Queue' }}</span>
                 </div>
-                <p class="text-[11px] text-slate-500 font-medium mt-1.5">Instruments awaiting bank clearance. Mark as Realized to credit the treasury balance.</p>
+                <p class="text-[11px] text-slate-500 font-medium mt-1.5">{{ request()->routeIs('cheque-realization.realized') ? 'Historical record of all successfully realized cheques.' : 'Instruments awaiting bank clearance. Mark as Realized to credit the treasury balance.' }}</p>
             </div>
         </div>
 
@@ -170,19 +170,8 @@
         @endif
 
         {{-- Filters Bar --}}
-        <form method="GET" action="{{ route('cheque-realization.queue') }}" class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                    <label class="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1.5">Company Bank Account</label>
-                    <select name="company_bank_account_id" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]">
-                        <option value="">All Bank Accounts</option>
-                        @foreach($companyBankAccounts as $acc)
-                            <option value="{{ $acc->id }}" {{ request('company_bank_account_id') == $acc->id ? 'selected' : '' }}>
-                                {{ $acc->bank_name }} {{ $acc->account_number ? '('.$acc->account_number.')' : '' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+        <form method="GET" action="{{ route('cheque-realization.queue') }}" id="queueFilterForm" class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1.5">Customer</label>
                     <div class="relative" x-data="{
@@ -202,9 +191,17 @@
                     }" @click.outside="open = false">
                         <input type="hidden" name="customer_id" :value="selectedId">
                         
-                        <button type="button" @click="open = !open; if(open) $nextTick(() => $refs.search.focus())" class="w-full px-3 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29] flex justify-between items-center text-left">
-                            <span x-text="selectedCustomerName" class="truncate"></span>
-                            <svg class="w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <button type="button" @click="open = !open; if(open) $nextTick(() => $refs.search.focus())" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#a38c29] flex justify-between items-center text-left shadow-sm transition-colors" :class="selectedId ? 'text-[#a38c29] border-[#a38c29]/30 bg-[#a38c29]/5' : 'text-slate-900'">
+                            <div class="flex items-center min-w-0">
+                                <svg x-show="selectedId" class="w-3.5 h-3.5 mr-1.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                <span x-text="selectedCustomerName" class="truncate" :class="selectedId ? 'font-black uppercase' : 'font-semibold'"></span>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0 ml-2">
+                                <span x-show="selectedId" @click.stop="selectedId = ''; $nextTick(() => document.getElementById('queueFilterForm').submit())" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition" title="Clear customer" style="display: none;">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                                <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
                         </button>
 
                         <div x-show="open" 
@@ -215,11 +212,11 @@
                                 <input type="text" x-model="search" x-ref="search" placeholder="Search customer..." class="w-full px-2.5 py-2 text-xs font-medium border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#a38c29] focus:border-[#a38c29]">
                             </div>
                             <ul class="overflow-y-auto flex-1 p-1">
-                                <li @click="selectedId = ''; open = false" class="px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 rounded-lg transition-colors" :class="selectedId === '' ? 'bg-[#a38c29]/10 text-[#a38c29] font-bold' : 'text-slate-700'">
+                                <li @click="selectedId = ''; open = false; $nextTick(() => document.getElementById('queueFilterForm').submit())" class="px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 rounded-lg transition-colors" :class="selectedId === '' ? 'bg-[#a38c29]/10 text-[#a38c29] font-bold' : 'text-slate-700'">
                                     All Customers
                                 </li>
                                 <template x-for="customer in filteredCustomers" :key="customer.id">
-                                    <li @click="selectedId = customer.id; open = false" 
+                                    <li @click="selectedId = customer.id; open = false; $nextTick(() => document.getElementById('queueFilterForm').submit())" 
                                         class="px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 rounded-lg truncate transition-colors"
                                         :class="selectedId == customer.id ? 'bg-[#a38c29]/10 text-[#a38c29] font-bold' : 'text-slate-700 font-medium'"
                                         x-text="customer.name"></li>
@@ -231,21 +228,43 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex items-end">
-                    <button type="submit" class="w-full px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-sm border border-[#a38c29] cursor-pointer">
-                        🔍 FILTER
-                    </button>
+                <div>
+                    <label class="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1.5">Company Bank Account</label>
+                    <select name="company_bank_account_id" onchange="this.form.submit()" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29]">
+                        <option value="">All Bank Accounts</option>
+                        @foreach($companyBankAccounts as $acc)
+                            <option value="{{ $acc->id }}" {{ request('company_bank_account_id') == $acc->id ? 'selected' : '' }}>
+                                {{ $acc->bank_name }} {{ $acc->account_number ? '('.$acc->account_number.')' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
         </form>
 
-        {{-- Status Legend --}}
-        <div class="flex flex-wrap gap-2 items-center">
-            <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Status Legend:</span>
-            <span class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black">⏳ Pending</span>
-            <span class="px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 border border-sky-300 text-[10px] font-black">🖐 Cheque in Hand</span>
-            <span class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 border border-blue-300 text-[10px] font-black">🏦 Deposited</span>
-            <span class="text-[10px] text-slate-400 font-medium ml-2">→ Mark Realized to credit bank balance</span>
+        {{-- Status Legend & Action Button --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex flex-wrap items-center gap-3 text-xs">
+                <span class="font-bold text-slate-500 uppercase tracking-widest text-[10px]">Status Legend:</span>
+                <span class="px-2 py-1 rounded-md bg-amber-50 text-amber-600 font-bold border border-amber-200/60 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Pending</span>
+                <span class="px-2 py-1 rounded-md bg-sky-50 text-sky-600 font-bold border border-sky-200/60 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path></svg> Cheque in Hand</span>
+                <span class="px-2 py-1 rounded-md bg-indigo-50 text-indigo-600 font-bold border border-indigo-200/60 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg> Deposited</span>
+                <span class="text-slate-400 font-medium ml-2 flex items-center gap-1.5"><span class="text-slate-300">→</span> Mark Realized to credit bank balance</span>
+            </div>
+            
+            <div class="flex items-center">
+                @if(request()->routeIs('cheque-realization.realized'))
+                    <a href="{{ route('cheque-realization.queue') }}" class="px-4 py-2 bg-[#a38c29] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:bg-[#8a7522] transition-colors flex items-center justify-center gap-2 group">
+                        <svg class="w-4 h-4 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        View Pending Queue
+                    </a>
+                @else
+                    <a href="{{ route('cheque-realization.realized') }}" class="px-4 py-2 bg-[#a38c29] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:bg-[#8a7522] transition-colors flex items-center justify-center gap-2 group">
+                        <svg class="w-4 h-4 text-white/80 group-hover:text-white group-hover:scale-110 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        View Realized
+                    </a>
+                @endif
+            </div>
         </div>
 
         {{-- Main Table matching Receipt Management Table Styling --}}
