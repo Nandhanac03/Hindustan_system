@@ -330,7 +330,7 @@
                 <button type="button" @click="verifyModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
-            <form :action="selectedBill ? `/expenses/ra-bills/${selectedBill.id}/verify` : '#'" method="POST" class="p-6 space-y-4">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="p-6 space-y-4">
                 @csrf
 
                 <!-- KPI Summary Card -->
