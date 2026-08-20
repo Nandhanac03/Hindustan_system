@@ -57,6 +57,18 @@
                     </a>
                 </div>
             </div>
+
+            {{-- Sort By Dropdown --}}
+            <div class="relative">
+                <select name="sort_by" onchange="this.form.submit()"
+                        class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                    <option value="" class="text-slate-800">Sort by Name (A-Z)</option>
+                    <option value="deals_desc" class="text-slate-800" {{ request('sort_by') === 'deals_desc' ? 'selected' : '' }}>Deals Count (High to Low)</option>
+                    <option value="accrued_desc" class="text-slate-800" {{ request('sort_by') === 'accrued_desc' ? 'selected' : '' }}>Accrued Commission (High to Low)</option>
+                    <option value="payable_desc" class="text-slate-800" {{ request('sort_by') === 'payable_desc' ? 'selected' : '' }}>Payable Commission (High to Low)</option>
+                    <option value="rate_desc" class="text-slate-800" {{ request('sort_by') === 'rate_desc' ? 'selected' : '' }}>Default Rate (High to Low)</option>
+                </select>
+            </div>
         </div>
 
         <div class="flex items-center gap-2 flex-shrink-0">
