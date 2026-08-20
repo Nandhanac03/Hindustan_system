@@ -1,5 +1,5 @@
 <x-erp-layout title="Cancellation Charges & Additional Work" headerTitle="Cancellation Charges & Additional Work">
-    <div class="max-w-[1800px] mx-auto space-y-6" x-data="{ activeTab: 'cancellation' }">
+    <div class="max-w-[1800px] mx-auto space-y-6" x-data="{ activeTab: 'cancellation', search: '', status: '' }">
         
         {{-- Header & Breadcrumb (Treasury Style) --}}
         <div class="flex items-center justify-between mb-4">
@@ -63,6 +63,55 @@
             </button>
         </div>
 
+        {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 transition-all">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1">
+                {{-- Search Input --}}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" placeholder="Search Customer/Unit/Sale No..." 
+                           x-model="search"
+                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                    
+                    {{-- Clear Button --}}
+                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                        <button type="button" x-show="search" @click="search = ''"
+                                class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Status Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                    </div>
+                    <select x-model="status"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="cancelled">Cancelled</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+            </div>
+            
+            {{-- Reset Filters Button --}}
+            <button type="button" @click="search = ''; status = '';"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 px-6 py-2.5 text-xs font-extrabold text-slate-700 shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+                <svg class="h-3.5 w-3.5 text-slate-500 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Reset</span>
+            </button>
+        </div>
+
         {{-- Main Content Area --}}
         
         {{-- Cancellation Charges Table --}}
@@ -83,7 +132,7 @@
                             <th class="px-5 py-3 w-16 text-center">#</th>
                             <th class="px-5 py-3">Sale / Booking No.</th>
                             <th class="px-5 py-3">Customer Name</th>
-                            <th class="px-5 py-3">Unit No.</th>
+                            <th class="px-5 py-3">Unit</th>
                             <th class="px-5 py-3">Cancellation Date</th>
                             <th class="px-5 py-3 text-right">Cancellation Fee (₹)</th>
                             <th class="px-5 py-3">Reason</th>
@@ -92,11 +141,26 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($cancellationCharges as $index => $charge)
-                            <tr class="hover:bg-slate-50 transition group">
+                            @php
+                                $chargeUnitDisplay = 'N/A';
+                                if ($charge->saleUnits && $charge->saleUnits->count() > 0) {
+                                    $chargeUnitDisplay = $charge->saleUnits->map(function($su) {
+                                        return $su->unit ? $su->unit->formatted_name : '';
+                                    })->filter()->implode(', ');
+                                } elseif ($charge->unit) {
+                                    $chargeUnitDisplay = $charge->unit->formatted_name;
+                                }
+                            @endphp
+                            <tr class="hover:bg-slate-50 transition group"
+                                x-show="(search === '' || 
+                                    '{{ addslashes($charge->sale_number ?? '') }}'.toLowerCase().includes(search.toLowerCase()) || 
+                                    '{{ addslashes($charge->customer->name ?? '') }}'.toLowerCase().includes(search.toLowerCase()) || 
+                                    '{{ addslashes($chargeUnitDisplay) }}'.toLowerCase().includes(search.toLowerCase())
+                                ) && (status === '' || '{{ addslashes($charge->status ?? '') }}'.toLowerCase() === status)">
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">{{ $index + 1 }}</td>
                                 <td class="px-5 py-3 text-xs font-black text-slate-800 uppercase tracking-wide">{{ $charge->sale_number ?? 'N/A' }}</td>
                                 <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $charge->customer->name ?? 'N/A' }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $charge->unit->unit_number ?? 'N/A' }}</td>
+                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $chargeUnitDisplay }}</td>
                                 <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $charge->updated_at ? $charge->updated_at->format('d/m/Y') : 'N/A' }}</td>
                                 <td class="px-5 py-3 text-right text-xs font-black text-[#a38c29]">
                                     ₹{{ number_format((float)($charge->cancellation_fee ?? 0), 2) }}
@@ -167,11 +231,26 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @forelse($additionalWorks as $index => $work)
-                            <tr class="hover:bg-slate-50 transition group">
+                            @php
+                                $workUnitDisplay = 'N/A';
+                                if ($work->sale && $work->sale->saleUnits && $work->sale->saleUnits->count() > 0) {
+                                    $workUnitDisplay = $work->sale->saleUnits->map(function($su) {
+                                        return $su->unit ? $su->unit->formatted_name : '';
+                                    })->filter()->implode(', ');
+                                } elseif ($work->sale && $work->sale->unit) {
+                                    $workUnitDisplay = $work->sale->unit->formatted_name;
+                                }
+                            @endphp
+                            <tr class="hover:bg-slate-50 transition group"
+                                x-show="(search === '' || 
+                                    '{{ addslashes($work->sale->sale_number ?? '') }}'.toLowerCase().includes(search.toLowerCase()) || 
+                                    '{{ addslashes($work->sale->customer->name ?? '') }}'.toLowerCase().includes(search.toLowerCase()) || 
+                                    '{{ addslashes($workUnitDisplay) }}'.toLowerCase().includes(search.toLowerCase())
+                                ) && (status === '' || '{{ addslashes($work->sale->status ?? '') }}'.toLowerCase() === status)">
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">{{ $index + 1 }}</td>
                                 <td class="px-5 py-3 text-xs font-black text-slate-800 uppercase tracking-wide">{{ $work->sale->sale_number ?? 'N/A' }}</td>
                                 <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $work->sale->customer->name ?? 'N/A' }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $work->sale->unit->unit_number ?? 'N/A' }}</td>
+                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $workUnitDisplay }}</td>
                                 <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $work->description }}</td>
                                 <td class="px-5 py-3 text-right text-xs font-black text-[#a38c29]">
                                     ₹{{ number_format((float)($work->amount ?? 0), 2) }}
