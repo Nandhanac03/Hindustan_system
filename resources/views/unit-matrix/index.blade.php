@@ -7,7 +7,7 @@
     {{-- Top Action Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <div class="flex items-center gap-3">
+            <!-- <div class="flex items-center gap-3">
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">
                     Project:
                 </h1>
@@ -24,7 +24,7 @@
                 @else
                     <span class="text-primary-700 text-lg font-extrabold uppercase">{{ $project->name }}</span>
                 @endif
-            </div>
+            </div> -->
 
         </div>
 

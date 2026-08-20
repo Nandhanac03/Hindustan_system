@@ -24,10 +24,16 @@ class BrokerController extends Controller
         $systemId = Auth::user()->system_id;
         $this->syncCommissions($systemId);
 
-        $brokers = Broker::where('system_id', $systemId)
+        $query = Broker::where('system_id', $systemId)
             ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.project'])
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        $brokers = $query->get();
 
         foreach ($brokers as $broker) {
             $broker->total_deals = $broker->brokerages->count();
@@ -59,6 +65,44 @@ class BrokerController extends Controller
             $broker->total_commission = $accrued + $payable + $paid;
         }
 
+        return view('brokers.index', compact('brokers'));
+    }
+
+    public function commissionLedger(Request $request): View
+    {
+        $systemId = Auth::user()->system_id;
+        $this->syncCommissions($systemId);
+
+        $brokers = Broker::where('system_id', $systemId)
+            ->with(['linkedAccount', 'brokerages.sale.customer', 'brokerages.sale.project'])
+            ->orderBy('name')
+            ->get();
+
+        foreach ($brokers as $broker) {
+            $accrued = 0.0;
+            $payable = 0.0;
+            $paid = 0.0;
+
+            foreach ($broker->brokerages as $entry) {
+                $commAmt = (float)$entry->commission_amount;
+                $paidAmt = (float)$entry->paid_amount;
+
+                $paid += $paidAmt;
+
+                $remaining = max(0.0, $commAmt - $paidAmt);
+
+                if ($entry->status === 'pending' && $paidAmt <= 0) {
+                    $accrued += $remaining;
+                } elseif ($remaining > 0) {
+                    $payable += $remaining;
+                }
+            }
+
+            $broker->accrued_commission = $accrued;
+            $broker->payable_commission = $payable;
+            $broker->paid_commission = $paid;
+        }
+
         // Summary totals across all brokers
         $totalAccrued = $brokers->sum('accrued_commission');
         $totalPayable = $brokers->sum('payable_commission');
@@ -82,7 +126,7 @@ class BrokerController extends Controller
         $deals = $dealsQuery->latest()->paginate(15);
         $projects = Project::where('is_active', true)->get();
 
-        return view('brokers.index', compact(
+        return view('brokers.commission-ledger', compact(
             'brokers',
             'deals',
             'projects',

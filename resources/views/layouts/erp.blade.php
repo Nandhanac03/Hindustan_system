@@ -313,13 +313,13 @@
                 </svg>
             </button>
             <div x-show="openBrokers" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('brokers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('brokers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Agent Master Directory
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('brokers.commission-ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.commission-ledger') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Commission Ledger
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('brokers.payable-report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('brokers.payable-report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Broker Payout Release
                 </a>
             </div>

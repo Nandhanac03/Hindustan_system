@@ -331,6 +331,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
 
     // Brokerage & Commission Management
     Route::get('/brokers', [\App\Http\Controllers\BrokerController::class, 'index'])->name('brokers.index');
+    Route::get('/brokers/commission-ledger', [\App\Http\Controllers\BrokerController::class, 'commissionLedger'])->name('brokers.commission-ledger');
     Route::post('/brokers', [\App\Http\Controllers\BrokerController::class, 'store'])->name('brokers.store');
     Route::get('/brokers/payable-report', [\App\Http\Controllers\BrokerController::class, 'payableReport'])->name('brokers.payable-report');
     Route::post('/brokers/payout', [\App\Http\Controllers\BrokerController::class, 'recordPayout'])->name('brokers.payout');

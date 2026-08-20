@@ -1,6 +1,6 @@
-<x-erp-layout title="Brokerage Management" headerTitle="Brokerage & Commission Management">
+<x-erp-layout title="Agent Master Directory" headerTitle="Agent Master Directory">
 
-<div class="max-w-[1800px] mx-auto space-y-6">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="{ openRegister: false }">
 
     {{-- Top Header & Actions --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -9,84 +9,9 @@
                 <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[#a38c29]/10 text-[#a38c29] font-bold">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </span>
-                <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">Brokerage & Commission Management</h1>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">Agent Master Directory</h1>
             </div>
-            <p class="text-xs text-slate-500 mt-1">Manage real estate brokers, track project/sale commission rates (default ~2%), and monitor transaction-wise earnings.</p>
-        </div>
-
-        <div class="flex items-center gap-3" x-data="{ openRegister: false }">
-            {{-- Removed Payable Report link as per new receipt allocation logic --}}            {{-- Register Broker Button --}}
-            <button @click="openRegister = true" 
-                    class="inline-flex items-center gap-2 rounded-xl bg-[#a38c29] px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition-all duration-200 hover:bg-[#8d7923] hover:shadow-lg">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Register Broker Profile
-            </button>            {{-- Register Modal --}}
-            <div x-show="openRegister" 
-                 class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"
-                 style="display: none;" x-transition.opacity>
-                 <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openRegister = false">
-                      {{-- Header --}}
-                      <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
-                          <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                          <div class="relative z-10 flex items-center justify-between gap-4">
-                              <div>
-                                  <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Brokerage Directory</span>
-                                  <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Register Broker</h2>
-                              </div>
-                              <button type="button" @click="openRegister = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
-                          </div>
-                      </div>
-
-                      <form action="{{ route('brokers.store') }}" method="POST" x-data="{ errors: {}, name: '', default_commission_pct: '2.00', submitRegister(e) { let errs = {}; if(!this.name || !String(this.name).trim()) errs.name = ['The broker name field is required.']; if(!this.default_commission_pct) errs.default_commission_pct = ['The commission % field is required.']; if(Object.keys(errs).length > 0) { e.preventDefault(); this.errors = errs; return false; } } }" @submit="submitRegister($event)" novalidate>
-                          @csrf
-                          <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
-                              <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                                  <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name <span class="text-rose-500">*</span></label>
-                                      <input type="text" name="name" x-model="name" required placeholder="e.g. Apex Realty Brokers"
-                                             :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                             class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
-                                      <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
-                                  </div>
-
-                                  <div class="space-y-1.5">
-                                      <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
-                                          <span>Default Commission % <span class="text-rose-500">*</span></span>
-                                          <span class="text-slate-400 font-normal text-[9px]">(Typically 2% per sale)</span>
-                                      </label>
-                                      <div class="relative">
-                                          <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" x-model="default_commission_pct" required
-                                                 :class="errors.default_commission_pct ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                                 class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
-                                          <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
-                                      </div>
-                                      <template x-if="errors.default_commission_pct"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.default_commission_pct) ? errors.default_commission_pct[0] : errors.default_commission_pct"></p></template>
-                                      <p class="text-[9px] text-slate-400">This percentage is applied by default to all project sales handled by this broker.</p>
-                                  </div>
-
-                                  <div class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-[10px] text-amber-800 space-y-1">
-                                      <span class="font-bold flex items-center gap-1">
-                                          <svg class="w-3 h-3 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
-                                          Automated Accounting Integration:
-                                      </span>
-                                      <p>A dedicated liability ledger account will be automatically created in the accounts master for tracking commissions payable.</p>
-                                  </div>
-                              </div>
-                          </div>
-
-                          <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
-                              <button type="button" @click="openRegister = false" 
-                                      class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
-                                  Cancel
-                              </button>
-                              <button type="submit" 
-                                      class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
-                                  Save Profile
-                              </button>
-                          </div>
-                      </form>
-                 </div>
-            </div>
+            <p class="text-xs text-slate-500 mt-1">Manage real estate brokers, track default commission percentages, and monitor general profile details.</p>
         </div>
     </div>
 
@@ -100,125 +25,177 @@
             <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
         </div>
     @endif
-
-    {{-- Key Metrics KPI Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {{-- Card 1: Accrued (Locked) --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]">
-            
-            <div class="flex items-center justify-between mb-4 relative z-10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                    </div>
-                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Accrued (Locked)</span>
-                </div>
-                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">Pending</span>
+    @if(session('status'))
+        <div class="p-4 bg-emerald-50 border border-emerald-250 rounded-2xl text-xs font-bold text-emerald-800 uppercase tracking-wide flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <span>{{ session('status') }}</span>
             </div>
-            
-            <div class="relative z-10 mt-2">
-                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format($totalAccrued, 2) }}</span>
-                <p class="text-[10px] text-slate-400 mt-2 font-medium">Payable only after full payment or EMI completion</p>
+            <button onclick="this.parentElement.remove()" class="hover:opacity-75">✕</button>
+        </div>
+    @endif
+
+    {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
+    <form method="GET" action="{{ route('brokers.index') }}" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3.5 transition-all" x-data="{ search: '{{ request('search', '') }}' }">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+            {{-- Search: Name --}}
+            <div class="relative sm:col-span-2 group">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </div>
+                <input type="text" name="search" placeholder="Search by name..."
+                       x-model="search"
+                       class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                
+                {{-- Clear Button --}}
+                <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="search">
+                    <a href="{{ route('brokers.index') }}"
+                       class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </a>
+                </div>
             </div>
         </div>
 
-        {{-- Card 2: Payable (Unlocked) --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]">
-            
-            <div class="flex items-center justify-between mb-4 relative z-10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-                    </div>
-                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Payable (Unlocked)</span>
-                </div>
-                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Ready for Disbursement</span>
-            </div>
-            
-            <div class="relative z-10 mt-2">
-                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format($totalPayable, 2) }}</span>
-                <p class="text-[10px] text-slate-400 mt-2 font-medium">100% payment / EMI cleared</p>
-            </div>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <a href="{{ route('brokers.index') }}"
+               class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Reset</span>
+            </a>
+            <button type="button" @click="openRegister = true"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider">
+                <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                Add Broker
+            </button>
         </div>
+    </form>
 
-        {{-- Card 3: Paid Commission --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-indigo-500 p-6 flex flex-col justify-between relative overflow-hidden group hover:border-indigo-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(99,102,241,0.15)]">
-            
-            <div class="flex items-center justify-between mb-4 relative z-10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100/60 transition-all duration-300 group-hover:bg-indigo-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <span class="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">Paid Commission</span>
-                </div>
-                <span class="text-[9px] text-slate-500 font-bold bg-white px-2.5 py-1 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-indigo-300 group-hover:text-indigo-700 group-hover:bg-indigo-50/50">Settled</span>
-            </div>
-            
-            <div class="relative z-10 mt-2">
-                <span class="text-3xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-indigo-700 transition-colors duration-300">₹{{ number_format($totalPaid, 2) }}</span>
-                <p class="text-[10px] text-slate-400 mt-2 font-medium">Successfully settled across all broker accounts</p>
-            </div>
-        </div>
+    {{-- Register Modal --}}
+    <div x-show="openRegister" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"
+         style="display: none;" x-transition.opacity>
+         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openRegister = false">
+              {{-- Header --}}
+              <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                  <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                  <div class="relative z-10 flex items-center justify-between gap-4">
+                      <div>
+                          <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Brokerage Directory</span>
+                          <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Register Broker</h2>
+                      </div>
+                      <button type="button" @click="openRegister = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                  </div>
+              </div>
+
+              <form action="{{ route('brokers.store') }}" method="POST" x-data="{ errors: {}, name: '', default_commission_pct: '2.00', submitRegister(e) { let errs = {}; if(!this.name || !String(this.name).trim()) errs.name = ['The broker name field is required.']; if(!this.default_commission_pct) errs.default_commission_pct = ['The commission % field is required.']; if(Object.keys(errs).length > 0) { e.preventDefault(); this.errors = errs; return false; } } }" @submit="submitRegister($event)" novalidate>
+                  @csrf
+                  <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
+                      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                          <div class="space-y-1.5">
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Broker / Agency Name <span class="text-rose-500">*</span></label>
+                              <input type="text" name="name" x-model="name" required placeholder="e.g. Apex Realty Brokers"
+                                     :class="errors.name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                     class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all shadow-sm font-semibold">
+                              <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.name) ? errors.name[0] : errors.name"></p></template>
+                          </div>
+
+                          <div class="space-y-1.5">
+                              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide flex items-center justify-between">
+                                  <span>Default Commission % <span class="text-rose-500">*</span></span>
+                                  <span class="text-slate-400 font-normal text-[9px]">(Typically 2% per sale)</span>
+                              </label>
+                              <div class="relative">
+                                  <input type="number" step="0.01" min="0.01" max="100.00" name="default_commission_pct" x-model="default_commission_pct" required
+                                         :class="errors.default_commission_pct ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
+                                         class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 focus:outline-none transition-all pr-8 font-mono font-bold shadow-sm">
+                                  <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">%</span>
+                              </div>
+                              <template x-if="errors.default_commission_pct"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.default_commission_pct) ? errors.default_commission_pct[0] : errors.default_commission_pct"></p></template>
+                              <p class="text-[9px] text-slate-400">This percentage is applied by default to all project sales handled by this broker.</p>
+                          </div>
+
+                          <div class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl text-[10px] text-amber-800 space-y-1">
+                              <span class="font-bold flex items-center gap-1">
+                                  <svg class="w-3 h-3 text-amber-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                  Automated Accounting Integration:
+                              </span>
+                              <p>A dedicated liability ledger account will be automatically created in the accounts master for tracking commissions payable.</p>
+                          </div>
+                      </div>
+                  </div>
+
+                  <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                      <button type="button" @click="openRegister = false" 
+                              class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                          Cancel
+                      </button>
+                      <button type="submit" 
+                              class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
+                          Save Profile
+                      </button>
+                  </div>
+              </form>
+         </div>
     </div>
 
     {{-- Registered Brokers Section --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Registered Broker Profiles & Commission Rates</h2>
-                <p class="text-[10px] text-slate-450 mt-0.5">Manage default commission percentages (~2%) and view broker-wise ledger account balances.</p>
-            </div>
-            <span class="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1 rounded-xl shadow-2xs self-start sm:self-auto">{{ $brokers->count() }} Broker(s) Active</span>
-        </div>
-        
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
         <style>
-            .broker-table thead th { border-color: #8a7522 !important; }
-            .broker-tbody tr:nth-child(even) { background-color: #F6F3E9 !important; }
-            .broker-tbody tr:hover { background-color: #ebe5d0 !important; }
+            #brokers-table thead th { border-color: #8a7522 !important; }
+            #brokers-tbody tr:nth-child(even) { background-color: #F6F3E9 !important; }
+            #brokers-tbody tr:hover { background-color: #ebe5d0 !important; }
         </style>
         <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left min-w-[1000px] broker-table border-collapse">
+            <table id="brokers-table" class="w-full text-xs text-left min-w-[1000px] border-collapse">
                 <thead>
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border">Broker Name</th>
-                        <th class="px-3 py-3 border">Default Commission %</th>
-                        <th class="px-3 py-3 border">Total Sales Handled</th>
-                        <th class="px-3 py-3 border">Accrued (Locked)</th>
-                        <th class="px-3 py-3 border">Payable (Unlocked)</th>
-                        <th class="px-3 py-3 border">Paid Out</th>
-                        <th class="px-3 py-3 border text-right">Actions</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">Broker</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">Default Rate</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">Deals Closed</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Accrued (Locked)</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Payable (Unlocked)</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Paid Out</th>
+                        <th class="px-3 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 broker-tbody">
+                <tbody id="brokers-tbody" class="divide-y divide-slate-100">
                     @forelse($brokers as $broker)
-                        <tr class="hover:bg-slate-50/70 transition-colors" x-data="{ openEdit: false, openView: false, openDelete: false }">
-                            <td class="px-3 py-4 border text-center">
-                                <div class="font-bold text-slate-900 text-sm flex items-center justify-center gap-1.5">
-                                    <span>{{ $broker->name }}</span>
+                        <tr class="table-row transition-colors text-center text-xs font-semibold text-slate-700" x-data="{ openEdit: false, openView: false, openDelete: false }">
+                            <td class="px-3 py-3 border text-left">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-8 h-8 rounded-full bg-[#a38c29] flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
+                                        {{ strtoupper(substr($broker->name, 0, 2)) }}
+                                    </div>
+                                    <div>
+                                        <span class="font-bold text-slate-900 block text-sm leading-tight">{{ $broker->name }}</span>
+                                        <span class="text-[9px] text-slate-500 font-medium">{{ $broker->linkedAccount->name ?? 'Unlinked' }} ({{ $broker->linkedAccount->code ?? 'N/A' }})</span>
+                                    </div>
                                 </div>
                             </td>
-                            <td class="px-3 py-4 border text-center">
-                                <div class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-amber-200/70 text-amber-900 font-bold font-mono text-xs shadow-2xs">
-                                    <span>{{ number_format($broker->default_commission_pct, 2) }}%</span>
-                                </div>
-
-                            </td>
-                            <td class="px-3 py-4 border text-center">
-                                <div class="font-bold text-slate-800">{{ $broker->total_deals }} Deal(s)</div>
-                                <div class="text-[10px] text-slate-500 font-mono mt-0.5">₹{{ number_format($broker->total_sale_value, 2) }}</div>
-                            </td>
-                            <td class="px-3 py-4 border text-center font-mono font-semibold text-amber-700">
-                                ₹{{ number_format($broker->accrued_commission, 2) }}
-                            </td>
-                            <td class="px-3 py-4 border text-center">
-                                <span class="font-mono font-bold text-sm {{ $broker->payable_commission > 0 ? 'text-emerald-700 bg-white px-2 py-1 rounded-md border border-emerald-200 shadow-sm' : 'text-slate-600' }}">
-                                    ₹{{ number_format($broker->payable_commission, 2) }}
+                            <td class="px-3 py-3 border text-center">
+                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-bold text-[10px]">
+                                    {{ number_format($broker->default_commission_pct, 2) }}%
                                 </span>
                             </td>
-                            <td class="px-3 py-4 border text-center font-mono font-semibold text-indigo-700">
+                            <td class="px-3 py-3 border text-center">
+                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-bold text-[10px]">
+                                    {{ $broker->total_deals }} Deals
+                                </span>
+                                <span class="block text-[9px] text-slate-500 font-mono mt-0.5">₹{{ number_format($broker->total_sale_value, 2) }}</span>
+                            </td>
+                            <td class="px-3 py-3 border text-right font-mono font-bold text-amber-700">
+                                ₹{{ number_format($broker->accrued_commission, 2) }}
+                            </td>
+                            <td class="px-3 py-3 border text-right font-mono font-bold text-emerald-600">
+                                ₹{{ number_format($broker->payable_commission, 2) }}
+                            </td>
+                            <td class="px-3 py-3 border text-right font-mono font-bold text-indigo-600">
                                 ₹{{ number_format($broker->paid_commission, 2) }}
                             </td>
-                            <td class="px-3 py-4 border text-right">
+                            <td class="px-3 py-3 border text-right">
                                 <div class="inline-flex items-center justify-end gap-1.5">
                                     <button @click="openView = true" title="View Broker Details" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
@@ -226,9 +203,15 @@
                                     <button @click="openEdit = true" title="Edit Broker Rate" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm">
                                         <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                     </button>
-                                    <button @click="openDelete = true" title="Delete Broker" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm">
-                                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    </button>
+                                    @if($broker->total_deals == 0)
+                                        <button @click="openDelete = true" title="Delete Broker" class="p-2 rounded-lg bg-red-600/10 hover:bg-red-600/20 text-red-600 hover:text-red-700 transition inline-flex items-center justify-center shadow-sm">
+                                            <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    @else
+                                        <button disabled class="p-2 rounded-lg bg-slate-100 text-slate-400 opacity-50 cursor-not-allowed shadow-sm" title="Cannot delete broker with associated sales">
+                                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    @endif
                                 </div>
 
                                 {{-- View Modal --}}
@@ -403,173 +386,12 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-3 py-12 border text-center text-slate-500 italic">No brokers registered yet. Click "Register Broker Profile" above to get started.</td>
+                            <td colspan="7" class="px-3 py-12 border text-center text-slate-500 italic">No brokers registered yet. Click "Add Broker" above to get started.</td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
-
-    {{-- Transaction-wise Commission Visibility Section --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-                <h2 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Transaction-wise Commission Visibility</h2>
-                <p class="text-[10px] text-slate-450 mt-0.5">Real-time visibility into every property deal, commission amount, and payment completion status.</p>
-            </div>
-
-            {{-- Filter Form --}}
-            <form method="GET" action="{{ route('brokers.index') }}" class="flex items-center gap-2">
-                <select name="broker_id" onchange="this.form.submit()"
-                        class="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 cursor-pointer focus:outline-none shadow-2xs font-semibold">
-                    <option value="">All Brokers</option>
-                    @foreach($brokers as $b)
-                        <option value="{{ $b->id }}" {{ request('broker_id') == $b->id ? 'selected' : '' }}>{{ $b->name }}</option>
-                    @endforeach
-                </select>
-                @if(request('broker_id'))
-                    <a href="{{ route('brokers.index') }}" class="text-[10px] text-slate-400 hover:text-slate-700 font-bold underline">Clear</a>
-                @endif
-            </form>
-        </div>
-
-        <div class="overflow-x-auto">
-            <table class="w-full text-xs text-left min-w-[1100px] broker-table border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
-                        <th class="px-3 py-3 border">Booking & Date</th>
-                        <th class="px-3 py-3 border">Property / Project</th>
-                        <th class="px-3 py-3 border">Broker / Agent</th>
-                        <th class="px-3 py-3 border">Net Sale Value</th>
-                        <th class="px-3 py-3 border">Commission Calc</th>
-                        <th class="px-3 py-3 border">Payment Progress</th>
-                        <th class="px-3 py-3 border">Commission Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 broker-tbody">
-                    @forelse($deals as $brokerage)
-                        @php
-                            $sale = $brokerage->sale;
-                            if (!$sale) continue;
-
-                            $paidAmt    = (float)($brokerage->paid_amount ?? 0);
-                            $commAmt    = (float)($brokerage->commission_amount ?? 0);
-                            $commAmount = $commAmt;
-                            $remaining  = max(0, $commAmt - $paidAmt);
-
-                            $rawStatus = $brokerage->status ?? 'pending';
-                            $effectiveStatus = match(true) {
-                                $paidAmt >= $commAmt - 0.01 && $commAmt > 0 => 'paid',
-                                $paidAmt > 0 => 'partial',
-                                default => $rawStatus
-                            };
-
-                            $badgeClass = match($effectiveStatus) {
-                                'payable'  => 'bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs font-bold',
-                                'partial'  => 'bg-blue-50 text-blue-700 border-blue-200 font-bold',
-                                'paid'     => 'bg-indigo-50 text-indigo-700 border-indigo-200 font-bold',
-                                default    => 'bg-amber-50 text-amber-700 border-amber-200 font-semibold'
-                            };
-
-                            $statusLabel = match($effectiveStatus) {
-                                'payable'  => 'Payable (Unlocked)',
-                                'partial'  => 'Partially Paid',
-                                'paid'     => 'Paid Out',
-                                default    => 'Accrued (Locked)'
-                            };
-                        @endphp
-                        <tr class="hover:bg-slate-50/70 transition-colors">
-                            <td class="px-3 py-4 border text-center">
-                                <div class="font-bold text-[#a38c29] font-mono">{{ $sale->sale_number ?? 'N/A' }}</div>
-                                <div class="text-[9px] text-slate-500 mt-0.5">{{ $sale->sale_date ? $sale->sale_date->format('d M Y') : 'N/A' }}</div>
-                                <div class="text-[10px] font-semibold text-slate-800 mt-0.5">{{ $sale->customer->name ?? 'Customer' }}</div>
-                            </td>
-                            <td class="px-3 py-4 border text-center">
-                                <div class="font-bold text-slate-900">{{ $sale->project->name ?? 'N/A' }}</div>
-                                <div class="text-[10px] text-slate-600 mt-0.5">Unit: <span class="font-bold text-slate-800 font-mono">{{ $sale->unit->door_no ?? 'N/A' }}</span></div>
-                            </td>
-                            <td class="px-3 py-4 border text-center">
-                                <div class="font-bold text-slate-800">{{ $brokerage->broker->name ?? 'Direct' }}</div>
-                                <div class="text-[9px] text-slate-500 font-mono mt-0.5">Rate: {{ number_format($brokerage->commission_percent ?? $brokerage->broker->default_commission_pct ?? 0, 2) }}%</div>
-                            </td>
-                            <td class="px-3 py-4 border text-center font-mono font-bold text-slate-900">
-                                ₹{{ number_format($sale->total_amount ?? 0, 2) }}
-                            </td>
-                            <td class="px-3 py-4 border text-center">
-                                <div class="font-mono font-black text-slate-900 text-sm">₹{{ number_format($commAmount, 2) }}</div>
-                                @if($brokerage->commission_percent)
-                                <div class="text-[9px] text-slate-500 uppercase mt-0.5">@ {{ number_format($brokerage->commission_percent, 2) }}% of sale</div>
-                                @endif
-                            </td>
-                            <td class="px-3 py-4 border text-center">
-                                @if($sale)
-                                    @if($sale->remaining_balance <= 0)
-                                        <span class="inline-flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-300">
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                            100% Paid / EMI Complete
-                                        </span>
-                                    @else
-                                        <div class="space-y-1 mx-auto max-w-[120px]">
-                                            <div class="flex justify-between text-[10px]">
-                                                <span class="text-slate-600 font-semibold">Pending Bal.</span>
-                                                <span class="font-mono font-bold text-rose-700">₹{{ number_format($sale->remaining_balance, 2) }}</span>
-                                            </div>
-                                            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden border border-slate-300">
-                                                @php
-                                                    $pctPaid = $sale->total_amount > 0 ? (($sale->total_amount - $sale->remaining_balance) / $sale->total_amount) * 100 : 0;
-                                                @endphp
-                                                <div class="bg-[#a38c29] h-full rounded-full" style="width: {{ min(100, max(0, $pctPaid)) }}%;"></div>
-                                            </div>
-                                            <span class="text-[9px] text-slate-500 block text-center">{{ number_format($pctPaid, 0) }}% collected</span>
-                                        </div>
-                                    @endif
-                                @else
-                                    <span class="text-slate-500 italic text-[10px]">N/A</span>
-                                @endif
-                            </td>
-                            <td class="px-3 py-4 border text-center align-middle">
-                                <div class="flex flex-col items-center justify-center gap-2 w-[140px] mx-auto">
-                                    <span class="w-full border px-2 py-1.5 rounded-xl font-bold text-[9px] uppercase {{ $badgeClass }} shadow-sm tracking-wide text-center">
-                                        {{ $statusLabel }}
-                                    </span>
-                                    
-                                    @if($effectiveStatus === 'pending')
-                                        <span class="text-[9px] text-slate-400 italic text-center w-full">Unlocks on full payment</span>
-                                    @elseif($effectiveStatus === 'payable')
-                                        <span class="text-[9px] text-slate-500 italic text-center w-full">Settled via Receipt Allocation</span>
-                                    @elseif($effectiveStatus === 'partial')
-                                        <div class="w-full space-y-1">
-                                            <div class="flex justify-between text-[9px]">
-                                                <span class="text-blue-600 font-bold">Paid: ₹{{ number_format($paidAmt, 0) }}</span>
-                                                <span class="text-rose-600 font-bold">Bal: ₹{{ number_format($remaining, 0) }}</span>
-                                            </div>
-                                            <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                                                @php $pctPaidComm = $commAmt > 0 ? ($paidAmt / $commAmt) * 100 : 0; @endphp
-                                                <div class="bg-blue-500 h-full rounded-full" style="width: {{ min(100, $pctPaidComm) }}%;"></div>
-                                            </div>
-                                            <span class="text-[9px] text-blue-600 font-bold block text-center">{{ number_format($pctPaidComm, 0) }}% paid</span>
-                                        </div>
-                                    @elseif($effectiveStatus === 'paid')
-                                        <span class="text-[9px] text-indigo-600 font-bold text-center w-full">✓ Fully settled ₹{{ number_format($commAmt, 0) }}</span>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-3 py-12 border text-center text-slate-500 italic">No broker sales or transactions recorded yet. When sales are registered with a broker, commission entries will appear here automatically.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if($deals->hasPages())
-            <div class="p-4 border-t border-slate-100 bg-slate-50">
-                {{ $deals->links() }}
-            </div>
-        @endif
     </div>
 
 </div>
