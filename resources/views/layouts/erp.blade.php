@@ -482,9 +482,12 @@
                 </svg>
             </button>
             <div x-show="openLoansDebt" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Bank Loan Master
                 </a>
+                <!-- <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Banking Master (Company Bank)
+                </a> -->
                 <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
                     Loan Disbursal Entry
                 </a>
@@ -587,8 +590,8 @@
                 <a href="{{ route('engineers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Engineer Master
                 </a>
-                <a href="{{ route('bank.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('bank.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Banking Master (Company Bank)
+                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    Banking Master (Company Bank Accounts)
                 </a>
                 <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cheque Status Master
