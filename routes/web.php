@@ -201,6 +201,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('units/{unit}/rate', [UnitController::class, 'updateRate'])->name('units.update-rate');
     Route::post('units/{unit}/status', [UnitController::class, 'updateStatus'])->name('units.update-status');
 
+    Route::get('/rate-revision', [UnitController::class, 'rateRevisionIndex'])->name('rate-revision.index');
+    Route::post('/rate-revision', [UnitController::class, 'storeRateRevision'])->name('rate-revision.store');
+
     Route::get('/units', [UnitController::class, 'index'])->name('units.index');
     Route::get('/units-matrix', [\App\Http\Controllers\UnitMatrixController::class, 'index'])->name('unit-matrix.index');
     Route::post('/units', [UnitController::class, 'store'])->name('units.store');

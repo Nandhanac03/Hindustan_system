@@ -14,6 +14,9 @@ class UnitRateLog extends Model
     protected $fillable = [
         'unit_id',
         'rate',
+        'revision_type',
+        'change_details',
+        'amount_change',
         'effective_from',
         'changed_by',
         'reason',
@@ -21,6 +24,7 @@ class UnitRateLog extends Model
 
     protected $casts = [
         'rate' => 'float',
+        'amount_change' => 'float',
         'effective_from' => 'date',
     ];
 

@@ -11,10 +11,10 @@ use Illuminate\Support\Facades\DB;
 
 class UnitRateService
 {
-    public function updateRate(Unit $unit, float $rate, string $effectiveFrom, ?string $reason = null): void
+    public function updateRate(Unit $unit, float $rate, string $effectiveFrom, ?string $reason = null, ?string $revisionType = 'Base Price Adjustment', ?string $changeDetails = null, ?float $amountChange = null): void
     {
-        DB::transaction(function () use ($unit, $rate, $effectiveFrom, $reason) {
-            $isParking = $unit->unitType && strtolower($unit->unitType->name) === 'parking';
+        DB::transaction(function () use ($unit, $rate, $effectiveFrom, $reason, $revisionType, $changeDetails, $amountChange) {
+            $isParking = $unit->unitType && (strtolower($unit->unitType->name) === 'parking' || strtolower($unit->unitType->category) === 'parking');
 
             if ($isParking) {
                 $expectedSale = $rate;
@@ -39,6 +39,9 @@ class UnitRateService
             UnitRateLog::create([
                 'unit_id' => $unit->id,
                 'rate' => $rate,
+                'revision_type' => $revisionType,
+                'change_details' => $changeDetails,
+                'amount_change' => $amountChange,
                 'effective_from' => $effectiveFrom,
                 'changed_by' => Auth::id(),
                 'reason' => $reason,

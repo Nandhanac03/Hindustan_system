@@ -594,11 +594,39 @@ class UnitController extends Controller
             'reason' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $newRate = (float)$request->rate;
+        $prevRate = (float)($unit->expected_rate_per_sqft ?? 0.0);
+        $isParking = $unit->unitType && (strtolower($unit->unitType->name) === 'parking' || strtolower($unit->unitType->category) === 'parking');
+
+        $amountChange = 0.0;
+        if ($isParking) {
+            $prevPrice = (float)($unit->expected_sale_amount ?? 0.0);
+            $amountChange = $newRate - $prevPrice;
+            $rateDiff = $amountChange;
+        } else {
+            $prevPrice = (float)($unit->expected_sale_amount ?? ($prevRate * ($unit->built_up_area ?? 0.0)));
+            $newPrice = $newRate * (float)($unit->built_up_area ?? 0.0);
+            $amountChange = $newPrice - $prevPrice;
+            $rateDiff = $newRate - $prevRate;
+        }
+
+        $changeDetails = 'Base Price Adjustment';
+        if ($amountChange > 0) {
+            $changeDetails .= ' increased by +' . number_format($rateDiff, 2) . ' / sqft';
+        } elseif ($amountChange < 0) {
+            $changeDetails .= ' decreased by -' . number_format(abs($rateDiff), 2) . ' / sqft';
+        } else {
+            $changeDetails .= ' set to same rate';
+        }
+
         $this->rateService->updateRate(
             $unit,
-            (float)$request->rate,
+            $newRate,
             $request->effective_from,
-            $request->reason
+            $request->reason,
+            'Base Price Adjustment',
+            $changeDetails,
+            $amountChange
         );
 
         return response()->json(['success' => true, 'unit' => $unit]);
@@ -627,6 +655,113 @@ class UnitController extends Controller
             );
 
             return response()->json(['success' => true, 'unit' => $unit]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
+    public function rateRevisionIndex(Request $request): View
+    {
+        $user = Auth::user();
+        if (!$this->canManageRates($user)) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Fetch lookups
+        $projects = Project::orderBy('name')->get();
+        $unitTypes = UnitType::where('is_active', true)->orderBy('name')->get();
+        $floors = \App\Models\Floor::with('project')->orderBy('project_id')->orderBy('floor_number')->get();
+
+        $query = \App\Models\UnitRateLog::with(['unit.project', 'unit.floor', 'unit.unitType', 'user']);
+
+        // Filtering
+        if ($request->filled('unit_type_id')) {
+            $query->whereHas('unit', function ($q) use ($request) {
+                $q->where('unit_type_id', $request->unit_type_id);
+            });
+        }
+        if ($request->filled('floor_id')) {
+            $query->whereHas('unit', function ($q) use ($request) {
+                $q->where('floor_id', $request->floor_id);
+            });
+        }
+        $logs = $query->orderBy('id', 'desc')->paginate(50)->withQueryString();
+
+        // Calculate KPI Stats
+        $totalRevisions = \App\Models\UnitRateLog::count();
+        $priceIncrease = (float)\App\Models\UnitRateLog::where('amount_change', '>', 0)->sum('amount_change');
+        $priceDecrease = (float)\App\Models\UnitRateLog::where('amount_change', '<', 0)->sum('amount_change');
+        $activeUnits = \App\Models\UnitRateLog::distinct('unit_id')->count('unit_id');
+        $lastRevisionDate = \App\Models\UnitRateLog::orderBy('id', 'desc')->value('effective_from');
+
+        return view('units.rate-revision-logs', compact(
+            'projects',
+            'unitTypes',
+            'floors',
+            'logs',
+            'totalRevisions',
+            'priceIncrease',
+            'priceDecrease',
+            'activeUnits',
+            'lastRevisionDate'
+        ));
+    }
+
+    public function storeRateRevision(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        if (!$this->canManageRates($user)) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $request->validate([
+            'unit_id' => ['required', 'exists:hindustan_units,id'],
+            'revision_type' => ['nullable', 'string', 'max:50'],
+            'effective_from' => ['required', 'date'],
+            'rate' => ['required', 'numeric', 'min:0'],
+            'reason' => ['required', 'string', 'max:255'],
+        ]);
+
+        $unit = Unit::with('unitType')->findOrFail($request->unit_id);
+        $newRate = (float)$request->rate;
+        $prevRate = (float)($unit->expected_rate_per_sqft ?? 0.0);
+        
+        $isParking = $unit->unitType && (strtolower($unit->unitType->name) === 'parking' || strtolower($unit->unitType->category) === 'parking');
+        
+        $amountChange = 0.0;
+        if ($isParking) {
+            $prevPrice = (float)($unit->expected_sale_amount ?? 0.0);
+            $amountChange = $newRate - $prevPrice;
+            $rateDiff = $amountChange;
+        } else {
+            $prevPrice = (float)($unit->expected_sale_amount ?? ($prevRate * ($unit->built_up_area ?? 0.0)));
+            $newPrice = $newRate * (float)($unit->built_up_area ?? 0.0);
+            $amountChange = $newPrice - $prevPrice;
+            $rateDiff = $newRate - $prevRate;
+        }
+
+        $revisionType = $request->input('revision_type', 'Base Price Adjustment') ?: 'Base Price Adjustment';
+        $changeDetails = str_replace('_', ' ', ucfirst($revisionType));
+        if ($amountChange > 0) {
+            $changeDetails .= ' increased by +' . number_format($rateDiff, 2) . ' / sqft';
+        } elseif ($amountChange < 0) {
+            $changeDetails .= ' decreased by -' . number_format(abs($rateDiff), 2) . ' / sqft';
+        } else {
+            $changeDetails .= ' set to same rate';
+        }
+
+        try {
+            $this->rateService->updateRate(
+                $unit,
+                $newRate,
+                $request->effective_from,
+                $request->reason,
+                $revisionType,
+                $changeDetails,
+                $amountChange
+            );
+
+            return response()->json(['success' => true]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
