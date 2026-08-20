@@ -100,6 +100,7 @@
                         <th class="px-3 py-3 text-left w-[180px]">CONTRACTOR / PROJECT / UNIT</th>
                         <th class="px-3 py-3 text-left w-[120px]">SUBMIT / VERIFIED</th>
                         <th class="px-3 py-3 text-left w-[110px]">RA BILL AMOUNT</th>
+                        <th class="px-3 py-3 text-left w-[110px]">25% ADDITIONAL</th>
                         <th class="px-3 py-3 text-left w-[100px]">CORRECTION</th>
                         <th class="px-3 py-3 text-left bg-[#8a7522]/40 w-[110px]">AFTER CORRECTION</th>
                         <th class="px-3 py-3 text-left w-[110px]">DUE DATE</th>
@@ -144,6 +145,10 @@
 
                             <td class="px-3 py-3 text-left font-mono font-bold text-slate-900 align-middle">
                                 ₹{{ number_format((float) $bill->gross_amount, 2) }}
+                            </td>
+
+                            <td class="px-3 py-3 text-left font-mono font-bold text-slate-700 align-middle">
+                                {{ (float)$bill->additional_amount > 0 ? '₹' . number_format((float)$bill->additional_amount, 2) : '—' }}
                             </td>
 
                             <td class="px-3 py-3 text-left font-mono text-amber-700 font-bold align-middle">
@@ -274,15 +279,10 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('unit_id') ? 'text-rose-600' : '' }}">UNIT <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="unit_id" x-model="selectedUnitId" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('unit_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
-                            <option value="">Select Unit</option>
-                            <template x-for="u in availableUnits" :key="u.id">
-                                <option :value="u.id" x-text="u.door_no" :selected="selectedUnitId == u.id"></option>
-                            </template>
-                        </select>
-                        @error('unit_id')
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('additional_amount') ? 'text-rose-600' : '' }}">25% ADDITIONAL (₹)</label>
+                        <input type="number" step="0.01" name="additional_amount" value="{{ old('additional_amount') }}" placeholder="0.00"
+                               class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono font-bold focus:outline-none transition-all {{ $errors->has('additional_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                        @error('additional_amount')
                             <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -343,6 +343,11 @@
                     <div>
                         <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">GROSS CLAIMED</span>
                         <span class="text-xs font-mono font-black text-slate-900" x-text="selectedBill ? '₹' + numberFormat(selectedBill.gross_amount) : ''"></span>
+                    </div>
+
+                    <div>
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">25% ADDITIONAL</span>
+                        <span class="text-xs font-mono font-black text-slate-700" x-text="selectedBill ? '₹' + numberFormat(selectedBill.additional_amount) : ''"></span>
                     </div>
 
                     <div>
@@ -475,7 +480,7 @@ function raBillVerification() {
         openVerifyModal(bill) {
             this.selectedBill = bill;
             this.correctionInput = bill.correction_amount || 0;
-            this.calculatedNet = Math.max(0, bill.gross_amount - this.correctionInput);
+            this.calculatedNet = Math.max(0, (parseFloat(bill.gross_amount) || 0) + (parseFloat(bill.additional_amount) || 0) - this.correctionInput);
             this.verifyRemarksInput = bill.remarks || '';
 
             if (bill.verified_date) {
@@ -493,12 +498,13 @@ function raBillVerification() {
         recalcNet() {
             if (!this.selectedBill) return;
             const gross = parseFloat(this.selectedBill.gross_amount) || 0;
+            const additional = parseFloat(this.selectedBill.additional_amount) || 0;
             let corr = parseFloat(this.correctionInput) || 0;
-            if (corr > gross) {
-                corr = gross;
-                this.correctionInput = gross;
+            if (corr > (gross + additional)) {
+                corr = gross + additional;
+                this.correctionInput = gross + additional;
             }
-            this.calculatedNet = Math.max(0, gross - corr);
+            this.calculatedNet = Math.max(0, gross + additional - corr);
         },
 
         numberFormat(val) {

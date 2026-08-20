@@ -318,7 +318,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PAYMENT MODE (FROM MASTER) <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PAYMENT MODE  <span class="text-rose-500 font-bold">*</span></label>
                         <select name="payment_mode" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
                             @foreach(($paymentModes ?? []) as $pm)
                                 @php

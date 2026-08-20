@@ -22,6 +22,7 @@ class RaBill extends Model
         'unit_name',
         'submit_date',
         'gross_amount',
+        'additional_amount',
         'verified_date',
         'engineer_name',
         'correction_amount',

@@ -250,9 +250,10 @@ class RaBillController extends Controller
             'contractor_id'     => ['required', 'exists:payees,id'],
             'contractor_name'   => ['nullable', 'string', 'max:255'],
             'project_id'        => ['required', 'exists:projects,id'],
-            'unit_id'           => ['required', 'exists:hindustan_units,id'],
+            'unit_id'           => ['nullable', 'exists:hindustan_units,id'],
             'submit_date'       => ['required', 'date'],
             'gross_amount'      => ['required', 'numeric', 'min:0.01'],
+            'additional_amount' => ['nullable', 'numeric', 'min:0'],
             'verified_date'     => ['nullable', 'date'],
             'engineer_name'     => ['nullable', 'string', 'max:255'],
             'correction_amount' => ['nullable', 'numeric', 'min:0'],
@@ -269,8 +270,9 @@ class RaBillController extends Controller
         ]);
 
         $gross = (float) $validated['gross_amount'];
+        $additional = (float) ($validated['additional_amount'] ?? 0.00);
         $correction = (float) ($validated['correction_amount'] ?? 0.00);
-        $netApproved = max(0.00, $gross - $correction);
+        $netApproved = max(0.00, $gross + $additional - $correction);
 
         $contractorName = $validated['contractor_name'] ?? null;
         if (!empty($validated['contractor_id']) && empty($contractorName)) {
@@ -292,6 +294,7 @@ class RaBillController extends Controller
             'unit_name'           => $unitName,
             'submit_date'         => $validated['submit_date'],
             'gross_amount'        => $gross,
+            'additional_amount'   => $additional,
             'verified_date'       => $validated['verified_date'] ?? null,
             'engineer_name'       => $validated['engineer_name'] ?? null,
             'correction_amount'   => $correction,

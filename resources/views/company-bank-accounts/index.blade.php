@@ -312,26 +312,7 @@
                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
-                        {{-- SWIFT Code --}}
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">SWIFT / BIC Code</label>
-                            <input type="text" name="swift_code" x-model="addForm.swift_code" placeholder="e.g. HDFCINBBXXX"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
-                        </div>
 
-                        {{-- MICR Code --}}
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">MICR Code</label>
-                            <input type="text" name="micr_code" x-model="addForm.micr_code" placeholder="e.g. 500240002"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
-                        </div>
-
-                        {{-- Opening Balance --}}
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Opening Balance (₹)</label>
-                            <input type="number" step="0.01" name="opening_balance" x-model="addForm.opening_balance" placeholder="0.00"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
-                        </div>
 
                         {{-- UPI ID --}}
                         <div>
@@ -350,14 +331,7 @@
                             </select>
                         </div>
 
-                        {{-- Primary Receiving Account Checkbox --}}
-                        <div class="flex items-center gap-3 pt-6">
-                            <label class="relative flex items-center cursor-pointer">
-                                <input type="checkbox" name="is_default" value="1" x-model="addForm.is_default" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#a38c29]"></div>
-                                <span class="ml-2.5 text-xs font-bold text-slate-700">Set as Primary Receiving Bank</span>
-                            </label>
-                        </div>
+
                     </div>
 
                     <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -441,26 +415,9 @@
                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
-                        {{-- SWIFT Code --}}
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">SWIFT / BIC Code</label>
-                            <input type="text" name="swift_code" x-model="editForm.swift_code"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
-                        </div>
 
-                        {{-- MICR Code --}}
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">MICR Code</label>
-                            <input type="text" name="micr_code" x-model="editForm.micr_code"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
-                        </div>
 
-                        {{-- Opening & Current Balance --}}
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Current Balance (₹)</label>
-                            <input type="number" step="0.01" name="current_balance" x-model="editForm.current_balance"
-                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
-                        </div>
+
 
                         {{-- UPI ID --}}
                         <div>
@@ -479,14 +436,7 @@
                             </select>
                         </div>
 
-                        {{-- Primary Receiving Account Checkbox --}}
-                        <div class="flex items-center gap-3 pt-6">
-                            <label class="relative flex items-center cursor-pointer">
-                                <input type="checkbox" name="is_default" value="1" x-model="editForm.is_default" class="sr-only peer">
-                                <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#a38c29]"></div>
-                                <span class="ml-2.5 text-xs font-bold text-slate-700">Set as Primary Receiving Bank</span>
-                            </label>
-                        </div>
+
                     </div>
 
                     <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
@@ -558,15 +508,7 @@
                         <span class="text-xs font-bold font-mono text-slate-800 block mt-0.5" x-text="viewForm.upi_id || 'N/A'"></span>
                     </div>
 
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">SWIFT / BIC Code</span>
-                        <span class="text-xs font-bold font-mono text-slate-800 block mt-0.5 uppercase" x-text="viewForm.swift_code || 'N/A'"></span>
-                    </div>
 
-                    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">MICR Code</span>
-                        <span class="text-xs font-bold font-mono text-slate-800 block mt-0.5" x-text="viewForm.micr_code || 'N/A'"></span>
-                    </div>
                 </div>
 
                 <div class="mt-6 flex justify-end">
