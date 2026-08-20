@@ -61,10 +61,12 @@
     {{-- Stats Cards Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <!-- Card 1: Total Returns -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-purple-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-purple-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.2)] hover:border-r-purple-500/20 hover:border-y-purple-500/20 cursor-default group">
             <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
                 <span x-text="isCancellationTab ? 'Total Cancellations' : 'Total Returns'">Total Returns</span>
-                <span class="w-2 h-2 rounded-full bg-purple-500 shadow-xs"></span>
+                <div class="w-6 h-6 rounded-md bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="getReturnStats().totalReturns">
                 0
@@ -73,10 +75,12 @@
         </div>
 
         <!-- Card 2: Return Amount -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20 cursor-default group">
             <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
                 <span x-text="isCancellationTab ? 'Cancellation Amount' : 'Return Amount'">Return Amount</span>
-                <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-xs"></span>
+                <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().returnAmount)">
                 ₹0.00
@@ -85,10 +89,12 @@
         </div>
 
         <!-- Card 3: Payable to Customer -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.2)] hover:border-r-amber-500/20 hover:border-y-amber-500/20 cursor-default group">
             <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
                 <span>Payable to Customer</span>
-                <span class="w-2 h-2 rounded-full bg-amber-500 shadow-xs"></span>
+                <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().payableToCustomer)">
                 ₹0.00
@@ -97,10 +103,12 @@
         </div>
 
         <!-- Card 4: Receivable from Customer -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-teal-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-teal-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(20,184,166,0.2)] hover:border-r-teal-500/20 hover:border-y-teal-500/20 cursor-default group">
             <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
                 <span>Receivable from Customer</span>
-                <span class="w-2 h-2 rounded-full bg-teal-500 shadow-xs"></span>
+                <div class="w-6 h-6 rounded-md bg-teal-50 text-teal-600 border border-teal-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-teal-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">
                 ₹0.00
@@ -111,50 +119,88 @@
 
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5">
         
-        {{-- Filter Grid --}}
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 flex-1 items-end">
-            <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Search Customer/Unit:</label>
-                <input type="text" placeholder="Search..." x-model="returnFilters.search"
-                       class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-            </div>
-            <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Filter by Project:</label>
-                <select x-model="returnFilters.project_id"
-                        class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] cursor-pointer focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                    <option value="">All Projects</option>
-                    @foreach($projects as $proj)
-                        <option value="{{ $proj->id }}">{{ $proj->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Unit Type:</label>
-                <select x-model="returnFilters.type"
-                        class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] cursor-pointer focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                    <option value="">All</option>
-                    @if(isset($unitTypes))
-                        @foreach($unitTypes as $ut)
-                            <option value="{{ $ut->id }}">{{ $ut->name }}</option>
+        {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 transition-all">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+                {{-- Search Input --}}
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-primary group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <input type="text" placeholder="Search Customer/Unit..." 
+                           x-model="returnFilters.search"
+                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                    
+                    {{-- Clear Button --}}
+                    <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                        <button type="button" x-show="returnFilters.search" @click="returnFilters.search = ''"
+                                class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Project Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/></svg>
+                    </div>
+                    <select x-model="returnFilters.project_id"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Projects</option>
+                        @foreach($projects as $proj)
+                            <option value="{{ $proj->id }}">{{ $proj->name }}</option>
                         @endforeach
-                    @endif
-                </select>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+
+                {{-- Unit Type Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    </div>
+                    <select x-model="returnFilters.type"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Unit Types</option>
+                        @if(isset($unitTypes))
+                            @foreach($unitTypes as $ut)
+                                <option value="{{ $ut->id }}">{{ $ut->name }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+
+                {{-- Return Type Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                    </div>
+                    <select x-model="returnFilters.status"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Return Types</option>
+                        <option value="cancelled">Cancellation</option>
+                        <option value="returned">Return</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Return Type:</label>
-                <select x-model="returnFilters.status"
-                        class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] cursor-pointer focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
-                    <option value="">All</option>
-                    <option value="cancelled">Cancellation</option>
-                    <option value="returned">Return</option>
-                </select>
-            </div>
-            <div class="flex gap-2">
-                <button type="button" @click="returnFilters.search = ''; returnFilters.project_id = ''; returnFilters.type = ''; returnFilters.status = '';"
-                        class="w-full px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold rounded-xl transition uppercase">
-                    Reset
-                </button>
-            </div>
+            
+            {{-- Reset Filters Button --}}
+            <button type="button" @click="returnFilters.search = ''; returnFilters.project_id = ''; returnFilters.type = ''; returnFilters.status = '';"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 px-6 py-2.5 text-xs font-extrabold text-slate-700 shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+                <svg class="h-3.5 w-3.5 text-slate-500 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Reset</span>
+            </button>
         </div>
 
         {{-- Table --}}
