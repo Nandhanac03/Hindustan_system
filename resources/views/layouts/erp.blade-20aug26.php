@@ -519,7 +519,7 @@
                 </svg>
             </button>
             <div x-show="openReports" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <!-- @php
+                @php
                     $reportLinks = [
                         'dashboard'           => 'Executive Dashboard',
                         'availability'        => 'Availability Report',
@@ -541,15 +541,7 @@
                         'audit_trail'         => 'Audit Trail Log',
                         'approvals'           => 'Workflow Approvals',
                     ];
-                @endphp -->
-               @php
-    $reportLinks = [
-        'dashboard'           => 'Executive Dashboard',
-        'sales'               => 'Sales Report',
-        'emi_collections'     => 'EMI & Collection Reports',
-        'supplier_contractor' => 'Supplier & Contractor Stmt',
-    ];
-@endphp
+                @endphp
                 @foreach($reportLinks as $key => $label)
                     <a href="{{ route('reports.' . $key) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.' . $key) ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                         {{ $label }}
