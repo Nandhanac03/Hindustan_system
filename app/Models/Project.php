@@ -8,6 +8,7 @@ use App\Traits\HasSystemScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Project extends Model
 {
@@ -66,5 +67,10 @@ class Project extends Model
     public function unitTypes(): HasMany
     {
         return $this->hasMany(UnitType::class);
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

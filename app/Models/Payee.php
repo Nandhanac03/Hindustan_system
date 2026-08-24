@@ -8,6 +8,7 @@ use App\Traits\HasSystemScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Payee extends Model
 {
@@ -43,5 +44,10 @@ class Payee extends Model
     public function partnerAllocations(): HasMany
     {
         return $this->hasMany(PartnerAllocation::class, 'partner_id');
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

@@ -480,6 +480,14 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/petty-cash/balance-register', [\App\Http\Controllers\PettyCashController::class, 'balanceRegister'])->name('petty-cash.balance-register');
     Route::get('/petty-cash/export', [\App\Http\Controllers\PettyCashController::class, 'export'])->name('petty-cash.export');
     Route::get('/petty-cash/transactions/{transaction}', [\App\Http\Controllers\PettyCashController::class, 'transactionDetails'])->name('petty-cash.transactions.details');
+
+    // Document Management System (DMS)
+    Route::prefix('dms')->name('dms.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
+        Route::post('/store', [\App\Http\Controllers\DocumentController::class, 'store'])->name('store');
+        Route::get('/{id}/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
+        Route::delete('/{id}/delete', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
+    });
 });
 
 require __DIR__ . '/auth.php';
