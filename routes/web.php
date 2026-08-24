@@ -478,6 +478,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
 
     // Petty Cash Module
     Route::get('/petty-cash/balance-register', [\App\Http\Controllers\PettyCashController::class, 'balanceRegister'])->name('petty-cash.balance-register');
+    Route::get('/petty-cash/contra-withdrawal', [\App\Http\Controllers\PettyCashController::class, 'contraWithdrawal'])->name('petty-cash.contra-withdrawal');
+    Route::post('/petty-cash/contra-withdrawal', [\App\Http\Controllers\PettyCashController::class, 'storeContraWithdrawal'])->name('petty-cash.store-contra-withdrawal');
     Route::get('/petty-cash/export', [\App\Http\Controllers\PettyCashController::class, 'export'])->name('petty-cash.export');
     Route::get('/petty-cash/transactions/{transaction}', [\App\Http\Controllers\PettyCashController::class, 'transactionDetails'])->name('petty-cash.transactions.details');
 
