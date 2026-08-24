@@ -12,9 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('unit_rate_logs', function (Blueprint $table) {
-            $table->string('revision_type', 50)->nullable()->after('rate');
-            $table->string('change_details', 255)->nullable()->after('revision_type');
-            $table->decimal('amount_change', 15, 2)->nullable()->after('change_details');
+            if (!Schema::hasColumn('unit_rate_logs', 'revision_type')) {
+                $table->string('revision_type', 50)->nullable()->after('rate');
+            }
+            if (!Schema::hasColumn('unit_rate_logs', 'change_details')) {
+                $table->string('change_details', 255)->nullable()->after('revision_type');
+            }
+            if (!Schema::hasColumn('unit_rate_logs', 'amount_change')) {
+                $table->decimal('amount_change', 15, 2)->nullable()->after('change_details');
+            }
         });
     }
 

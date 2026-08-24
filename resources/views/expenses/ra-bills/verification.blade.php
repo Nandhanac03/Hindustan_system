@@ -97,14 +97,14 @@
                 <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
                     <tr class="text-left">
                         <th class="px-3 py-3 text-left w-[85px]">RA BILL NO</th>
-                        <th class="px-3 py-3 text-left w-[180px]">CONTRACTOR / PROJECT / UNIT</th>
+                        <th class="px-3 py-3 text-left w-[180px]">CONTRACTOR / PROJECT</th>
                         <th class="px-3 py-3 text-left w-[120px]">SUBMIT / VERIFIED</th>
-                        <th class="px-3 py-3 text-left w-[110px]">RA BILL AMOUNT</th>
-                        <th class="px-3 py-3 text-left w-[110px]">25% ADDITIONAL</th>
-                        <th class="px-3 py-3 text-left w-[100px]">CORRECTION</th>
-                        <th class="px-3 py-3 text-left bg-[#8a7522]/40 w-[110px]">AFTER CORRECTION</th>
-                        <th class="px-3 py-3 text-left w-[110px]">DUE DATE</th>
-                        <th class="px-3 py-3 text-left w-[90px]">STATUS</th>
+                        <th class="px-3 py-3 text-right w-[110px]">RA BILL AMOUNT</th>
+                        <th class="px-3 py-3 text-right w-[110px]">ADDITIONAL WORK</th>
+                        <th class="px-3 py-3 text-right w-[100px]">CORRECTION</th>
+                        <th class="px-3 py-3 text-right bg-[#8a7522]/40 w-[110px]">AFTER CORRECTION</th>
+                        <th class="px-3 py-3 text-center w-[110px]">DUE DATE</th>
+                        <th class="px-3 py-3 text-center w-[90px]">STATUS</th>
                         <th class="px-3 py-3 text-right w-[110px]">ACTIONS</th>
                     </tr>
                 </thead>
@@ -118,13 +118,13 @@
                             <td class="px-3 py-3 align-middle">
                                 <div class="font-black text-slate-900 text-[11.5px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
                                 <div class="text-[10px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
-                                @if($bill->unit_name || $bill->unit)
+                                <!-- @if($bill->unit_name || $bill->unit)
                                     <div class="mt-0.5">
                                         <span class="inline-flex items-center gap-1 px-1.5 py-0.2 bg-amber-100/90 text-amber-950 border border-amber-300/70 rounded text-[9px] font-black uppercase tracking-wider whitespace-nowrap shadow-2xs">
                                             <span>Unit: {{ $bill->unit_name ?: ($bill->unit->door_no ?? '') }}</span>
                                         </span>
                                     </div>
-                                @endif
+                                @endif -->
                             </td>
 
                             <td class="px-3 py-3 text-left font-mono align-middle">
@@ -143,29 +143,44 @@
                                 @endif
                             </td>
 
-                            <td class="px-3 py-3 text-left font-mono font-bold text-slate-900 align-middle">
+                            <td class="px-3 py-3 text-right font-mono font-bold text-slate-900 align-middle">
                                 ₹{{ number_format((float) $bill->gross_amount, 2) }}
                             </td>
 
-                            <td class="px-3 py-3 text-left font-mono font-bold text-slate-700 align-middle">
-                                {{ (float)$bill->additional_amount > 0 ? '₹' . number_format((float)$bill->additional_amount, 2) : '—' }}
+                            <td class="px-3 py-3 text-right font-mono align-middle">
+                                @if((float)$bill->additional_amount > 0)
+                                    <div class="font-bold text-slate-900 text-[11px]">
+                                        ₹{{ number_format((float)$bill->additional_amount, 2) }}
+                                    </div>
+                                    @if((float)$bill->gross_amount > 0)
+                                        @php
+                                            $pct = round(((float)$bill->additional_amount / (float)$bill->gross_amount) * 100, 1);
+                                            $formattedPct = ($pct == (int)$pct) ? (int)$pct : $pct;
+                                        @endphp
+                                        <div class="text-[9.5px] font-black text-amber-700 mt-0.5 whitespace-nowrap">
+                                            ({{ $formattedPct }}%)
+                                        </div>
+                                    @endif
+                                @else
+                                    <span class="text-slate-400 font-bold">—</span>
+                                @endif
                             </td>
 
-                            <td class="px-3 py-3 text-left font-mono text-amber-700 font-bold align-middle">
+                            <td class="px-3 py-3 text-right font-mono text-amber-700 font-bold align-middle">
                                 {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
                             </td>
 
-                            <td class="px-3 py-3 text-left font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
+                            <td class="px-3 py-3 text-right font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
                                 ₹{{ number_format((float) $bill->net_approved_amount, 2) }}
                             </td>
 
-                            <td class="px-3 py-3 text-left font-mono align-middle">
+                            <td class="px-3 py-3 text-center font-mono align-middle">
                                 <div class="text-slate-700 font-bold text-[10.5px]">
                                     {{ $bill->due_date ? $bill->due_date->format('d/m/Y') : '—' }}
                                 </div>
                             </td>
 
-                            <td class="px-3 py-3 text-left whitespace-nowrap align-middle">
+                            <td class="px-3 py-3 text-center whitespace-nowrap align-middle">
                                 @if($bill->verified_date)
                                     <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
                                         <svg class="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
@@ -211,7 +226,7 @@
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="addModalOpen = false">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="addModalOpen = false">
             <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                 <div>
                     <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">CONTRACTOR RA BILLS</span>
@@ -223,7 +238,8 @@
             <form action="{{ route('expenses.ra-bills.store') }}" method="POST" class="p-6 space-y-4">
                 @csrf
 
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Row 1: Bill No & Submit Date -->
+                <div class="grid grid-cols-2 gap-4 items-start">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">RA BILL NO <span class="text-rose-500 font-bold">*</span></label>
                         <input type="text" name="ra_bill_number" value="{{ old('ra_bill_number') }}" placeholder="e.g. 1 or RA-001" required
@@ -243,7 +259,8 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Row 2: Contractor & Project -->
+                <div class="grid grid-cols-2 gap-4 items-start">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('contractor_id') ? 'text-rose-600' : '' }}">CONTRACTOR NAME <span class="text-rose-500 font-bold">*</span></label>
                         <select name="contractor_id" x-model="selectedContractorId" required
@@ -277,31 +294,40 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('additional_amount') ? 'text-rose-600' : '' }}">25% ADDITIONAL (₹)</label>
-                        <input type="number" step="0.01" name="additional_amount" value="{{ old('additional_amount') }}" placeholder="0.00"
-                               class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono font-bold focus:outline-none transition-all {{ $errors->has('additional_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
-                        @error('additional_amount')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
-                        @enderror
-                    </div>
-
+                <!-- Row 3: Gross Amount & Due Date -->
+                <div class="grid grid-cols-2 gap-4 items-start">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('gross_amount') ? 'text-rose-600' : '' }}">RA BILL GROSS AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
+                        <input type="number" step="0.01" name="gross_amount" x-model="newGrossInput" @input="calcAdditionalFromPercent()" value="{{ old('gross_amount') }}" placeholder="5000000" required
                                class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono font-bold focus:outline-none transition-all {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                         @error('gross_amount')
                             <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
-                </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="col-span-2">
+                    <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">RA BILL DUE DATE</label>
                         <input type="date" name="due_date" value="{{ old('due_date') }}"
                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                    </div>
+                </div>
+
+                <!-- Row 4: Additional Work (% and Amount) -->
+                <div class="grid grid-cols-2 gap-4 items-start">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">ADDITIONAL WORK (%)</label>
+                        <input type="number" step="0.01" x-model="newAdditionalPercent" @input="calcAdditionalFromPercent()" placeholder="e.g. 12 or 20"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                        <p class="mt-1 text-[10px] font-bold text-slate-400">e.g. Type 12 for 12%</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('additional_amount') ? 'text-rose-600' : '' }}">ADDITIONAL WORK (₹)</label>
+                        <input type="number" step="0.01" name="additional_amount" x-model="newAdditionalAmount" @input="calcPercentFromAdditional()" value="{{ old('additional_amount') }}" placeholder="0.00"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all {{ $errors->has('additional_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900' : '' }}">
+                        @error('additional_amount')
+                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                        @enderror
                     </div>
                 </div>
 
@@ -346,8 +372,8 @@
                     </div>
 
                     <div>
-                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">25% ADDITIONAL</span>
-                        <span class="text-xs font-mono font-black text-slate-700" x-text="selectedBill ? '₹' + numberFormat(selectedBill.additional_amount) : ''"></span>
+                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">ADDITIONAL WORK</span>
+                        <span class="text-xs font-mono font-black text-slate-700" x-text="selectedBill && parseFloat(selectedBill.additional_amount) > 0 ? '₹' + numberFormat(selectedBill.additional_amount) + (parseFloat(selectedBill.gross_amount) > 0 ? ' (' + calcPercentage(selectedBill.additional_amount, selectedBill.gross_amount) + '%)' : '') : '—'"></span>
                     </div>
 
                     <div>
@@ -407,7 +433,7 @@
                         <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1.5">CORRECTION OF BILL (DEDUCTION ₹) <span class="text-rose-500 font-bold">*</span></label>
                         <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcNet()" required
                                class="w-full px-3.5 py-2.5 bg-amber-50/60 border border-amber-200 rounded-xl text-sm font-mono font-black text-amber-950 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
-                        <p class="mt-1 text-[10px] font-bold text-slate-500" x-text="selectedBill ? 'Max Correction: ₹' + numberFormat(selectedBill.gross_amount) : ''"></p>
+                        <p class="mt-1 text-[10px] font-bold text-slate-500" x-text="selectedBill ? 'Max Correction: ₹' + numberFormat((parseFloat(selectedBill.gross_amount) || 0) + (parseFloat(selectedBill.additional_amount) || 0)) : ''"></p>
                     </div>
 
                     <div>
@@ -455,6 +481,9 @@ function raBillVerification() {
         selectedEngineerId: '',
         verifyDateInput: '{{ date("Y-m-d") }}',
         verifyRemarksInput: '',
+        newGrossInput: '{{ old('gross_amount', '') }}',
+        newAdditionalPercent: '',
+        newAdditionalAmount: '{{ old('additional_amount', '') }}',
 
         init() {
             if (!this.selectedContractorId && this.allContractors && this.allContractors.length === 1) {
@@ -505,6 +534,32 @@ function raBillVerification() {
                 this.correctionInput = gross + additional;
             }
             this.calculatedNet = Math.max(0, gross + additional - corr);
+        },
+
+        calcAdditionalFromPercent() {
+            const gross = parseFloat(this.newGrossInput) || 0;
+            const pct = parseFloat(this.newAdditionalPercent) || 0;
+            if (gross > 0 && pct > 0) {
+                this.newAdditionalAmount = (gross * pct / 100).toFixed(2);
+            }
+        },
+
+        calcPercentFromAdditional() {
+            const gross = parseFloat(this.newGrossInput) || 0;
+            const amt = parseFloat(this.newAdditionalAmount) || 0;
+            if (gross > 0 && amt > 0) {
+                this.newAdditionalPercent = ((amt / gross) * 100).toFixed(2);
+            } else {
+                this.newAdditionalPercent = '';
+            }
+        },
+
+        calcPercentage(additional, gross) {
+            const add = parseFloat(additional) || 0;
+            const g = parseFloat(gross) || 0;
+            if (g <= 0 || add <= 0) return '0';
+            const pct = Math.round((add / g) * 1000) / 10;
+            return pct % 1 === 0 ? pct.toFixed(0) : pct.toFixed(1);
         },
 
         numberFormat(val) {

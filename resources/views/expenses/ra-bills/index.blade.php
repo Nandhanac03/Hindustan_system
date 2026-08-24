@@ -860,7 +860,7 @@
                         <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1.5">CORRECTION OF BILL (DEDUCTION ₹) <span class="text-rose-500 font-bold">*</span></label>
                         <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcNet()" required
                                class="w-full px-3.5 py-2.5 bg-amber-50/60 border border-amber-200 rounded-xl text-sm font-mono font-black text-amber-950 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
-                        <p class="mt-1 text-[10px] font-bold text-slate-500" x-text="selectedBill ? 'Max Correction: ₹' + numberFormat(selectedBill.gross_amount) : ''"></p>
+                        <p class="mt-1 text-[10px] font-bold text-slate-500" x-text="selectedBill ? 'Max Correction: ₹' + numberFormat((parseFloat(selectedBill.gross_amount) || 0) + (parseFloat(selectedBill.additional_amount) || 0)) : ''"></p>
                     </div>
 
                     <div>
@@ -1130,7 +1130,7 @@ function raBillManagement() {
         openVerifyModal(bill) {
             this.selectedBill = bill;
             this.correctionInput = bill.correction_amount || 0;
-            this.calculatedNet = Math.max(0, bill.gross_amount - this.correctionInput);
+            this.calculatedNet = Math.max(0, (parseFloat(bill.gross_amount) || 0) + (parseFloat(bill.additional_amount) || 0) - this.correctionInput);
             this.verifyRemarksInput = bill.remarks || '';
 
             if (bill.verified_date) {
@@ -1153,12 +1153,13 @@ function raBillManagement() {
         recalcNet() {
             if (!this.selectedBill) return;
             const gross = parseFloat(this.selectedBill.gross_amount) || 0;
+            const additional = parseFloat(this.selectedBill.additional_amount) || 0;
             let corr = parseFloat(this.correctionInput) || 0;
-            if (corr > gross) {
-                corr = gross;
-                this.correctionInput = gross;
+            if (corr > (gross + additional)) {
+                corr = gross + additional;
+                this.correctionInput = gross + additional;
             }
-            this.calculatedNet = Math.max(0, gross - corr);
+            this.calculatedNet = Math.max(0, gross + additional - corr);
         },
 
         numberFormat(val) {

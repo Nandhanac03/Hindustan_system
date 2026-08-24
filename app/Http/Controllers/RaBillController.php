@@ -271,6 +271,12 @@ class RaBillController extends Controller
 
         $gross = (float) $validated['gross_amount'];
         $additional = (float) ($validated['additional_amount'] ?? 0.00);
+
+        // If user entered a percentage number (e.g. 12 for 12% or 20 for 20%), convert to rupee amount
+        if ($additional > 0 && $additional <= 100 && $gross >= 1000) {
+            $additional = round(($gross * $additional) / 100, 2);
+        }
+
         $correction = (float) ($validated['correction_amount'] ?? 0.00);
         $netApproved = max(0.00, $gross + $additional - $correction);
 
@@ -318,16 +324,18 @@ class RaBillController extends Controller
     {
         $raBill = RaBill::findOrFail($id);
 
+        $maxAllowedCorrection = (float) $raBill->gross_amount + (float) $raBill->additional_amount;
+
         $validated = $request->validate([
             'verified_date'     => ['required', 'date'],
             'engineer_id'       => ['nullable', 'exists:engineers,id'],
             'engineer_name'     => ['nullable', 'string', 'max:255'],
-            'correction_amount' => ['required', 'numeric', 'min:0', 'max:' . (float) $raBill->gross_amount],
+            'correction_amount' => ['required', 'numeric', 'min:0', 'max:' . $maxAllowedCorrection],
             'due_date'          => ['nullable', 'date'],
             'remarks'           => ['nullable', 'string', 'max:500'],
         ], [
-            'correction_amount.max' => 'Correction cannot exceed the Gross Bill Amount of ₹'
-                . number_format((float) $raBill->gross_amount, 2) . '.',
+            'correction_amount.max' => 'Correction cannot exceed the Total Bill Amount (Gross + Additional) of ₹'
+                . number_format($maxAllowedCorrection, 2) . '.',
         ]);
 
         $engineerName = $validated['engineer_name'] ?? null;
@@ -343,8 +351,9 @@ class RaBillController extends Controller
 
         DB::transaction(function () use ($raBill, $validated, $engineerName) {
             $gross = (float) $raBill->gross_amount;
+            $additional = (float) $raBill->additional_amount;
             $correction = (float) $validated['correction_amount'];
-            $netApproved = max(0.00, $gross - $correction);
+            $netApproved = max(0.00, $gross + $additional - $correction);
             $paid = (float) $raBill->paid_amount;
             $balance = max(0.00, $netApproved - $paid);
 
