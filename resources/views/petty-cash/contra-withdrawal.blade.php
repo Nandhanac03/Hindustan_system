@@ -17,18 +17,18 @@
         <!-- Left Column: Form -->
         <div class="xl:col-span-2">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="border-b border-gray-100 p-4">
-                    <h2 class="text-[13px] font-extrabold text-[#a38c29] uppercase tracking-wider">Contra Withdrawal Entry</h2>
+                <div class="pt-6 px-6 pb-2">
+                    <h2 class="text-[13px] font-extrabold text-[#a38c29] uppercase tracking-wider">CONTRA WITHDRAWAL ENTRY</h2>
                 </div>
                 
-                <form action="{{ route('petty-cash.store-contra-withdrawal') }}" method="POST" enctype="multipart/form-data" class="p-6">
+                <form action="{{ route('petty-cash.store-contra-withdrawal') }}" method="POST" enctype="multipart/form-data" class="px-6 pb-6 pt-2">
                     @csrf
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-6">
                         <!-- Voucher No -->
                         <div>
                             <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Voucher No.</label>
-                            <input type="text" name="voucher_number" value="PCON-00016" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 h-10 text-[13px] font-medium text-gray-600 outline-none cursor-not-allowed">
+                            <input type="text" name="voucher_number" value="{{ $nextVoucherNo }}" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 h-10 text-[13px] font-medium text-gray-600 outline-none cursor-not-allowed">
                         </div>
                         
                         <!-- Date & Site Row -->
@@ -74,12 +74,6 @@
                         <div>
                             <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Amount (₹) <span class="text-red-500">*</span></label>
                             <input type="number" name="amount" x-model="amount" @input="updateBalance" step="0.01" class="w-full bg-white border border-gray-200 rounded-lg px-3 h-10 text-[13px] font-bold text-gray-800 outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] transition-all" placeholder="0.00">
-                        </div>
-
-                        <!-- Amount in Words -->
-                        <div>
-                            <label class="block text-[11px] font-bold text-gray-700 mb-1.5 invisible">Amount in Words</label>
-                            <input type="text" x-model="amountWords" readonly class="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 h-10 text-[12px] font-medium text-gray-500 outline-none cursor-not-allowed" placeholder="Amount in words will appear here">
                         </div>
 
                         <!-- Narration -->
@@ -151,10 +145,10 @@
             
             <!-- Withdrawal Details -->
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="border-b border-gray-100 p-4">
-                    <h2 class="text-[13px] font-extrabold text-[#a38c29] uppercase tracking-wider">Withdrawal Details</h2>
+                <div class="pt-5 px-5 pb-2">
+                    <h2 class="text-[12px] font-extrabold text-[#a38c29] uppercase tracking-wider">WITHDRAWAL DETAILS</h2>
                 </div>
-                <div class="p-5">
+                <div class="p-5 pt-3">
                     <table class="w-full text-[12px]">
                         <tbody class="divide-y divide-gray-100 divide-dashed">
                             <tr>
@@ -182,12 +176,12 @@
 
             <!-- Contra History -->
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="border-b border-gray-100 p-4">
-                    <h2 class="text-[13px] font-extrabold text-[#a38c29] uppercase tracking-wider">Contra History (Recent)</h2>
+                <div class="pt-5 px-5 pb-2">
+                    <h2 class="text-[12px] font-extrabold text-[#a38c29] uppercase tracking-wider">CONTRA HISTORY (RECENT)</h2>
                 </div>
                 <div class="p-0">
                     <table class="w-full text-left whitespace-nowrap">
-                        <thead class="bg-gray-50/50">
+                        <thead class="bg-white">
                             <tr>
                                 <th class="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Voucher No.</th>
                                 <th class="px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Date</th>
@@ -237,12 +231,6 @@
                 return this.pettyCashBefore + amt;
             },
             
-            get amountWords() {
-                let amt = parseFloat(this.amount) || 0;
-                if (amt === 0) return '';
-                return 'Amount in words placeholder...';
-            },
-
             formatCurrency(value) {
                 return '₹ ' + new Intl.NumberFormat('en-IN', {
                     minimumFractionDigits: 2,
