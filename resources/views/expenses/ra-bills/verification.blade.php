@@ -21,14 +21,6 @@
                 <span class="text-xs bg-[#a38c29]/15 text-[#a38c29] px-2.5 py-0.5 rounded-full font-bold">Inward Claims & Engineer Sign-Off</span>
             </h1>
         </div>
-
-        <div class="flex items-center gap-3">
-            <button type="button" @click="addModalOpen = true"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-sm hover:shadow-md cursor-pointer border border-[#a38c29]/40">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                <span> New RA Progress Bill</span>
-            </button>
-        </div>
     </div>
 
     <!-- ── SUCCESS & ERROR ALERTS ── -->
@@ -80,15 +72,29 @@
 
     <!-- Excel-Matched RA Progress Bills Register Table -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/50">
+        <div class="p-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-50/50">
             <div class="flex items-center gap-2">
                 <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">RA Progress Bills & Verification Sign-Off Register</span>
                 <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">{{ $raBills->count() }} Records</span>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5">
                 <input type="text" x-model="searchQuery" placeholder="Search RA Bill #, Contractor..."
-                       class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-72 shadow-2xs">
+                       class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-64 shadow-2xs">
+
+                <!-- Export Excel Button -->
+                <button type="button" @click="exportExcel('classic')"
+                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-xs hover:shadow-md cursor-pointer border border-emerald-500/40">
+                    <svg class="w-4 h-4 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Export Excel</span>
+                </button>
+
+                <!-- New RA Progress Bill Button -->
+                <button type="button" @click="addModalOpen = true"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#a38c29] via-[#947e24] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-xs hover:shadow-md cursor-pointer border border-[#a38c29]/40">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>+ New RA Progress Bill</span>
+                </button>
             </div>
         </div>
 
@@ -567,8 +573,422 @@ function raBillVerification() {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
+        },
+
+        exportExcel(theme = 'gold') {
+            const tableId = theme === 'classic' ? '#raBillsExcelTable' : '#raBillsExcelTableGold';
+            const table = document.querySelector(tableId);
+            if (!table) {
+                alert("No data available to export.");
+                return;
+            }
+
+            const filename = theme === 'classic' 
+                ? 'HindustanERP_RA_Bills_Verification_Report_Classic.xlsx'
+                : 'HindustanERP_RA_Bills_Verification_Executive_Gold_Report.xlsx';
+
+            if (typeof ExcelJS === 'undefined') {
+                alert('ExcelJS library is loading. Please try again in a moment.');
+                return;
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            const sheetName = 'RA Bills Verification';
+            const worksheet = workbook.addWorksheet(sheetName);
+
+            const frozenRow = theme === 'classic' ? 3 : 7;
+            worksheet.views = [{ state: 'frozen', xSplit: 2, ySplit: frozenRow, activePane: 'bottomRight' }];
+            worksheet.pageSetup = {
+                paperSize: 9, // A4 landscape
+                orientation: 'landscape',
+                fitToPage: true,
+                fitToWidth: 1,
+                fitToHeight: 0
+            };
+            worksheet.pageSetup.printTitles = theme === 'classic' ? '1:3' : '5:7';
+
+            worksheet.columns = [
+                { width: 10 }, // SL NO
+                { width: 16 }, // RA BILL NO
+                { width: 44 }, // CONTRACTOR NAME
+                { width: 50 }, // SITE PROJECT
+                { width: 16 }, // SUBMIT DATE
+                { width: 24 }, // RA BILL AMOUNT (₹)
+                { width: 22 }, // ADDITIONAL WORK (₹)
+                { width: 26 }, // CORRECTION / DEDUCTION (₹)
+                { width: 28 }, // AFTER CORRECTION (NET PAYABLE ₹)
+                { width: 16 }, // DUE DATE
+                { width: 16 }, // VERIFIED DATE
+                { width: 36 }, // VERIFYING ENGINEER
+                { width: 18 }  // STATUS
+            ];
+
+            function cssColorToHex(cssColor) {
+                if (!cssColor) return null;
+                cssColor = cssColor.trim();
+                if (cssColor.startsWith('#')) {
+                    let hex = cssColor.substring(1);
+                    if (hex.length === 3) {
+                        hex = hex.split('').map(c => c + c).join('');
+                    }
+                    return 'FF' + hex.toUpperCase();
+                }
+                if (cssColor.startsWith('rgb')) {
+                    const parts = cssColor.match(/\d+/g);
+                    if (parts && parts.length >= 3) {
+                        const r = parseInt(parts[0]).toString(16).padStart(2, '0');
+                        const g = parseInt(parts[1]).toString(16).padStart(2, '0');
+                        const b = parseInt(parts[2]).toString(16).padStart(2, '0');
+                        return 'FF' + (r + g + b).toUpperCase();
+                    }
+                }
+                const nameMap = {
+                    'white': 'FFFFFFFF',
+                    'black': 'FF000000',
+                    'red': 'FFFF0000',
+                    'green': 'FF00FF00',
+                    'blue': 'FF0000FF'
+                };
+                return nameMap[cssColor.toLowerCase()] || null;
+            }
+
+            const rows = table.querySelectorAll("tr");
+            const mergedCells = [];
+
+            function isMerged(r, c) {
+                return mergedCells.some(m => r >= m.s.r && r <= m.e.r && c >= m.s.c && c <= m.e.c);
+            }
+
+            rows.forEach((tr, rIdx) => {
+                const sheetRow = worksheet.getRow(rIdx + 1);
+                
+                const heightAttr = tr.getAttribute("height") || tr.style.height;
+                if (heightAttr) {
+                    const match = heightAttr.match(/[\d\.]+/);
+                    if (match) {
+                        sheetRow.height = Math.max(parseFloat(match[0]), 26);
+                    }
+                } else {
+                    sheetRow.height = 26;
+                }
+
+                const cells = tr.cells;
+                let colIdx = 1;
+
+                for (let cIdx = 0; cIdx < cells.length; cIdx++) {
+                    const cell = cells[cIdx];
+
+                    while (isMerged(rIdx + 1, colIdx)) {
+                        colIdx++;
+                    }
+
+                    const colspan = parseInt(cell.getAttribute("colspan")) || 1;
+                    const rowspan = parseInt(cell.getAttribute("rowspan")) || 1;
+
+                    if (colspan > 1 || rowspan > 1) {
+                        worksheet.mergeCells(rIdx + 1, colIdx, rIdx + rowspan, colIdx + colspan - 1);
+                        mergedCells.push({
+                            s: { r: rIdx + 1, c: colIdx },
+                            e: { r: rIdx + rowspan, c: colIdx + colspan - 1 }
+                        });
+                    }
+
+                    const excelCell = worksheet.getCell(rIdx + 1, colIdx);
+                    const rawVal = cell.textContent ? cell.textContent.trim() : '';
+
+                    const bgColorAttr = cell.getAttribute("bgcolor") || cell.style.backgroundColor;
+                    const bgColorHex = cssColorToHex(bgColorAttr);
+                    
+                    const textColorAttr = cell.style.color;
+                    const textColorHex = cssColorToHex(textColorAttr) || 'FF000000';
+
+                    const isBold = cell.tagName === 'TH' || cell.style.fontWeight === 'bold' || (cell.style.fontWeight && parseInt(cell.style.fontWeight) >= 700);
+                    const fontSizeMatch = (cell.style.fontSize || '').match(/[\d\.]+/);
+                    const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[0]) : 10;
+
+                    let horizAlign = cell.style.textAlign || (cell.tagName === 'TH' ? 'center' : 'left');
+                    if (horizAlign === 'start') horizAlign = 'left';
+                    if (horizAlign === 'end') horizAlign = 'right';
+
+                    let vertAlign = cell.style.verticalAlign || 'middle';
+                    const isCurrency = cell.getAttribute("data-format") === "currency" || (cell.style.msoNumberFormat && cell.style.msoNumberFormat.includes('#,##0'));
+                    const isDate = cell.getAttribute("data-format") === "date" || (cell.style.msoNumberFormat && cell.style.msoNumberFormat.includes('dd-mmm-yyyy'));
+                    
+                    // Parse values and apply clean formatting
+                    if (isDate || (rawVal && /^\d{4}-\d{2}-\d{2}$/.test(rawVal))) {
+                        if (rawVal && /^\d{4}-\d{2}-\d{2}$/.test(rawVal)) {
+                            const [yyyy, mm, dd] = rawVal.split('-');
+                            excelCell.value = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                        excelCell.numFormat = 'DD-MMM-YYYY';
+                    } else if (isCurrency || (rawVal && /^[\-₹\s\d\,\.]+\.?\d*$/.test(rawVal) && cell.tagName !== 'TH')) {
+                        const cleanVal = rawVal.replace(/[^\d\.\-]/g, '');
+                        const parsedNum = parseFloat(cleanVal);
+                        if (rawVal && !isNaN(parsedNum)) {
+                            excelCell.value = parsedNum;
+                        } else {
+                            excelCell.value = 0;
+                        }
+                        excelCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                    } else {
+                        if (rawVal && /^\-?\d+(\.\d+)?$/.test(rawVal) && !cell.getAttribute("colspan")) {
+                            excelCell.value = parseFloat(rawVal);
+                        } else {
+                            excelCell.value = rawVal;
+                        }
+                    }
+
+                    excelCell.font = {
+                        name: 'Calibri',
+                        size: fontSize,
+                        bold: isBold,
+                        color: { argb: textColorHex }
+                    };
+
+                    if (bgColorHex) {
+                        excelCell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: bgColorHex }
+                        };
+                    }
+
+                    excelCell.alignment = {
+                        horizontal: horizAlign,
+                        vertical: vertAlign,
+                        wrapText: false
+                    };
+
+                    excelCell.border = {
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+
+                    colIdx += colspan;
+                }
+            });
+
+            workbook.xlsx.writeBuffer().then(function (data) {
+                const blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement("a");
+                anchor.href = url;
+                anchor.download = filename;
+                anchor.click();
+                window.URL.revokeObjectURL(url);
+            });
         }
     };
 }
 </script>
+
+<div class="hidden" style="display: none;">
+    <!-- ── EXCEL DESIGN OPTION 1: EXECUTIVE LUXURY GOLD & CHARCOAL THEME (WITH KPIS & SEPARATE VERIFIER COLS) ── -->
+    <table id="raBillsExcelTableGold" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="55" style="width: 40pt;" />
+            <col width="105" style="width: 80pt;" />
+            <col width="230" style="width: 175pt;" />
+            <col width="200" style="width: 150pt;" />
+            <col width="125" style="width: 95pt;" />
+            <col width="155" style="width: 115pt;" />
+            <col width="145" style="width: 110pt;" />
+            <col width="145" style="width: 110pt;" />
+            <col width="175" style="width: 135pt;" />
+            <col width="125" style="width: 95pt;" />
+            <col width="125" style="width: 95pt;" />
+            <col width="190" style="width: 145pt;" />
+            <col width="115" style="width: 85pt;" />
+        </colgroup>
+        <thead>
+            <tr height="24" style="height: 24pt;">
+                <th colspan="13" bgcolor="#1e293b" style="background-color: #1e293b; color: #f59e0b; font-weight: bold; font-size: 10pt; text-align: left; padding-left: 12px; vertical-align: middle; border: 1px solid #334155; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    HINDUSTAN ERP — EXECUTIVE SUMMARY KPI METRICS & AUDIT SIGN-OFF DESK
+                </th>
+            </tr>
+            <tr height="36" style="height: 36pt;">
+                <td colspan="3" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #0f172a; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1.5pt solid #cbd5e1; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    TOTAL RA CLAIMED: ₹{{ number_format((float)$totalGross, 2) }}
+                </td>
+                <td colspan="3" bgcolor="#fef2f2" style="background-color: #fef2f2; color: #991b1b; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1.5pt solid #fca5a5; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    ENGINEER DEDUCTIONS: -₹{{ number_format((float)$totalCorrections, 2) }}
+                </td>
+                <td colspan="3" bgcolor="#eff6ff" style="background-color: #eff6ff; color: #1e3a8a; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1.5pt solid #93c5fd; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    NET APPROVED LIABILITIES: ₹{{ number_format((float)$totalNetApproved, 2) }}
+                </td>
+                <td colspan="4" bgcolor="#f0fdf4" style="background-color: #f0fdf4; color: #166534; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1.5pt solid #86efac; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    VERIFICATION SIGN-OFFS: {{ $raBills->whereNotNull('verified_date')->count() }} / {{ $raBills->count() }} Completed
+                </td>
+            </tr>
+            <tr height="14" style="height: 14pt;">
+                <td colspan="13" style="border: none;"></td>
+            </tr>
+            <tr height="46" style="height: 46pt;">
+                <th colspan="13" bgcolor="#2a2415" style="background-color: #2a2415; color: #f3e5ab; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #a38c29; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    HINDUSTAN ERP: CONTRACTOR RA PROGRESS BILLS & VERIFICATION REGISTER
+                </th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="5" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">1. CONTRACTOR & RA BILL IDENTIFICATION</th>
+                <th colspan="4" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. INWARD FINANCIAL CLAIMS & ENGINEER DEDUCTIONS</th>
+                <th colspan="4" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">3. SITE ENGINEER VERIFICATION & AUDIT SIGN-OFF</th>
+            </tr>
+            <tr height="40" style="height: 40pt;">
+                <th width="55" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 40pt;">SL NO</th>
+                <th width="105" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 80pt;">RA BILL NO</th>
+                <th width="230" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 175pt;">CONTRACTOR NAME</th>
+                <th width="200" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 150pt;">SITE PROJECT</th>
+                <th width="125" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">SUBMIT DATE</th>
+                <th width="155" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">RA BILL AMOUNT (₹)</th>
+                <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
+                <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">CORRECTION / DEDUCTION (₹)</th>
+                <th width="175" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">AFTER CORRECTION (NET PAYABLE ₹)</th>
+                <th width="125" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">DUE DATE</th>
+                <th width="125" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">VERIFIED DATE</th>
+                <th width="190" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 145pt;">VERIFYING ENGINEER</th>
+                <th width="115" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 85pt;">SIGN-OFF STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $goldAdditionalSum = 0;
+            @endphp
+            @foreach($raBills as $bill)
+                @php
+                    $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
+                    $grossAmt = (float)$bill->gross_amount;
+                    $addAmt = (float)$bill->additional_amount;
+                    $goldAdditionalSum += $addAmt;
+                    $corrAmt = (float)$bill->correction_amount;
+                    $netAmt = (float)$bill->net_approved_amount;
+                    $subDate = $bill->submit_date ? $bill->submit_date->format('Y-m-d') : '';
+                    $dueDate = $bill->due_date ? $bill->due_date->format('Y-m-d') : '';
+                    $verDate = $bill->verified_date ? $bill->verified_date->format('Y-m-d') : '';
+                    
+                    $corrStyle = $corrAmt > 0 ? 'background-color: #fee2e2; color: #991b1b; font-weight: bold;' : '';
+                    $statusStyle = $bill->verified_date ? 'background-color: #dcfce7; color: #166534; font-weight: bold;' : 'background-color: #fef9c3; color: #854d0e; font-weight: bold;';
+                @endphp
+                <tr height="26" style="height: 26pt; text-align: center; vertical-align: middle; {{ $rowBg }}">
+                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $loop->iteration }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $bill->ra_bill_number }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor')) }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($bill->project->name ?? 'Site Project') }}</td>
+                    <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $subDate }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $grossAmt }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $addAmt > 0 ? $addAmt : '0.00' }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $corrStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $corrAmt > 0 ? ('-' . $corrAmt) : '0.00' }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #eff6ff; color: #1e3a8a; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $netAmt }}</td>
+                    <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $dueDate }}</td>
+                    <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $verDate }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $bill->engineer_name ?: ($bill->verified_date ? 'Site Engineer' : '—') }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $statusStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $bill->verified_date ? 'VERIFIED' : 'SUBMITTED' }}</td>
+                </tr>
+            @endforeach
+            <tr height="32" style="height: 32pt; font-weight: bold; color: #ffffff;">
+                <td colspan="5" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL REGISTER SUMMARY</td>
+                <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalGross }}</td>
+                <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$goldAdditionalSum }}</td>
+                <td data-format="currency" bgcolor="#1e293b" style="background-color: #fee2e2; color: #991b1b; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)-$totalCorrections }}</td>
+                <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #38bdf8; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalNetApproved }}</td>
+                <td colspan="4" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ── EXCEL DESIGN OPTION 2: CLASSIC SALES REPORT MULTI-COLOR THEME ── -->
+    <table id="raBillsExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="55" style="width: 40pt;" />
+            <col width="105" style="width: 80pt;" />
+            <col width="230" style="width: 175pt;" />
+            <col width="200" style="width: 150pt;" />
+            <col width="125" style="width: 95pt;" />
+            <col width="155" style="width: 115pt;" />
+            <col width="145" style="width: 110pt;" />
+            <col width="145" style="width: 110pt;" />
+            <col width="175" style="width: 135pt;" />
+            <col width="125" style="width: 95pt;" />
+            <col width="125" style="width: 95pt;" />
+            <col width="190" style="width: 145pt;" />
+            <col width="115" style="width: 85pt;" />
+        </colgroup>
+        <thead>
+            <tr height="45" style="height: 45pt;">
+                <th colspan="13" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    HINDUSTAN ERP: CONTRACTOR RA PROGRESS BILLS & VERIFICATION REGISTER
+                </th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="5" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">1. CONTRACTOR & BILL INFORMATION</th>
+                <th colspan="4" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. FINANCIAL CLAIMS & ENGINEER DEDUCTIONS</th>
+                <th colspan="4" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">3. ENGINEER VERIFICATION & AUDIT SIGN-OFF</th>
+            </tr>
+            <tr height="40" style="height: 40pt;">
+                <th width="55" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 40pt;">SL NO</th>
+                <th width="105" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 80pt;">RA BILL NO</th>
+                <th width="230" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 175pt;">CONTRACTOR NAME</th>
+                <th width="200" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 150pt;">SITE PROJECT</th>
+                <th width="125" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">SUBMIT DATE</th>
+                <th width="155" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">RA BILL AMOUNT (₹)</th>
+                <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
+                <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">CORRECTION / DEDUCTION (₹)</th>
+                <th width="175" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">AFTER CORRECTION (NET PAYABLE ₹)</th>
+                <th width="125" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">DUE DATE</th>
+                <th width="125" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">VERIFIED DATE</th>
+                <th width="190" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 145pt;">VERIFYING ENGINEER</th>
+                <th width="115" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 85pt;">SIGN-OFF STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $totalAdditionalSum = 0;
+            @endphp
+            @foreach($raBills as $bill)
+                @php
+                    $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
+                    $grossAmt = (float)$bill->gross_amount;
+                    $addAmt = (float)$bill->additional_amount;
+                    $totalAdditionalSum += $addAmt;
+                    $corrAmt = (float)$bill->correction_amount;
+                    $netAmt = (float)$bill->net_approved_amount;
+                    $subDate = $bill->submit_date ? $bill->submit_date->format('Y-m-d') : '';
+                    $dueDate = $bill->due_date ? $bill->due_date->format('Y-m-d') : '';
+                    $verDate = $bill->verified_date ? $bill->verified_date->format('Y-m-d') : '';
+                    
+                    $corrStyle = $corrAmt > 0 ? 'background-color: #fee2e2; color: #991b1b; font-weight: bold;' : '';
+                    $statusStyle = $bill->verified_date ? 'background-color: #dcfce7; color: #166534; font-weight: bold;' : 'background-color: #fef9c3; color: #854d0e; font-weight: bold;';
+                @endphp
+                <tr height="26" style="height: 26pt; text-align: center; vertical-align: middle; {{ $rowBg }}">
+                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $loop->iteration }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $bill->ra_bill_number }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor')) }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($bill->project->name ?? 'Site Project') }}</td>
+                    <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $subDate }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $grossAmt }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $addAmt > 0 ? $addAmt : '0.00' }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $corrStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $corrAmt > 0 ? ('-' . $corrAmt) : '0.00' }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #eff6ff; color: #1e3a8a; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $netAmt }}</td>
+                    <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $dueDate }}</td>
+                    <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $verDate }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $bill->engineer_name ?: ($bill->verified_date ? 'Site Engineer' : '—') }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $statusStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $bill->verified_date ? 'VERIFIED' : 'SUBMITTED' }}</td>
+                </tr>
+            @endforeach
+            <tr height="30" style="height: 30pt; font-weight: bold; color: #ffffff;">
+                <td colspan="5" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
+                <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalGross }}</td>
+                <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalAdditionalSum }}</td>
+                <td data-format="currency" bgcolor="#17365D" style="background-color: #fee2e2; color: #991b1b; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)-$totalCorrections }}</td>
+                <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalNetApproved }}</td>
+                <td colspan="4" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 @endsection
