@@ -131,7 +131,6 @@
             </div>
         </div>
     </div>
-    </div>
 
     {{-- Filters --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 py-4 px-4 shadow-xs mb-4 mt-4">
@@ -305,7 +304,7 @@
                             <td class="px-4 py-3.5 border text-right pr-4">
                                 <div class="flex items-center justify-end gap-2">
                                     @if($loan->next_emi && $loan->status === 'Active')
-                                        <button @click="openPayModal({{ json_encode($loan->next_emi) }}, {{ json_encode($loan) }})"
+                                        <button @click="openPayModal({ id: {{ $loan->next_emi->id }}, emi_amount: {{ $loan->next_emi->emi_amount }}, amount_paid: {{ $loan->next_emi->amount_paid }} }, { id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', project: { name: '{{ addslashes($loan->project->name ?? 'N/A') }}' } })"
                                                 class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 cursor-pointer">
                                             Pay EMI
                                         </button>
@@ -321,13 +320,13 @@
                                                 View Ledger
                                             </a>
                                             @if($loan->status === 'Active')
-                                                <button @click="openPayoffModal({{ json_encode($loan) }}, 'prepayment')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
+                                                <button @click="openPayoffModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', outstanding_balance: {{ $loan->outstanding_balance }} }, 'prepayment')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
                                                     Principal Payoff
                                                 </button>
-                                                <button @click="openPayoffModal({{ json_encode($loan) }}, 'foreclosure')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
+                                                <button @click="openPayoffModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', outstanding_balance: {{ $loan->outstanding_balance }} }, 'foreclosure')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
                                                     Foreclosure
                                                 </button>
-                                                <button @click="openEditInterestModal({{ json_encode($loan) }})" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
+                                                <button @click="openEditInterestModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', interest_rate: {{ $loan->interest_rate }} })" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
                                                     Adjust Interest
                                                 </button>
                                             @endif
