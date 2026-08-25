@@ -186,6 +186,7 @@ class PettyCashController extends Controller
             'cash_box_id' => 'required',
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
         $amount = $request->input('amount');
@@ -256,6 +257,11 @@ class PettyCashController extends Controller
         $newBalance = $pettyCashBox->current_balance + $amount;
         $pettyCashBox->update(['current_balance' => $newBalance]);
 
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('petty-cash-attachments', 'public');
+        }
+
         PettyCashTransaction::create([
             'petty_cash_box_id' => $pettyCashBox->id,
             'voucher_id' => $voucher->id,
@@ -264,6 +270,7 @@ class PettyCashController extends Controller
             'transaction_type' => 'Contra',
             'reference_no' => $request->input('reference_no'),
             'narration' => $request->input('narration'),
+            'attachment_path' => $attachmentPath,
             'cash_in' => $amount,
             'cash_out' => 0,
             'balance' => $newBalance,

@@ -111,24 +111,28 @@
                         <label class="block text-[12px] font-extrabold text-[#a38c29] mb-3">Attachments</label>
                         
                         <div class="flex items-center gap-3 flex-wrap">
-                            <!-- Mock Attachment Pill -->
-                            <div class="flex items-center bg-[#f8f9fa] border border-[#e5e7eb] rounded-lg overflow-hidden group transition-all hover:border-[#a38c29]">
-                                <div class="px-3 py-2 flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
-                                    <span class="text-[12px] font-bold text-gray-700">cheque_scan.jpg</span>
-                                    <span class="text-[11px] text-gray-400">(245 KB)</span>
+                            <!-- Selected File Pill -->
+                            <template x-if="fileName">
+                                <div class="flex items-center bg-[#f8f9fa] border border-[#e5e7eb] rounded-lg overflow-hidden group transition-all hover:border-[#a38c29]">
+                                    <div class="px-3 py-2 flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                                        <span class="text-[12px] font-bold text-gray-700" x-text="fileName"></span>
+                                        <span class="text-[11px] text-gray-400" x-text="'(' + fileSize + ')'"></span>
+                                    </div>
+                                    <button type="button" @click="removeFile" class="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-[#fef2f2] hover:text-[#ef4444] text-[11px] font-bold transition-colors">
+                                        Remove
+                                    </button>
                                 </div>
-                                <button type="button" class="px-3 py-2 bg-gray-100 text-gray-600 hover:bg-[#ecfdf5] hover:text-[#10b981] text-[11px] font-bold transition-colors">
-                                    Remove
-                                </button>
-                            </div>
+                            </template>
                             
                             <!-- Add Attachment Button -->
-                            <label class="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#a38c29] hover:bg-gray-50 transition-colors">
-                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                <span class="text-[12px] font-bold text-gray-600">Add File</span>
-                                <input type="file" class="hidden">
-                            </label>
+                            <template x-if="!fileName">
+                                <label class="flex items-center gap-2 px-4 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#a38c29] hover:bg-gray-50 transition-colors">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    <span class="text-[12px] font-bold text-gray-600">Add File</span>
+                                    <input type="file" name="attachment" x-ref="fileInput" @change="handleFileChange" class="hidden" accept=".jpg,.jpeg,.png,.pdf">
+                                </label>
+                            </template>
                         </div>
                         <p class="text-[10px] text-gray-400 mt-2">JPG, PNG, PDF up to 2MB</p>
                     </div>
@@ -209,7 +213,7 @@
                     </table>
                 </div>
                 <div class="p-3 border-t border-gray-100 text-center bg-gray-50/50">
-                    <a href="#" class="text-[11px] font-bold text-[#a38c29] hover:text-[#8f7a22] transition-colors">View All Contra Entries</a>
+                    <a href="{{ route('petty-cash.balance-register') }}" class="text-[11px] font-bold text-[#a38c29] hover:text-[#8f7a22] transition-colors">View All Contra Entries</a>
                 </div>
             </div>
             
@@ -229,6 +233,29 @@
                 @foreach($bankAccounts as $bank)
                 '{{ $bank->id }}': {{ $bank->balance }},
                 @endforeach
+            },
+            fileName: null,
+            fileSize: null,
+            
+            handleFileChange(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    this.fileName = file.name;
+                    let size = (file.size / 1024).toFixed(0);
+                    if (size > 1024) {
+                        this.fileSize = (size / 1024).toFixed(2) + ' MB';
+                    } else {
+                        this.fileSize = size + ' KB';
+                    }
+                }
+            },
+            
+            removeFile() {
+                this.fileName = null;
+                this.fileSize = null;
+                if (this.$refs.fileInput) {
+                    this.$refs.fileInput.value = '';
+                }
             },
             
             get selectedBankBalance() {
