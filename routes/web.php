@@ -477,6 +477,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/cancellation-additional-work', [\App\Http\Controllers\CancellationAdditionalWorkController::class, 'index'])->name('cancellation-additional-work.index');
 
     // Petty Cash Module
+    Route::get('/petty-cash/daily-site-expenses', [\App\Http\Controllers\PettyCashController::class, 'dailySiteExpenses'])->name('petty-cash.daily-site-expenses');
+    Route::post('/petty-cash/daily-site-expenses', [\App\Http\Controllers\PettyCashController::class, 'storeExpense'])->name('petty-cash.store-expense');
     Route::get('/petty-cash/balance-register', [\App\Http\Controllers\PettyCashController::class, 'balanceRegister'])->name('petty-cash.balance-register');
     Route::get('/petty-cash/contra-withdrawal', [\App\Http\Controllers\PettyCashController::class, 'contraWithdrawal'])->name('petty-cash.contra-withdrawal');
     Route::post('/petty-cash/contra-withdrawal', [\App\Http\Controllers\PettyCashController::class, 'storeContraWithdrawal'])->name('petty-cash.store-contra-withdrawal');
@@ -490,6 +492,14 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/{id}/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
         Route::delete('/{id}/delete', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
     });
+    
+    // Standalone Bank Loan Disbursals
+    Route::get('/loan-disbursals', [\App\Http\Controllers\LoanDisbursalController::class, 'index'])->name('loan-disbursals.index');
+    Route::post('/loan-disbursals', [\App\Http\Controllers\LoanDisbursalController::class, 'store'])->name('loan-disbursals.store');
+    Route::put('/loan-disbursals/{disbursal}', [\App\Http\Controllers\LoanDisbursalController::class, 'update'])->name('loan-disbursals.update');
+    Route::delete('/loan-disbursals/{disbursal}', [\App\Http\Controllers\LoanDisbursalController::class, 'destroy'])->name('loan-disbursals.destroy');
+    Route::post('/loan-disbursals/{disbursal}/post', [\App\Http\Controllers\LoanDisbursalController::class, 'post'])->name('loan-disbursals.post');
+    Route::post('/loan-disbursals/{disbursal}/cancel', [\App\Http\Controllers\LoanDisbursalController::class, 'cancel'])->name('loan-disbursals.cancel');
 });
 
 require __DIR__ . '/auth.php';

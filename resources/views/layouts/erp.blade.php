@@ -345,7 +345,7 @@
                 <a href="{{ route('petty-cash.contra-withdrawal') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.contra-withdrawal') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Bank Cash Withdrawal (Contra)
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
+                <a href="{{ route('petty-cash.daily-site-expenses') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('petty-cash.daily-site-expenses') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Daily Site Expenses
                 </a>
                 <a href="{{ route('reports.petty_cash') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.petty_cash') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
@@ -484,8 +484,8 @@
         <!-- 💸 Loans & Debt Servicing -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Loans & Debt Servicing</p>
         
-        <div x-data="{ openLoansDebt: {{ Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('loans.*') || Request::routeIs('reports.loan_schedules') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+       <div x-data="{ openLoansDebt: {{ Request::routeIs('loans.') || Request::routeIs('reports.loan_schedules') || Request::routeIs('loan-disbursals.') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openLoansDebt = !openLoansDebt" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('loans.') || Request::routeIs('reports.loan_schedules') || Request::routeIs('loan-disbursals.') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
