@@ -280,6 +280,88 @@ class PettyCashController extends Controller
 
         return redirect()->route('petty-cash.balance-register')->with('success', 'Contra withdrawal entry posted successfully.');
     }
+    public function dailySiteExpenses(Request $request)
+    {
+        $projects = Project::where('is_active', true)->get();
+        
+        $selectedProject = $request->input('project_id', $projects->first()->id ?? null);
+        $fromDate = $request->input('from_date', date('Y-m-01'));
+        $toDate = $request->input('to_date', date('Y-m-d'));
+        $category = $request->input('category', 'All');
+        $paymentMode = $request->input('payment_mode', 'All');
+
+        $project = Project::find($selectedProject);
+        $siteName = $project ? $project->name : 'Green City Site';
+        
+        $pettyCashBox = PettyCashBox::firstOrCreate(
+            ['project_id' => $selectedProject],
+            [
+                'box_code' => 'PC-' . strtoupper($project ? $project->code : 'GEN') . '-001',
+                'incharge_id' => auth()->id(),
+                'current_balance' => 0
+            ]
+        );
+
+        $query = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id)
+            ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment']);
+            
+        if ($fromDate) {
+            $query->whereDate('transaction_date', '>=', $fromDate);
+        }
+        if ($toDate) {
+            $query->whereDate('transaction_date', '<=', $toDate);
+        }
+        
+        // Assuming narration holds the category for now since category isn't a dedicated column, 
+        // or we filter by category if added. Let's just pass the filter for UI logic.
+        // In a real scenario, you'd filter by an expense_category_id.
+        if ($category !== 'All') {
+            $query->where('narration', 'like', $category . '%');
+        }
+        
+        if ($paymentMode !== 'All') {
+            $query->where('payment_mode', $paymentMode);
+        }
+
+        $expenses = $query->orderBy('transaction_date', 'desc')->paginate(10);
+        
+        // Example summary
+        $totalAmount = $expenses->sum('cash_out');
+        
+        $paymentModes = \App\Models\PaymentMode::active()->get();
+
+        // Calculate sidebar stats
+        $availableBalance = $pettyCashBox->current_balance ?? 0;
+        
+        $startOfMonth = now()->startOfMonth();
+        $categorySummary = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id)
+            ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment'])
+            ->whereDate('transaction_date', '>=', $startOfMonth)
+            ->get()
+            ->groupBy(function($item) {
+                // If category is the prefix of narration
+                $parts = explode('-', $item->narration);
+                return trim($parts[0]) ?: 'Others';
+            })
+            ->map(function($group) {
+                return $group->sum('cash_out');
+            });
+
+        return view('petty-cash.daily-site-expenses', compact(
+            'expenses', 
+            'projects', 
+            'selectedProject', 
+            'fromDate', 
+            'toDate',
+            'category',
+            'paymentMode',
+            'siteName',
+            'totalAmount',
+            'paymentModes',
+            'availableBalance',
+            'categorySummary'
+        ));
+    }
 
     public function export(Request $request)
     {
@@ -291,5 +373,71 @@ class PettyCashController extends Controller
     {
         // Placeholder for transaction details view
         return back()->with('info', 'Transaction details view will be implemented soon.');
+    }
+
+    public function storeExpense(Request $request)
+    {
+        $request->validate([
+            'project_id' => 'required|exists:projects,id',
+            'transaction_date' => 'required|date',
+            'voucher_number' => 'required|string',
+            'category' => 'required|string',
+            'payment_mode' => 'required|string',
+            'bill_no' => 'nullable|string',
+            'bill_date' => 'nullable|date',
+            'amount' => 'required|numeric|min:0.01',
+            'particulars' => 'required|string',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+        ]);
+
+        $project = Project::findOrFail($request->project_id);
+        $pettyCashBox = PettyCashBox::firstOrCreate(
+            ['project_id' => $project->id],
+            [
+                'box_code' => 'PC-' . strtoupper($project->code) . '-001',
+                'incharge_id' => auth()->id(),
+                'current_balance' => 0
+            ]
+        );
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('petty-cash-attachments'), $filename);
+            $attachmentPath = 'petty-cash-attachments/' . $filename;
+        }
+
+        $balanceBefore = $pettyCashBox->current_balance;
+        $balanceAfter = $balanceBefore - $request->amount;
+
+        $transaction = PettyCashTransaction::create([
+            'petty_cash_box_id' => $pettyCashBox->id,
+            'transaction_date' => $request->transaction_date,
+            'voucher_number' => $request->voucher_number,
+            'transaction_type' => 'Site Expense',
+            'reference_no' => $request->bill_no,
+            'bill_date' => $request->bill_date,
+            'narration' => $request->category . ' - ' . $request->particulars,
+            'payment_mode' => $request->payment_mode,
+            'cash_in' => 0,
+            'cash_out' => $request->amount,
+            'balance' => $balanceAfter,
+            'created_by' => auth()->id(),
+            'status' => 'approved',
+        ]);
+
+        if ($attachmentPath) {
+            $transaction->attachment_path = $attachmentPath;
+            $transaction->save();
+        }
+
+        $pettyCashBox->update(['current_balance' => $balanceAfter]);
+
+        if ($request->input('submit_action') === 'save_new') {
+            return redirect()->back()->with('success', 'Site expense recorded successfully.')->with('show_expense_modal', true);
+        }
+
+        return redirect()->back()->with('success', 'Site expense recorded successfully.');
     }
 }
