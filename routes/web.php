@@ -251,6 +251,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/sales-return', [\App\Http\Controllers\ReportController::class, 'salesReturn'])->name('sales_return');
         Route::get('/exchange', [\App\Http\Controllers\ReportController::class, 'exchange'])->name('exchange_report');
         Route::get('/petty-cash', [\App\Http\Controllers\ReportController::class, 'pettyCash'])->name('petty_cash');
+        Route::get('/petty-cash/reports', [\App\Http\Controllers\ReportController::class, 'pettyCashReports'])->name('petty_cash.reports');
         Route::get('/loan-schedules', [\App\Http\Controllers\ReportController::class, 'loanSchedules'])->name('loan_schedules');
         Route::get('/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->name('trial_balance');
         Route::get('/profit-loss', [\App\Http\Controllers\ReportController::class, 'profitLoss'])->name('profit_loss');
@@ -492,7 +493,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/{id}/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
         Route::delete('/{id}/delete', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
     });
-    
+
     // Standalone Bank Loan Disbursals
     Route::get('/loan-disbursals', [\App\Http\Controllers\LoanDisbursalController::class, 'index'])->name('loan-disbursals.index');
     Route::post('/loan-disbursals', [\App\Http\Controllers\LoanDisbursalController::class, 'store'])->name('loan-disbursals.store');

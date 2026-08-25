@@ -1398,6 +1398,85 @@ class ReportController extends Controller
         return view('reports.petty-cash', array_merge($lookups, compact('activeTab', 'pettyCashEntries', 'pettyCashChartData')));
     }
 
+    public function pettyCashReports(Request $request): View
+    {
+        $lookups = $this->getCommonLookups($request);
+        $activeTab = 'petty_cash_reports';
+
+        // Default filters
+        $project_id = $request->input('project_id');
+        if (!$project_id && count($lookups['projects']) > 0) {
+            $project_id = $lookups['projects']->first()->id;
+        }
+
+        $from_date = $request->input('date_from', \Carbon\Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $to_date = $request->input('date_to', \Carbon\Carbon::now()->format('Y-m-d'));
+
+        // Query transactions
+        $transactionsQuery = \App\Models\PettyCashTransaction::whereHas('pettyCashBox', function($q) use ($project_id) {
+            $q->where('project_id', $project_id);
+        });
+
+        // Get past transactions for Opening Balance
+        $openingCashIn = (clone $transactionsQuery)->whereDate('transaction_date', '<', $from_date)->sum('cash_in');
+        $openingCashOut = (clone $transactionsQuery)->whereDate('transaction_date', '<', $from_date)->sum('cash_out');
+        $openingBalance = $openingCashIn - $openingCashOut;
+
+        // Current period transactions
+        $periodTransactions = (clone $transactionsQuery)
+            ->whereDate('transaction_date', '>=', $from_date)
+            ->whereDate('transaction_date', '<=', $to_date)
+            ->orderBy('transaction_date', 'asc')
+            ->get();
+
+        $totalCashIn = $periodTransactions->sum('cash_in');
+        $totalCashOut = $periodTransactions->sum('cash_out');
+        $closingBalance = $openingBalance + $totalCashIn - $totalCashOut;
+
+        // Build running balance
+        $runningBalance = $openingBalance;
+        $reportEntries = collect();
+        
+        // Add Opening Balance row
+        $reportEntries->push((object)[
+            'date' => \Carbon\Carbon::parse($from_date)->format('d-M-Y'),
+            'voucher_number' => '-',
+            'particulars' => 'Opening Balance',
+            'cash_in' => 0,
+            'cash_out' => 0,
+            'balance' => $openingBalance,
+            'type' => 'Opening',
+            'reference_no' => '-'
+        ]);
+
+        foreach ($periodTransactions as $t) {
+            $runningBalance += $t->cash_in - $t->cash_out;
+            $reportEntries->push((object)[
+                'date' => \Carbon\Carbon::parse($t->transaction_date)->format('d-M-Y'),
+                'voucher_number' => $t->voucher_number ?? '-',
+                'particulars' => $t->narration,
+                'cash_in' => $t->cash_in,
+                'cash_out' => $t->cash_out,
+                'balance' => $runningBalance,
+                'type' => $t->cash_in > 0 ? 'Contra' : 'Expense',
+                'reference_no' => $t->reference_no ?? '-'
+            ]);
+        }
+
+        $reportData = [
+            'project_id' => $project_id,
+            'from_date' => $from_date,
+            'to_date' => $to_date,
+            'opening_balance' => $openingBalance,
+            'total_cash_in' => $totalCashIn,
+            'total_cash_out' => $totalCashOut,
+            'closing_balance' => $closingBalance,
+            'entries' => $reportEntries
+        ];
+
+        return view('reports.petty-cash-reports', array_merge($lookups, compact('activeTab', 'reportData')));
+    }
+
     public function loanSchedules(Request $request): View
     {
         $lookups = $this->getCommonLookups($request);
