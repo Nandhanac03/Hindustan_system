@@ -37,10 +37,9 @@
         <!-- Metrics (Border-left style cards) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Opening Balance (Blue) -->
-            <!-- Opening Balance (Blue) -->
-            <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-blue-500 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-blue-200">
-                <p class="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-1">Opening Balance</p>
-                <h4 class="text-[22px] font-bold text-blue-700 m-0">₹ {{ number_format($openingBalance, 2) }}</h4>
+            <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#a38c29] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#a38c29]/50">
+                <p class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider mb-1">Opening Balance</p>
+                <h4 class="text-[22px] font-bold text-[#8a7522] m-0">₹ {{ number_format($openingBalance, 2) }}</h4>
                 <p class="text-[10px] text-gray-500 mt-1">From Previous Day</p>
             </div>
             <!-- Cash In (Green) -->
@@ -210,56 +209,66 @@
                 </div>
 
                 {{-- Reset Filters Button --}}
-                <button type="reset"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
-                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <a href="{{ route('petty-cash.balance-register') }}"
+                        class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-[12px] font-semibold text-gray-500 hover:text-[#a38c29] transition-colors flex-shrink-0">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                     <span>Reset Filters</span>
-                </button>
+                </a>
             </form>
         </div>
 
         <!-- Recent Transactions Table (Theme matched) -->
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8 relative">
+            <div class="px-5 py-4 border-b border-gray-100">
+                <h3 class="text-[14px] font-extrabold text-[#a38c29] uppercase tracking-wider">Recent Transactions</h3>
+            </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left whitespace-nowrap">
                     <thead class="bg-[#a38c29] text-white">
                         <tr>
-                            <th class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-wider">Date</th>
-                            <th class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-wider">Voucher No.</th>
-                            <th class="px-5 py-3.5 text-[10px] font-bold uppercase tracking-wider">Type</th>
-                            <th class="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider">Cash In (₹)</th>
-                            <th class="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider">Cash Out (₹)</th>
-                            <th class="px-5 py-3.5 text-right text-[10px] font-bold uppercase tracking-wider">Balance (₹)</th>
-                            <th class="px-5 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider">Status</th>
-                            <th class="px-5 py-3.5 text-center text-[10px] font-bold uppercase tracking-wider">Actions</th>
+                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Date</th>
+                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Voucher No.</th>
+                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Type</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash In (₹)</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash Out (₹)</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Balance (₹)</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-extrabold uppercase tracking-wide">Reference</th>
+                            <th class="px-5 py-3.5 text-center text-[11px] font-extrabold uppercase tracking-wide">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white">
                         @forelse($transactions as $txn)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-5 py-4 text-[11px] font-bold text-gray-700">{{ \Carbon\Carbon::parse($txn->date)->format('d M Y') }}</td>
+                                <td class="px-5 py-4 text-[11px] font-bold text-gray-700">{{ \Carbon\Carbon::parse($txn->date)->format('d-M-Y') }}</td>
                                 <td class="px-5 py-4">
-                                    <span class="text-[11px] font-bold text-[#10b981] uppercase">{{ $txn->voucher_number }}</span>
+                                    <span class="text-[11px] font-bold text-[#a38c29] uppercase">{{ $txn->voucher_number }}</span>
                                 </td>
-                                <td class="px-5 py-4 text-[11px] font-bold text-gray-600 uppercase">{{ $txn->type_label }}</td>
-                                <td class="px-5 py-4 text-right text-[12px] font-bold text-gray-700">
-                                    {{ $txn->cash_in > 0 ? '₹' . number_format($txn->cash_in, 2) : 'N/A' }}
+                                <td class="px-5 py-4 text-[11px] font-bold text-[#1e2a5e]">{{ $txn->type_label }}</td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
+                                    {{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '-' }}
                                 </td>
-                                <td class="px-5 py-4 text-right text-[12px] font-bold text-gray-700">
-                                    {{ $txn->cash_out > 0 ? '₹' . number_format($txn->cash_out, 2) : 'N/A' }}
+                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
+                                    {{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '-' }}
                                 </td>
-                                <td class="px-5 py-4 text-right text-[12px] font-bold text-[#10b981]">₹{{ number_format($txn->balance, 2) }}</td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
+                                    {{ number_format($txn->balance, 2) }}
+                                </td>
+                                <td class="px-5 py-4 text-left text-[11px] font-medium text-gray-500">
+                                    {{ $txn->reference ?: '-' }}
+                                </td>
                                 <td class="px-5 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center text-[10px] font-bold text-[#10b981] bg-[#ecfdf5] px-2 py-0.5 rounded-full lowercase tracking-wide">
-                                        active
-                                    </span>
-                                </td>
-                                <td class="px-5 py-4 text-center">
-                                    <div class="flex items-center justify-center">
-                                        <a href="#" class="w-6 h-6 flex items-center justify-center bg-yellow-50 text-yellow-600 rounded hover:bg-yellow-100 transition-colors" title="View Details">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                        </a>
-                                    </div>
+                                    <button type="button" 
+                                            onclick="showTransactionModal(this)" 
+                                            data-voucher="{{ $txn->voucher_number }}"
+                                            data-date="{{ \Carbon\Carbon::parse($txn->date)->format('d-M-Y') }}"
+                                            data-type="{{ $txn->type_label }}"
+                                            data-cashin="{{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '0.00' }}"
+                                            data-cashout="{{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '0.00' }}"
+                                            data-balance="{{ number_format($txn->balance, 2) }}"
+                                            data-reference="{{ $txn->reference ?: 'N/A' }}"
+                                            class="text-[#a38c29] hover:text-[#8a7522] transition-colors focus:outline-none" title="View Transaction Details">
+                                        <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
                                 </td>
                             </tr>
                         @empty
@@ -353,6 +362,103 @@
                 });
             }
         });
+
+        // Modal Functions
+        function showTransactionModal(btn) {
+            document.getElementById('modal-voucher').innerText = btn.getAttribute('data-voucher');
+            document.getElementById('modal-date').innerText = btn.getAttribute('data-date');
+            document.getElementById('modal-type').innerText = btn.getAttribute('data-type');
+            
+            const cashIn = btn.getAttribute('data-cashin');
+            document.getElementById('modal-cashin').innerText = cashIn !== '0.00' ? '+ ₹ ' + cashIn : '-';
+            
+            const cashOut = btn.getAttribute('data-cashout');
+            document.getElementById('modal-cashout').innerText = cashOut !== '0.00' ? '- ₹ ' + cashOut : '-';
+            
+            document.getElementById('modal-balance').innerText = '₹ ' + btn.getAttribute('data-balance');
+            document.getElementById('modal-reference').innerText = btn.getAttribute('data-reference');
+
+            const modal = document.getElementById('transaction-modal');
+            const modalContent = document.getElementById('transaction-modal-content');
+            
+            modal.classList.remove('hidden');
+            // Trigger reflow
+            void modal.offsetWidth;
+            
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeTransactionModal() {
+            const modal = document.getElementById('transaction-modal');
+            const modalContent = document.getElementById('transaction-modal-content');
+            
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
     </script>
+
+    <!-- Transaction Details Modal -->
+    <div id="transaction-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 transform transition-all scale-95 opacity-0" id="transaction-modal-content">
+            <!-- Header (Premium Dark Theme) -->
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 rounded-t-xl">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Petty Cash</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            Transaction Details
+                        </h2>
+                    </div>
+                    <button type="button" onclick="closeTransactionModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
+            </div>
+            <!-- Body -->
+            <div class="px-6 py-5 bg-slate-50/50">
+                <table class="w-full text-sm">
+                    <tbody class="divide-y divide-gray-100">
+                        <tr>
+                            <td class="py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-1/3">Voucher No.</td>
+                            <td class="py-3 text-right font-bold text-blue-600 uppercase" id="modal-voucher"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date</td>
+                            <td class="py-3 text-right font-bold text-gray-800" id="modal-date"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Type / Particulars</td>
+                            <td class="py-3 text-right font-bold text-gray-800" id="modal-type"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Cash In</td>
+                            <td class="py-3 text-right font-bold text-[#10b981]" id="modal-cashin"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Cash Out</td>
+                            <td class="py-3 text-right font-bold text-[#ef4444]" id="modal-cashout"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Running Balance</td>
+                            <td class="py-3 text-right font-bold text-gray-800" id="modal-balance"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 text-[11px] font-bold text-gray-500 uppercase tracking-wider">Reference</td>
+                            <td class="py-3 text-right font-bold text-gray-600" id="modal-reference"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Footer -->
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end bg-slate-50 rounded-b-xl">
+                <button type="button" onclick="closeTransactionModal()" class="px-5 py-2 border border-slate-250 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

@@ -1,14 +1,16 @@
 @extends('layouts.erp')
 
 @section('content')
-<div class="p-6 bg-slate-50 min-h-screen" x-data="contraForm()">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="contraForm()">
     <!-- Header -->
-    <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-[#a38c29] text-white font-bold text-sm">2</span>
-            <h1 class="text-2xl font-bold text-gray-900 m-0">Bank Cash Withdrawal (Contra)</h1>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2 mb-6">
+        <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
+            <a href="#" class="hover:text-slate-600 transition">Home</a>
+            <span class="text-slate-300">›</span>
+            <span>Petty Cash</span>
+            <span class="text-slate-300">›</span>
+            <span class="text-[#a38c29] font-black">Bank Cash Withdrawal (Contra)</span>
         </div>
-        <p class="text-sm text-gray-500 ml-11">Record cash transfers from Karnataka Bank into the site Petty Cash Box.</p>
     </div>
 
     <!-- Main Content Grid -->
@@ -16,12 +18,19 @@
         
         <!-- Left Column: Form -->
         <div class="xl:col-span-2">
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="pt-6 px-6 pb-2">
-                    <h2 class="text-[13px] font-extrabold text-[#a38c29] uppercase tracking-wider">CONTRA WITHDRAWAL ENTRY</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10">
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Cash Transfer</span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            Contra Withdrawal Entry
+                        </h2>
+                    </div>
                 </div>
                 
-                <form action="{{ route('petty-cash.store-contra-withdrawal') }}" method="POST" enctype="multipart/form-data" class="px-6 pb-6 pt-2">
+                <form action="{{ route('petty-cash.store-contra-withdrawal') }}" method="POST" enctype="multipart/form-data" class="px-6 pb-6 pt-6">
                     @csrf
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-6">
@@ -144,11 +153,11 @@
         <div class="xl:col-span-1 flex flex-col gap-6">
             
             <!-- Withdrawal Details -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="pt-5 px-5 pb-2">
-                    <h2 class="text-[12px] font-extrabold text-[#a38c29] uppercase tracking-wider">WITHDRAWAL DETAILS</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="px-5 py-4 bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white border-b border-[#EAE3CD]">
+                    <h2 class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest">WITHDRAWAL DETAILS</h2>
                 </div>
-                <div class="p-5 pt-3">
+                <div class="p-5">
                     <table class="w-full text-[12px]">
                         <tbody class="divide-y divide-gray-100 divide-dashed">
                             <tr>
@@ -175,9 +184,9 @@
             </div>
 
             <!-- Contra History -->
-            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                <div class="pt-5 px-5 pb-2">
-                    <h2 class="text-[12px] font-extrabold text-[#a38c29] uppercase tracking-wider">CONTRA HISTORY (RECENT)</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+                <div class="px-5 py-4 bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white border-b border-[#EAE3CD]">
+                    <h2 class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest">CONTRA HISTORY (RECENT)</h2>
                 </div>
                 <div class="p-0">
                     <table class="w-full text-left whitespace-nowrap">

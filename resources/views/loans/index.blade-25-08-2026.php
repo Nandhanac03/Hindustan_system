@@ -1,0 +1,858 @@
+<x-erp-layout title="Bank Loan Master" headerTitle="Bank Loan Master Directory">
+
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="loanApp()">
+    {{-- Pending EMI Alert --}}
+    @if(isset($pendingEmisCount) && $pendingEmisCount > 0)
+        <div class="p-4 rounded-xl bg-amber-50 border border-amber-250 text-amber-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-5 h-5 text-amber-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>
+                    Attention: You have <strong class="text-amber-900">{{ $pendingEmisCount }}</strong> pending/overdue Loan EMI repayments due this month totaling <strong class="text-amber-900">₹{{ number_format($pendingEmisAmount, 2) }}</strong>.
+                </span>
+            </div>
+            <span class="px-3 py-1.5 bg-amber-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-wide">
+                See Due EMIs Below
+            </span>
+        </div>
+    @endif
+
+    {{-- Top Action Header --}}
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">Bank Loan Repayments</h1>
+            <p class="text-xs text-slate-500 mt-1">Manage project-level funding, loan master registers, track repayments, and rescheduling events.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <button @click="openInterestLogsModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-md uppercase tracking-wide">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Interest Edit Log
+            </button>
+            <a href="{{ route('loans.reports') }}" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-md uppercase tracking-wide">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+                Loan Dashboard & Reports
+            </a>
+            <button @click="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Create Loan
+            </button>
+        </div>
+    </div>
+
+
+
+    {{-- Alert Toast --}}
+    <div x-show="toast.open" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform translate-y-2"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-250"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform translate-y-2"
+         class="fixed bottom-5 right-5 z-50 p-4 rounded-xl shadow-lg border text-xs font-bold uppercase tracking-wide flex items-center gap-2"
+         :class="toast.type === 'success' ? 'bg-emerald-50 border-emerald-250 text-emerald-800' : 'bg-rose-50 border-rose-250 text-rose-800'"
+         style="display: none;">
+        <span x-text="toast.message"></span>
+        <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
+    </div>
+
+    {{-- KPI Metrics Grid --}}
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        
+        {{-- Card 1: Urgent Due EMIs --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Urgent Due</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:text-rose-700 group-hover:bg-rose-50/50">Action</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-rose-700 font-mono tracking-tight block group-hover:text-rose-600 transition-colors duration-300">₹{{ number_format((float)($pendingEmisAmount ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">{{ $pendingEmisCount ?? 0 }} Installment(s) Due</p>
+            </div>
+        </div>
+
+        {{-- Card 2: Active Loan Accounts --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-200/60 transition-all duration-300 group-hover:bg-slate-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Active Loans</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100">Live</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-2xl xl:text-3xl font-black text-slate-800 font-sans tracking-tight block group-hover:text-slate-900 transition-colors duration-300">{{ $activeLoansCount ?? 0 }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total active accounts.</p>
+            </div>
+        </div>
+
+        {{-- Card 3: Net Outstanding Balance --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-pink-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-pink-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(236,72,153,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-pink-50 flex items-center justify-center text-pink-600 border border-pink-100/60 transition-all duration-300 group-hover:bg-pink-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Outstanding</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-pink-300 group-hover:text-pink-700 group-hover:bg-pink-50/50">Pending</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-pink-700 transition-colors duration-300">₹{{ number_format((float)($totalOutstanding ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Net principal balance.</p>
+            </div>
+        </div>
+
+        {{-- Card 4: Total Repaid Principal --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Repaid</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Cleared</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format((float)($totalPaidPrincipal ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Principal repaid.</p>
+            </div>
+        </div>
+
+        {{-- Card 5: Paid Interest Cost --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)]">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Interest</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">Expense</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-xl xl:text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">₹{{ number_format((float)($totalPaidInterest ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Interest paid so far.</p>
+            </div>
+        </div>
+    </div>
+
+    {{-- Filters --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-sm mb-4">
+        <form method="GET" action="{{ route('loans.index') }}" class="flex flex-wrap items-end gap-3 text-xs font-semibold">
+            <div class="flex-grow min-w-[200px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Loan A/C No.</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input type="text" name="loan_account_no" value="{{ request('loan_account_no') }}" placeholder="Search Account..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all">
+                </div>
+            </div>
+
+            <div class="flex-grow min-w-[200px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lending Bank</label>
+                <input type="text" name="lender_name" value="{{ request('lender_name') }}" placeholder="Bank Name..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all">
+            </div>
+
+            <div class="flex-grow min-w-[200px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Associated Project</label>
+                <select name="project_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all cursor-pointer">
+                    <option value="">All Projects...</option>
+                    @foreach($projects as $p)
+                        <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex-grow min-w-[150px] space-y-1">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Loan Status</label>
+                <select name="status" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all cursor-pointer">
+                    <option value="">All Statuses...</option>
+                    <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
+                    <option value="Closed" {{ request('status') === 'Closed' ? 'selected' : '' }}>Closed</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl font-bold uppercase tracking-wider transition-all shadow-md shadow-[#a38c29]/20 inline-flex items-center gap-2">
+                    Filter
+                </button>
+                @if(request()->anyFilled(['loan_account_no', 'lender_name', 'project_id', 'status']))
+                    <a href="{{ route('loans.index') }}" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold uppercase tracking-wider transition-all">Clear</a>
+                @endif
+            </div>
+        </form>
+    </div>
+
+    {{-- Loans List Table Card --}}
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+        <style>
+            #loans-table thead th {
+                border-color: #8a7522 !important;
+            }
+            #loans-tbody tr:nth-child(even) {
+                background-color: #F6F3E9 !important;
+            }
+            #loans-tbody tr:hover {
+                background-color: #ebe5d0 !important;
+            }
+        </style>
+        <div class="overflow-x-auto">
+            <table id="loans-table" class="w-full text-xs text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">SL NO</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">LOAN ACCOUNT / PROJECT</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">LENDING BANK</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">LOAN TERMS (PRINCIPAL & RATE)</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">OUTSTANDING & REPAYMENTS</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">NEXT DUE EMI</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">STATUS & LOGS</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="loans-tbody" class="divide-y divide-[#EAE3CD] text-center font-semibold text-slate-700 bg-white">
+                    @forelse($loans as $idx => $loan)
+                        <tr class="transition-colors text-xs">
+                            <td class="px-4 py-3.5 border font-bold text-slate-400">{{ $loans->firstItem() + $idx }}</td>
+                            <td class="px-4 py-3.5 border text-left">
+                                <div class="font-bold text-slate-900 font-mono">{{ $loan->loan_account_no ?? '—' }}</div>
+                                <div class="text-[10px] text-slate-500 font-medium mt-0.5">{{ $loan->project->name ?? '—' }}</div>
+                            </td>
+                            <td class="px-4 py-3.5 border text-slate-900 font-bold text-center">
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] uppercase tracking-wider shadow-sm">
+                                    {{ $loan->lender_name }}
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5 border text-left">
+                                <div class="font-mono text-slate-800 font-bold">₹{{ number_format((float)$loan->principal_amount, 2) }}</div>
+                                <div class="text-[10px] text-slate-500 font-medium mt-0.5">
+                                    Interest: <span class="font-bold text-slate-700">{{ $loan->interest_rate }}% P.A.</span> | 
+                                    Tenure: <span class="font-bold text-slate-700">{{ $loan->tenure_months }} Months</span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5 border text-left">
+                                <div class="font-mono text-rose-700 font-extrabold">Bal: ₹{{ number_format((float)$loan->outstanding_balance, 2) }}</div>
+                                <div class="text-[10px] text-slate-500 font-medium mt-0.5">
+                                    Paid P: <span class="font-bold text-emerald-800">₹{{ number_format((float)$loan->paid_principal_to_date, 2) }}</span> | 
+                                    Paid I: <span class="font-bold text-[#a38c29]">₹{{ number_format((float)$loan->cumulative_interest_paid, 2) }}</span>
+                                </div>
+                            </td>
+                            @php
+                                $isUrgent = false;
+                                $isOverdue = false;
+                                $isDueThisMonth = false;
+                                if ($loan->next_emi && $loan->status === 'Active') {
+                                    $dueDate = \Carbon\Carbon::parse($loan->next_emi->due_date);
+                                    $isOverdue = $dueDate->lt(now()->startOfDay());
+                                    $isDueThisMonth = $dueDate->between(now()->startOfMonth(), now()->endOfMonth());
+                                    $isUrgent = $isOverdue || $isDueThisMonth;
+                                }
+                            @endphp
+                            <td class="px-4 py-3.5 border text-center {{ $isUrgent ? 'bg-rose-50/70 border-rose-100' : '' }}">
+                                @if($loan->next_emi && $loan->status === 'Active')
+                                    <div class="font-mono {{ $isUrgent ? 'text-rose-600 font-extrabold text-[13px]' : 'text-slate-900 font-bold' }}">
+                                        ₹{{ number_format((float)$loan->next_emi->emi_amount - (float)$loan->next_emi->amount_paid, 2) }}
+                                    </div>
+                                    <div class="text-[10px] {{ $isUrgent ? 'text-rose-700' : 'text-amber-700' }} font-bold mt-0.5">
+                                        Inst #{{ $loan->next_emi->installment_no }} (Due: {{ \Carbon\Carbon::parse($loan->next_emi->due_date)->format('d M Y') }})
+                                    </div>
+                                    @if($isOverdue)
+                                        <div class="mt-1">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-rose-200 border border-rose-300 text-rose-800 uppercase tracking-wider animate-pulse shadow-sm">
+                                                ⚠️ Overdue Urgent
+                                            </span>
+                                        </div>
+                                    @elseif($isDueThisMonth)
+                                        <div class="mt-1">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-extrabold bg-rose-100 border border-rose-200 text-rose-700 uppercase tracking-wider shadow-sm">
+                                                🔥 Due This Month
+                                            </span>
+                                        </div>
+                                    @endif
+                                @else
+                                    <span class="text-slate-400 font-medium italic text-[10px]">No due EMIs</span>
+                                @endif
+                            </td>
+                            <td class="px-4 py-3.5 border text-center">
+                                <div class="flex flex-col items-center gap-1.5">
+                                    <span class="badge-pill inline-flex items-center justify-center px-2.5 py-1 rounded-md border text-[10px] font-extrabold uppercase tracking-wider shadow-sm {{ $loan->status === 'Active' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-100 border-slate-200 text-slate-500' }}">
+                                        {{ $loan->status }}
+                                    </span>
+                                    @if($loan->prepayments->isNotEmpty())
+                                        <button @click="showLogs({{ json_encode($loan->prepayments) }}, '{{ $loan->loan_account_no }}')" class="text-indigo-650 hover:underline text-[9px] font-bold uppercase tracking-wider">
+                                            Prepayments ({{ $loan->prepayments->count() }})
+                                        </button>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5 border text-right pr-4">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <a href="{{ route('loans.schedule', $loan->id) }}" class="px-3 py-1.5 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-extrabold uppercase tracking-wider transition-all inline-flex items-center gap-1.5 shadow-sm shadow-[#a38c29]/30" title="Repayment Schedule Ledger">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        Ledger
+                                    </a>
+                                    @if($loan->status === 'Active')
+                                        <button @click="openEditInterestModal({{ json_encode($loan) }})" 
+                                                class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition-all inline-flex items-center justify-center shadow-sm" title="Edit Interest Rate">
+                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                        </button>
+                                    @endif
+                                    <button @click="openInterestLogsModal('{{ $loan->loan_account_no }}')" 
+                                            class="p-2 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] hover:text-[#2d249f] transition-all inline-flex items-center justify-center shadow-sm" title="Interest Edit Logs">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-6 py-10 text-center text-slate-400 italic">No loan records found. Please configure a bank loan.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination Controls --}}
+        @if($loans instanceof \Illuminate\Pagination\AbstractPaginator && $loans->hasPages())
+            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                    Showing <span class="text-slate-900">{{ $loans->firstItem() }}</span> to 
+                    <span class="text-slate-900">{{ $loans->lastItem() }}</span> of 
+                    <span class="text-slate-900">{{ number_format($loans->total()) }}</span> Loans
+                </div>
+                <div class="flex items-center gap-1.5">
+                    {{-- Previous Page Link --}}
+                    @if ($loans->onFirstPage())
+                        <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                            Prev
+                        </span>
+                    @else
+                        <a href="{{ $loans->previousPageUrl() }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                            Prev
+                        </a>
+                    @endif
+
+                    {{-- Page Numbers --}}
+                    @php
+                        $currentPage = $loans->currentPage();
+                        $lastPage = $loans->lastPage();
+                        $start = max(1, $currentPage - 2);
+                        $end = min($lastPage, $currentPage + 2);
+                    @endphp
+
+                    @if ($start > 1)
+                        <a href="{{ $loans->url(1) }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                            1
+                        </a>
+                        @if ($start > 2)
+                            <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                        @endif
+                    @endif
+
+                    @for ($page = $start; $page <= $end; $page++)
+                        @if ($page == $currentPage)
+                            <span class="px-2.5 py-1 bg-primary text-white border border-primary rounded-lg text-[10px] font-bold">
+                                {{ $page }}
+                            </span>
+                        @else
+                            <a href="{{ $loans->url($page) }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                {{ $page }}
+                            </a>
+                        @endif
+                    @endfor
+
+                    @if ($end < $lastPage)
+                        @if ($end < $lastPage - 1)
+                            <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                        @endif
+                        <a href="{{ $loans->url($lastPage) }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                            {{ $lastPage }}
+                        </a>
+                    @endif
+
+                    {{-- Next Page Link --}}
+                    @if ($loans->hasMorePages())
+                        <a href="{{ $loans->nextPageUrl() }}" 
+                           class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                            Next
+                        </a>
+                    @else
+                        <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-300 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                            Next
+                        </span>
+                    @endif
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
+    <div>
+
+    {{-- Prepayment Logs Modal --}}
+    <div x-show="logsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="logsModalOpen = false"></div>
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="'Prepayment Logs: ' + activeAccountNo"></h3>
+                    <button @click="logsModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 max-h-[60vh] overflow-y-auto">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-55 border-b border-slate-100 text-center font-bold text-slate-650 uppercase tracking-wider text-[10px]">
+                            <th class="px-4 py-2 border">DATE</th>
+                            <th class="px-4 py-2 border">PREPAYMENT AMOUNT</th>
+                            <th class="px-4 py-2 border">PREVIOUS OUTSTANDING</th>
+                            <th class="px-4 py-2 border">NEW OUTSTANDING</th>
+                            <th class="px-4 py-2 border">MODE</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50 text-center font-semibold text-slate-700">
+                        <template x-for="log in activeLogs" :key="log.id">
+                            <tr>
+                                <td class="px-4 py-3 border font-mono text-slate-600" x-text="new Date(log.prepayment_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})"></td>
+                                <td class="px-4 py-3 border font-mono text-emerald-800" x-text="'₹' + Number(log.prepayment_amount).toLocaleString('en-IN', {minimumFractionDigits: 2})"></td>
+                                <td class="px-4 py-3 border font-mono text-slate-550" x-text="'₹' + Number(log.previous_outstanding).toLocaleString('en-IN', {minimumFractionDigits: 2})"></td>
+                                <td class="px-4 py-3 border font-mono text-rose-700" x-text="'₹' + Number(log.new_outstanding).toLocaleString('en-IN', {minimumFractionDigits: 2})"></td>
+                                <td class="px-4 py-3 border text-slate-600 uppercase text-[10px]" x-text="log.reschedule_option === 'reduce_emi' ? 'Reduce EMI' : 'Reduce Tenure'"></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
+                <button type="button" @click="logsModalOpen = false" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-800 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Interest Edit Logs Modal --}}
+    <div x-show="interestLogsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="interestLogsModalOpen = false"></div>
+        <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up flex flex-col max-h-[85vh]">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl shrink-0">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span x-text="activeInterestLogAccount ? 'Interest Rate Modification Log: ' + activeInterestLogAccount : 'Interest Rate Modification Log'"></span>
+                    </h3>
+                    <button @click="interestLogsModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6 overflow-y-auto grow">
+                @if($interestLogs->isEmpty())
+                    <div class="py-12 text-center">
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">No interest rate modifications recorded yet.</p>
+                    </div>
+                @else
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="px-4 py-3 border-r">Date / Time</th>
+                                    <th class="px-4 py-3 border-r">Loan A/C</th>
+                                    <th class="px-4 py-3 border-r">Old Rate</th>
+                                    <th class="px-4 py-3 border-r">New Rate</th>
+                                    <th class="px-4 py-3 border-r">Period</th>
+                                    <th class="px-4 py-3">Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-xs text-slate-700 font-medium">
+                                @foreach($interestLogs as $log)
+                                    <tr class="hover:bg-slate-50/60 transition-colors" x-show="!activeInterestLogAccount || activeInterestLogAccount === '{{ $log->loan ? $log->loan->loan_account_no : '' }}'">
+                                        <td class="px-4 py-3 border-r text-slate-500 font-mono text-[11px] whitespace-nowrap">{{ $log->created_at->format('d M Y, h:i A') }}</td>
+                                        <td class="px-4 py-3 border-r font-bold text-slate-900">{{ $log->loan ? $log->loan->loan_account_no : '—' }}</td>
+                                        <td class="px-4 py-3 border-r font-mono text-rose-600 font-bold">{{ $log->old_interest_rate }}%</td>
+                                        <td class="px-4 py-3 border-r font-mono text-emerald-700 font-bold">{{ $log->new_interest_rate }}%</td>
+                                        <td class="px-4 py-3 border-r text-slate-600 capitalize">{{ $log->interest_period }}</td>
+                                        <td class="px-4 py-3 text-slate-500 text-[11px]">{{ $log->reason ?? '—' }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+            <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end shrink-0">
+                <button type="button" @click="interestLogsModalOpen = false" class="px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 rounded-xl text-xs font-bold uppercase tracking-wide transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    {{-- Edit Interest Rate Modal --}}
+    <div x-show="editInterestModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="editInterestModalOpen = false"></div>
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="editLoan ? 'Edit Interest Rate: A/C ' + editLoan.loan_account_no : 'Edit Interest Rate'"></h3>
+                    <button @click="editInterestModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <form @submit.prevent="submitEditInterestForm">
+                <div class="p-6 space-y-4">
+                    <div class="bg-indigo-50 border border-indigo-150 rounded-xl p-3.5 text-xs text-indigo-850">
+                        <strong class="font-bold">Important Notice:</strong> Modifying the interest rate will automatically recalculate the interest and principal components for all remaining unpaid installments of this loan.
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Lending Bank</span>
+                        <strong class="text-xs text-slate-800 font-extrabold" x-text="editLoan.lender_name"></strong>
+                    </div>
+                    <div>
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Current Stored Rate</span>
+                        <strong class="text-xs text-slate-800 font-extrabold" x-text="editLoan.interest_rate + '% P.A. (Equivalent)'"></strong>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">New Interest Rate *</label>
+                            <input type="number" step="0.01" x-model="editInterestForm.interest_rate" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 font-sans">Interest Period *</label>
+                            <select x-model="editInterestForm.interest_period" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
+                                <option value="annual">Per Annum (Yearly)</option>
+                                <option value="monthly">Per Month (Monthly)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                    <button type="button" @click="editInterestModalOpen = false" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-[#a38c29]/20">Update Interest Rate</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Create Loan Modal --}}
+    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="addModalOpen = false"></div>
+        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <h3 class="text-xs font-bold text-white uppercase tracking-widest">Create New Project Loan Account</h3>
+                    <button @click="addModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <form @submit.prevent="submitAddForm($event)" novalidate>
+                <div class="p-6 grid grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto">
+                    <div class="col-span-2">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Associated Project <span class="text-rose-500">*</span></label>
+                        <select x-model="addForm.project_id" required
+                                :class="errors.project_id ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                            <option value="">Select Project...</option>
+                            @foreach($projects as $p)
+                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                        <template x-if="errors.project_id"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.project_id) ? errors.project_id[0] : errors.project_id"></p></template>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Loan Account No <span class="text-rose-500">*</span></label>
+                        <input type="text" x-model="addForm.loan_account_no" required placeholder="e.g. LN-897937402"
+                               :class="errors.loan_account_no ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.loan_account_no"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.loan_account_no) ? errors.loan_account_no[0] : errors.loan_account_no"></p></template>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Lending Bank <span class="text-rose-500">*</span></label>
+                        <select x-model="addForm.lender_name" required
+                                :class="errors.lender_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
+                            <option value="">Select Lending Bank...</option>
+                            @foreach($banks as $b)
+                                <option value="{{ $b->bank_name }}">{{ $b->bank_name }}</option>
+                            @endforeach
+                        </select>
+                        <template x-if="errors.lender_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.lender_name) ? errors.lender_name[0] : errors.lender_name"></p></template>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Total Sanctioned Principal (₹) <span class="text-rose-500">*</span></label>
+                        <input type="number" step="0.01" x-model="addForm.principal_amount" required
+                               :class="errors.principal_amount ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.principal_amount"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.principal_amount) ? errors.principal_amount[0] : errors.principal_amount"></p></template>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Rate <span class="text-rose-500">*</span></label>
+                            <input type="number" step="0.01" x-model="addForm.interest_rate" required placeholder="e.g. 7.50"
+                                   :class="errors.interest_rate ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                   class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                            <template x-if="errors.interest_rate"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.interest_rate) ? errors.interest_rate[0] : errors.interest_rate"></p></template>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Period <span class="text-rose-500">*</span></label>
+                            <select x-model="addForm.interest_period" required
+                                    :class="errors.interest_period ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                    class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
+                                <option value="annual">Per Annum (Yearly)</option>
+                                <option value="monthly">Per Month (Monthly)</option>
+                            </select>
+                            <template x-if="errors.interest_period"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.interest_period) ? errors.interest_period[0] : errors.interest_period"></p></template>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Loan Tenure (Months) <span class="text-rose-500">*</span></label>
+                        <input type="number" x-model="addForm.tenure_months" required placeholder="e.g. 120"
+                               :class="errors.tenure_months ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.tenure_months"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.tenure_months) ? errors.tenure_months[0] : errors.tenure_months"></p></template>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Repayment Start Date <span class="text-rose-500">*</span></label>
+                        <input type="date" x-model="addForm.start_date" required
+                               :class="errors.start_date ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                               class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                        <template x-if="errors.start_date"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.start_date) ? errors.start_date[0] : errors.start_date"></p></template>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Schedule Type <span class="text-rose-500">*</span></label>
+                        <select x-model="addForm.schedule_type" required
+                                :class="errors.schedule_type ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
+                                class="w-full px-3 py-2 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
+                            <option value="reducing_balance">Reducing Balance</option>
+                            <option value="flat">Flat Rate</option>
+                        </select>
+                        <template x-if="errors.schedule_type"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.schedule_type) ? errors.schedule_type[0] : errors.schedule_type"></p></template>
+                    </div>
+
+
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 flex justify-between">
+                            <span>Interest Expense Account</span>
+                            <span class="text-[9px] text-slate-400 font-normal normal-case tracking-normal">(Optional)</span>
+                        </label>
+                        <select x-model="addForm.interest_account_id" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
+                            <option value="">Leave empty to auto-create generic interest account...</option>
+                            @foreach($accounts as $acc)
+                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ strtoupper($acc->type) }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                    <button type="button" @click="addModalOpen = false" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-[#a38c29]/20">Create Loan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    </div>
+</div>
+
+<script>
+function loanApp() {
+    return {
+        errors: {},
+        addModalOpen: false,
+        logsModalOpen: false,
+        activeLogs: [],
+        activeAccountNo: '',
+        addForm: {
+            project_id: '',
+            loan_account_no: '',
+            lender_name: '',
+            principal_amount: '',
+            interest_rate: '',
+            interest_period: 'annual',
+            tenure_months: '',
+            start_date: '',
+            schedule_type: 'reducing_balance',
+            ledger_account_id: '',
+            interest_account_id: ''
+        },
+        toast: {
+            open: false,
+            message: '',
+            type: 'success'
+        },
+        openAddModal() {
+            this.errors = {};
+            this.addForm = {
+                project_id: '{{ request('project_id') ?? ($projects->first()->id ?? '') }}',
+                loan_account_no: '',
+                lender_name: '',
+                principal_amount: '',
+                interest_rate: '',
+                interest_period: 'annual',
+                tenure_months: '',
+                start_date: '',
+                schedule_type: 'reducing_balance',
+                ledger_account_id: '',
+                interest_account_id: ''
+            };
+            this.addModalOpen = true;
+        },
+        interestLogsModalOpen: false,
+        activeInterestLogAccount: null,
+        openInterestLogsModal(accountNo = null) {
+            this.activeInterestLogAccount = accountNo;
+            this.interestLogsModalOpen = true;
+        },
+        editInterestModalOpen: false,
+        editLoan: {},
+        editInterestForm: {
+            interest_rate: '',
+            interest_period: 'annual'
+        },
+        openEditInterestModal(loan) {
+            this.editLoan = loan;
+            this.editInterestForm.interest_rate = loan.interest_rate;
+            this.editInterestForm.interest_period = 'annual';
+            this.editInterestModalOpen = true;
+        },
+        submitEditInterestForm() {
+            if (!this.editLoan) return;
+            const url = `{{ url('/loans') }}/${this.editLoan.id}/update-interest`;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.editInterestForm)
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (!res.ok) {
+                    this.showToast(data.message || 'Error updating interest rate.', 'error');
+                } else {
+                    this.showToast('Interest rate updated and unpaid schedules re-amortized successfully.');
+                    this.editInterestModalOpen = false;
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Network error occurred.', 'error');
+            });
+        },
+        showLogs(logs, accountNo) {
+            this.activeLogs = logs;
+            this.activeAccountNo = accountNo;
+            this.logsModalOpen = true;
+        },
+        showToast(msg, type = 'success') {
+            this.toast.message = msg;
+            this.toast.type = type;
+            this.toast.open = true;
+            setTimeout(() => { this.toast.open = false; }, 4000);
+        },
+        submitAddForm(e) {
+            if (e) e.preventDefault();
+            let clientErrors = {};
+            if (!this.addForm.project_id) {
+                clientErrors.project_id = ['The project field is required.'];
+            }
+            if (!this.addForm.loan_account_no || !String(this.addForm.loan_account_no).trim()) {
+                clientErrors.loan_account_no = ['The loan account number field is required.'];
+            }
+            if (!this.addForm.lender_name || !String(this.addForm.lender_name).trim()) {
+                clientErrors.lender_name = ['The lending bank field is required.'];
+            }
+            if (!this.addForm.principal_amount) {
+                clientErrors.principal_amount = ['The principal amount field is required.'];
+            }
+            if (!this.addForm.interest_rate) {
+                clientErrors.interest_rate = ['The interest rate field is required.'];
+            }
+            if (!this.addForm.interest_period) {
+                clientErrors.interest_period = ['The interest period field is required.'];
+            }
+            if (!this.addForm.tenure_months) {
+                clientErrors.tenure_months = ['The tenure field is required.'];
+            }
+            if (!this.addForm.start_date) {
+                clientErrors.start_date = ['The start date field is required.'];
+            }
+            if (!this.addForm.schedule_type) {
+                clientErrors.schedule_type = ['The schedule type field is required.'];
+            }
+            if (Object.keys(clientErrors).length > 0) {
+                this.errors = clientErrors;
+                return;
+            }
+            this.errors = {};
+
+            fetch('{{ route('loans.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.addForm)
+            })
+            .then(async res => {
+                let data = await res.json();
+                if (!res.ok) {
+                    if (data.errors) {
+                        this.errors = data.errors;
+                    }
+                    this.showToast(data.message || 'Validation error. Please verify input data.', 'error');
+                } else {
+                    this.showToast('Project loan and repayment schedule created successfully.');
+                    this.addModalOpen = false;
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                this.showToast('Network or server error occurred.', 'error');
+            });
+        }
+    }
+}
+</script>
+</x-erp-layout>

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\Voucher;
+use App\Models\PettyCashBox;
+use App\Models\PettyCashTransaction;
 use Carbon\Carbon;
 
 class PettyCashController extends Controller
@@ -16,93 +18,93 @@ class PettyCashController extends Controller
         
         // 2. Handle filters (Project and Date)
         $selectedProject = $request->input('project_id', $projects->first()->id ?? null);
-        $selectedDate = $request->input('date', Carbon::today()->format('Y-m-d'));
+        $selectedDate = $request->input('date');
         
         $project = Project::find($selectedProject);
         $siteName = $project ? $project->name : 'Green City Site';
         
+        // Find or create the Petty Cash Box for this site
+        $pettyCashBox = PettyCashBox::firstOrCreate(
+            ['project_id' => $selectedProject],
+            [
+                'box_code' => 'PC-' . strtoupper($project ? $project->code : 'GEN') . '-001',
+                'incharge_id' => auth()->id(),
+                'current_balance' => 0
+            ]
+        );
+
+        $cashBoxIncharge = $pettyCashBox->incharge ? $pettyCashBox->incharge->name : (auth()->check() ? auth()->user()->name : 'System Admin');
+        $cashBoxCode = $pettyCashBox->box_code;
+        
         // 3. Database Data for Metrics & Transactions
-        // Opening Balance calculation (Vouchers before selected date)
-        $previousVouchers = Voucher::with('lines')
-            ->where('system_id', $selectedProject)
-            ->whereDate('date', '<', $selectedDate)
-            ->get();
-            
+        $transactionsQuery = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id);
+        
+        // Opening Balance calculation
         $openingBalance = 0;
-        foreach ($previousVouchers as $v) {
-            if ($v->type === 'Receipt') {
-                $openingBalance += $v->lines->sum('debit');
-            } elseif ($v->type === 'Payment') {
-                $openingBalance -= $v->lines->sum('credit');
+        if ($selectedDate) {
+            $previousTransactions = (clone $transactionsQuery)->whereDate('transaction_date', '<', $selectedDate)->get();
+            foreach ($previousTransactions as $t) {
+                $openingBalance += $t->cash_in;
+                $openingBalance -= $t->cash_out;
             }
+            $transactionsQuery->whereDate('transaction_date', $selectedDate);
+        } else {
+            // If no date is selected, opening balance is from the very beginning (i.e. 0)
+            $openingBalance = 0;
         }
-
-        // Fetch Today's Vouchers
-        $vouchersQuery = Voucher::with('lines')
-            ->where('system_id', $selectedProject)
-            ->whereDate('date', $selectedDate);
-
+            
         if ($request->filled('search')) {
-            $vouchersQuery->where(function($q) use ($request) {
+            $transactionsQuery->where(function($q) use ($request) {
                 $q->where('voucher_number', 'like', '%' . $request->search . '%')
                   ->orWhere('narration', 'like', '%' . $request->search . '%')
                   ->orWhere('reference_no', 'like', '%' . $request->search . '%');
             });
         }
+        
         if ($request->filled('status')) {
             $statusMap = ['active' => 'Posted', 'pending' => 'Draft'];
             if (isset($statusMap[$request->status])) {
-                $vouchersQuery->where('status', $statusMap[$request->status]);
+                $transactionsQuery->where('status', $statusMap[$request->status]);
             }
         }
 
-        $vouchers = $vouchersQuery->orderBy('created_at')->get();
+        $dbTransactions = $transactionsQuery->orderBy('transaction_date')->orderBy('id')->get();
 
         $transactions = collect([]);
         $runningBalance = $openingBalance;
         $cashIn = 0;
         $cashOut = 0;
 
-        foreach ($vouchers as $v) {
-            $vCashIn = 0;
-            $vCashOut = 0;
+        foreach ($dbTransactions as $t) {
+            $vCashIn = $t->cash_in;
+            $vCashOut = $t->cash_out;
             
-            if ($v->type === 'Receipt' || $v->type === 'Contra') {
-                // Simplified: assuming debit to cash/bank
-                $vCashIn = $v->lines->sum('debit');
-                $cashIn += $vCashIn;
-                $runningBalance += $vCashIn;
-            } elseif ($v->type === 'Payment' || $v->type === 'Journal') {
-                // Simplified: assuming credit to cash/bank
-                $vCashOut = $v->lines->sum('credit');
-                $cashOut += $vCashOut;
-                $runningBalance -= $vCashOut;
-            }
+            $cashIn += $vCashIn;
+            $cashOut += $vCashOut;
+            $runningBalance += ($vCashIn - $vCashOut);
 
             $transactions->push((object)[
-                'id' => $v->id,
-                'date' => $v->date ? $v->date->format('Y-m-d') : $selectedDate,
-                'voucher_number' => $v->voucher_number,
-                'type_label' => $v->type . ($v->narration ? ' - ' . str()->limit($v->narration, 30) : ''),
+                'id' => $t->id,
+                'date' => $t->transaction_date ? \Carbon\Carbon::parse($t->transaction_date)->format('Y-m-d') : ($selectedDate ?? date('Y-m-d')),
+                'voucher_number' => $t->voucher_number,
+                'type_label' => $t->transaction_type . ($t->narration ? ' - ' . str()->limit($t->narration, 30) : ''),
                 'cash_in' => $vCashIn,
                 'cash_out' => $vCashOut,
                 'balance' => $runningBalance,
-                'reference' => $v->reference_no,
-                'status' => $v->status
+                'reference' => $t->reference_no,
+                'status' => $t->status
             ]);
         }
 
         $closingBalance = $runningBalance;
-        $bankWithdrawal = $vouchers->where('type', 'Contra')->sum(fn($v) => $v->lines->sum('debit'));
-        $siteExpenses = $vouchers->where('type', 'Payment')->sum(fn($v) => $v->lines->sum('credit'));
+        $bankWithdrawal = $dbTransactions->where('transaction_type', 'Contra')->sum('cash_in'); // Cash in from contra
+        $siteExpenses = $dbTransactions->whereIn('transaction_type', ['Payment', 'Journal'])->sum('cash_out');
         $netCashFlow = $cashIn - $cashOut;
 
         // Summaries (Dynamic)
-        $latestVoucher = $vouchers->sortByDesc('updated_at')->first();
-        $cashBoxIncharge = auth()->check() ? auth()->user()->name : 'System Admin';
-        $cashBoxCode = 'PC-' . strtoupper($project ? $project->code : 'GEN') . '-001';
-        $lastUpdated = $latestVoucher ? $latestVoucher->updated_at->format('d-M-Y h:i A') : \Carbon\Carbon::parse($selectedDate)->format('d-M-Y') . ' 12:00 AM';
-        $updatedBy = $latestVoucher && $latestVoucher->creator ? $latestVoucher->creator->name : 'System';
+        $latestTransaction = $dbTransactions->sortByDesc('updated_at')->first();
+        $lastUpdated = $latestTransaction ? $latestTransaction->updated_at->format('d-M-Y h:i A') : ($selectedDate ? \Carbon\Carbon::parse($selectedDate)->format('d-M-Y') . ' 12:00 AM' : 'N/A');
+        $updatedBy = $latestTransaction && $latestTransaction->creator ? $latestTransaction->creator->name : 'System';
 
         return view('petty-cash.balance-register', compact(
             'projects',
@@ -239,6 +241,34 @@ class PettyCashController extends Controller
             'debit' => $amount,
             'credit' => 0,
             'line_narration' => 'Petty cash receipt via contra',
+        ]);
+
+        // Also record in the new petty cash tables
+        $pettyCashBox = PettyCashBox::firstOrCreate(
+            ['project_id' => $request->input('project_id')],
+            [
+                'box_code' => 'PC-' . strtoupper(\App\Models\Project::find($request->input('project_id'))->code ?? 'GEN') . '-001',
+                'incharge_id' => auth()->id(),
+                'current_balance' => 0
+            ]
+        );
+
+        $newBalance = $pettyCashBox->current_balance + $amount;
+        $pettyCashBox->update(['current_balance' => $newBalance]);
+
+        PettyCashTransaction::create([
+            'petty_cash_box_id' => $pettyCashBox->id,
+            'voucher_id' => $voucher->id,
+            'transaction_date' => $request->input('date'),
+            'voucher_number' => $request->input('voucher_number'),
+            'transaction_type' => 'Contra',
+            'reference_no' => $request->input('reference_no'),
+            'narration' => $request->input('narration'),
+            'cash_in' => $amount,
+            'cash_out' => 0,
+            'balance' => $newBalance,
+            'created_by' => auth()->id() ?? 1,
+            'status' => 'Posted',
         ]);
 
         return redirect()->route('petty-cash.balance-register')->with('success', 'Contra withdrawal entry posted successfully.');
