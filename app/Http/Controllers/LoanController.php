@@ -56,17 +56,35 @@ class LoanController extends Controller
                 ->first();
         }
         
-        // All pending EMIs across active loans due on/before end of current month
-        $pendingEmis = EmiSchedule::whereHas('loan', function ($q) {
+        $today = now()->startOfDay();
+        $endOfMonth = now()->endOfMonth();
+
+        // Overdue EMIs (due before today, not paid)
+        $overdueEmis = EmiSchedule::whereHas('loan', function ($q) {
                 $q->where('status', 'Active');
             })
             ->where('status', '!=', 'Paid')
-            ->where('due_date', '<=', now()->endOfMonth())
+            ->where('due_date', '<', $today)
             ->get();
-        $pendingEmisCount = $pendingEmis->count();
-        $pendingEmisAmount = $pendingEmis->sum(function ($inst) {
+        $overdueCount = $overdueEmis->count();
+        $overdueAmount = $overdueEmis->sum(function ($inst) {
             return max(0, (float)$inst->emi_amount - (float)$inst->amount_paid);
         });
+
+        // Due this month EMIs (due between today and end of month, not paid)
+        $dueThisMonthEmis = EmiSchedule::whereHas('loan', function ($q) {
+                $q->where('status', 'Active');
+            })
+            ->where('status', '!=', 'Paid')
+            ->whereBetween('due_date', [$today, $endOfMonth])
+            ->get();
+        $dueThisMonthCount = $dueThisMonthEmis->count();
+        $dueThisMonthAmount = $dueThisMonthEmis->sum(function ($inst) {
+            return max(0, (float)$inst->emi_amount - (float)$inst->amount_paid);
+        });
+
+        $totalPendingCount = $overdueCount + $dueThisMonthCount;
+        $totalPendingAmount = $overdueAmount + $dueThisMonthAmount;
 
         // Global stats for KPI metrics cards
         $activeLoansCount = Loan::where('status', 'Active')->count();
@@ -76,10 +94,28 @@ class LoanController extends Controller
         $totalPaidInterest = $allPaidSchedules->sum('interest_component');
         
         $accounts = Account::orderBy('name')->get();
+        $assetAccounts = Account::where('type', 'Asset')->where('is_active', true)->orderBy('name')->get();
         $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
         $interestLogs = LoanInterestLog::with('loan')->latest()->get();
 
-        return view('loans.index', compact('loans', 'projects', 'accounts', 'banks', 'pendingEmisCount', 'pendingEmisAmount', 'activeLoansCount', 'totalOutstanding', 'totalPaidPrincipal', 'totalPaidInterest', 'interestLogs'));
+        return view('loans.index', compact(
+            'loans',
+            'projects',
+            'accounts',
+            'banks',
+            'assetAccounts',
+            'overdueCount',
+            'overdueAmount',
+            'dueThisMonthCount',
+            'dueThisMonthAmount',
+            'totalPendingCount',
+            'totalPendingAmount',
+            'activeLoansCount',
+            'totalOutstanding',
+            'totalPaidPrincipal',
+            'totalPaidInterest',
+            'interestLogs'
+        ));
     }
 
     public function store(Request $request): JsonResponse
@@ -260,12 +296,14 @@ class LoanController extends Controller
         $validated = $request->validate([
             'amount'    => ['required', 'numeric', 'min:0.01'],
             'paid_date' => ['required', 'date'],
-            'bank_account_id' => ['nullable', 'exists:accounts,id'],
+            'bank_account_id' => ['required', 'exists:accounts,id'],
+            'other_charges'   => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $amount   = (float)$validated['amount'];
         $paidDate = $validated['paid_date'];
-        $bankAccountId = $validated['bank_account_id'] ?? \App\Models\Account::where('type', 'Asset')->where('is_active', true)->value('id');
+        $bankAccountId = $validated['bank_account_id'];
+        $otherCharges = (float)($validated['other_charges'] ?? 0);
 
         if ($installment->loan_id !== $loan->id) {
             return response()->json(['error' => 'Invalid installment for this loan.'], 400);
@@ -274,11 +312,11 @@ class LoanController extends Controller
         $emiDue = round((float)$installment->emi_amount - (float)$installment->amount_paid, 2);
         if (abs($amount - $emiDue) > 0.01) {
             return response()->json([
-                'error' => 'Bank regulations require exact full EMI installment payment of ₹' . number_format($emiDue, 2) . '. Paying more or less amount is not allowed.'
+                'error' => 'Exact full EMI installment payment of ₹' . number_format($emiDue, 2) . ' is required. Paying more or less is not allowed.'
             ], 422);
         }
 
-        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId) {
+        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId, $otherCharges) {
             $systemId = Auth::user()->system_id ?? 1;
 
             $installment->amount_paid = (float)$installment->emi_amount;
@@ -302,18 +340,20 @@ class LoanController extends Controller
                 'voucher_number' => $voucherNumber,
                 'type' => 'Payment',
                 'date' => $paidDate,
-                'narration' => 'Bank Loan EMI Payment - Inst #' . $installment->installment_no,
+                'narration' => 'Bank Loan EMI Payment - Inst #' . $installment->installment_no . ' (' . $loan->lender_name . ')',
                 'status' => 'Posted',
                 'created_by' => Auth::id() ?? 1,
             ]);
+
+            $totalCredit = (float)$installment->emi_amount + $otherCharges;
 
             // Credit Bank Account
             $bankLine = \App\Models\VoucherLine::create([
                 'voucher_id' => $voucher->id,
                 'account_id' => $bankAccountId,
                 'debit' => 0.00,
-                'credit' => (float)$installment->emi_amount,
-                'line_narration' => 'Paid Loan EMI',
+                'credit' => $totalCredit,
+                'line_narration' => 'Paid Loan EMI - Inst #' . $installment->installment_no,
             ]);
 
             \App\Models\LedgerEntry::create([
@@ -323,7 +363,7 @@ class LoanController extends Controller
                 'voucher_line_id' => $bankLine->id,
                 'date' => $paidDate,
                 'debit' => 0.00,
-                'credit' => (float)$installment->emi_amount,
+                'credit' => $totalCredit,
                 'running_balance' => 0.00,
             ]);
 
@@ -334,7 +374,7 @@ class LoanController extends Controller
                     'account_id' => $loan->ledger_account_id,
                     'debit' => (float)$installment->principal_component,
                     'credit' => 0.00,
-                    'line_narration' => 'Loan Principal Repayment',
+                    'line_narration' => 'Loan Principal Repayment - Inst #' . $installment->installment_no,
                 ]);
 
                 \App\Models\LedgerEntry::create([
@@ -349,14 +389,15 @@ class LoanController extends Controller
                 ]);
             }
 
-            // Debit Interest Expense
-            if ($loan->interest_account_id && (float)$installment->interest_component > 0) {
+            // Debit Interest Expense (combine regular interest + other charges if any)
+            $totalDebitInterest = $totalCredit - (float)$installment->principal_component;
+            if ($loan->interest_account_id && $totalDebitInterest > 0) {
                 $interestLine = \App\Models\VoucherLine::create([
                     'voucher_id' => $voucher->id,
                     'account_id' => $loan->interest_account_id,
-                    'debit' => (float)$installment->interest_component,
+                    'debit' => $totalDebitInterest,
                     'credit' => 0.00,
-                    'line_narration' => 'Loan Interest Expense',
+                    'line_narration' => 'Loan Interest Expense / Other Charges - Inst #' . $installment->installment_no,
                 ]);
 
                 \App\Models\LedgerEntry::create([
@@ -365,7 +406,7 @@ class LoanController extends Controller
                     'voucher_id' => $voucher->id,
                     'voucher_line_id' => $interestLine->id,
                     'date' => $paidDate,
-                    'debit' => (float)$installment->interest_component,
+                    'debit' => $totalDebitInterest,
                     'credit' => 0.00,
                     'running_balance' => 0.00,
                 ]);
@@ -378,43 +419,148 @@ class LoanController extends Controller
     public function prepay(Request $request, Loan $loan): JsonResponse
     {
         $validated = $request->validate([
-            'amount' => ['required', 'numeric', 'min:1'],
+            'action_type' => ['required', 'in:prepayment,foreclosure'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'prepayment_charges' => ['nullable', 'numeric', 'min:0'],
+            'interest_adjustment' => ['nullable', 'numeric'],
+            'bank_account_id' => ['required', 'exists:accounts,id'],
             'prepayment_date' => ['required', 'date'],
-            'reschedule_option' => ['required', 'in:reduce_emi,reduce_tenure'],
+            'reschedule_option' => ['nullable', 'required_if:action_type,prepayment', 'in:reduce_emi,reduce_tenure'],
+            'reference_no' => ['nullable', 'string', 'max:100'],
+            'remarks' => ['nullable', 'string'],
         ]);
 
+        $actionType = $validated['action_type'];
         $amount = (float)$validated['amount'];
-        $rescheduleOption = $validated['reschedule_option'];
+        $charges = (float)($validated['prepayment_charges'] ?? 0);
+        $interestAdjustment = (float)($validated['interest_adjustment'] ?? 0);
+        $bankAccountId = $validated['bank_account_id'];
+        $prepaymentDate = $validated['prepayment_date'];
+        $rescheduleOption = $validated['reschedule_option'] ?? 'reduce_emi';
 
-        if ($amount > $loan->outstanding_balance) {
-            return response()->json(['error' => 'Prepayment amount exceeds outstanding balance.'], 422);
+        if ($actionType === 'foreclosure') {
+            $amount = (float)$loan->outstanding_balance;
         }
 
-        // In standard financial logic, a borrower cannot make a prepayment towards the future principal 
-        // if they have past overdue installments. They must clear arrears first.
+        if ($amount > (float)$loan->outstanding_balance + 0.01) {
+            return response()->json(['error' => 'Payoff amount exceeds outstanding balance.'], 422);
+        }
+
         $hasOverdue = $loan->emiSchedules()
             ->where('status', '!=', 'Paid')
             ->where('due_date', '<', now()->startOfDay())
             ->exists();
 
-        if ($hasOverdue) {
+        if ($hasOverdue && $actionType === 'prepayment') {
             return response()->json(['error' => 'Prepayment cannot be processed while there are overdue installments. Please clear all overdue payments first.'], 422);
         }
 
-        DB::transaction(function () use ($loan, $amount, $rescheduleOption, $validated) {
+        DB::transaction(function () use ($loan, $amount, $charges, $interestAdjustment, $bankAccountId, $prepaymentDate, $rescheduleOption, $actionType) {
+            $systemId = Auth::user()->system_id ?? 1;
             $prevOutstanding = (float)$loan->outstanding_balance;
+            
             $loan->decrement('outstanding_balance', $amount);
             $newOutstanding = (float)$loan->outstanding_balance;
 
-            // Log the Prepayment/Reschedule
+            // Log the Prepayment/Reschedule/Foreclosure
             LoanPrepayment::create([
                 'loan_id' => $loan->id,
                 'prepayment_amount' => $amount,
-                'prepayment_date' => $validated['prepayment_date'],
-                'reschedule_option' => $rescheduleOption,
+                'prepayment_date' => $prepaymentDate,
+                'reschedule_option' => $actionType === 'foreclosure' ? 'foreclosure' : $rescheduleOption,
                 'previous_outstanding' => $prevOutstanding,
                 'new_outstanding' => $newOutstanding,
             ]);
+
+            // Create Payment Voucher
+            $voucherNumber = 'PAY-LOAN-PAYOFF-' . $loan->id . '-' . time();
+            $voucherType = $actionType === 'foreclosure' ? 'Foreclosure' : 'Prepayment';
+            $voucher = \App\Models\Voucher::create([
+                'system_id' => $systemId,
+                'voucher_number' => $voucherNumber,
+                'type' => 'Payment',
+                'date' => $prepaymentDate,
+                'narration' => 'Bank Loan ' . $voucherType . ' - ' . $loan->lender_name . ' (' . $loan->loan_account_no . ')',
+                'status' => 'Posted',
+                'created_by' => Auth::id() ?? 1,
+            ]);
+
+            $totalCredit = $amount + $charges + $interestAdjustment;
+
+            // Credit Bank Account
+            $bankLine = \App\Models\VoucherLine::create([
+                'voucher_id' => $voucher->id,
+                'account_id' => $bankAccountId,
+                'debit' => 0.00,
+                'credit' => $totalCredit,
+                'line_narration' => $voucherType . ' Payment Release',
+            ]);
+
+            \App\Models\LedgerEntry::create([
+                'system_id' => $systemId,
+                'account_id' => $bankAccountId,
+                'voucher_id' => $voucher->id,
+                'voucher_line_id' => $bankLine->id,
+                'date' => $prepaymentDate,
+                'debit' => 0.00,
+                'credit' => $totalCredit,
+                'running_balance' => 0.00,
+            ]);
+
+            // Debit Loan Principal Account
+            if ($loan->ledger_account_id) {
+                $principalLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $loan->ledger_account_id,
+                    'debit' => $amount,
+                    'credit' => 0.00,
+                    'line_narration' => $voucherType . ' Principal Component',
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $loan->ledger_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $principalLine->id,
+                    'date' => $prepaymentDate,
+                    'debit' => $amount,
+                    'credit' => 0.00,
+                    'running_balance' => 0.00,
+                ]);
+            }
+
+            // Debit Interest/Charges Account
+            $extraExpense = $charges + $interestAdjustment;
+            if ($loan->interest_account_id && abs($extraExpense) > 0.01) {
+                $debitVal = $extraExpense > 0 ? $extraExpense : 0;
+                $creditVal = $extraExpense < 0 ? abs($extraExpense) : 0;
+
+                $interestLine = \App\Models\VoucherLine::create([
+                    'voucher_id' => $voucher->id,
+                    'account_id' => $loan->interest_account_id,
+                    'debit' => $debitVal,
+                    'credit' => $creditVal,
+                    'line_narration' => $voucherType . ' Charges/Adjustments',
+                ]);
+
+                \App\Models\LedgerEntry::create([
+                    'system_id' => $systemId,
+                    'account_id' => $loan->interest_account_id,
+                    'voucher_id' => $voucher->id,
+                    'voucher_line_id' => $interestLine->id,
+                    'date' => $prepaymentDate,
+                    'debit' => $debitVal,
+                    'credit' => $creditVal,
+                    'running_balance' => 0.00,
+                ]);
+            }
+
+            if ($actionType === 'foreclosure') {
+                // Mark all unpaid installments as Paid (since they are foreclosed)
+                $loan->emiSchedules()->where('status', '!=', 'Paid')->update(['status' => 'Paid', 'amount_paid' => DB::raw('emi_amount')]);
+                $loan->update(['status' => 'Closed', 'outstanding_balance' => 0]);
+                return;
+            }
 
             $unpaidInstallments = $loan->emiSchedules()->where('status', '!=', 'Paid')->get();
 
@@ -458,7 +604,6 @@ class LoanController extends Controller
                         $tempPrincipal -= $principalComp;
                     }
                 } else {
-                    // Flat Rate
                     $newPrincipalComp = $remainingPrincipal / $k;
                     $newInterestComp = $remainingPrincipal * $r;
                     $newEmi = $newPrincipalComp + $newInterestComp;
@@ -494,16 +639,15 @@ class LoanController extends Controller
                             $tempPrincipal -= $principalComp;
                         }
                     } else {
-                        // Flat rate
                         $principalComp = (float)$inst->principal_component;
                         $interestComp = (float)$inst->interest_component;
-                        $emi = $principalComp + $interestComp;
 
                         if ($tempPrincipal <= $principalComp) {
                             $principalComp = $tempPrincipal;
                             $emi = $principalComp + $interestComp;
                             $tempPrincipal = 0;
                         } else {
+                            $emi = (float)$inst->emi_amount;
                             $tempPrincipal -= $principalComp;
                         }
                     }
@@ -514,10 +658,6 @@ class LoanController extends Controller
                         'interest_component' => $interestComp,
                     ]);
                 }
-            }
-
-            if ($newOutstanding <= 0.01) {
-                $loan->update(['status' => 'Closed']);
             }
         });
 

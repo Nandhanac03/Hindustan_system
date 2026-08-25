@@ -265,6 +265,15 @@
                         <p class="text-[10px] text-slate-400 mt-1 italic">Only option for pay the full emi amount there.</p>
                     </div>
                     <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bank / Asset Account <span class="text-rose-500">*</span></label>
+                        <select x-model="payForm.bank_account_id" required class="w-full px-3 py-2 bg-slate-55 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all cursor-pointer">
+                            <option value="">Select Bank/Asset Account...</option>
+                            @foreach($assetAccounts as $acc)
+                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->code }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
                         <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Payment Date *</label>
                         <input type="date" x-model="payForm.paid_date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
                     </div>
@@ -280,7 +289,7 @@
     {{-- Prepayment & Reschedule Modal --}}
     <div x-show="prepayModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="prepayModalOpen = false"></div>
-        <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
+        <div class="relative w-full max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
                 <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
@@ -291,26 +300,53 @@
                 </div>
             </div>
             <form @submit.prevent="submitPrepayForm">
-                <div class="p-6 space-y-4">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Prepayment Amount (₹) *</label>
-                        <input type="number" step="0.01" x-model="prepayForm.amount" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date of Prepayment *</label>
-                        <input type="date" x-model="prepayForm.prepayment_date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Rescheduling Mode *</label>
-                        <select x-model="prepayForm.reschedule_option" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 focus:outline-none transition-all">
-                            <option value="reduce_emi">Reduce EMI amount (keep tenure the same)</option>
-                            <option value="reduce_tenure">Reduce Tenure (keep monthly EMI the same)</option>
-                        </select>
+                <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Prepayment Amount (₹) *</label>
+                            <input type="number" step="0.01" x-model="prepayForm.amount" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Date of Prepayment *</label>
+                            <input type="date" x-model="prepayForm.prepayment_date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Prepayment Charges (₹)</label>
+                            <input type="number" step="0.01" min="0" x-model="prepayForm.prepayment_charges" placeholder="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Interest Adjustment (₹)</label>
+                            <input type="number" step="0.01" x-model="prepayForm.interest_adjustment" placeholder="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all">
+                        </div>
+                        <div class="col-span-1 sm:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Bank / Cash Account <span class="text-rose-500">*</span></label>
+                            <select x-model="prepayForm.bank_account_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all cursor-pointer">
+                                <option value="">Select Account...</option>
+                                @foreach($assetAccounts as $acc)
+                                    <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->code }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Transaction / Cheque / UTR No. <span class="text-rose-500">*</span></label>
+                            <input type="text" x-model="prepayForm.reference_no" required placeholder="e.g. UTR847391823" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Rescheduling Mode *</label>
+                            <select x-model="prepayForm.reschedule_option" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-805 focus:outline-none transition-all">
+                                <option value="reduce_emi">Reduce EMI amount (keep tenure the same)</option>
+                                <option value="reduce_tenure">Reduce Tenure (keep monthly EMI the same)</option>
+                            </select>
+                        </div>
+                        <div class="col-span-1 sm:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Remarks / Reason</label>
+                            <input type="text" x-model="prepayForm.remarks" placeholder="Optional notes..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all">
+                        </div>
                     </div>
                 </div>
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
-                    <button type="button" @click="prepayModalOpen = false" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-[#a38c29]/20">Apply & Reschedule</button>
+                    <button type="button" @click="prepayModalOpen = false" class="px-4 py-2 border border-slate-250 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-[#a38c29]/20 cursor-pointer">Apply & Reschedule</button>
                 </div>
             </form>
         </div>
@@ -345,9 +381,15 @@ function scheduleApp() {
             bank_account_id: ''
         },
         prepayForm: {
+            action_type: 'prepayment',
             amount: '',
             prepayment_date: new Date().toISOString().split('T')[0],
-            reschedule_option: 'reduce_emi'
+            prepayment_charges: '',
+            interest_adjustment: '',
+            bank_account_id: '',
+            reference_no: '',
+            reschedule_option: 'reduce_emi',
+            remarks: ''
         },
         toast: {
             open: false,
@@ -368,9 +410,17 @@ function scheduleApp() {
             this.payModalOpen = true;
         },
         openPrepayModal() {
-            this.prepayForm.amount = '';
-            this.prepayForm.prepayment_date = new Date().toISOString().split('T')[0];
-            this.prepayForm.reschedule_option = 'reduce_emi';
+            this.prepayForm = {
+                action_type: 'prepayment',
+                amount: '',
+                prepayment_date: new Date().toISOString().split('T')[0],
+                prepayment_charges: '',
+                interest_adjustment: '',
+                bank_account_id: '',
+                reference_no: '',
+                reschedule_option: 'reduce_emi',
+                remarks: ''
+            };
             this.prepayModalOpen = true;
         },
         submitPayForm() {
