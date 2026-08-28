@@ -3782,7 +3782,7 @@ function unitsApp() {
         const worksheet = workbook.addWorksheet(sheetName);
 
         // Configure views and page setups
-        worksheet.views = [{ state: 'frozen', xSplit: 1, ySplit: 3, activePane: 'bottomRight' }];
+        worksheet.views = [{ state: 'frozen', xSplit: 2, ySplit: 3, activePane: 'bottomRight' }];
         worksheet.pageSetup = {
             paperSize: 8, // A3
             orientation: 'landscape',
