@@ -46,6 +46,11 @@ class Payee extends Model
         return $this->hasMany(PartnerAllocation::class, 'partner_id');
     }
 
+    public function raBills(): HasMany
+    {
+        return $this->hasMany(RaBill::class, 'contractor_id');
+    }
+
     public function documents(): MorphMany
     {
         return $this->morphMany(Document::class, 'documentable');
