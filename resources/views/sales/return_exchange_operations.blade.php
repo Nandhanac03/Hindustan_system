@@ -477,15 +477,59 @@
                 {{-- STEP 1: SELECT SALE --}}
                 <div x-show="newReturnStep === 1" class="space-y-6">
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block" x-text="isCancellationTab ? 'Select Active Booking *' : 'Select Active Sale *'"></label>
-                        <select x-model="newReturnSaleId" 
-                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800">
-                            <option value="" x-text="isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —'"></option>
-                            <template x-for="sale in sales.filter(s => s.status === 'active')" :key="sale.id">
-                                <option :value="sale.id" 
-                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
-                            </template>
-                        </select>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2" x-text="isCancellationTab ? 'Select Active Booking *' : 'Select Active Sale *'"></label>
+                        <div class="relative w-full" x-data="{ 
+                                open: false, 
+                                search: '',
+                                getSaleLabel(sale) {
+                                    if(!sale) return '';
+                                    return (sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')';
+                                }
+                            }" @click.outside="open = false">
+                            
+                            <button type="button" 
+                                    @click="open = !open; if(open) $nextTick(() => $refs.saleSearch.focus())"
+                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800 flex justify-between items-center text-left">
+                                <span x-text="newReturnSaleId ? getSaleLabel(sales.find(s => s.id == newReturnSaleId)) : (isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —')" :class="!newReturnSaleId ? 'text-slate-500 font-normal' : ''" class="truncate pr-2"></span>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180 text-primary' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div x-show="open"
+                                 x-transition.opacity
+                                 class="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50"
+                                 style="display: none;">
+                                 
+                                 <div class="p-2 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                                     <div class="relative">
+                                         <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                         <input type="text"
+                                                x-model="search"
+                                                x-ref="saleSearch"
+                                                placeholder="Search by ID, Customer, or Unit..."
+                                                @keydown.escape="open = false"
+                                                class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                         <button x-show="search" type="button" @click="search = ''; $refs.saleSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
+                                     <button type="button"
+                                             @click="newReturnSaleId = ''; open = false"
+                                             class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-500 font-bold">
+                                         <span x-text="isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —'"></span>
+                                     </button>
+                                     <template x-for="sale in sales.filter(s => s.status === 'active')" :key="sale.id">
+                                         <button type="button"
+                                                 x-show="getSaleLabel(sale).toLowerCase().includes(search.toLowerCase())"
+                                                 @click="newReturnSaleId = sale.id; open = false"
+                                                 class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-800 font-bold"
+                                                 :class="newReturnSaleId == sale.id ? 'bg-primary/10 text-primary' : ''">
+                                             <span x-text="getSaleLabel(sale)"></span>
+                                         </button>
+                                     </template>
+                                 </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
@@ -625,15 +669,59 @@
                 {{-- STEP 1: SELECT SALE --}}
                 <div x-show="newExchangeStep === 1" class="space-y-6">
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Select Active/Cancelled Sale *</label>
-                        <select x-model="newExchangeSaleId" 
-                                class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800">
-                            <option value="">— Select an Active/Cancelled Booking to Exchange —</option>
-                            <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleEligibleForExchange(s))" :key="sale.id">
-                                <option :value="sale.id" 
-                                        x-text="(sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')'"></option>
-                            </template>
-                        </select>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Select Active/Cancelled Sale *</label>
+                        <div class="relative w-full" x-data="{ 
+                                open: false, 
+                                search: '',
+                                getSaleLabel(sale) {
+                                    if(!sale) return '';
+                                    return (sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')';
+                                }
+                            }" @click.outside="open = false">
+                            
+                            <button type="button" 
+                                    @click="open = !open; if(open) $nextTick(() => $refs.saleSearch.focus())"
+                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800 flex justify-between items-center text-left">
+                                <span x-text="newExchangeSaleId ? getSaleLabel(sales.find(s => s.id == newExchangeSaleId)) : '— Select an Active/Cancelled Booking to Exchange —'" :class="!newExchangeSaleId ? 'text-slate-500 font-normal' : ''" class="truncate pr-2"></span>
+                                <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+
+                            <div x-show="open"
+                                 x-transition.opacity
+                                 class="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50"
+                                 style="display: none;">
+                                 
+                                 <div class="p-2 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                                     <div class="relative">
+                                         <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                         <input type="text"
+                                                x-model="search"
+                                                x-ref="saleSearch"
+                                                placeholder="Search by ID, Customer, or Unit..."
+                                                @keydown.escape="open = false"
+                                                class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                                         <button x-show="search" type="button" @click="search = ''; $refs.saleSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
+                                     <button type="button"
+                                             @click="newExchangeSaleId = ''; open = false"
+                                             class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-500 font-bold">
+                                         <span>— Select an Active/Cancelled Booking to Exchange —</span>
+                                     </button>
+                                     <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleEligibleForExchange(s))" :key="sale.id">
+                                         <button type="button"
+                                                 x-show="getSaleLabel(sale).toLowerCase().includes(search.toLowerCase())"
+                                                 @click="newExchangeSaleId = sale.id; open = false"
+                                                 class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-800 font-bold"
+                                                 :class="newExchangeSaleId == sale.id ? 'bg-[#a38c29]/10 text-[#a38c29]' : ''">
+                                             <span x-text="getSaleLabel(sale)"></span>
+                                         </button>
+                                     </template>
+                                 </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
