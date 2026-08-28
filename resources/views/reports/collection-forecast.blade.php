@@ -16,7 +16,7 @@
             <div class="flex-1 min-w-[150px]">
                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">As On Date</label>
                 <div class="relative">
-                    <input type="date" name="as_of_date" value="{{ request('as_of_date', now()->format('Y-m-d')) }}" onchange="this.form.submit()" class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors">
+                    <input type="date" name="as_of_date" value="{{ request('as_of_date') }}" onchange="this.form.submit()" class="w-full text-xs font-bold text-slate-700 bg-slate-50 border border-slate-200 rounded-xl focus:border-[#a38c29] focus:ring-[#a38c29] h-11 px-4 transition-colors">
                 </div>
             </div>
             
