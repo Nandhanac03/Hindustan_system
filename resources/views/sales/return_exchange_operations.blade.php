@@ -83,7 +83,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().returnAmount)">
-                â‚¹0.00
+                ₹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -97,7 +97,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().payableToCustomer)">
-                â‚¹0.00
+                ₹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -111,7 +111,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">
-                â‚¹0.00
+                ₹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -636,9 +636,9 @@
                             </div>
                             <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="!isEditReturn ? 'View Return Details' : (targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details')"></h2>
                             <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="selectedReturnSale"
-                               x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' â€¢ Sale No: ' + selectedReturnSale.sale_number : ''"></p>
+                               x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • Sale No: ' + selectedReturnSale.sale_number : ''"></p>
                         </div>
-                        <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">âœ•</button>
+                        <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                     </div>
                 </div>
                 
@@ -650,7 +650,7 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Selected Booking' : 'Selected Sale'"></span>
-                            <strong class="text-slate-800 text-xs block mt-1" x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' â€¢ ' + (selectedReturnSale.status === 'cancelled' ? 'Booking No: ' : 'Sale No: ') + selectedReturnSale.sale_number : ''"></strong>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • ' + (selectedReturnSale.status === 'cancelled' ? 'Booking No: ' : 'Sale No: ') + selectedReturnSale.sale_number : ''"></strong>
                         </div>
                     </div>
                     
@@ -675,7 +675,7 @@
                         <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center items-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cancellation Fee</span>
                             <div class="flex items-center justify-center gap-1 mt-1">
-                                <span class="text-slate-400 font-bold text-xs">- â‚¹</span>
+                                <span class="text-slate-400 font-bold text-xs">- ₹</span>
                                 <input type="number" step="1" x-model.number="returnForm.cancellation_fee" :disabled="!isEditReturn"
                                        class="w-28 px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-305 font-bold font-mono rounded-lg text-center text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 disabled:opacity-75">
                             </div>
@@ -690,7 +690,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                            <span>ðŸ’¬ Reason & Narrative Notes *</span>
+                            <span>💬 Reason & Narrative Notes *</span>
                         </p>
                         <textarea x-model="returnForm.reason" rows="2" placeholder="Explain the rationale for this action..." :disabled="!isEditReturn"
                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm disabled:opacity-75 disabled:cursor-not-allowed"></textarea>
@@ -700,7 +700,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                            <span>ðŸ”„ Return Process Flow</span>
+                            <span>🔄 Return Process Flow</span>
                         </p>
                         <div class="flex items-center justify-between text-[11px] font-bold text-slate-650 max-w-sm mx-auto py-2">
                             <div class="flex flex-col items-center gap-1.5">
@@ -883,7 +883,7 @@
                                 <div>
                                     <h4 class="text-xs font-bold text-[#a38c29] mb-3 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Cancellation Summary</h4>
                                     <div class="space-y-2 text-xs">
-                                        <div class="flex justify-between"><span class="text-slate-600">Total Paid</span><span class="font-bold font-mono text-slate-800" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : 'â‚¹ 0.00'"></span></div>
+                                        <div class="flex justify-between"><span class="text-slate-600">Total Paid</span><span class="font-bold font-mono text-slate-800" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : '₹ 0.00'"></span></div>
                                         <div class="flex justify-between"><span class="text-slate-600">Cancellation Fee</span><span class="font-bold font-mono text-red-600" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span></div>
                                     </div>
                                 </div>
@@ -1053,9 +1053,9 @@
                         </div>
                         <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'Execute Exchange Plan'"></h2>
                         <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="newExchangeStep === 2 && selectedExchangeSale"
-                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
+                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
-                    <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">âœ•</button>
+                    <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
             </div>
             
@@ -1069,14 +1069,14 @@
                                 search: '',
                                 getSaleLabel(sale) {
                                     if(!sale) return '';
-                                    return (sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' â€” ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')';
+                                    return (sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')';
                                 }
                             }" @click.outside="open = false">
                             
                             <button type="button" 
                                     @click="open = !open; if(open) $nextTick(() => $refs.saleSearch.focus())"
                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800 flex justify-between items-center text-left">
-                                <span x-text="newExchangeSaleId ? getSaleLabel(sales.find(s => s.id == newExchangeSaleId)) : 'â€” Select an Active/Cancelled Booking to Exchange â€”'" :class="!newExchangeSaleId ? 'text-slate-500 font-normal' : ''" class="truncate pr-2"></span>
+                                <span x-text="newExchangeSaleId ? getSaleLabel(sales.find(s => s.id == newExchangeSaleId)) : '— Select an Active/Cancelled Booking to Exchange —'" :class="!newExchangeSaleId ? 'text-slate-500 font-normal' : ''" class="truncate pr-2"></span>
                                 <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
 
@@ -1094,7 +1094,7 @@
                                                 placeholder="Search by ID, Customer, or Unit..."
                                                 @keydown.escape="open = false"
                                                 class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
-                                         <button x-show="search" type="button" @click="search = ''; $refs.saleSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">âœ•</button>
+                                         <button x-show="search" type="button" @click="search = ''; $refs.saleSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
                                      </div>
                                  </div>
                                  
@@ -1102,7 +1102,7 @@
                                      <button type="button"
                                              @click="newExchangeSaleId = ''; open = false"
                                              class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-500 font-bold">
-                                         <span>â€” Select an Active/Cancelled Booking to Exchange â€”</span>
+                                         <span>— Select an Active/Cancelled Booking to Exchange —</span>
                                      </button>
                                      <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleEligibleForExchange(s))" :key="sale.id">
                                          <button type="button"
@@ -1136,7 +1136,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
-                            <span>ðŸ”„ Unit Exchange Details</span>
+                            <span>🔄 Unit Exchange Details</span>
                         </p>
 
                         <!-- Selected Old Unit Details Inline Info -->
@@ -1150,20 +1150,20 @@
                                 <div class="space-y-1.5 pl-5">
                                     <template x-for="su in selectedExchangeSale.sale_units" :key="su.id">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-sm font-black text-slate-800" x-text="su.unit ? su.unit.door_no : 'â€”'"></span>
+                                            <span class="text-sm font-black text-slate-800" x-text="su.unit ? su.unit.door_no : '—'"></span>
                                             <span class="text-sm text-slate-500 font-semibold" x-text="su.unit && su.unit.unit_type?.name ? '(' + su.unit.unit_type.name + ')' : ''"></span>
-                                            <span class="text-slate-300 font-light text-sm">â€”</span>
-                                            <span class="text-sm text-slate-600 font-medium" x-text="su.unit && su.unit.floor?.name ? su.unit.floor.name : 'â€”'"></span>
+                                            <span class="text-slate-300 font-light text-sm">—</span>
+                                            <span class="text-sm text-slate-600 font-medium" x-text="su.unit && su.unit.floor?.name ? su.unit.floor.name : '—'"></span>
                                         </div>
                                     </template>
                                 </div>
                             </template>
                             <template x-if="selectedExchangeSale && (!selectedExchangeSale.sale_units || selectedExchangeSale.sale_units.length === 0) && selectedExchangeSale.unit">
                                 <div class="flex items-center gap-2 pl-5">
-                                    <span class="text-sm font-black text-slate-800" x-text="selectedExchangeSale.unit.door_no || 'â€”'"></span>
+                                    <span class="text-sm font-black text-slate-800" x-text="selectedExchangeSale.unit.door_no || '—'"></span>
                                     <span class="text-sm text-slate-500 font-semibold" x-text="selectedExchangeSale.unit.unit_type?.name ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span>
-                                    <span class="text-slate-300 font-light text-sm">â€”</span>
-                                    <span class="text-sm text-slate-600 font-medium" x-text="selectedExchangeSale.unit.floor?.name || 'â€”'"></span>
+                                    <span class="text-slate-300 font-light text-sm">—</span>
+                                    <span class="text-sm text-slate-600 font-medium" x-text="selectedExchangeSale.unit.floor?.name || '—'"></span>
                                 </div>
                             </template>
                         </div>
@@ -1216,7 +1216,7 @@
                                             </div>
                                         </template>
                                         <template x-if="!exchangeForm.new_unit_id || !getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id)">
-                                            <span class="text-slate-400 font-medium">â€” Select Target Unit â€”</span>
+                                            <span class="text-slate-400 font-medium">— Select Target Unit —</span>
                                         </template>
                                         <div class="flex items-center gap-1 shrink-0 ml-1">
                                             <template x-if="exchangeForm.new_unit_id">
@@ -1252,7 +1252,7 @@
                                                        @keydown.escape="open = false"
                                                        class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/15 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
                                                 <template x-if="search">
-                                                    <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">âœ•</button>
+                                                    <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">✕</button>
                                                 </template>
                                             </div>
                                         </div>
@@ -1304,7 +1304,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Old Contract Value</label>
-                                <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'" disabled
+                                <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'" disabled
                                        class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold font-mono h-[38px] flex items-center shadow-inner">
                             </div>
 
@@ -1321,7 +1321,7 @@
                         <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
                         <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-3 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Old Contract Value</span>
-                            <span class="font-extrabold text-slate-200 text-sm mt-1 block font-mono" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'"></span>
+                            <span class="font-extrabold text-slate-200 text-sm mt-1 block font-mono" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'"></span>
                         </div>
                         <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-3 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Paid Amount</span>
@@ -1349,7 +1349,7 @@
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <input type="number" step="0.01" min="0" x-model="exchangeForm.initial_payment_amount" @input="updateExchangeInitialPaymentFromAmount()" placeholder="Amount (â‚¹)"
+                                        <input type="number" step="0.01" min="0" x-model="exchangeForm.initial_payment_amount" @input="updateExchangeInitialPaymentFromAmount()" placeholder="Amount (₹)"
                                                :class="errors.initial_payment_amount ? 'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20' : 'border-slate-200 bg-white focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29]'"
                                                class="w-full px-3 py-2 border rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
                                     </div>
@@ -1487,7 +1487,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                            <span>ðŸ’¬ Exchange Reason / Notes *</span>
+                            <span>💬 Exchange Reason / Notes *</span>
                         </p>
                         <textarea x-model="exchangeForm.reason" rows="2" placeholder="Write internal memo for the unit exchange..."
                                   :class="errors.reason ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
@@ -1581,7 +1581,7 @@
                         <template x-for="sale in filteredReturnSales()" :key="sale.id">
                             <tr class="hover:bg-slate-50/50 transition-colors">
                                 <td class="px-3 py-2.5 font-bold text-slate-900" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5" x-text="sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'â€”'"></td>
+                                <td class="px-3 py-2.5" x-text="sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : '—'"></td>
                                 <td class="px-3 py-2.5 text-right font-mono" x-text="fmt(sale.total_amount)"></td>
                                 <td class="px-3 py-2.5 text-right font-mono text-emerald-700" x-text="fmt(getPaidTillDate(sale))"></td>
                                 <td class="px-3 py-2.5 text-center">
@@ -1624,9 +1624,9 @@
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider"
                             x-text="targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details'"></h4>
                         <p class="text-[10px] text-slate-500 font-semibold"
-                           x-text="'Sale No: ' + selectedReturnSale.sale_number + ' â€¢ Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A')"></p>
+                           x-text="'Sale No: ' + selectedReturnSale.sale_number + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A')"></p>
                     </div>
-                    <button type="button" @click="selectedReturnSale = null" class="text-emerald-700 hover:text-emerald-900 font-bold">âœ•</button>
+                    <button type="button" @click="selectedReturnSale = null" class="text-emerald-700 hover:text-emerald-900 font-bold">✕</button>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 text-xs font-semibold">
@@ -1732,7 +1732,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().totalDiff)">
-                â‚¹0.00
+                ₹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -1746,7 +1746,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().payableByCustomer)">
-                â‚¹0.00
+                ₹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -1760,7 +1760,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().refundableToCustomer)">
-                â‚¹0.00
+                ₹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -1895,21 +1895,21 @@
                     <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
                         <template x-for="sale in paginatedExchangeSales()" :key="sale.id">
                             <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-3 py-2.5 font-bold text-primary text-left" x-text="sale.status === 'exchanged' ? ('EXC-' + new Date(sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')) : 'â€”'"></td>
+                                <td class="px-3 py-2.5 font-bold text-primary text-left" x-text="sale.status === 'exchanged' ? ('EXC-' + new Date(sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')) : '—'"></td>
                                 <td class="px-3 py-2.5 text-slate-500 text-left" x-text="formatDate(sale.status === 'exchanged' ? sale.updated_at : sale.sale_date)"></td>
                                 <td class="px-3 py-2.5 text-left" x-text="sale.project ? sale.project.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left bg-slate-100/20 border-r border-slate-100" x-text="sale.unit ? formatUnitDisplay(sale.unit) : 'â€”'"></td>
+                                <td class="px-3 py-2.5 text-left bg-slate-100/20 border-r border-slate-100" x-text="sale.unit ? formatUnitDisplay(sale.unit) : '—'"></td>
                                 <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-slate-100/20 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
                                 <td class="px-3 py-2.5 text-left bg-primary/5 border-r border-slate-100 font-bold text-primary" x-text="getNewUnitDoorNo(sale)"></td>
                                 <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-primary/5 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : 'â€”'"></td>
+                                <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></td>
                                 <td class="px-3 py-2.5 text-left">
                                     <template x-if="sale.status === 'exchanged'">
                                         <span :class="getExchangeNetDue(sale) > 0 ? 'text-orange-600 font-bold' : (getExchangeNetDue(sale) < 0 ? 'text-teal-600 font-bold' : 'text-slate-600 font-bold')"
                                               x-text="getExchangeStatusText(sale)"></span>
                                     </template>
                                     <template x-if="sale.status !== 'exchanged'">
-                                        <span class="text-slate-400 font-normal">â€”</span>
+                                        <span class="text-slate-400 font-normal">—</span>
                                     </template>
                                 </td>
                                 <td class="px-3 py-2.5 text-center">
@@ -1989,9 +1989,9 @@
                         <span class="text-[9px] font-bold text-blue-800 uppercase tracking-widest">Active Plan</span>
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Execute Exchange Plan</h4>
                         <p class="text-[10px] text-slate-500 font-semibold"
-                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
+                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
-                    <button type="button" @click="selectedExchangeSale = null" class="text-blue-700 hover:text-blue-900 font-bold">âœ•</button>
+                    <button type="button" @click="selectedExchangeSale = null" class="text-blue-700 hover:text-blue-900 font-bold">✕</button>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
@@ -2034,7 +2034,7 @@
                                     </div>
                                 </template>
                                 <template x-if="!exchangeForm.new_unit_id || !exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id)">
-                                    <span class="text-slate-400 font-medium">â€” Select Target Unit â€”</span>
+                                    <span class="text-slate-400 font-medium">— Select Target Unit —</span>
                                 </template>
                                 <div class="flex items-center gap-1 shrink-0 ml-1">
                                     <template x-if="exchangeForm.new_unit_id">
@@ -2070,7 +2070,7 @@
                                                @keydown.escape="open = false"
                                                class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/15 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
                                         <template x-if="search">
-                                            <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">âœ•</button>
+                                            <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">✕</button>
                                         </template>
                                     </div>
                                 </div>
@@ -2118,7 +2118,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-semibold">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Old Contract Value:</label>
-                        <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'" disabled
+                        <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'" disabled
                                class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 font-bold font-mono">
                     </div>
 
@@ -2141,7 +2141,7 @@
                 <div class="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-3 divide-x divide-slate-100">
                     <div class="text-center">
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Old Contract Value</p>
-                        <p class="text-xs font-extrabold text-slate-700 font-mono mt-0.5" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'"></p>
+                        <p class="text-xs font-extrabold text-slate-700 font-mono mt-0.5" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'"></p>
                     </div>
                     <div class="text-center px-1">
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
@@ -2277,9 +2277,9 @@
                             </div>
                             <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Exchange Details</h2>
                             <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="viewExchangeSale"
-                               x-text="viewExchangeSale ? (viewExchangeSale.project ? (viewExchangeSale.project.code || viewExchangeSale.project.name) : 'N/A') + ' - Door ' + (viewExchangeSale.unit ? viewExchangeSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') + ' â€¢ Sale No: ' + viewExchangeSale.sale_number : ''"></p>
+                               x-text="viewExchangeSale ? (viewExchangeSale.project ? (viewExchangeSale.project.code || viewExchangeSale.project.name) : 'N/A') + ' - Door ' + (viewExchangeSale.unit ? viewExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') + ' • Sale No: ' + viewExchangeSale.sale_number : ''"></p>
                         </div>
-                        <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">âœ•</button>
+                        <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                     </div>
                 </div>
                 
@@ -2295,17 +2295,17 @@
                         <div class="bg-slate-50/50 border border-slate-200 rounded-2xl p-4 space-y-2">
                             <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-1">Old Unit (Cancelled)</h4>
                             <div class="space-y-1">
-                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : 'â€”'"></span></p>
-                                <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.unit ? formatUnitDisplay(viewExchangeSale.unit) : 'â€”'"></span></p>
-                                <p class="text-slate-500">Original Value: <span class="text-slate-850 font-bold font-mono" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : 'â€”'"></span></p>
-                                <p class="text-slate-500">Paid Amount: <span class="text-emerald-700 font-bold font-mono" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : 'â€”'"></span></p>
+                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : '—'"></span></p>
+                                <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.unit ? formatUnitDisplay(viewExchangeSale.unit) : '—'"></span></p>
+                                <p class="text-slate-500">Original Value: <span class="text-slate-850 font-bold font-mono" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : '—'"></span></p>
+                                <p class="text-slate-500">Paid Amount: <span class="text-emerald-700 font-bold font-mono" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '—'"></span></p>
                             </div>
                         </div>
 
                         <div class="bg-blue-50/10 border border-blue-150 rounded-2xl p-4 space-y-2">
                             <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-wider border-b border-blue-200/30 pb-1">New Unit (Booked)</h4>
                             <div class="space-y-1">
-                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))) ? ((viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project ? (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project.name : 'â€”') : 'â€”'"></span></p>
+                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))) ? ((viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project ? (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project.name : '—') : '—'"></span></p>
                                 <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="getNewUnitDoorNo(viewExchangeSale)"></span></p>
                                 <p class="text-slate-500">New Value: <span class="text-slate-850 font-bold font-mono" x-text="fmt(getNewUnitValue(viewExchangeSale))"></span></p>
                             </div>
@@ -2316,17 +2316,17 @@
                     <div class="bg-slate-50/50 border border-slate-200 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-200">
                         <div class="text-center">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
-                            <p class="text-sm font-extrabold text-emerald-700 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : 'â‚¹0.00'"></p>
+                            <p class="text-sm font-extrabold text-emerald-700 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '₹0.00'"></p>
                         </div>
                         <div class="text-center px-2">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Net Balance Due</p>
-                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getDifferenceAmount(viewExchangeSale)) : 'â‚¹0.00'"></p>
+                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getDifferenceAmount(viewExchangeSale)) : '₹0.00'"></p>
                         </div>
                         <div class="text-center">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payable / Refundable</p>
                             <p class="text-xs font-extrabold mt-1 uppercase" 
                                :class="viewExchangeSale && getExchangeNetDue(viewExchangeSale) > 0 ? 'text-orange-600' : (viewExchangeSale && getExchangeNetDue(viewExchangeSale) < 0 ? 'text-teal-600' : 'text-slate-600')"
-                               x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : 'â€”'"></p>
+                               x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : '—'"></p>
                         </div>
                     </div>
 
@@ -2351,9 +2351,9 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
                                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1">
                                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Old Unit & Agreement Info</span>
-                                    <p class="text-slate-600">Sale No: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.sale_number : 'â€”'"></span></p>
-                                    <p class="text-slate-600">Door / Unit: <span class="font-extrabold text-slate-800" x-text="getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.door_no : 'â€”'"></span></p>
-                                    <p class="text-slate-600">Unit Type & Floor: <span class="font-bold text-slate-700" x-text="(getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.unit_type_name || '' : '') + ' â€¢ ' + (getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.floor_name || '' : '')"></span></p>
+                                    <p class="text-slate-600">Sale No: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.sale_number : '—'"></span></p>
+                                    <p class="text-slate-600">Door / Unit: <span class="font-extrabold text-slate-800" x-text="getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.door_no : '—'"></span></p>
+                                    <p class="text-slate-600">Unit Type & Floor: <span class="font-bold text-slate-700" x-text="(getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.unit_type_name || '' : '') + ' • ' + (getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.floor_name || '' : '')"></span></p>
                                     <p class="text-slate-600">Old Contract Value: <span class="font-extrabold text-slate-800 font-mono" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_amount : 0)"></span></p>
                                 </div>
 
