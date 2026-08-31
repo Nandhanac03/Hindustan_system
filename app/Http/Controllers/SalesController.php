@@ -300,6 +300,14 @@ class SalesController extends Controller
             foreach ($processedUnits as $pUnit) {
                 $su = SaleUnit::create(array_merge($pUnit, ['sale_id' => $sale->id]));
                 $unitModel = Unit::findOrFail($pUnit['unit_id']);
+
+                $inputRate = (float)$pUnit['rate_per_sqft'];
+                if ($inputRate > 0 && $inputRate !== (float)$unitModel->expected_rate_per_sqft) {
+                    $rateService = resolve(\App\Services\UnitRateService::class);
+                    $rateService->updateRate($unitModel, $inputRate, now()->toDateString(), 'Edited during sale booking');
+                    $unitModel->refresh();
+                }
+
                 $unitDifference = (float)$unitModel->expected_sale_amount - (float)$pUnit['line_total'];
                 $unitModel->update([
                     'status'             => 'sold',
@@ -544,6 +552,14 @@ class SalesController extends Controller
                     $pUnit
                 );
                 $unitModel = Unit::findOrFail($pUnit['unit_id']);
+
+                $inputRate = (float)$pUnit['rate_per_sqft'];
+                if ($inputRate > 0 && $inputRate !== (float)$unitModel->expected_rate_per_sqft) {
+                    $rateService = resolve(\App\Services\UnitRateService::class);
+                    $rateService->updateRate($unitModel, $inputRate, now()->toDateString(), 'Edited during sale booking');
+                    $unitModel->refresh();
+                }
+
                 $unitDifference = (float)$unitModel->expected_sale_amount - (float)$pUnit['line_total'];
                 $unitModel->update([
                     'status'             => 'sold',

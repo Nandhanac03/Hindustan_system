@@ -24,6 +24,41 @@ class UnitRateService
                 $expectedSale = $unit->built_up_area ? ((float)$unit->built_up_area * $rate) : null;
             }
 
+            // Calculate amountChange if null
+            if ($amountChange === null) {
+                if ($isParking) {
+                    $prevPrice = (float)($unit->expected_sale_amount ?? 0.0);
+                    $amountChange = $rate - $prevPrice;
+                    $rateDiff = $amountChange;
+                } else {
+                    $prevRate = (float)($unit->expected_rate_per_sqft ?? 0.0);
+                    $prevPrice = (float)($unit->expected_sale_amount ?? ($prevRate * ($unit->built_up_area ?? 0.0)));
+                    $newPrice = $rate * (float)($unit->built_up_area ?? 0.0);
+                    $amountChange = $newPrice - $prevPrice;
+                    $rateDiff = $rate - $prevRate;
+                }
+            } else {
+                if ($isParking) {
+                    $rateDiff = $amountChange;
+                } else {
+                    $prevRate = (float)($unit->expected_rate_per_sqft ?? 0.0);
+                    $rateDiff = $rate - $prevRate;
+                }
+            }
+
+            // Calculate changeDetails if null
+            if ($changeDetails === null) {
+                $revType = $revisionType ?: 'Base Price Adjustment';
+                $changeDetails = str_replace('_', ' ', ucfirst($revType));
+                if ($amountChange > 0) {
+                    $changeDetails .= ' increased by +' . number_format($rateDiff, 2) . ' / sqft';
+                } elseif ($amountChange < 0) {
+                    $changeDetails .= ' decreased by -' . number_format(abs($rateDiff), 2) . ' / sqft';
+                } else {
+                    $changeDetails .= ' set to same rate';
+                }
+            }
+
             // Update units table expected_rate_per_sqft and calculate expected_sale_amount / difference
             $difference = null;
             if ($expectedSale !== null && $unit->sale_amount !== null) {
@@ -39,7 +74,7 @@ class UnitRateService
             UnitRateLog::create([
                 'unit_id' => $unit->id,
                 'rate' => $rate,
-                'revision_type' => $revisionType,
+                'revision_type' => $revisionType ?: 'Base Price Adjustment',
                 'change_details' => $changeDetails,
                 'amount_change' => $amountChange,
                 'effective_from' => $effectiveFrom,

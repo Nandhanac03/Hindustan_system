@@ -1171,7 +1171,7 @@
                         <!-- Target Unit Selections Heading -->
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2 mt-4">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
-                            <span>ðŸŽ¯ Target Unit Selections</span>
+                            <span>🎯 Target Unit Selections</span>
                         </p>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1341,7 +1341,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>ðŸ’¼ Initial Payment Details</span>
+                            <span>💼 Initial Payment Details</span>
                         </p>
                         
                         <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm">

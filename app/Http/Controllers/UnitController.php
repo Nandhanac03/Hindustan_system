@@ -672,7 +672,14 @@ class UnitController extends Controller
         $unitTypes = UnitType::where('is_active', true)->orderBy('name')->get();
         $floors = \App\Models\Floor::with('project')->orderBy('project_id')->orderBy('floor_number')->get();
 
-        $query = \App\Models\UnitRateLog::with(['unit.project', 'unit.floor', 'unit.unitType', 'user']);
+        $firstLogIdsSubquery = function ($q) {
+            $q->selectRaw('MIN(id)')
+              ->from('unit_rate_logs')
+              ->groupBy('unit_id');
+        };
+
+        $query = \App\Models\UnitRateLog::with(['unit.project', 'unit.floor', 'unit.unitType', 'user'])
+            ->whereNotIn('id', $firstLogIdsSubquery);
 
         // Filtering
         if ($request->filled('unit_type_id')) {
@@ -688,11 +695,19 @@ class UnitController extends Controller
         $logs = $query->orderBy('id', 'desc')->paginate(50)->withQueryString();
 
         // Calculate KPI Stats
-        $totalRevisions = \App\Models\UnitRateLog::count();
-        $priceIncrease = (float)\App\Models\UnitRateLog::where('amount_change', '>', 0)->sum('amount_change');
-        $priceDecrease = (float)\App\Models\UnitRateLog::where('amount_change', '<', 0)->sum('amount_change');
-        $activeUnits = \App\Models\UnitRateLog::distinct('unit_id')->count('unit_id');
-        $lastRevisionDate = \App\Models\UnitRateLog::orderBy('id', 'desc')->value('effective_from');
+        $totalRevisions = \App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery)->count();
+        $priceIncrease = (float)\App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery)
+            ->where('amount_change', '>', 0)
+            ->sum('amount_change');
+        $priceDecrease = (float)\App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery)
+            ->where('amount_change', '<', 0)
+            ->sum('amount_change');
+        $activeUnits = \App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery)
+            ->distinct('unit_id')
+            ->count('unit_id');
+        $lastRevisionDate = \App\Models\UnitRateLog::whereNotIn('id', $firstLogIdsSubquery)
+            ->orderBy('id', 'desc')
+            ->value('effective_from');
 
         return view('units.rate-revision-logs', compact(
             'projects',

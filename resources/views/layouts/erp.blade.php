@@ -604,26 +604,26 @@
                     Chart of Accounts
                 </a>
                 <a href="{{ route('voucher-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('voucher-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Voucher Types Master
+                    Voucher Types
                 </a>
                 <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
                     Opening Balance Migration Tool
                 </a> -->
                 <a href="{{ route('engineers.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('engineers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Engineer Master
+                    Engineer
                 </a>
-                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
-                    Banking Master (Company Bank Accounts)
+                <a href="{{ route('company-bank-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('company-bank-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Company Bank Accounts
                 </a>
                 <a href="{{ route('cheque-statuses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-statuses.*') ? 'bg-[#a38c29] text-white shadow-md font-bold active' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Cheque Status Master
+                    Cheque Status
                 </a>
                 
                 <a href="{{ route('floors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('floors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Floor Master
+                    Floor
                 </a>
                 <a href="{{ route('unit-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Unit Type Master
+                    Unit Type
                 </a>
             </div>
         </div>
