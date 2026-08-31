@@ -1528,14 +1528,14 @@
 
 {{-- ═══════════════════════ EDIT PROJECT MODAL ═══════════════════════ --}}
 <div x-show="editProjectModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-    <div x-show="editProjectModal" class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up" @click.away="editProjectModal = false">
+    <div x-show="editProjectModal" class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-fade-in-up" @click.away="editProjectModal = false">
         {{-- Header --}}
         <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0">
             <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
             <div class="relative z-10 flex items-center justify-between gap-4">
                 <div>
-                    <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Edit Project</span>
-                    <h2 class="text-xs font-extrabold text-white mt-1">{{ $project->name }}</h2>
+                    <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Project Portfolio</span>
+                    <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Edit Project Specifications</h2>
                 </div>
                 <button type="button" @click="editProjectModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
             </div>
@@ -1544,110 +1544,151 @@
         <form action="{{ route('projects.update', $project->id) }}" method="POST" enctype="multipart/form-data" class="flex-1 flex flex-col min-h-0">
             @csrf
             @method('PUT')
-
-            {{-- Single-pane body --}}
-            <div class="p-5 space-y-4 overflow-y-auto flex-1 min-h-0">
-                {{-- Media & Image --}}
-                <div class="bg-slate-50/50 p-3 rounded-xl border border-slate-100 space-y-3">
-                    <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest">Media & Image</p>
-                    <div class="flex items-center gap-3">
-                        <div class="w-14 h-14 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 relative">
-                            <img x-show="!imagePreview" src="{{ $projectImage }}" class="w-full h-full object-cover" alt="Project image">
-                            <img x-show="imagePreview" :src="imagePreview" class="w-full h-full object-cover" x-cloak>
+            
+            <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50 flex-1">
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
+                    <!-- Name, Code & Total Floors -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-2 space-y-1.5">
+                            <label for="edit_name" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Name</label>
+                            <input id="edit_name" 
+                                   type="text" 
+                                   name="name" 
+                                   value="{{ old('name', $project->name) }}"
+                                   required 
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
                         </div>
-                        <div class="flex-1">
-                            <label class="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-[10px] font-bold rounded-lg transition shadow-sm uppercase tracking-wide">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                Upload
-                                <input type="file" name="image" accept="image/*" class="hidden" @change="const file = $event.target.files[0]; if (file) imagePreview = URL.createObjectURL(file);">
-                            </label>
-                            <p class="text-[9px] text-slate-400 mt-1">JPG, PNG up to 2MB</p>
+
+                        <div class="space-y-1.5">
+                            <label for="edit_code" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Code</label>
+                            <input id="edit_code" 
+                                   type="text" 
+                                   name="code" 
+                                   value="{{ old('code', $project->code) }}"
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold uppercase focus:outline-none transition shadow-sm" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="edit_total_floors" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Total Floors</label>
+                            <input id="edit_total_floors" 
+                                   type="number" 
+                                   name="total_floors" 
+                                   value="{{ old('total_floors', $project->total_floors) }}"
+                                   readonly
+                                   class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 font-semibold focus:outline-none cursor-not-allowed shadow-sm" />
                         </div>
                     </div>
-                </div>
 
-                {{-- Project Details Section --}}
-                <div class="space-y-3">
-                    <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest border-b border-slate-100 pb-1">Project Details</p>
-                    
-                   
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Name</label>
-                            <input type="text" name="name" value="{{ old('name', $project->name) }}"
-                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                    <!-- Location & City -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="edit_location" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Address / Location</label>
+                            <input id="edit_location" 
+                                   type="text" 
+                                   name="location" 
+                                   value="{{ old('location', $project->location) }}"
+                                   required 
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
                         </div>
-                       
-                    
 
-                    <div class="space-y-1">
-                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Location / Address</label>
-                        <input type="text" name="location" value="{{ old('location', $project->location) }}"
-                            class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2">
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">City</label>
-                            <input type="text" name="city" value="{{ old('city', $project->city) }}"
-                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">State</label>
-                            <input type="text" name="state_or_emirate" value="{{ old('state_or_emirate', $project->state_or_emirate) }}"
-                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Country</label>
-                            <input type="text" name="country" value="{{ old('country', $project->country) }}"
-                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
+                        <div class="space-y-1.5">
+                            <label for="edit_city" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">City</label>
+                            <input id="edit_city" 
+                                   type="text" 
+                                   name="city" 
+                                   value="{{ old('city', $project->city) }}"
+                                   required 
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
                         </div>
                     </div>
-                </div>
 
-                {{-- Status & Scope Section --}}
-                <div class="space-y-3">
-                    <p class="text-[9px] font-bold text-[#a38c29] uppercase tracking-widest border-b border-slate-100 pb-1">Status & Scope</p>
-                    
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Status</label>
-                            <select name="status" class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white">
+                    <!-- State & Country -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="edit_state_or_emirate" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">State / Emirate</label>
+                            <input id="edit_state_or_emirate" 
+                                   type="text" 
+                                   name="state_or_emirate" 
+                                   value="{{ old('state_or_emirate', $project->state_or_emirate) }}"
+                                   required 
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="edit_country" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Country</label>
+                            <input id="edit_country" 
+                                   type="text" 
+                                   name="country" 
+                                   value="{{ old('country', $project->country) }}"
+                                   required 
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                        </div>
+                    </div>
+
+                    <!-- Dates & Status -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="space-y-1.5">
+                            <label for="edit_start_date" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Start Date</label>
+                            <input id="edit_start_date" 
+                                   type="date" 
+                                   name="start_date" 
+                                   value="{{ old('start_date', $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : '') }}"
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm cursor-pointer" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="edit_expected_completion_date" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Expected Completion</label>
+                            <input id="edit_expected_completion_date" 
+                                   type="date" 
+                                   name="expected_completion_date" 
+                                   value="{{ old('expected_completion_date', $project->expected_completion_date ? \Carbon\Carbon::parse($project->expected_completion_date)->format('Y-m-d') : '') }}"
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm cursor-pointer" />
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label for="edit_status" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Status</label>
+                            <select id="edit_status" 
+                                    name="status" 
+                                    required 
+                                    class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-750 cursor-pointer focus:outline-none transition-all shadow-sm font-semibold">
                                 @foreach(['planning' => 'Planning', 'ongoing' => 'Ongoing', 'completed' => 'Completed', 'on_hold' => 'On Hold'] as $value => $label)
                                     <option value="{{ $value }}" @selected(old('status', $project->status) == $value)>{{ $label }}</option>
                                 @endforeach
                             </select>
                         </div>
-
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Total Floors</label>
-                            <input type="number" name="total_floors" value="{{ old('total_floors', $project->total_floors) }}"
-                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mt-3">
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Start Date</label>
-                            <input type="date" name="start_date" value="{{ old('start_date', $project->start_date ? \Carbon\Carbon::parse($project->start_date)->format('Y-m-d') : '') }}"
-                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Target Completion</label>
-                            <input type="date" name="expected_completion_date" value="{{ old('expected_completion_date', $project->expected_completion_date ? \Carbon\Carbon::parse($project->expected_completion_date)->format('Y-m-d') : '') }}"
-                                class="w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
-                        </div>
+                    <!-- Description -->
+                    <div class="space-y-1.5">
+                        <label for="ck_units_project_description" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Description / Specifications</label>
+                        <textarea id="ck_units_project_description" 
+                                  name="description" 
+                                  rows="4" 
+                                  placeholder="Enter detailed project specifications, structural details, amenities & notes..."
+                                  class="ck-editor-field w-full bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 px-4 py-2 focus:outline-none transition resize-none shadow-sm font-semibold">{{ old('description', $project->description) }}</textarea>
                     </div>
 
-                    <div class="space-y-1 mt-3">
-                        <label class="block text-[9px] font-bold text-slate-500 uppercase tracking-wider">Project Description</label>
-                        <textarea name="description" id="ck_units_project_description" rows="4"
-                            placeholder="Write a detailed project description..."
-                            class="ck-editor-field w-full px-2.5 py-1.5 text-[11px] border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none">{{ old('description', $project->description) }}</textarea>
+                    <!-- Image Upload -->
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Project Cover Image</label>
+                        <div class="flex items-center gap-4 bg-slate-50 border border-slate-250 rounded-xl p-4 shadow-sm">
+                            <div class="w-16 h-16 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 relative">
+                                <img x-show="!imagePreview" src="{{ $projectImage }}" class="w-full h-full object-cover" alt="Project image">
+                                <img x-show="imagePreview" :src="imagePreview" class="w-full h-full object-cover" x-cloak>
+                            </div>
+                            <div class="flex-1 space-y-1">
+                                <label class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold rounded-xl transition shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M14 8h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    Choose File
+                                    <input type="file" name="image" accept="image/*" class="hidden" @change="const file = $event.target.files[0]; if (file) imagePreview = URL.createObjectURL(file);">
+                                </label>
+                                <p class="text-[9px] text-slate-400">Upload a new image to replace the current one. Max size: 2MB.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Footer --}}
             <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50 flex-shrink-0">
                 <button type="button" @click="editProjectModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-655 text-xs font-bold rounded-xl transition uppercase tracking-wider">
                     Cancel

@@ -20,6 +20,23 @@ class Floor extends Model
         'floor_number' => 'integer',
     ];
 
+    protected static function booted()
+    {
+        static::created(function ($floor) {
+            $floor->project->updateQuietly([
+                'total_floors' => static::where('project_id', $floor->project_id)->count()
+            ]);
+        });
+
+        static::deleted(function ($floor) {
+            if ($floor->project) {
+                $floor->project->updateQuietly([
+                    'total_floors' => static::where('project_id', $floor->project_id)->count()
+                ]);
+            }
+        });
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

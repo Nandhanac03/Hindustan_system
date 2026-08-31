@@ -66,7 +66,7 @@ class ProjectController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'state_or_emirate' => ['required', 'string', 'max:100'],
             'country' => ['required', 'string', 'max:100'],
-            'total_floors' => ['required', 'integer', 'min:1'],
+            'total_floors' => ['nullable', 'integer'],
             'start_date' => ['nullable', 'date'],
             'expected_completion_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
@@ -85,6 +85,8 @@ class ProjectController extends Controller
         if (empty($validated['system_id'])) {
             $validated['system_id'] = $user->system_id ?? 1;
         }
+
+        $validated['total_floors'] = 0; // Default to 0, fetched from floors master
 
         // Upload image
         if ($request->hasFile('image')) {
@@ -144,13 +146,15 @@ class ProjectController extends Controller
             'city' => ['required', 'string', 'max:100'],
             'state_or_emirate' => ['required', 'string', 'max:100'],
             'country' => ['required', 'string', 'max:100'],
-            'total_floors' => ['required', 'integer', 'min:1'],
+            'total_floors' => ['nullable', 'integer'],
             'start_date' => ['nullable', 'date'],
             'expected_completion_date' => ['nullable', 'date'],
             'status' => ['required', 'in:planning,ongoing,completed,on_hold'],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'file', 'mimes:jpg,jpeg,png,webp,gif,svg,bmp,heic', 'max:10240'],
         ]);
+
+        $validated['total_floors'] = Floor::where('project_id', $project->id)->count();
 
         // Upload new image
         if ($request->hasFile('image')) {
@@ -309,6 +313,8 @@ class ProjectController extends Controller
                 }
             }
         });
+
+        $project->update(['total_floors' => Floor::where('project_id', $project->id)->count()]);
 
         return redirect()->route('projects.show', $project->id)
             ->with('status', 'Floors and units generated successfully.');

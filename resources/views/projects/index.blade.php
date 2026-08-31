@@ -187,6 +187,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                 </button>
 
+                                {{-- Hide Delete Project Button
                                 <button type="button"
                                     title="Delete Project"
                                     @click="openDeleteModal({{ $proj->id }}, '{{ addslashes($proj->name) }}', '{{ route('projects.destroy', $proj->id) }}')"
@@ -195,6 +196,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                     </svg>
                                 </button>
+                                --}}
                             @endcan
                             <a href="{{ route('projects.show', $proj->id) }}" title="View Project Unit Grid" class="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-800 transition inline-flex items-center justify-center shadow-sm">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2v-2z"/></svg>
@@ -267,14 +269,13 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="edit_total_floors" class="text-[10px] font-bold text-slate-450 uppercase tracking-widest block">Total Floors</label>
+                                    <label for="edit_total_floors" class="text-[10px] font-bold text-slate-455 uppercase tracking-widest block">Total Floors</label>
                                     <input id="edit_total_floors" 
                                            type="number" 
                                            name="total_floors" 
                                            x-model="editProject.total_floors"
-                                           required 
-                                           min="1"
-                                           class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
+                                           readonly
+                                           class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 font-semibold focus:outline-none cursor-not-allowed shadow-sm" />
                                 </div>
                             </div>
 
@@ -414,7 +415,7 @@
                     </div>
                 </div>
 
-                <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" x-data="{ createName: '{{ old('name') }}', createTotalFloors: '{{ old('total_floors', 1) }}', createLocation: '{{ old('location') }}', createCity: '{{ old('city') }}', createState: '{{ old('state_or_emirate') }}', createCountry: '{{ old('country') }}', createStatus: '{{ old('status', 'planning') }}', errors: {}, submitCreate(e) { let errs = {}; if(!this.createName || !String(this.createName).trim()) errs.name = ['The project name field is required.']; if(!this.createTotalFloors) errs.total_floors = ['The total floors field is required.']; if(!this.createLocation || !String(this.createLocation).trim()) errs.location = ['The address / location field is required.']; if(!this.createCity || !String(this.createCity).trim()) errs.city = ['The city field is required.']; if(!this.createState || !String(this.createState).trim()) errs.state_or_emirate = ['The state / emirate field is required.']; if(!this.createStatus) errs.status = ['The status field is required.']; if(Object.keys(errs).length > 0) { e.preventDefault(); this.errors = errs; return false; } } }" @submit="submitCreate($event)" novalidate>
+                <form method="POST" action="{{ route('projects.store') }}" enctype="multipart/form-data" x-data="{ createName: '{{ old('name') }}', createTotalFloors: '{{ old('total_floors', 0) }}', createLocation: '{{ old('location') }}', createCity: '{{ old('city') }}', createState: '{{ old('state_or_emirate') }}', createCountry: '{{ old('country') }}', createStatus: '{{ old('status', 'planning') }}', errors: {}, submitCreate(e) { let errs = {}; if(!this.createName || !String(this.createName).trim()) errs.name = ['The project name field is required.']; if(!this.createLocation || !String(this.createLocation).trim()) errs.location = ['The address / location field is required.']; if(!this.createCity || !String(this.createCity).trim()) errs.city = ['The city field is required.']; if(!this.createState || !String(this.createState).trim()) errs.state_or_emirate = ['The state / emirate field is required.']; if(!this.createStatus) errs.status = ['The status field is required.']; if(Object.keys(errs).length > 0) { e.preventDefault(); this.errors = errs; return false; } } }" @submit="submitCreate($event)" novalidate>
                     @csrf
                     
                     <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
@@ -435,16 +436,13 @@
                                 </div>
 
                                 <div class="space-y-1.5">
-                                    <label for="create_total_floors" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-450 uppercase tracking-widest">Total Floors <span class="text-rose-500 font-extrabold text-xs">*</span></label>
+                                    <label for="create_total_floors" class="inline-flex items-center gap-1 text-[10px] font-bold text-slate-455 uppercase tracking-widest">Total Floors</label>
                                     <input id="create_total_floors" 
                                            type="number" 
                                            name="total_floors" 
                                            x-model="createTotalFloors" 
-                                           required 
-                                           min="1"
-                                           :class="errors.total_floors ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-slate-50'"
-                                           class="w-full px-3 py-2 border focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-semibold focus:outline-none transition shadow-sm" />
-                                    <template x-if="errors.total_floors"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.total_floors) ? errors.total_floors[0] : errors.total_floors"></p></template>
+                                           readonly
+                                           class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 font-semibold focus:outline-none cursor-not-allowed shadow-sm" />
                                 </div>
                             </div>
 
