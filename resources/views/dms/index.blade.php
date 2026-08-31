@@ -9,40 +9,14 @@
     imagePreview: null,
     
     // Dynamic document types based on category
-    categoryTypes: {
-        project: [
-            'Approved Building Plan', 'Municipality Approval', 'RERA Certificate', 
-            'Fire NOC', 'Environmental Clearance', 'Occupancy Certificate', 
-            'Completion Certificate', 'Site Layout Drawing', 'Master Plan', 'Other'
-        ],
-        legal: [
-            'Land Deed', 'Encumbrance Certificate', 'Power of Attorney', 
-            'Partnership Agreement', 'Legal Opinion', 'Court Document', 
-            'Government Approval', 'Other'
-        ],
-        company: [
-            'GST Registration', 'PAN Card', 'Trade License', 
-            'Company Incorporation Certificate', 'ISO Certificate', 
-            'Insurance Policy', 'Audit Report', 'Other'
-        ],
-        hr: [
-            'Appointment Letter', 'Employment Contract', 'NDA Agreement', 
-            'Policy Document', 'Employee ID Proof', 'Experience Certificate', 'Other'
-        ],
-        partner: [
-            'Investment Agreement', 'MOU Document', 'Share Allocation Document', 
-            'Settlement Agreement', 'Board Resolution', 'Other'
-        ],
-        drawings: [
-            'Architectural Drawing', 'Structural Drawing', 'Electrical Layout', 
-            'Plumbing Layout', 'BOQ Document', 'Engineering Report', 'Other'
-        ],
-        templates: [
-            'Sale Agreement Template', 'Possession Letter Template', 
-            'Cancellation Letter Template', 'Demand Letter Template', 
-            'Payment Reminder Template', 'Other'
-        ]
-    },
+    categoryTypes: (() => {
+        const info = @json($categoriesInfo);
+        const typesMap = {};
+        for (const code in info) {
+            typesMap[code] = info[code].types;
+        }
+        return typesMap;
+    })(),
 
     getDocTypesForUpload() {
         return this.categoryTypes[this.uploadCategory] || [];
