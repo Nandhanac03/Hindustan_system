@@ -73,4 +73,9 @@ class Project extends Model
     {
         return $this->morphMany(Document::class, 'documentable');
     }
+
+    public function getTotalFloorsAttribute(): int
+    {
+        return $this->floors()->count();
+    }
 }
