@@ -358,12 +358,22 @@
         </div>
 
         <!-- 📂 Document Management (DMS) -->
-        <a href="{{ route('dms.index') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 mt-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('dms.*') ? 'active text-white' : 'text-white/90' }}">
-            <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            Document Management
-        </a>
+        <div x-data="{ openDMS: {{ Request::routeIs('dms.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openDMS = !openDMS" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('dms.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Document Management</span>
+                </div>
+                <svg :class="openDMS ? 'rotate-90' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div x-show="openDMS" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('dms.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Document Repository
+                </a>
+            </div>
+        </div>
 
         <!-- 📑 Approvals Center -->
         <!-- <a href="{{ route('reports.approvals') }}" class="nav-item flex items-center gap-3 px-3 py-2.5 mt-2 text-xs font-semibold rounded-lg hover:text-primary-300 transition-colors {{ Request::routeIs('reports.approvals') ? 'active text-white' : 'text-white/90' }}">

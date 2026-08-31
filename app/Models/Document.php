@@ -28,6 +28,21 @@ class Document extends Model
         'file_size',
         'mime_type',
         'uploaded_by',
+        'issue_date',
+        'expiry_date',
+        'document_number',
+        'revision_number',
+        'drawing_type',
+        'department',
+        'legal_category',
+        'template_category',
+        'tower',
+        'reference_project_id',
+    ];
+
+    protected $casts = [
+        'issue_date' => 'date',
+        'expiry_date' => 'date',
     ];
 
     public function documentable(): MorphTo
@@ -38,6 +53,11 @@ class Document extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function referenceProject(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'reference_project_id');
     }
 
     public function getFormattedSizeAttribute(): string
