@@ -83,7 +83,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().returnAmount)">
-                ₹0.00
+                â‚¹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -97,7 +97,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().payableToCustomer)">
-                ₹0.00
+                â‚¹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -111,7 +111,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">
-                ₹0.00
+                â‚¹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -283,13 +283,7 @@
                                                 title="View Details">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
-                                        <template x-if="sale.status === 'cancelled'">
-                                            <button type="button" @click="selectReturnSale(sale, 'returned'); isEditReturn = true;" 
-                                                    class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm" 
-                                                    title="Process Return">
-                                                <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                            </button>
-                                        </template>
+
                                     </div>
                                 </td>
                             </tr>
@@ -337,8 +331,300 @@
         </div>
 
         {{-- PROCESS RETURN / CANCELLATION DETAILS MODAL POPUP --}}
+
         <div x-show="selectedReturnSale" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-            <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="selectedReturnSale = null">
+            <!-- VIEW MODE MODAL (New Design) -->
+            <template x-if="!isEditReturn">
+                <div class="w-full max-w-4xl max-h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="selectedReturnSale = null">
+                    <!-- Header -->
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-primary-500/10 shrink-0">
+                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="relative z-10 flex items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-[#a38c29]/20 text-[#d9bf3b] flex items-center justify-center shadow-sm">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    Cancel Sale Details
+                                </h2>
+                                <p class="text-[10px] text-slate-400 font-semibold mt-1 ml-10">View cancellation information and process status</p>
+                            </div>
+                            <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Body container -->
+                    <div class="p-6 overflow-y-auto bg-[#f8f9fa] space-y-4 flex-1">
+                        
+                        <!-- Badges & Header Info -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex gap-2">
+                                <span class="px-3 py-1 bg-[#a38c29]/10 border border-[#a38c29]/20 text-[#a38c29] text-[10px] font-extrabold rounded-md uppercase tracking-widest shadow-sm">VIEW MODE</span>
+                                <span class="px-3 py-1 bg-rose-50 border border-rose-100 text-rose-600 text-[10px] font-extrabold rounded-md uppercase tracking-widest shadow-sm" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'CANCELLED' : 'RETURNED'"></span>
+                            </div>
+                            <div>
+                                <span class="px-3 py-1 border border-rose-100 text-rose-600 bg-rose-50 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? '⊗ Cancelled' : '⊗ Returned'"></span>
+                            </div>
+                        </div>
+
+                        <!-- Sale/Booking Banner -->
+                        <div class="p-3 border border-slate-200 bg-white rounded-lg flex items-center gap-3 shadow-sm">
+                            <div class="w-8 h-8 rounded bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            </div>
+                            <div>
+                                <div class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">SALE / BOOKING</div>
+                                <div class="text-xs font-bold text-slate-700 mt-0.5" x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • ' + (selectedReturnSale.status === 'cancelled' ? 'Booking No: ' : 'Sale No: ') + selectedReturnSale.sale_number : ''"></div>
+                            </div>
+                        </div>
+
+                        <!-- Grid sections -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Cancellation Summary -->
+                            <div class="md:col-span-2 border border-[#a38c29]/20 rounded-lg p-5 bg-white relative overflow-hidden shadow-sm">
+                                <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-4 uppercase tracking-wide">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                    Cancellation Summary
+                                </h3>
+                                <div class="grid grid-cols-3 gap-4 border-t border-slate-100 pt-4">
+                                    <div>
+                                        <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Total Paid</div>
+                                        <div class="text-sm font-extrabold text-slate-800 font-mono" x-text="selectedReturnSale ? fmt(getPaidTillDate(selectedReturnSale)) : '—'"></div>
+                                    </div>
+                                    <div class="border-l border-slate-100 pl-4">
+                                        <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Cancellation Fee</div>
+                                        <div class="text-sm font-extrabold text-red-600 font-mono" x-text="selectedReturnSale && selectedReturnSale.cancellation_fee ? '- ' + fmt(selectedReturnSale.cancellation_fee) : '- ₹0.00'"></div>
+                                    </div>
+                                    <div class="border-l border-slate-100 pl-4">
+                                        <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Approved Refund Amount</div>
+                                        <div class="text-sm font-extrabold text-[#a38c29] font-mono" x-text="selectedReturnSale ? fmt(calculateApprovedRefund(selectedReturnSale)) : '—'"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cancellation Date -->
+                            <div class="border border-[#a38c29]/10 rounded-lg p-5 bg-[#a38c29]/[0.03] shadow-sm">
+                                <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-4 uppercase tracking-wide">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    Cancellation Date
+                                </h3>
+                                <div class="text-sm font-extrabold text-slate-800 pt-1" x-text="selectedReturnSale && selectedReturnSale.cancelled_at ? formatDate(selectedReturnSale.cancelled_at) : (selectedReturnSale ? formatDate(selectedReturnSale.updated_at) : '')"></div>
+                            </div>
+                        </div>
+
+                        <!-- Sale Information -->
+                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                            <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Sale Information
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-4">
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Project</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.project ? selectedReturnSale.project.name : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Unit / Plot</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.unit ? selectedReturnSale.unit.door_no : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Sale Amount</div>
+                                    <div class="text-xs font-bold text-slate-800 font-mono" x-text="selectedReturnSale ? fmt(selectedReturnSale.total_amount) : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Booked On</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale ? formatDate(selectedReturnSale.agreement_date || selectedReturnSale.created_at) : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Customer</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.customer ? selectedReturnSale.customer.name : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Customer Mobile</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.customer ? selectedReturnSale.customer.phone : '—'"></div>
+                                </div>
+                                <div class="col-span-2">
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Customer Email</div>
+                                    <div class="text-xs font-bold text-slate-800 truncate" x-text="selectedReturnSale && selectedReturnSale.customer && selectedReturnSale.customer.email ? selectedReturnSale.customer.email : '—'"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cancellation Information -->
+                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                            <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                Cancellation Information
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-4">
+                                <div class="md:col-span-1">
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Cancellation Reason</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.cancellation_reason ? selectedReturnSale.cancellation_reason : '—'"></div>
+                                </div>
+                                <div class="md:col-span-1">
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Detailed Reason / Remarks</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale ? (selectedReturnSale.detailed_reason || selectedReturnSale.cancellation_remarks || '—') : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Cancellation Date</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale ? (selectedReturnSale.cancelled_at ? formatDate(selectedReturnSale.cancelled_at) : formatDate(selectedReturnSale.updated_at)) : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Cancelled By</div>
+                                    <div class="text-xs font-bold text-slate-800">Admin User</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cancellation Fee Details -->
+                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                            <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
+                                Cancellation Fee Details
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-y-5 gap-x-4">
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Fee Type</div>
+                                    <div class="text-xs font-bold text-slate-800">Fixed Amount</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Cancellation Fee Amount</div>
+                                    <div class="text-xs font-bold text-slate-800 font-mono" x-text="selectedReturnSale && selectedReturnSale.cancellation_fee ? fmt(selectedReturnSale.cancellation_fee) : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Deducted From Refund</div>
+                                    <div class="text-xs font-bold text-emerald-600 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg> Yes</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Description</div>
+                                    <div class="text-xs font-bold text-slate-800">This amount has been deducted as cancellation fee.</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Refund & Payment Details -->
+                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                            <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-5 uppercase tracking-wide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                                Refund & Payment Details
+                            </h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-4">
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Refund Mode</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.refund_mode ? selectedReturnSale.refund_mode : 'Bank Transfer'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Refund Amount</div>
+                                    <div class="text-xs font-extrabold text-[#a38c29] font-mono" x-text="selectedReturnSale ? fmt(calculateApprovedRefund(selectedReturnSale)) : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Bank Name</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.refund_bank ? selectedReturnSale.refund_bank : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Reference No.</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.refund_reference ? selectedReturnSale.refund_reference : '—'"></div>
+                                </div>
+                                <div class="md:col-span-1">
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Refund Remarks</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.refund_remarks ? selectedReturnSale.refund_remarks : '—'"></div>
+                                </div>
+                                <div class="md:col-span-1">
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Refund Status</div>
+                                    <div class="mt-1">
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-extrabold uppercase tracking-widest shadow-sm" x-text="getRefundStatus(selectedReturnSale)"></span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Refund Initiated On</div>
+                                    <div class="text-xs font-bold text-slate-800" x-text="selectedReturnSale && selectedReturnSale.refund_initiated_at ? formatDate(selectedReturnSale.refund_initiated_at) : '—'"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 mb-0.5 uppercase tracking-wider">Expected Refund Date</div>
+                                    <div class="text-xs font-bold text-slate-800">Within 7 working days</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cancellation Process Flow -->
+                        <div class="border border-slate-200 rounded-lg p-5 bg-white shadow-sm">
+                            <h3 class="text-xs font-extrabold text-[#a38c29] flex items-center gap-1.5 mb-8 uppercase tracking-wide">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                Cancellation Process Flow
+                            </h3>
+                            <div class="flex items-start justify-between text-[11px] font-bold text-slate-650 max-w-4xl mx-auto py-2 relative">
+                                <!-- Process steps dynamically driven by status -->
+                                <div class="flex flex-col items-center gap-3 w-1/4 relative z-10">
+                                    <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center shadow-md">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+                                    </div>
+                                    <div class="flex flex-col text-center items-center">
+                                        <span class="text-xs font-bold text-slate-800">Cancellation Requested</span>
+                                        <span class="text-[10px] text-slate-400 font-normal mt-0.5">Admin User</span>
+                                        <span class="text-[10px] text-slate-400 font-normal" x-text="selectedReturnSale && selectedReturnSale.cancelled_at ? formatDate(selectedReturnSale.cancelled_at) : '—'"></span>
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-extrabold uppercase mt-1.5 shadow-sm">Completed</span>
+                                    </div>
+                                </div>
+                                <div class="h-0.5 bg-slate-200 absolute top-4 left-[12.5%] right-[12.5%] -z-0"></div>
+                                
+                                <div class="flex flex-col items-center gap-3 w-1/4 relative z-10">
+                                    <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center shadow-md">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                                    </div>
+                                    <div class="flex flex-col text-center items-center">
+                                        <span class="text-xs font-bold text-slate-800">Approved</span>
+                                        <span class="text-[10px] text-slate-400 font-normal mt-0.5">Manager User</span>
+                                        <span class="text-[10px] text-slate-400 font-normal" x-text="selectedReturnSale && selectedReturnSale.cancelled_at ? formatDate(selectedReturnSale.cancelled_at) : '—'"></span>
+                                        <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded text-[9px] font-extrabold uppercase mt-1.5 shadow-sm">Completed</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center gap-3 w-1/4 relative z-10">
+                                    <div class="w-8 h-8 rounded-full text-white flex items-center justify-center shadow-md transition-colors" :class="getRefundStatus(selectedReturnSale) !== 'Pending' ? 'bg-[#a38c29]' : 'bg-slate-300'">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </div>
+                                    <div class="flex flex-col text-center items-center">
+                                        <span class="text-xs font-bold text-slate-800">Refund Initiated</span>
+                                        <span class="text-[10px] text-slate-400 font-normal mt-0.5">Accountant User</span>
+                                        <span class="text-[10px] text-slate-400 font-normal" x-text="selectedReturnSale && selectedReturnSale.refund_initiated_at ? formatDate(selectedReturnSale.refund_initiated_at) : '—'"></span>
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase mt-1.5 shadow-sm" :class="getRefundStatus(selectedReturnSale) !== 'Pending' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'" x-text="getRefundStatus(selectedReturnSale) !== 'Pending' ? 'Completed' : 'Pending'"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col items-center gap-3 w-1/4 relative z-10">
+                                    <div class="w-8 h-8 rounded-full text-white flex items-center justify-center shadow-md transition-colors" :class="getRefundStatus(selectedReturnSale) === 'Completed' ? 'bg-blue-500' : 'bg-slate-300'">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                    <div class="flex flex-col text-center items-center">
+                                        <span class="text-xs font-bold text-slate-800">Refund Completed</span>
+                                        <span class="text-[10px] text-slate-400 font-normal mt-0.5">System</span>
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase mt-1.5 shadow-sm" :class="getRefundStatus(selectedReturnSale) === 'Completed' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'" x-text="getRefundStatus(selectedReturnSale) === 'Completed' ? 'Completed' : 'Pending'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white shrink-0">
+                        <button type="button" @click="selectedReturnSale = null" class="px-5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg transition flex items-center gap-2 shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            Close
+                        </button>
+                        <button type="button" class="px-5 py-2 border border-[#a38c29] text-[#a38c29] hover:bg-[#a38c29] hover:text-white text-xs font-bold rounded-lg transition flex items-center gap-2 bg-white shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            Print Details
+                        </button>
+                    </div>
+                </div>
+            </template>
+
+            <!-- ACTIVE FORM MODAL (Original Edit Design) -->
+            <template x-if="isEditReturn">
+<div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="selectedReturnSale = null">
                 {{-- Header --}}
                 <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
                     <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -350,9 +636,9 @@
                             </div>
                             <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="!isEditReturn ? 'View Return Details' : (targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details')"></h2>
                             <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="selectedReturnSale"
-                               x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • Sale No: ' + selectedReturnSale.sale_number : ''"></p>
+                               x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' â€¢ Sale No: ' + selectedReturnSale.sale_number : ''"></p>
                         </div>
-                        <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                        <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">âœ•</button>
                     </div>
                 </div>
                 
@@ -364,7 +650,7 @@
                         </div>
                         <div>
                             <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Selected Booking' : 'Selected Sale'"></span>
-                            <strong class="text-slate-800 text-xs block mt-1" x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • ' + (selectedReturnSale.status === 'cancelled' ? 'Booking No: ' : 'Sale No: ') + selectedReturnSale.sale_number : ''"></strong>
+                            <strong class="text-slate-800 text-xs block mt-1" x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' â€¢ ' + (selectedReturnSale.status === 'cancelled' ? 'Booking No: ' : 'Sale No: ') + selectedReturnSale.sale_number : ''"></strong>
                         </div>
                     </div>
                     
@@ -389,7 +675,7 @@
                         <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center items-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cancellation Fee</span>
                             <div class="flex items-center justify-center gap-1 mt-1">
-                                <span class="text-slate-400 font-bold text-xs">- ₹</span>
+                                <span class="text-slate-400 font-bold text-xs">- â‚¹</span>
                                 <input type="number" step="1" x-model.number="returnForm.cancellation_fee" :disabled="!isEditReturn"
                                        class="w-28 px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-305 font-bold font-mono rounded-lg text-center text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 disabled:opacity-75">
                             </div>
@@ -404,7 +690,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                            <span>💬 Reason & Narrative Notes *</span>
+                            <span>ðŸ’¬ Reason & Narrative Notes *</span>
                         </p>
                         <textarea x-model="returnForm.reason" rows="2" placeholder="Explain the rationale for this action..." :disabled="!isEditReturn"
                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm disabled:opacity-75 disabled:cursor-not-allowed"></textarea>
@@ -414,7 +700,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                            <span>🔄 Return Process Flow</span>
+                            <span>ðŸ”„ Return Process Flow</span>
                         </p>
                         <div class="flex items-center justify-between text-[11px] font-bold text-slate-650 max-w-sm mx-auto py-2">
                             <div class="flex flex-col items-center gap-1.5">
@@ -449,197 +735,305 @@
                             class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
                         Confirm Return & Refund
                     </button>
-                </div>
             </div>
+            </template>
         </div>
 
-    </div>
-
-    {{-- INITIATE NEW RETURN / CANCELLATION MODAL POPUP --}}
-    <div x-show="openNewReturnModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up modal-widthcancel" @click.away="openNewReturnModal = false">
+    {{-- INITIATE NEW RETURN / CANCELLATION MODAL POPUP (Redesigned) --}}
+    <div x-show="openNewReturnModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-5xl bg-slate-50 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" @click.away="openNewReturnModal = false">
             {{-- Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/10">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
-                    <div>
-                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="isCancellationTab ? 'Cancellation' : 'Return'"></span>
-                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Step <span x-text="newReturnStep"></span> of 2</span>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] border border-[#a38c29]/30">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newReturnStep === 1 ? (isCancellationTab ? 'Initiate Booking Cancellation' : 'Initiate Sales Return / Cancellation') : (isCancellationTab ? 'Process Cancellation Details' : 'Process Cancel Details')"></h2>
+                        <div>
+                            <h2 class="text-lg font-extrabold text-white tracking-tight" x-text="isCancellationTab ? 'Cancel Sale' : 'Return Sale'"></h2>
+                            <p class="text-xs text-slate-400 mt-1">Search and select the sale to be cancelled and provide cancellation details.</p>
+                        </div>
                     </div>
                     <button type="button" @click="openNewReturnModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
             </div>
-            
-            <div class="p-6 space-y-6 max-h-[78vh] overflow-y-auto font-sans text-xs bg-slate-50/50">
-                {{-- STEP 1: SELECT SALE --}}
-                <div x-show="newReturnStep === 1" class="space-y-6">
-                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2" x-text="isCancellationTab ? 'Select Active Booking *' : 'Select Active Sale *'"></label>
-                        <div class="relative w-full" x-data="{ 
-                                open: false, 
-                                search: '',
-                                getSaleLabel(sale) {
-                                    if(!sale) return '';
-                                    return (sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')';
-                                }
-                            }" @click.outside="open = false">
-                            
-                            <button type="button" 
-                                    @click="open = !open; if(open) $nextTick(() => $refs.saleSearch.focus())"
-                                    class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800 flex justify-between items-center text-left">
-                                <span x-text="newReturnSaleId ? getSaleLabel(sales.find(s => s.id == newReturnSaleId)) : (isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —')" :class="!newReturnSaleId ? 'text-slate-500 font-normal' : ''" class="truncate pr-2"></span>
-                                <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180 text-primary' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
 
-                            <div x-show="open"
-                                 x-transition.opacity
-                                 class="absolute left-0 top-full mt-1 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-50"
-                                 style="display: none;">
-                                 
-                                 <div class="p-2 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
-                                     <div class="relative">
-                                         <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                         <input type="text"
-                                                x-model="search"
-                                                x-ref="saleSearch"
-                                                placeholder="Search by ID, Customer, or Unit..."
-                                                @keydown.escape="open = false"
-                                                class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
-                                         <button x-show="search" type="button" @click="search = ''; $refs.saleSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
-                                     </div>
-                                 </div>
-                                 
-                                 <div class="overflow-y-auto p-1.5 space-y-0.5 custom-scrollbar">
-                                     <button type="button"
-                                             @click="newReturnSaleId = ''; open = false"
-                                             class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-500 font-bold">
-                                         <span x-text="isCancellationTab ? '— Select an Active Booking to Cancel —' : '— Select an Active Sale to Return / Cancel —'"></span>
-                                     </button>
-                                     <template x-for="sale in sales.filter(s => s.status === 'active')" :key="sale.id">
-                                         <button type="button"
-                                                 x-show="getSaleLabel(sale).toLowerCase().includes(search.toLowerCase())"
-                                                 @click="newReturnSaleId = sale.id; open = false"
-                                                 class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-800 font-bold"
-                                                 :class="newReturnSaleId == sale.id ? 'bg-primary/10 text-primary' : ''">
-                                             <span x-text="getSaleLabel(sale)"></span>
-                                         </button>
-                                     </template>
-                                 </div>
+            {{-- Stepper --}}
+            <div class="bg-white px-6 py-4 border-b border-slate-200 flex justify-center">
+                <div class="flex items-center gap-8 text-xs font-semibold">
+                    <div class="flex items-center gap-3" :class="newReturnStep >= 1 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" :class="newReturnStep >= 1 ? 'bg-[#a38c29]' : 'bg-slate-300'">1</div>
+                        <div class="flex flex-col"><span class="font-bold">Select Sale</span><span class="text-[10px] font-normal text-slate-500">Search and choose sale</span></div>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-3" :class="newReturnStep >= 2 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-white border" :class="newReturnStep >= 2 ? 'bg-[#a38c29] border-[#a38c29]' : 'bg-white border-slate-300 text-slate-500'">2</div>
+                        <div class="flex flex-col"><span class="font-bold">Cancellation Details</span><span class="text-[10px] font-normal text-slate-500">Provide cancellation information</span></div>
+                    </div>
+                    <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-3" :class="newReturnStep >= 3 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-white border" :class="newReturnStep >= 3 ? 'bg-[#a38c29] border-[#a38c29]' : 'bg-white border-slate-300 text-slate-500'">3</div>
+                        <div class="flex flex-col"><span class="font-bold">Review & Confirm</span><span class="text-[10px] font-normal text-slate-500">Review and confirm cancellation</span></div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Content Area --}}
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+
+                {{-- STEP 1: SELECT SALE --}}
+                <div x-show="newReturnStep === 1" class="space-y-4">
+                    <div class="bg-white rounded-xl border border-slate-200 p-5">
+                        <div class="flex items-center gap-2 mb-4 text-[#a38c29] font-bold text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Step 1: Select Sale</span>
+                        </div>
+                        
+                        <div class="space-y-2 relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
+                            <label class="text-xs font-bold text-slate-700">Search Sale</label>
+                            <div class="relative">
+                                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <input type="text" x-model="search" @focus="open = true" placeholder="Search by Sale ID, Customer Name, Unit / Plot, Project..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-[#a38c29]/50 focus:border-[#a38c29]">
+                            </div>
+                            
+                            {{-- Dropdown for search --}}
+                            <div x-show="open && search.length > 0" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                <template x-for="sale in sales.filter(s => s.status === 'active' && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase()) || (s.unit?.door_no||'').toLowerCase().includes(search.toLowerCase())))" :key="sale.id">
+                                    <div @click="newReturnSaleId = sale.id; open = false; search = ''; selectNewReturnSale();" class="px-4 py-2 hover:bg-slate-50 cursor-pointer text-xs border-b border-slate-100 last:border-0 flex justify-between items-center">
+                                        <div>
+                                            <span class="font-bold text-slate-800" x-text="sale.sale_number"></span> • <span class="text-slate-600" x-text="sale.customer ? sale.customer.name : 'N/A'"></span>
+                                        </div>
+                                        <span class="text-slate-500" x-text="getUnitsDisplay(sale)"></span>
+                                    </div>
+                                </template>
+                                <div x-show="!sales.some(s => s.status === 'active' && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase())))" class="px-4 py-3 text-xs text-slate-500 text-center">No matching active sales found.</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="text-xs font-bold text-slate-700">Recent Sales</h3>
+                                <a href="#" class="text-[10px] font-bold text-[#a38c29] hover:underline">View All Sales →</a>
+                            </div>
+                            <div class="border border-slate-200 rounded-lg overflow-hidden">
+                                <table class="w-full text-left text-xs whitespace-nowrap">
+                                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
+                                        <tr>
+                                            <th class="px-4 py-3 font-semibold">Sale Details</th>
+                                            <th class="px-4 py-3 font-semibold">Customer</th>
+                                            <th class="px-4 py-3 font-semibold">Unit / Plot</th>
+                                            <th class="px-4 py-3 font-semibold">Sale Amount</th>
+                                            <th class="px-4 py-3 font-semibold">Booked On</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <template x-for="sale in sales.filter(s => s.status === 'active').slice(0, 5)" :key="sale.id">
+                                            <tr class="hover:bg-slate-50/50 cursor-pointer transition-colors" @click="newReturnSaleId = sale.id; selectNewReturnSale();">
+                                                <td class="px-4 py-3 flex items-center gap-3">
+                                                    <div class="w-4 h-4 rounded-full border flex items-center justify-center" :class="newReturnSaleId == sale.id ? 'border-[#a38c29]' : 'border-slate-300'">
+                                                        <div class="w-2 h-2 rounded-full bg-[#a38c29]" x-show="newReturnSaleId == sale.id"></div>
+                                                    </div>
+                                                    <div class="flex flex-col">
+                                                        <span class="font-bold text-slate-800" x-text="sale.sale_number"></span>
+                                                        <span class="text-[10px] text-slate-500" x-text="(sale.project ? sale.project.code : '')"></span>
+                                                    </div>
+                                                </td>
+                                                <td class="px-4 py-3 text-slate-700" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+                                                <td class="px-4 py-3 text-slate-700" x-text="getUnitsDisplay(sale)"></td>
+                                                <td class="px-4 py-3 font-mono text-slate-800 font-medium" x-text="fmtIndian(sale.total_amount)"></td>
+                                                <td class="px-4 py-3 text-slate-500" x-text="formatDate(sale.agreement_date || sale.created_at)"></td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
-                        <button type="button" @click="openNewReturnModal = false"
-                                class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
-                            Cancel
-                        </button>
-                        <button type="button" @click="selectNewReturnSale()"
-                                class="px-4 py-2 bg-primary hover:bg-primary-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
-                            Next
-                        </button>
+                    <div class="flex justify-end gap-3 mt-4">
+                        <button type="button" @click="if(newReturnSale) newReturnStep = 2; else showToast('Please select a sale first', 'error');" class="px-5 py-2 bg-[#a38c29] text-white rounded-lg text-xs font-bold hover:bg-[#8e7a23] transition shadow-sm">Next</button>
+                    </div>
+                </div>
+
+                {{-- STEP 2: CANCELLATION DETAILS --}}
+                <div x-show="newReturnStep === 2" class="space-y-4">
+                    <div class="bg-white rounded-xl border border-slate-200 p-5">
+                        <div class="flex items-center gap-2 mb-4 text-[#a38c29] font-bold text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Step 2: Cancellation Details</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {{-- Sale Info Card --}}
+                            <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
+                                <h4 class="text-xs font-bold text-[#a38c29] mb-3 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Sale Information</h4>
+                                <div class="grid grid-cols-3 gap-y-4 text-xs">
+                                    <div><span class="block text-slate-500 mb-0.5">Sale ID</span><span class="font-bold text-slate-800" x-text="newReturnSale ? newReturnSale.sale_number : ''"></span></div>
+                                    <div><span class="block text-slate-500 mb-0.5">Customer</span><span class="font-bold text-slate-800" x-text="newReturnSale && newReturnSale.customer ? newReturnSale.customer.name : ''"></span></div>
+                                    <div><span class="block text-slate-500 mb-0.5">Project</span><span class="font-bold text-slate-800" x-text="newReturnSale && newReturnSale.project ? newReturnSale.project.name : ''"></span></div>
+                                    <div><span class="block text-slate-500 mb-0.5">Unit / Plot</span><span class="font-bold text-slate-800" x-text="getUnitsDisplay(newReturnSale)"></span></div>
+                                    <div><span class="block text-slate-500 mb-0.5">Sale Amount</span><span class="font-bold text-slate-800 font-mono" x-text="newReturnSale ? fmtIndian(newReturnSale.total_amount) : ''"></span></div>
+                                    <div><span class="block text-slate-500 mb-0.5">Total Paid</span><span class="font-bold text-emerald-600 font-mono" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : ''"></span></div>
+                                    <div><span class="block text-slate-500 mb-0.5">Booked On</span><span class="font-bold text-slate-800" x-text="newReturnSale ? formatDate(newReturnSale.agreement_date || newReturnSale.created_at) : ''"></span></div>
+                                </div>
+                            </div>
+                            
+                            {{-- Summary Card --}}
+                            <div class="bg-[#a38c29]/5 rounded-lg p-4 border border-[#a38c29]/20 flex flex-col justify-between">
+                                <div>
+                                    <h4 class="text-xs font-bold text-[#a38c29] mb-3 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Cancellation Summary</h4>
+                                    <div class="space-y-2 text-xs">
+                                        <div class="flex justify-between"><span class="text-slate-600">Total Paid</span><span class="font-bold font-mono text-slate-800" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : 'â‚¹ 0.00'"></span></div>
+                                        <div class="flex justify-between"><span class="text-slate-600">Cancellation Fee</span><span class="font-bold font-mono text-red-600" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-end mt-4 pt-4 border-t border-[#a38c29]/20">
+                                    <span class="text-sm font-bold text-[#a38c29]">Amount to be Refunded</span>
+                                    <span class="text-lg font-bold font-mono text-[#a38c29]" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
+                                </div>
+                            </div>
+                            
+                            {{-- Cancellation Information --}}
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 space-y-4">
+                                <h4 class="text-xs font-bold text-[#a38c29] flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg> Cancellation Information</h4>
+                                <div class="grid grid-cols-1 gap-4 text-xs">
+                                    <div>
+                                        <label class="block text-slate-600 mb-1 font-semibold">Cancellation Date <span class="text-red-500">*</span></label>
+                                        <input type="date" x-model="returnForm.date" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50">
+                                        <p x-show="returnFormErrors.date" x-text="returnFormErrors.date" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-600 mb-1 font-semibold">Cancellation Reason <span class="text-red-500">*</span></label>
+                                        <select x-model="returnForm.reason" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50">
+                                            <option value="Customer Request">Customer Request</option>
+                                            <option value="Financial Issue">Financial Issue</option>
+                                            <option value="Legal Issue">Legal Issue</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                        <p x-show="returnFormErrors.reason" x-text="returnFormErrors.reason" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-600 mb-1 font-semibold">Detailed Reason / Remarks <span class="text-red-500">*</span></label>
+                                        <textarea x-model="returnForm.detailed_reason" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50 resize-none" placeholder="Provide detailed reason..."></textarea>
+                                        <p x-show="returnFormErrors.detailed_reason" x-text="returnFormErrors.detailed_reason" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{-- Cancellation Fee --}}
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 flex flex-col space-y-4">
+                                <h4 class="text-xs font-bold text-[#a38c29] flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Cancellation Fee</h4>
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-semibold text-xs">
+                                        <span>Cancellation Fee Amount (₹)</span>
+                                        <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="number" step="1" x-model.number="returnForm.cancellation_fee" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50 font-mono" placeholder="Enter amount">
+                                    <p x-show="returnFormErrors.cancellation_fee" x-text="returnFormErrors.cancellation_fee" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                </div>
+                                <div class="bg-blue-50 text-blue-700 px-3 py-2 rounded-md text-xs flex items-start gap-2 mt-auto">
+                                    <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>This amount will be deducted as cancellation fee.</span>
+                                </div>
+                            </div>
+                            
+                            {{-- Refund & Payment Details (Full Width) --}}
+                            <div class="bg-white rounded-lg p-4 border border-slate-200 lg:col-span-2 space-y-4">
+                                <h4 class="text-xs font-bold text-[#a38c29] flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg> Refund & Payment Details</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                                    <div>
+                                        <label class="block text-slate-600 mb-1 font-semibold">Refund Amount (₹)</label>
+                                        <input type="text" :value="calculateApprovedRefund(newReturnSale).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})" disabled class="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-100 text-slate-500 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-600 mb-1 font-semibold">Refund Mode <span class="text-red-500">*</span></label>
+                                        <select x-model="returnForm.refund_mode" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50">
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                            <option value="Cheque">Cheque</option>
+                                            <option value="Cash">Cash</option>
+                                        </select>
+                                        <p x-show="returnFormErrors.refund_mode" x-text="returnFormErrors.refund_mode" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-600 mb-1 font-semibold">Refund Remarks</label>
+                                        <textarea x-model="returnForm.refund_remarks" rows="1" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50 resize-none"></textarea>
+                                    </div>
+                                </div>
+                                <div class="bg-amber-50 text-amber-700 px-3 py-2 rounded-md text-xs flex items-start gap-2 border border-amber-100">
+                                    <svg class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <span>Refund will be processed as per the company refund policy.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mt-4">
+                        <button type="button" @click="newReturnStep = 1" class="px-5 py-2 border border-slate-300 bg-white text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition shadow-sm">Back</button>
+                        <button type="button" @click="
+                            returnFormErrors = {};
+                            if (!returnForm.date) returnFormErrors.date = 'Date is required.';
+                            if (!returnForm.reason) returnFormErrors.reason = 'Reason is required.';
+                            if (!returnForm.detailed_reason) returnFormErrors.detailed_reason = 'Detailed reason is required.';
+                            if (returnForm.cancellation_fee === '' || returnForm.cancellation_fee === null) returnFormErrors.cancellation_fee = 'Cancellation fee is required.';
+                            if (!returnForm.refund_mode) returnFormErrors.refund_mode = 'Refund mode is required.';
+                            if (Object.keys(returnFormErrors).length === 0) newReturnStep = 3;
+                        " class="px-5 py-2 bg-[#a38c29] text-white rounded-lg text-xs font-bold hover:bg-[#8e7a23] transition shadow-sm">Next</button>
                     </div>
                 </div>
                 
-                {{-- STEP 2: FORM DETAILS --}}
-                <div x-show="newReturnStep === 2" class="space-y-6">
-                    {{-- Selected Info Card --}}
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm flex gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] flex-shrink-0 shadow-2xs">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                {{-- STEP 3: REVIEW & CONFIRM --}}
+                <div x-show="newReturnStep === 3" class="space-y-4">
+                    <div class="bg-white rounded-xl border border-slate-200 p-5">
+                        <div class="flex items-center gap-2 mb-4 text-[#a38c29] font-bold text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                            <span>Step 3: Review & Confirm</span>
                         </div>
-                        <div>
-                            <span class="text-[9px] text-slate-400 font-bold uppercase block tracking-wider" x-text="isCancellationTab ? 'Selected Booking' : 'Selected Sale' "></span>
-                            <strong class="text-slate-800 text-xs block mt-1" x-text="newReturnSale ? (newReturnSale.project ? (newReturnSale.project.code || newReturnSale.project.name) : 'N/A') + ' - ' + (newReturnSale.unit ? newReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (newReturnSale.customer ? newReturnSale.customer.name : 'N/A') + ' • ' + (isCancellationTab ? 'Booking No: ' : 'Sale No: ') + newReturnSale.sale_number : ''"></strong>
+                        
+                        <div class="bg-slate-50 border border-slate-100 rounded-lg p-5 flex flex-wrap gap-8 text-xs mb-6 items-center">
+                            <div>
+                                <span class="block text-slate-500 mb-1">Sale ID</span>
+                                <span class="font-bold text-slate-800" x-text="newReturnSale ? newReturnSale.sale_number : ''"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-500 mb-1">Customer</span>
+                                <span class="font-bold text-slate-800" x-text="newReturnSale && newReturnSale.customer ? newReturnSale.customer.name : ''"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-500 mb-1">Sale Amount</span>
+                                <span class="font-bold font-mono text-slate-800" x-text="newReturnSale ? fmtIndian(newReturnSale.total_amount) : ''"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-500 mb-1">Total Paid</span>
+                                <span class="font-bold font-mono text-emerald-600" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : ''"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-500 mb-1">Cancellation Fee</span>
+                                <span class="font-bold font-mono text-red-600" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span>
+                            </div>
+                            <div class="ml-auto bg-[#a38c29]/10 px-4 py-2 rounded-md border border-[#a38c29]/20 text-right">
+                                <span class="block text-[#a38c29] mb-1 font-semibold">Amount to be Refunded</span>
+                                <span class="text-lg font-bold font-mono text-[#a38c29]" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4 text-xs">
+                            <div><span class="block text-slate-500">Reason</span><span class="font-semibold text-slate-800" x-text="returnForm.reason"></span></div>
+                            <div><span class="block text-slate-500">Refund Mode</span><span class="font-semibold text-slate-800" x-text="returnForm.refund_mode"></span></div>
+                            <div class="col-span-2"><span class="block text-slate-500">Detailed Remarks</span><span class="font-semibold text-slate-800" x-text="returnForm.detailed_reason"></span></div>
                         </div>
                     </div>
                     
-                    {{-- Inputs Card --}}
-                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                        <div class="grid grid-cols-1 gap-4">
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Select Return/Cancel Date *</label>
-                                <input type="date" x-model="returnForm.date"
-                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                            </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4 bg-white p-4 rounded-xl border border-slate-200">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="confirmCancelCheck" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]/50">
+                            <span class="text-xs text-slate-600 font-semibold">I confirm that the above information is correct and I want to cancel this sale.</span>
+                        </label>
+                        <div class="flex gap-3">
+                            <button type="button" @click="openNewReturnModal = false" class="px-5 py-2 border border-slate-300 bg-white text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition shadow-sm">Cancel</button>
+                            <button type="button" @click="if(!document.getElementById('confirmCancelCheck').checked) showToast('Please check the confirmation box.', 'error'); else submitNewReturn();" class="px-5 py-2 bg-[#a38c29] text-white rounded-lg text-xs font-bold hover:bg-[#8e7a23] transition shadow-sm flex items-center gap-1.5">Review & Confirm <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></button>
                         </div>
-                    </div>
-
-                    {{-- Refund Calculations Grid --}}
-                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
-                        <div class="absolute -top-12 -left-12 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Paid</span>
-                            <span class="font-extrabold text-white text-base mt-1 block font-mono" x-text="fmt(getPaidTillDate(newReturnSale))"></span>
-                        </div>
-                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center items-center">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Cancellation Fee</span>
-                            <div class="flex items-center justify-center gap-1 mt-1">
-                                <span class="text-slate-400 font-bold text-xs">- ₹</span>
-                                <input type="number" step="1" x-model.number="returnForm.cancellation_fee"
-                                       class="w-28 px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-305 font-bold font-mono rounded-lg text-center text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500">
-                            </div>
-                        </div>
-                        <div class="relative z-10 flex flex-col justify-center">
-                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Approved Refund Amount</span>
-                            <span class="font-extrabold text-[#d9bf3b] text-base mt-1 block font-mono" x-text="fmt(calculateApprovedRefund(newReturnSale))"></span>
-                        </div>
-                    </div>
-
-                    {{-- Reason Card --}}
-                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                            <span>💬 Reason & Narrative Notes *</span>
-                        </p>
-                        <textarea x-model="returnForm.reason" rows="2" placeholder="Explain the rationale for this action..."
-                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all resize-none shadow-sm"></textarea>
-                    </div>
-
-                    {{-- Process Flow Card --}}
-                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
-                        <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
-                            <svg class="w-3.5 h-3.5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                            <span>🔄 Return Process Flow</span>
-                        </p>
-                        <div class="flex items-center justify-between text-[11px] font-bold text-slate-650 max-w-sm mx-auto py-2">
-                            <div class="flex flex-col items-center gap-1.5">
-                                <div class="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center border border-slate-800 shadow-md">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
-                                </div>
-                                <span class="text-[9px] uppercase tracking-wider text-slate-400">Request</span>
-                            </div>
-                            <div class="h-0.5 bg-slate-200 flex-1 mx-2 -mt-4"></div>
-                            <div class="flex flex-col items-center gap-1.5">
-                                <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center border border-primary shadow-md">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                                </div>
-                                <span class="text-[9px] uppercase tracking-wider text-slate-400">Approval</span>
-                            </div>
-                            <div class="h-0.5 bg-slate-200 flex-1 mx-2 -mt-4"></div>
-                            <div class="flex flex-col items-center gap-1.5">
-                                <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center border border-emerald-500 shadow-md">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <span class="text-[9px] uppercase tracking-wider text-slate-400">Ledger</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-200">
-                        <button type="button" @click="newReturnStep = 1"
-                                class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
-                            Back
-                        </button>
-                        <button type="button" @click="submitNewReturn()"
-                                class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
-                            Confirm Cancellation
-                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -659,9 +1053,9 @@
                         </div>
                         <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="newExchangeStep === 1 ? 'Initiate Unit Exchange' : 'Execute Exchange Plan'"></h2>
                         <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="newExchangeStep === 2 && selectedExchangeSale"
-                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
+                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
-                    <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                    <button type="button" @click="openNewExchangeModal = false; selectedExchangeSale = null;" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">âœ•</button>
                 </div>
             </div>
             
@@ -675,14 +1069,14 @@
                                 search: '',
                                 getSaleLabel(sale) {
                                     if(!sale) return '';
-                                    return (sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' — ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')';
+                                    return (sale.project ? (sale.project.code || sale.project.name) : 'N/A') + ' - ' + (sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no : '').filter(Boolean).join(', ') : (sale.unit ? sale.unit.door_no : 'N/A')) + ' â€” ' + (sale.customer ? sale.customer.name : 'N/A') + ' (' + sale.sale_number + ')';
                                 }
                             }" @click.outside="open = false">
                             
                             <button type="button" 
                                     @click="open = !open; if(open) $nextTick(() => $refs.saleSearch.focus())"
                                     class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs focus:outline-none transition-all shadow-sm cursor-pointer font-semibold text-slate-800 flex justify-between items-center text-left">
-                                <span x-text="newExchangeSaleId ? getSaleLabel(sales.find(s => s.id == newExchangeSaleId)) : '— Select an Active/Cancelled Booking to Exchange —'" :class="!newExchangeSaleId ? 'text-slate-500 font-normal' : ''" class="truncate pr-2"></span>
+                                <span x-text="newExchangeSaleId ? getSaleLabel(sales.find(s => s.id == newExchangeSaleId)) : 'â€” Select an Active/Cancelled Booking to Exchange â€”'" :class="!newExchangeSaleId ? 'text-slate-500 font-normal' : ''" class="truncate pr-2"></span>
                                 <svg class="w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                             </button>
 
@@ -700,7 +1094,7 @@
                                                 placeholder="Search by ID, Customer, or Unit..."
                                                 @keydown.escape="open = false"
                                                 class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
-                                         <button x-show="search" type="button" @click="search = ''; $refs.saleSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                                         <button x-show="search" type="button" @click="search = ''; $refs.saleSearch.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">âœ•</button>
                                      </div>
                                  </div>
                                  
@@ -708,7 +1102,7 @@
                                      <button type="button"
                                              @click="newExchangeSaleId = ''; open = false"
                                              class="w-full flex flex-col px-3 py-2 rounded-lg text-left transition-colors hover:bg-slate-50 text-xs text-slate-500 font-bold">
-                                         <span>— Select an Active/Cancelled Booking to Exchange —</span>
+                                         <span>â€” Select an Active/Cancelled Booking to Exchange â€”</span>
                                      </button>
                                      <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleEligibleForExchange(s))" :key="sale.id">
                                          <button type="button"
@@ -742,7 +1136,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
-                            <span>🔄 Unit Exchange Details</span>
+                            <span>ðŸ”„ Unit Exchange Details</span>
                         </p>
 
                         <!-- Selected Old Unit Details Inline Info -->
@@ -756,20 +1150,20 @@
                                 <div class="space-y-1.5 pl-5">
                                     <template x-for="su in selectedExchangeSale.sale_units" :key="su.id">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-sm font-black text-slate-800" x-text="su.unit ? su.unit.door_no : '—'"></span>
+                                            <span class="text-sm font-black text-slate-800" x-text="su.unit ? su.unit.door_no : 'â€”'"></span>
                                             <span class="text-sm text-slate-500 font-semibold" x-text="su.unit && su.unit.unit_type?.name ? '(' + su.unit.unit_type.name + ')' : ''"></span>
-                                            <span class="text-slate-300 font-light text-sm">—</span>
-                                            <span class="text-sm text-slate-600 font-medium" x-text="su.unit && su.unit.floor?.name ? su.unit.floor.name : '—'"></span>
+                                            <span class="text-slate-300 font-light text-sm">â€”</span>
+                                            <span class="text-sm text-slate-600 font-medium" x-text="su.unit && su.unit.floor?.name ? su.unit.floor.name : 'â€”'"></span>
                                         </div>
                                     </template>
                                 </div>
                             </template>
                             <template x-if="selectedExchangeSale && (!selectedExchangeSale.sale_units || selectedExchangeSale.sale_units.length === 0) && selectedExchangeSale.unit">
                                 <div class="flex items-center gap-2 pl-5">
-                                    <span class="text-sm font-black text-slate-800" x-text="selectedExchangeSale.unit.door_no || '—'"></span>
+                                    <span class="text-sm font-black text-slate-800" x-text="selectedExchangeSale.unit.door_no || 'â€”'"></span>
                                     <span class="text-sm text-slate-500 font-semibold" x-text="selectedExchangeSale.unit.unit_type?.name ? '(' + selectedExchangeSale.unit.unit_type.name + ')' : ''"></span>
-                                    <span class="text-slate-300 font-light text-sm">—</span>
-                                    <span class="text-sm text-slate-600 font-medium" x-text="selectedExchangeSale.unit.floor?.name || '—'"></span>
+                                    <span class="text-slate-300 font-light text-sm">â€”</span>
+                                    <span class="text-sm text-slate-600 font-medium" x-text="selectedExchangeSale.unit.floor?.name || 'â€”'"></span>
                                 </div>
                             </template>
                         </div>
@@ -777,7 +1171,7 @@
                         <!-- Target Unit Selections Heading -->
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2 mt-4">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5"/></svg>
-                            <span>🎯 Target Unit Selections</span>
+                            <span>ðŸŽ¯ Target Unit Selections</span>
                         </p>
 
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -822,7 +1216,7 @@
                                             </div>
                                         </template>
                                         <template x-if="!exchangeForm.new_unit_id || !getFilteredExchangeAvailableUnits().find(u => u.id == exchangeForm.new_unit_id)">
-                                            <span class="text-slate-400 font-medium">— Select Target Unit —</span>
+                                            <span class="text-slate-400 font-medium">â€” Select Target Unit â€”</span>
                                         </template>
                                         <div class="flex items-center gap-1 shrink-0 ml-1">
                                             <template x-if="exchangeForm.new_unit_id">
@@ -858,7 +1252,7 @@
                                                        @keydown.escape="open = false"
                                                        class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/15 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
                                                 <template x-if="search">
-                                                    <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">✕</button>
+                                                    <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">âœ•</button>
                                                 </template>
                                             </div>
                                         </div>
@@ -910,7 +1304,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="space-y-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Old Contract Value</label>
-                                <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'" disabled
+                                <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'" disabled
                                        class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-700 font-bold font-mono h-[38px] flex items-center shadow-inner">
                             </div>
 
@@ -927,7 +1321,7 @@
                         <div class="absolute -top-12 -left-12 w-32 h-32 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
                         <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-3 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Old Contract Value</span>
-                            <span class="font-extrabold text-slate-200 text-sm mt-1 block font-mono" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'"></span>
+                            <span class="font-extrabold text-slate-200 text-sm mt-1 block font-mono" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'"></span>
                         </div>
                         <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-3 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Paid Amount</span>
@@ -947,7 +1341,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <span>💼 Initial Payment Details</span>
+                            <span>ðŸ’¼ Initial Payment Details</span>
                         </p>
                         
                         <div class="flex flex-col md:flex-row gap-5 items-start bg-slate-50/50 border border-slate-200/60 rounded-xl p-4 shadow-sm">
@@ -955,7 +1349,7 @@
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Initial Payment Amount & %</label>
                                 <div class="grid grid-cols-2 gap-3">
                                     <div>
-                                        <input type="number" step="0.01" min="0" x-model="exchangeForm.initial_payment_amount" @input="updateExchangeInitialPaymentFromAmount()" placeholder="Amount (₹)"
+                                        <input type="number" step="0.01" min="0" x-model="exchangeForm.initial_payment_amount" @input="updateExchangeInitialPaymentFromAmount()" placeholder="Amount (â‚¹)"
                                                :class="errors.initial_payment_amount ? 'border-rose-500 ring-2 ring-rose-500/20 text-rose-700 bg-rose-50/20' : 'border-slate-200 bg-white focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29]'"
                                                class="w-full px-3 py-2 border rounded-xl text-xs focus:outline-none transition-all shadow-sm font-mono">
                                     </div>
@@ -1093,7 +1487,7 @@
                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                         <p class="text-[10px] font-bold text-slate-800 uppercase tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
                             <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
-                            <span>💬 Exchange Reason / Notes *</span>
+                            <span>ðŸ’¬ Exchange Reason / Notes *</span>
                         </p>
                         <textarea x-model="exchangeForm.reason" rows="2" placeholder="Write internal memo for the unit exchange..."
                                   :class="errors.reason ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-250 bg-white'"
@@ -1187,7 +1581,7 @@
                         <template x-for="sale in filteredReturnSales()" :key="sale.id">
                             <tr class="hover:bg-slate-50/50 transition-colors">
                                 <td class="px-3 py-2.5 font-bold text-slate-900" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5" x-text="sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : '—'"></td>
+                                <td class="px-3 py-2.5" x-text="sale.unit ? (sale.project ? sale.project.name + ' - ' : '') + sale.unit.door_no : 'â€”'"></td>
                                 <td class="px-3 py-2.5 text-right font-mono" x-text="fmt(sale.total_amount)"></td>
                                 <td class="px-3 py-2.5 text-right font-mono text-emerald-700" x-text="fmt(getPaidTillDate(sale))"></td>
                                 <td class="px-3 py-2.5 text-center">
@@ -1230,9 +1624,9 @@
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider"
                             x-text="targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details'"></h4>
                         <p class="text-[10px] text-slate-500 font-semibold"
-                           x-text="'Sale No: ' + selectedReturnSale.sale_number + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A')"></p>
+                           x-text="'Sale No: ' + selectedReturnSale.sale_number + ' â€¢ Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A')"></p>
                     </div>
-                    <button type="button" @click="selectedReturnSale = null" class="text-emerald-700 hover:text-emerald-900 font-bold">✕</button>
+                    <button type="button" @click="selectedReturnSale = null" class="text-emerald-700 hover:text-emerald-900 font-bold">âœ•</button>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 text-xs font-semibold">
@@ -1338,7 +1732,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().totalDiff)">
-                ₹0.00
+                â‚¹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -1352,7 +1746,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().payableByCustomer)">
-                ₹0.00
+                â‚¹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -1366,7 +1760,7 @@
                 </div>
             </div>
             <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().refundableToCustomer)">
-                ₹0.00
+                â‚¹0.00
             </div>
             <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
@@ -1501,21 +1895,21 @@
                     <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
                         <template x-for="sale in paginatedExchangeSales()" :key="sale.id">
                             <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-3 py-2.5 font-bold text-primary text-left" x-text="sale.status === 'exchanged' ? ('EXC-' + new Date(sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')) : '—'"></td>
+                                <td class="px-3 py-2.5 font-bold text-primary text-left" x-text="sale.status === 'exchanged' ? ('EXC-' + new Date(sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')) : 'â€”'"></td>
                                 <td class="px-3 py-2.5 text-slate-500 text-left" x-text="formatDate(sale.status === 'exchanged' ? sale.updated_at : sale.sale_date)"></td>
                                 <td class="px-3 py-2.5 text-left" x-text="sale.project ? sale.project.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left bg-slate-100/20 border-r border-slate-100" x-text="sale.unit ? formatUnitDisplay(sale.unit) : '—'"></td>
+                                <td class="px-3 py-2.5 text-left bg-slate-100/20 border-r border-slate-100" x-text="sale.unit ? formatUnitDisplay(sale.unit) : 'â€”'"></td>
                                 <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-slate-100/20 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
                                 <td class="px-3 py-2.5 text-left bg-primary/5 border-r border-slate-100 font-bold text-primary" x-text="getNewUnitDoorNo(sale)"></td>
                                 <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-primary/5 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></td>
+                                <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : 'â€”'"></td>
                                 <td class="px-3 py-2.5 text-left">
                                     <template x-if="sale.status === 'exchanged'">
                                         <span :class="getExchangeNetDue(sale) > 0 ? 'text-orange-600 font-bold' : (getExchangeNetDue(sale) < 0 ? 'text-teal-600 font-bold' : 'text-slate-600 font-bold')"
                                               x-text="getExchangeStatusText(sale)"></span>
                                     </template>
                                     <template x-if="sale.status !== 'exchanged'">
-                                        <span class="text-slate-400 font-normal">—</span>
+                                        <span class="text-slate-400 font-normal">â€”</span>
                                     </template>
                                 </td>
                                 <td class="px-3 py-2.5 text-center">
@@ -1595,9 +1989,9 @@
                         <span class="text-[9px] font-bold text-blue-800 uppercase tracking-widest">Active Plan</span>
                         <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Execute Exchange Plan</h4>
                         <p class="text-[10px] text-slate-500 font-semibold"
-                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
+                           x-text="selectedExchangeSale ? (selectedExchangeSale.project ? (selectedExchangeSale.project.code || selectedExchangeSale.project.name) : 'N/A') + ' - Door ' + (selectedExchangeSale.unit ? selectedExchangeSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : 'N/A') : ''"></p>
                     </div>
-                    <button type="button" @click="selectedExchangeSale = null" class="text-blue-700 hover:text-blue-900 font-bold">✕</button>
+                    <button type="button" @click="selectedExchangeSale = null" class="text-blue-700 hover:text-blue-900 font-bold">âœ•</button>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold">
@@ -1640,7 +2034,7 @@
                                     </div>
                                 </template>
                                 <template x-if="!exchangeForm.new_unit_id || !exchangeAvailableUnits.find(u => u.id == exchangeForm.new_unit_id)">
-                                    <span class="text-slate-400 font-medium">— Select Target Unit —</span>
+                                    <span class="text-slate-400 font-medium">â€” Select Target Unit â€”</span>
                                 </template>
                                 <div class="flex items-center gap-1 shrink-0 ml-1">
                                     <template x-if="exchangeForm.new_unit_id">
@@ -1676,7 +2070,7 @@
                                                @keydown.escape="open = false"
                                                class="w-full pl-8 pr-7 py-1.5 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/15 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
                                         <template x-if="search">
-                                            <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">✕</button>
+                                            <button type="button" @click="search = ''" class="absolute right-2.5 text-slate-400 hover:text-slate-600">âœ•</button>
                                         </template>
                                     </div>
                                 </div>
@@ -1724,7 +2118,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-semibold">
                     <div class="space-y-1">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Old Contract Value:</label>
-                        <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'" disabled
+                        <input type="text" :value="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'" disabled
                                class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-500 font-bold font-mono">
                     </div>
 
@@ -1747,7 +2141,7 @@
                 <div class="bg-white border border-blue-100 rounded-xl p-3 grid grid-cols-2 sm:grid-cols-4 gap-3 divide-x divide-slate-100">
                     <div class="text-center">
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Old Contract Value</p>
-                        <p class="text-xs font-extrabold text-slate-700 font-mono mt-0.5" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : '₹0.00'"></p>
+                        <p class="text-xs font-extrabold text-slate-700 font-mono mt-0.5" x-text="selectedExchangeSale ? fmt(selectedExchangeSale.total_amount) : 'â‚¹0.00'"></p>
                     </div>
                     <div class="text-center px-1">
                         <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
@@ -1883,9 +2277,9 @@
                             </div>
                             <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Exchange Details</h2>
                             <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="viewExchangeSale"
-                               x-text="viewExchangeSale ? (viewExchangeSale.project ? (viewExchangeSale.project.code || viewExchangeSale.project.name) : 'N/A') + ' - Door ' + (viewExchangeSale.unit ? viewExchangeSale.unit.door_no : 'N/A') + ' • Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') + ' • Sale No: ' + viewExchangeSale.sale_number : ''"></p>
+                               x-text="viewExchangeSale ? (viewExchangeSale.project ? (viewExchangeSale.project.code || viewExchangeSale.project.name) : 'N/A') + ' - Door ' + (viewExchangeSale.unit ? viewExchangeSale.unit.door_no : 'N/A') + ' â€¢ Customer: ' + (viewExchangeSale.customer ? viewExchangeSale.customer.name : 'N/A') + ' â€¢ Sale No: ' + viewExchangeSale.sale_number : ''"></p>
                         </div>
-                        <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                        <button type="button" @click="openViewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">âœ•</button>
                     </div>
                 </div>
                 
@@ -1901,17 +2295,17 @@
                         <div class="bg-slate-50/50 border border-slate-200 rounded-2xl p-4 space-y-2">
                             <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200/60 pb-1">Old Unit (Cancelled)</h4>
                             <div class="space-y-1">
-                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : '—'"></span></p>
-                                <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.unit ? formatUnitDisplay(viewExchangeSale.unit) : '—'"></span></p>
-                                <p class="text-slate-500">Original Value: <span class="text-slate-850 font-bold font-mono" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : '—'"></span></p>
-                                <p class="text-slate-500">Paid Amount: <span class="text-emerald-700 font-bold font-mono" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '—'"></span></p>
+                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.project ? viewExchangeSale.project.name : 'â€”'"></span></p>
+                                <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && viewExchangeSale.unit ? formatUnitDisplay(viewExchangeSale.unit) : 'â€”'"></span></p>
+                                <p class="text-slate-500">Original Value: <span class="text-slate-850 font-bold font-mono" x-text="viewExchangeSale ? fmt(viewExchangeSale.total_amount) : 'â€”'"></span></p>
+                                <p class="text-slate-500">Paid Amount: <span class="text-emerald-700 font-bold font-mono" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : 'â€”'"></span></p>
                             </div>
                         </div>
 
                         <div class="bg-blue-50/10 border border-blue-150 rounded-2xl p-4 space-y-2">
                             <h4 class="text-[10px] font-bold text-blue-500 uppercase tracking-wider border-b border-blue-200/30 pb-1">New Unit (Booked)</h4>
                             <div class="space-y-1">
-                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))) ? ((viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project ? (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project.name : '—') : '—'"></span></p>
+                                <p class="text-slate-500">Project: <span class="text-slate-850 font-bold" x-text="viewExchangeSale && (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))) ? ((viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project ? (viewExchangeSale.replacement_sale || sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + viewExchangeSale.sale_number))).project.name : 'â€”') : 'â€”'"></span></p>
                                 <p class="text-slate-500">Unit details: <span class="text-slate-850 font-bold" x-text="getNewUnitDoorNo(viewExchangeSale)"></span></p>
                                 <p class="text-slate-500">New Value: <span class="text-slate-850 font-bold font-mono" x-text="fmt(getNewUnitValue(viewExchangeSale))"></span></p>
                             </div>
@@ -1922,17 +2316,17 @@
                     <div class="bg-slate-50/50 border border-slate-200 rounded-xl p-3 grid grid-cols-3 gap-4 divide-x divide-slate-200">
                         <div class="text-center">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
-                            <p class="text-sm font-extrabold text-emerald-700 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : '₹0.00'"></p>
+                            <p class="text-sm font-extrabold text-emerald-700 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getPaidTillDate(viewExchangeSale)) : 'â‚¹0.00'"></p>
                         </div>
                         <div class="text-center px-2">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Net Balance Due</p>
-                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getDifferenceAmount(viewExchangeSale)) : '₹0.00'"></p>
+                            <p class="text-sm font-extrabold text-slate-800 font-mono mt-0.5" x-text="viewExchangeSale ? fmt(getDifferenceAmount(viewExchangeSale)) : 'â‚¹0.00'"></p>
                         </div>
                         <div class="text-center">
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Payable / Refundable</p>
                             <p class="text-xs font-extrabold mt-1 uppercase" 
                                :class="viewExchangeSale && getExchangeNetDue(viewExchangeSale) > 0 ? 'text-orange-600' : (viewExchangeSale && getExchangeNetDue(viewExchangeSale) < 0 ? 'text-teal-600' : 'text-slate-600')"
-                               x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : '—'"></p>
+                               x-text="viewExchangeSale ? getExchangeStatusText(viewExchangeSale) : 'â€”'"></p>
                         </div>
                     </div>
 
@@ -1957,9 +2351,9 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
                                 <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1">
                                     <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Old Unit & Agreement Info</span>
-                                    <p class="text-slate-600">Sale No: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.sale_number : '—'"></span></p>
-                                    <p class="text-slate-600">Door / Unit: <span class="font-extrabold text-slate-800" x-text="getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.door_no : '—'"></span></p>
-                                    <p class="text-slate-600">Unit Type & Floor: <span class="font-bold text-slate-700" x-text="(getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.unit_type_name || '' : '') + ' • ' + (getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.floor_name || '' : '')"></span></p>
+                                    <p class="text-slate-600">Sale No: <span class="font-extrabold text-slate-800 font-mono" x-text="getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.sale_number : 'â€”'"></span></p>
+                                    <p class="text-slate-600">Door / Unit: <span class="font-extrabold text-slate-800" x-text="getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.door_no : 'â€”'"></span></p>
+                                    <p class="text-slate-600">Unit Type & Floor: <span class="font-bold text-slate-700" x-text="(getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.unit_type_name || '' : '') + ' â€¢ ' + (getExchangeSnapshot(viewExchangeSale).old_unit ? getExchangeSnapshot(viewExchangeSale).old_unit.floor_name || '' : '')"></span></p>
                                     <p class="text-slate-600">Old Contract Value: <span class="font-extrabold text-slate-800 font-mono" x-text="fmt(getExchangeSnapshot(viewExchangeSale).old_sale ? getExchangeSnapshot(viewExchangeSale).old_sale.total_amount : 0)"></span></p>
                                 </div>
 
@@ -1976,7 +2370,7 @@
                             <div x-data="{ openTables: false }" class="pt-1">
                                 <button type="button" @click="openTables = !openTables"
                                         class="text-[9px] font-extrabold text-blue-700 hover:text-blue-900 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
-                                    <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : '📜 Expand Full Receipts & EMI Schedule Audit Log'"></span>
+                                    <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : 'ðŸ“œ Expand Full Receipts & EMI Schedule Audit Log'"></span>
                                     <svg class="w-3 h-3 transition-transform" :class="openTables ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
 
@@ -2043,3 +2437,4 @@
     </div>
 
 </div>
+

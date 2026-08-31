@@ -2028,7 +2028,8 @@ function salesApp() {
         selectedReturnSale: null,
         targetReturnStatus: '',
         selectedExchangeSale: null,
-        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: 100000, reason: '', revert_unsold: true },
+        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: '', reason: 'Customer Request', detailed_reason: '', refund_mode: 'Bank Transfer', refund_remarks: '', revert_unsold: true },
+        returnFormErrors: {},
         exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '', payment_plan: 'emi', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (function() { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })(), initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', initial_payment_date: new Date().toISOString().split('T')[0], reference_no: '', bank_id: '' },
         exchangeAvailableUnits: [],
         exchangeUnitTypes: [],
@@ -2257,7 +2258,7 @@ function salesApp() {
             this.targetReturnStatus = targetStatus;
             this.returnForm.cancellation_fee = (sale.cancellation_fee !== null && sale.cancellation_fee !== undefined) 
                 ? Number(sale.cancellation_fee) 
-                : 100000;
+                : '';
             this.returnForm.reason = sale.cancellation_reason || '';
             this.returnForm.date = sale.cancelled_at 
                 ? new Date(sale.cancelled_at).toISOString().split('T')[0] 
@@ -2266,7 +2267,8 @@ function salesApp() {
         },
         calculateApprovedRefund(sale) {
             const paid = this.getPaidTillDate(sale);
-            return Math.max(0, paid - (Number(this.returnForm.cancellation_fee) || 0));
+            let fee = Number(this.returnForm.cancellation_fee) || 0;
+            return Math.max(0, paid - fee);
         },
         submitReturnRefund() {
             if (!this.returnForm.reason) {
@@ -2284,8 +2286,11 @@ function salesApp() {
                 body: JSON.stringify({
                     status: this.targetReturnStatus,
                     reason: this.returnForm.reason,
+                    detailed_reason: this.returnForm.detailed_reason,
                     cancellation_fee: this.returnForm.cancellation_fee,
                     refund_amount: approvedRefund,
+                    refund_mode: this.returnForm.refund_mode,
+                    refund_remarks: this.returnForm.refund_remarks,
                     revert_unsold: this.returnForm.revert_unsold
                 })
             })
@@ -2402,12 +2407,30 @@ function salesApp() {
         },
         fmtIndian(value) {
             let num = Number(value || 0);
-            if (num >= 10000000) {
-                return '₹' + (num / 10000000).toFixed(2) + ' Cr';
-            } else if (num >= 100000) {
-                return '₹' + (num / 100000).toFixed(2) + ' L';
-            }
             return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
+        getUnitsDisplay(sale) {
+            if (!sale) return 'N/A';
+            const formatUnit = (u) => {
+                let typeStr = 'Shop';
+                if (u.unit_type) {
+                    typeStr = typeof u.unit_type === 'object' ? (u.unit_type.name || u.unit_type.title || 'Shop') : String(u.unit_type);
+                }
+                let floorStr = 'Floor';
+                if (u.floor_name) {
+                    floorStr = u.floor_name;
+                } else if (u.floor) {
+                    floorStr = typeof u.floor === 'object' ? (u.floor.name || u.floor.title || 'Floor') : String(u.floor);
+                }
+                return `${u.door_no}(${typeStr}) - ${floorStr}`;
+            };
+            if (sale.units && sale.units.length > 0) {
+                return sale.units.map(formatUnit).join(', ');
+            }
+            if (sale.unit) {
+                return formatUnit(sale.unit);
+            }
+            return 'N/A';
         },
         selectNewReturnSale() {
             let sale = this.sales.find(s => s.id == this.newReturnSaleId);
@@ -2418,8 +2441,11 @@ function salesApp() {
             this.newReturnSale = sale;
             this.newReturnStep = 2;
             this.returnForm.date = new Date().toISOString().split('T')[0];
-            this.returnForm.cancellation_fee = 100000;
-            this.returnForm.reason = '';
+            this.returnForm.cancellation_fee = '';
+            this.returnForm.reason = 'Customer Request';
+            this.returnForm.detailed_reason = '';
+            this.returnForm.refund_mode = 'Bank Transfer';
+            this.returnForm.refund_remarks = 'Refund will be processed within 7 working days.';
             this.returnForm.revert_unsold = true;
         },
         selectNewExchangeSale() {
@@ -2436,7 +2462,7 @@ function salesApp() {
                 this.showToast('Reason is required.', 'error');
                 return;
             }
-            const approvedRefund = this.getPaidTillDate(this.newReturnSale) - (Number(this.returnForm.cancellation_fee) || 0);
+            const approvedRefund = this.calculateApprovedRefund(this.newReturnSale);
             fetch(`{{ url('sales') }}/${this.newReturnSale.id}/status`, {
                 method: 'POST',
                 headers: {
@@ -2447,8 +2473,11 @@ function salesApp() {
                 body: JSON.stringify({
                     status: 'cancelled',
                     reason: this.returnForm.reason,
+                    detailed_reason: this.returnForm.detailed_reason,
                     cancellation_fee: this.returnForm.cancellation_fee,
-                    refund_amount: Math.max(0, approvedRefund),
+                    refund_amount: approvedRefund,
+                    refund_mode: this.returnForm.refund_mode,
+                    refund_remarks: this.returnForm.refund_remarks,
                     revert_unsold: this.returnForm.revert_unsold
                 })
             })
