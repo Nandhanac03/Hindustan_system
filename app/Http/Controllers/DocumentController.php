@@ -16,109 +16,28 @@ use Illuminate\Support\Str;
 
 class DocumentController extends Controller
 {
-    // Define the list of repository types/categories and their standard types/examples
-    protected array $categoriesInfo = [
-        'project' => [
-            'label' => 'Project Documents',
-            'icon' => 'office-building',
-            'types' => [
-                'Approved Building Plan',
-                'Municipality Approval',
-                'RERA Certificate',
-                'Fire NOC',
-                'Environmental Clearance',
-                'Occupancy Certificate',
-                'Completion Certificate',
-                'Site Layout Drawing',
-                'Master Plan',
-                'Other'
-            ],
-        ],
-        'legal' => [
-            'label' => 'Legal Documents',
-            'icon' => 'scale',
-            'types' => [
-                'Land Deed',
-                'Encumbrance Certificate',
-                'Power of Attorney',
-                'Partnership Agreement',
-                'Legal Opinion',
-                'Court Document',
-                'Government Approval',
-                'Other'
-            ],
-        ],
-        'company' => [
-            'label' => 'Company Documents',
-            'icon' => 'briefcase',
-            'types' => [
-                'GST Registration',
-                'PAN Card',
-                'Trade License',
-                'Company Incorporation Certificate',
-                'ISO Certificate',
-                'Insurance Policy',
-                'Audit Report',
-                'Other'
-            ],
-        ],
-        'hr' => [
-            'label' => 'HR & Employee Documents',
-            'icon' => 'users',
-            'types' => [
-                'Appointment Letter',
-                'Employment Contract',
-                'NDA Agreement',
-                'Policy Document',
-                'Employee ID Proof',
-                'Experience Certificate',
-                'Other'
-            ],
-        ],
-        'partner' => [
-            'label' => 'Partner & Investor Documents',
-            'icon' => 'handshake',
-            'types' => [
-                'Investment Agreement',
-                'MOU Document',
-                'Share Allocation Document',
-                'Settlement Agreement',
-                'Board Resolution',
-                'Other'
-            ],
-        ],
-        'drawings' => [
-            'label' => 'Drawings & Technical Documents',
-            'icon' => 'photograph',
-            'types' => [
-                'Architectural Drawing',
-                'Structural Drawing',
-                'Electrical Layout',
-                'Plumbing Layout',
-                'BOQ Document',
-                'Engineering Report',
-                'Other'
-            ],
-        ],
-        'templates' => [
-            'label' => 'Templates & Standard Documents',
-            'icon' => 'document-duplicate',
-            'types' => [
-                'Sale Agreement Template',
-                'Possession Letter Template',
-                'Cancellation Letter Template',
-                'Demand Letter Template',
-                'Payment Reminder Template',
-                'Other'
-            ],
-        ],
-    ];
+    private function getCategoriesInfo(): array
+    {
+        $categoriesInfo = [];
+        $dmsCats = \App\Models\DmsCategory::with('documentTypes')->where('is_active', true)->get();
+        foreach ($dmsCats as $cat) {
+            $categoriesInfo[$cat->code] = [
+                'id' => $cat->id,
+                'label' => $cat->name,
+                'icon' => $cat->icon ?? 'document',
+                'types' => $cat->documentTypes->pluck('name')->toArray(),
+            ];
+        }
+        return $categoriesInfo;
+    }
 
     public function index(Request $request)
     {
         $user = Auth::user();
         $systemId = $user->system_id;
         $system = System::findOrFail($systemId);
+
+        $categoriesInfo = $this->getCategoriesInfo();
 
         // Filter parameters
         $selectedCategory = $request->get('category');
@@ -127,7 +46,7 @@ class DocumentController extends Controller
         $searchQuery = $request->get('search');
 
         // Check if category exists
-        if ($selectedCategory && !array_key_exists($selectedCategory, $this->categoriesInfo)) {
+        if ($selectedCategory && !array_key_exists($selectedCategory, $categoriesInfo)) {
             $selectedCategory = null;
         }
 
@@ -166,7 +85,7 @@ class DocumentController extends Controller
 
         // 1. Stats Counters for top cards
         $categoryCounts = [];
-        foreach ($this->categoriesInfo as $catKey => $info) {
+        foreach ($categoriesInfo as $catKey => $info) {
             $categoryCounts[$catKey] = Document::where('system_id', $systemId)
                 ->where('category', $catKey)
                 ->count();
@@ -213,7 +132,7 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $categoriesInfo = $this->categoriesInfo;
+        // categoriesInfo is already defined locally
 
         return view('dms.index', compact(
             'documents',
@@ -235,8 +154,11 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
+        $categoriesInfo = $this->getCategoriesInfo();
+        $catsString = implode(',', array_keys($categoriesInfo));
+
         $request->validate([
-            'category' => 'required|string|in:project,legal,company,hr,partner,drawings,templates',
+            'category' => 'required|string|in:' . $catsString,
             'title' => 'required|string|max:255',
             'document_type' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
