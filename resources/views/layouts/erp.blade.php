@@ -150,7 +150,7 @@
         </div>
 
         <!-- 🏠 Sales & Property Management -->
-        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Sales & Property Management</p>
+        <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Sales & Booking</p>
         
         <div x-data="{ openSalesProperty: {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'true' : 'false' }} }" class="space-y-1">
             <button @click="openSalesProperty = !openSalesProperty" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('sales.*') && request('tab') !== 'sale-return' && request('tab') !== 'exchange' || (Request::routeIs('reports.availability')) || Request::routeIs('cancellation-additional-work.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
@@ -158,27 +158,29 @@
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                     </svg>
-                    <span>Sales & Property</span>
+                    <span>Sales & Booking</span>
                 </div>
                 <svg class="w-3.5 h-3.5 transition-transform duration-250" :class="openSalesProperty ? 'transform rotate-90' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
             </button>
             <div x-show="openSalesProperty" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('unit-matrix.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-matrix.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Unit Matrix / Availability Grid
+                
+                <a href="{{ route('sales.index', ['action' => 'add']) }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && request('action') === 'add' ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    New Booking
                 </a>
-                <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    New Booking / Sales Register
+
+                <a href="{{ route('sales.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('sales.index') && !request('action') && !request('tab') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Sales Register
                 </a>
                 <!-- <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 text-white/80 hover:bg-slate-800 hover:text-white">
                     Agreement Register
                 </a> -->
                 <a href="{{ route('rate-revision.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('rate-revision.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Rate Revision Engine
+                    Unit Rate History
                 </a>
-                <a href="{{ route('reports.availability') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.availability') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Availability Report
+                <a href="{{ route('unit-matrix.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('unit-matrix.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Availability Grid
                 </a>
             </div>
         </div>
@@ -247,7 +249,7 @@
                     Receipt Management
                 </a> -->
                 <a href="{{ route('cheque-receipt-entry.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-receipt-entry.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Cheque & Payment Receipt Entry
+                    Payment Receipt Entry
                 </a>
                 <a href="{{ route('cheque-realization.queue') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('cheque-realization.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Cheque Realization Console
@@ -579,6 +581,9 @@
                 @endforeach
                 <a href="{{ route('reports.loan_schedules') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.loan_schedules') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Bank loan EMI schedules
+                </a>
+                <a href="{{ route('reports.availability') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.availability') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Availability Report
                 </a>
             </div>
         </div>

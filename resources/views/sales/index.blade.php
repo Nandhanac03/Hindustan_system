@@ -2058,6 +2058,10 @@ function salesApp() {
             if (viewSaleId) {
                 this.openViewModal(viewSaleId);
             }
+            const action = urlParams.get('action');
+            if (action === 'add') {
+                this.openAddModal();
+            }
             const autoSaleId = urlParams.get('sale_id');
             if (autoSaleId && urlParams.get('tab') === 'exchange') {
                 let checkExist = setInterval(() => {
