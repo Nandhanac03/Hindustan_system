@@ -2838,6 +2838,11 @@ function unitsApp() {
             this.errors = {};
             this.forms.status = { status: '', reason: '', is_resale: false };
             this.forms.rate = { rate: '', effective_from: new Date().toISOString().split('T')[0], reason: '' };
+            
+            document.querySelectorAll('.amount-in-words-label').forEach(el => {
+                el.textContent = '';
+                el.style.display = 'none';
+            });
 
             fetch(`{{ url('units') }}/${unitId}/json`, {
                 headers: {
@@ -2873,6 +2878,10 @@ function unitsApp() {
         },
         closeEditModal() {
             this.modals.edit.open = false;
+            document.querySelectorAll('.amount-in-words-label').forEach(el => {
+                el.textContent = '';
+                el.style.display = 'none';
+            });
         },
 
         openBulkModal() {
