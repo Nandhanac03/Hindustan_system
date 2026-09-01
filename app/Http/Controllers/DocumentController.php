@@ -173,7 +173,7 @@ class DocumentController extends Controller
         $contractors = Payee::where('system_id', $systemId)
             ->whereIn('type', ['Contractor', 'Supplier'])
             ->orderBy('name')
-            ->get(['id', 'name', 'phone', 'email']);
+            ->get(['id', 'name', 'phone', 'email', 'type']);
         $partners = Payee::where('system_id', $systemId)
             ->whereIn('type', ['Partner', 'Investor'])
             ->orderBy('name')

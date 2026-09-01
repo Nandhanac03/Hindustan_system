@@ -394,53 +394,46 @@
                                         </span>
                                     </td>
                                     <td class="px-5 py-3.5 text-right whitespace-nowrap">
-                                        <div class="inline-flex items-center gap-1">
-                                            {{-- Preview Button --}}
+                                        <div class="inline-flex items-center gap-1.5">
+                                            {{-- Preview Button (Gold Theme) --}}
                                             <button type="button" 
-                                                    @click="openPreview('{{ route('dms.preview', $doc->id) }}', '{{ addslashes($doc->title) }}', '{{ $doc->mime_type }}', '{{ route('dms.download', $doc->id) }}')"
-                                                    class="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg hover:text-[#a38c29] transition" 
+                                                    @click='openPreview("{{ route("dms.preview", $doc->id) }}", {{ json_encode($doc->title) }}, "{{ $doc->mime_type }}", "{{ route("dms.download", $doc->id) }}")'
+                                                    class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-amber-50 hover:bg-[#a38c29] border border-amber-200 hover:border-[#a38c29] text-[#a38c29] hover:text-white transition-all duration-200 shadow-2xs cursor-pointer" 
                                                     title="Preview Document">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             </button>
 
-                                            {{-- Download Button --}}
+                                            {{-- Download Button (Indigo Theme) --}}
                                             <a href="{{ route('dms.download', $doc->id) }}" 
-                                               class="p-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-lg hover:text-slate-800 transition" 
+                                               class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-indigo-50 hover:bg-indigo-600 border border-indigo-200 hover:border-indigo-600 text-indigo-600 hover:text-white transition-all duration-200 shadow-2xs cursor-pointer" 
                                                title="Download File">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                             </a>
                                             
-                                            {{-- Archive / Unarchive Toggle Button --}}
+                                            {{-- Archive / Unarchive Toggle Button (Teal / Emerald Theme) --}}
                                             @if(!$doc->is_archived)
-                                                <form action="{{ route('dms.archive', $doc->id) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" 
-                                                            class="p-1.5 bg-slate-50 hover:bg-amber-50 border border-slate-200 text-slate-500 hover:text-amber-700 rounded-lg transition" 
-                                                            title="Archive Document">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
-                                                    </button>
-                                                </form>
+                                                <button type="button" 
+                                                        @click='confirmArchive({{ $doc->id }}, {{ json_encode($doc->title) }}, "archive")'
+                                                        class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-teal-50 hover:bg-teal-600 border border-teal-200 hover:border-teal-600 text-teal-600 hover:text-white transition-all duration-200 shadow-2xs cursor-pointer" 
+                                                        title="Archive Document">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                                                </button>
                                             @else
-                                                <form action="{{ route('dms.unarchive', $doc->id) }}" method="POST" class="inline">
-                                                    @csrf
-                                                    <button type="submit" 
-                                                            class="p-1.5 bg-slate-50 hover:bg-emerald-50 border border-slate-200 text-slate-500 hover:text-emerald-700 rounded-lg transition" 
-                                                            title="Restore to Active">
-                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                                                    </button>
-                                                </form>
+                                                <button type="button" 
+                                                        @click='confirmArchive({{ $doc->id }}, {{ json_encode($doc->title) }}, "unarchive")'
+                                                        class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-emerald-50 hover:bg-emerald-600 border border-emerald-200 hover:border-emerald-600 text-emerald-600 hover:text-white transition-all duration-200 shadow-2xs cursor-pointer" 
+                                                        title="Restore to Active">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                                </button>
                                             @endif
 
-                                            {{-- Permanent Delete --}}
-                                            <form action="{{ route('dms.destroy', $doc->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this document?');" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" 
-                                                        class="p-1.5 bg-slate-50 hover:bg-rose-50 border border-slate-200 text-slate-400 hover:text-rose-600 hover:border-rose-250 rounded-lg transition" 
-                                                        title="Delete Document">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                </button>
-                                            </form>
+                                            {{-- Permanent Delete (Rose Theme) --}}
+                                            <button type="button" 
+                                                    @click='confirmDelete({{ $doc->id }}, {{ json_encode($doc->title) }})'
+                                                    class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 text-rose-600 hover:text-white transition-all duration-200 shadow-2xs cursor-pointer" 
+                                                    title="Delete Document">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -560,17 +553,17 @@
                  x-transition.scale>
                 
                 {{-- Modal Header --}}
-                <div class="px-6 py-5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 border-b border-[#a38c29]/20 flex items-center justify-between text-white relative overflow-hidden shrink-0">
+                <div class="px-6 py-5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 flex items-center justify-between text-white relative overflow-hidden shrink-0">
                     <div class="absolute -top-10 -right-10 w-36 h-36 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10">
                         <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-extrabold uppercase tracking-widest border border-[#a38c29]/30">Document Management</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-extrabold uppercase tracking-widest">Document Management</span>
                             <span class="text-[10px] text-slate-400 font-semibold">• New Entry</span>
                         </div>
                         <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Upload & Register Document</h2>
                         <p class="text-[11px] text-slate-300 font-medium mt-0.5">Upload, categorize, and archive company, project, contractor, employee, and legal documents.</p>
                     </div>
-                    <button type="button" @click="showUploadModal = false" class="text-slate-400 hover:text-white transition w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs font-bold shrink-0 relative z-10">✕</button>
+                    <button type="button" @click="showUploadModal = false" class="text-slate-400 hover:text-white transition w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs font-bold shrink-0 relative z-10 cursor-pointer">✕</button>
                 </div>
 
                 {{-- Modal Body Form --}}
@@ -711,7 +704,7 @@
                                                     @click="uploadContractorId = c.id; open = false; search = ''"
                                                     class="w-full px-3 py-2 text-left rounded-lg text-xs font-semibold transition flex items-center justify-between cursor-pointer"
                                                     :class="String(uploadContractorId) === String(c.id) ? 'bg-[#a38c29]/15 text-[#a38c29] font-bold' : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'">
-                                                <span x-text="c.name"></span>
+                                                <span x-text="c.name + (c.phone ? ' (' + c.phone + ')' : (c.type ? ' [' + c.type + ']' : ''))"></span>
                                                 <span x-show="String(uploadContractorId) === String(c.id)" class="text-xs text-[#a38c29]">✓</span>
                                             </button>
                                         </template>
@@ -1140,81 +1133,144 @@
         </div>
     </template>
 
-    {{-- Document Preview Modal (Teleported to Body with 1-Click Print & Download) --}}
+    {{-- Preview Modal (Teleported to Body) --}}
     <template x-teleport="body">
         <div x-show="showPreviewModal" 
-             class="fixed inset-0 z-[999999] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs"
              x-transition.opacity 
              style="display: none;">
             
             <div @click.outside="closePreview()" 
-                 class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col h-[90vh] animate-fade-in-up">
+                 :class="(previewIsPdf || previewIsImage) ? 'max-w-3xl h-[80vh]' : 'max-w-md h-auto'"
+                 class="bg-white w-full rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up transition-all duration-300">
                 
-                {{-- Preview Header --}}
-                <div class="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between text-white shrink-0">
-                    <div class="min-w-0 pr-4">
+                <div class="px-6 py-5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 flex items-center justify-between text-white relative overflow-hidden shrink-0">
+                    <div class="absolute -top-10 -right-10 w-36 h-36 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <div class="relative z-10 min-w-0 pr-3">
                         <div class="flex items-center gap-2">
-                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-extrabold uppercase tracking-widest border border-[#a38c29]/30">Document Preview</span>
-                            <span class="text-xs text-slate-400 font-mono" x-text="previewMime"></span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-[#a38c29]/25 text-[#d9bf3b] text-[9px] font-extrabold uppercase tracking-widest">Document Preview</span>
                         </div>
-                        <h3 class="text-sm font-extrabold text-white truncate mt-1" x-text="previewTitle"></h3>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1 truncate max-w-sm" x-text="previewTitle"></h2>
                     </div>
 
-                    <div class="flex items-center gap-2 shrink-0">
-                        {{-- Print Button --}}
+                    <div class="flex items-center gap-2 shrink-0 relative z-10">
                         <button type="button" 
+                                x-show="previewIsPdf || previewIsImage"
                                 @click="printDocument()" 
-                                class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                            <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-[11px] font-bold uppercase tracking-wider transition flex items-center gap-1.5 shadow-2xs cursor-pointer">
+                            <svg class="w-3.5 h-3.5 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                             <span>Print</span>
                         </button>
 
-                        {{-- Download Button --}}
-                        <a :href="previewDownloadUrl" 
-                           class="px-3.5 py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                            <span>Download</span>
-                        </a>
-
-                        {{-- Close Button --}}
                         <button type="button" 
                                 @click="closePreview()" 
-                                class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold transition">
+                                class="text-slate-400 hover:text-white transition w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-xs font-bold shrink-0 cursor-pointer">
                             ✕
                         </button>
                     </div>
                 </div>
 
-                {{-- Preview Body --}}
-                <div class="flex-1 bg-slate-100 p-3 sm:p-4 overflow-auto flex items-center justify-center">
-                    {{-- If PDF or text --}}
-                    <template x-if="previewIsPdf">
-                        <iframe id="dmsPreviewIframe" :src="previewUrl" class="w-full h-full rounded-xl border border-slate-300 bg-white shadow-inner"></iframe>
-                    </template>
+                <div :class="(previewIsPdf || previewIsImage) ? 'flex-1 bg-slate-100 p-3 sm:p-4 overflow-auto flex items-center justify-center' : 'p-6 bg-white flex items-center justify-center text-center'">
+                    {{-- If PDF --}}
+                    <div x-show="previewIsPdf" class="w-full h-full flex items-center justify-center" style="display: none;">
+                        <iframe id="dmsPreviewIframe" :src="previewIsPdf ? previewUrl : ''" class="w-full h-full rounded-xl bg-white shadow-inner"></iframe>
+                    </div>
 
                     {{-- If Image --}}
-                    <template x-if="previewIsImage">
-                        <div class="flex items-center justify-center h-full w-full p-2">
-                            <img :src="previewUrl" alt="Document Preview" class="max-h-full max-w-full object-contain rounded-xl shadow-lg border border-slate-200 bg-white">
-                        </div>
-                    </template>
+                    <div x-show="previewIsImage" class="flex items-center justify-center h-full w-full p-2" style="display: none;">
+                        <img :src="previewIsImage ? previewUrl : ''" alt="Document Preview" class="max-h-full max-w-full object-contain rounded-xl shadow-lg bg-white">
+                    </div>
 
-                    {{-- If Binary / CAD / Office Doc --}}
-                    <template x-if="!previewIsPdf && !previewIsImage">
-                        <div class="text-center p-8 bg-white border border-slate-200 rounded-2xl shadow-sm max-w-md">
-                            <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-500 border border-slate-200 flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <h4 class="text-sm font-extrabold text-slate-800 uppercase tracking-wider mb-1" x-text="previewTitle"></h4>
-                            <p class="text-xs text-slate-500 font-medium mb-4">This file format is best viewed in native desktop applications or downloaded directly.</p>
-                            <a :href="previewDownloadUrl" class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                                <span>Download File Now</span>
-                            </a>
+                    {{-- If Non-PDF / Non-Image --}}
+                    <div x-show="!previewIsPdf && !previewIsImage" class="space-y-4 max-w-xs mx-auto py-2">
+                        <div class="w-14 h-14 rounded-2xl bg-amber-50 text-[#a38c29] flex items-center justify-center mx-auto shadow-2xs">
+                            <svg class="w-7 h-7 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
-                    </template>
+                        <div>
+                            <h4 class="text-xs font-black text-slate-900 uppercase tracking-wider mb-1" x-text="previewTitle"></h4>
+                            <p class="text-[11px] text-slate-500 font-medium leading-relaxed">This file format is best viewed in native applications. Click below to download directly.</p>
+                        </div>
+                        <a :href="previewDownloadUrl" class="inline-flex items-center justify-center gap-2 w-full px-5 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>DOWNLOAD FILE NOW</span>
+                        </a>
+                    </div>
                 </div>
 
+            </div>
+        </div>
+    </template>
+
+    <template x-teleport="body">
+        <div x-show="deleteModal.open" 
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs" 
+             x-transition.opacity 
+             style="display: none;">
+            <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-center transform transition-all animate-fade-in-up" 
+                 @click.outside="deleteModal.open = false">
+                <div class="w-14 h-14 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4 text-rose-600 shadow-inner">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </div>
+                <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-2">DELETE DOCUMENT</h3>
+                <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+                    You are about to delete <span class="font-bold text-rose-600" x-text="deleteModal.docTitle"></span>. This action cannot be undone.
+                </p>
+                <div class="flex items-center justify-center gap-3">
+                    <button type="button" @click="deleteModal.open = false" 
+                            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer">
+                        CANCEL
+                    </button>
+                    <form :action="deleteModal.deleteUrl" method="POST" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" 
+                                class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-rose-600/20 flex items-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            <span>YES, DELETE NOW</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <template x-teleport="body">
+        <div x-show="archiveModal.open" 
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs" 
+             x-transition.opacity 
+             style="display: none;">
+            <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-center transform transition-all animate-fade-in-up" 
+                 @click.outside="archiveModal.open = false">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner"
+                     :class="archiveModal.actionType === 'archive' ? 'bg-teal-50 text-teal-600' : 'bg-emerald-50 text-emerald-600'">
+                    <template x-if="archiveModal.actionType === 'archive'">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                    </template>
+                    <template x-if="archiveModal.actionType === 'unarchive'">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    </template>
+                </div>
+                <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-2" 
+                    x-text="archiveModal.actionType === 'archive' ? 'ARCHIVE DOCUMENT' : 'RESTORE DOCUMENT'"></h3>
+                <p class="text-xs text-slate-600 mb-6 leading-relaxed">
+                    <span x-text="archiveModal.actionType === 'archive' ? 'You are about to archive ' : 'You are about to restore to active records '"></span>
+                    <span class="font-bold text-slate-900" x-text="archiveModal.docTitle"></span>.
+                </p>
+                <div class="flex items-center justify-center gap-3">
+                    <button type="button" @click="archiveModal.open = false" 
+                            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer">
+                        CANCEL
+                    </button>
+                    <form :action="archiveModal.actionUrl" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" 
+                                class="px-5 py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center gap-2 cursor-pointer"
+                                :class="archiveModal.actionType === 'archive' ? 'bg-teal-600 hover:bg-teal-700 shadow-teal-600/20' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'">
+                            <span x-text="archiveModal.actionType === 'archive' ? 'YES, ARCHIVE NOW' : 'YES, RESTORE NOW'"></span>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </template>
@@ -1276,6 +1332,38 @@
             previewDownloadUrl: '',
             previewIsPdf: false,
             previewIsImage: false,
+
+            // Delete modal state
+            deleteModal: {
+                open: false,
+                docId: null,
+                docTitle: '',
+                deleteUrl: ''
+            },
+            confirmDelete(id, title) {
+                this.deleteModal.docId = id;
+                this.deleteModal.docTitle = title;
+                this.deleteModal.deleteUrl = '{{ url('/dms') }}/' + id + '/delete';
+                this.deleteModal.open = true;
+            },
+
+            // Archive / Unarchive modal state
+            archiveModal: {
+                open: false,
+                docId: null,
+                docTitle: '',
+                actionType: 'archive',
+                actionUrl: ''
+            },
+            confirmArchive(id, title, actionType) {
+                this.archiveModal.docId = id;
+                this.archiveModal.docTitle = title;
+                this.archiveModal.actionType = actionType;
+                this.archiveModal.actionUrl = actionType === 'archive' 
+                    ? '{{ url('/dms') }}/' + id + '/archive' 
+                    : '{{ url('/dms') }}/' + id + '/unarchive';
+                this.archiveModal.open = true;
+            },
 
             categoriesList: categoriesList,
             categoryLabels: categoryLabels,
@@ -1351,7 +1439,12 @@
             filteredContractors(query) {
                 if (!query) return this.contractorsList;
                 const q = query.toLowerCase().trim();
-                return this.contractorsList.filter(c => (c.name || '').toLowerCase().includes(q));
+                return this.contractorsList.filter(c => 
+                    (c.name || '').toLowerCase().includes(q) ||
+                    (c.phone || '').toLowerCase().includes(q) ||
+                    (c.email || '').toLowerCase().includes(q) ||
+                    (c.type || '').toLowerCase().includes(q)
+                );
             },
 
             filteredPartners(query) {
@@ -1412,8 +1505,10 @@
 
                 const m = (mime || '').toLowerCase();
                 const u = url.toLowerCase();
-                this.previewIsPdf = m.includes('pdf') || u.endsWith('.pdf');
-                this.previewIsImage = m.includes('image') || u.endsWith('.png') || u.endsWith('.jpg') || u.endsWith('.jpeg') || u.endsWith('.webp');
+                const t = (title || '').toLowerCase();
+
+                this.previewIsPdf = m.includes('pdf') || u.endsWith('.pdf') || t.endsWith('.pdf');
+                this.previewIsImage = m.includes('image') || u.endsWith('.png') || u.endsWith('.jpg') || u.endsWith('.jpeg') || u.endsWith('.webp') || u.endsWith('.svg') || u.endsWith('.gif') || t.endsWith('.png') || t.endsWith('.jpg') || t.endsWith('.jpeg') || t.endsWith('.webp');
 
                 this.showPreviewModal = true;
             },
