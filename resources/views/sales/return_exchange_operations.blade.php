@@ -2032,7 +2032,7 @@
                                 </div>
 
                                 {{-- Live Schedule Preview --}}
-                                <div x-show="exchangeForm.payment_plan === 'emi'" class="bg-indigo-50/30 border border-indigo-100/50 rounded-xl p-3 space-y-2 sm:col-span-2 mt-2">
+                                <div x-show="exchangeForm.payment_plan === 'emi' && calculateDifferentialDue() > 0" class="bg-indigo-50/30 border border-indigo-100/50 rounded-xl p-3 space-y-2 sm:col-span-2 mt-2">
                                     <p class="text-[9px] font-bold text-indigo-800 uppercase tracking-widest flex items-center gap-1.5">
                                         <span>📝</span>
                                         <span>Live Schedule Preview</span>
@@ -2047,7 +2047,15 @@
                                                 </div>
                                             </div>
                                         </template>
-                                        <template x-if="getExchangeEmiPreview().length === 0">
+                                        <template x-if="calculateDifferentialDue() <= 0">
+                                            <div class="bg-emerald-50 border border-emerald-200/80 rounded-lg p-2.5 text-center">
+                                                <p class="text-[10px] text-emerald-700 font-extrabold flex items-center justify-center gap-1.5">
+                                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                    <span>Customer paid equity (₹<span x-text="Number(exchangeForm.equity_applied || 0).toLocaleString()"></span>) fully covers contract value. No EMI balance due (₹0.00).</span>
+                                                </p>
+                                            </div>
+                                        </template>
+                                        <template x-if="calculateDifferentialDue() > 0 && getExchangeEmiPreview().length === 0">
                                             <p class="text-[10px] text-slate-400 italic py-1 text-center">No schedule preview available. Fill EMI parameters.</p>
                                         </template>
                                     </div>
