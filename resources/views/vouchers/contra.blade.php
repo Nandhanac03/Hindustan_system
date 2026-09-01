@@ -28,7 +28,7 @@
             </div>
 
             <!-- Quick Status Badges -->
-            <div class="flex items-center gap-2">
+            <!-- <div class="flex items-center gap-2">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase bg-white text-slate-700 border border-slate-200 shadow-2xs">
                     <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                     Asset-to-Asset (1000s)
@@ -37,7 +37,7 @@
                     <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                     Double-Entry Safeguard
                 </span>
-            </div>
+            </div> -->
         </div>
 
         @if ($errors->any())
@@ -589,9 +589,20 @@
                                 Rs. {{ number_format($transferAmt, 2) }}
                             </td>
                             <td class="px-4 py-3.5 text-center whitespace-nowrap">
-                                <a href="{{ route('vouchers.ledger.index') }}?voucher_id={{ $v->id }}" class="px-3 py-1 bg-amber-100 text-[#a38c29] hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-black uppercase transition border border-amber-300">
-                                    View Slip
-                                </a>
+                                <button type="button" @click='openSlipModal({{ json_encode([
+                                    "id" => $v->id,
+                                    "voucher_number" => $v->voucher_number,
+                                    "date" => \Carbon\Carbon::parse($v->date)->format("d-M-Y"),
+                                    "from_account" => $creditLine?->account?->name ?? "—",
+                                    "to_account" => $debitLine?->account?->name ?? "—",
+                                    "reference_no" => $v->reference_no ?? "Direct Transfer",
+                                    "amount" => (float) $transferAmt,
+                                    "narration" => $v->narration ?? "Internal contra transfer posting.",
+                                    "project_name" => $v->project?->name ?? "Global Treasury"
+                                ]) }})' class="px-3 py-1.5 bg-amber-100/90 text-[#7a671b] hover:bg-[#a38c29] hover:text-white rounded-xl text-[10px] font-black uppercase transition border border-amber-300/80 shadow-2xs flex items-center gap-1.5 mx-auto cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    <span>View Voucher</span>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -605,6 +616,196 @@
             </table>
         </div>
     </div>
+
+    <!-- ── 5. CONTRA VOUCHER SLIP / RECEIPT MODAL (SINGLE-PAGE PRINTABLE) ── -->
+    <div x-show="showSlipModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        
+        <div id="printable-slip-modal" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]"
+             @click.away="closeSlipModal()">
+            
+            <!-- Dark Header Matched Exactly with Add New Unit Modal -->
+            <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. · CONTRA VOUCHER</p>
+                        <h2 class="text-lg font-extrabold text-white flex items-center gap-3">
+                            <span>Internal Contra Transfer Voucher Slip</span>
+                            <span class="text-xs font-mono font-black px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30" x-text="activeSlip?.voucher_number"></span>
+                        </h2>
+                    </div>
+                    <button type="button" @click="closeSlipModal()" class="text-slate-400 hover:text-white transition cursor-pointer p-1 no-print">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="p-6 sm:p-8 space-y-6 overflow-y-auto">
+
+                <template x-if="activeSlip">
+                    <div class="space-y-6">
+
+                        <!-- Voucher Metadata Cards Row -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                            <div class="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50/70 border-b border-slate-100">
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</div>
+                                    <div class="mt-1 inline-flex px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-extrabold uppercase">POSTED & VERIFIED</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Voucher Date</div>
+                                    <div class="mt-1 text-xs sm:text-sm font-black text-slate-900" x-text="activeSlip.date"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mode / Ref No.</div>
+                                    <div class="mt-1 text-xs sm:text-sm font-mono font-black text-slate-900 truncate" x-text="activeSlip.reference_no"></div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Project Tag</div>
+                                    <div class="mt-1 text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="activeSlip.project_name"></div>
+                                </div>
+                            </div>
+
+                            <!-- Double-Entry Journal Lines Table (System Matched) -->
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead>
+                                        <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
+                                            <th class="px-5 py-3 text-slate-600">#</th>
+                                            <th class="px-5 py-3 text-slate-600">Ledger Account</th>
+                                            <th class="px-5 py-3 text-slate-600">Entry Particulars</th>
+                                            <th class="px-5 py-3 text-right text-emerald-800">Debit (DR)</th>
+                                            <th class="px-5 py-3 text-right text-rose-800">Credit (CR)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 text-xs text-slate-800 font-medium">
+                                        <!-- Destination Account (Debit) -->
+                                        <tr class="bg-emerald-50/40 hover:bg-emerald-50/70 transition">
+                                            <td class="px-5 py-3.5 text-slate-400 font-mono">1</td>
+                                            <td class="px-5 py-3.5 font-black text-slate-900" x-text="activeSlip.to_account"></td>
+                                            <td class="px-5 py-3.5 text-emerald-800 font-bold">
+                                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] uppercase font-black">Destination Account · DR</span>
+                                            </td>
+                                            <td class="px-5 py-3.5 text-right font-mono font-black text-emerald-700">
+                                                ₹<span x-text="formatCurrency(activeSlip.amount)"></span>
+                                            </td>
+                                            <td class="px-5 py-3.5 text-right font-mono text-slate-300">—</td>
+                                        </tr>
+                                        <!-- Source Account (Credit) -->
+                                        <tr class="bg-rose-50/40 hover:bg-rose-50/70 transition">
+                                            <td class="px-5 py-3.5 text-slate-400 font-mono">2</td>
+                                            <td class="px-5 py-3.5 font-black text-slate-900" x-text="activeSlip.from_account"></td>
+                                            <td class="px-5 py-3.5 text-rose-800 font-bold">
+                                                <span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px] uppercase font-black">Source Account · CR</span>
+                                            </td>
+                                            <td class="px-5 py-3.5 text-right font-mono text-slate-300">—</td>
+                                            <td class="px-5 py-3.5 text-right font-mono font-black text-rose-700">
+                                                ₹<span x-text="formatCurrency(activeSlip.amount)"></span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr class="bg-amber-50/80 border-t-2 border-slate-200 text-xs font-black">
+                                            <td colspan="3" class="px-5 py-3.5 text-slate-800 uppercase tracking-wider">Total Balanced Journal Entry</td>
+                                            <td class="px-5 py-3.5 text-right font-mono text-emerald-700 font-black">₹<span x-text="formatCurrency(activeSlip.amount)"></span></td>
+                                            <td class="px-5 py-3.5 text-right font-mono text-rose-700 font-black">₹<span x-text="formatCurrency(activeSlip.amount)"></span></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <!-- Remarks / Narration -->
+                            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Remarks / Purpose</div>
+                                <div class="text-xs text-slate-800 font-medium" x-text="activeSlip.narration || 'Internal contra fund transfer.'"></div>
+                            </div>
+                        </div>
+
+                        <!-- Signature Authorization Row -->
+                        <div class="grid grid-cols-3 gap-6 pt-6 border-t border-slate-200 text-center text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                            <div>
+                                <div class="h-12 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
+                                <span>Prepared By</span>
+                            </div>
+                            <div>
+                                <div class="h-12 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
+                                <span>Verified By</span>
+                            </div>
+                            <div>
+                                <div class="h-12 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
+                                <span>Authorised Signatory</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </template>
+
+                <!-- Action Buttons Footer (Hidden during Print) -->
+                <div class="pt-4 border-t border-slate-150 flex items-center justify-between gap-3 no-print">
+                    <a :href="'{{ route('vouchers.ledger.index') }}?voucher_id=' + (activeSlip ? activeSlip.id : '') + '&voucher_type=Contra'"
+                       target="_blank" rel="noopener noreferrer"
+                       class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        <span>View Ledger Directory</span>
+                    </a>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" @click="printSlip()"
+                                class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] hover:from-[#8d7923] hover:to-[#8d7923] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            <span>Print Voucher Slip</span>
+                        </button>
+                        <button type="button" @click="closeSlipModal()"
+                                class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── 6. SINGLE-PAGE PRINT MEDIA CSS STYLES ── -->
+    <style type="text/css">
+    @media print {
+        body * {
+            visibility: hidden !important;
+        }
+        #printable-slip-modal, #printable-slip-modal * {
+            visibility: visible !important;
+        }
+        #printable-slip-modal {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+            background: white !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .no-print {
+            display: none !important;
+        }
+        html, body {
+            background: white !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        @page {
+            size: portrait;
+            margin: 12mm;
+        }
+    }
+    </style>
 
 </div>
 
@@ -631,6 +832,22 @@ function contraVoucherBlueprint() {
         searchQuery: '',
         fileName: '',
         fileSize: '',
+        showSlipModal: false,
+        activeSlip: null,
+
+        openSlipModal(voucher) {
+            this.activeSlip = voucher;
+            this.showSlipModal = true;
+        },
+
+        closeSlipModal() {
+            this.showSlipModal = false;
+            this.activeSlip = null;
+        },
+
+        printSlip() {
+            window.print();
+        },
 
         handleFileChange(event) {
             const file = event.target.files[0];

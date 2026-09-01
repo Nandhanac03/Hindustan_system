@@ -1970,6 +1970,7 @@ class VoucherController extends Controller
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
         $selectedVoucherType = $request->query('voucher_type');
+        $voucherId = $request->query('voucher_id');
 
         $prefix = DB::getTablePrefix();
         $ledgerTable = (new LedgerEntry)->getTable();
@@ -1977,6 +1978,9 @@ class VoucherController extends Controller
 
         $query = LedgerEntry::with(['voucher', 'account', 'voucherLine'])->where("{$ledgerTable}.system_id", $systemId);
 
+        if ($voucherId) {
+            $query->where("{$ledgerTable}.voucher_id", $voucherId);
+        }
         if ($selectedAccount) {
             $query->where("{$ledgerTable}.account_id", $selectedAccount);
         }

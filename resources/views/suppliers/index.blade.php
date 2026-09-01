@@ -9,7 +9,7 @@
                 <span class="text-slate-300">›</span>
                 <span>Masters</span>
                 <span class="text-slate-300">›</span>
-                <span class="text-[#c5a059] font-black">Contractor Master</span>
+                <span class="text-[#a38c29] font-black">Contractor Master</span>
             </div>
 
             <div class="flex items-center gap-2.5 self-start sm:self-auto">
@@ -67,11 +67,11 @@
                     <h3 class="text-2xl font-mono font-black text-slate-900 tracking-tight mt-1">
                         {{ $totalContractors ?? count($suppliers) }}
                     </h3>
-                    <span class="text-[10px] text-[#c5a059] font-bold mt-0.5 block">
+                    <span class="text-[10px] text-[#a38c29] font-bold mt-0.5 block">
                         Registered Master Payees
                     </span>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-[#c5a059]/10 text-[#c5a059] flex items-center justify-center border border-[#c5a059]/20 flex-shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center border border-[#a38c29]/20 flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
@@ -79,17 +79,17 @@
             </div>
 
             {{-- Card 2: Liability Ledger Accounts Linked --}}
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm flex items-center justify-between">
+            <div class="bg-white rounded-2xl p-5 border border-[#a38c29]/40 shadow-sm flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] font-black text-blue-500 uppercase tracking-widest block">Ledger Integration</span>
-                    <h3 class="text-2xl font-mono font-black text-blue-700 tracking-tight mt-1">
+                    <span class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest block">Ledger Integration</span>
+                    <h3 class="text-2xl font-mono font-black text-slate-900 tracking-tight mt-1">
                         {{ $totalContractors ?? count($suppliers) }}
                     </h3>
-                    <span class="text-[10px] text-blue-600 font-bold mt-0.5 block">
+                    <span class="text-[10px] text-[#a38c29] font-bold mt-0.5 block">
                         SUP-ACC Payables Linked
                     </span>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-200 flex-shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center border border-[#a38c29]/20 flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
@@ -97,17 +97,17 @@
             </div>
 
             {{-- Card 3: GSTIN Compliance --}}
-            <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm flex items-center justify-between">
+            <div class="bg-white rounded-2xl p-5 border border-[#a38c29]/40 shadow-sm flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest block">GST Compliance</span>
-                    <h3 class="text-2xl font-mono font-black text-emerald-700 tracking-tight mt-1">
+                    <span class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest block">GST Compliance</span>
+                    <h3 class="text-2xl font-mono font-black text-slate-900 tracking-tight mt-1">
                         {{ $gstinCount ?? 0 }}
                     </h3>
-                    <span class="text-[10px] text-emerald-600 font-bold mt-0.5 block">
+                    <span class="text-[10px] text-[#a38c29] font-bold mt-0.5 block">
                         {{ ($totalContractors ?? count($suppliers)) > 0 ? round((($gstinCount ?? 0) / ($totalContractors ?? count($suppliers))) * 100) : 0 }}% GST Registered
                     </span>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200 flex-shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center border border-[#a38c29]/20 flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
@@ -115,14 +115,14 @@
             </div>
 
             {{-- Card 4: RA Billing Total Work --}}
-            <div class="bg-white rounded-2xl p-5 border border-[#c5a059]/40 shadow-sm flex items-center justify-between">
+            <div class="bg-white rounded-2xl p-5 border border-[#a38c29]/40 shadow-sm flex items-center justify-between">
                 <div>
-                    <span class="text-[10px] font-black text-[#c5a059] uppercase tracking-widest block">Total Work Billed</span>
+                    <span class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest block">Total Work Billed</span>
                     <h3 class="text-2xl font-mono font-black text-slate-900 tracking-tight mt-1">
                         ₹{{ number_format($totalBillsAmount ?? 0, 2) }}
                     </h3>
                 </div>
-                <div class="w-12 h-12 rounded-2xl bg-[#c5a059]/10 text-[#c5a059] flex items-center justify-center border border-[#c5a059]/20 flex-shrink-0">
+                <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center border border-[#a38c29]/20 flex-shrink-0">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
@@ -136,18 +136,18 @@
                 {{-- Pro Search Input --}}
                 <div class="relative sm:col-span-1 group">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-[#c5a059] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
                     <input type="text" name="search" value="{{ request('search') }}" placeholder="Search contractor name, GST, phone..."
-                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#c5a059]/60 focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
                 </div>
 
                 {{-- Tax Status Filter --}}
                 <div class="relative">
                     <select name="gst_status" onchange="this.form.submit()"
-                            class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#c5a059]/60 focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                            class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                         <option value="">All Tax Statuses</option>
                         <option value="with_gst" {{ request('gst_status') === 'with_gst' ? 'selected' : '' }}>GST Registered Only</option>
                         <option value="without_gst" {{ request('gst_status') === 'without_gst' ? 'selected' : '' }}>Unregistered / Non-GST</option>
@@ -157,7 +157,7 @@
                 {{-- Sort Filter --}}
                 <div class="relative">
                     <select name="sort_by" onchange="this.form.submit()"
-                            class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#c5a059]/60 focus:border-[#c5a059] focus:ring-2 focus:ring-[#c5a059]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
+                            class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                         <option value="name_asc" {{ request('sort_by') === 'name_asc' ? 'selected' : '' }}>Name (A-Z)</option>
                         <option value="name_desc" {{ request('sort_by') === 'name_desc' ? 'selected' : '' }}>Name (Z-A)</option>
                         <option value="newest" {{ request('sort_by') === 'newest' ? 'selected' : '' }}>Newest Registered</option>
@@ -168,13 +168,13 @@
             <div class="flex items-center gap-2 flex-shrink-0">
                 @if(request()->hasAny(['search', 'gst_status', 'sort_by']))
                     <a href="{{ route('contractors.index') }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#c5a059] to-[#b38e42] hover:from-[#b38e42] hover:to-[#927230] px-4 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#c5a059]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95">
+                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a741f] hover:from-[#8a741f] hover:to-[#736017] px-4 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95">
                         <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                         <span>Reset</span>
                     </a>
                 @endif
                 <button type="button" @click="openAddModalFunc()"
-                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#c5a059] hover:bg-[#b38e42] px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#c5a059]/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                     <span>Add Contractor</span>
                 </button>
@@ -186,14 +186,14 @@
 
             <!-- Master Table -->
             <style>
-                #contractors-master-table thead th { border-color: #b38e42 !important; }
-                #contractors-master-tbody tr:nth-child(even) { background-color: #F6F3E9 !important; }
-                #contractors-master-tbody tr:hover { background-color: #ebe5d0 !important; }
+                #contractors-master-table thead th { border-color: #8a741f !important; }
+                #contractors-master-tbody tr:nth-child(even) { background-color: #faf7eb !important; }
+                #contractors-master-tbody tr:hover { background-color: #f5eed6 !important; }
             </style>
             <div class="overflow-x-auto custom-scrollbar">
                 <table id="contractors-master-table" class="w-full text-xs text-left border-collapse min-w-[1100px]">
                     <thead>
-                        <tr class="bg-[#c5a059] text-white border-b border-[#b38e42] text-[10px] font-black uppercase tracking-wider text-left">
+                        <tr class="bg-[#a38c29] text-white border-b border-[#8a741f] text-[10px] font-black uppercase tracking-wider text-left">
                             <th class="px-5 py-3.5 whitespace-nowrap">SL NO</th>
                             <th class="px-5 py-3.5 whitespace-nowrap">LEDGER CODE</th>
                             <th class="px-5 py-3.5 whitespace-nowrap">CONTRACTOR / FIRM NAME</th>
@@ -209,13 +209,13 @@
                             <tr class="transition-colors">
                                 <td class="px-5 py-4 font-mono font-bold text-slate-400 whitespace-nowrap">{{ $index + 1 }}</td>
                                 <td class="px-5 py-4 whitespace-nowrap">
-                                    <span class="font-mono text-[10px] text-[#c5a059] font-black bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-md uppercase whitespace-nowrap inline-block">
+                                    <span class="font-mono text-[10px] text-[#a38c29] font-black bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-md uppercase whitespace-nowrap inline-block">
                                         {{ $sup->linkedAccount?->code ?? 'SUP-ACC-xxxx' }}
                                     </span>
                                 </td>
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#c5a059] to-[#b38e42] text-white flex items-center justify-center text-xs font-black shadow-xs flex-shrink-0">
+                                        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-[#a38c29] to-[#8a741f] text-white flex items-center justify-center text-xs font-black shadow-xs flex-shrink-0">
                                             {{ strtoupper(substr($sup->name, 0, 2)) }}
                                         </div>
                                         <div>
@@ -275,7 +275,7 @@
                                 <td class="px-5 py-4 text-right">
                                     <div class="inline-flex items-center justify-end gap-1.5">
                                         <!-- View Details Modal Button -->
-                                        <button type="button" @click="openViewModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-[#c5a059]/10 hover:bg-[#c5a059]/20 text-[#c5a059] hover:text-[#b38e42] transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="View Contractor Details">
+                                        <button type="button" @click="openViewModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="View Contractor Details">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
 
@@ -310,10 +310,10 @@
             <div @click.away="openAddModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col">
                 {{-- Dark Header --}}
                 <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#c5a059]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <p class="text-[#c5a059] text-[10px] font-semibold uppercase tracking-widest mb-1">CONTRACTOR MASTER</p>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">CONTRACTOR MASTER</p>
                             <h2 class="text-lg font-extrabold text-white">Add New Contractor</h2>
                         </div>
                         <button type="button" @click="openAddModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
@@ -329,7 +329,7 @@
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contractor / Firm Name <span class="text-rose-500 font-bold">*</span></label>
                             <input type="text" name="name" x-model="name" required placeholder="e.g. BuildRight Constructions Pvt Ltd"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#c5a059]/40 focus:border-[#c5a059] outline-none transition">
+                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <template x-if="errors.name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.name"></p></template>
                         </div>
 
@@ -337,12 +337,12 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Phone Number</label>
                                 <input type="text" name="phone" x-model="phone" placeholder="e.g. 9876543210"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#c5a059]/40 focus:border-[#c5a059] outline-none transition">
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Email Address</label>
                                 <input type="email" name="email" x-model="email" placeholder="e.g. contact@builder.com"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#c5a059]/40 focus:border-[#c5a059] outline-none transition">
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             </div>
                         </div>
 
@@ -350,20 +350,20 @@
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">GSTIN Number</label>
                                 <input type="text" name="gstin" x-model="gstin" placeholder="33AABCB1234C1Z5" minlength="15" maxlength="15"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#c5a059]/40 focus:border-[#c5a059] outline-none transition uppercase">
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition uppercase">
                                 <template x-if="errors.gstin"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="errors.gstin"></p></template>
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">PAN Number</label>
                                 <input type="text" name="pan" x-model="pan" placeholder="AABCB1234C" maxlength="10"
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#c5a059]/40 focus:border-[#c5a059] outline-none transition uppercase">
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition uppercase">
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Office Address</label>
                             <textarea name="address" x-model="address" rows="2" placeholder="Street, City, Postal Code..."
-                                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#c5a059]/40 focus:border-[#c5a059] outline-none transition resize-none"></textarea>
+                                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition resize-none"></textarea>
                         </div>
 
 
@@ -371,7 +371,7 @@
 
                     <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
                         <button type="button" @click="openAddModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#c5a059] hover:bg-[#b38e42] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">SAVE CONTRACTOR</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a741f] text-white text-xs font-bold rounded-xl uppercase transition shadow-sm cursor-pointer">SAVE CONTRACTOR</button>
                     </div>
                 </form>
             </div>
@@ -470,7 +470,7 @@
                 <div class="p-6 space-y-3.5 text-xs bg-white">
                     <div class="flex justify-between border-b border-slate-100 pb-2.5">
                         <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">LEDGER CODE</span>
-                        <span class="font-mono font-bold text-[#c5a059]" x-text="viewContractor.linked_account ? viewContractor.linked_account.code : 'SUP-ACC-xxxx'"></span>
+                        <span class="font-mono font-bold text-[#a38c29]" x-text="viewContractor.linked_account ? viewContractor.linked_account.code : 'SUP-ACC-xxxx'"></span>
                     </div>
                     <div class="flex justify-between border-b border-slate-100 pb-2.5">
                         <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">CONTRACTOR NAME</span>
@@ -504,7 +504,7 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             <span>Open Ledger</span>
                         </a>
-                        <button type="button" @click="openViewModal = false" class="px-5 py-2.5 bg-[#c5a059] hover:bg-[#b38e42] text-white text-xs font-bold uppercase rounded-xl transition shadow-sm cursor-pointer">CLOSE</button>
+                        <button type="button" @click="openViewModal = false" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a741f] text-white text-xs font-bold uppercase rounded-xl transition shadow-sm cursor-pointer">CLOSE</button>
                     </div>
                 </div>
             </div>
