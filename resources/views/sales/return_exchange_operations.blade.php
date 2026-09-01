@@ -1838,11 +1838,11 @@
                                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Built Up Area (Sq Ft)</label>
                                         <input type="text" :value="exchangeForm.built_up_area ? exchangeForm.built_up_area + ' Sq Ft' : '— Sq Ft'" disabled class="w-full px-3 py-2.5 bg-[#eae9e6] border border-slate-300 rounded-xl text-xs text-slate-500 font-bold font-mono">
                                     </div>
-                                    <div class="space-y-1">
+                                    <div x-show="!isTargetUnitParking()" class="space-y-1">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Expected Rate/SqFt *</label>
                                         <input type="text" inputmode="decimal" name="expected_rate_per_sqft" x-model="exchangeForm.expected_rate_per_sqft" @input="calculateExchangeAmounts('rate')" placeholder="Expected rate" class="w-full px-3 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 font-bold font-mono shadow-sm">
                                     </div>
-                                    <div class="space-y-1 relative">
+                                    <div x-show="!isTargetUnitParking()" class="space-y-1 relative">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Sale Rate/SqFt *</label>
                                         <input type="text" inputmode="decimal" name="sale_rate_per_sqft" x-model="exchangeForm.sale_rate_per_sqft" @input="calculateExchangeAmounts('rate')" placeholder="Sale rate"
                                                :class="errors.sale_rate ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 bg-white'"
@@ -1854,6 +1854,14 @@
                                              :class="getExchangeDifference() > 0 ? 'text-emerald-600' : (getExchangeDifference() < 0 ? 'text-rose-600' : 'text-slate-500')">
                                             <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Diff:</span>
                                             <span x-text="(getExchangeDifference() >= 0 ? '₹' : '-₹') + Math.abs(getExchangeDifference()).toLocaleString()"></span>
+                                        </div>
+                                    </div>
+                                    <div x-show="isTargetUnitParking()" class="space-y-1 sm:col-span-2">
+                                        <label class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Expected Sale Amount (Parking) *</label>
+                                        <div class="relative">
+                                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold font-mono">₹</span>
+                                            <input type="number" step="0.01" x-model.number="exchangeForm.expected_sale_amount" @input="exchangeForm.agreed_sale_amount = exchangeForm.expected_sale_amount; calculateExchangeAmounts('agreed_amount')" placeholder="Enter parking expected sale amount"
+                                                   class="w-full pl-6 pr-3 py-2.5 bg-amber-50/30 border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 font-bold font-mono shadow-sm">
                                         </div>
                                     </div>
                                 </div>

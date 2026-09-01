@@ -2632,19 +2632,39 @@ function salesApp() {
             })
             .catch(err => console.error(err));
         },
+        isTargetUnitParking() {
+            if (!this.exchangeSelectedUnit) return false;
+            const u = this.exchangeSelectedUnit;
+            const cat = (u.unit_type_category || u.unit_type?.category || u.category || '').toLowerCase();
+            const name = (u.unit_type_name || u.unit_type?.name || u.name || '').toLowerCase();
+            const door = (u.door_no || u.unit_no || '').toLowerCase();
+            return cat === 'parking' || name.includes('parking') || door.includes('slot') || door.includes('parking');
+        },
         onExchangeUnitSelect() {
             const unit = this.exchangeAvailableUnits.find(u => u.id == this.exchangeForm.new_unit_id);
             this.exchangeSelectedUnit = unit;
             if (unit) {
-                this.exchangeForm.built_up_area = unit.built_up_area || unit.area || 0;
-                let expRate = unit.expected_rate || unit.rate_per_sqft || unit.expected_rate_per_sqft || 0;
-                if (expRate === 0 && unit.expected_sale_amount && this.exchangeForm.built_up_area > 0) {
-                    expRate = Math.round((unit.expected_sale_amount / this.exchangeForm.built_up_area) * 100) / 100;
+                const isParking = this.isTargetUnitParking();
+                if (isParking) {
+                    let parkingAmt = unit.expected_sale_amount || unit.price || unit.expected_rate || unit.total_amount || unit.amount || 0;
+                    this.exchangeForm.built_up_area = 0;
+                    this.exchangeForm.expected_sale_amount = parkingAmt;
+                    this.exchangeForm.expected_rate = 0;
+                    this.exchangeForm.expected_rate_per_sqft = 0;
+                    this.exchangeForm.sale_rate = 0;
+                    this.exchangeForm.sale_rate_per_sqft = 0;
+                    this.exchangeForm.agreed_sale_amount = parkingAmt;
+                } else {
+                    this.exchangeForm.built_up_area = unit.built_up_area || unit.area || 0;
+                    let expRate = unit.expected_rate || unit.rate_per_sqft || unit.expected_rate_per_sqft || 0;
+                    if (expRate === 0 && unit.expected_sale_amount && this.exchangeForm.built_up_area > 0) {
+                        expRate = Math.round((unit.expected_sale_amount / this.exchangeForm.built_up_area) * 100) / 100;
+                    }
+                    this.exchangeForm.expected_rate = expRate;
+                    this.exchangeForm.expected_rate_per_sqft = expRate;
+                    this.exchangeForm.sale_rate = expRate;
+                    this.exchangeForm.sale_rate_per_sqft = expRate;
                 }
-                this.exchangeForm.expected_rate = expRate;
-                this.exchangeForm.expected_rate_per_sqft = expRate;
-                this.exchangeForm.sale_rate = expRate;
-                this.exchangeForm.sale_rate_per_sqft = expRate;
                 
                 let gstType = unit.gst_behavior || (this.selectedExchangeSale?.gst_type || 'none');
                 if (gstType === 'exclusive') {
@@ -2653,9 +2673,10 @@ function salesApp() {
                     this.exchangeForm.gst_percentage = 0;
                 }
 
-                this.calculateExchangeAmounts();
+                this.calculateExchangeAmounts(isParking ? 'agreed_amount' : 'rate');
             } else {
                 this.exchangeForm.built_up_area = '';
+                this.exchangeForm.expected_sale_amount = 0;
                 this.exchangeForm.expected_rate = 0;
                 this.exchangeForm.expected_rate_per_sqft = 0;
                 this.exchangeForm.sale_rate = 0;
