@@ -57,9 +57,9 @@
                 </select>
             </form>
 
-            <button @click="openAddModal({{ $selectedProjectId ?? ($projects->first()?->id ?? 'null') }})" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Add Unit Type
+            <button @click="openAddModal({{ $selectedProjectId ?? ($projects->first()?->id ?? 'null') }})" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>Add Unit Type</span>
             </button>
         </div>
     </div>
@@ -185,17 +185,6 @@
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Quick Presets</label>
-                        <div class="flex flex-wrap gap-1.5">
-                            <button type="button" @click="setPreset('Apartment', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200 cursor-pointer">Apartment</button>
-                            <button type="button" @click="setPreset('Villa', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200 cursor-pointer">Villa</button>
-                            <button type="button" @click="setPreset('Penthouse', 'residential')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200 cursor-pointer">Penthouse</button>
-                            <button type="button" @click="setPreset('Shop / Commercial', 'commercial')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200 cursor-pointer">Shop / Commercial</button>
-                            <button type="button" @click="setPreset('Office Space', 'commercial')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200 cursor-pointer">Office Space</button>
-                            <button type="button" @click="setPreset('Parking Slot', 'parking')" class="px-2.5 py-1 bg-slate-100 hover:bg-[#a38c29] hover:text-white rounded-lg text-[10px] font-bold transition border border-slate-200 cursor-pointer">Parking Slot</button>
-                        </div>
-                    </div>
 
                     <div>
                         <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Unit Type Name <span class="text-rose-500">*</span></label>

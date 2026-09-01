@@ -32,6 +32,15 @@ class EngineerController extends Controller
             $query->where('project_id', $request->input('project_id'));
         }
 
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
         $engineers = $query->paginate(20)->withQueryString();
         $projects  = Project::orderBy('name')->get();
 

@@ -19,28 +19,17 @@ class CompanyBankAccountController extends Controller
         
         $totalAccounts  = $accounts->count();
         $activeAccounts = $accounts->where('status', 'active')->count();
-        $totalBalance   = $accounts->sum('current_balance');
+        $totalBalance   = (float) $accounts->sum('current_balance');
+        $totalOpeningBalance = (float) $accounts->sum('opening_balance');
         $defaultAccount = $accounts->firstWhere('is_default', true);
-
-        $pendingEmisCount = 0;
-        $pendingEmisAmount = 0.0;
-
-        if (class_exists(\App\Models\EmiSchedule::class)) {
-            $pendingEmis = \App\Models\EmiSchedule::where('status', 'Due')
-                ->where('due_date', '<=', now()->endOfMonth())
-                ->get();
-            $pendingEmisCount  = $pendingEmis->count();
-            $pendingEmisAmount = (float) $pendingEmis->sum('emi_amount');
-        }
 
         return view('company-bank-accounts.index', compact(
             'accounts',
             'totalAccounts',
             'activeAccounts',
             'totalBalance',
-            'defaultAccount',
-            'pendingEmisCount',
-            'pendingEmisAmount'
+            'totalOpeningBalance',
+            'defaultAccount'
         ));
     }
 
