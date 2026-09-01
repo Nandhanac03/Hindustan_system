@@ -2452,10 +2452,31 @@ function salesApp() {
             this.returnForm.refund_remarks = 'Refund will be processed within 7 working days.';
             this.returnForm.revert_unsold = true;
         },
+        isSaleExchangeEligible(sale) {
+            if (!sale) return false;
+            const saleUnits = sale.sale_units || [];
+            if (saleUnits.length <= 1) return true;
+            
+            let mainUnitCount = 0;
+            saleUnits.forEach(su => {
+                const cat = (su.unit?.unit_type?.category || '').toLowerCase();
+                const name = (su.unit?.unit_type?.name || '').toLowerCase();
+                const isParking = cat === 'parking' || name.includes('parking') || name.includes('car park') || cat === 'ancillary';
+                if (!isParking) {
+                    mainUnitCount++;
+                }
+            });
+
+            return mainUnitCount <= 1;
+        },
         selectNewExchangeSale() {
             let sale = this.sales.find(s => s.id == this.newExchangeSaleId);
             if (!sale) {
                 this.showToast('Please select a sale first.', 'error');
+                return;
+            }
+            if (!this.isSaleExchangeEligible(sale)) {
+                this.showToast('Exchange is not allowed for sales with multiple main units (e.g. Apartment + Shop).', 'error');
                 return;
             }
             this.selectExchangeSale(sale);
@@ -2506,6 +2527,12 @@ function salesApp() {
             this.exchangeForm.new_unit_type = '';
             this.exchangeForm.new_unit_id = '';
             this.exchangeForm.new_unit_value = 0;
+            this.exchangeForm.built_up_area = '';
+            this.exchangeForm.expected_rate = 0;
+            this.exchangeForm.sale_rate = 0;
+            this.exchangeForm.agreed_sale_amount = 0;
+            this.exchangeForm.gst_percentage = '';
+            this.exchangeForm.gst_amount = 0;
             this.exchangeForm.equity_applied = this.getPaidTillDate(sale);
             this.exchangeForm.carry_forward = true;
             this.exchangeForm.reason = '';
@@ -2586,6 +2613,14 @@ function salesApp() {
             this.exchangeForm.new_unit_type = '';
             this.exchangeForm.new_unit_id = '';
             this.exchangeForm.new_unit_value = 0;
+            this.exchangeForm.built_up_area = '';
+            this.exchangeForm.expected_rate = 0;
+            this.exchangeForm.expected_rate_per_sqft = 0;
+            this.exchangeForm.sale_rate = 0;
+            this.exchangeForm.sale_rate_per_sqft = 0;
+            this.exchangeForm.agreed_sale_amount = 0;
+            this.exchangeForm.gst_percentage = '';
+            this.exchangeForm.gst_amount = 0;
             if (!projId) return;
             fetch(`{{ url('sales/available-units') }}/${projId}`, {
                 headers: { 'Accept': 'application/json' }
@@ -2601,21 +2636,83 @@ function salesApp() {
             const unit = this.exchangeAvailableUnits.find(u => u.id == this.exchangeForm.new_unit_id);
             this.exchangeSelectedUnit = unit;
             if (unit) {
-                // Determine if target unit is a parking unit
-                const targetCat = (unit.unit_type_category || '').toLowerCase();
-                const targetName = (unit.unit_type_name || '').toLowerCase();
-                const targetIsParking = targetCat === 'parking' || targetName === 'parking';
-
-                let base = parseFloat(unit.expected_sale_amount) || 0;
-                let gstType = unit.gst_behavior || (this.selectedExchangeSale.gst_type || 'none');
-                let total = base;
+                this.exchangeForm.built_up_area = unit.built_up_area || unit.area || 0;
+                let expRate = unit.expected_rate || unit.rate_per_sqft || unit.expected_rate_per_sqft || 0;
+                if (expRate === 0 && unit.expected_sale_amount && this.exchangeForm.built_up_area > 0) {
+                    expRate = Math.round((unit.expected_sale_amount / this.exchangeForm.built_up_area) * 100) / 100;
+                }
+                this.exchangeForm.expected_rate = expRate;
+                this.exchangeForm.expected_rate_per_sqft = expRate;
+                this.exchangeForm.sale_rate = expRate;
+                this.exchangeForm.sale_rate_per_sqft = expRate;
+                
+                let gstType = unit.gst_behavior || (this.selectedExchangeSale?.gst_type || 'none');
                 if (gstType === 'exclusive') {
-                    total = Math.round(base * 1.18 * 100) / 100;
+                    this.exchangeForm.gst_percentage = 18;
+                } else {
+                    this.exchangeForm.gst_percentage = 0;
                 }
 
-                // Carry forward the price of the OTHER unit type if it exists in the old sale:
-                // - If target is parking, we carry forward the apartment (non-parking) unit's price
-                // - If target is non-parking, we carry forward the parking unit's price
+                this.calculateExchangeAmounts();
+            } else {
+                this.exchangeForm.built_up_area = '';
+                this.exchangeForm.expected_rate = 0;
+                this.exchangeForm.expected_rate_per_sqft = 0;
+                this.exchangeForm.sale_rate = 0;
+                this.exchangeForm.sale_rate_per_sqft = 0;
+                this.exchangeForm.agreed_sale_amount = 0;
+                this.exchangeForm.gst_percentage = '';
+                this.exchangeForm.gst_amount = 0;
+                this.exchangeForm.new_unit_value = 0;
+                
+                if (this.exchangeForm.initial_payment_percentage !== '' && this.exchangeForm.initial_payment_percentage !== undefined) {
+                    this.updateExchangeInitialPaymentFromPercentage();
+                } else {
+                    this.updateExchangeInitialPaymentFromAmount();
+                }
+            }
+        },
+        calculateExchangeAmounts(source = 'rate') {
+            const form = this.exchangeForm;
+            let area = parseFloat(form.built_up_area) || 0;
+
+            if (source === 'rate') {
+                let saleRate = parseFloat(form.sale_rate_per_sqft || form.sale_rate) || 0;
+                form.sale_rate = saleRate;
+                form.sale_rate_per_sqft = saleRate;
+                let agreedAmount = Math.round(area * saleRate * 100) / 100;
+                form.agreed_sale_amount = agreedAmount;
+            } else if (source === 'agreed_amount') {
+                let agreedAmount = parseFloat(form.agreed_sale_amount) || 0;
+                if (area > 0) {
+                    let calculatedRate = Math.round((agreedAmount / area) * 100) / 100;
+                    form.sale_rate = calculatedRate;
+                    form.sale_rate_per_sqft = calculatedRate;
+                }
+            }
+
+            let agreedAmount = parseFloat(form.agreed_sale_amount) || 0;
+
+            if (source === 'gst_amount') {
+                let gstAmt = parseFloat(form.gst_amount) || 0;
+                if (agreedAmount > 0) {
+                    form.gst_percentage = Math.round((gstAmt / agreedAmount) * 100 * 100) / 100;
+                }
+            } else {
+                let gstPct = parseFloat(form.gst_percentage) || 0;
+                let gstAmt = Math.round(agreedAmount * (gstPct / 100) * 100) / 100;
+                form.gst_amount = gstAmt;
+            }
+
+            let gstAmt = parseFloat(form.gst_amount) || 0;
+            let total = agreedAmount + gstAmt;
+
+            // Carry forward the price of the OTHER unit type if it exists in the old sale
+            if (this.exchangeSelectedUnit) {
+                const targetCat = (this.exchangeSelectedUnit.unit_type_category || '').toLowerCase();
+                const targetName = (this.exchangeSelectedUnit.unit_type_name || '').toLowerCase();
+                const targetIsParking = targetCat === 'parking' || targetName === 'parking';
+                
                 const saleUnits = this.selectedExchangeSale?.sale_units || [];
                 let carryUnit = null;
                 if (saleUnits.length > 1) {
@@ -2630,15 +2727,56 @@ function salesApp() {
                 if (carryUnit) {
                     total += parseFloat(carryUnit.line_total || carryUnit.base_amount || 0);
                 }
-                this.exchangeForm.new_unit_value = total;
-            } else {
-                this.exchangeForm.new_unit_value = 0;
             }
-            if (this.exchangeForm.initial_payment_percentage !== '' && this.exchangeForm.initial_payment_percentage !== undefined) {
+
+            form.new_unit_value = total;
+
+            if (form.initial_payment_percentage !== '' && form.initial_payment_percentage !== undefined) {
                 this.updateExchangeInitialPaymentFromPercentage();
             } else {
                 this.updateExchangeInitialPaymentFromAmount();
             }
+        },
+        getExchangeDifference() {
+            const form = this.exchangeForm;
+            const area = parseFloat(form.built_up_area) || 0;
+            const expectedRate = parseFloat(form.expected_rate_per_sqft || form.expected_rate) || 0;
+            const expectedAmt = Math.round(expectedRate * area * 100) / 100;
+            const agreedAmt = parseFloat(form.agreed_sale_amount) || 0;
+            return Math.round((agreedAmt - expectedAmt) * 100) / 100;
+        },
+        getExchangeEmiPreview() {
+            const preview = [];
+            const form = this.exchangeForm;
+            const total = parseFloat(form.new_unit_value) || 0;
+            const paid = parseFloat(form.initial_payment_amount) || 0;
+            const remaining = Math.max(0, Math.round((total - paid) * 100) / 100);
+
+            if (remaining <= 0 || form.payment_plan !== 'emi') {
+                return preview;
+            }
+            const count = parseInt(form.emi_installment_count) || 0;
+            if (count <= 0) return preview;
+            const emiAmt = Math.round((remaining / count) * 100) / 100;
+            const freq = form.emi_frequency || 'monthly';
+            const firstDate = form.first_installment_date ? new Date(form.first_installment_date) : new Date();
+            for (let i = 1; i <= count; i++) {
+                const d = new Date(firstDate);
+                if (i > 1) {
+                    if (freq === 'quarterly') {
+                        d.setMonth(d.getMonth() + (i - 1) * 3);
+                    } else {
+                        d.setMonth(d.getMonth() + (i - 1));
+                    }
+                }
+                const amt = (i === count) ? (Math.round((remaining - (emiAmt * (count - 1))) * 100) / 100) : emiAmt;
+                preview.push({
+                    label: `EMI ${i}`,
+                    due_date: d.toISOString().split('T')[0],
+                    amount: amt
+                });
+            }
+            return preview;
         },
         updateExchangeInitialPaymentFromPercentage() {
             const form = this.exchangeForm;
@@ -2671,8 +2809,22 @@ function salesApp() {
                 this.errors.new_unit_id = ['Please select a target available unit.'];
                 hasError = true;
             }
+            const saleRateVal = parseFloat(this.exchangeForm.sale_rate_per_sqft || this.exchangeForm.sale_rate) || 0;
+            if (saleRateVal <= 0) {
+                this.errors.sale_rate = ['Please enter a valid Sale Rate per SqFt.'];
+                hasError = true;
+            }
+            const agreedAmountVal = parseFloat(this.exchangeForm.agreed_sale_amount) || 0;
+            if (agreedAmountVal <= 0) {
+                this.errors.agreed_sale_amount = ['Agreed Sale Amount must be greater than 0.'];
+                hasError = true;
+            }
             if (!this.exchangeForm.reason) {
                 this.errors.reason = ['Please enter exchange reason / notes.'];
+                hasError = true;
+            }
+            if (this.exchangeForm.payment_plan === 'emi' && !this.exchangeForm.first_installment_date) {
+                this.errors.first_installment_date = ['First installment date is required for EMI plan.'];
                 hasError = true;
             }
 
@@ -2688,10 +2840,11 @@ function salesApp() {
             if (hasError) {
                 this.showToast('Please fill all required fields highlighted below.', 'error');
                 this.$nextTick(() => {
-                    if (this.$refs.exchangeModalScroll) {
-                        this.$refs.exchangeModalScroll.scrollTo({ top: 0, behavior: 'smooth' });
+                    const scrollContainer = this.$refs.newExchangeModalScroll || this.$refs.exchangeModalScroll;
+                    if (scrollContainer) {
+                        scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
                     }
-                    const firstErrInput = document.querySelector('[x-ref="exchangeModalScroll"] .border-rose-500');
+                    const firstErrInput = document.querySelector('.border-rose-500');
                     if (firstErrInput) {
                         firstErrInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         if (typeof firstErrInput.focus === 'function') firstErrInput.focus();
@@ -2710,6 +2863,10 @@ function salesApp() {
                 body: JSON.stringify({
                     status: 'exchanged',
                     new_unit_id: this.exchangeForm.new_unit_id,
+                    sale_rate: this.exchangeForm.sale_rate,
+                    agreed_sale_amount: this.exchangeForm.agreed_sale_amount,
+                    gst_percentage: this.exchangeForm.gst_percentage,
+                    gst_amount: this.exchangeForm.gst_amount,
                     carry_forward: this.exchangeForm.carry_forward,
                     reason: this.exchangeForm.reason,
                     payment_plan: this.exchangeForm.payment_plan,

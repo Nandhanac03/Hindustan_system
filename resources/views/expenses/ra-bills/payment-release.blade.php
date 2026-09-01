@@ -3,7 +3,7 @@
 @section('title', 'Contractor Payment Release Desk')
 
 @section('content')
-<div x-data="raBillPaymentRelease()" class="p-6 space-y-6 bg-slate-50 min-h-screen">
+<div x-data="raBillPaymentRelease()" class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -43,30 +43,62 @@
         </div>
     @endif
 
-    <!-- Executive Treasury KPI Metrics Bar -->
+    <!-- Executive Treasury KPI Metrics Bar (Upgraded with Icons & Hover Effects) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-blue-500 shadow-xs">
-            <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">VERIFIED PAYABLE CLAIMS</span>
-            <div class="text-xl font-mono font-black text-blue-900 mt-1">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
-            <div class="text-[10px] text-blue-600 font-semibold mt-1">Total Net Approved Liability</div>
+        <!-- Card 1: Verified Payable Claims -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">VERIFIED PAYABLE CLAIMS</span>
+                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
+                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 border-t border-blue-50">Total Net Approved Liability</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-emerald-500 shadow-xs">
-            <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">TOTAL DISBURSED (PAID)</span>
-            <div class="text-xl font-mono font-black text-emerald-800 mt-1">₹{{ number_format((float) $totalPaid, 2) }}</div>
-            <div class="text-[10px] text-emerald-600 font-semibold mt-1">Corporate Bank Account Outflows</div>
+        <!-- Card 2: Total Disbursed (Paid) -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">TOTAL DISBURSED (PAID)</span>
+                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors">₹{{ number_format((float) $totalPaid, 2) }}</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 border-t border-emerald-50">Corporate Bank Account Outflows</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-rose-500 shadow-xs">
-            <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">PENDING DISBURSEMENT BALANCES</span>
-            <div class="text-xl font-mono font-black text-rose-800 mt-1">₹{{ number_format((float) $totalBalance, 2) }}</div>
-            <div class="text-[10px] text-rose-600 font-semibold mt-1">Outstanding Balance Remaining</div>
+        <!-- Card 3: Pending Disbursement Balances -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">PENDING DISBURSEMENT BALANCES</span>
+                <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors">₹{{ number_format((float) $totalBalance, 2) }}</div>
+                <div class="text-[10px] text-rose-600 font-bold mt-1.5 pt-1.5 border-t border-rose-50">Outstanding Balance Remaining</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-slate-800 shadow-xs">
-            <span class="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">READY FOR PAYMENT</span>
-            <div class="text-xl font-mono font-black text-slate-900 mt-1">{{ $raBills->whereNotNull('verified_date')->where('balance_amount', '>', 0)->count() }} Bills</div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-1">Verified & Unpaid RA Bills</div>
+        <!-- Card 4: Ready For Payment -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-slate-800 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">READY FOR PAYMENT</span>
+                <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-slate-800 transition-colors">{{ $raBills->whereNotNull('verified_date')->where('balance_amount', '>', 0)->count() }} Bills</div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Verified & Unpaid RA Bills</div>
+            </div>
         </div>
     </div>
 

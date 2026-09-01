@@ -17,14 +17,14 @@
                         <span>›</span>
                         <span class="text-[#a38c29] font-bold">PROJECT MARGIN ANALYSIS</span>
                     </nav>
-                    <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
-                        <div class="p-2 bg-[#a38c29]/10 rounded-xl text-[#a38c29]">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h1 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                        <div class="p-1.5 bg-[#a38c29]/10 rounded-lg text-[#a38c29]">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                             </svg>
                         </div>
                         <span>Project Margin & Financial Intelligence</span>
-                        <span class="text-xs bg-[#a38c29]/15 text-[#a38c29] px-3 py-1 rounded-full font-extrabold uppercase tracking-wide">Real-Time Accrual Basis</span>
+                        <span class="text-[10px] bg-[#a38c29]/15 text-[#a38c29] px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wide">Real-Time Accrual Basis</span>
                     </h1>
                 </div>
 
@@ -33,7 +33,7 @@
                     <form method="GET" action="{{ route('reports.project_margin_analysis') }}" class="flex items-center">
                         <div class="relative">
                             @php $projectsList = $allProjects ?? $projects ?? []; @endphp
-                            <select name="project_id" onchange="this.form.submit()" class="h-11 min-w-[240px] max-w-[280px] pl-4 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:border-[#a38c29] focus:ring-[#a38c29] focus:outline-none cursor-pointer appearance-none truncate shadow-2xs">
+                            <select name="project_id" onchange="this.form.submit()" class="h-10 min-w-[240px] max-w-[280px] pl-3.5 pr-8 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:border-[#a38c29] focus:ring-[#a38c29] focus:outline-none cursor-pointer appearance-none truncate shadow-2xs">
                                 <option value="all" {{ $selectedProjectId === 'all' || !$selectedProjectId ? 'selected' : '' }}>🏢 All Active Projects Aggregate</option>
                                 @foreach($projectsList as $p)
                                     <option value="{{ $p->id }}" {{ (string)$selectedProjectId === (string)$p->id ? 'selected' : '' }}>
@@ -46,206 +46,104 @@
                             </div>
                         </div>
                     </form>
-
-                    <!-- <button type="button" onclick="exportToExcel()" class="h-11 px-5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 shrink-0 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <span>Export Excel</span>
-                    </button>
-
-                    <button type="button" onclick="window.print()" class="h-11 px-5 bg-[#a38c29] hover:bg-[#8d7923] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-2xs hover:shadow flex items-center gap-2 shrink-0 cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                        <span>Print</span>
-                    </button> -->
                 </div>
             </div>
 
-            <!-- ── 2. EXECUTIVE KPIS TOP SUMMARY CARDS (RESTORED 4 CARDS) ── -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-                <!-- Card 1: Project Status Card -->
-                <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-2xl p-5 shadow-xs relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                    <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Project Status & Inventory</span>
-                        <div class="w-7 h-7 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/></svg>
-                        </div>
-                    </div>
-                    <div class="relative z-10 space-y-2">
-                        <h3 class="text-2xl font-black text-slate-900 tracking-tight font-mono whitespace-nowrap group-hover:text-[#a38c29] transition-colors">
-                            {{ number_format($summaryTotals->total_area, 0) }} <span class="text-xs font-sans font-bold text-slate-500">Sq.Ft.</span>
-                        </h3>
-                        <div class="flex items-center justify-between text-[11px] font-bold pt-1">
-                            <span class="text-emerald-700">Sold: {{ number_format($summaryTotals->sold_area, 0) }} Sq.Ft.</span>
-                            <span class="text-amber-700">Unsold: {{ number_format($summaryTotals->unsold_area, 0) }} Sq.Ft.</span>
-                        </div>
-                        @php
-                            $soldPctSummary = $summaryTotals->total_area > 0 ? ($summaryTotals->sold_area / $summaryTotals->total_area) * 100 : 0;
-                        @endphp
-                        <div class="w-full bg-amber-100 rounded-full h-2 overflow-hidden flex">
-                            <div class="bg-emerald-500 h-full transition-all duration-500" style="width: {{ $soldPctSummary }}%"></div>
-                            <div class="bg-amber-400 h-full transition-all duration-500" style="width: {{ 100 - $soldPctSummary }}%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 2: Gross Realizable Revenue Card -->
-                <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-2xl p-5 shadow-xs relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                    <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Gross Realizable Revenue</span>
-                        <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        </div>
-                    </div>
-                    <div class="relative z-10 space-y-1.5">
-                        <h3 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-mono whitespace-nowrap group-hover:text-emerald-600 transition-colors">
-                            ₹{{ number_format($summaryTotals->gross_revenue, 0) }}
-                        </h3>
-                        <p class="text-[10px] font-bold text-slate-400">Avg Selling Price: <strong class="text-slate-800 font-mono">₹{{ number_format($summaryTotals->avg_selling_price, 2) }}/Sq.Ft.</strong></p>
-                        <div class="pt-2 border-t border-slate-100 text-[10px] space-y-1 font-bold">
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Bank Collections:</span>
-                                <span class="font-mono text-emerald-700">₹{{ number_format($marginAnalysis->sum('realized_collections'), 0) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Pending Receivables:</span>
-                                <span class="font-mono text-blue-700">₹{{ number_format($marginAnalysis->sum('pending_receivables'), 0) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 3: Total Incurred Cost Card -->
-                <div class="bg-white border-y border-r border-l-4 border-l-rose-500 border-slate-200 rounded-2xl p-5 shadow-xs relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                    <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Incurred Cost (Accrued)</span>
-                        <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white shrink-0">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"/></svg>
-                        </div>
-                    </div>
-                    <div class="relative z-10 space-y-1.5">
-                        <h3 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight font-mono whitespace-nowrap group-hover:text-rose-600 transition-colors">
-                            ₹{{ number_format($summaryTotals->incurred_cost, 0) }}
-                        </h3>
-                        <p class="text-[10px] font-bold text-slate-400">Incurred Cost / Sq.Ft.: <strong class="text-rose-700 font-mono">₹{{ number_format($summaryTotals->cost_per_sqft, 2) }}/Sq.Ft.</strong></p>
-                        <div class="pt-2 border-t border-slate-100 text-[10px] space-y-1 font-bold">
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Actual Cash Spent:</span>
-                                <span class="font-mono text-slate-900">₹{{ number_format($summaryTotals->cash_paid, 0) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Pending Liability:</span>
-                                <span class="font-mono text-rose-700">₹{{ number_format($summaryTotals->pending_payable, 0) }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 4: Net Profit Margin Card -->
-                <div class="bg-white border-y border-r border-l-4 border-l-[#3b82f6] border-slate-200 rounded-2xl p-5 shadow-xs relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                    <div class="flex items-center justify-between mb-3 relative z-10">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Net Profit & Margin</span>
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border uppercase {{ $summaryTotals->net_margin_pct >= 20 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : ($summaryTotals->net_margin_pct >= 10 ? 'bg-amber-100 text-amber-800 border-amber-300' : 'bg-rose-100 text-rose-800 border-rose-300') }}">
-                                {{ number_format($summaryTotals->net_margin_pct, 1) }}%
-                            </span>
-                            <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="relative z-10 space-y-1.5">
-                        <h3 class="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight font-mono whitespace-nowrap group-hover:text-blue-600 transition-colors">
-                            ₹{{ number_format($summaryTotals->net_profit, 0) }}
-                        </h3>
-                        <p class="text-[10px] font-bold text-slate-400">Profit / Sq.Ft.: <strong class="text-emerald-700 font-mono">₹{{ number_format($summaryTotals->net_profit_per_sqft, 2) }}/Sq.Ft.</strong></p>
-                        <div class="pt-2 border-t border-slate-100 text-[10px] space-y-1 font-bold">
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Gross Profit:</span>
-                                <span class="font-mono text-slate-900">₹{{ number_format($summaryTotals->gross_profit, 0) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-500">Accounting:</span>
-                                <span class="text-[#a38c29]">Accrual Basis (RA)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
 
             <!-- ── 3. COST BREAKDOWN & CASH FLOW MATRIX TABLES (PRIMARY FINANCIAL REPORT) ── -->
             @foreach($marginAnalysis as $projData)
-            <div class="bg-white rounded-2xl shadow-2xs border border-slate-200 overflow-hidden space-y-0 print:border-none print:shadow-none">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/90 overflow-hidden space-y-0 print:border-none print:shadow-none">
                 
-                <!-- Full-Width Project Header Bar -->
-                <div class="p-4 bg-gradient-to-r from-amber-50/90 via-white to-slate-50 text-slate-900 flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-200">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded bg-[#a38c29] text-white text-[10px] font-black uppercase tracking-wider">
+                <!-- Full-Width Project Header Bar (Compact & Sleek Typography) -->
+                <div class="p-4 bg-gradient-to-r from-[#faf7eb] via-[#f5eed6] to-[#faf7eb] text-slate-900 flex flex-col xl:flex-row xl:items-center justify-between gap-3 border-b border-amber-300/80 shadow-2xs">
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <span class="px-2.5 py-0.5 rounded-md bg-[#a38c29] text-white text-[11px] font-black uppercase tracking-wider shadow-2xs">
                             {{ $projData->code }}
                         </span>
-                        <h2 class="text-base font-black tracking-tight text-slate-900">{{ $projData->project_name }}</h2>
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black border uppercase {{ $projData->health_badge_class }}">
+                        <h2 class="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 uppercase">{{ $projData->project_name }}</h2>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border uppercase {{ $projData->health_badge_class }}">
                             {{ $projData->health_status }} ({{ number_format($projData->net_margin_pct, 1) }}%)
                         </span>
                     </div>
 
-                    <div class="text-xs font-semibold text-slate-600 flex items-center gap-3">
-                        <span>📍 <strong>{{ $projData->location }}</strong></span>
-                        <span>•</span>
+                    <div class="text-[11px] font-semibold text-slate-700 flex flex-wrap items-center gap-2.5 bg-white/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-amber-200/80 shadow-2xs">
+                        <span class="flex items-center gap-1"><span class="text-[#a38c29]">📍</span> <strong>{{ $projData->location }}</strong></span>
+                        <span class="text-amber-300">•</span>
                         <span>Total Area: <strong class="text-slate-900 font-mono">{{ number_format($projData->total_area, 0) }} Sq.Ft.</strong></span>
-                        <span>(Sold: {{ number_format($projData->sold_pct, 1) }}% | Unsold: {{ number_format($projData->unsold_pct, 1) }}%)</span>
+                        <span class="text-amber-300">•</span>
+                        <span class="text-emerald-700 font-bold">Sold: {{ number_format($projData->sold_pct, 1) }}%</span>
+                        <span class="text-amber-300">|</span>
+                        <span class="text-amber-700 font-bold">Unsold: {{ number_format($projData->unsold_pct, 1) }}%</span>
                     </div>
                 </div>
 
                 <!-- 100% Aligned 4-Column Metric Cards Row -->
-                <div class="bg-slate-50/70 p-4 border-b border-slate-200 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs font-semibold">
+                <div class="bg-slate-50/70 p-4 border-b border-slate-200/80 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     
                     <!-- Column 1: Realized Collections -->
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between h-full space-y-2">
-                        <div>
-                            <div class="flex items-center justify-between text-slate-500 mb-1">
-                                <span class="text-[10px] font-black uppercase tracking-wider">Realized Collections</span>
-                            
+                    <div class="bg-gradient-to-br from-emerald-50/70 via-white to-emerald-50/20 p-4 rounded-xl border border-l-[5px] border-l-emerald-500 border-emerald-200/80 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-1 hover:shadow-md">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-emerald-800">Realized Collections</span>
+                                <div class="w-7 h-7 rounded-lg bg-emerald-100/80 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
                             </div>
-                            <span class="text-base sm:text-lg font-mono font-black text-emerald-800 block whitespace-nowrap">₹{{ number_format($projData->realized_collections, 2) }}</span>
+                            <h4 class="text-lg sm:text-xl font-mono font-extrabold text-emerald-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->realized_collections, 2) }}</h4>
                         </div>
-                        <span class="text-[10px] text-slate-400 font-medium block pt-1 border-t border-slate-100">Actual cash in bank from buyers</span>
+                        <div class="text-[10.5px] text-emerald-700/80 font-bold pt-2 border-t border-emerald-100 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                            <span class="truncate">Actual cash in bank from buyers</span>
+                        </div>
                     </div>
 
                     <!-- Column 2: Pending Receivables -->
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between h-full space-y-2">
-                        <div>
-                            <div class="flex items-center justify-between text-slate-500 mb-1">
-                                <span class="text-[10px] font-black uppercase tracking-wider">Pending Receivables</span>
-                               
+                    <div class="bg-gradient-to-br from-blue-50/70 via-white to-blue-50/20 p-4 rounded-xl border border-l-[5px] border-l-blue-500 border-blue-200/80 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-1 hover:shadow-md">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-blue-800">Pending Receivables</span>
+                                <div class="w-7 h-7 rounded-lg bg-blue-100/80 text-blue-700 flex items-center justify-center shrink-0 border border-blue-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
                             </div>
-                            <span class="text-base sm:text-lg font-mono font-black text-blue-800 block whitespace-nowrap">₹{{ number_format($projData->pending_receivables, 2) }}</span>
+                            <h4 class="text-lg sm:text-xl font-mono font-extrabold text-blue-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->pending_receivables, 2) }}</h4>
                         </div>
-                        <span class="text-[10px] text-slate-400 font-medium block pt-1 border-t border-slate-100">Balance due from booked units</span>
+                        <div class="text-[10.5px] text-blue-700/80 font-bold pt-2 border-t border-blue-100 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                            <span class="truncate">Balance due from booked units</span>
+                        </div>
                     </div>
 
                     <!-- Column 3: Projected Unsold Inventory -->
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between h-full space-y-2">
-                        <div>
-                            <div class="flex items-center justify-between text-slate-500 mb-1">
-                                <span class="text-[10px] font-black uppercase tracking-wider">Projected Unsold Inventory</span>
-                             
+                    <div class="bg-gradient-to-br from-amber-50/70 via-white to-amber-50/20 p-4 rounded-xl border border-l-[5px] border-l-amber-500 border-amber-200/80 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-1 hover:shadow-md">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-amber-800">Projected Unsold Inventory</span>
+                                <div class="w-7 h-7 rounded-lg bg-amber-100/80 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21H3m16 0h-3.5M9 7h1m5 0h1M9 11h1m5 0h1M9 15h1m5 0h1M9 19h1m5 0h1"/></svg>
+                                </div>
                             </div>
-                            <span class="text-base sm:text-lg font-mono font-black text-amber-800 block whitespace-nowrap">₹{{ number_format($projData->projected_unsold_val, 2) }}</span>
+                            <h4 class="text-lg sm:text-xl font-mono font-extrabold text-amber-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->projected_unsold_val, 2) }}</h4>
                         </div>
-                        <span class="text-[10px] text-slate-400 font-medium block pt-1 border-t border-slate-100">@ ₹{{ number_format($projData->current_market_rate, 0) }}/Sq.Ft. market rate</span>
+                        <div class="text-[10.5px] text-amber-700/80 font-bold pt-2 border-t border-amber-100 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                            <span class="truncate">@ ₹{{ number_format($projData->current_market_rate, 0) }}/Sq.Ft. market rate</span>
+                        </div>
                     </div>
 
                     <!-- Column 4: Total Gross Revenue & Profit Benchmarks -->
-                    <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between h-full space-y-2">
-                        <div>
-                            <div class="flex items-center justify-between text-slate-500 mb-1">
-                                <span class="text-[10px] font-black uppercase tracking-wider">Total Gross Revenue</span>
-                          
+                    <div class="bg-gradient-to-br from-amber-100/60 via-white to-amber-50/30 p-4 rounded-xl border border-l-[5px] border-l-[#a38c29] border-amber-300/80 shadow-2xs flex flex-col justify-between h-full space-y-2.5 transition-all hover:-translate-y-1 hover:shadow-md">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center justify-between text-slate-500">
+                                <span class="text-[10.5px] font-extrabold uppercase tracking-wider text-[#a38c29]">Total Gross Revenue</span>
+                                <div class="w-7 h-7 rounded-lg bg-amber-100 text-[#a38c29] flex items-center justify-center shrink-0 border border-amber-300/60">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                                </div>
                             </div>
-                            <span class="text-base sm:text-lg font-mono font-black text-slate-900 block whitespace-nowrap">₹{{ number_format($projData->total_gross_revenue, 2) }}</span>
+                            <h4 class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 tracking-tight whitespace-nowrap">₹{{ number_format($projData->total_gross_revenue, 2) }}</h4>
                         </div>
-                        <div class="flex items-center justify-between text-[10px] text-[#a38c29] font-bold pt-1 border-t border-slate-100">
+                        <div class="flex items-center justify-between text-[10.5px] text-[#a38c29] font-bold pt-2 border-t border-amber-200/60">
                             <span>Cost: ₹{{ number_format($projData->cost_per_sqft, 0) }}/Sq.Ft.</span>
                             <span>Net: ₹{{ number_format($projData->net_profit / 1000000, 1) }}M</span>
                         </div>
@@ -253,62 +151,74 @@
 
                 </div>
 
-                <!-- Cost Breakdown & Cash Flow Matrix Table (Fixed Width Columns for Exact Alignment) -->
+                <!-- Cost Breakdown & Cash Flow Matrix Table (Rich Brand Gold Header Theme) -->
                 <div class="overflow-x-auto border-b border-slate-200">
-                    <table class="w-full text-left border-collapse data-matrix-table text-xs table-fixed">
-                        <thead class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white text-[10px] font-black uppercase tracking-widest border-b-2 border-[#8a7522]">
-                            <tr>
-                                <th class="w-2/6 px-5 py-3.5 text-left text-white font-extrabold">Expense Category</th>
-                                <th class="w-1/12 px-4 py-3.5 text-center text-white font-extrabold">Account Code</th>
-                                <th class="w-2/12 px-5 py-3.5 text-right text-white font-extrabold">Total Incurred Cost (Accrued)</th>
-                                <th class="w-2/12 px-5 py-3.5 text-right text-white font-extrabold">Cash Paid Out (Actual Spent)</th>
-                                <th class="w-2/12 px-5 py-3.5 text-right text-white font-extrabold">Pending Payable (Liability)</th>
-                                <th class="w-2/12 px-5 py-3.5 text-right text-white font-extrabold">Cost Per Sq.Ft. (Rs./Sq.Ft.)</th>
+                    <table class="w-full text-left border-collapse data-matrix-table text-xs">
+                        <thead>
+                            <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white text-[11px] font-black uppercase tracking-wider border-b-2 border-[#8a741f]">
+                                <th class="w-3/12 px-6 py-4 text-left text-white font-black tracking-wider">EXPENSE CATEGORY</th>
+                                <th class="w-1/12 px-4 py-4 text-center text-white font-black tracking-wider">ACCOUNT CODE</th>
+                                <th class="w-2/12 px-6 py-4 text-right text-white font-black tracking-wider">
+                                    <div>TOTAL INCURRED COST</div>
+                                    <div class="text-[9.5px] text-amber-100/90 font-semibold lowercase tracking-normal">(accrued basis)</div>
+                                </th>
+                                <th class="w-2/12 px-6 py-4 text-right text-white font-black tracking-wider">
+                                    <div>CASH PAID OUT</div>
+                                    <div class="text-[9.5px] text-emerald-100/90 font-semibold lowercase tracking-normal">(actual spent)</div>
+                                </th>
+                                <th class="w-2/12 px-6 py-4 text-right text-white font-black tracking-wider">
+                                    <div>PENDING PAYABLE</div>
+                                    <div class="text-[9.5px] text-rose-100/90 font-semibold lowercase tracking-normal">(liability balance)</div>
+                                </th>
+                                <th class="w-2/12 px-6 py-4 text-right text-white font-black tracking-wider">
+                                    <div>COST / SQ.FT.</div>
+                                    <div class="text-[9.5px] text-amber-100/90 font-semibold lowercase tracking-normal">(rs./sq.ft.)</div>
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-200/80 font-semibold text-slate-800">
+                        <tbody class="divide-y divide-slate-200/70 font-semibold text-slate-800">
                             @foreach($projData->cost_matrix as $row)
-                                <tr class="hover:bg-amber-50/30 transition-colors">
-                                    <td class="px-5 py-3.5 font-extrabold text-slate-900 flex items-center gap-2">
-                                        <span class="w-2 h-2 rounded-full bg-[#a38c29] shrink-0"></span>
-                                        <span class="truncate">{{ $row['category'] }}</span>
+                                <tr class="transition-colors hover:bg-amber-50/40 odd:bg-white even:bg-[#faf8f2]/60">
+                                    <td class="px-6 py-4 font-black text-slate-900 flex items-center gap-3">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-[#a38c29] shrink-0 shadow-2xs"></span>
+                                        <span>{{ $row['category'] }}</span>
                                     </td>
-                                    <td class="px-4 py-3.5 text-center">
-                                        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded font-mono text-[11px] font-bold">
+                                    <td class="px-4 py-4 text-center">
+                                        <span class="px-3 py-1 bg-amber-50 text-[#7a671b] rounded-lg font-mono text-[11px] font-bold border border-amber-200/80 shadow-2xs">
                                             {{ $row['code'] }}
                                         </span>
                                     </td>
-                                    <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                                    <td class="px-6 py-4 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap">
                                         ₹{{ number_format($row['incurred'], 2) }}
                                     </td>
-                                    <td class="px-5 py-3.5 text-right font-mono text-emerald-800 whitespace-nowrap">
+                                    <td class="px-6 py-4 text-right font-mono font-bold text-emerald-700 whitespace-nowrap">
                                         ₹{{ number_format($row['spent'], 2) }}
                                     </td>
-                                    <td class="px-5 py-3.5 text-right font-mono font-bold whitespace-nowrap {{ $row['payable'] > 0 ? 'text-rose-700' : 'text-slate-500' }}">
+                                    <td class="px-6 py-4 text-right font-mono font-bold whitespace-nowrap {{ $row['payable'] > 0 ? 'text-rose-700' : 'text-slate-400' }}">
                                         ₹{{ number_format($row['payable'], 2) }}
                                     </td>
-                                    <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">
+                                    <td class="px-6 py-4 text-right font-mono font-black text-slate-900 whitespace-nowrap">
                                         ₹{{ number_format($row['cost_per_sqft'], 2) }}
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="bg-gradient-to-r from-amber-50/90 via-white to-amber-50/90 text-slate-900 font-black text-xs uppercase border-t-2 border-[#a38c29]/50">
+                        <tfoot class="bg-[#faf5e1] text-slate-900 font-black text-xs uppercase border-t-2 border-b-2 border-[#a38c29]">
                             <tr>
-                                <td class="px-5 py-3.5 text-slate-900 font-black tracking-wider text-xs" colspan="2">
+                                <td class="px-6 py-4 text-slate-900 font-black tracking-wider text-xs" colspan="2">
                                     TOTAL PROJECT EXPENSES & COST BENCHMARK
                                 </td>
-                                <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 text-xs whitespace-nowrap">
+                                <td class="px-6 py-4 text-right font-mono font-black text-slate-900 text-xs whitespace-nowrap">
                                     ₹{{ number_format($projData->total_incurred_cost, 2) }}
                                 </td>
-                                <td class="px-5 py-3.5 text-right font-mono font-black text-emerald-800 text-xs whitespace-nowrap">
+                                <td class="px-6 py-4 text-right font-mono font-black text-emerald-800 text-xs whitespace-nowrap">
                                     ₹{{ number_format($projData->total_cash_paid, 2) }}
                                 </td>
-                                <td class="px-5 py-3.5 text-right font-mono font-black text-rose-700 text-xs whitespace-nowrap">
+                                <td class="px-6 py-4 text-right font-mono font-black text-rose-700 text-xs whitespace-nowrap">
                                     ₹{{ number_format($projData->total_pending_payable, 2) }}
                                 </td>
-                                <td class="px-5 py-3.5 text-right font-mono font-black text-[#a38c29] text-xs whitespace-nowrap">
-                                    ₹{{ number_format($projData->cost_per_sqft, 2) }} <span class="text-[10px] text-amber-700 font-bold whitespace-nowrap">/ Sq.Ft.</span>
+                                <td class="px-6 py-4 text-right font-mono font-black text-[#a38c29] text-xs whitespace-nowrap">
+                                    ₹{{ number_format($projData->cost_per_sqft, 2) }} <span class="text-[10px] text-[#7a671b] font-bold whitespace-nowrap">/ Sq.Ft.</span>
                                 </td>
                             </tr>
                         </tfoot>
@@ -316,29 +226,31 @@
                 </div>
 
                 <!-- ── PARTNER EQUITY & PROFIT DISTRIBUTION BREAKDOWN ── -->
-                <div class="p-5 bg-slate-50/60">
-                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div class="p-6 bg-slate-50/70 border-t border-slate-200/80">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                         <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <div class="p-1.5 bg-[#a38c29]/10 rounded-lg text-[#a38c29]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
                             <span>Partner Equity & Profit Distribution Breakdown</span>
                         </h3>
-                        <span class="text-[10px] bg-[#a38c29]/15 text-[#a38c29] border border-[#a38c29]/30 px-3 py-1 rounded-full font-extrabold uppercase tracking-wide whitespace-nowrap">
+                        <span class="text-[10px] bg-amber-50 text-[#7a671b] border border-amber-200 px-3 py-1 rounded-full font-extrabold uppercase tracking-wide shrink-0">
                             Auto-Calculated from Project Partner Master
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                         @foreach($projData->partners_breakdown as $partner)
-                            <div class="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between">
-                                <div class="flex items-center justify-between mb-2">
-                                    <span class="text-xs font-extrabold text-slate-900">{{ $partner->partner_name }}</span>
-                                    <span class="px-2.5 py-0.5 bg-amber-100 text-[#a38c29] rounded-full text-[10px] font-black border border-amber-300">
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between space-y-3 transition-all hover:shadow-md">
+                                <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                                    <span class="text-xs font-black text-slate-900 uppercase tracking-wide">{{ $partner->partner_name }}</span>
+                                    <span class="px-3 py-1 bg-amber-50 text-[#7a671b] rounded-full text-[10px] font-black border border-amber-200 shrink-0">
                                         {{ number_format($partner->share_pct, 1) }}% Equity Share
                                     </span>
                                 </div>
-                                <div class="mt-2">
-                                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Calculated Net Profit Share</span>
-                                    <span class="text-lg font-mono font-black text-emerald-700 whitespace-nowrap">₹{{ number_format($partner->profit_share, 2) }}</span>
+                                <div class="pt-1">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Calculated Net Profit Share</span>
+                                    <span class="text-xl font-mono font-black text-emerald-700 whitespace-nowrap">₹{{ number_format($partner->profit_share, 2) }}</span>
                                 </div>
                             </div>
                         @endforeach

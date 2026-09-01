@@ -3,7 +3,7 @@
 @section('title', 'RA Bill Verification & Sign-off')
 
 @section('content')
-<div x-data="raBillVerification()" class="p-6 space-y-6 bg-slate-50 min-h-screen">
+<div x-data="raBillVerification()" class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -43,30 +43,62 @@
         </div>
     @endif
 
-    <!-- Executive KPI Metrics Bar -->
+    <!-- Executive KPI Metrics Bar (Upgraded with Icons & Hover Effects) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-slate-800 shadow-xs">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">TOTAL RA CLAIMED</span>
-            <div class="text-xl font-mono font-black text-slate-900 mt-1">₹{{ number_format((float) $totalGross, 2) }}</div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-1">{{ $raBills->count() }} Inward RA Progress Bills</div>
+        <!-- Card 1: Total RA Claimed -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-slate-800 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">TOTAL RA CLAIMED</span>
+                <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-slate-800 transition-colors">₹{{ number_format((float) $totalGross, 2) }}</div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">{{ $raBills->count() }} Inward RA Progress Bills</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-amber-500 shadow-xs">
-            <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">ENGINEER DEDUCTIONS</span>
-            <div class="text-xl font-mono font-black text-amber-700 mt-1">-₹{{ number_format((float) $totalCorrections, 2) }}</div>
-            <div class="text-[10px] text-amber-600 font-semibold mt-1">Total Corrections Applied</div>
+        <!-- Card 2: Engineer Deductions -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-amber-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">ENGINEER DEDUCTIONS</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-amber-700 tracking-tight group-hover:text-amber-800 transition-colors">-₹{{ number_format((float) $totalCorrections, 2) }}</div>
+                <div class="text-[10px] text-amber-600 font-bold mt-1.5 pt-1.5 border-t border-amber-50">Total Corrections Applied</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-blue-500 shadow-xs">
-            <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">NET APPROVED LIABILITIES</span>
-            <div class="text-xl font-mono font-black text-blue-900 mt-1">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
-            <div class="text-[10px] text-blue-600 font-semibold mt-1">Verified Payable Claimed</div>
+        <!-- Card 3: Net Approved Liabilities -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">NET APPROVED LIABILITIES</span>
+                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors">₹{{ number_format((float) $totalNetApproved, 2) }}</div>
+                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 border-t border-blue-50">Verified Payable Claimed</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-emerald-500 shadow-xs">
-            <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">VERIFICATION SIGN-OFFS</span>
-            <div class="text-xl font-mono font-black text-emerald-800 mt-1">{{ $raBills->whereNotNull('verified_date')->count() }} / {{ $raBills->count() }}</div>
-            <div class="text-[10px] text-emerald-600 font-semibold mt-1">Completed Engineer Sign-Offs</div>
+        <!-- Card 4: Verification Sign-offs -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-500 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">VERIFICATION SIGN-OFFS</span>
+                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4m-10 12h8m-8 4h8m-16 0h.01M3 16h.01M3 12h.01M3 8h.01M3 4h.01"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors">{{ $raBills->whereNotNull('verified_date')->count() }} / {{ $raBills->count() }}</div>
+                <div class="text-[10px] text-emerald-600 font-bold mt-1.5 pt-1.5 border-t border-emerald-50">Completed Engineer Sign-Offs</div>
+            </div>
         </div>
     </div>
 
@@ -79,9 +111,6 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2.5">
-                <input type="text" x-model="searchQuery" placeholder="Search RA Bill #, Contractor..."
-                       class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-64 shadow-2xs">
-
                 <!-- Export Excel Button -->
                 <button type="button" @click="exportExcel('classic')"
                         class="inline-flex items-center gap-2 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-700 hover:to-teal-800 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-xs hover:shadow-md cursor-pointer border border-emerald-500/40">
