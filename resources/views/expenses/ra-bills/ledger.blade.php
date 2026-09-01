@@ -3,7 +3,7 @@
 @section('title', 'Contractor Ledger Statement & Directory')
 
 @section('content')
-<div x-data="contractorLedgerView()" class="space-y-6">
+<div x-data="raBillLedger()" class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -197,7 +197,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider">
+                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider">
                     <tr>
                         <th class="px-3 py-3 text-left w-[95px]">DATE</th>
                         <th class="px-3 py-3 text-left w-[150px]">CONTRACTOR</th>
@@ -211,20 +211,20 @@
                         <th class="px-3 py-3 text-left text-rose-100 w-[110px]">ACTION</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-[11px] font-bold">
+                <tbody class="divide-y divide-slate-100 text-xs font-bold">
                     <template x-for="(entry, index) in filteredLedgerEntries()" :key="index">
                         <tr class="hover:bg-amber-50/20 transition font-bold" :class="entry.type === 'CLAIM' ? 'bg-white' : 'bg-emerald-50/20'">
                             <td class="px-3 py-2.5 font-mono text-slate-800 font-bold" x-text="entry.date_formatted"></td>
                             <td class="px-3 py-2.5 font-black text-slate-900" x-text="entry.contractor_name"></td>
                             <td class="px-3 py-2.5">
-                                <div class="text-slate-900 font-black text-[10.5px]" x-text="entry.project_name"></div>
-                                <div class="text-[9px] text-slate-600 font-bold" x-show="entry.unit_name" x-text="'Unit: ' + entry.unit_name"></div>
+                                <div class="text-slate-900 font-black text-xs" x-text="entry.project_name"></div>
+                                <div class="text-[10px] text-slate-600 font-bold" x-show="entry.unit_name" x-text="'Unit: ' + entry.unit_name"></div>
                             </td>
                             <td class="px-3 py-2.5">
                                 <div class="flex items-center gap-2">
-                                    <span x-show="entry.type === 'CLAIM'" class="px-1.5 py-0.2 rounded text-[8.5px] font-black bg-blue-100 text-blue-900 uppercase">VERIFIED CLAIM</span>
-                                    <span x-show="entry.type === 'DISBURSEMENT'" class="px-1.5 py-0.2 rounded text-[8.5px] font-black bg-emerald-100 text-emerald-900 uppercase">PAYMENT RELEASE</span>
-                                    <span class="text-slate-900 font-bold text-[11px]" x-text="entry.particulars"></span>
+                                    <span x-show="entry.type === 'CLAIM'" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-blue-100 text-blue-900 uppercase">VERIFIED CLAIM</span>
+                                    <span x-show="entry.type === 'DISBURSEMENT'" class="px-1.5 py-0.2 rounded text-[10px] font-black bg-emerald-100 text-emerald-900 uppercase">PAYMENT RELEASE</span>
+                                    <span class="text-slate-900 font-bold text-xs" x-text="entry.particulars"></span>
                                 </div>
                             </td>
                             <td class="px-3 py-2.5 font-mono font-extrabold text-slate-800" x-text="entry.ref_no"></td>
@@ -235,7 +235,7 @@
                             <td class="px-3 py-2.5 text-left">
                                 <template x-if="entry.voucher_id">
                                     <a :href="'/vouchers/' + entry.voucher_id + '/payment-voucher-print'" target="_blank"
-                                       class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[9.5px] font-black inline-flex items-center gap-1 shadow-2xs border border-emerald-500/50">
+                                       class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-black inline-flex items-center gap-1 shadow-2xs border border-emerald-500/50">
                                         <span>Voucher</span>
                                     </a>
                                 </template>
