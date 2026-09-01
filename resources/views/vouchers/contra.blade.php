@@ -2,42 +2,30 @@
 
 <div class="max-w-[1600px] mx-auto space-y-6" x-data="contraVoucherBlueprint()">
 
-    <!-- ── 1. MODERN HEADER BAR ── -->
-    <div class="bg-gradient-to-r from-white via-amber-50/20 to-white rounded-3xl border border-slate-200/90 shadow-sm p-6 relative overflow-hidden">
+    <!-- ── 1. MODERN HEADER BAR (COMPACT & SLEEK TYPOGRAPHY) ── -->
+    <div class="bg-gradient-to-r from-white via-amber-50/20 to-white rounded-2xl border border-slate-200/90 shadow-sm p-4 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-amber-100/30 to-transparent pointer-events-none"></div>
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-gradient-to-br from-[#a38c29] via-[#b89635] to-[#8a741f] text-white rounded-2xl shadow-md flex items-center justify-center shrink-0 border border-amber-300/40">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-[#a38c29] via-[#b89635] to-[#8a741f] text-white rounded-xl shadow-xs flex items-center justify-center shrink-0 border border-amber-300/40">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                     </svg>
                 </div>
                 <div>
-                    <nav class="flex items-center gap-2 text-[11px] font-bold text-slate-400 mb-1 tracking-wider uppercase">
+                    <nav class="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-0.5 tracking-wider uppercase">
                         <a href="/" class="hover:text-slate-600 transition">HOME</a>
                         <span>›</span>
                         <span>ACCOUNTING</span>
                         <span>›</span>
-                        <span class="text-[#a38c29] font-black">CONTRA VOUCHER</span>
+                        <span class="text-[#a38c29] font-bold">CONTRA VOUCHER</span>
                     </nav>
-                    <h1 class="text-2xl font-black text-slate-900 tracking-tight uppercase flex items-center gap-3">
+                    <h1 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight uppercase flex items-center gap-2.5">
                         <span>Create Contra Voucher</span>
-                        <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-100/90 text-[#7a671b] border border-amber-300/80 tracking-wider">Treasury Hub</span>
+                        <span class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-amber-100/90 text-[#7a671b] border border-amber-300/80 tracking-wide">Treasury Hub</span>
                     </h1>
                 </div>
             </div>
-
-            <!-- Quick Status Badges -->
-            <!-- <div class="flex items-center gap-2">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase bg-white text-slate-700 border border-slate-200 shadow-2xs">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    Asset-to-Asset (1000s)
-                </span>
-                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-extrabold uppercase bg-white text-slate-700 border border-slate-200 shadow-2xs">
-                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                    Double-Entry Safeguard
-                </span>
-            </div> -->
         </div>
 
         @if ($errors->any())
@@ -636,7 +624,7 @@
                             <span class="text-xs font-mono font-black px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30" x-text="activeSlip?.voucher_number"></span>
                         </h2>
                     </div>
-                    <button type="button" @click="closeSlipModal()" class="text-slate-400 hover:text-white transition cursor-pointer p-1 no-print">
+                    <button type="button" @click.stop="closeSlipModal()" class="text-slate-400 hover:text-white transition cursor-pointer p-1 no-print">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
@@ -758,7 +746,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                             <span>Print Voucher Slip</span>
                         </button>
-                        <button type="button" @click="closeSlipModal()"
+                        <button type="button" @click.stop="closeSlipModal()"
                                 class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer">
                             Close
                         </button>
@@ -842,7 +830,11 @@ function contraVoucherBlueprint() {
 
         closeSlipModal() {
             this.showSlipModal = false;
-            this.activeSlip = null;
+            setTimeout(() => {
+                if (!this.showSlipModal) {
+                    this.activeSlip = null;
+                }
+            }, 300);
         },
 
         printSlip() {

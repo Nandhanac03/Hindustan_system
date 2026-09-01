@@ -3,7 +3,7 @@
 @section('title', 'Contractor Ledger Statement & Directory')
 
 @section('content')
-<div x-data="raBillLedger()" class="p-6 space-y-6 bg-slate-50 min-h-screen">
+<div x-data="contractorLedgerView()" class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
@@ -127,29 +127,62 @@
     </div>
 
     <!-- Filtered Contractor Ledger KPI Summary -->
+    <!-- Filtered Contractor Ledger KPI Summary (Upgraded with Icons & Hover Effects) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-blue-600 shadow-xs">
-            <span class="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">TOTAL NET CLAIMS ACCRUED</span>
-            <div class="text-xl font-mono font-black text-blue-900 mt-1" x-text="'₹' + numberFormat(getLedgerTotals().netClaimed)"></div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-1">Verified RA Bill Liability</div>
+        <!-- Card 1: Total Net Claims Accrued -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-blue-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">TOTAL NET CLAIMS ACCRUED</span>
+                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().netClaimed)"></div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Verified RA Bill Liability</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-emerald-600 shadow-xs">
-            <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">TOTAL DISBURSEMENTS RELEASED</span>
-            <div class="text-xl font-mono font-black text-emerald-800 mt-1" x-text="'₹' + numberFormat(getLedgerTotals().paid)"></div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-1">Paid Outflow via Treasury</div>
+        <!-- Card 2: Total Disbursements Released -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-emerald-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">TOTAL DISBURSEMENTS RELEASED</span>
+                <div class="w-7 h-7 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().paid)"></div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Paid Outflow via Treasury</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-rose-600 shadow-xs">
-            <span class="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">OUTSTANDING LEDGER BALANCE</span>
-            <div class="text-xl font-mono font-black text-rose-800 mt-1" x-text="'₹' + numberFormat(getLedgerTotals().balance)"></div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-1">Payable Remaining</div>
+        <!-- Card 3: Outstanding Ledger Balance -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-rose-600 border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-rose-700">OUTSTANDING LEDGER BALANCE</span>
+                <div class="w-7 h-7 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 transition-all duration-300 group-hover:bg-rose-600 group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5 5 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5 5 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-rose-800 tracking-tight group-hover:text-rose-700 transition-colors" x-text="'₹' + numberFormat(getLedgerTotals().balance)"></div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Payable Remaining</div>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs">
-            <span class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider block">REGISTERED CONTRACTORS</span>
-            <div class="text-xl font-mono font-black text-[#a38c29] mt-1">{{ count($contractors) }} Payees</div>
-            <div class="text-[10px] text-slate-400 font-semibold mt-1">Master Accounts Linked</div>
+        <!-- Card 4: Registered Contractors -->
+        <div class="bg-white p-5 rounded-2xl border border-y border-r border-l-[6px] border-l-[#a38c29] border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">REGISTERED CONTRACTORS</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+            </div>
+            <div>
+                <div class="text-xl font-mono font-black text-[#a38c29] tracking-tight group-hover:text-[#8a7522] transition-colors">{{ count($contractors) }} Payees</div>
+                <div class="text-[10px] text-slate-400 font-bold mt-1.5 pt-1.5 border-t border-slate-100">Master Accounts Linked</div>
+            </div>
         </div>
     </div>
 
@@ -171,38 +204,38 @@
                         <th class="px-3 py-3 text-left w-[130px]">PROJECT / UNIT</th>
                         <th class="px-3 py-3 text-left">EVENT PARTICULARS</th>
                         <th class="px-3 py-3 text-left w-[110px]">REF / VOUCHER #</th>
-                        <th class="px-3 py-3 text-right w-[95px]">GROSS (₹)</th>
-                        <th class="px-3 py-3 text-right w-[90px]">CORR. (₹)</th>
-                        <th class="px-3 py-3 text-right text-blue-100 w-[110px]">NET ACCRUED (₹)</th>
-                        <th class="px-3 py-3 text-right text-emerald-100 w-[110px]">RELEASED (₹)</th>
-                        <th class="px-3 py-3 text-right text-rose-100 w-[110px]">ACTION</th>
+                        <th class="px-3 py-3 text-left w-[95px]">GROSS (₹)</th>
+                        <th class="px-3 py-3 text-left w-[90px]">CORR. (₹)</th>
+                        <th class="px-3 py-3 text-left text-blue-100 w-[110px]">NET ACCRUED (₹)</th>
+                        <th class="px-3 py-3 text-left text-emerald-100 w-[110px]">RELEASED (₹)</th>
+                        <th class="px-3 py-3 text-left text-rose-100 w-[110px]">ACTION</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
+                <tbody class="divide-y divide-slate-100 text-[11px] font-bold">
                     <template x-for="(entry, index) in filteredLedgerEntries()" :key="index">
-                        <tr class="hover:bg-slate-50 transition" :class="entry.type === 'CLAIM' ? 'bg-white' : 'bg-emerald-50/20'">
-                            <td class="px-3 py-2.5 font-mono text-slate-700" x-text="entry.date_formatted"></td>
-                            <td class="px-3 py-2.5 font-bold text-slate-900" x-text="entry.contractor_name"></td>
+                        <tr class="hover:bg-amber-50/20 transition font-bold" :class="entry.type === 'CLAIM' ? 'bg-white' : 'bg-emerald-50/20'">
+                            <td class="px-3 py-2.5 font-mono text-slate-800 font-bold" x-text="entry.date_formatted"></td>
+                            <td class="px-3 py-2.5 font-black text-slate-900" x-text="entry.contractor_name"></td>
                             <td class="px-3 py-2.5">
-                                <div class="text-slate-900 font-bold text-[10.5px]" x-text="entry.project_name"></div>
-                                <div class="text-[9px] text-slate-500" x-show="entry.unit_name" x-text="'Unit: ' + entry.unit_name"></div>
+                                <div class="text-slate-900 font-black text-[10.5px]" x-text="entry.project_name"></div>
+                                <div class="text-[9px] text-slate-600 font-bold" x-show="entry.unit_name" x-text="'Unit: ' + entry.unit_name"></div>
                             </td>
                             <td class="px-3 py-2.5">
                                 <div class="flex items-center gap-2">
                                     <span x-show="entry.type === 'CLAIM'" class="px-1.5 py-0.2 rounded text-[8.5px] font-black bg-blue-100 text-blue-900 uppercase">VERIFIED CLAIM</span>
                                     <span x-show="entry.type === 'DISBURSEMENT'" class="px-1.5 py-0.2 rounded text-[8.5px] font-black bg-emerald-100 text-emerald-900 uppercase">PAYMENT RELEASE</span>
-                                    <span class="text-slate-800 text-[11px]" x-text="entry.particulars"></span>
+                                    <span class="text-slate-900 font-bold text-[11px]" x-text="entry.particulars"></span>
                                 </div>
                             </td>
-                            <td class="px-3 py-2.5 font-mono font-bold text-slate-700" x-text="entry.ref_no"></td>
-                            <td class="px-3 py-2.5 text-right font-mono text-slate-800" x-text="entry.gross_amount > 0 ? '₹' + numberFormat(entry.gross_amount) : '—'"></td>
-                            <td class="px-3 py-2.5 text-right font-mono text-amber-700" x-text="entry.correction_amount > 0 ? '-₹' + numberFormat(entry.correction_amount) : '—'"></td>
-                            <td class="px-3 py-2.5 text-right font-mono font-black text-blue-900 bg-blue-50/30" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
-                            <td class="px-3 py-2.5 text-right font-mono font-black text-emerald-800 bg-emerald-50/30" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
-                            <td class="px-3 py-2.5 text-right">
+                            <td class="px-3 py-2.5 font-mono font-extrabold text-slate-800" x-text="entry.ref_no"></td>
+                            <td class="px-3 py-2.5 text-left font-mono font-extrabold text-slate-900" x-text="entry.gross_amount > 0 ? '₹' + numberFormat(entry.gross_amount) : '—'"></td>
+                            <td class="px-3 py-2.5 text-left font-mono font-extrabold text-amber-700" x-text="entry.correction_amount > 0 ? '-₹' + numberFormat(entry.correction_amount) : '—'"></td>
+                            <td class="px-3 py-2.5 text-left font-mono font-black text-blue-900 bg-blue-50/30" x-text="entry.net_approved > 0 ? '₹' + numberFormat(entry.net_approved) : '—'"></td>
+                            <td class="px-3 py-2.5 text-left font-mono font-black text-emerald-800 bg-emerald-50/30" x-text="entry.paid_amount > 0 ? '₹' + numberFormat(entry.paid_amount) : '—'"></td>
+                            <td class="px-3 py-2.5 text-left">
                                 <template x-if="entry.voucher_id">
                                     <a :href="'/vouchers/' + entry.voucher_id + '/payment-voucher-print'" target="_blank"
-                                       class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9.5px] font-bold inline-flex items-center gap-1">
+                                       class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[9.5px] font-black inline-flex items-center gap-1 shadow-2xs border border-emerald-500/50">
                                         <span>Voucher</span>
                                     </a>
                                 </template>

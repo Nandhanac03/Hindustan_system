@@ -3,7 +3,7 @@
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="contractorDirectoryApp()">
 
         <!-- Breadcrumb & Top Action Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-4">
             <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
                 <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
                 <span class="text-slate-300">›</span>
@@ -317,7 +317,7 @@
                 {{-- Form --}}
                 <form action="{{ route('contractors.store') }}" method="POST" @submit="submitAdd($event)" class="flex flex-col flex-1">
                     @csrf
-                    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
+                    <div class="px-6 pt-3.5 pb-6 space-y-3.5 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contractor / Firm Name <span class="text-rose-500 font-bold">*</span></label>
                             <input type="text" name="name" x-model="name" required placeholder="e.g. BuildRight Constructions Pvt Ltd"
@@ -395,7 +395,7 @@
                 <form :action="'{{ url('/contractors') }}/' + editForm.id" method="POST" class="flex flex-col flex-1">
                     @csrf
                     @method('PUT')
-                    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
+                    <div class="px-6 pt-3.5 pb-6 space-y-3.5 max-h-[70vh] overflow-y-auto font-sans text-xs bg-white">
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Contractor / Firm Name <span class="text-rose-500 font-bold">*</span></label>
                             <input type="text" name="name" x-model="editForm.name" required
@@ -467,7 +467,7 @@
                     </div>
                 </div>
 
-                <div class="p-6 space-y-3 text-xs bg-white">
+                <div class="px-6 pt-3.5 pb-5 space-y-2.5 text-xs bg-white">
                     <div class="flex justify-between border-b border-slate-100 pb-2.5">
                         <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">LEDGER CODE</span>
                         <span class="font-mono font-bold text-[#a38c29]" x-text="viewContractor.linked_account ? viewContractor.linked_account.code : 'SUP-ACC-xxxx'"></span>
