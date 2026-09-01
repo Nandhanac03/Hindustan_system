@@ -118,7 +118,7 @@
 
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
+                <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
                     <tr class="text-left">
                         <th class="px-3 py-3 text-left w-[130px]">RA BILL NO</th>
                         <th class="px-3 py-3 text-left w-[180px]">CONTRACTOR / PROJECT</th>
@@ -130,7 +130,7 @@
                         <th class="px-3 py-3 text-right w-[120px]">ACTION</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
+                <tbody class="divide-y divide-slate-100 text-xs font-semibold">
                     @forelse($raBills as $bill)
                         @php
                             $isCleared = ((float)$bill->balance_amount <= 0.001);
@@ -141,10 +141,10 @@
                             <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="px-3 py-3 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
                                     <div class="flex flex-col gap-1 items-start">
-                                        <span class="inline-block px-2 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10.5px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
+                                        <span class="inline-block px-2 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-xs whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
                                         @if($paymentCount > 0)
                                             <button type="button" @click="showHistory = !showHistory"
-                                                    class="px-1.5 py-0.5 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded font-black text-[9px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40"
+                                                    class="px-1.5 py-0.5 bg-[#a38c29]/15 hover:bg-[#a38c29]/30 text-[#7a681d] rounded font-black text-[10px] cursor-pointer inline-flex items-center gap-1 transition shadow-2xs border border-[#a38c29]/40"
                                                     title="Toggle Part-by-Part Payment History">
                                                 <span x-text="showHistory ? '▲ Hide History' : '▼ ' + {{ $paymentCount }} + ' Part Paid'"></span>
                                             </button>
@@ -153,18 +153,18 @@
                                 </td>
 
                                 <td class="px-3 py-3 align-middle">
-                                    <div class="font-black text-slate-900 text-[11.5px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
+                                    <div class="font-black text-slate-900 text-xs leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
                                     <div class="text-[10px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
                                 </td>
 
                                 <td class="px-3 py-3 text-left font-mono align-middle">
                                     @if($bill->verified_date)
-                                        <div class="text-[10.5px] text-emerald-700 font-bold">
+                                        <div class="text-xs text-emerald-700 font-bold">
                                             {{ $bill->verified_date->format('d/m/Y') }}
                                         </div>
-                                        <div class="text-[8.5px] text-slate-500 truncate max-w-[100px]">By: {{ $bill->engineer_name ?: 'Engineer' }}</div>
+                                        <div class="text-[10px] text-slate-500 truncate max-w-[100px]">By: {{ $bill->engineer_name ?: 'Engineer' }}</div>
                                     @else
-                                        <span class="text-amber-600 text-[9.5px] italic font-semibold">Verification Pending</span>
+                                        <span class="text-amber-600 text-[10px] italic font-semibold">Verification Pending</span>
                                     @endif
                                 </td>
 
@@ -175,7 +175,7 @@
                                 <td class="px-3 py-3 text-left font-mono font-bold text-emerald-700 align-middle">
                                     <div>₹{{ number_format((float) $bill->paid_amount, 2) }}</div>
                                     @if($paymentCount > 0)
-                                        <div class="text-[8.5px] text-[#7a681d] font-bold">{{ $paymentCount }} Installment(s)</div>
+                                        <div class="text-[10px] text-[#7a681d] font-bold">{{ $paymentCount }} Installment(s)</div>
                                     @endif
                                 </td>
 
@@ -185,24 +185,24 @@
 
                                 <td class="px-3 py-3 text-left whitespace-nowrap align-middle">
                                     @if($isCleared)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
                                             <svg class="w-2.5 h-2.5 text-[#087443]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                             <span>CLEARED</span>
                                         </span>
                                     @elseif($isVerified)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
                                             <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
                                             <span>PENDING RELEASE</span>
                                         </span>
                                     @else
-                                        <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">UNVERIFIED</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">UNVERIFIED</span>
                                     @endif
                                 </td>
 
                                 <td class="px-3 py-3 text-right whitespace-nowrap align-middle">
                                     @if($isVerified && !$isCleared)
                                         <button type="button" @click="openDisburseModal({{ json_encode($bill) }})"
-                                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10.5px] font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
+                                                class="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1 shadow-2xs cursor-pointer"
                                                 title="Disburse Staggered Payment Release">
                                             <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                             <span>Disburse Payment</span>
@@ -210,7 +210,7 @@
                                     @elseif($isCleared)
                                         <span class="text-[10px] text-slate-400 font-bold uppercase">Fully Paid</span>
                                     @else
-                                        <span class="text-[9.5px] text-amber-600 font-semibold italic">Requires Verification</span>
+                                        <span class="text-[10px] text-amber-600 font-semibold italic">Requires Verification</span>
                                     @endif
                                 </td>
                             </tr>
