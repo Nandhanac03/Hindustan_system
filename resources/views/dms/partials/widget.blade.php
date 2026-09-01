@@ -18,7 +18,7 @@
          fileName: '',
          docTitle: '',
          handleWidgetFileSelect(e) {
-             if(e.target.files.length > 0) {
+             if(e.target.files && e.target.files.length) {
                  this.fileName = e.target.files[0].name;
                  if(!this.docTitle) {
                      this.docTitle = this.fileName.split('.').slice(0, -1).join('.');

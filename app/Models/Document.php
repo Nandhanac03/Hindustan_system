@@ -38,11 +38,13 @@ class Document extends Model
         'template_category',
         'tower',
         'reference_project_id',
+        'is_archived',
     ];
 
     protected $casts = [
         'issue_date' => 'date',
         'expiry_date' => 'date',
+        'is_archived' => 'boolean',
     ];
 
     public function documentable(): MorphTo

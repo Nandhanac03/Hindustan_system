@@ -43,7 +43,10 @@ class DocumentController extends Controller
         $selectedCategory = $request->get('category');
         $selectedProject = $request->get('project_id');
         $selectedDocType = $request->get('document_type');
+        $selectedStatus = $request->get('status', 'active');
         $searchQuery = $request->get('search');
+        $dateFrom = $request->get('date_from');
+        $dateTo = $request->get('date_to');
 
         // Check if category exists
         if ($selectedCategory && !array_key_exists($selectedCategory, $categoriesInfo)) {
@@ -53,6 +56,25 @@ class DocumentController extends Controller
         // Build DMS query
         $query = Document::where('system_id', $systemId)
             ->with(['documentable', 'uploader', 'referenceProject']);
+
+        // Archive / Status Filtering
+        if ($selectedStatus === 'archived') {
+            $query->where('is_archived', true);
+        } elseif ($selectedStatus === 'expiring_soon') {
+            $query->where('is_archived', false)
+                  ->whereNotNull('expiry_date')
+                  ->where('expiry_date', '>=', now())
+                  ->where('expiry_date', '<=', now()->addDays(30));
+        } elseif ($selectedStatus === 'expired') {
+            $query->where('is_archived', false)
+                  ->whereNotNull('expiry_date')
+                  ->where('expiry_date', '<', now());
+        } elseif ($selectedStatus === 'all') {
+            // Include both active and archived
+        } else {
+            // Default active only
+            $query->where('is_archived', false);
+        }
 
         if ($selectedCategory) {
             $query->where('category', $selectedCategory);
@@ -80,31 +102,49 @@ class DocumentController extends Controller
             });
         }
 
+        if ($dateFrom) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+
         // Retrieve filtered list
-        $documents = $query->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        $documents = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
 
         // 1. Stats Counters for top cards
         $categoryCounts = [];
         foreach ($categoriesInfo as $catKey => $info) {
             $categoryCounts[$catKey] = Document::where('system_id', $systemId)
                 ->where('category', $catKey)
+                ->where('is_archived', false)
                 ->count();
         }
 
-        // 2. Documents Expiring Soon (expiring in the future, sorted by closest first)
+        // 2. Documents Expiring Soon (expiring in next 60 days, sorted by closest first)
         $expiringSoon = Document::where('system_id', $systemId)
+            ->where('is_archived', false)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '>=', now())
             ->with(['documentable', 'referenceProject'])
             ->orderBy('expiry_date')
-            ->take(5)
+            ->take(6)
             ->get();
 
-        // 3. Recent Uploads
-        $recentUploads = Document::where('system_id', $systemId)
-            ->orderBy('created_at', 'desc')
-            ->take(5)
-            ->get();
+        // 3. Total active and expired counts for status badges
+        $totalActiveCount = Document::where('system_id', $systemId)->where('is_archived', false)->count();
+        $totalArchivedCount = Document::where('system_id', $systemId)->where('is_archived', true)->count();
+        $totalExpiringCount = Document::where('system_id', $systemId)
+            ->where('is_archived', false)
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '>=', now())
+            ->where('expiry_date', '<=', now()->addDays(30))
+            ->count();
+        $totalExpiredCount = Document::where('system_id', $systemId)
+            ->where('is_archived', false)
+            ->whereNotNull('expiry_date')
+            ->where('expiry_date', '<', now())
+            ->count();
 
         // 4. Storage Overview calculation (using 100 GB as system default limit)
         $totalBytesUsed = Document::where('system_id', $systemId)->sum('file_size');
@@ -126,28 +166,41 @@ class DocumentController extends Controller
 
         // Load selects for Upload Document modal
         $projects = Project::where('system_id', $systemId)->orderBy('name')->get(['id', 'name']);
+        $units = \App\Models\Unit::whereHas('project', function($q) use ($systemId) {
+            $q->where('system_id', $systemId);
+        })->orderBy('door_no')->get(['id', 'project_id', 'door_no']);
         $employees = Employee::where('system_id', $systemId)->orderBy('name')->get(['id', 'employee_id', 'name', 'department']);
+        $contractors = Payee::where('system_id', $systemId)
+            ->whereIn('type', ['Contractor', 'Supplier'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'phone', 'email']);
         $partners = Payee::where('system_id', $systemId)
             ->whereIn('type', ['Partner', 'Investor'])
             ->orderBy('name')
             ->get(['id', 'name']);
-
-        // categoriesInfo is already defined locally
 
         return view('dms.index', compact(
             'documents',
             'categoriesInfo',
             'categoryCounts',
             'expiringSoon',
-            'recentUploads',
+            'totalActiveCount',
+            'totalArchivedCount',
+            'totalExpiringCount',
+            'totalExpiredCount',
             'storageStats',
             'projects',
+            'units',
             'employees',
+            'contractors',
             'partners',
             'selectedCategory',
             'selectedProject',
             'selectedDocType',
+            'selectedStatus',
             'searchQuery',
+            'dateFrom',
+            'dateTo',
             'system'
         ));
     }
@@ -162,7 +215,7 @@ class DocumentController extends Controller
             'title' => 'required|string|max:255',
             'document_type' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'file' => 'required|file|max:15360', // Max 15MB
+            'file' => 'required|file|max:102400', // Max 100MB
             
             // Metadata fields
             'issue_date' => 'nullable|date',
@@ -178,6 +231,7 @@ class DocumentController extends Controller
             // Selector links
             'project_id' => 'nullable|integer',
             'employee_id' => 'nullable|integer',
+            'contractor_id' => 'nullable|integer',
             'partner_id' => 'nullable|integer',
         ]);
 
@@ -198,6 +252,18 @@ class DocumentController extends Controller
                 $projectInstance = Project::where('system_id', $systemId)->findOrFail($projId);
                 $docableType = Project::class;
                 $docableId = $projectInstance->id;
+                $refProjectId = $projectInstance->id;
+            }
+        } elseif ($category === 'contractor') {
+            $contractorId = $request->input('contractor_id');
+            if ($contractorId) {
+                $contractorInstance = Payee::where('system_id', $systemId)->whereIn('type', ['Contractor', 'Supplier'])->findOrFail($contractorId);
+                $docableType = Payee::class;
+                $docableId = $contractorInstance->id;
+            }
+            $projId = $request->input('project_id');
+            if ($projId) {
+                $projectInstance = Project::where('system_id', $systemId)->findOrFail($projId);
                 $refProjectId = $projectInstance->id;
             }
         } elseif ($category === 'legal') {
@@ -268,6 +334,7 @@ class DocumentController extends Controller
             'template_category' => $request->input('template_category'),
             'tower' => $request->input('tower'),
             'reference_project_id' => $refProjectId,
+            'is_archived' => false,
         ]);
 
         return back()->with('status', '✅ Document uploaded and indexed successfully.');
@@ -285,6 +352,42 @@ class DocumentController extends Controller
         return Storage::disk('local')->download($document->file_path, $document->file_name);
     }
 
+    public function preview(int $id)
+    {
+        $user = Auth::user();
+        $document = Document::where('system_id', $user->system_id)->findOrFail($id);
+
+        if (!Storage::disk('local')->exists($document->file_path)) {
+            abort(404, 'File not found on secure storage.');
+        }
+
+        $fileContent = Storage::disk('local')->get($document->file_path);
+        $mimeType = $document->mime_type ?: Storage::disk('local')->mimeType($document->file_path);
+
+        return response($fileContent, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $document->file_name . '"',
+        ]);
+    }
+
+    public function archive(int $id)
+    {
+        $user = Auth::user();
+        $document = Document::where('system_id', $user->system_id)->findOrFail($id);
+        $document->update(['is_archived' => true]);
+
+        return back()->with('status', '📦 Document moved to Archive successfully.');
+    }
+
+    public function unarchive(int $id)
+    {
+        $user = Auth::user();
+        $document = Document::where('system_id', $user->system_id)->findOrFail($id);
+        $document->update(['is_archived' => false]);
+
+        return back()->with('status', '✅ Document restored from Archive to Active repository.');
+    }
+
     public function destroy(int $id)
     {
         $user = Auth::user();
@@ -296,7 +399,7 @@ class DocumentController extends Controller
 
         $document->delete();
 
-        return back()->with('status', '✅ Document deleted successfully.');
+        return back()->with('status', '✅ Document permanently deleted.');
     }
 
     private function formatBytes(float $bytes, int $precision = 2): string

@@ -491,6 +491,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/', [\App\Http\Controllers\DocumentController::class, 'index'])->name('index');
         Route::post('/store', [\App\Http\Controllers\DocumentController::class, 'store'])->name('store');
         Route::get('/{id}/download', [\App\Http\Controllers\DocumentController::class, 'download'])->name('download');
+        Route::get('/{id}/preview', [\App\Http\Controllers\DocumentController::class, 'preview'])->name('preview');
+        Route::post('/{id}/archive', [\App\Http\Controllers\DocumentController::class, 'archive'])->name('archive');
+        Route::post('/{id}/unarchive', [\App\Http\Controllers\DocumentController::class, 'unarchive'])->name('unarchive');
         Route::delete('/{id}/delete', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('destroy');
         Route::resource('categories', \App\Http\Controllers\DmsCategoryController::class)->except(['create', 'show', 'edit']);
         Route::resource('document-types', \App\Http\Controllers\DmsDocumentTypeController::class)->except(['create', 'show', 'edit']);
