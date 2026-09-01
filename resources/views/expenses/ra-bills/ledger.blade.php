@@ -3,7 +3,7 @@
 @section('title', 'Contractor Ledger Statement & Directory')
 
 @section('content')
-<div x-data="contractorLedgerView()" class="space-y-6">
+<div x-data="raBillLedger()" class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
