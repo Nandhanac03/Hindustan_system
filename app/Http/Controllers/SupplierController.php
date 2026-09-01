@@ -25,14 +25,23 @@ class SupplierController extends Controller
             ->withCount('raBills')
             ->withSum('raBills as total_billed', 'net_approved_amount');
 
+        if ($request->filled('search_code')) {
+            $code = trim((string)$request->search_code);
+            $query->whereHas('linkedAccount', function ($aq) use ($code) {
+                $aq->where('code', 'like', "%{$code}%");
+            });
+        }
+
+        if ($request->filled('search_name')) {
+            $name = trim((string)$request->search_name);
+            $query->where('name', 'like', "%{$name}%");
+        }
+
         if ($request->filled('search')) {
-            $s = $request->search;
+            $s = trim((string)$request->search);
             $query->where(function ($q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
                     ->orWhere('gstin', 'like', "%{$s}%")
-                    ->orWhere('pan', 'like', "%{$s}%")
-                    ->orWhere('phone', 'like', "%{$s}%")
-                    ->orWhere('email', 'like', "%{$s}%")
                     ->orWhereHas('linkedAccount', function ($aq) use ($s) {
                         $aq->where('code', 'like', "%{$s}%");
                     });
