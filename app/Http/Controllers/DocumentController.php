@@ -147,15 +147,15 @@ class DocumentController extends Controller
             ->count();
 
         // 4. Storage Overview calculation (using 100 GB as system default limit)
-        $totalBytesUsed = Document::where('system_id', $systemId)->sum('file_size');
+        $totalBytesUsed = (float) (Document::where('system_id', $systemId)->sum('file_size') ?? 0);
         $totalLimitGB = 100;
-        $totalLimitBytes = $totalLimitGB * 1024 * 1024 * 1024;
+        $totalLimitBytes = (float) ($totalLimitGB * 1024 * 1024 * 1024);
         
         $usedPercentage = $totalLimitBytes > 0 ? min(round(($totalBytesUsed / $totalLimitBytes) * 100, 1), 100.0) : 0.0;
         
         $formattedUsed = $this->formatBytes($totalBytesUsed);
         $formattedLimit = $totalLimitGB . ' GB';
-        $formattedAvailable = $this->formatBytes(max($totalLimitBytes - $totalBytesUsed, 0));
+        $formattedAvailable = $this->formatBytes(max($totalLimitBytes - $totalBytesUsed, 0.0));
 
         $storageStats = [
             'used_percent' => $usedPercentage,
@@ -402,12 +402,12 @@ class DocumentController extends Controller
         return back()->with('status', '✅ Document permanently deleted.');
     }
 
-    private function formatBytes(float $bytes, int $precision = 2): string
+    private function formatBytes(float|int|string|null $bytes, int $precision = 2): string
     {
         $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-        $bytes = max($bytes, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
+        $bytes = max((float) ($bytes ?? 0), 0.0);
+        $pow = floor(($bytes > 0 ? log($bytes) : 0) / log(1024));
+        $pow = min((int) $pow, count($units) - 1);
         $bytes /= pow(1024, $pow);
         return round($bytes, $precision) . ' ' . $units[$pow];
     }
