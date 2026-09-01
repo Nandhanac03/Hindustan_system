@@ -25,6 +25,15 @@ class VoucherTypeController extends Controller
             });
         }
 
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
         $voucherTypes = $query->paginate(20)->withQueryString();
 
         $all = VoucherType::all();

@@ -27,6 +27,15 @@ class ChartOfAccountController extends Controller
             $query->where('account_type', $request->input('account_type'));
         }
 
+        if ($request->filled('status')) {
+            $status = $request->input('status');
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
+
         $accounts = $query->paginate(20)->withQueryString();
 
         $all = ChartOfAccount::all();

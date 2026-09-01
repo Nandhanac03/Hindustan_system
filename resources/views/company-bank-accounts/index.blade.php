@@ -33,91 +33,43 @@
         </div>
     @endif
 
-    {{-- Overdue EMI Warning Banner --}}
-    @if(isset($pendingEmisCount) && $pendingEmisCount > 0)
-        <div class="p-4 rounded-xl bg-amber-50 border border-amber-250 text-amber-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2.5">
-                <svg class="w-5 h-5 text-amber-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-                <span>
-                    Attention: You have <strong class="text-amber-900">{{ $pendingEmisCount }}</strong> pending/overdue Loan EMI repayments due this month totaling <strong class="text-amber-900">₹{{ number_format($pendingEmisAmount, 2) }}</strong>.
-                </span>
-            </div>
-            <a href="{{ route('loans.index') }}" class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-[10px] font-bold uppercase tracking-wide transition shadow-sm">
-                View Repayments &rarr;
-            </a>
-        </div>
-    @endif
-
     {{-- Summary Executive KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {{-- Card 1: Total Liquid Balance --}}
-        <div class="bg-gradient-to-br from-black via-slate-900 to-black rounded-2xl p-5 text-white shadow-md relative overflow-hidden border border-[#a38c29]/30">
-            <div class="flex items-center justify-between relative z-10">
-                <div>
-                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#a38c29]">Total Company Liquidity</span>
-                    <h3 class="text-2xl font-black tracking-tight mt-1 text-white">
-                        ₹{{ number_format($totalBalance ?? 0, 2) }}
-                    </h3>
-                </div>
-                <div class="w-12 h-12 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/40 text-[#a38c29] flex items-center justify-center">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-            </div>
-            <div class="mt-3 flex items-center gap-1.5 text-[10px] text-slate-400 font-medium relative z-10">
-                <span class="inline-block w-2 h-2 rounded-full bg-[#a38c29] animate-pulse"></span>
-                Combined current balance across all company accounts
-            </div>
+        {{-- Card 1: Total Liquid Balance (Gold) --}}
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#a38c29] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#a38c29]/50">
+            <p class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider mb-1">Total Company Liquidity</p>
+            <h4 class="text-[22px] font-bold text-[#8a7522] m-0">₹ {{ number_format($totalBalance ?? 0, 2) }}</h4>
+            <p class="text-[10px] text-gray-500 mt-1">Combined balance across active accounts</p>
         </div>
 
-        {{-- Card 2: Total Accounts --}}
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-            <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Company Bank Accounts</span>
-                <h3 class="text-2xl font-black text-slate-800 tracking-tight mt-1">
-                    {{ $totalAccounts ?? 0 }}
-                </h3>
-                <span class="text-[10px] text-[#a38c29] font-bold mt-1 inline-block">
-                    {{ $activeAccounts ?? 0 }} Active / {{ ($totalAccounts ?? 0) - ($activeAccounts ?? 0) }} Inactive
-                </span>
-            </div>
-            <div class="w-12 h-12 rounded-xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center border border-[#a38c29]/20">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            </div>
+        {{-- Card 2: Total Accounts (Green) --}}
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#10b981] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#10b981]/30">
+            <p class="text-[11px] font-bold text-[#10b981] uppercase tracking-wider mb-1">Company Bank Accounts</p>
+            <h4 class="text-[22px] font-bold text-[#10b981] m-0">{{ $totalAccounts ?? 0 }}</h4>
+            <p class="text-[10px] text-gray-500 mt-1">{{ $activeAccounts ?? 0 }} Active / {{ ($totalAccounts ?? 0) - ($activeAccounts ?? 0) }} Inactive</p>
         </div>
 
-        {{-- Card 3: Default Primary Account --}}
-        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
-            <div class="truncate max-w-[190px]">
-                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Primary Operating Bank</span>
-                @if(isset($defaultAccount) && $defaultAccount)
-                    <h3 class="text-sm font-black text-slate-900 truncate mt-1" title="{{ $defaultAccount->bank_name }}">
-                        {{ $defaultAccount->bank_name }}
-                    </h3>
-                    <p class="text-[10px] font-mono font-bold text-[#a38c29] truncate mt-0.5">
-                        {{ $defaultAccount->account_number ? 'A/C: ' . $defaultAccount->account_number : 'IFSC: ' . $defaultAccount->ifsc_code }}
-                    </p>
-                @else
-                    <h3 class="text-xs font-bold text-amber-600 mt-1">Not Set</h3>
-                    <p class="text-[10px] text-slate-400">Mark an account as default</p>
-                @endif
-            </div>
-            <div class="w-12 h-12 rounded-xl bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center border border-[#a38c29]/20 flex-shrink-0">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-            </div>
+        {{-- Card 3: Default Primary Account (Slate) --}}
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-gray-700 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-gray-300">
+            <p class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Primary Operating Bank</p>
+            @if(isset($defaultAccount) && $defaultAccount)
+                <h4 class="text-[18px] font-bold text-gray-800 m-0 truncate" title="{{ $defaultAccount->bank_name }}">
+                    {{ $defaultAccount->bank_name }}
+                </h4>
+                <p class="text-[10px] font-mono text-gray-500 mt-1 truncate">
+                    {{ $defaultAccount->account_number ? 'A/C: ' . $defaultAccount->account_number : 'IFSC: ' . $defaultAccount->ifsc_code }}
+                </p>
+            @else
+                <h4 class="text-[18px] font-bold text-amber-600 m-0">Not Set</h4>
+                <p class="text-[10px] text-gray-500 mt-1">Mark an account as default</p>
+            @endif
         </div>
 
-        {{-- Card 4: Quick Add Action Card --}}
-        <div class="bg-gradient-to-br from-[#a38c29]/10 via-[#a38c29]/5 to-transparent rounded-2xl p-5 border border-[#a38c29]/30 flex flex-col justify-between">
-            <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-[#a38c29]">Quick Account Setup</span>
-                <p class="text-xs font-semibold text-slate-700 mt-1">Configure company bank accounts, IFSC & routing numbers.</p>
-            </div>
-            <button @click="openAddModal()" class="mt-3 w-full py-2 px-3 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide inline-flex items-center justify-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Add Company Bank Account
-            </button>
+        {{-- Card 4: Total Opening Balance / Initial Capital (Indigo/Gold) --}}
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#a38c29] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#a38c29]/30">
+            <p class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider mb-1">Total Opening Capital</p>
+            <h4 class="text-[22px] font-bold text-[#8a7522] m-0">₹ {{ number_format($totalOpeningBalance ?? 0, 2) }}</h4>
+            <p class="text-[10px] text-gray-500 mt-1">Initial Registered Deposit</p>
         </div>
     </div>
 
@@ -129,9 +81,9 @@
         </div>
 
         <div>
-            <button @click="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Add Bank Account
+            <button @click="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <span>Add Bank Account</span>
             </button>
         </div>
     </div>
