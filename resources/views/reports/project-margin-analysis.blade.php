@@ -205,7 +205,7 @@
                         <div>
                             <div class="flex items-center justify-between text-slate-500 mb-1">
                                 <span class="text-[10px] font-black uppercase tracking-wider">Realized Collections</span>
-                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            
                             </div>
                             <span class="text-base sm:text-lg font-mono font-black text-emerald-800 block whitespace-nowrap">₹{{ number_format($projData->realized_collections, 2) }}</span>
                         </div>
@@ -217,7 +217,7 @@
                         <div>
                             <div class="flex items-center justify-between text-slate-500 mb-1">
                                 <span class="text-[10px] font-black uppercase tracking-wider">Pending Receivables</span>
-                                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                               
                             </div>
                             <span class="text-base sm:text-lg font-mono font-black text-blue-800 block whitespace-nowrap">₹{{ number_format($projData->pending_receivables, 2) }}</span>
                         </div>
@@ -229,7 +229,7 @@
                         <div>
                             <div class="flex items-center justify-between text-slate-500 mb-1">
                                 <span class="text-[10px] font-black uppercase tracking-wider">Projected Unsold Inventory</span>
-                                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                             
                             </div>
                             <span class="text-base sm:text-lg font-mono font-black text-amber-800 block whitespace-nowrap">₹{{ number_format($projData->projected_unsold_val, 2) }}</span>
                         </div>
@@ -241,7 +241,7 @@
                         <div>
                             <div class="flex items-center justify-between text-slate-500 mb-1">
                                 <span class="text-[10px] font-black uppercase tracking-wider">Total Gross Revenue</span>
-                                <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
+                          
                             </div>
                             <span class="text-base sm:text-lg font-mono font-black text-slate-900 block whitespace-nowrap">₹{{ number_format($projData->total_gross_revenue, 2) }}</span>
                         </div>

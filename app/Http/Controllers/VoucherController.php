@@ -1463,18 +1463,71 @@ class VoucherController extends Controller
         $systemId = $user->system_id;
         $this->ensureDefaultAccounts($systemId);
 
-        $accounts = Account::where('system_id', $systemId)->where('is_active', true)->get();
-        $assetAccounts = $accounts->filter(fn($acc) => strtolower($acc->type) === 'asset' && $acc->code !== 'BANK-KAR-213');
+        // 1. Asset Accounts Master (Cash & Bank Ledgers)
+        $assetAccounts = Account::where('system_id', $systemId)
+            ->where('type', 'Asset')
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
 
-        // Generate voucher number
+        if ($assetAccounts->isEmpty()) {
+            $assetAccounts = Account::where('type', 'Asset')->orderBy('name')->get();
+        }
+
+        // Calculate real-time balance for each account
+        foreach ($assetAccounts as $acc) {
+            $debits = LedgerEntry::where('system_id', $systemId)->where('account_id', $acc->id)->sum('debit');
+            $credits = LedgerEntry::where('system_id', $systemId)->where('account_id', $acc->id)->sum('credit');
+            $acc->current_balance = round((float)$debits - (float)$credits, 2);
+        }
+
+        // 2. Projects Master
+        $projects = Project::where('system_id', $systemId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
+
+        if ($projects->isEmpty()) {
+            $projects = Project::where('is_active', true)->orderBy('name')->get();
+            if ($projects->isEmpty()) {
+                $projects = Project::all();
+            }
+        }
+
+        // 3. Payment Modes Master
+        $paymentModes = PaymentMode::where('system_id', $systemId)
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->get();
+
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        }
+
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = collect([
+                (object)['id' => 1, 'name' => 'Cheque', 'code' => 'CHEQUE'],
+                (object)['id' => 2, 'name' => 'NEFT / RTGS / Online', 'code' => 'ONLINE'],
+                (object)['id' => 3, 'name' => 'Cash Transfer', 'code' => 'CASH'],
+                (object)['id' => 4, 'name' => 'Internal Direct Transfer', 'code' => 'INTERNAL'],
+            ]);
+        }
+
+        // Generate voucher number (JV-CONTRA-YYYY-XXXX)
         $currentYear = date('Y');
         $lastVoucher = Voucher::where('system_id', $systemId)
             ->where('type', 'Contra')
-            ->where('voucher_number', 'LIKE', "CN-{$currentYear}-%")
-            ->where('voucher_number', 'NOT LIKE', '%.%')
-            ->where('voucher_number', 'NOT LIKE', '%E%')
+            ->where('voucher_number', 'LIKE', "JV-CONTRA-{$currentYear}-%")
             ->orderBy('id', 'desc')
             ->first();
+
+        if (!$lastVoucher) {
+            $lastVoucher = Voucher::where('system_id', $systemId)
+                ->where('type', 'Contra')
+                ->where('voucher_number', 'LIKE', "CN-{$currentYear}-%")
+                ->orderBy('id', 'desc')
+                ->first();
+        }
         
         $nextNum = 1;
         if ($lastVoucher) {
@@ -1484,9 +1537,17 @@ class VoucherController extends Controller
                 $nextNum = (int)$lastSegment + 1;
             }
         }
-        $voucherNumber = 'CN-' . $currentYear . '-' . str_pad((string)$nextNum, 5, '0', STR_PAD_LEFT);
+        $voucherNumber = 'JV-CONTRA-' . $currentYear . '-' . str_pad((string)$nextNum, 4, '0', STR_PAD_LEFT);
 
-        return view('vouchers.contra', compact('assetAccounts', 'voucherNumber'));
+        // Load recent Contra vouchers
+        $recentContras = Voucher::where('system_id', $systemId)
+            ->where('type', 'Contra')
+            ->with(['lines.account'])
+            ->orderBy('id', 'desc')
+            ->take(15)
+            ->get();
+
+        return view('vouchers.contra', compact('assetAccounts', 'projects', 'paymentModes', 'voucherNumber', 'recentContras'));
     }
 
     public function storeContra(Request $request)
