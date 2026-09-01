@@ -23,26 +23,6 @@
         </div>
     </div>
 
-    <!-- ── SUCCESS & ERROR ALERTS ── -->
-    @if(session('success'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-extrabold flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                <span>{{ session('success') }}</span>
-            </div>
-            <button type="button" @click="$el.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">✕</button>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-extrabold flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                <span>{{ session('error') }}</span>
-            </div>
-            <button type="button" @click="$el.parentElement.remove()" class="text-rose-500 hover:text-rose-700">✕</button>
-        </div>
-    @endif
-
     <!-- Executive Treasury KPI Metrics Bar (Upgraded with Icons & Hover Effects) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Card 1: Verified Payable Claims -->
@@ -302,7 +282,7 @@
                 <button type="button" @click="disburseModalOpen = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" class="px-6 pt-3.5 pb-6 space-y-3.5" @submit="setTimeout(() => { disburseModalOpen = false; window.location.reload(); }, 800)">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" class="px-6 pt-3.5 pb-6 space-y-3.5">
                 @csrf
 
                 <!-- Summary Card -->
@@ -379,6 +359,36 @@
         </div>
     </div>
 
+    <!-- ── POPUP ERROR ALERT MODAL (CENTERE OVERLAY POPUP ON ERROR) ── -->
+    <div x-show="openErrorModal" x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+        <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden border border-rose-200 p-6 text-center transform transition-all" @click.away="openErrorModal = false">
+            <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center mb-4 border border-rose-200 shadow-inner">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+            </div>
+            <p class="text-[#a38c29] text-[10px] font-black uppercase tracking-widest mb-1">TREASURY ALERT</p>
+            <h3 class="text-base font-extrabold text-slate-900 uppercase tracking-wider mb-2">Disbursement Failed</h3>
+            <div class="text-xs text-rose-800 font-bold bg-rose-50/90 p-4 rounded-2xl border border-rose-200/80 mb-5 text-center leading-relaxed shadow-xs">
+                @if(session('error'))
+                    <p>{{ session('error') }}</p>
+                @endif
+                @if($errors->any())
+                    @foreach($errors->all() as $err)
+                        <p>{{ $err }}</p>
+                    @endforeach
+                @endif
+            </div>
+            <button type="button" @click="openErrorModal = false"
+                    class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition cursor-pointer">
+                CLOSE ALERT & SELECT VALID BANK
+            </button>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -386,6 +396,7 @@ function raBillPaymentRelease() {
     return {
         searchQuery: '',
         disburseModalOpen: false,
+        openErrorModal: {{ ($errors->any() || session('error')) ? 'true' : 'false' }},
         selectedBill: null,
 
         openDisburseModal(bill) {
