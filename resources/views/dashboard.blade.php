@@ -137,7 +137,7 @@
             <div class="text-base font-black font-mono text-slate-900">
                 {!! $salesFormatted !!}
             </div>
-            <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{{ $bookedUnits }} Bookings</div>
+            <div class="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">{{ $totalBookingsCount }} Bookings </div>
         </div>
 
         {{-- Collections (Gold Theme) --}}

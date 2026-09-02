@@ -36,6 +36,7 @@ class DashboardController extends Controller
         $reservedUnits      = $unitQuery()->where('status', 'reserved')->count();
         $totalCustomers     = Customer::count();
         $totalSales         = (float) $bookingQuery()->where('status', 'active')->sum('total_amount');
+        $totalBookingsCount = $bookingQuery()->where('status', 'active')->count();
         $totalCollections   = (float) $paymentQuery()->sum('amount');
         $pendingApprovals   = Approval::where('status', 'pending')->count();
 
@@ -150,6 +151,7 @@ class DashboardController extends Controller
             'reservedUnits',
             'totalCustomers',
             'totalSales',
+            'totalBookingsCount',
             'totalCollections',
             'outstanding',
             'pendingApprovals',
