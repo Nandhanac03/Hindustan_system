@@ -748,125 +748,176 @@ function contraVoucherWorkspace() {
                 fitToHeight: 0
             };
 
-            // Set column widths
+            // Set column widths with adequate padding
             worksheet.columns = [
                 { width: 10 }, // SL NO
-                { width: 22 }, // VOUCHER NO
-                { width: 16 }, // DATE
-                { width: 34 }, // FROM ACCOUNT
-                { width: 34 }, // TO ACCOUNT
+                { width: 24 }, // VOUCHER NO
+                { width: 18 }, // DATE
+                { width: 38 }, // FROM ACCOUNT
+                { width: 38 }, // TO ACCOUNT
                 { width: 22 }, // MODE / REF NO
-                { width: 24 }, // TRANSFER AMOUNT
-                { width: 40 }  // REMARKS / NARRATION
+                { width: 26 }, // TRANSFER AMOUNT
+                { width: 45 }  // REMARKS / NARRATION
             ];
 
-            // Company Title Banner Row 1
+            // ── 1. Company Title Banner (Row 1) ──
             worksheet.mergeCells('A1:H1');
             const titleCell = worksheet.getCell('A1');
             titleCell.value = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.';
-            titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
-            titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+            titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+            titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E5D88' } };
             titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getRow(1).height = 36;
+            worksheet.getRow(1).height = 38;
 
-            // Subtitle Banner Row 2
+            // ── 2. Subtitle Banner (Row 2) ──
             worksheet.mergeCells('A2:H2');
             const subTitleCell = worksheet.getCell('A2');
             const todayStr = (new Date()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
             subTitleCell.value = 'INTERNAL CONTRA TRANSFERS DIRECTORY · GENERATED ON ' + todayStr;
-            subTitleCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFF0E6B3' } };
+            subTitleCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFF0E6B3' } };
             subTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF232018' } };
             subTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getRow(2).height = 24;
+            worksheet.getRow(2).height = 26;
 
-            // Table Header Row 3
+            // ── 3. Table Column Headers (Row 3) ──
             const headerRow = worksheet.getRow(3);
-            headerRow.height = 28;
+            headerRow.height = 30;
             const headers = ['SL NO', 'VOUCHER NO.', 'DATE', 'FROM ACCOUNT (SOURCE)', 'TO ACCOUNT (DESTINATION)', 'MODE / REF NO.', 'TRANSFER AMOUNT (RS)', 'REMARKS / NARRATION'];
             headers.forEach((h, i) => {
                 const cell = headerRow.getCell(i + 1);
                 cell.value = h;
-                cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
-                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
-                cell.alignment = { horizontal: i === 0 ? 'center' : (i === 6 ? 'right' : 'left'), vertical: 'middle' };
+                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF9C8226' } };
+                cell.alignment = {
+                    horizontal: i === 0 || i === 1 || i === 2 || i === 5 ? 'center' : (i === 6 ? 'right' : 'left'),
+                    vertical: 'middle'
+                };
                 cell.border = {
-                    top: { style: 'thin', color: { argb: 'FF8D7923' } },
-                    bottom: { style: 'thin', color: { argb: 'FF8D7923' } },
-                    left: { style: 'thin', color: { argb: 'FF8D7923' } },
-                    right: { style: 'thin', color: { argb: 'FF8D7923' } }
+                    top: { style: 'thin', color: { argb: 'FF826D1F' } },
+                    bottom: { style: 'thin', color: { argb: 'FF826D1F' } },
+                    left: { style: 'thin', color: { argb: 'FF826D1F' } },
+                    right: { style: 'thin', color: { argb: 'FF826D1F' } }
                 };
             });
 
-            // Populate Data Rows
+            // ── 4. Populate Data Rows ──
             const contras = this.filteredContras;
+            let totalTransferAmt = 0;
+
             contras.forEach((v, index) => {
                 const rowIndex = index + 4;
                 const row = worksheet.getRow(rowIndex);
-                row.height = 24;
+                row.height = 26;
 
-                const bgHex = (index % 2 === 0) ? 'FFFFFFFF' : 'FFFDFBF0';
+                const bgHex = (index % 2 === 0) ? 'FFFFFFFF' : 'FFF8FAFC';
+                const amt = parseFloat(v.amount || 0);
+                totalTransferAmt += amt;
 
                 // SL NO
                 const c1 = row.getCell(1);
                 c1.value = index + 1;
                 c1.alignment = { horizontal: 'center', vertical: 'middle' };
-                c1.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF64748B' } };
+                c1.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF64748B' } };
 
                 // VOUCHER NO
                 const c2 = row.getCell(2);
                 c2.value = v.voucher_number || '';
-                c2.alignment = { horizontal: 'left', vertical: 'middle' };
-                c2.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                c2.alignment = { horizontal: 'center', vertical: 'middle' };
+                c2.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
 
                 // DATE
                 const c3 = row.getCell(3);
-                c3.value = v.date ? v.date : '';
-                c3.alignment = { horizontal: 'left', vertical: 'middle' };
-                c3.font = { name: 'Arial', size: 10, color: { argb: 'FF475569' } };
+                const rawDate = v.date ? v.date : '';
+                if (rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate)) {
+                    const [yyyy, mm, dd] = rawDate.split('-');
+                    c3.value = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd));
+                } else {
+                    c3.value = rawDate;
+                }
+                c3.numFormat = 'DD-MMM-YYYY';
+                c3.alignment = { horizontal: 'center', vertical: 'middle' };
+                c3.font = { name: 'Calibri', size: 10, color: { argb: 'FF334155' } };
 
-                // FROM ACCOUNT
+                // FROM ACCOUNT (Source - Blue text accent)
                 const c4 = row.getCell(4);
                 c4.value = v.from_account || '—';
                 c4.alignment = { horizontal: 'left', vertical: 'middle' };
-                c4.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                c4.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E3A8A' } };
 
-                // TO ACCOUNT
+                // TO ACCOUNT (Destination - Emerald Green text accent)
                 const c5 = row.getCell(5);
                 c5.value = v.to_account || '—';
                 c5.alignment = { horizontal: 'left', vertical: 'middle' };
-                c5.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                c5.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF065F46' } };
 
                 // REF NO
                 const c6 = row.getCell(6);
                 c6.value = v.reference_no || 'RTGS / UTR';
-                c6.alignment = { horizontal: 'left', vertical: 'middle' };
-                c6.font = { name: 'Arial', size: 10, color: { argb: 'FF475569' } };
+                c6.alignment = { horizontal: 'center', vertical: 'middle' };
+                c6.font = { name: 'Calibri', size: 10, color: { argb: 'FF475569' } };
 
-                // TRANSFER AMOUNT
+                // TRANSFER AMOUNT (Light Blue background fill + Currency Number Format)
                 const c7 = row.getCell(7);
-                const amt = parseFloat(v.amount || 0);
                 c7.value = amt;
                 c7.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
                 c7.alignment = { horizontal: 'right', vertical: 'middle' };
-                c7.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                c7.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
 
                 // NARRATION
                 const c8 = row.getCell(8);
                 c8.value = v.narration || '';
                 c8.alignment = { horizontal: 'left', vertical: 'middle' };
-                c8.font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF475569' } };
+                c8.font = { name: 'Calibri', size: 10, italic: true, color: { argb: 'FF475569' } };
 
                 for (let col = 1; col <= 8; col++) {
                     const c = row.getCell(col);
-                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgHex } };
+                    if (col === 7) {
+                        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEFF6FF' } };
+                    } else {
+                        c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgHex } };
+                    }
                     c.border = {
-                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
                     };
                 }
             });
+
+            // ── 5. Total Register Summary Row ──
+            const totalRowIndex = contras.length + 4;
+            worksheet.mergeCells(`A${totalRowIndex}:F${totalRowIndex}`);
+            
+            const totalLabelCell = worksheet.getCell(`A${totalRowIndex}`);
+            totalLabelCell.value = 'TOTAL REGISTER SUMMARY (CONTRA TRANSFERS)';
+            totalLabelCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            totalLabelCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E5D88' } };
+            totalLabelCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+            const totalAmtCell = worksheet.getCell(`G${totalRowIndex}`);
+            totalAmtCell.value = totalTransferAmt;
+            totalAmtCell.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+            totalAmtCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF38BDF8' } };
+            totalAmtCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E5D88' } };
+            totalAmtCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+            const totalCountCell = worksheet.getCell(`H${totalRowIndex}`);
+            totalCountCell.value = `${contras.length} Contra Transfers Logged`;
+            totalCountCell.font = { name: 'Calibri', size: 9.5, bold: true, italic: true, color: { argb: 'FFFFFFFF' } };
+            totalCountCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E5D88' } };
+            totalCountCell.alignment = { horizontal: 'left', vertical: 'middle' };
+
+            const totalRow = worksheet.getRow(totalRowIndex);
+            totalRow.height = 32;
+            for (let col = 1; col <= 8; col++) {
+                totalRow.getCell(col).border = {
+                    top: { style: 'thin', color: { argb: 'FF164666' } },
+                    bottom: { style: 'thin', color: { argb: 'FF164666' } },
+                    left: { style: 'thin', color: { argb: 'FF164666' } },
+                    right: { style: 'thin', color: { argb: 'FF164666' } }
+                };
+            }
 
             const buffer = await workbook.xlsx.writeBuffer();
             const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });

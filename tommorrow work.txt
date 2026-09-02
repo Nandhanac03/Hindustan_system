@@ -1,0 +1,17 @@
+1)cancellation charge and additional work amount check excel too design and check
+2)contractor statement  not correct
+3)gst report 
+4)ledger and accounts in report section
+
+
+
+
+02-sep-2026
+
+Project Margin Analysis – Design Changes
+1)Reviewed the requirements and existing design.
+1)Reviewed requirements and redesigned the dashboard with KPIs, revenue/cost analysis, profit margins, Sq.Ft. metrics, and partner distribution.
+
+Internal Contra Transfer – Design Changes
+1)Reviewed requirements and redesigned the Bank-to-Bank transfer workflow, transaction details, attachments, and voucher history.
+2)Prepared the Excel template for contra transfer entries and transaction details.

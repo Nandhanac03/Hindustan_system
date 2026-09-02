@@ -54,7 +54,7 @@
                     <div class="relative">
                         @php $projectsList = $allProjects ?? $projects ?? []; @endphp
                         <select name="project_id" onchange="this.form.submit()" class="h-10 min-w-[240px] max-w-[280px] pl-3.5 pr-8 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:border-[#a38c29] focus:ring-[#a38c29] focus:outline-none cursor-pointer appearance-none truncate shadow-2xs">
-                            <option value="all" {{ $selectedProjectId === 'all' || !$selectedProjectId ? 'selected' : '' }}>Tabasco Hindustan Infra Developers Pvt. Ltd.</option>
+                            <option value="all" {{ $selectedProjectId === 'all' || !$selectedProjectId ? 'selected' : '' }}>🌐 All Projects Portfolio (Company Overview)</option>
                             @foreach($projectsList as $p)
                                 <option value="{{ $p->id }}" {{ (string)$selectedProjectId === (string)$p->id ? 'selected' : '' }}>
                                     {{ $p->name }} ({{ $p->code ?? 'PRJ-'.$p->id }})
@@ -113,8 +113,7 @@
                         </div>
                         <h4 class="text-lg sm:text-xl font-mono font-extrabold text-emerald-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->realized_collections, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-emerald-700/80 font-bold pt-1 flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                    <div class="text-[10.5px] text-emerald-700/80 font-bold pt-1">
                         <span class="truncate">Actual cash in bank from buyers</span>
                     </div>
                 </div>
@@ -130,8 +129,7 @@
                         </div>
                         <h4 class="text-lg sm:text-xl font-mono font-extrabold text-blue-800 tracking-tight whitespace-nowrap">₹{{ number_format($projData->pending_receivables, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-blue-700/80 font-bold pt-1 flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                    <div class="text-[10.5px] text-blue-700/80 font-bold pt-1">
                         <span class="truncate">Balance due from booked units</span>
                     </div>
                 </div>
@@ -147,8 +145,7 @@
                         </div>
                         <h4 class="text-lg sm:text-xl font-mono font-extrabold text-slate-900 tracking-tight whitespace-nowrap">₹{{ number_format($projData->projected_unsold_val, 2) }}</h4>
                     </div>
-                    <div class="text-[10.5px] text-amber-700 font-bold pt-1 flex items-center gap-1.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                    <div class="text-[10.5px] text-amber-700 font-bold pt-1">
                         <span class="truncate">@ ₹{{ number_format($projData->current_market_rate, 0) }}/Sq.Ft. market rate</span>
                     </div>
                 </div>
