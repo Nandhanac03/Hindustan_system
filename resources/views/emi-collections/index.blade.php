@@ -1,6 +1,6 @@
 <x-erp-layout title="EMI Collections" headerTitle="EMI Collections Directory">
 
-<div class="max-w-[1800px] mx-auto space-y-4" x-data="emiApp()">
+<div class="max-w-[1800px] mx-auto space-y-4" x-data="emiApp()" x-init="init()">
 
     {{-- Under Construction Notice --}}
     <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
@@ -452,158 +452,176 @@
     </div>
 
     {{-- COLLECTION RECEIPT Modal --}}
-    <div x-show="modal.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="closeCollectModal()">
-            {{-- Header --}}
-            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">EMI & PAYMENTS</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">COLLECTION RECEIPT</h3>
+    <template x-teleport="body">
+        <div x-show="modal.open" 
+             class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto" 
+             style="display: none;" 
+             x-transition.opacity>
+            <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all my-auto" @click.away="closeCollectModal()">
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden">
+                    <div class="flex items-center gap-3 relative z-10">
+                        <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-lg font-black shadow-inner border border-[#a38c29]/30">
+                            ₹
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40">EMI & PAYMENTS</span>
+                                <span class="text-[10px] text-slate-400 font-semibold">Payment Intake</span>
+                            </div>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white mt-0.5">Collection Receipt Entry</h3>
+                        </div>
+                    </div>
+                    <button type="button" @click="closeCollectModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer relative z-10">✕</button>
                 </div>
-                <button type="button" @click="closeCollectModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
-            </div>
-            
-            <form @submit.prevent="submitCollection()" novalidate class="flex flex-col">
-                <div class="p-6 space-y-4 max-h-[72vh] overflow-y-auto font-sans text-xs bg-white">
-                    {{-- Active Sale Field --}}
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Active Sale <span class="text-rose-500">*</span></label>
-                        <select x-model="form.booking_id" @change="onModalSaleSelect(); if(errors.booking_id) delete errors.booking_id;"
-                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs text-slate-900 font-bold transition-all shadow-xs cursor-pointer"
-                                :class="errors.booking_id ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
-                            <option value="">-- Select Sale --</option>
-                            <template x-for="s in activeSales" :key="s.id">
-                                <option :value="s.id" x-text="(s.customer ? s.customer.name : '—') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
-                            </template>
-                        </select>
-                        <template x-if="errors.booking_id">
-                            <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.booking_id) ? errors.booking_id[0] : errors.booking_id"></span>
-                        </template>
-                    </div>
-
-                    {{-- Info Box --}}
-                    <div x-show="form.booking_id && form.project_name" class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-1.5 text-xs font-semibold text-slate-700 shadow-2xs" x-transition>
-                        <div class="flex justify-between border-b border-amber-200/60 pb-1.5">
-                            <span class="text-[10px] uppercase font-bold text-slate-500">Project / Unit</span>
-                            <strong class="text-slate-900 font-bold" x-text="form.project_name + ' / Unit ' + form.unit_number"></strong>
-                        </div>
-                        <div class="flex justify-between border-b border-amber-200/60 pb-1.5">
-                            <span class="text-[10px] uppercase font-bold text-slate-500">Sale Total</span>
-                            <strong class="text-slate-900 font-mono font-bold" x-text="'₹' + Number(form.total_amount).toLocaleString('en-IN')"></strong>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-[10px] uppercase font-bold text-slate-500">Remaining Balance</span>
-                            <strong class="text-rose-600 font-mono font-bold" x-text="'₹' + Number(form.outstanding).toLocaleString('en-IN')"></strong>
-                        </div>
-                    </div>
-
-                    {{-- Action Type --}}
-                    <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Action Type <span class="text-rose-500">*</span></label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button type="button" @click="form.collection_type = 'regular'" 
-                                    :class="form.collection_type === 'regular' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40'" 
-                                    class="px-3 py-2.5 border rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer">Regular</button>
-                            <button type="button" @click="form.collection_type = 'prepayment'" 
-                                    :class="form.collection_type === 'prepayment' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40'" 
-                                    class="px-3 py-2.5 border rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer">Prepayment</button>
-                        </div>
-                    </div>
-
-                    {{-- Prepayment Options --}}
-                    <div class="space-y-1.5" x-show="form.collection_type === 'prepayment'" x-cloak x-transition>
-                        <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Prepayment Option <span class="text-rose-500">*</span></label>
-                        <select x-model="form.prepayment_option" @change="if(errors.prepayment_option) delete errors.prepayment_option;"
-                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs text-slate-900 font-bold transition-all shadow-xs cursor-pointer"
-                                :class="errors.prepayment_option ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
-                            <option value="reduce_emi">Reduce EMI amount (keep tenure the same)</option>
-                            <option value="reduce_tenure">Reduce Tenure (keep monthly EMI the same)</option>
-                        </select>
-                        <template x-if="errors.prepayment_option">
-                            <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.prepayment_option) ? errors.prepayment_option[0] : errors.prepayment_option"></span>
-                        </template>
-                    </div>
-
-                    {{-- Amount & Date --}}
-                    <div class="grid grid-cols-2 gap-3" x-show="form.collection_type !== 'reschedule'">
+                
+                <form @submit.prevent="submitCollection()" novalidate class="flex flex-col">
+                    <div class="p-6 md:p-7 space-y-4 max-h-[78vh] overflow-y-auto font-sans text-xs bg-white">
+                        {{-- Active Sale Field --}}
                         <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Amount (₹) <span class="text-rose-500">*</span></label>
-                            <input type="number" step="0.01" x-model.number="form.amount" min="0.01"
-                                   @input="if(errors.amount) delete errors.amount;"
-                                   placeholder="0.00"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
-                                   :class="errors.amount ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
-                            <template x-if="errors.amount">
-                                <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
-                            </template>
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Receipt Date <span class="text-rose-500">*</span></label>
-                            <input type="date" x-model="form.receipt_date"
-                                   @input="if(errors.receipt_date) delete errors.receipt_date;"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
-                                   :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
-                            <template x-if="errors.receipt_date">
-                                <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
-                            </template>
-                        </div>
-                    </div>
-
-                    {{-- Payment Mode --}}
-                    <div class="space-y-1.5" x-show="form.collection_type !== 'reschedule'">
-                        <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Payment Mode <span class="text-rose-500">*</span></label>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
-                                <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"
-                                        :class="form.payment_mode === mode ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40'"
-                                        class="px-3 py-2 border rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer text-center"
-                                        x-text="mode">
-                                </button>
-                            </template>
-                        </div>
-                        <template x-if="errors.payment_mode">
-                            <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
-                        </template>
-                    </div>
-
-                    {{-- Ref & Bank --}}
-                    <div class="grid grid-cols-2 gap-3" x-show="form.collection_type !== 'reschedule'">
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Ref / Cheque No.</label>
-                            <input type="text" x-model="form.reference_no" placeholder="Optional"
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Bank Name</label>
-                            <select x-model="form.bank_id"
-                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs cursor-pointer">
-                                <option value="">-- Optional --</option>
-                                @foreach($banks as $bank)
-                                <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
-                                @endforeach
+                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Active Sale / Customer <span class="text-rose-500">*</span></label>
+                            <select x-model="form.booking_id" @change="onModalSaleSelect(); if(errors.booking_id) delete errors.booking_id;"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs text-slate-900 font-bold transition-all shadow-xs cursor-pointer"
+                                    :class="errors.booking_id ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                <option value="">-- Choose Active Customer & Sale --</option>
+                                <template x-for="s in activeSales" :key="s.id">
+                                    <option :value="s.id" x-text="(s.customer ? s.customer.name : '—') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
+                                </template>
                             </select>
+                            <template x-if="errors.booking_id">
+                                <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.booking_id) ? errors.booking_id[0] : errors.booking_id"></span>
+                            </template>
+                        </div>
+
+                        {{-- Info Box (Horizontal 3-column summary) --}}
+                        <div x-show="form.booking_id && form.project_name" class="p-4 bg-gradient-to-r from-amber-50/80 via-white to-amber-50/80 rounded-2xl border border-amber-200/70 shadow-xs" x-transition>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs font-semibold">
+                                <div class="bg-white/80 p-2.5 rounded-xl border border-amber-100">
+                                    <span class="text-[10px] uppercase font-extrabold text-slate-400 block mb-0.5">Project / Unit</span>
+                                    <strong class="text-slate-900 font-bold text-xs" x-text="form.project_name + ' · Unit ' + form.unit_number"></strong>
+                                </div>
+                                <div class="bg-white/80 p-2.5 rounded-xl border border-amber-100">
+                                    <span class="text-[10px] uppercase font-extrabold text-slate-400 block mb-0.5">Total Contract Value</span>
+                                    <strong class="text-slate-900 font-mono font-bold text-xs" x-text="'₹' + Number(form.total_amount).toLocaleString('en-IN')"></strong>
+                                </div>
+                                <div class="bg-white/80 p-2.5 rounded-xl border border-rose-100">
+                                    <span class="text-[10px] uppercase font-extrabold text-rose-500 block mb-0.5">Remaining Balance</span>
+                                    <strong class="text-rose-600 font-mono font-bold text-xs" x-text="'₹' + Number(form.outstanding).toLocaleString('en-IN')"></strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Row 2: Action Type (33.3% width) & Payment Mode (66.7% width) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 pt-1">
+                            {{-- Action Type (4 cols = 33.3%) --}}
+                            <div class="md:col-span-4 space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Action Type <span class="text-rose-500">*</span></label>
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <button type="button" @click="form.collection_type = 'regular'" 
+                                            :class="form.collection_type === 'regular' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40'" 
+                                            class="px-2 py-2.5 border rounded-xl text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer text-center">Regular</button>
+                                    <button type="button" @click="form.collection_type = 'prepayment'" 
+                                            :class="form.collection_type === 'prepayment' ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40'" 
+                                            class="px-2 py-2.5 border rounded-xl text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer text-center">Prepayment</button>
+                                </div>
+                            </div>
+
+                            {{-- Payment Mode (8 cols = 66.7%) --}}
+                            <div class="md:col-span-8 space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Payment Mode <span class="text-rose-500">*</span></label>
+                                <div class="grid grid-cols-4 gap-1.5">
+                                    <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
+                                        <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"
+                                                :class="form.payment_mode === mode ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm font-black' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40 font-bold'"
+                                                class="px-1.5 py-2.5 border rounded-xl text-[10px] uppercase tracking-tight transition-all cursor-pointer text-center whitespace-nowrap overflow-hidden"
+                                                x-text="mode">
+                                        </button>
+                                    </template>
+                                </div>
+                                <template x-if="errors.payment_mode">
+                                    <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        {{-- Prepayment Options --}}
+                        <div class="space-y-1.5" x-show="form.collection_type === 'prepayment'" x-cloak x-transition>
+                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Prepayment Option <span class="text-rose-500">*</span></label>
+                            <select x-model="form.prepayment_option" @change="if(errors.prepayment_option) delete errors.prepayment_option;"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs text-slate-900 font-bold transition-all shadow-xs cursor-pointer"
+                                    :class="errors.prepayment_option ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                <option value="reduce_emi">Reduce EMI amount (keep tenure the same)</option>
+                                <option value="reduce_tenure">Reduce Tenure (keep monthly EMI the same)</option>
+                            </select>
+                            <template x-if="errors.prepayment_option">
+                                <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.prepayment_option) ? errors.prepayment_option[0] : errors.prepayment_option"></span>
+                            </template>
+                        </div>
+
+                        {{-- Row 3: Amount, Date, and Reference (3 Columns) --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Amount (₹) <span class="text-rose-500">*</span></label>
+                                <input type="number" step="1" x-model.number="form.amount" min="1"
+                                       @input="if(errors.amount) delete errors.amount; if(form.amount && form.amount.toString().includes('.')) { form.amount = Math.floor(form.amount); }"
+                                       placeholder="0"
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
+                                       :class="errors.amount ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                <template x-if="errors.amount">
+                                    <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
+                                </template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Receipt Date <span class="text-rose-500">*</span></label>
+                                <input type="date" x-model="form.receipt_date"
+                                       @input="if(errors.receipt_date) delete errors.receipt_date;"
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
+                                       :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                <template x-if="errors.receipt_date">
+                                    <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
+                                </template>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Ref / Cheque / UTR No.</label>
+                                <input type="text" x-model="form.reference_no" placeholder="Optional Reference..."
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs">
+                            </div>
+                        </div>
+
+                        {{-- Row 4: Bank Name & Remarks (2 Columns) --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Bank Name</label>
+                                <select x-model="form.bank_id"
+                                        class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs cursor-pointer">
+                                    <option value="">-- Optional / Select Bank --</option>
+                                    @foreach($banks as $bank)
+                                    <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="space-y-1.5">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Remarks / Notes</label>
+                                <input type="text" x-model="form.remarks" placeholder="Optional notes regarding this receipt..."
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-semibold text-slate-900 transition-all shadow-xs">
+                            </div>
                         </div>
                     </div>
 
-                    {{-- Remarks --}}
-                    <div class="space-y-1.5" x-show="form.collection_type !== 'reschedule'">
-                        <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Remarks</label>
-                        <textarea x-model="form.remarks" rows="2" placeholder="Optional notes regarding this receipt..."
-                                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-semibold text-slate-900 transition-all resize-none shadow-xs"></textarea>
+                    <div class="px-7 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50">
+                        <button type="button" @click="closeCollectModal()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+                            CANCEL
+                        </button>
+                        <button type="submit"
+                                class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/25 flex items-center justify-center gap-2 cursor-pointer">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>COLLECT RECEIPT</span>
+                        </button>
                     </div>
-                </div>
-
-                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50">
-                    <button type="button" @click="closeCollectModal()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">
-                        CANCEL
-                    </button>
-                    <button type="submit"
-                            class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer">
-                        COLLECT RECEIPT
-                    </button>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
+    </template>
 
 </div>
 
@@ -643,6 +661,27 @@ function emiApp() {
         activeSales: @json($activeSales),
         selectedSaleId: '',
         selectedSale: null,
+
+        init() {
+            @if(request()->has('open_receipt') || request()->has('open_collect') || request()->has('collect'))
+                const targetSaleId = '{{ request('booking_id') ?? request('sale_id') ?? '' }}';
+                if (targetSaleId) {
+                    const sale = this.activeSales.find(s => s.id == targetSaleId);
+                    if (sale) {
+                        this.openCollectModal({
+                            id: sale.id,
+                            outstanding: sale.remaining_balance,
+                            customer_name: sale.customer ? sale.customer.name : '-',
+                            door_no: sale.sale_units && sale.sale_units.length ? sale.sale_units.map(su => su.unit ? su.unit.door_no.split(',')[0].trim() : '').join(', ') : (sale.unit ? sale.unit.door_no.split(',')[0].trim() : 'No Unit')
+                        });
+                    } else {
+                        this.openCollectModal();
+                    }
+                } else {
+                    this.openCollectModal();
+                }
+            @endif
+        },
 
         onSaleSelect() {
             this.selectedSale = this.activeSales.find(s => s.id == this.selectedSaleId) || null;
@@ -743,6 +782,9 @@ function emiApp() {
 
         closeCollectModal() {
             this.modal.open = false;
+            if (window.location.search.includes('open_receipt') || window.location.search.includes('open_collect')) {
+                history.replaceState(null, '', window.location.pathname);
+            }
         },
 
         submitCollection() {
