@@ -26,15 +26,7 @@
         @endif
 
         <!-- Top Header & Action Bar -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2">
-            <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
-                <span class="text-slate-300">›</span>
-                <span>Customer Management & Collections</span>
-                <span class="text-slate-300">›</span>
-                <span class="text-[#a38c29] font-black">Cheque & Receipt Entry Display</span>
-            </div>
-
+        <div class="flex items-center justify-end gap-4 -mt-2">
             <!-- Collect Receipt Modal Button (Brand Gold Matching) -->
             <div class="flex items-center gap-2 flex-wrap">
                 <button type="button" @click="openCollectModal()" 

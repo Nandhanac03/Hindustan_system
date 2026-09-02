@@ -541,7 +541,7 @@
 
     </div>
 
-    {{-- File Upload Modal (Teleported to Body with 100MB Limit & Contractor Support) --}}
+    {{-- File Upload Modal (Original Aesthetic with Height-Optimized Drop Zone - Zero Scroll) --}}
     <template x-teleport="body">
         <div x-show="showUploadModal" 
              class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md"
@@ -549,11 +549,11 @@
              style="display: none;">
             
             <div @click.outside="showUploadModal = false" 
-                 class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-fade-in-up"
+                 class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up"
                  x-transition.scale>
                 
-                {{-- Modal Header --}}
-                <div class="px-6 py-5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 flex items-center justify-between text-white relative overflow-hidden shrink-0">
+                {{-- Modal Header (Increased Corner Radius & Generous Padding) --}}
+                <div class="px-8 py-6 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 flex items-center justify-between text-white relative overflow-hidden shrink-0">
                     <div class="absolute -top-10 -right-10 w-36 h-36 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10">
                         <div class="flex items-center gap-2">
@@ -567,10 +567,11 @@
                 </div>
 
                 {{-- Modal Body Form --}}
-                <form action="{{ route('dms.store') }}" method="POST" enctype="multipart/form-data" class="overflow-y-auto flex-1 p-6 space-y-4 text-left font-sans text-xs">
+                <form action="{{ route('dms.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col m-0 p-0">
                     @csrf
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-6 space-y-3.5 text-left font-sans text-xs">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         
                         {{-- ROW 1 - LEFT: Document Category --}}
                         <div class="space-y-1.5 relative" x-data="{ open: false, search: '' }">
@@ -1056,14 +1057,14 @@
                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition resize-none shadow-2xs"></textarea>
                         </div>
 
-                        {{-- ROW 6 - FULL WIDTH: Upload File & Preview (100MB Limit) --}}
-                        <div class="space-y-2 col-span-1 sm:col-span-2">
+                        {{-- ROW 6 - FULL WIDTH: Upload File & Preview (Reduced Height Centered Dropzone) --}}
+                        <div class="space-y-1.5 col-span-1 sm:col-span-2">
                             <label class="text-[11px] font-bold text-slate-700 block">
                                 Upload File <span class="text-rose-500">*</span>
                             </label>
                             
-                            {{-- Drop Zone --}}
-                            <div class="relative w-full border-2 border-dashed border-slate-300 hover:border-[#a38c29] rounded-2xl bg-slate-50/70 hover:bg-slate-50/90 transition-all p-6 flex flex-col items-center justify-center text-center group cursor-pointer">
+                            {{-- Drop Zone (Centered Design with Reduced Height) --}}
+                            <div class="relative w-full border-2 border-dashed border-slate-300 hover:border-[#a38c29] rounded-2xl bg-slate-50/70 hover:bg-slate-50/90 transition-all py-3 px-4 flex flex-col items-center justify-center text-center group cursor-pointer">
                                 <input type="file" 
                                        id="dmsFileInput"
                                        name="file" 
@@ -1072,8 +1073,8 @@
                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                 
                                 {{-- Cloud Icon --}}
-                                <div class="w-12 h-12 rounded-full bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <div class="w-8 h-8 rounded-full bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
+                                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
                                     </svg>
                                 </div>
@@ -1081,7 +1082,7 @@
                                 <p class="text-xs font-semibold text-slate-700">
                                     Drag & Drop file here or
                                 </p>
-                                <button type="button" class="mt-2 px-4 py-1.5 bg-white border border-slate-300 group-hover:border-[#a38c29] text-slate-700 rounded-lg text-xs font-bold shadow-2xs pointer-events-none">
+                                <button type="button" class="mt-1.5 px-3.5 py-1 bg-white border border-slate-300 group-hover:border-[#a38c29] text-slate-700 rounded-lg text-xs font-bold shadow-2xs pointer-events-none">
                                     Choose File
                                 </button>
                             </div>
@@ -1089,20 +1090,20 @@
                             {{-- Selected File Pill / Card --}}
                             <div x-show="fileName" 
                                  x-transition 
-                                 class="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm" 
+                                 class="flex items-center justify-between p-2.5 bg-white border border-slate-200 rounded-xl shadow-sm" 
                                  style="display: none;">
-                                <div class="flex items-center gap-3 min-w-0">
-                                    <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 font-bold text-[10px] uppercase">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100 font-bold text-[9px] uppercase">
                                         <span x-text="fileExt ? fileExt.substring(0,4) : 'PDF'"></span>
                                     </div>
                                     <div class="min-w-0">
                                         <p class="text-xs font-bold text-slate-800 truncate" x-text="fileName"></p>
-                                        <p class="text-[10px] text-slate-400 font-medium" x-text="fileSizeFormatted || 'Document file'"></p>
+                                        <p class="text-[9px] text-slate-400 font-medium" x-text="fileSizeFormatted || 'Document file'"></p>
                                     </div>
                                 </div>
                                 <button type="button" 
                                         @click="clearFile()" 
-                                        class="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition" 
+                                        class="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 transition cursor-pointer" 
                                         title="Remove file">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </button>
@@ -1115,15 +1116,15 @@
                         </div>
                     </div>
 
-                    {{-- Footer Action Buttons --}}
-                    <div class="px-6 py-4 border-t border-slate-150 flex items-center justify-end gap-3 bg-slate-50/60 -mx-6 -mb-6 mt-6 shrink-0">
+                    {{-- Footer Action Buttons (Pure White Background) --}}
+                    <div class="px-6 pb-6 pt-2 bg-white flex items-center justify-end gap-3 shrink-0">
                         <button type="button" 
                                 @click="showUploadModal = false" 
-                                class="px-5 py-2 bg-white border border-slate-250 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition shadow-2xs">
+                                class="px-5 py-2.5 bg-white border border-slate-250 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition shadow-2xs cursor-pointer">
                             Cancel
                         </button>
                         <button type="submit" 
-                                class="px-6 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md hover:shadow-lg transition">
+                                class="px-6 py-2.5 rounded-xl bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold shadow-md hover:shadow-lg transition cursor-pointer">
                             Upload
                         </button>
                     </div>
