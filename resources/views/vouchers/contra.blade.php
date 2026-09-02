@@ -141,16 +141,16 @@
             <!-- TABLE CONTENT -->
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse text-xs">
-                    <thead class="bg-slate-50 text-slate-700 text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest border-b border-slate-200">
+                    <thead class="bg-[#a38c29] text-white text-[10px] sm:text-[11px] font-black uppercase tracking-widest border-b-2 border-[#8a7522]">
                         <tr>
-                            <th class="px-4 py-3.5 text-slate-700">SL NO</th>
-                            <th class="px-4 py-3.5 text-slate-700">VOUCHER NO.</th>
-                            <th class="px-4 py-3.5 text-slate-700">DATE</th>
-                            <th class="px-4 py-3.5 text-slate-700">FROM ACCOUNT (SOURCE)</th>
-                            <th class="px-4 py-3.5 text-slate-700">TO ACCOUNT (DESTINATION)</th>
-                            <th class="px-4 py-3.5 text-slate-700">MODE / REF NO.</th>
-                            <th class="px-4 py-3.5 text-right text-slate-700">TRANSFER AMOUNT (₹)</th>
-                            <th class="px-4 py-3.5 text-center text-slate-700">ACTION</th>
+                            <th class="px-4 py-3.5 text-white">SL NO</th>
+                            <th class="px-4 py-3.5 text-white">VOUCHER NO.</th>
+                            <th class="px-4 py-3.5 text-white">DATE</th>
+                            <th class="px-4 py-3.5 text-white">FROM ACCOUNT (SOURCE)</th>
+                            <th class="px-4 py-3.5 text-white">TO ACCOUNT (DESTINATION)</th>
+                            <th class="px-4 py-3.5 text-white">MODE / REF NO.</th>
+                            <th class="px-4 py-3.5 text-right text-white">TRANSFER AMOUNT (₹)</th>
+                            <th class="px-4 py-3.5 text-center text-white">ACTION</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium text-slate-800 bg-white">

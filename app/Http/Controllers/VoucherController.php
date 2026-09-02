@@ -1687,10 +1687,10 @@ class VoucherController extends Controller
 
         $vouchers = $query->latest('date')->get();
 
-        $filename = 'Contra_Vouchers_Directory_' . date('Y-m-d') . '.xlsx';
+        $filename = 'Contra_Vouchers_Directory_' . date('Y-m-d') . '.xls';
 
         $headers = [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
@@ -1719,14 +1719,14 @@ class VoucherController extends Controller
                                     TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.
                                 </th>
                             </tr>
-                            <tr bgcolor="#4a4014" style="background-color: #4a4014; color: #f0e6b3;">
-                                <th colspan="8" bgcolor="#4a4014" style="background-color: #4a4014; color: #f0e6b3; font-size: 11px; text-align: center; padding: 5px;">
+                            <tr bgcolor="#232018" style="background-color: #232018; color: #f0e6b3;">
+                                <th colspan="8" bgcolor="#232018" style="background-color: #232018; color: #f0e6b3; font-size: 11px; text-align: center; padding: 6px;">
                                     INTERNAL CONTRA TRANSFERS DIRECTORY · GENERATED ON ' . date('d-M-Y') . '
                                 </th>
                             </tr>
                             <tr bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff;">
                                 <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; text-align: center; width: 50px;">SL NO</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 140px;">VOUCHER NO.</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 160px;">VOUCHER NO.</th>
                                 <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 100px;">DATE</th>
                                 <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 220px;">FROM ACCOUNT (SOURCE)</th>
                                 <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 220px;">TO ACCOUNT (DESTINATION)</th>
@@ -1742,8 +1742,8 @@ class VoucherController extends Controller
                 $creditLine = $v->lines->firstWhere('credit', '>', 0);
                 $debitLine = $v->lines->firstWhere('debit', '>', 0);
                 $transferAmt = $debitLine?->debit ?? $creditLine?->credit ?? 0;
-                $fromName = $creditLine?->account?->name ?? 'Karnataka Bank Current A/c';
-                $toName = $debitLine?->account?->name ?? 'Site Petty Cash Box';
+                $fromName = $creditLine?->account?->name ?? '—';
+                $toName = $debitLine?->account?->name ?? '—';
 
                 $bg = ($index % 2 === 0) ? '#ffffff' : '#fdfbf0';
 
