@@ -1021,21 +1021,37 @@
             }
             
             let rupeeWords = convertInteger(integerPart);
-            let words = "";
             if (rupeeWords) {
                 words += rupeeWords + " Rupees";
+            }
+            
+            if (decimalPart > 0) {
+                let paiseWords = convertInteger(decimalPart);
+                if (rupeeWords) {
+                    words += " and " + paiseWords + " Paise";
+                } else {
+                    words += paiseWords + " Paise";
+                }
             }
             
             return words ? words + " Only" : "";
         };
 
-        // Sanitize general amount inputs (strip non-numeric and disallow decimal points)
+        // Sanitize general amount inputs (strip non-numeric except one decimal point and 2 decimal places)
         window.sanitizeAmountInput = function(input) {
             let value = input.value;
-            // Allow only whole integer numbers (disallow decimal point)
-            value = value.replace(/[^0-9]/g, '');
-            if (input.value !== value) {
-                input.value = value;
+            // Allow only numbers and a single decimal point
+            value = value.replace(/[^0-9.]/g, '');
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                parts.splice(2); // keep only first two parts
+            }
+            if (parts[1] !== undefined && parts[1].length > 2) {
+                parts[1] = parts[1].substring(0, 2);
+            }
+            const newValue = parts.join('.');
+            if (input.value !== newValue) {
+                input.value = newValue;
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             }
         };
