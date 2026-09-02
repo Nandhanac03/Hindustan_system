@@ -415,6 +415,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/vouchers/payment', [\App\Http\Controllers\VoucherController::class, 'storePayment'])->name('vouchers.payment.store');
     Route::get('/vouchers/contra', [\App\Http\Controllers\VoucherController::class, 'createContra'])->name('vouchers.contra.create');
     Route::post('/vouchers/contra', [\App\Http\Controllers\VoucherController::class, 'storeContra'])->name('vouchers.contra.store');
+    Route::get('/vouchers/contra/export-excel', [\App\Http\Controllers\VoucherController::class, 'exportContraExcel'])->name('vouchers.contra.export');
     Route::get('/vouchers/journal', [\App\Http\Controllers\VoucherController::class, 'createJournal'])->name('vouchers.journal.create');
     Route::post('/vouchers/journal', [\App\Http\Controllers\VoucherController::class, 'storeJournal'])->name('vouchers.journal.store');
     Route::get('/vouchers/sales-purchase', [\App\Http\Controllers\VoucherController::class, 'createSalesPurchase'])->name('vouchers.sales-purchase.create');

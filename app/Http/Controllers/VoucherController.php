@@ -13,6 +13,7 @@ use App\Models\PaymentMode;
 use App\Models\Payee;
 use App\Models\Receipt;
 use App\Models\Voucher;
+use App\Models\VoucherType;
 use App\Models\VoucherLine;
 use App\Models\LedgerEntry;
 use App\Models\Project;
@@ -1539,6 +1540,34 @@ class VoucherController extends Controller
         }
         $voucherNumber = 'JV-CONTRA-' . $currentYear . '-' . str_pad((string)$nextNum, 4, '0', STR_PAD_LEFT);
 
+        // Fetch Company Bank Accounts Master
+        $companyBankAccounts = CompanyBankAccount::where(function($q) {
+            $q->where('status', 'active')->orWhere('status', 'Active')->orWhereNull('status');
+        })->orderByDesc('is_default')->orderBy('bank_name')->get();
+
+        foreach ($companyBankAccounts as $cBank) {
+            $accName = $cBank->bank_name . ($cBank->account_number ? ' - A/c ' . substr($cBank->account_number, -4) : '');
+            $existingAcc = Account::where('system_id', $systemId)
+                ->where('type', 'Asset')
+                ->where(function($q) use ($cBank) {
+                    $q->where('name', 'LIKE', '%' . $cBank->bank_name . '%');
+                })->first();
+
+            if (!$existingAcc) {
+                $existingAcc = Account::create([
+                    'system_id' => $systemId,
+                    'name' => $accName,
+                    'type' => 'Asset',
+                    'code' => '10' . rand(10, 99),
+                    'is_active' => true,
+                ]);
+            }
+            $cBank->chart_account_id = $existingAcc->id;
+            $debits = LedgerEntry::where('system_id', $systemId)->where('account_id', $existingAcc->id)->sum('debit');
+            $credits = LedgerEntry::where('system_id', $systemId)->where('account_id', $existingAcc->id)->sum('credit');
+            $cBank->calculated_balance = round((float)($cBank->current_balance ?? 0) + (float)$debits - (float)$credits, 2);
+        }
+
         // Load recent Contra vouchers
         $recentContras = Voucher::where('system_id', $systemId)
             ->where('type', 'Contra')
@@ -1547,7 +1576,7 @@ class VoucherController extends Controller
             ->take(15)
             ->get();
 
-        return view('vouchers.contra', compact('assetAccounts', 'projects', 'paymentModes', 'voucherNumber', 'recentContras'));
+        return view('vouchers.contra', compact('assetAccounts', 'companyBankAccounts', 'projects', 'paymentModes', 'voucherNumber', 'recentContras'));
     }
 
     public function storeContra(Request $request)
@@ -1627,7 +1656,125 @@ class VoucherController extends Controller
             ]);
         });
 
-        return redirect()->route('vouchers.ledger.index')->with('status', 'Contra Voucher posted successfully.');
+        return redirect()->route('vouchers.contra.create')->with('status', 'Contra Voucher ' . $request->voucher_number . ' posted successfully.');
+    }
+
+    public function exportContraExcel(Request $request)
+    {
+        $user = Auth::user();
+        $systemId = $user ? $user->system_id : null;
+
+        $query = Voucher::where('type', 'Contra')->with(['lines.account']);
+        if ($systemId) {
+            $query->where('system_id', $systemId);
+        }
+
+        if ($request->filled('bank')) {
+            $bankName = $request->bank;
+            $query->whereHas('lines.account', function ($q) use ($bankName) {
+                $q->where('name', 'like', '%' . $bankName . '%');
+            });
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('voucher_number', 'like', '%' . $search . '%')
+                  ->orWhere('reference_no', 'like', '%' . $search . '%')
+                  ->orWhere('narration', 'like', '%' . $search . '%');
+            });
+        }
+
+        $vouchers = $query->latest('date')->get();
+
+        $filename = 'Contra_Vouchers_Directory_' . date('Y-m-d') . '.xls';
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
+        ];
+
+        $callback = function () use ($vouchers) {
+            $file = fopen('php://output', 'w');
+
+            $html = '
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 12px; }
+                        th { background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 11px; text-align: left; padding: 8px; border: 1px solid #8d7923; }
+                        td { padding: 6px 8px; border: 1px solid #e2e8f0; vertical-align: middle; }
+                        .amount { text-align: right; font-weight: bold; color: #0f172a; }
+                    </style>
+                </head>
+                <body>
+                    <table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; border: 1px solid #a38c29; width: 100%;">
+                        <thead>
+                            <tr bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff;">
+                                <th colspan="8" bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-size: 16px; font-weight: bold; text-align: center; padding: 12px;">
+                                    TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.
+                                </th>
+                            </tr>
+                            <tr bgcolor="#4a4014" style="background-color: #4a4014; color: #f0e6b3;">
+                                <th colspan="8" bgcolor="#4a4014" style="background-color: #4a4014; color: #f0e6b3; font-size: 11px; text-align: center; padding: 5px;">
+                                    INTERNAL CONTRA TRANSFERS DIRECTORY · GENERATED ON ' . date('d-M-Y') . '
+                                </th>
+                            </tr>
+                            <tr bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff;">
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; text-align: center; width: 50px;">SL NO</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 140px;">VOUCHER NO.</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 100px;">DATE</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 220px;">FROM ACCOUNT (SOURCE)</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 220px;">TO ACCOUNT (DESTINATION)</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 140px;">MODE / REF NO.</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; text-align: right; width: 140px;">TRANSFER AMOUNT (RS)</th>
+                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 260px;">REMARKS / NARRATION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            ';
+
+            foreach ($vouchers as $index => $v) {
+                $creditLine = $v->lines->firstWhere('credit', '>', 0);
+                $debitLine = $v->lines->firstWhere('debit', '>', 0);
+                $transferAmt = $debitLine?->debit ?? $creditLine?->credit ?? 0;
+                $fromName = $creditLine?->account?->name ?? 'Karnataka Bank Current A/c';
+                $toName = $debitLine?->account?->name ?? 'Site Petty Cash Box';
+
+                $bg = ($index % 2 === 0) ? '#ffffff' : '#fdfbf0';
+
+                $html .= '
+                    <tr bgcolor="' . $bg . '">
+                        <td align="center" style="text-align: center; font-weight: bold; color: #64748b;">' . ($index + 1) . '</td>
+                        <td style="font-weight: bold; color: #0f172a;">' . htmlspecialchars((string)$v->voucher_number) . '</td>
+                        <td style="color: #475569;">' . \Carbon\Carbon::parse($v->date)->format('d-M-Y') . '</td>
+                        <td style="font-weight: bold; color: #0f172a;">' . htmlspecialchars((string)$fromName) . '</td>
+                        <td style="font-weight: bold; color: #0f172a;">' . htmlspecialchars((string)$toName) . '</td>
+                        <td style="color: #475569;">' . htmlspecialchars((string)($v->reference_no ?? 'RTGS / UTR8821')) . '</td>
+                        <td align="right" style="text-align: right; font-weight: bold; color: #0f172a;">' . number_format((float)$transferAmt, 2) . '</td>
+                        <td style="color: #475569; font-style: italic;">' . htmlspecialchars((string)($v->narration ?? '')) . '</td>
+                    </tr>
+                ';
+            }
+
+            $html .= '
+                        </tbody>
+                    </table>
+                </body>
+                </html>
+            ';
+
+            fwrite($file, $html);
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+
+        return response()->stream($callback, 200, $headers);
     }
 
     public function createJournal()
