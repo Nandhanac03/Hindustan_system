@@ -39,21 +39,25 @@ class EmiCollectionController extends Controller
             ->latest()
             ->paginate(50)->withQueryString();
 
-        $totalReceived  = Receipt::sum('amount');
-        $totalSales     = Sale::where('status', 'active')->count();
-        $totalOutstanding = Sale::where('status', 'active')->sum('remaining_balance');
+        $activeSales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'receipts' => function($q) {
+                $q->with('bank')->latest();
+            }])
+            ->where('status', 'active')
+            ->latest()
+            ->get();
+
+        $totalContractValue   = (float) Sale::where('status', 'active')->sum('total_amount');
+        $totalOutstanding     = (float) Sale::where('status', 'active')->sum('remaining_balance');
+        $totalPaidSales       = (float) $activeSales->sum(fn($s) => $s->receipts->sum('amount'));
+        $totalSales           = Sale::where('status', 'active')->count();
         $pendingPaymentsCount = Sale::where('status', 'active')->where('remaining_balance', '>', 0)->count();
+        $fullyPaidCount       = Sale::where('status', 'active')->where('remaining_balance', '<=', 0)->count();
 
         $recentBookings = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
             ->where('status', 'active')
             ->where('remaining_balance', '>', 0)
             ->latest()
             ->take(5)
-            ->get();
-
-        $activeSales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
-            ->where('status', 'active')
-            ->latest()
             ->get();
 
         foreach ($activeSales as $sale) {
@@ -76,16 +80,96 @@ class EmiCollectionController extends Controller
             $sale->next_due_amount = $nextDueAmount > 0 ? $nextDueAmount : (float)$sale->remaining_balance;
         }
 
-        $banks = Bank::where('status', 'active')->orderBy('bank_name')->get();
+        $allSalesFormatted = $activeSales->map(function ($sale) {
+            $totalPaid = (float) $sale->receipts->sum('amount');
+            $formattedUnitText = '';
+            if($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                $unitStrings = [];
+                foreach($sale->saleUnits as $su) {
+                    if($su->unit) {
+                        $door = trim(explode(',', $su->unit->door_no)[0]);
+                        $type = strtolower($su->unit->unitType?->name ?? '');
+                        if ($type === 'flat') $type = 'Apartment';
+                        elseif (strpos($type, 'parking') !== false) $type = 'Parking';
+                        else $type = ucfirst($type);
+
+                        $floor = trim($su->unit->floor?->name ?? '');
+                        if (preg_match('/^(floor|fl)\b/i', $floor)) {
+                            $floor = preg_replace('/^(floor|fl)\b/i', 'Floor', $floor);
+                        } elseif ($floor && is_numeric($floor)) {
+                            $floor = 'Floor ' . $floor;
+                        } elseif ($floor) {
+                            $floor = ucfirst($floor);
+                        }
+                        $unitStrings[] = $door . ($type ? "($type)" : "") . ($floor ? " - $floor" : "");
+                    }
+                }
+                $formattedUnitText = implode(', ', $unitStrings);
+            } elseif($sale->unit) {
+                $door = trim(explode(',', $sale->unit->door_no)[0]);
+                $type = strtolower($sale->unit->unitType?->name ?? '');
+                if ($type === 'flat') $type = 'Apartment';
+                elseif (strpos($type, 'parking') !== false) $type = 'Parking';
+                else $type = ucfirst($type);
+
+                $floor = trim($sale->unit->floor?->name ?? '');
+                if (preg_match('/^(floor|fl)\b/i', $floor)) {
+                    $floor = preg_replace('/^(floor|fl)\b/i', 'Floor', $floor);
+                } elseif ($floor && is_numeric($floor)) {
+                    $floor = 'Floor ' . $floor;
+                } elseif ($floor) {
+                    $floor = ucfirst($floor);
+                }
+                $formattedUnitText = $door . ($type ? "($type)" : "") . ($floor ? " - $floor" : "");
+            } else {
+                $formattedUnitText = '—';
+            }
+
+            return [
+                'id'                     => $sale->id,
+                'sale_number'            => $sale->sale_number,
+                'customer_id'            => $sale->customer_id,
+                'customer_name'          => $sale->customer?->name ?? 'N/A',
+                'customer_phone'         => $sale->customer?->phone ?? '',
+                'project_id'             => $sale->project_id,
+                'project_name'           => $sale->project?->name ?? 'N/A',
+                'unit_text'              => $formattedUnitText,
+                'total_amount'           => (float) $sale->total_amount,
+                'total_paid'             => $totalPaid,
+                'remaining_balance'      => (float) $sale->remaining_balance,
+                'payment_plan'           => $sale->payment_plan ?: 'emi',
+                'emi_installment_count'  => $sale->emi_installment_count ?? 12,
+                'emi_frequency'          => $sale->emi_frequency ?? 'monthly',
+                'created_date'           => $sale->created_at?->format('Y-m-d'),
+                'receipts'               => $sale->receipts->map(function($r) {
+                    return [
+                        'receipt_date' => $r->receipt_date ? \Carbon\Carbon::parse($r->receipt_date)->format('d M Y') : '—',
+                        'payment_mode' => $r->payment_mode ?: '—',
+                        'reference_no' => $r->reference_no ?: '—',
+                        'bank_name'    => $r->bank?->bank_name ?: ($r->companyBankAccount?->bank_name ?: '—'),
+                        'amount'       => (float)$r->amount,
+                    ];
+                })->values()->toArray(),
+            ];
+        });
+
+        $customers = \App\Models\Customer::orderBy('name')->get(['id', 'name', 'phone']);
+        $projects  = Project::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $banks     = Bank::where('status', 'active')->orderBy('bank_name')->get();
 
         return view('emi-collections.index', compact(
             'sales',
-            'totalReceived',
-            'totalSales',
+            'totalContractValue',
+            'totalPaidSales',
             'totalOutstanding',
+            'totalSales',
             'pendingPaymentsCount',
+            'fullyPaidCount',
             'recentBookings',
             'activeSales',
+            'allSalesFormatted',
+            'customers',
+            'projects',
             'banks'
         ));
     }

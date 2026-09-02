@@ -2,29 +2,7 @@
 
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="chequeReceiptEntryDesk()" x-init="init()">
         
-        {{-- Under Construction Notice --}}
-        <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
-            <div class="flex items-start md:items-center gap-4">
-                <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-2xl md:text-3xl">
-                    🚧
-                </div>
-                <div class="flex-1 space-y-1">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">Under Development</span>
-                        <span class="flex items-center gap-1.5 text-xs font-bold text-red-700">
-                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                            Work In Progress
-                        </span>
-                    </div>
-                    <h2 class="text-lg md:text-2xl font-black text-red-950 tracking-tight leading-snug">
-                        We're working on this module. It is not yet ready for use and will be released shortly.
-                    </h2>
-                    <p class="text-xs md:text-sm font-medium text-red-800">
-                        This module is currently being finalized. Please check back soon for full availability.
-                    </p>
-                </div>
-            </div>
-        </div>
+
         
         {{-- Flash Notifications --}}
         @if(session('success'))
@@ -67,65 +45,93 @@
             </div>
         </div>
 
-        <!-- ── TOP EXECUTIVE KPI SUMMARY CARDS GRID (WITH RICH ICONS & UNIT EXCHANGE STYLE) ── -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- ── TOP EXECUTIVE KPI SUMMARY CARDS GRID ── -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Card 1: Total Realized Collections -->
             <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'realized']) }}"
-               class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-pointer block group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>Total Realized Collections</span>
-                    <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+               class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer block">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Realized</span>
                     </div>
+                    <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                        {{ $realizedCount ?? 0 }} Cleared
+                    </span>
                 </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    ₹{{ number_format($totalCollectionAmount ?? 0, 2) }}
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                        ₹{{ number_format($totalCollectionAmount ?? 0, 2) }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">{{ $totalReceiptsCount ?? 0 }} total receipts registered</p>
                 </div>
-                <div class="text-[10px] font-medium text-slate-400">{{ $totalReceiptsCount ?? 0 }} Total Receipts Logged</div>
             </a>
 
             <!-- Card 2: Cheques Pending Clearance -->
             <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'cheques']) }}"
-               class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-pointer block group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>Cheques Pending Clearance</span>
-                    <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+               class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-pointer block">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Pending Clearance</span>
                     </div>
+                    <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                        {{ $pendingRealizationCount ?? 0 }} Pending
+                    </span>
                 </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    ₹{{ number_format($pendingRealizationAmount ?? 0, 2) }}
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300">
+                        ₹{{ number_format($pendingRealizationAmount ?? 0, 2) }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Awaiting bank deposit & realization</p>
                 </div>
-                <div class="text-[10px] font-medium text-slate-400">{{ $pendingRealizationCount ?? 0 }} Cheques Awaiting Clearance</div>
             </a>
 
             <!-- Card 3: Total Treasury Liquidity -->
-            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-blue-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>Total Treasury Liquidity</span>
-                    <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/></svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 21h18M4 18h16M6 18v-7m4 7v-7m4 7v-7m4 7v-7M4 10l8-6 8 6"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Treasury Liquidity</span>
                     </div>
+                    <span class="text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
+                        {{ count($companyBankAccounts ?? []) }} Accounts
+                    </span>
                 </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    ₹{{ number_format($totalLiquidity ?? 0, 2) }}
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                        ₹{{ number_format($totalLiquidity ?? 0, 2) }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Liquid balances in active company banks</p>
                 </div>
-                <div class="text-[10px] font-medium text-slate-400">{{ count($companyBankAccounts ?? []) }} Active Bank Accounts</div>
             </div>
 
             <!-- Card 4: Bounced Cheques -->
             <a href="{{ route('cheque-receipt-entry.index', ['tab' => 'bounced']) }}"
-               class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-rose-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-pointer block group">
-                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                    <span>Bounced Cheques</span>
-                    <div class="w-6 h-6 rounded-md bg-rose-50 text-rose-600 border border-rose-200/60 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+               class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer block">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-4 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Bounced Cheques</span>
                     </div>
+                    <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                        {{ $bouncedCount ?? 0 }} Bounced
+                    </span>
                 </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    {{ $bouncedCount ?? 0 }}
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                        ₹{{ number_format($bouncedAmount ?? 0, 2) }}
+                    </span>
+                    <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Dishonored entries requiring follow-up</p>
                 </div>
-                <div class="text-[10px] font-medium text-slate-400">₹{{ number_format($bouncedAmount ?? 0, 2) }} Total Bounced</div>
             </a>
         </div>
 
