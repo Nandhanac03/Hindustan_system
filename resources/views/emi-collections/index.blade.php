@@ -185,7 +185,7 @@
                             class="cursor-pointer transition-colors" 
                             :class="selectedSaleId == sale.id ? 'bg-[#a38c29]/10 hover:bg-[#a38c29]/15' : 'hover:bg-slate-50'">
                             <td class="px-5 py-3.5 font-bold text-[#a38c29]">
-                                <a :href="'/emi-collections/ledger/' + sale.id" class="hover:underline" @click.stop x-text="sale.sale_number"></a>
+                                <a :href="'{{ url('emi-collections/ledger') }}/' + sale.id" class="hover:underline" @click.stop x-text="sale.sale_number"></a>
                                 <template x-if="sale.payment_plan === 'emi'">
                                     <div class="mt-0.5">
                                         <span class="text-[8.5px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-150 rounded"
@@ -221,7 +221,7 @@
                                             class="px-3 py-1.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] active:scale-95 text-white text-[10px] font-extrabold rounded-lg transition shadow-2xs hover:shadow uppercase tracking-wider cursor-pointer">
                                         Collect
                                     </button>
-                                    <a :href="'/emi-collections/ledger/' + sale.id"
+                                    <a :href="'{{ url('emi-collections/ledger') }}/' + sale.id"
                                        class="px-2.5 py-1.5 bg-white border border-slate-250 hover:border-[#a38c29] text-slate-700 hover:text-[#a38c29] text-[10px] font-bold rounded-lg transition uppercase tracking-wider flex items-center gap-0.5 shadow-2xs hover:bg-slate-50">
                                         <span>EMI</span>
                                         <span>&rarr;</span>

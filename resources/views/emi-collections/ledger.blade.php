@@ -14,7 +14,7 @@
         
         <div class="flex items-center gap-2">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Select Customer / Unit:</span>
-            <select onchange="window.location.href='/emi-collections/ledger/' + this.value" 
+            <select onchange="window.location.href='{{ url('emi-collections/ledger') }}/' + this.value" 
                     class="px-3.5 py-1.5 bg-white border border-slate-200/90 focus:ring-4 focus:ring-[#a38c29]/15 focus:border-[#a38c29] rounded-xl text-xs text-slate-800 font-bold focus:outline-none transition-all shadow-xs cursor-pointer">
                 @foreach($allSales as $s)
                     <option value="{{ $s->id }}" {{ $s->id == $sale->id ? 'selected' : '' }}>
