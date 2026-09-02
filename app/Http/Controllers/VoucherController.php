@@ -1687,10 +1687,10 @@ class VoucherController extends Controller
 
         $vouchers = $query->latest('date')->get();
 
-        $filename = 'Contra_Vouchers_Directory_' . date('Y-m-d') . '.xls';
+        $filename = 'Contra_Vouchers_Directory_' . date('Y-m-d') . '.xlsx';
 
         $headers = [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
@@ -1771,8 +1771,6 @@ class VoucherController extends Controller
             fwrite($file, $html);
             fclose($file);
         };
-
-        return response()->stream($callback, 200, $headers);
 
         return response()->stream($callback, 200, $headers);
     }
