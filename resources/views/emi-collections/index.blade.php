@@ -477,20 +477,110 @@
                 
                 <form @submit.prevent="submitCollection()" novalidate class="flex flex-col">
                     <div class="p-6 md:p-7 space-y-4 max-h-[78vh] overflow-y-auto font-sans text-xs bg-white">
-                        {{-- Active Sale Field --}}
-                        <div class="space-y-1.5">
-                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Active Sale / Customer <span class="text-rose-500">*</span></label>
-                            <select x-model="form.booking_id" @change="onModalSaleSelect(); if(errors.booking_id) delete errors.booking_id;"
-                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs text-slate-900 font-bold transition-all shadow-xs cursor-pointer"
-                                    :class="errors.booking_id ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
-                                <option value="">-- Choose Active Customer & Sale --</option>
-                                <template x-for="s in activeSales" :key="s.id">
-                                    <option :value="s.id" x-text="(s.customer ? s.customer.name : '—') + ' — ' + s.sale_number + ' (' + (s.project ? s.project.name : '—') + ')'"></option>
-                                </template>
-                            </select>
+                        {{-- Active Sale / Customer Searchable Select Field --}}
+                        <div class="space-y-1.5 relative" @click.outside="modalSaleDropdownOpen = false">
+                            <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                                <span>Active Sale / Customer <span class="text-rose-500">*</span></span>
+                                <span x-show="form.booking_id" class="text-[9px] font-semibold text-emerald-600 flex items-center gap-1" style="display: none;">
+                                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    Selected
+                                </span>
+                            </label>
+
+                            {{-- Dropdown Trigger Button --}}
+                            <button type="button" 
+                                    @click="modalSaleDropdownOpen = !modalSaleDropdownOpen; if(modalSaleDropdownOpen) { modalSaleSearch = ''; $nextTick(() => $refs.modalSaleSearchInput?.focus()); }"
+                                    class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-between gap-2 cursor-pointer text-left"
+                                    :class="errors.booking_id ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : (form.booking_id ? 'bg-amber-50/30 border-[#a38c29]/50 text-slate-900' : 'text-slate-400')">
+                                
+                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center shrink-0">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    </div>
+                                    <template x-if="form.booking_id && selectedModalSaleDisplay">
+                                        <span class="truncate text-slate-900 font-bold" x-text="selectedModalSaleDisplay"></span>
+                                    </template>
+                                    <template x-if="!form.booking_id">
+                                        <span class="text-slate-400 font-medium">-- Search & Choose Active Customer & Sale --</span>
+                                    </template>
+                                </div>
+
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <template x-if="form.booking_id">
+                                        <span @click.stop="clearModalSale()" class="p-1 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Clear selection">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </span>
+                                    </template>
+                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="modalSaleDropdownOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </div>
+                            </button>
+
                             <template x-if="errors.booking_id">
                                 <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.booking_id) ? errors.booking_id[0] : errors.booking_id"></span>
                             </template>
+
+                            {{-- Dropdown Popover List --}}
+                            <div x-show="modalSaleDropdownOpen" 
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave="transition ease-in duration-100"
+                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                                 x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                                 class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden max-h-72 flex flex-col"
+                                 style="display: none;">
+                                
+                                {{-- Search Input inside Popover --}}
+                                <div class="p-2.5 bg-slate-50/90 border-b border-slate-100 sticky top-0 z-10">
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        </div>
+                                        <input type="text" 
+                                               x-model="modalSaleSearch" 
+                                               @input="modalSaleSearch = $event.target.value"
+                                               x-ref="modalSaleSearchInput"
+                                               placeholder="Type customer name, sale no, unit, or phone..." 
+                                               class="w-full pl-9 pr-3.5 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] placeholder:text-slate-400">
+                                    </div>
+                                </div>
+
+                                {{-- Results List --}}
+                                <div class="overflow-y-auto p-1.5 space-y-1 divide-y divide-slate-100 max-h-56">
+                                    <template x-for="s in filteredModalSales" :key="s.id">
+                                        <div @click="selectModalSale(s)"
+                                             class="p-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-between gap-3 text-left"
+                                             :class="form.booking_id == s.id ? 'bg-[#a38c29]/15 border border-[#a38c29]/40' : 'hover:bg-slate-50 border border-transparent'">
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center gap-2">
+                                                    <strong class="text-slate-900 font-black text-xs truncate" x-text="s.customer ? s.customer.name : 'Unknown Customer'"></strong>
+                                                    <span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[9px] font-bold" x-text="s.sale_number"></span>
+                                                </div>
+                                                <div class="text-[10px] text-slate-500 font-medium truncate mt-0.5">
+                                                    <span x-text="s.project ? s.project.name : '—'"></span>
+                                                    <template x-if="s.unit && s.unit.door_no">
+                                                        <span x-text="' · Unit ' + s.unit.door_no"></span>
+                                                    </template>
+                                                    <template x-if="s.customer && (s.customer.phone || s.customer.phone_number)">
+                                                        <span class="text-slate-400" x-text="' · 📞 ' + (s.customer.phone || s.customer.phone_number)"></span>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                            <div class="text-right shrink-0">
+                                                <span class="text-[9px] uppercase font-bold text-slate-400 block">Due Bal</span>
+                                                <strong class="text-rose-600 font-mono font-bold text-xs" x-text="'₹' + Number(s.remaining_balance || 0).toLocaleString('en-IN')"></strong>
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <div x-show="filteredModalSales.length === 0" class="py-6 px-4 text-center text-slate-400 text-xs font-semibold">
+                                        <svg class="w-7 h-7 mx-auto text-slate-300 mb-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>No active sales or customers found matching your search.</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         {{-- Info Box (Horizontal 3-column summary) --}}
@@ -661,9 +751,76 @@ function emiApp() {
         activeSales: @json($activeSales),
         selectedSaleId: '',
         selectedSale: null,
+        modalSaleSearch: '',
+        modalSaleDropdownOpen: false,
+
+        get filteredModalSales() {
+            const rawQuery = (this.modalSaleSearch || '').toString().trim();
+            if (!rawQuery) {
+                return this.activeSales;
+            }
+            const q = rawQuery.toLowerCase();
+            
+            return this.activeSales.filter(s => {
+                if (!s) return false;
+                const customerName = (s.customer && s.customer.name) ? String(s.customer.name).toLowerCase() : '';
+                const customerPhone = s.customer ? String(s.customer.phone || s.customer.phone_number || s.customer.mobile || '').toLowerCase() : '';
+                const saleNo = s.sale_number ? String(s.sale_number).toLowerCase() : '';
+                const unitDoor = (s.unit && s.unit.door_no) ? String(s.unit.door_no).toLowerCase() : '';
+                const saleUnits = (s.sale_units && s.sale_units.length) 
+                    ? s.sale_units.map(su => (su.unit && su.unit.door_no) ? String(su.unit.door_no).toLowerCase() : '').join(' ')
+                    : '';
+                const projectName = (s.project && s.project.name) ? String(s.project.name).toLowerCase() : '';
+
+                // Primary matching: Customer Name, Phone, Sale Number, Unit Number
+                const matchesPrimary = customerName.includes(q) || 
+                                       customerPhone.includes(q) || 
+                                       saleNo.includes(q) || 
+                                       unitDoor.includes(q) ||
+                                       saleUnits.includes(q);
+
+                // Project name matching only when query is 3+ letters (avoids matching all sales on common letters like 'a', 'e', 't', 'o')
+                const matchesProject = q.length >= 3 && projectName.includes(q);
+
+                return matchesPrimary || matchesProject;
+            }).sort((a, b) => {
+                const nameA = (a.customer && a.customer.name) ? String(a.customer.name).toLowerCase() : '';
+                const nameB = (b.customer && b.customer.name) ? String(b.customer.name).toLowerCase() : '';
+                const aStarts = nameA.startsWith(q);
+                const bStarts = nameB.startsWith(q);
+                if (aStarts && !bStarts) return -1;
+                if (!aStarts && bStarts) return 1;
+                return 0;
+            });
+        },
+
+        get selectedModalSaleDisplay() {
+            if (!this.form.booking_id) return '';
+            const s = this.activeSales.find(s => s.id == this.form.booking_id);
+            if (!s) return '';
+            const cust = s.customer ? s.customer.name : 'Unknown Customer';
+            const saleNo = s.sale_number || '';
+            const proj = s.project ? s.project.name : '';
+            return `${cust} — ${saleNo} (${proj})`;
+        },
+
+        selectModalSale(sale) {
+            this.form.booking_id = sale ? sale.id : '';
+            this.onModalSaleSelect();
+            if (this.errors.booking_id) delete this.errors.booking_id;
+            this.modalSaleDropdownOpen = false;
+            this.modalSaleSearch = '';
+        },
+
+        clearModalSale() {
+            this.form.booking_id = '';
+            this.onModalSaleSelect();
+            this.modalSaleSearch = '';
+            this.modalSaleDropdownOpen = false;
+        },
 
         init() {
-            @if(request()->has('open_receipt') || request()->has('open_collect') || request()->has('collect'))
+            @if(request()->has('open_collect') || request()->has('collect'))
                 const targetSaleId = '{{ request('booking_id') ?? request('sale_id') ?? '' }}';
                 if (targetSaleId) {
                     const sale = this.activeSales.find(s => s.id == targetSaleId);
@@ -777,11 +934,15 @@ function emiApp() {
             this.form.prepayment_option = 'reduce_emi';
             this.form.reschedule_option = 'extend_tenure';
             this.form.reschedule_reason = '';
+            this.modalSaleSearch = '';
+            this.modalSaleDropdownOpen = false;
             this.modal.open = true;
         },
 
         closeCollectModal() {
             this.modal.open = false;
+            this.modalSaleDropdownOpen = false;
+            this.modalSaleSearch = '';
             if (window.location.search.includes('open_receipt') || window.location.search.includes('open_collect')) {
                 history.replaceState(null, '', window.location.pathname);
             }

@@ -11,6 +11,8 @@ use App\Models\Customer;
 use App\Models\Project;
 use App\Models\PaymentMode;
 use App\Models\ChequeStatus;
+use App\Models\Sale;
+use App\Models\Bank;
 use App\Services\ChequeRealizationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -77,7 +79,17 @@ class ChequeReceiptEntryController extends Controller
                   ->orWhere('amount', 'like', "%{$search}%")
                   ->orWhere('drawee_bank', 'like', "%{$search}%")
                   ->orWhereHas('customer', function ($cq) use ($search) {
-                      $cq->where('name', 'like', "%{$search}%");
+                      $cq->where('name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('unit', function ($uq) use ($search) {
+                      $uq->where('door_no', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('project', function ($pq) use ($search) {
+                      $pq->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('sale.unit', function ($uq) use ($search) {
+                      $uq->where('door_no', 'like', "%{$search}%");
                   })
                   ->orWhereHas('companyBankAccount', function ($bq) use ($search) {
                       $bq->where('bank_name', 'like', "%{$search}%")
@@ -86,79 +98,18 @@ class ChequeReceiptEntryController extends Controller
             });
         }
 
+        if ($request->filled('date')) {
+            $query->whereDate('receipt_date', $request->input('date'));
+        }
+        if ($request->filled('receipt_date')) {
+            $query->whereDate('receipt_date', $request->input('receipt_date'));
+        }
         if ($request->filled('date_from')) {
             $query->whereDate('receipt_date', '>=', $request->input('date_from'));
         }
         if ($request->filled('date_to')) {
             $query->whereDate('receipt_date', '<=', $request->input('date_to'));
         }
-
-        $receipts = $query->paginate(20)->withQueryString();
-
-        $allReceiptsFormatted = collect($receipts->items())->map(function ($r) {
-            $bankName = $r->companyBankAccount?->bank_name ?: ($r->bank?->bank_name ?: 'General Account');
-            $accNo    = $r->companyBankAccount?->account_number;
-            $upiId    = $r->companyBankAccount?->upi_id;
-            $ifsc     = $r->companyBankAccount?->ifsc_code ?: $r->bank?->ifsc_code;
-            return [
-                'id'                          => $r->id,
-                'ref'                         => $r->reference_no ?: 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT),
-                'amount'                      => (float)$r->amount,
-                'date'                        => $r->receipt_date?->format('Y-m-d'),
-                'customer_name'               => $r->customer?->name ?? ($r->payer_name ?? ($r->sale?->customer?->name ?? 'General Payer')),
-                'payer_name'                  => $r->payer_name,
-                'customer_id'                 => $r->customer_id,
-                'payment_mode'                => $r->payment_mode,
-                'company_bank_account_id'     => $r->company_bank_account_id,
-                'company_bank_account_name'   => $bankName,
-                'company_bank_account_number' => $accNo,
-                'company_bank_account_upi_id' => $upiId,
-                'company_bank_account_ifsc'   => $ifsc,
-                'project_id'                  => $r->project_id,
-                'project_name'                => $r->project?->name ?? ($r->sale?->project?->name ?? '—'),
-                'unit_id'                     => $r->unit_id,
-                'unit_name'                   => $r->unit?->door_no ?? ($r->sale?->unit?->door_no ?? '—'),
-                'reference_no'                => $r->reference_no,
-                'remarks'                     => $r->remarks,
-                'is_allocated'                => (bool)$r->is_allocated,
-                'realization_status'          => $r->realization_status,
-                'realization_status_label'    => $r->realization_status_label,
-                'realization_status_color'    => $r->realization_status_color,
-                'is_cheque_instrument'        => $r->isChequeInstrument(),
-                'can_realize'                 => !$r->isTerminal(),
-                'can_reinitialize'            => $r->realization_status === 'bounced',
-                'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
-                'source_bank'                 => $r->drawee_bank ?: ($r->bank?->bank_name ?: 'Customer Bank / Payer Instrument'),
-                'destination_bank'            => $bankName . ($accNo ? " (A/C: {$accNo})" : ''),
-                'drawee_bank'                 => $r->drawee_bank,
-                'realized_at'                 => $r->realized_at?->format('d M Y, h:i A'),
-            ];
-        });
-
-        // Tab Metrics & Summaries
-        $totalCollectionAmount   = (float) Receipt::where('realization_status', 'realized')->sum('amount');
-        $totalReceiptsCount      = Receipt::count();
-        $pendingRealizationCount = Receipt::whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited'])->count();
-        $pendingRealizationAmount= (float) Receipt::whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited'])->sum('amount');
-        $realizedCount           = Receipt::where('realization_status', 'realized')->count();
-        $bouncedCount            = Receipt::where('realization_status', 'bounced')->count();
-        $bouncedAmount           = (float) Receipt::where('realization_status', 'bounced')->sum('amount');
-
-        $companyBankAccounts = CompanyBankAccount::orderByDesc('is_default')
-            ->orderBy('bank_name')
-            ->get();
-
-        $totalLiquidity     = $companyBankAccounts->sum('current_balance');
-        $defaultBankAccount = $companyBankAccounts->firstWhere('is_default', true);
-
-        $customers    = Customer::orderBy('name')->get(['id', 'name', 'phone']);
-        $projects     = Project::where('is_active', true)->orderBy('name')->get(['id', 'name']);
-
-        $paymentModes = class_exists(PaymentMode::class)
-            ? PaymentMode::where('status', 'active')->orderBy('name')->get(['id', 'name', 'code'])
-            : collect([]);
-
-        $realizationStatuses = Receipt::STATUSES;
 
         // Fetch dynamic Cheque Statuses from Master table (cheque_statuses)
         $chequeStatusesMaster = ChequeStatus::where('is_active', true)->orderBy('name')->get();
@@ -196,6 +147,93 @@ class ChequeReceiptEntryController extends Controller
             ];
         }
 
+        // Fetch receipts for the desk register
+        $receipts = $query->get();
+
+        $allReceiptsFormatted = $receipts->map(function ($r) use ($chequeStatusesMap) {
+            $bankName = $r->companyBankAccount?->bank_name ?: ($r->bank?->bank_name ?: 'General Account');
+            $accNo    = $r->companyBankAccount?->account_number;
+            $upiId    = $r->companyBankAccount?->upi_id;
+            $ifsc     = $r->companyBankAccount?->ifsc_code ?: $r->bank?->ifsc_code;
+
+            $rst = strtolower($r->realization_status ?? 'pending');
+            $rstMaster = $chequeStatusesMap[$rst] ?? null;
+            $badgeClasses = $rstMaster ? $rstMaster['badge_classes'] : match($rst) {
+                'realized' => 'bg-emerald-50 text-emerald-800 border-emerald-300',
+                'cheque_in_hand' => 'bg-amber-50 text-amber-800 border-amber-300',
+                'deposited' => 'bg-blue-50 text-blue-800 border-blue-300',
+                'bounced' => 'bg-rose-50 text-rose-800 border-rose-300',
+                default => 'bg-slate-100 text-slate-700 border-slate-300'
+            };
+            $statusName = $rstMaster ? $rstMaster['name'] : strtoupper(str_replace('_', ' ', $rst));
+
+            return [
+                'id'                          => $r->id,
+                'ref'                         => $r->reference_no ?: 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT),
+                'amount'                      => (float)$r->amount,
+                'date'                        => $r->receipt_date?->format('Y-m-d'),
+                'customer_name'               => $r->customer?->name ?? ($r->payer_name ?? ($r->sale?->customer?->name ?? 'General Payer')),
+                'payer_name'                  => $r->payer_name,
+                'customer_id'                 => $r->customer_id,
+                'payment_mode'                => $r->payment_mode ?: 'Cash',
+                'company_bank_account_id'     => $r->company_bank_account_id,
+                'company_bank_account_name'   => $bankName,
+                'company_bank_account_number' => $accNo,
+                'company_bank_account_upi_id' => $upiId,
+                'company_bank_account_ifsc'   => $ifsc,
+                'project_id'                  => $r->project_id,
+                'project_name'                => $r->project?->name ?? ($r->sale?->project?->name ?? '—'),
+                'unit_id'                     => $r->unit_id,
+                'unit_name'                   => $r->unit?->door_no ?? ($r->sale?->unit?->door_no ?? '—'),
+                'reference_no'                => $r->reference_no,
+                'remarks'                     => $r->remarks,
+                'is_allocated'                => (bool)$r->is_allocated,
+                'realization_status'          => $r->realization_status,
+                'status_badge_classes'        => $badgeClasses,
+                'status_display_name'         => $statusName,
+                'is_cheque_instrument'        => $r->isChequeInstrument(),
+                'can_realize'                 => !$r->isTerminal(),
+                'can_reinitialize'            => $r->realization_status === 'bounced',
+                'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
+                'source_bank'                 => $r->drawee_bank ?: ($r->bank?->bank_name ?: 'Customer Bank / Payer Instrument'),
+                'destination_bank'            => $bankName . ($accNo ? " (A/C: {$accNo})" : ''),
+                'drawee_bank'                 => $r->drawee_bank,
+                'realized_at'                 => $r->realized_at?->format('d M Y, h:i A'),
+            ];
+        });
+
+        // Tab Metrics & Summaries
+        $totalCollectionAmount   = (float) Receipt::where('realization_status', 'realized')->sum('amount');
+        $totalReceiptsCount      = Receipt::count();
+        $pendingRealizationCount = Receipt::whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited'])->count();
+        $pendingRealizationAmount= (float) Receipt::whereIn('realization_status', ['pending', 'cheque_in_hand', 'deposited'])->sum('amount');
+        $realizedCount           = Receipt::where('realization_status', 'realized')->count();
+        $bouncedCount            = Receipt::where('realization_status', 'bounced')->count();
+        $bouncedAmount           = (float) Receipt::where('realization_status', 'bounced')->sum('amount');
+
+        $companyBankAccounts = CompanyBankAccount::orderByDesc('is_default')
+            ->orderBy('bank_name')
+            ->get();
+
+        $totalLiquidity     = $companyBankAccounts->sum('current_balance');
+        $defaultBankAccount = $companyBankAccounts->firstWhere('is_default', true);
+
+        $customers    = Customer::orderBy('name')->get(['id', 'name', 'phone']);
+        $projects     = Project::where('is_active', true)->orderBy('name')->get(['id', 'name']);
+
+        $paymentModes = class_exists(PaymentMode::class)
+            ? PaymentMode::where('status', 'active')->orderBy('name')->get(['id', 'name', 'code'])
+            : collect([]);
+
+        $realizationStatuses = Receipt::STATUSES;
+
+        $activeSales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
+            ->where('status', 'active')
+            ->latest()
+            ->get();
+
+        $banks = Bank::where('status', 'active')->orderBy('bank_name')->get();
+
         return view('cheque-receipt-entry.index', compact(
             'activeTab',
             'receipts',
@@ -215,7 +253,9 @@ class ChequeReceiptEntryController extends Controller
             'paymentModes',
             'realizationStatuses',
             'chequeStatusesMaster',
-            'chequeStatusesMap'
+            'chequeStatusesMap',
+            'activeSales',
+            'banks'
         ));
     }
 
