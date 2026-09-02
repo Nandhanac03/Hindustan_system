@@ -1,868 +1,763 @@
-<x-erp-layout title="Contra Voucher Creation Workspace - HindustanERP" headerTitle="Financial Accounting Workspace">
+<x-erp-layout title="Internal Contra Transfers - HindustanERP" headerTitle="Financial Accounting Workspace">
 
-<div class="max-w-[1600px] mx-auto space-y-6" x-data="contraVoucherBlueprint()">
+<div class="max-w-[1600px] mx-auto space-y-6" x-data="contraVoucherWorkspace()">
 
-    {{-- Under Construction Notice --}}
-    <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
-        <div class="flex items-start md:items-center gap-4">
-            <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-2xl md:text-3xl">
+    {{-- Under Development Notice Banner --}}
+    <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-4 md:p-5 shadow-2xs relative overflow-hidden backdrop-blur-sm">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md text-xl">
                 🚧
             </div>
-            <div class="flex-1 space-y-1">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">Under Development</span>
+            <div class="flex-1">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white">Under Development</span>
                     <span class="flex items-center gap-1.5 text-xs font-bold text-red-700">
                         <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
                         Work In Progress
                     </span>
                 </div>
-                <h2 class="text-lg md:text-2xl font-black text-red-950 tracking-tight leading-snug">
+                <h2 class="text-sm md:text-base font-extrabold text-red-950 mt-0.5">
                     We're working on this module. It is not yet ready for use and will be released shortly.
                 </h2>
-                <p class="text-xs md:text-sm font-medium text-red-800">
-                    This module is currently being finalized. Please check back soon for full availability.
-                </p>
             </div>
         </div>
     </div>
 
-    <!-- ── 1. MODERN HEADER BAR (COMPACT & SLEEK TYPOGRAPHY) ── -->
-    <div class="bg-gradient-to-r from-white via-amber-50/20 to-white rounded-2xl border border-slate-200/90 shadow-sm p-4 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-amber-100/30 to-transparent pointer-events-none"></div>
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-[#a38c29] via-[#b89635] to-[#8a741f] text-white rounded-xl shadow-xs flex items-center justify-center shrink-0 border border-amber-300/40">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                    </svg>
-                </div>
-                <div>
-                    <nav class="flex items-center gap-2 text-xs font-semibold text-slate-400 mb-0.5 tracking-wider uppercase">
-                        <a href="/" class="hover:text-slate-600 transition">HOME</a>
-                        <span>›</span>
-                        <span>ACCOUNTING</span>
-                        <span>›</span>
-                        <span class="text-[#a38c29] font-bold">CONTRA VOUCHER</span>
-                    </nav>
-                    <h1 class="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight uppercase flex items-center gap-2.5">
-                        <span>Create Contra Voucher</span>
-                        <span class="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-amber-100/90 text-[#7a671b] border border-amber-300/80 tracking-wide">Treasury Hub</span>
-                    </h1>
-                </div>
+    <!-- ── 1. HEADER BAR WITH + ADD CONTRA ENTRY BUTTON ── -->
+    <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+            <div class="w-11 h-11 bg-slate-900 text-white rounded-xl shadow-2xs flex items-center justify-center shrink-0 border border-slate-800">
+                <svg class="w-6 h-6 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                </svg>
             </div>
-        </div>
-
-        @if ($errors->any())
-            <div class="mt-4 p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-2xl shadow-sm">
-                <ul class="list-disc list-inside space-y-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-    </div>
-
-    <!-- ── 2. MAIN FORM & SIDEBAR GRID ── -->
-    <form action="{{ route('vouchers.contra.store') }}" method="POST" enctype="multipart/form-data">
-        @csrf
-
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-            <!-- LEFT MAIN PANEL (8 COLS) -->
-            <div class="lg:col-span-8 space-y-6">
-
-                <!-- MAIN FORM CARD -->
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-lg p-6 sm:p-8 space-y-6">
-                    
-                    <!-- ── A. HEADER DETAILS ── -->
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-full bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center text-xs font-black">A</span>
-                                <span>Header & Transfer Type</span>
-                            </h3>
-                            <span class="text-[10px] font-black bg-amber-100/70 text-[#7a671b] px-2.5 py-0.5 rounded-full uppercase border border-amber-200/80">Classification</span>
-                        </div>
-
-                        <!-- Modern Visual Quick Selector Cards for Transaction Type -->
-                        <div class="space-y-2">
-                            <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Transaction Type *</label>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <button type="button" @click="transactionType = 'bank_to_bank'; onTransactionTypeChange()"
-                                        class="p-4 rounded-2xl border-2 text-left transition-all duration-200 flex items-center gap-3.5 cursor-pointer group"
-                                        :class="transactionType === 'bank_to_bank' ? 'bg-gradient-to-br from-amber-50 via-white to-amber-100/60 border-[#a38c29] shadow-sm' : 'bg-white border-slate-200 hover:border-amber-300 hover:bg-amber-50/30'">
-                                    <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center shrink-0 shadow-xs transition-transform group-hover:scale-105"
-                                         :class="transactionType === 'bank_to_bank' ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29]' : 'bg-slate-700'">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs font-black text-slate-900 block leading-tight">Bank to Bank</span>
-                                        <span class="text-[10px] font-semibold text-slate-500 block mt-0.5">Corporate Accounts</span>
-                                    </div>
-                                </button>
-
-                                <button type="button" @click="transactionType = 'cash_deposit'; onTransactionTypeChange()"
-                                        class="p-4 rounded-2xl border-2 text-left transition-all duration-200 flex items-center gap-3.5 cursor-pointer group"
-                                        :class="transactionType === 'cash_deposit' ? 'bg-gradient-to-br from-amber-50 via-white to-amber-100/60 border-[#a38c29] shadow-sm' : 'bg-white border-slate-200 hover:border-amber-300 hover:bg-amber-50/30'">
-                                    <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center shrink-0 shadow-xs transition-transform group-hover:scale-105"
-                                         :class="transactionType === 'cash_deposit' ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29]' : 'bg-slate-700'">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs font-black text-slate-900 block leading-tight">Cash Deposit</span>
-                                        <span class="text-[10px] font-semibold text-slate-500 block mt-0.5">Cash Box to Bank</span>
-                                    </div>
-                                </button>
-
-                                <button type="button" @click="transactionType = 'cash_withdrawal'; onTransactionTypeChange()"
-                                        class="p-4 rounded-2xl border-2 text-left transition-all duration-200 flex items-center gap-3.5 cursor-pointer group"
-                                        :class="transactionType === 'cash_withdrawal' ? 'bg-gradient-to-br from-amber-50 via-white to-amber-100/60 border-[#a38c29] shadow-sm' : 'bg-white border-slate-200 hover:border-amber-300 hover:bg-amber-50/30'">
-                                    <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center shrink-0 shadow-xs transition-transform group-hover:scale-105"
-                                         :class="transactionType === 'cash_withdrawal' ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29]' : 'bg-slate-700'">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
-                                    </div>
-                                    <div>
-                                        <span class="text-xs font-black text-slate-900 block leading-tight">Cash Withdrawal</span>
-                                        <span class="text-[10px] font-semibold text-slate-500 block mt-0.5">Bank to Petty Cash</span>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Hidden select bound to form model -->
-                        <input type="hidden" name="transaction_type" x-model="transactionType">
-
-                        <!-- Date, Number, & Project Row -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                            <!-- Voucher Date -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Voucher Date *</label>
-                                <input type="date" name="date" required x-model="form.date"
-                                       class="w-full h-11 bg-white border border-slate-300 text-slate-900 rounded-xl px-3 py-2 text-xs font-black focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none cursor-pointer shadow-2xs">
-                            </div>
-
-                            <!-- Voucher Number -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Voucher Number</label>
-                                <input type="text" name="voucher_number" value="{{ $voucherNumber }}" readonly
-                                       class="w-full h-11 bg-slate-100 border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-mono font-black focus:outline-none cursor-not-allowed shadow-2xs">
-                            </div>
-
-                            <!-- Project Tag -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Project Tag (Optional)</label>
-                                <select name="project_id" x-model="form.project_id" @change="updateProjectName()"
-                                        class="w-full h-11 bg-white border border-slate-300 text-slate-900 rounded-xl px-3.5 py-2 text-xs font-bold focus:border-[#a38c29] focus:outline-none cursor-pointer shadow-2xs truncate">
-                                    @if(count($projects) > 1)
-                                        <option value="">Global Treasury (No Specific Project)</option>
-                                    @endif
-                                    @foreach($projects as $p)
-                                        <option value="{{ $p->id }}" {{ count($projects) === 1 ? 'selected' : '' }}>
-                                            {{ $p->name }} ({{ $p->code ?? 'PRJ-'.$p->id }})
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ── B. TRANSFER ACCOUNTS (SOURCE & DESTINATION) ── -->
-                    <div class="space-y-4 pt-2 border-t border-slate-150">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-full bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center text-xs font-black">B</span>
-                                <span>Transfer Accounts (Source & Destination)</span>
-                            </h3>
-                            <span class="text-[10px] bg-amber-100/90 text-[#7a671b] px-2.5 py-0.5 rounded-full font-black uppercase border border-amber-200/80">Asset Accounts Only</span>
-                        </div>
-
-                        <!-- FROM & TO ACCOUNTS CONTAINER -->
-                        <div class="relative grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                            <!-- FROM ACCOUNT CARD (CREDIT / SOURCE) -->
-                            <div class="p-5 bg-gradient-to-br from-rose-50/50 via-white to-amber-50/30 rounded-2xl border-2 transition-all space-y-3"
-                                 :class="form.credit_account_id ? 'border-rose-300 shadow-sm' : 'border-slate-200'">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-black text-rose-800 uppercase tracking-widest flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
-                                        From Account (Credit / Source) *
-                                    </span>
-                                    <span class="text-[9px] font-black text-rose-700 bg-rose-100 px-2 py-0.5 rounded-full uppercase">CREDIT (CR)</span>
-                                </div>
-
-                                <select name="credit_account_id" id="credit_account_id" required x-model="form.credit_account_id" @change="updateAccounts()"
-                                        class="w-full h-11 bg-white border border-rose-200 text-slate-900 rounded-xl px-3 text-xs font-black focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 focus:outline-none cursor-pointer shadow-2xs">
-                                    <option value="">Choose Source Bank or Petty Cash Account...</option>
-                                    @foreach($assetAccounts as $acc)
-                                        <option value="{{ $acc->id }}" data-balance="{{ $acc->current_balance ?? 0 }}" data-name="{{ $acc->name }}">
-                                            {{ $acc->name }} (Available: ₹{{ number_format($acc->current_balance ?? 0, 2) }})
-                                        </option>
-                                    @endforeach
-                                </select>
-
-                                <div class="flex items-center justify-between pt-1 border-t border-rose-100/60 text-xs">
-                                    <span class="text-slate-500 font-medium">Source Available Balance:</span>
-                                    <strong class="font-mono text-sm font-black text-slate-900" x-text="'₹' + formatCurrency(fromAccountBalance)">₹0.00</strong>
-                                </div>
-                            </div>
-
-                            <!-- SWAP BUTTON (CENTER FLOATING) -->
-                            <div class="hidden md:flex absolute inset-0 items-center justify-center pointer-events-none z-10">
-                                <button type="button" @click="swapAccounts()" class="pointer-events-auto w-11 h-11 rounded-full bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white hover:from-[#8d7923] hover:to-[#8d7923] transition-all shadow-md flex items-center justify-center border-2 border-white cursor-pointer group" title="Swap Source and Destination Accounts">
-                                    <svg class="w-5 h-5 transition-transform group-hover:rotate-180 duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <!-- TO ACCOUNT CARD (DEBIT / DESTINATION) -->
-                            <div class="p-5 bg-gradient-to-br from-emerald-50/50 via-white to-amber-50/30 rounded-2xl border-2 transition-all space-y-3"
-                                 :class="form.destination_account_id ? 'border-emerald-300 shadow-sm' : 'border-slate-200'">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-[10px] font-black text-emerald-800 uppercase tracking-widest flex items-center gap-1.5">
-                                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                                        To Account (Debit / Destination) *
-                                    </span>
-                                    <span class="text-[9px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full uppercase">DEBIT (DR)</span>
-                                </div>
-
-                                <select name="destination_account_id" id="destination_account_id" required x-model="form.destination_account_id" @change="updateAccounts()"
-                                        class="w-full h-11 bg-white border border-emerald-200 text-slate-900 rounded-xl px-3 text-xs font-black focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none cursor-pointer shadow-2xs">
-                                    <option value="">Choose Destination Bank or Petty Cash Account...</option>
-                                    @foreach($assetAccounts as $acc)
-                                        <option value="{{ $acc->id }}" data-balance="{{ $acc->current_balance ?? 0 }}" data-name="{{ $acc->name }}">
-                                            {{ $acc->name }} (Available: ₹{{ number_format($acc->current_balance ?? 0, 2) }})
-                                        </option>
-                                    @endforeach
-                                </select>
-
-                                <div class="flex items-center justify-between pt-1 border-t border-emerald-100/60 text-xs">
-                                    <span class="text-slate-500 font-medium">Destination Available Balance:</span>
-                                    <strong class="font-mono text-sm font-black text-slate-900" x-text="'₹' + formatCurrency(toAccountBalance)">₹0.00</strong>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- ── C. AMOUNT & REFERENCE DETAILS ── -->
-                    <div class="space-y-4 pt-2 border-t border-slate-150">
-                        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                            <h3 class="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-full bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center text-xs">C</span>
-                                <span>Amount & Reference Details</span>
-                            </h3>
-                            <span class="text-[10px] font-bold text-slate-400 uppercase">Financial Particulars</span>
-                        </div>
-
-                        <!-- TRANSFER AMOUNT HERO INPUT -->
-                        <div class="p-5 bg-gradient-to-r from-amber-50/90 via-white to-amber-50/90 border border-amber-300/90 rounded-2xl shadow-xs space-y-3">
-                            <div class="flex items-center justify-between">
-                                <label class="text-xs font-black uppercase tracking-widest text-amber-900">Transfer Amount (Rs.) *</label>
-                                <span class="text-[10px] bg-amber-200/80 text-amber-950 px-2.5 py-0.5 rounded-md font-mono font-bold">Real-Time Treasury Verification</span>
-                            </div>
-
-                            <div class="relative">
-                                <span class="absolute left-4 top-3.5 text-[#a38c29] font-black text-2xl">₹</span>
-                                <input type="number" name="amount" required min="0.01" step="0.01" placeholder="0.00"
-                                       x-model.number="form.amount"
-                                       class="w-full bg-white border-2 border-amber-300 text-[#a38c29] text-3xl font-mono font-black rounded-xl pl-10 pr-4 py-3 focus:border-[#a38c29] focus:ring-4 focus:ring-[#a38c29]/15 focus:outline-none shadow-2xs">
-                            </div>
-
-                            <!-- Quick Preset Amount Buttons -->
-                            <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-200/60">
-                                <span class="text-[10px] font-extrabold uppercase text-slate-500 mr-1">Quick Select:</span>
-                                <button type="button" @click="form.amount = 10000" class="px-2.5 py-1 bg-white hover:bg-amber-100 text-slate-800 rounded-lg text-[10px] font-bold border border-amber-300 transition shadow-2xs cursor-pointer">+ ₹10,000</button>
-                                <button type="button" @click="form.amount = 50000" class="px-2.5 py-1 bg-white hover:bg-amber-100 text-slate-800 rounded-lg text-[10px] font-bold border border-amber-300 transition shadow-2xs cursor-pointer">+ ₹50,000</button>
-                                <button type="button" @click="form.amount = 100000" class="px-2.5 py-1 bg-white hover:bg-amber-100 text-slate-800 rounded-lg text-[10px] font-bold border border-amber-300 transition shadow-2xs cursor-pointer">+ ₹1,00,000</button>
-                                <button type="button" @click="form.amount = 500000" class="px-2.5 py-1 bg-white hover:bg-amber-100 text-slate-800 rounded-lg text-[10px] font-bold border border-amber-300 transition shadow-2xs cursor-pointer">+ ₹5,00,000</button>
-                                <button type="button" @click="form.amount = 0" class="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold border border-rose-200 transition shadow-2xs cursor-pointer">Clear</button>
-                            </div>
-                        </div>
-
-                        <!-- PAYMENT MODE & REFERENCE NUMBER -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Payment Mode -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Payment Mode *</label>
-                                <select name="payment_mode" required x-model="form.payment_mode"
-                                        class="w-full h-11 bg-white border border-slate-300 text-slate-900 rounded-xl px-3.5 text-xs font-black focus:border-[#a38c29] focus:outline-none cursor-pointer shadow-2xs">
-                                    <option value="NEFT / RTGS / IMPS">NEFT / RTGS / IMPS</option>
-                                    <option value="Cheque">Cheque</option>
-                                    <option value="Cash Withdrawal">Cash Withdrawal</option>
-                                    <option value="Cash Deposit">Cash Deposit Slip</option>
-                                    <option value="Internal Transfer">Internal Direct Transfer</option>
-                                </select>
-                            </div>
-
-                            <!-- Transaction Reference / UTR Number -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Transaction Reference / UTR Number</label>
-                                <input type="text" name="reference_no" placeholder="Bank UTR Number or Cheque Number"
-                                       x-model="form.reference_no"
-                                       class="w-full h-11 bg-white border border-slate-300 text-slate-900 rounded-xl px-3.5 text-xs font-bold focus:border-[#a38c29] focus:outline-none shadow-2xs">
-                            </div>
-                        </div>
-
-                        <!-- REMARKS & SUPPORTING DOCUMENT -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-                            <!-- Remarks / Purpose -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Remarks / Purpose *</label>
-                                <textarea name="narration" required rows="3" placeholder="e.g. Fund transfer for site payroll release or Petty cash replenishment for August."
-                                          x-model="form.narration"
-                                          class="w-full h-[96px] bg-white border border-slate-300 text-slate-900 rounded-xl p-3 text-xs font-medium focus:border-[#a38c29] focus:outline-none shadow-2xs resize-none"></textarea>
-                            </div>
-
-                            <!-- Supporting Document (D) -->
-                            <div class="space-y-1.5">
-                                <label class="text-[10px] font-black text-slate-600 uppercase tracking-widest block">Supporting Document (Upload Slip / Receipt)</label>
-                                
-                                <!-- Dropzone when no file selected -->
-                                <div x-show="!fileName" class="border-2 border-dashed border-slate-200 rounded-xl p-3 text-center bg-slate-50/50 hover:bg-white hover:border-[#a38c29] transition cursor-pointer flex flex-col items-center justify-center h-[96px] relative">
-                                    <svg class="w-6 h-6 text-[#a38c29] mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                                    <span class="text-[11px] font-bold text-slate-600 block">Upload Bank Receipt / Counterfoil Slip</span>
-                                    <span class="text-[9px] text-slate-400">PDF, PNG, JPG (Max 5MB)</span>
-                                    <input type="file" name="attachment" @change="handleFileChange($event)" class="absolute inset-0 opacity-0 cursor-pointer">
-                                </div>
-
-                                <!-- File Preview Box when file selected -->
-                                <div x-show="fileName" x-cloak class="border-2 border-amber-300 bg-amber-50/60 rounded-xl p-3 flex items-center justify-between h-[96px] relative shadow-2xs">
-                                    <div class="flex items-center gap-3 overflow-hidden">
-                                        <div class="w-9 h-9 rounded-lg bg-[#a38c29] text-white flex items-center justify-center shrink-0 shadow-2xs">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        </div>
-                                        <div class="overflow-hidden space-y-0.5">
-                                            <span class="text-xs font-black text-slate-900 block truncate" x-text="fileName">File Selected</span>
-                                            <span class="text-[10px] font-mono text-amber-800 block font-bold" x-text="'File Size: ' + fileSize">File Size: 0 MB</span>
-                                        </div>
-                                    </div>
-                                    <button type="button" @click="clearFile()" class="p-1.5 rounded-lg bg-rose-100 text-rose-700 hover:bg-rose-600 hover:text-white transition shrink-0 z-20 cursor-pointer" title="Remove File">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- FORM ACTIONS -->
-                    <div class="pt-4 border-t border-slate-150 flex items-center justify-end gap-3">
-                        <a href="{{ route('vouchers.contra.create') }}" class="px-6 py-3 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-black uppercase tracking-wider rounded-xl transition">
-                            Reset Form
-                        </a>
-                        <button type="submit"
-                                class="px-8 py-3.5 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] hover:from-[#8d7923] hover:to-[#8d7923] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2.5 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>Save Contra Voucher</span>
-                        </button>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <!-- RIGHT SIDEBAR PANEL: AUTOMATED SYSTEM LOGIC (4 COLS) -->
-            <div class="lg:col-span-4 space-y-6 sticky top-6">
-
-                <!-- ── 5. REAL-TIME BALANCE CHECK (LIGHT GOLD TREASURY SAFEGUARD) ── -->
-                <div class="rounded-3xl border transition-all duration-300 shadow-2xs p-5 space-y-4 overflow-hidden relative"
-                     :class="!form.credit_account_id ? 'bg-gradient-to-br from-amber-50/90 via-white to-amber-100/40 text-slate-900 border-amber-300/80' : (balanceCheckStatus ? 'bg-gradient-to-br from-emerald-50/90 via-white to-emerald-50/60 text-slate-900 border-emerald-300' : 'bg-gradient-to-br from-rose-50/90 via-white to-rose-50/60 text-slate-900 border-rose-300')">
-
-                    <!-- Ambient Background Glow -->
-                    <div class="absolute -top-16 -right-16 w-36 h-36 rounded-full blur-2xl pointer-events-none transition-colors duration-500"
-                         :class="!form.credit_account_id ? 'bg-amber-400/20' : (balanceCheckStatus ? 'bg-emerald-400/20' : 'bg-rose-400/20')"></div>
-
-                    <!-- Card Header / Title -->
-                    <div class="flex items-center justify-between relative z-10 border-b pb-3"
-                         :class="!form.credit_account_id ? 'border-amber-200/80' : (balanceCheckStatus ? 'border-emerald-200' : 'border-rose-200')">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4" :class="!form.credit_account_id ? 'text-[#a38c29]' : (balanceCheckStatus ? 'text-emerald-600' : 'text-rose-600')" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                            </svg>
-                            <span class="text-[10px] font-black uppercase tracking-widest"
-                                  :class="!form.credit_account_id ? 'text-slate-800' : (balanceCheckStatus ? 'text-emerald-950' : 'text-rose-950')">
-                                Real-Time Balance Safeguard
-                            </span>
-                        </div>
-                        <template x-if="!form.credit_account_id">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-amber-100/90 text-[#7a671b] border border-amber-300/80">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                                Select Source
-                            </span>
-                        </template>
-                        <template x-if="form.credit_account_id && balanceCheckStatus">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-emerald-100 text-emerald-800 border border-emerald-300">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Funds Verified
-                            </span>
-                        </template>
-                        <template x-if="form.credit_account_id && !balanceCheckStatus">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-rose-100 text-rose-800 border border-rose-300">
-                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
-                                Deficit Warning
-                            </span>
-                        </template>
-                    </div>
-
-                    <!-- Main Status Banner Display -->
-                    <div class="flex items-start gap-3.5 relative z-10">
-                        <div class="p-2.5 rounded-2xl text-white shrink-0 shadow-2xs"
-                             :class="!form.credit_account_id ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29]' : (balanceCheckStatus ? 'bg-gradient-to-br from-emerald-500 to-teal-700' : 'bg-gradient-to-br from-rose-500 to-red-700')">
-                            <template x-if="!form.credit_account_id">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            </template>
-                            <template x-if="form.credit_account_id && balanceCheckStatus">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            </template>
-                            <template x-if="form.credit_account_id && !balanceCheckStatus">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                            </template>
-                        </div>
-                        <div class="space-y-1">
-                            <h4 class="text-xs font-black uppercase tracking-wide"
-                                :class="!form.credit_account_id ? 'text-[#7a671b]' : (balanceCheckStatus ? 'text-emerald-900' : 'text-rose-900')"
-                                x-text="!form.credit_account_id ? 'Source Account Pending' : (balanceCheckStatus ? 'Sufficient Balance Available' : 'Insufficient Balance in Source Account')">
-                                Sufficient Balance Available
-                            </h4>
-                            <p class="text-[11px] font-medium leading-relaxed text-slate-700"
-                               x-text="!form.credit_account_id ? 'Select the source account above to trigger real-time liquidity verification.' : (balanceCheckStatus ? 'The source account has enough available balance for this transfer.' : 'Critical: The transfer amount exceeds available funds in the source account.')">
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Live Treasury Impact Metrics (Grid & Progress Bar) -->
-                    <div class="pt-3 border-t space-y-3 relative z-10" x-show="form.credit_account_id"
-                         :class="!form.credit_account_id ? 'border-amber-200' : (balanceCheckStatus ? 'border-emerald-200' : 'border-rose-200')">
-                        <!-- 3-Column Metrics Breakdown -->
-                        <div class="grid grid-cols-3 gap-2 text-center p-2.5 rounded-2xl border"
-                             :class="!form.credit_account_id ? 'bg-amber-100/50 border-amber-200/80 text-slate-900' : (balanceCheckStatus ? 'bg-emerald-100/40 border-emerald-200 text-slate-900' : 'bg-rose-100/40 border-rose-200 text-slate-900')">
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-500 uppercase block">Source Avail.</span>
-                                <span class="text-xs font-mono font-black text-slate-900 block mt-0.5" x-text="'₹' + formatCurrency(fromAccountBalance)">₹0.00</span>
-                            </div>
-                            <div class="border-x px-1" :class="!form.credit_account_id ? 'border-amber-200' : (balanceCheckStatus ? 'border-emerald-200' : 'border-rose-200')">
-                                <span class="text-[9px] font-bold text-[#a38c29] uppercase block">Transfer Amt</span>
-                                <span class="text-xs font-mono font-black text-[#a38c29] block mt-0.5" x-text="'₹' + formatCurrency(form.amount)">₹0.00</span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] font-bold uppercase block" :class="remainingBalance >= 0 ? 'text-emerald-700' : 'text-rose-700'">Post Transfer</span>
-                                <span class="text-xs font-mono font-black block mt-0.5"
-                                      :class="remainingBalance >= 0 ? 'text-emerald-800' : 'text-rose-700'"
-                                      x-text="'₹' + formatCurrency(remainingBalance)">₹0.00</span>
-                            </div>
-                        </div>
-
-                        <!-- Liquidity Usage Gauge -->
-                        <div class="space-y-1">
-                            <div class="flex justify-between items-center text-[10px] font-bold text-slate-600">
-                                <span>Liquidity Utilization Gauge</span>
-                                <span class="font-mono font-black" :class="usagePercentage > 100 ? 'text-rose-700' : (usagePercentage > 85 ? 'text-amber-800' : 'text-emerald-700')" x-text="usagePercentage + '%'">0%</span>
-                            </div>
-                            <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200">
-                                <div class="h-full rounded-full transition-all duration-500"
-                                     :style="'width: ' + Math.min(usagePercentage, 100) + '%'"
-                                     :class="usagePercentage > 100 ? 'bg-gradient-to-r from-rose-500 to-red-600' : (usagePercentage > 85 ? 'bg-gradient-to-r from-amber-400 to-amber-600' : 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29]')"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- ── DOUBLE-ENTRY JOURNAL IMPACT ── -->
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                        <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <span>Double-Entry Journal (Auto)</span>
-                        </h3>
-                        <span class="text-[9px] bg-amber-100 text-[#a38c29] px-2 py-0.5 rounded font-black uppercase">System Generated</span>
-                    </div>
-
-                    <div class="space-y-3 text-xs">
-                        <!-- Debit Entry Box (To Account) -->
-                        <div class="p-3.5 bg-emerald-50/60 border border-emerald-200/70 rounded-2xl space-y-1">
-                            <div class="flex justify-between items-center text-[10px] font-black uppercase text-emerald-800">
-                                <span>DEBIT (DR) · TO ACCOUNT</span>
-                                <span>Receiver (+ Asset)</span>
-                            </div>
-                            <strong class="text-slate-900 block font-black text-xs truncate" x-text="toAccountName || 'To Account Not Selected'">To Account Not Selected</strong>
-                            <div class="text-right font-mono font-black text-emerald-700 text-sm" x-text="'+ ₹' + formatCurrency(form.amount || 0)">+ ₹0.00</div>
-                        </div>
-
-                        <!-- Credit Entry Box (From Account) -->
-                        <div class="p-3.5 bg-rose-50/60 border border-rose-200/70 rounded-2xl space-y-1">
-                            <div class="flex justify-between items-center text-[10px] font-black uppercase text-rose-800">
-                                <span>CREDIT (CR) · FROM ACCOUNT</span>
-                                <span>Giver (- Asset)</span>
-                            </div>
-                            <strong class="text-slate-900 block font-black text-xs truncate" x-text="fromAccountName || 'From Account Not Selected'">From Account Not Selected</strong>
-                            <div class="text-right font-mono font-black text-rose-700 text-sm" x-text="'- ₹' + formatCurrency(form.amount || 0)">- ₹0.00</div>
-                        </div>
-
-                        <!-- Total Balanced Indicator Bar -->
-                        <div class="p-3 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white rounded-2xl flex items-center justify-between font-mono text-xs shadow-2xs">
-                            <span class="text-[10px] uppercase font-black text-amber-100 tracking-wider">DOUBLE ENTRY</span>
-                            <span class="font-black text-white">BALANCED MATCH</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- OVERVIEW SUMMARY CARD -->
-                <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-5 space-y-3">
-                    <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
-                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span>Voucher Overview</span>
-                    </h3>
-
-                    <div class="space-y-2 text-[11px] font-semibold text-slate-600">
-                        <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                            <span>Voucher Date:</span>
-                            <strong class="text-slate-900 font-mono" x-text="form.date">2026-08-31</strong>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                            <span>Voucher Ref:</span>
-                            <strong class="text-slate-900 font-mono">{{ $voucherNumber }}</strong>
-                        </div>
-                        <div class="flex justify-between border-b border-slate-100 pb-1.5">
-                            <span>Payment Mode:</span>
-                            <strong class="text-slate-900" x-text="form.payment_mode">NEFT / RTGS / IMPS</strong>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Project Tag:</span>
-                            <strong class="text-slate-900 truncate max-w-[180px]" x-text="projectName || 'Global Treasury'">Global Treasury</strong>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </form>
-
-    <!-- ── 4. TABULAR SUMMARY (RECENT CONTRA VOUCHERS TABLE) ── -->
-    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-4 mt-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
             <div>
-                <h2 class="text-base font-black text-slate-900 tracking-tight uppercase flex items-center gap-2">
-                    <svg class="w-5 h-5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>Recent Contra Vouchers Table</span>
-                </h2>
-                <p class="text-xs text-slate-500 font-medium">Tabular summary of recent bank transfers, cash deposits, and withdrawals</p>
+                <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>Internal Contra Transfers</span>
+                </h1>
+                <p class="text-xs font-semibold text-slate-500">Bank to Bank Transfers, Cash Deposits & Cash Withdrawals</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 shrink-0">
+            <span class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-mono font-bold flex items-center gap-2">
+                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>{{ date('d-M-Y') }}</span>
+            </span>
+
+            <!-- + ADD CONTRA ENTRY BUTTON (OPENS FORM MODAL) -->
+            <button type="button" @click="showFormModal = true" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 border border-[#a38c29]/40 cursor-pointer">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"/></svg>
+                <span>ADD CONTRA ENTRY</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── 2. DEFAULT MAIN PAGE DISPLAY: DIRECTORY TABLE & FILTER CARD ── -->
+    <div class="space-y-4">
+        
+        <!-- TOP FILTER CONTROL CARD -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-2xs">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                </svg>
+                <h3 class="text-xs font-black text-slate-700 uppercase tracking-wider">SELECT BANK ACCOUNT / FILTER FOR CONTRA VOUCHERS</h3>
             </div>
 
-            <div class="relative w-full sm:w-72">
-                <input type="text" x-model="searchQuery" placeholder="Search by Voucher No., Account, Amount..."
-                       class="w-full h-9 bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 text-xs font-semibold focus:border-[#a38c29] focus:outline-none">
-                <div class="absolute inset-y-0 left-0 flex items-center px-3 text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <div class="flex flex-col md:flex-row items-center gap-3">
+                <!-- SELECT BANK ACCOUNT FILTER -->
+                <div class="w-full md:w-1/3">
+                    <select x-model="selectedBankFilter" @change="currentPage = 1"
+                            class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3.5 text-xs font-bold text-slate-800 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition shadow-2xs truncate">
+                        <option value="">— All Bank Accounts & Cash Boxes —</option>
+                        @php
+                            $allBankNames = collect();
+                            if(isset($companyBankAccounts)) {
+                                foreach($companyBankAccounts as $b) {
+                                    $allBankNames->push($b->bank_name);
+                                }
+                            }
+                            if(isset($assetAccounts)) {
+                                foreach($assetAccounts as $a) {
+                                    $allBankNames->push($a->name);
+                                }
+                            }
+                            $uniqueBanks = $allBankNames->unique()->sort();
+                        @endphp
+                        @foreach($uniqueBanks as $bName)
+                            <option value="{{ $bName }}">{{ $bName }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- SEARCH INPUT BAR -->
+                <div class="w-full md:w-1/3">
+                    <input type="text" x-model="searchQuery" @input="currentPage = 1" placeholder="Search by Voucher No., Ref No., Particulars..."
+                           class="w-full h-11 bg-slate-50 border border-slate-200 rounded-xl px-3.5 text-xs font-bold text-slate-800 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition shadow-2xs">
+                </div>
+
+                <!-- ACTION BUTTONS GRID -->
+                <div class="w-full md:w-1/3 flex items-center gap-2">
+                    <button type="button" @click="currentPage = 1" class="flex-1 h-11 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer border border-[#a38c29]/40">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        <span>SEARCH</span>
+                    </button>
+                    <button type="button" @click="printTable()" class="px-4 h-11 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-black uppercase tracking-wider rounded-xl transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        <span>PRINT</span>
+                    </button>
+                    <button type="button" @click="exportExcel()" class="px-4 h-11 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        <span>EXCEL</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto border border-slate-200/80 rounded-2xl">
-            <table class="w-full text-left border-collapse text-xs">
-                <thead class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white text-[10px] font-black uppercase tracking-widest">
-                    <tr>
-                        <th class="px-4 py-3.5 text-white">Voucher No.</th>
-                        <th class="px-4 py-3.5 text-white">Date</th>
-                        <th class="px-4 py-3.5 text-white">From Account (Source)</th>
-                        <th class="px-4 py-3.5 text-white">To Account (Destination)</th>
-                        <th class="px-4 py-3.5 text-white">Mode / Ref No.</th>
-                        <th class="px-4 py-3.5 text-right text-white">Transfer Amount (Rs.)</th>
-                        <th class="px-4 py-3.5 text-center text-white">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 font-semibold text-slate-800 bg-white">
-                    @forelse($recentContras as $v)
-                        @php
-                            $creditLine = $v->lines->firstWhere('credit', '>', 0);
-                            $debitLine = $v->lines->firstWhere('debit', '>', 0);
-                            $transferAmt = $debitLine?->debit ?? $creditLine?->credit ?? 0;
-                        @endphp
-                        <tr class="hover:bg-amber-50/40 transition-colors">
-                            <td class="px-4 py-3.5 font-mono font-black text-slate-900 whitespace-nowrap">
-                                {{ $v->voucher_number }}
-                            </td>
-                            <td class="px-4 py-3.5 whitespace-nowrap text-slate-600">
-                                {{ \Carbon\Carbon::parse($v->date)->format('d-M-Y') }}
-                            </td>
-                            <td class="px-4 py-3.5 font-bold text-rose-800 whitespace-nowrap">
-                                {{ $creditLine?->account?->name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3.5 font-bold text-emerald-800 whitespace-nowrap">
-                                {{ $debitLine?->account?->name ?? '—' }}
-                            </td>
-                            <td class="px-4 py-3.5 text-slate-600 whitespace-nowrap">
-                                <span class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-[10px] font-bold">
-                                    {{ $v->reference_no ?? 'Direct Transfer' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">
-                                Rs. {{ number_format($transferAmt, 2) }}
-                            </td>
-                            <td class="px-4 py-3.5 text-center whitespace-nowrap">
-                                <button type="button" @click='openSlipModal({{ json_encode([
-                                    "id" => $v->id,
-                                    "voucher_number" => $v->voucher_number,
-                                    "date" => \Carbon\Carbon::parse($v->date)->format("d-M-Y"),
-                                    "from_account" => $creditLine?->account?->name ?? "—",
-                                    "to_account" => $debitLine?->account?->name ?? "—",
-                                    "reference_no" => $v->reference_no ?? "Direct Transfer",
-                                    "amount" => (float) $transferAmt,
-                                    "narration" => $v->narration ?? "Internal contra transfer posting.",
-                                    "project_name" => $v->project?->name ?? "Global Treasury"
-                                ]) }})' class="px-3 py-1.5 bg-amber-100/90 text-[#7a671b] hover:bg-[#a38c29] hover:text-white rounded-xl text-[10px] font-black uppercase transition border border-amber-300/80 shadow-2xs flex items-center gap-1.5 mx-auto cursor-pointer">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    <span>View Voucher</span>
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-slate-400 font-bold">
-                                No contra transfer vouchers recorded yet.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- ── 5. CONTRA VOUCHER SLIP / RECEIPT MODAL (SINGLE-PAGE PRINTABLE) ── -->
-    <div x-show="showSlipModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
-         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-        
-        <div id="printable-slip-modal" class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]"
-             @click.away="closeSlipModal()">
+        <!-- DIRECTORY TABLE CONTAINER WITH GOLD HEADER BAR -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs space-y-0">
             
-            <!-- Dark Header Matched Exactly with Add New Unit Modal -->
-            <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between gap-4">
-                    <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. · CONTRA VOUCHER</p>
-                        <h2 class="text-lg font-extrabold text-white flex items-center gap-3">
-                            <span>Internal Contra Transfer Voucher Slip</span>
-                            <span class="text-xs font-mono font-black px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30" x-text="activeSlip?.voucher_number"></span>
-                        </h2>
-                    </div>
-                    <button type="button" @click.stop="closeSlipModal()" class="text-slate-400 hover:text-white transition cursor-pointer p-1 no-print">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <!-- GOLD BANNER HEADER BAR -->
+            <div class="bg-[#a38c29] text-white px-5 py-3.5 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xs sm:text-sm font-black uppercase tracking-wider">ALL CONTRA ENTRIES DIRECTORY</h3>
+                    <p class="text-[11px] text-amber-100 font-medium">Overview of digital fund movements, cash deposits, and petty cash replenishments.</p>
+                </div>
+                <span class="px-3 py-1 rounded-lg bg-[#8a7522] border border-amber-300/30 text-white text-xs font-mono font-black uppercase tracking-widest shadow-2xs" x-text="filteredContras.length + ' CONTRA VOUCHERS'">
+                    15 CONTRA VOUCHERS
+                </span>
+            </div>
+
+            <!-- TABLE CONTENT -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-[#a38c29] text-white text-[10px] sm:text-[11px] font-black uppercase tracking-widest border-b-2 border-[#8a7522]">
+                        <tr>
+                            <th class="px-4 py-3.5 text-white">SL NO</th>
+                            <th class="px-4 py-3.5 text-white">VOUCHER NO.</th>
+                            <th class="px-4 py-3.5 text-white">DATE</th>
+                            <th class="px-4 py-3.5 text-white">FROM ACCOUNT (SOURCE)</th>
+                            <th class="px-4 py-3.5 text-white">TO ACCOUNT (DESTINATION)</th>
+                            <th class="px-4 py-3.5 text-white">MODE / REF NO.</th>
+                            <th class="px-4 py-3.5 text-right text-white">TRANSFER AMOUNT (₹)</th>
+                            <th class="px-4 py-3.5 text-center text-white">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-800 bg-white">
+                        <template x-for="(item, index) in paginatedContras" :key="item.id || item.voucher_number">
+                            <tr class="hover:bg-amber-50/20 bg-white transition">
+                                <td class="px-4 py-3.5 font-mono font-bold text-slate-500" x-text="(currentPage - 1) * pageSize + index + 1"></td>
+                                <td class="px-4 py-3.5 font-mono font-bold text-slate-900" x-text="item.voucher_number"></td>
+                                <td class="px-4 py-3.5 text-slate-600 font-semibold" x-text="item.date"></td>
+                                <td class="px-4 py-3.5 font-bold text-slate-900" x-text="item.from_account"></td>
+                                <td class="px-4 py-3.5 font-bold text-slate-900" x-text="item.to_account"></td>
+                                <td class="px-4 py-3.5 text-slate-600 font-semibold" x-text="item.reference_no || 'RTGS / UTR8821'"></td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-slate-900 text-sm" x-text="'₹ ' + formatCurrency(item.amount)"></td>
+                                <td class="px-4 py-3.5 text-center">
+                                    <button type="button" @click="openSlipModal(item)" title="View Slip" class="w-8 h-8 rounded-xl bg-amber-50 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-amber-200/80 transition flex items-center justify-center mx-auto shadow-2xs cursor-pointer group">
+                                        <svg class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <tr x-show="filteredContras.length === 0">
+                            <td colspan="8" class="px-4 py-8 text-center text-slate-400 font-bold">
+                                No contra voucher records match your search or filter criteria.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- FOOTER PAGINATION BAR -->
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="text-xs font-semibold text-slate-500">
+                    Showing <span class="font-bold text-slate-900" x-text="paginationStart"></span> to <span class="font-bold text-slate-900" x-text="paginationEnd"></span> of <span class="font-bold text-slate-900" x-text="filteredContras.length"></span> entries
+                </div>
+
+                <div class="flex items-center gap-1.5 shrink-0">
+                    <button type="button" @click="if(currentPage > 1) currentPage--" :disabled="currentPage === 1"
+                            class="px-3.5 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
+                        ← Previous
+                    </button>
+                    
+                    <template x-for="p in totalPages" :key="p">
+                        <button type="button" @click="currentPage = p"
+                                class="w-8 h-8 rounded-xl text-xs font-black transition cursor-pointer"
+                                :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-2xs' : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-100'"
+                                x-text="p"></button>
+                    </template>
+
+                    <button type="button" @click="if(currentPage < totalPages) currentPage++" :disabled="currentPage === totalPages"
+                            class="px-3.5 py-1.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer">
+                        Next →
                     </button>
                 </div>
             </div>
 
-            <!-- Modal Content Body -->
-            <div class="p-6 sm:p-8 space-y-6 overflow-y-auto">
-
-                <template x-if="activeSlip">
-                    <div class="space-y-6">
-
-                        <!-- Voucher Metadata Cards Row -->
-                        <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
-                            <div class="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50/70 border-b border-slate-100">
-                                <div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Status</div>
-                                    <div class="mt-1 inline-flex px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-extrabold uppercase">POSTED & VERIFIED</div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Voucher Date</div>
-                                    <div class="mt-1 text-xs sm:text-sm font-black text-slate-900" x-text="activeSlip.date"></div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mode / Ref No.</div>
-                                    <div class="mt-1 text-xs sm:text-sm font-mono font-black text-slate-900 truncate" x-text="activeSlip.reference_no"></div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Project Tag</div>
-                                    <div class="mt-1 text-xs sm:text-sm font-bold text-slate-900 truncate" x-text="activeSlip.project_name"></div>
-                                </div>
-                            </div>
-
-                            <!-- Double-Entry Journal Lines Table (System Matched) -->
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse text-xs">
-                                    <thead>
-                                        <tr class="bg-slate-100/80 border-b border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest">
-                                            <th class="px-5 py-3 text-slate-600">#</th>
-                                            <th class="px-5 py-3 text-slate-600">Ledger Account</th>
-                                            <th class="px-5 py-3 text-slate-600">Entry Particulars</th>
-                                            <th class="px-5 py-3 text-right text-emerald-800">Debit (DR)</th>
-                                            <th class="px-5 py-3 text-right text-rose-800">Credit (CR)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 text-xs text-slate-800 font-medium">
-                                        <!-- Destination Account (Debit) -->
-                                        <tr class="bg-emerald-50/40 hover:bg-emerald-50/70 transition">
-                                            <td class="px-5 py-3.5 text-slate-400 font-mono">1</td>
-                                            <td class="px-5 py-3.5 font-black text-slate-900" x-text="activeSlip.to_account"></td>
-                                            <td class="px-5 py-3.5 text-emerald-800 font-bold">
-                                                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] uppercase font-black">Destination Account · DR</span>
-                                            </td>
-                                            <td class="px-5 py-3.5 text-right font-mono font-black text-emerald-700">
-                                                ₹<span x-text="formatCurrency(activeSlip.amount)"></span>
-                                            </td>
-                                            <td class="px-5 py-3.5 text-right font-mono text-slate-300">—</td>
-                                        </tr>
-                                        <!-- Source Account (Credit) -->
-                                        <tr class="bg-rose-50/40 hover:bg-rose-50/70 transition">
-                                            <td class="px-5 py-3.5 text-slate-400 font-mono">2</td>
-                                            <td class="px-5 py-3.5 font-black text-slate-900" x-text="activeSlip.from_account"></td>
-                                            <td class="px-5 py-3.5 text-rose-800 font-bold">
-                                                <span class="px-2 py-0.5 bg-rose-100 text-rose-800 rounded text-[10px] uppercase font-black">Source Account · CR</span>
-                                            </td>
-                                            <td class="px-5 py-3.5 text-right font-mono text-slate-300">—</td>
-                                            <td class="px-5 py-3.5 text-right font-mono font-black text-rose-700">
-                                                ₹<span x-text="formatCurrency(activeSlip.amount)"></span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                    <tfoot>
-                                        <tr class="bg-amber-50/80 border-t-2 border-slate-200 text-xs font-black">
-                                            <td colspan="3" class="px-5 py-3.5 text-slate-800 uppercase tracking-wider">Total Balanced Journal Entry</td>
-                                            <td class="px-5 py-3.5 text-right font-mono text-emerald-700 font-black">₹<span x-text="formatCurrency(activeSlip.amount)"></span></td>
-                                            <td class="px-5 py-3.5 text-right font-mono text-rose-700 font-black">₹<span x-text="formatCurrency(activeSlip.amount)"></span></td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-
-                            <!-- Remarks / Narration -->
-                            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Remarks / Purpose</div>
-                                <div class="text-xs text-slate-800 font-medium" x-text="activeSlip.narration || 'Internal contra fund transfer.'"></div>
-                            </div>
-                        </div>
-
-                        <!-- Signature Authorization Row -->
-                        <div class="grid grid-cols-3 gap-6 pt-6 border-t border-slate-200 text-center text-[10px] font-black text-slate-500 uppercase tracking-wider">
-                            <div>
-                                <div class="h-12 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
-                                <span>Prepared By</span>
-                            </div>
-                            <div>
-                                <div class="h-12 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
-                                <span>Verified By</span>
-                            </div>
-                            <div>
-                                <div class="h-12 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
-                                <span>Authorised Signatory</span>
-                            </div>
-                        </div>
-
-                    </div>
-                </template>
-
-                <!-- Action Buttons Footer (Hidden during Print) -->
-                <div class="pt-4 border-t border-slate-150 flex items-center justify-between gap-3 no-print">
-                    <a :href="'{{ route('vouchers.ledger.index') }}?voucher_id=' + (activeSlip ? activeSlip.id : '') + '&voucher_type=Contra'"
-                       target="_blank" rel="noopener noreferrer"
-                       class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-2">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
-                        <span>View Ledger Directory</span>
-                    </a>
-
-                    <div class="flex items-center gap-2">
-                        <button type="button" @click="printSlip()"
-                                class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] hover:from-[#8d7923] hover:to-[#8d7923] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                            <span>Print Voucher Slip</span>
-                        </button>
-                        <button type="button" @click.stop="closeSlipModal()"
-                                class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition cursor-pointer">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 
-    <!-- ── 6. SINGLE-PAGE PRINT MEDIA CSS STYLES ── -->
-    <style type="text/css">
-    @media print {
-        body * {
-            visibility: hidden !important;
-        }
-        #printable-slip-modal, #printable-slip-modal * {
-            visibility: visible !important;
-        }
-        #printable-slip-modal {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            overflow: visible !important;
-            background: white !important;
-            box-shadow: none !important;
-            border: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        .no-print {
-            display: none !important;
-        }
-        html, body {
-            background: white !important;
-            height: auto !important;
-            overflow: visible !important;
-        }
-        @page {
-            size: portrait;
-            margin: 12mm;
-        }
-    }
-    </style>
+    <!-- ── 3. ADD CONTRA ENTRY FORM MODAL (POPUP DIALOG) ── -->
+    <div x-show="showFormModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95">
+        
+        <div class="bg-white rounded-3xl shadow-2xl max-w-[1400px] w-full overflow-hidden border border-slate-100 flex flex-col max-h-[96vh]"
+             @click.away="showFormModal = false">
+            
+            <!-- MODAL HEADER BAR -->
+            <div class="bg-slate-900 px-5 py-3.5 border-b border-[#a38c29]/30 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-[#a38c29] text-white font-bold flex items-center justify-center text-sm shadow-2xs">
+                        +
+                    </div>
+                    <div>
+                        <h2 class="text-sm sm:text-base font-extrabold text-white uppercase tracking-wider">Add Contra Entry</h2>
+                        <p class="text-[11px] text-slate-400 font-medium">Record internal bank transfers, cash deposits, or cash withdrawals.</p>
+                    </div>
+                </div>
+                <button type="button" @click="showFormModal = false" class="w-8 h-8 rounded-full bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white flex items-center justify-center transition cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- MODAL BODY FORM -->
+            <form action="{{ route('vouchers.contra.store') }}" method="POST" enctype="multipart/form-data" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 bg-slate-50/50">
+                @csrf
+
+                <!-- Top Row: Date, Voucher Number, Project Tag -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Voucher Date <span class="text-rose-500">*</span></label>
+                        <input type="date" name="date" required x-model="form.date"
+                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Voucher Number</label>
+                        <input type="text" name="voucher_number" value="{{ $voucherNumber }}" readonly
+                               class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none cursor-not-allowed">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Project Tag (Optional)</label>
+                        <select name="project_id" x-model="form.project_id" @change="updateProjectName()"
+                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                            @if(count($projects) > 1)
+                                <option value="">Select Project / Global Treasury</option>
+                            @endif
+                            @foreach($projects as $p)
+                                <option value="{{ $p->id }}" {{ count($projects) === 1 ? 'selected' : '' }}>
+                                    {{ $p->name }} ({{ $p->code ?? 'PRJ-'.$p->id }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <!-- SECTION 1 & 2 GRID: TRANSACTION TYPE & TRANSFER ACCOUNTS -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                    
+                    <!-- 1. TRANSACTION TYPE (4 COLS) -->
+                    <div class="md:col-span-4 p-4 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-2xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-[#a38c29] text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
+                            <label class="text-xs font-extrabold text-slate-900 uppercase">Transaction Type <span class="text-rose-500">*</span></label>
+                        </div>
+
+                        <select name="transaction_type" x-model="transactionType" @change="onTransactionTypeChange()"
+                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                            <option value="bank_to_bank">Bank to Bank Transfer</option>
+                            <option value="cash_withdrawal">Bank Cash Withdrawal (Site Petty Cash Box Refill)</option>
+                            <option value="cash_deposit">Cash Deposit (Cash Box → Bank Account)</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. TRANSFER ACCOUNTS (8 COLS - FROM COMPANY BANK ACCOUNT MASTER) -->
+                    <div class="md:col-span-8 p-4 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-2xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-[#a38c29] text-white font-bold text-xs flex items-center justify-center shrink-0">2</span>
+                            <label class="text-xs font-extrabold text-slate-900 uppercase">Transfer Accounts</label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                            <!-- FROM ACCOUNT (SEARCHABLE COMBOBOX - FROM COMPANY BANK ACCOUNT MASTER) -->
+                            <div class="sm:col-span-5 space-y-1 relative" x-data="{ openFromDropdown: false, fromSearch: '' }" @click.outside="openFromDropdown = false">
+                                <label class="text-[11px] font-bold text-slate-700 block">From Account (Credit / Source) <span class="text-rose-500">*</span></label>
+                                
+                                <input type="hidden" name="credit_account_id" :value="form.credit_account_id" required>
+
+                                <button type="button" @click="openFromDropdown = !openFromDropdown"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] flex items-center justify-between transition-all cursor-pointer shadow-2xs">
+                                    <span class="truncate text-left" x-text="selectedFromAccountName || 'Choose Company Bank Account...'">Choose Company Bank Account...</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1 transition-transform" :class="openFromDropdown ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+
+                                <!-- SEARCH DROPDOWN POPOVER -->
+                                <div x-show="openFromDropdown" x-cloak class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2.5 space-y-2">
+                                    <div class="relative flex items-center">
+                                        <input type="text" x-model="fromSearch" placeholder="Search Company Bank Account..." autofocus
+                                               class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20">
+                                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                    <div class="max-h-48 overflow-y-auto space-y-1">
+                                        <template x-for="acc in filteredFromAccounts(fromSearch)" :key="acc.id">
+                                            <button type="button" @click="selectFromAccount(acc); openFromDropdown = false; fromSearch = ''"
+                                                    class="w-full text-left px-3 py-2 hover:bg-amber-50 rounded-xl text-xs font-bold text-slate-800 flex items-center justify-between transition cursor-pointer group">
+                                                <span x-text="acc.name" class="group-hover:text-[#a38c29] transition"></span>
+                                                <span class="text-[10px] font-mono font-bold text-[#a38c29] bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60" x-text="'₹ ' + formatCurrency(acc.balance)"></span>
+                                            </button>
+                                        </template>
+                                        <div x-show="filteredFromAccounts(fromSearch).length === 0" class="p-3 text-center text-xs font-semibold text-slate-400">
+                                            No matching company bank account found
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <span class="text-[10px] font-bold text-[#a38c29] block mt-1" x-text="'Available Balance: ₹ ' + formatCurrency(fromAccountBalance)">Available Balance: ₹ 0</span>
+                            </div>
+
+                            <!-- ARROW ICON -->
+                            <div class="sm:col-span-2 flex items-center justify-center pt-2 sm:pt-4">
+                                <div class="w-8 h-8 rounded-full bg-amber-50 text-[#7a671b] flex items-center justify-center font-bold text-base shadow-2xs border border-amber-200">
+                                    →
+                                </div>
+                            </div>
+
+                            <!-- TO ACCOUNT (SEARCHABLE COMBOBOX) -->
+                            <div class="sm:col-span-5 space-y-1 relative" x-data="{ openToDropdown: false, toSearch: '' }" @click.outside="openToDropdown = false">
+                                <label class="text-[11px] font-bold text-slate-700 block">To Account (Debit / Destination) <span class="text-rose-500">*</span></label>
+                                
+                                <input type="hidden" name="destination_account_id" :value="form.destination_account_id" required>
+
+                                <button type="button" @click="openToDropdown = !openToDropdown"
+                                        class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] flex items-center justify-between transition-all cursor-pointer shadow-2xs">
+                                    <span class="truncate text-left" x-text="selectedToAccountName || 'Choose Destination Account...'">Choose Destination Account...</span>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1 transition-transform" :class="openToDropdown ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+
+                                <!-- SEARCH DROPDOWN POPOVER -->
+                                <div x-show="openToDropdown" x-cloak class="absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2.5 space-y-2">
+                                    <div class="relative flex items-center">
+                                        <input type="text" x-model="toSearch" placeholder="Search Destination Account..." autofocus
+                                               class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20">
+                                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                    <div class="max-h-48 overflow-y-auto space-y-1">
+                                        <template x-for="acc in filteredToAccounts(toSearch)" :key="acc.id">
+                                            <button type="button" @click="selectToAccount(acc); openToDropdown = false; toSearch = ''"
+                                                    class="w-full text-left px-3 py-2 hover:bg-amber-50 rounded-xl text-xs font-bold text-slate-800 flex items-center justify-between transition cursor-pointer group">
+                                                <span x-text="acc.name" class="group-hover:text-[#a38c29] transition"></span>
+                                                <span class="text-[10px] font-mono font-bold text-[#a38c29] bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60" x-text="'₹ ' + formatCurrency(acc.balance)"></span>
+                                            </button>
+                                        </template>
+                                        <div x-show="filteredToAccounts(toSearch).length === 0" class="p-3 text-center text-xs font-semibold text-slate-400">
+                                            No matching destination account found
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <span class="text-[10px] font-bold text-[#a38c29] block mt-1" x-text="'Available Balance: ₹ ' + formatCurrency(toAccountBalance)">Available Balance: ₹ 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SECTION 3 & 4 GRID: AMOUNT & SUPPORTING DOCUMENT -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+
+                    <!-- 3. AMOUNT & REFERENCE DETAILS (8 COLS) -->
+                    <div class="md:col-span-8 p-4 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-2xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-[#a38c29] text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
+                            <label class="text-xs font-extrabold text-slate-900 uppercase">Amount & Reference Details</label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="space-y-1">
+                                <label class="text-[11px] font-bold text-slate-700 block">Transfer Amount (Rs.) <span class="text-rose-500">*</span></label>
+                                <input type="number" name="amount" required min="1" step="1" placeholder="0"
+                                       x-model.number="form.amount"
+                                       @keydown="if($event.key === '.' || $event.key === 'e' || $event.key === 'E' || $event.key === '-') $event.preventDefault()"
+                                       oninput="window.sanitizeAmountInput && window.sanitizeAmountInput(this)"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-black text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none">
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] font-bold text-slate-700 block mb-1">Payment Mode <span class="text-rose-500">*</span></label>
+                                <select name="payment_mode" required x-model="form.payment_mode"
+                                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none">
+                                    <option value="RTGS">RTGS / NEFT / IMPS</option>
+                                    <option value="Cheque">Cheque</option>
+                                    <option value="Cash Withdrawal">Cash Withdrawal</option>
+                                    <option value="Cash Deposit Slip">Cash Deposit Slip</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] font-bold text-slate-700 block mb-1">Transaction Reference / UTR No.</label>
+                                <input type="text" name="reference_no" placeholder="e.g. UTR8821 or Chq #40012" x-model="form.reference_no"
+                                       class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Quick Select Amount Preset Pills -->
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+                            <span class="text-[10px] font-extrabold uppercase text-[#7a671b] block">Quick Select Amount Presets:</span>
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <button type="button" @click="form.amount = 5000" class="px-2.5 py-1 bg-white hover:bg-[#a38c29] hover:text-white text-[#7a671b] rounded-lg text-[11px] font-bold border border-amber-200 transition shadow-2xs cursor-pointer">+ ₹5,000</button>
+                                <button type="button" @click="form.amount = 10000" class="px-2.5 py-1 bg-white hover:bg-[#a38c29] hover:text-white text-[#7a671b] rounded-lg text-[11px] font-bold border border-amber-200 transition shadow-2xs cursor-pointer">+ ₹10,000</button>
+                                <button type="button" @click="form.amount = 25000" class="px-2.5 py-1 bg-white hover:bg-[#a38c29] hover:text-white text-[#7a671b] rounded-lg text-[11px] font-bold border border-amber-200 transition shadow-2xs cursor-pointer">+ ₹25,000</button>
+                                <button type="button" @click="form.amount = 50000" class="px-2.5 py-1 bg-white hover:bg-[#a38c29] hover:text-white text-[#7a671b] rounded-lg text-[11px] font-bold border border-amber-200 transition shadow-2xs cursor-pointer">+ ₹50,000</button>
+                                <button type="button" @click="form.amount = 100000" class="px-2.5 py-1 bg-white hover:bg-[#a38c29] hover:text-white text-[#7a671b] rounded-lg text-[11px] font-bold border border-amber-200 transition shadow-2xs cursor-pointer">+ ₹1,00,000</button>
+                                <button type="button" @click="form.amount = 500000" class="px-2.5 py-1 bg-white hover:bg-[#a38c29] hover:text-white text-[#7a671b] rounded-lg text-[11px] font-bold border border-amber-200 transition shadow-2xs cursor-pointer">+ ₹5,00,000</button>
+                                <button type="button" @click="form.amount = ''" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[11px] font-bold border border-rose-200 transition cursor-pointer">Clear</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-700 block mb-1">Remarks / Purpose</label>
+                            <textarea name="narration" rows="2" placeholder="e.g. Fund transfer for site payroll release or site cash box replenishment" x-model="form.narration"
+                                      class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 4. SUPPORTING DOCUMENT (4 COLS) -->
+                    <div class="md:col-span-4 p-4 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-2xs h-full flex flex-col justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-full bg-[#a38c29] text-white font-bold text-xs flex items-center justify-center shrink-0">4</span>
+                            <label class="text-xs font-extrabold text-slate-900 uppercase">Supporting Document</label>
+                        </div>
+
+                        <div class="space-y-1">
+                            <span class="text-[11px] font-bold text-slate-700 block">Attachment Upload</span>
+                            <div x-show="!fileName" class="border-2 border-dashed border-slate-200 hover:border-[#a38c29] rounded-xl p-4 text-center bg-slate-50/50 flex flex-col items-center justify-center h-28 relative transition cursor-pointer">
+                                <svg class="w-7 h-7 text-[#a38c29] mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                <span class="text-xs font-bold text-slate-700 block">Drag & Drop files here or click to upload</span>
+                                <span class="text-[10px] text-slate-400 block mt-0.5">PDF, JPG, PNG (Max 5MB)</span>
+                                <input type="file" name="attachment" @change="handleFileChange($event)" class="absolute inset-0 opacity-0 cursor-pointer">
+                            </div>
+
+                            <div x-show="fileName" x-cloak class="border border-amber-300 bg-amber-50/80 rounded-xl p-3 flex items-center justify-between h-28 shadow-2xs">
+                                <div class="flex items-center gap-2.5 overflow-hidden">
+                                    <div class="w-8 h-8 rounded-lg bg-[#a38c29] text-white flex items-center justify-center shrink-0 text-xs">📄</div>
+                                    <div class="overflow-hidden">
+                                        <span class="text-xs font-bold text-slate-900 block truncate" x-text="fileName"></span>
+                                        <span class="text-[10px] text-[#7a671b] font-mono block" x-text="fileSize"></span>
+                                    </div>
+                                </div>
+                                <button type="button" @click="clearFile()" class="p-1 text-rose-600 hover:bg-rose-100 rounded-lg transition">✕</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- MODAL FOOTER ACTION BUTTONS -->
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0">
+                    <button type="button" @click="showFormModal = false" class="px-5 py-2.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold uppercase rounded-xl transition shadow-2xs cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase rounded-xl transition shadow-2xs flex items-center gap-2 border border-[#a38c29]/40 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                        <span>Save & Post Entry</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── 4. CONTRA VOUCHERS SLIP / RECEIPT MODAL (PRINTABLE) ── -->
+    <div x-show="showSlipModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        
+        <div id="printable-slip-modal" class="bg-white rounded-3xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]"
+             @click.away="closeSlipModal()">
+            
+            <div class="relative overflow-hidden bg-slate-900 px-6 py-5 flex-shrink-0 border-b border-[#a38c29]/40">
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. · CONTRA VOUCHER</p>
+                        <h2 class="text-lg font-extrabold text-white flex items-center gap-3">
+                            <span x-text="activeVoucher.voucher_number || 'JV-CONTRA-045'">JV-CONTRA-045</span>
+                            <span class="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Official Record</span>
+                        </h2>
+                    </div>
+                    <button type="button" @click="closeSlipModal()" class="w-8 h-8 rounded-full bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white flex items-center justify-center transition cursor-pointer">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-white">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-amber-50/50 border border-amber-200">
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Voucher Date</span>
+                        <strong class="text-xs font-mono font-bold text-slate-900 block mt-0.5" x-text="activeVoucher.date || '31-Aug-2026'">31-Aug-2026</strong>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Reference / UTR</span>
+                        <strong class="text-xs font-mono font-bold text-slate-900 block mt-0.5" x-text="activeVoucher.reference_no || 'Cheque #40012'">Cheque #40012</strong>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase block">Project Tag</span>
+                        <strong class="text-xs font-bold text-slate-900 block mt-0.5 truncate" x-text="activeVoucher.project_name || 'Global Treasury'">Global Treasury</strong>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-[#a38c29] uppercase block">Transfer Amount</span>
+                        <strong class="text-sm font-mono font-extrabold text-[#a38c29] block mt-0.5" x-text="'₹ ' + formatCurrency(activeVoucher.amount || 25000)">₹ 25,000</strong>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead class="bg-[#a38c29] text-white text-[10px] font-black uppercase tracking-wider border-b-2 border-[#8a741f]">
+                            <tr>
+                                <th class="px-4 py-3 text-white">Particulars / Account Head</th>
+                                <th class="px-4 py-3 text-center text-white">Voucher Type / Code</th>
+                                <th class="px-4 py-3 text-right text-white">Debit (Rs.)</th>
+                                <th class="px-4 py-3 text-right text-white">Credit (Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-semibold text-slate-800 bg-white">
+                            <tr>
+                                <td class="px-4 py-3.5 text-emerald-800 font-bold">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-emerald-100 text-emerald-800">DR</span>
+                                        <span x-text="activeVoucher.to_account || 'Petty Cash Account - Site Box (1020)'">Petty Cash Account - Site Box (1020)</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C) · 1020</td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-emerald-700 text-sm" x-text="'₹ ' + formatCurrency(activeVoucher.amount || 25000)">₹ 25,000</td>
+                                <td class="px-4 py-3.5 text-right font-mono text-slate-300">—</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3.5 text-rose-800 font-bold pl-8">
+                                    <div class="flex items-center gap-2">
+                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-rose-100 text-rose-800">CR</span>
+                                        <span x-text="'To ' + (activeVoucher.from_account || 'Karnataka Bank Current A/c (1001)')">To Karnataka Bank Current A/c (1001)</span>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3.5 text-center text-slate-500 font-mono text-[11px]">Contra (C) · 1001</td>
+                                <td class="px-4 py-3.5 text-right font-mono text-slate-300">—</td>
+                                <td class="px-4 py-3.5 text-right font-mono font-bold text-rose-700 text-sm" x-text="'₹ ' + formatCurrency(activeVoucher.amount || 25000)">₹ 25,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span class="text-[10px] font-bold uppercase text-slate-500 block">Narration / Particulars</span>
+                    <p class="text-xs font-semibold text-slate-800 italic" x-text="activeVoucher.narration || '(Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box)'">(Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box)</p>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+                <button type="button" @click="closeSlipModal()" class="px-5 py-2 border border-slate-300 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+                    Close
+                </button>
+                <button type="button" @click="printVoucherSlip()" class="px-6 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase rounded-xl transition shadow-2xs flex items-center gap-2 cursor-pointer">
+                    <span>Print Slip</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
 </div>
 
-<!-- ── SCRIPT FOR ALPINE BLUEPRINT ── -->
+<!-- ── 5. ALPINE.JS REACTIVE WORKSPACE LOGIC ── -->
 <script>
-function contraVoucherBlueprint() {
+function contraVoucherWorkspace() {
     return {
         transactionType: 'bank_to_bank',
-        form: {
-            date: new Date().toISOString().substring(0, 10),
-            credit_account_id: '',
-            destination_account_id: '',
-            amount: 0.0,
-            payment_mode: 'NEFT / RTGS / IMPS',
-            reference_no: '',
-            narration: '',
-            project_id: '{{ count($projects) === 1 ? $projects->first()->id : "" }}',
-        },
-        fromAccountName: '',
-        toAccountName: '',
-        fromAccountBalance: 0.0,
-        toAccountBalance: 0.0,
-        projectName: '{{ count($projects) === 1 ? addslashes($projects->first()->name) : "Global Treasury" }}',
-        searchQuery: '',
         fileName: '',
         fileSize: '',
+        showFormModal: false,
         showSlipModal: false,
-        activeSlip: null,
+        activeVoucher: {},
 
-        openSlipModal(voucher) {
-            this.activeSlip = voucher;
-            this.showSlipModal = true;
+        // Search, Bank Filter & Pagination State
+        searchQuery: '',
+        selectedBankFilter: '',
+        currentPage: 1,
+        pageSize: 10,
+
+        rawRecentContras: [
+            @if(isset($recentContras) && count($recentContras) > 0)
+                @foreach($recentContras as $v)
+                    @php
+                        $creditLine = $v->lines->firstWhere('credit', '>', 0);
+                        $debitLine = $v->lines->firstWhere('debit', '>', 0);
+                        $transferAmt = $debitLine?->debit ?? $creditLine?->credit ?? 0;
+                        $fromName = $creditLine?->account?->name ?? 'Karnataka Bank Current A/c';
+                        $toName = $debitLine?->account?->name ?? 'Site Petty Cash Box';
+                    @endphp
+                    {
+                        id: {{ $v->id }},
+                        voucher_number: '{{ $v->voucher_number }}',
+                        date: '{{ \Carbon\Carbon::parse($v->date)->format("d-M-Y") }}',
+                        from_account: '{{ addslashes($fromName) }}',
+                        to_account: '{{ addslashes($toName) }}',
+                        reference_no: '{{ addslashes($v->reference_no ?? "RTGS / UTR8821") }}',
+                        amount: {{ (float) $transferAmt }},
+                        narration: '{{ addslashes($v->narration ?? "Fund transfer for site payroll release") }}',
+                        project_name: '{{ addslashes($v->project?->name ?? "Global Treasury") }}'
+                    },
+                @endforeach
+            @else
+                { id: 1, voucher_number: 'JV-CONTRA-045', date: '31-Aug-2026', from_account: 'Karnataka Bank Current A/c (1001)', to_account: 'Petty Cash Account - Site Box (1020)', reference_no: 'Cheque #40012', amount: 25000, narration: 'Being cash withdrawn from Karnataka Bank Chq #40012 to replenish site petty cash box', project_name: 'Global Treasury' },
+                { id: 2, voucher_number: 'JV-CONTRA-044', date: '20-Aug-2026', from_account: 'HDFC Escrow Account (1002)', to_account: 'Karnataka Bank Operational A/c (1001)', reference_no: 'RTGS / UTR8821', amount: 1000000, narration: 'Site payroll release', project_name: 'Global Treasury' },
+                { id: 3, voucher_number: 'JV-CONTRA-043', date: '10-Aug-2026', from_account: 'Petty Cash Account - Site Box', to_account: 'SBI Current - 2005', reference_no: 'Cash Deposit Slip', amount: 15000, narration: 'Cash deposit to SBI', project_name: 'Global Treasury' },
+            @endif
+        ],
+
+        form: {
+            date: '{{ date("Y-m-d") }}',
+            voucher_number: '{{ $voucherNumber }}',
+            destination_account_id: '',
+            credit_account_id: '',
+            amount: '',
+            payment_mode: 'RTGS',
+            reference_no: '',
+            project_id: '',
+            narration: ''
         },
 
-        closeSlipModal() {
-            this.showSlipModal = false;
-            setTimeout(() => {
-                if (!this.showSlipModal) {
-                    this.activeSlip = null;
-                }
-            }, 300);
+        selectedFromAccountName: '',
+        selectedToAccountName: '',
+
+        // Populate From Accounts directly from Company Bank Account Master
+        rawFromAccounts: [
+            @if(isset($companyBankAccounts) && count($companyBankAccounts) > 0)
+                @foreach($companyBankAccounts as $cBank)
+                    {
+                        id: {{ $cBank->chart_account_id ?? $cBank->id }},
+                        name: '{{ addslashes($cBank->bank_name . ($cBank->account_number ? " - " . $cBank->account_number : "")) }}',
+                        balance: {{ (float) ($cBank->calculated_balance ?? $cBank->current_balance ?? 0) }}
+                    },
+                @endforeach
+            @else
+                @foreach($assetAccounts as $acc)
+                    {
+                        id: {{ $acc->id }},
+                        name: '{{ addslashes($acc->name) }}',
+                        balance: {{ (float) ($acc->current_balance ?? 0) }}
+                    },
+                @endforeach
+            @endif
+        ],
+
+        rawToAccounts: [
+            @foreach($assetAccounts as $acc)
+                {
+                    id: {{ $acc->id }},
+                    name: '{{ addslashes($acc->name) }}',
+                    balance: {{ (float) ($acc->current_balance ?? 0) }}
+                },
+            @endforeach
+        ],
+
+        fromAccountBalance: 0,
+        toAccountBalance: 0,
+        projectName: '',
+
+        filteredFromAccounts(query) {
+            if (!query || query.trim() === '') return this.rawFromAccounts;
+            const q = query.toLowerCase().trim();
+            return this.rawFromAccounts.filter(a => a.name.toLowerCase().includes(q));
         },
 
-        printSlip() {
-            window.print();
+        filteredToAccounts(query) {
+            if (!query || query.trim() === '') return this.rawToAccounts;
+            const q = query.toLowerCase().trim();
+            return this.rawToAccounts.filter(a => a.name.toLowerCase().includes(q));
+        },
+
+        selectFromAccount(acc) {
+            this.form.credit_account_id = acc.id;
+            this.selectedFromAccountName = acc.name;
+            this.fromAccountBalance = acc.balance;
+        },
+
+        selectToAccount(acc) {
+            this.form.destination_account_id = acc.id;
+            this.selectedToAccountName = acc.name;
+            this.toAccountBalance = acc.balance;
+        },
+
+        init() {
+            this.onTransactionTypeChange();
+        },
+
+        get filteredContras() {
+            let list = this.rawRecentContras;
+
+            if (this.searchQuery && this.searchQuery.trim() !== '') {
+                const q = this.searchQuery.toLowerCase().trim();
+                list = list.filter(v => 
+                    (v.voucher_number && v.voucher_number.toLowerCase().includes(q)) ||
+                    (v.from_account && v.from_account.toLowerCase().includes(q)) ||
+                    (v.to_account && v.to_account.toLowerCase().includes(q)) ||
+                    (v.reference_no && v.reference_no.toLowerCase().includes(q)) ||
+                    (v.narration && v.narration.toLowerCase().includes(q))
+                );
+            }
+
+            if (this.selectedBankFilter && this.selectedBankFilter.trim() !== '') {
+                const b = this.selectedBankFilter.toLowerCase().trim();
+                const bWord = b.split(' ')[0].replace(/[^a-z0-9]/g, '');
+                list = list.filter(v => {
+                    const fromLower = (v.from_account || '').toLowerCase();
+                    const toLower = (v.to_account || '').toLowerCase();
+                    return fromLower.includes(b) || toLower.includes(b) ||
+                           (bWord.length > 2 && (fromLower.includes(bWord) || toLower.includes(bWord)));
+                });
+            }
+
+            return list;
+        },
+
+        get paginatedContras() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            return this.filteredContras.slice(start, start + this.pageSize);
+        },
+
+        get totalPages() {
+            return Math.ceil(this.filteredContras.length / this.pageSize) || 1;
+        },
+
+        get paginationStart() {
+            if (this.filteredContras.length === 0) return 0;
+            return (this.currentPage - 1) * this.pageSize + 1;
+        },
+
+        get paginationEnd() {
+            return Math.min(this.currentPage * this.pageSize, this.filteredContras.length);
+        },
+
+        onTransactionTypeChange() {
+            if (this.transactionType === 'bank_to_bank') {
+                this.form.payment_mode = 'RTGS';
+            } else if (this.transactionType === 'cash_withdrawal') {
+                this.form.payment_mode = 'Cash Withdrawal';
+            } else if (this.transactionType === 'cash_deposit') {
+                this.form.payment_mode = 'Cash Deposit Slip';
+            }
+        },
+
+        updateProjectName() {
+            const sel = document.querySelector('select[name="project_id"]');
+            if (sel && sel.selectedIndex >= 0) {
+                this.projectName = sel.options[sel.selectedIndex].text;
+            }
         },
 
         handleFileChange(event) {
@@ -870,101 +765,44 @@ function contraVoucherBlueprint() {
             if (file) {
                 this.fileName = file.name;
                 this.fileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-            } else {
-                this.fileName = '';
-                this.fileSize = '';
             }
         },
 
         clearFile() {
             this.fileName = '';
             this.fileSize = '';
-            const input = document.querySelector('input[name="attachment"]');
+            const input = document.querySelector('input[type="file"][name="attachment"]');
             if (input) input.value = '';
         },
 
-        init() {
-            this.$nextTick(() => {
-                this.updateAccounts();
-                this.updateProjectName();
-            });
+        openSlipModal(voucherData) {
+            this.activeVoucher = voucherData;
+            this.showSlipModal = true;
         },
 
-        onTransactionTypeChange() {
-            if (this.transactionType === 'cash_withdrawal') {
-                this.form.payment_mode = 'Cash Withdrawal';
-            } else if (this.transactionType === 'cash_deposit') {
-                this.form.payment_mode = 'Cash Deposit';
-            } else {
-                this.form.payment_mode = 'NEFT / RTGS / IMPS';
-            }
+        closeSlipModal() {
+            this.showSlipModal = false;
         },
 
-        updateAccounts() {
-            const creditSelect = document.getElementById('credit_account_id');
-            if (creditSelect && creditSelect.selectedIndex > 0) {
-                const opt = creditSelect.options[creditSelect.selectedIndex];
-                this.fromAccountName = opt.getAttribute('data-name') || opt.text.split(' (')[0];
-                this.fromAccountBalance = parseFloat(opt.getAttribute('data-balance') || 0);
-            } else {
-                this.fromAccountName = '';
-                this.fromAccountBalance = 0.0;
-            }
-
-            const destSelect = document.getElementById('destination_account_id');
-            if (destSelect && destSelect.selectedIndex > 0) {
-                const opt = destSelect.options[destSelect.selectedIndex];
-                this.toAccountName = opt.getAttribute('data-name') || opt.text.split(' (')[0];
-                this.toAccountBalance = parseFloat(opt.getAttribute('data-balance') || 0);
-            } else {
-                this.toAccountName = '';
-                this.toAccountBalance = 0.0;
-            }
+        printTable() {
+            window.print();
         },
 
-        swapAccounts() {
-            const temp = this.form.credit_account_id;
-            this.form.credit_account_id = this.form.destination_account_id;
-            this.form.destination_account_id = temp;
-            this.$nextTick(() => {
-                this.updateAccounts();
-            });
+        exportExcel() {
+            let url = '{{ route("vouchers.contra.export") }}';
+            const params = new URLSearchParams();
+            if (this.selectedBankFilter) params.append('bank', this.selectedBankFilter);
+            if (this.searchQuery) params.append('search', this.searchQuery);
+            if (params.toString()) url += '?' + params.toString();
+            window.location.href = url;
         },
 
-        updateProjectName() {
-            const select = document.querySelector('select[name="project_id"]');
-            if (select && select.selectedIndex >= 0) {
-                const val = select.value;
-                if (!val) {
-                    this.projectName = 'Global Treasury';
-                } else {
-                    this.projectName = select.options[select.selectedIndex].text.split(' (')[0];
-                }
-            }
-        },
-
-        get remainingBalance() {
-            return (parseFloat(this.fromAccountBalance) || 0) - (parseFloat(this.form.amount) || 0);
-        },
-
-        get usagePercentage() {
-            const avail = parseFloat(this.fromAccountBalance) || 0;
-            const amt = parseFloat(this.form.amount) || 0;
-            if (!avail || avail <= 0) return amt > 0 ? 100 : 0;
-            return Math.min(Math.round((amt / avail) * 100), 100);
-        },
-
-        get balanceCheckStatus() {
-            if (!this.form.amount || this.form.amount <= 0) return true;
-            if (this.fromAccountBalance <= 0) return false;
-            return this.form.amount <= this.fromAccountBalance;
+        printVoucherSlip() {
+            window.print();
         },
 
         formatCurrency(val) {
-            return Number(val || 0).toLocaleString('en-IN', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            return Number(Math.round(val || 0)).toLocaleString('en-IN');
         }
     }
 }
