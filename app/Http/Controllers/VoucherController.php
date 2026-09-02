@@ -1687,10 +1687,10 @@ class VoucherController extends Controller
 
         $vouchers = $query->latest('date')->get();
 
-        $filename = 'Contra_Vouchers_Directory_' . date('Y-m-d') . '.xls';
+        $filename = 'Contra_Vouchers_Directory_' . date('Y-m-d') . '.csv';
 
         $headers = [
-            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             'Pragma' => 'no-cache',
             'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
@@ -1699,44 +1699,12 @@ class VoucherController extends Controller
 
         $callback = function () use ($vouchers) {
             $file = fopen('php://output', 'w');
+            fputs($file, "\xEF\xBB\xBF"); // Write UTF-8 BOM
 
-            $html = '
-                <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-                <head>
-                    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-                    <style>
-                        body { font-family: Arial, sans-serif; font-size: 12px; }
-                        th { background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 11px; text-align: left; padding: 8px; border: 1px solid #8d7923; }
-                        td { padding: 6px 8px; border: 1px solid #e2e8f0; vertical-align: middle; }
-                        .amount { text-align: right; font-weight: bold; color: #0f172a; }
-                    </style>
-                </head>
-                <body>
-                    <table border="1" cellspacing="0" cellpadding="6" style="border-collapse: collapse; border: 1px solid #a38c29; width: 100%;">
-                        <thead>
-                            <tr bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff;">
-                                <th colspan="8" bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-size: 16px; font-weight: bold; text-align: center; padding: 12px;">
-                                    TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.
-                                </th>
-                            </tr>
-                            <tr bgcolor="#232018" style="background-color: #232018; color: #f0e6b3;">
-                                <th colspan="8" bgcolor="#232018" style="background-color: #232018; color: #f0e6b3; font-size: 11px; text-align: center; padding: 6px;">
-                                    INTERNAL CONTRA TRANSFERS DIRECTORY · GENERATED ON ' . date('d-M-Y') . '
-                                </th>
-                            </tr>
-                            <tr bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff;">
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; text-align: center; width: 50px;">SL NO</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 160px;">VOUCHER NO.</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 100px;">DATE</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 220px;">FROM ACCOUNT (SOURCE)</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 220px;">TO ACCOUNT (DESTINATION)</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 140px;">MODE / REF NO.</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; text-align: right; width: 140px;">TRANSFER AMOUNT (RS)</th>
-                                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; width: 260px;">REMARKS / NARRATION</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            ';
+            fputcsv($file, ['TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.']);
+            fputcsv($file, ['INTERNAL CONTRA TRANSFERS DIRECTORY - GENERATED ON ' . date('d-M-Y')]);
+            fputcsv($file, []); // Blank line
+            fputcsv($file, ['SL NO', 'VOUCHER NO.', 'DATE', 'FROM ACCOUNT (SOURCE)', 'TO ACCOUNT (DESTINATION)', 'MODE / REF NO.', 'TRANSFER AMOUNT (RS)', 'REMARKS / NARRATION']);
 
             foreach ($vouchers as $index => $v) {
                 $creditLine = $v->lines->firstWhere('credit', '>', 0);
@@ -1745,30 +1713,18 @@ class VoucherController extends Controller
                 $fromName = $creditLine?->account?->name ?? '—';
                 $toName = $debitLine?->account?->name ?? '—';
 
-                $bg = ($index % 2 === 0) ? '#ffffff' : '#fdfbf0';
-
-                $html .= '
-                    <tr bgcolor="' . $bg . '">
-                        <td align="center" style="text-align: center; font-weight: bold; color: #64748b;">' . ($index + 1) . '</td>
-                        <td style="font-weight: bold; color: #0f172a;">' . htmlspecialchars((string)$v->voucher_number) . '</td>
-                        <td style="color: #475569;">' . \Carbon\Carbon::parse($v->date)->format('d-M-Y') . '</td>
-                        <td style="font-weight: bold; color: #0f172a;">' . htmlspecialchars((string)$fromName) . '</td>
-                        <td style="font-weight: bold; color: #0f172a;">' . htmlspecialchars((string)$toName) . '</td>
-                        <td style="color: #475569;">' . htmlspecialchars((string)($v->reference_no ?? 'RTGS / UTR8821')) . '</td>
-                        <td align="right" style="text-align: right; font-weight: bold; color: #0f172a;">' . number_format((float)$transferAmt, 2) . '</td>
-                        <td style="color: #475569; font-style: italic;">' . htmlspecialchars((string)($v->narration ?? '')) . '</td>
-                    </tr>
-                ';
+                fputcsv($file, [
+                    $index + 1,
+                    $v->voucher_number,
+                    \Carbon\Carbon::parse($v->date)->format('d-M-Y'),
+                    $fromName,
+                    $toName,
+                    $v->reference_no ?? 'RTGS / UTR8821',
+                    number_format((float)$transferAmt, 2, '.', ''),
+                    $v->narration ?? ''
+                ]);
             }
 
-            $html .= '
-                        </tbody>
-                    </table>
-                </body>
-                </html>
-            ';
-
-            fwrite($file, $html);
             fclose($file);
         };
 

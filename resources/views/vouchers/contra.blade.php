@@ -729,13 +729,155 @@ function contraVoucherWorkspace() {
             window.print();
         },
 
-        exportExcel() {
-            let url = '{{ route("vouchers.contra.export") }}';
-            const params = new URLSearchParams();
-            if (this.selectedBankFilter) params.append('bank', this.selectedBankFilter);
-            if (this.searchQuery) params.append('search', this.searchQuery);
-            if (params.toString()) url += '?' + params.toString();
-            window.location.href = url;
+        async exportExcel() {
+            if (typeof ExcelJS === 'undefined') {
+                alert('ExcelJS library is loading. Please try again in a moment.');
+                return;
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Contra Directory');
+
+            // Freeze top 3 rows for smooth horizontal and vertical scrolling
+            worksheet.views = [{ state: 'frozen', xSplit: 2, ySplit: 3, activePane: 'bottomRight' }];
+            worksheet.pageSetup = {
+                paperSize: 9,
+                orientation: 'landscape',
+                fitToPage: true,
+                fitToWidth: 1,
+                fitToHeight: 0
+            };
+
+            // Set column widths
+            worksheet.columns = [
+                { width: 10 }, // SL NO
+                { width: 22 }, // VOUCHER NO
+                { width: 16 }, // DATE
+                { width: 34 }, // FROM ACCOUNT
+                { width: 34 }, // TO ACCOUNT
+                { width: 22 }, // MODE / REF NO
+                { width: 24 }, // TRANSFER AMOUNT
+                { width: 40 }  // REMARKS / NARRATION
+            ];
+
+            // Company Title Banner Row 1
+            worksheet.mergeCells('A1:H1');
+            const titleCell = worksheet.getCell('A1');
+            titleCell.value = 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.';
+            titleCell.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+            titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getRow(1).height = 36;
+
+            // Subtitle Banner Row 2
+            worksheet.mergeCells('A2:H2');
+            const subTitleCell = worksheet.getCell('A2');
+            const todayStr = (new Date()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+            subTitleCell.value = 'INTERNAL CONTRA TRANSFERS DIRECTORY · GENERATED ON ' + todayStr;
+            subTitleCell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFF0E6B3' } };
+            subTitleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF232018' } };
+            subTitleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            worksheet.getRow(2).height = 24;
+
+            // Table Header Row 3
+            const headerRow = worksheet.getRow(3);
+            headerRow.height = 28;
+            const headers = ['SL NO', 'VOUCHER NO.', 'DATE', 'FROM ACCOUNT (SOURCE)', 'TO ACCOUNT (DESTINATION)', 'MODE / REF NO.', 'TRANSFER AMOUNT (RS)', 'REMARKS / NARRATION'];
+            headers.forEach((h, i) => {
+                const cell = headerRow.getCell(i + 1);
+                cell.value = h;
+                cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+                cell.alignment = { horizontal: i === 0 ? 'center' : (i === 6 ? 'right' : 'left'), vertical: 'middle' };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF8D7923' } },
+                    bottom: { style: 'thin', color: { argb: 'FF8D7923' } },
+                    left: { style: 'thin', color: { argb: 'FF8D7923' } },
+                    right: { style: 'thin', color: { argb: 'FF8D7923' } }
+                };
+            });
+
+            // Populate Data Rows
+            const contras = this.filteredContras;
+            contras.forEach((v, index) => {
+                const rowIndex = index + 4;
+                const row = worksheet.getRow(rowIndex);
+                row.height = 24;
+
+                const bgHex = (index % 2 === 0) ? 'FFFFFFFF' : 'FFFDFBF0';
+
+                // SL NO
+                const c1 = row.getCell(1);
+                c1.value = index + 1;
+                c1.alignment = { horizontal: 'center', vertical: 'middle' };
+                c1.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF64748B' } };
+
+                // VOUCHER NO
+                const c2 = row.getCell(2);
+                c2.value = v.voucher_number || '';
+                c2.alignment = { horizontal: 'left', vertical: 'middle' };
+                c2.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+
+                // DATE
+                const c3 = row.getCell(3);
+                c3.value = v.date ? v.date : '';
+                c3.alignment = { horizontal: 'left', vertical: 'middle' };
+                c3.font = { name: 'Arial', size: 10, color: { argb: 'FF475569' } };
+
+                // FROM ACCOUNT
+                const c4 = row.getCell(4);
+                c4.value = v.from_account || '—';
+                c4.alignment = { horizontal: 'left', vertical: 'middle' };
+                c4.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+
+                // TO ACCOUNT
+                const c5 = row.getCell(5);
+                c5.value = v.to_account || '—';
+                c5.alignment = { horizontal: 'left', vertical: 'middle' };
+                c5.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+
+                // REF NO
+                const c6 = row.getCell(6);
+                c6.value = v.reference_no || 'RTGS / UTR';
+                c6.alignment = { horizontal: 'left', vertical: 'middle' };
+                c6.font = { name: 'Arial', size: 10, color: { argb: 'FF475569' } };
+
+                // TRANSFER AMOUNT
+                const c7 = row.getCell(7);
+                const amt = parseFloat(v.amount || 0);
+                c7.value = amt;
+                c7.numFormat = '#,##0.00;[Red]-#,##0.00;0.00';
+                c7.alignment = { horizontal: 'right', vertical: 'middle' };
+                c7.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+
+                // NARRATION
+                const c8 = row.getCell(8);
+                c8.value = v.narration || '';
+                c8.alignment = { horizontal: 'left', vertical: 'middle' };
+                c8.font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF475569' } };
+
+                for (let col = 1; col <= 8; col++) {
+                    const c = row.getCell(col);
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bgHex } };
+                    c.border = {
+                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                    };
+                }
+            });
+
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const filename = 'Contra_Vouchers_Directory_' + (new Date().toISOString().split('T')[0]) + '.xlsx';
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         },
 
         printVoucherSlip() {
@@ -748,5 +890,7 @@ function contraVoucherWorkspace() {
     }
 }
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 
 </x-erp-layout>
