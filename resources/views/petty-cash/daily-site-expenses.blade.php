@@ -6,6 +6,30 @@
 <div class="p-6 h-full overflow-y-auto" x-data="{ showExpenseModal: {{ session('show_expense_modal') || $errors->any() ? 'true' : 'false' }} }">
     <div class="w-full space-y-6">
         
+        {{-- Under Construction Notice --}}
+        <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
+            <div class="flex items-start md:items-center gap-4">
+                <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-2xl md:text-3xl">
+                    🚧
+                </div>
+                <div class="flex-1 space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">Under Development</span>
+                        <span class="flex items-center gap-1.5 text-xs font-bold text-red-700">
+                            <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                            Work In Progress
+                        </span>
+                    </div>
+                    <h2 class="text-lg md:text-2xl font-black text-red-950 tracking-tight leading-snug">
+                        We're working on this module. It is not yet ready for use and will be released shortly.
+                    </h2>
+                    <p class="text-xs md:text-sm font-medium text-red-800">
+                        This module is currently being finalized. Please check back soon for full availability.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Header Card (Breadcrumb & Title) -->
         <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
             <div class="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
