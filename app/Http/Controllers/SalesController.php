@@ -13,6 +13,7 @@ use App\Models\Partner;
 use App\Models\CustomerInstallment;
 use App\Models\Bank;
 use App\Models\UnitType;
+use App\Models\PaymentMode;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -84,6 +85,7 @@ class SalesController extends Controller
             'brokers' => Broker::orderBy('name')->get(),
             'bankAccounts' => Bank::where('status', 'active')->orderBy('bank_name')->get(),
             'unitTypes' => UnitType::where('is_active', true)->orderBy('name')->get(),
+            'paymentModes' => PaymentMode::where('status', 'active')->orderBy('name')->get(),
         ]);
     }
     public function availableUnits(int $projectId): JsonResponse
@@ -689,6 +691,11 @@ class SalesController extends Controller
             'reference_no'           => ['nullable', 'string'],
             'bank_id'                => ['nullable', 'exists:banks,id'],
             'initial_payment_date'   => ['nullable', 'date'],
+            'agreed_sale_amount'     => ['nullable', 'numeric', 'min:0'],
+            'sale_rate'              => ['nullable', 'numeric', 'min:0'],
+            'gst_type'               => ['nullable', Rule::in(['none', 'exclusive', 'inclusive'])],
+            'gst_percentage'         => ['nullable', 'numeric', 'min:0'],
+            'gst_amount'             => ['nullable', 'numeric', 'min:0'],
         ]);
         $sale = Sale::with(['saleUnits.unit.unitType'])->findOrFail($id);
         $fromStatus = $sale->status;
@@ -786,17 +793,18 @@ class SalesController extends Controller
                     'gst_amount'         => 0.00,
                 ]);
             }
-            $newAmount = (float)$newUnit->expected_sale_amount;
-            $newRate = (float)$newUnit->expected_rate_per_sqft;
-            $gstType = $newUnit->gst_behavior ?? $sale->gst_type ?? 'none';
+            $newAmount = isset($validated['agreed_sale_amount']) ? (float)$validated['agreed_sale_amount'] : (float)$newUnit->expected_sale_amount;
+            $newRate = isset($validated['sale_rate']) ? (float)$validated['sale_rate'] : (float)$newUnit->expected_rate_per_sqft;
+            $gstType = $validated['gst_type'] ?? $newUnit->gst_behavior ?? $sale->gst_type ?? 'none';
+            $gstPct = isset($validated['gst_percentage']) ? (float)$validated['gst_percentage'] : 18.0;
             $gstAmount = 0.0;
             if ($gstType === 'exclusive') {
-                $gstAmount = round($newAmount * 0.18, 2);
+                $gstAmount = isset($validated['gst_amount']) ? (float)$validated['gst_amount'] : round($newAmount * ($gstPct / 100), 2);
             } elseif ($gstType === 'inclusive') {
-                $gstAmount = round($newAmount * 18 / 118, 2);
+                $gstAmount = isset($validated['gst_amount']) ? (float)$validated['gst_amount'] : round($newAmount - ($newAmount / (1 + ($gstPct / 100))), 2);
             }
             $baseAmount = $gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount;
-            $totalAmount = $gstType === 'exclusive' ? round($newAmount + $gstAmount, 2) : $newAmount;
+            $totalAmount = $gstType === 'exclusive' ? round($newAmount + $gstAmount, 2) : ($gstType === 'inclusive' ? round($newAmount - $gstAmount, 2) : $newAmount);
 
             $finalSaleAmount = $newAmount;
             $finalBaseAmount = $baseAmount;

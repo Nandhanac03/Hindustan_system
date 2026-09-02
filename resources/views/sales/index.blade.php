@@ -905,13 +905,19 @@
                             </div>
                             <div class="space-y-1.5 w-full md:w-40">
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Mode</label>
-                                <select x-model="forms.add.payment_mode"
+                                 <select x-model="forms.add.payment_mode"
                                         class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                    <option value="Cash">Cash</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Cheque">Cheque</option>
-                                    <option value="UPI">UPI</option>
-                                    <option value="Credit Card">Credit Card</option>
+                                    @if(isset($paymentModes) && count($paymentModes) > 0)
+                                        @foreach($paymentModes as $pm)
+                                            <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                        @endforeach
+                                    @else
+                                        <option value="Cash">Cash</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Credit Card">Credit Card</option>
+                                    @endif
                                 </select>
                             </div>
                             <div class="space-y-1.5 w-full md:w-40">
@@ -1539,11 +1545,17 @@
                                 <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Mode</label>
                                 <select x-model="forms.edit.payment_mode"
                                         class="w-full px-3 py-2 bg-white border border-slate-200 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary rounded-xl text-xs focus:outline-none transition-all shadow-sm">
-                                    <option value="Cash">Cash</option>
-                                    <option value="Bank Transfer">Bank Transfer</option>
-                                    <option value="Cheque">Cheque</option>
-                                    <option value="UPI">UPI</option>
-                                    <option value="Credit Card">Credit Card</option>
+                                    @if(isset($paymentModes) && count($paymentModes) > 0)
+                                        @foreach($paymentModes as $pm)
+                                            <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                        @endforeach
+                                    @else
+                                        <option value="Cash">Cash</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                        <option value="Cheque">Cheque</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Credit Card">Credit Card</option>
+                                    @endif
                                 </select>
                             </div>
                             <div class="space-y-1.5 w-full md:w-40">
@@ -2681,11 +2693,12 @@ function salesApp() {
                     this.exchangeForm.sale_rate_per_sqft = expRate;
                 }
                 
-                let gstType = unit.gst_behavior || (this.selectedExchangeSale?.gst_type || 'none');
-                if (gstType === 'exclusive') {
-                    this.exchangeForm.gst_percentage = 18;
-                } else {
+                let gstType = unit.gst_behavior || (this.selectedExchangeSale?.gst_type || 'exclusive');
+                this.exchangeForm.gst_type = (gstType === 'none' || gstType === 'inclusive') ? gstType : 'exclusive';
+                if (this.exchangeForm.gst_type === 'none') {
                     this.exchangeForm.gst_percentage = 0;
+                } else if (this.exchangeForm.gst_percentage === '' || this.exchangeForm.gst_percentage === undefined || this.exchangeForm.gst_percentage === 0) {
+                    this.exchangeForm.gst_percentage = 18;
                 }
 
                 this.calculateExchangeAmounts(isParking ? 'agreed_amount' : 'rate');
@@ -2697,6 +2710,7 @@ function salesApp() {
                 this.exchangeForm.sale_rate = 0;
                 this.exchangeForm.sale_rate_per_sqft = 0;
                 this.exchangeForm.agreed_sale_amount = 0;
+                this.exchangeForm.gst_type = 'exclusive';
                 this.exchangeForm.gst_percentage = '';
                 this.exchangeForm.gst_amount = 0;
                 this.exchangeForm.new_unit_value = 0;
@@ -2728,22 +2742,40 @@ function salesApp() {
             }
 
             let agreedAmount = parseFloat(form.agreed_sale_amount) || 0;
+            let gstType = form.gst_type || 'exclusive';
 
-            if (source === 'gst_amount') {
-                let gstAmt = parseFloat(form.gst_amount) || 0;
-                if (agreedAmount > 0) {
-                    form.gst_percentage = Math.round((gstAmt / agreedAmount) * 100 * 100) / 100;
-                }
-            } else {
+            if (gstType === 'none') {
+                form.gst_percentage = 0;
+                form.gst_amount = 0;
+                form.new_unit_value = agreedAmount;
+            } else if (gstType === 'inclusive') {
                 let gstPct = parseFloat(form.gst_percentage) || 0;
-                let gstAmt = Math.round(agreedAmount * (gstPct / 100) * 100) / 100;
-                form.gst_amount = gstAmt;
+                if (source === 'gst_amount') {
+                    let gstAmt = parseFloat(form.gst_amount) || 0;
+                    if (agreedAmount > 0 && (agreedAmount - gstAmt) > 0) {
+                        form.gst_percentage = Math.round((gstAmt / (agreedAmount - gstAmt)) * 100 * 100) / 100;
+                    }
+                } else {
+                    let gstAmt = Math.round((agreedAmount - (agreedAmount / (1 + (gstPct / 100)))) * 100) / 100;
+                    form.gst_amount = gstAmt;
+                }
+                let gstAmt = parseFloat(form.gst_amount) || 0;
+                form.new_unit_value = Math.round((agreedAmount - gstAmt) * 100) / 100;
+            } else {
+                // exclusive
+                if (source === 'gst_amount') {
+                    let gstAmt = parseFloat(form.gst_amount) || 0;
+                    if (agreedAmount > 0) {
+                        form.gst_percentage = Math.round((gstAmt / agreedAmount) * 100 * 100) / 100;
+                    }
+                } else {
+                    let gstPct = parseFloat(form.gst_percentage) || 0;
+                    let gstAmt = Math.round(agreedAmount * (gstPct / 100) * 100) / 100;
+                    form.gst_amount = gstAmt;
+                }
+                let gstAmt = parseFloat(form.gst_amount) || 0;
+                form.new_unit_value = Math.round((agreedAmount + gstAmt) * 100) / 100;
             }
-
-            let gstAmt = parseFloat(form.gst_amount) || 0;
-            let total = agreedAmount + gstAmt;
-
-            form.new_unit_value = total;
 
             if (this.calculateDifferentialDue() <= 0) {
                 form.emi_installment_count = 0;

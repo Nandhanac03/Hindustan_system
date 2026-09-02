@@ -948,9 +948,15 @@
                                     <div>
                                         <label class="block text-slate-600 mb-1 font-semibold">Refund Mode <span class="text-red-500">*</span></label>
                                         <select x-model="returnForm.refund_mode" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50">
-                                            <option value="Bank Transfer">Bank Transfer</option>
-                                            <option value="Cheque">Cheque</option>
-                                            <option value="Cash">Cash</option>
+                                            @if(isset($paymentModes) && count($paymentModes) > 0)
+                                                @foreach($paymentModes as $pm)
+                                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                                @endforeach
+                                            @else
+                                                <option value="Bank Transfer">Bank Transfer</option>
+                                                <option value="Cheque">Cheque</option>
+                                                <option value="Cash">Cash</option>
+                                            @endif
                                         </select>
                                         <p x-show="returnFormErrors.refund_mode" x-text="returnFormErrors.refund_mode" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
                                     </div>
@@ -1866,7 +1872,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 pt-4 border-t border-slate-100">
+                                <div class="grid grid-cols-1 sm:grid-cols-5 gap-3 pt-4 border-t border-slate-100">
                                     <div class="space-y-1">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Agreed Sale Amount *</label>
                                         <div class="relative">
@@ -1878,6 +1884,15 @@
                                         <template x-if="errors.agreed_sale_amount">
                                             <p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.agreed_sale_amount) ? errors.agreed_sale_amount[0] : errors.agreed_sale_amount"></p>
                                         </template>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">GST Type</label>
+                                        <select x-model="exchangeForm.gst_type" @change="calculateExchangeAmounts('gst_type')"
+                                                class="w-full px-3 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 font-bold shadow-sm">
+                                            <option value="none">None</option>
+                                            <option value="exclusive">Exclusive</option>
+                                            <option value="inclusive">Inclusive</option>
+                                        </select>
                                     </div>
                                     <div class="space-y-1">
                                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">GST Percentage (%)</label>
@@ -1914,25 +1929,6 @@
                             </div>
                         </div>
 
-                        {{-- Dark Summary Bar --}}
-                        <div class="bg-[#33312e] rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 divide-x divide-slate-600 text-center text-white">
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Old Contract Value</p>
-                                <p class="text-sm font-extrabold font-mono mt-1" x-text="fmt(selectedExchangeSale.total_amount)"></p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paid Amount</p>
-                                <p class="text-sm font-extrabold text-emerald-400 font-mono mt-1" x-text="fmt(exchangeForm.equity_applied)"></p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">New Contract Value</p>
-                                <p class="text-sm font-extrabold font-mono mt-1" x-text="fmt(exchangeForm.new_unit_value)"></p>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Differential Due (Receivable)</p>
-                                <p class="text-sm font-extrabold text-[#d9bf3b] font-mono mt-1" x-text="'₹ ' + Number(calculateDifferentialDue()).toLocaleString('en-IN', {minimumFractionDigits: 2})"></p>
-                            </div>
-                        </div>
 
                         {{-- Initial Payment Details --}}
                         <div class="border border-slate-200 rounded-xl p-5 space-y-4">
@@ -1960,10 +1956,16 @@
                                     <div class="relative">
                                         <select x-model="exchangeForm.payment_mode"
                                                 class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                            <option value="Cash">Cash</option>
-                                            <option value="Bank Transfer">Bank Transfer</option>
-                                            <option value="Cheque">Cheque</option>
-                                            <option value="Demand Draft">Demand Draft</option>
+                                            @if(isset($paymentModes) && count($paymentModes) > 0)
+                                                @foreach($paymentModes as $pm)
+                                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                                @endforeach
+                                            @else
+                                                <option value="Cash">Cash</option>
+                                                <option value="Bank Transfer">Bank Transfer</option>
+                                                <option value="Cheque">Cheque</option>
+                                                <option value="Demand Draft">Demand Draft</option>
+                                            @endif
                                         </select>
                                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -1974,6 +1976,30 @@
                                     <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Payment Date</label>
                                     <input type="date" x-model="exchangeForm.initial_payment_date"
                                            class="w-full px-3 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 transition-all">
+                                </div>
+                                <div x-show="exchangeForm.payment_mode && exchangeForm.payment_mode !== 'Cash'" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-slate-100 sm:col-span-3" x-transition>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block" x-text="exchangeForm.payment_mode.toLowerCase().includes('upi') ? 'UPI Number / Transaction ID' : 'Reference / Cheque No'"></label>
+                                        <input type="text" x-model="exchangeForm.reference_no" :placeholder="exchangeForm.payment_mode.toLowerCase().includes('upi') ? 'Enter UPI Number or Ref ID' : 'e.g. UTR / Cheque number'"
+                                               class="w-full px-3 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 shadow-sm">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Bank Name</label>
+                                        <div class="relative">
+                                            <select x-model="exchangeForm.bank_id"
+                                                    class="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-400 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                                                <option value="">Select Bank Account</option>
+                                                @if(isset($bankAccounts))
+                                                    @foreach($bankAccounts as $bank)
+                                                        <option value="{{ $bank->id }}">{{ $bank->bank_name }} ({{ $bank->account_number }})</option>
+                                                    @endforeach
+                                                @endif
+                                            </select>
+                                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
