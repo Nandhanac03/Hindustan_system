@@ -2,313 +2,439 @@
 
 <div class="max-w-[1800px] mx-auto space-y-4" x-data="emiApp()" x-init="init()">
 
-
+    {{-- Under Construction Notice --}}
+    <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
+        <div class="flex items-start md:items-center gap-4">
+            <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-2xl md:text-3xl">
+                🚧
+            </div>
+            <div class="flex-1 space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">Under Development</span>
+                    <span class="flex items-center gap-1.5 text-xs font-bold text-red-700">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        Work In Progress
+                    </span>
+                </div>
+                <h2 class="text-lg md:text-2xl font-black text-red-950 tracking-tight leading-snug">
+                    We're working on this module. It is not yet ready for use and will be released shortly.
+                </h2>
+                <p class="text-xs md:text-sm font-medium text-red-800">
+                    This module is currently being finalized. Please check back soon for full availability.
+                </p>
+            </div>
+        </div>
+    </div>
 
     {{-- Top Stats Cards with Animated Hover Effects --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {{-- Card 1: Total Contract Value --}}
+        {{-- Card 1: Total EMI Collections Received --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
             <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Contract Value</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Received</span>
                 </div>
-                <span class="text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">
-                    {{ $totalSales }} Accounts
-                </span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5">Verified</span>
             </div>
             
             <div class="relative z-10 mt-2">
-                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">₹{{ number_format($totalContractValue, 2) }}</span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total sales value committed across active units</p>
+                <span class="text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">₹{{ number_format($totalReceived, 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">100% Verified Bank & Cash Intake</p>
             </div>
         </div>
 
-        {{-- Card 2: Total Collected / Paid --}}
+        {{-- Card 2: Pending Receipts --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-pointer">
+            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Pending Receipts</span>
+                </div>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:text-amber-700 group-hover:bg-amber-50/50">Action Req</span>
+            </div>
+            
+            <div class="relative z-10 mt-2">
+                <span class="text-2xl font-black text-slate-800 font-mono tracking-tight block group-hover:text-amber-600 transition-colors duration-300">{{ $pendingPaymentsCount }} <span class="text-lg font-sans text-slate-500">Accounts</span></span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Requires Collection Follow-up.</p>
+            </div>
+        </div>
+
+        {{-- Card 3: Ledger Status --}}
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
             <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Collected</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Ledger Status</span>
                 </div>
-                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
-                    {{ number_format($totalContractValue > 0 ? ($totalPaidSales / $totalContractValue) * 100 : 0, 1) }}% Realized
-                </span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:text-emerald-700 group-hover:bg-emerald-50/50">Synced</span>
             </div>
             
             <div class="relative z-10 mt-2">
-                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">₹{{ number_format($totalPaidSales, 2) }}</span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Cleared milestone and intake collections</p>
-            </div>
-        </div>
-
-        {{-- Card 3: Total Outstanding Balance --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer">
-            <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Outstanding Balance</span>
-                </div>
-                <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
-                    {{ $pendingPaymentsCount }} Pending
+                <span class="text-2xl font-black text-emerald-700 font-sans tracking-tight flex items-center gap-2 transition-colors duration-300">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-sm shadow-emerald-500/50"></span>
+                    Balanced
                 </span>
-            </div>
-            
-            <div class="relative z-10 mt-2">
-                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">₹{{ number_format($totalOutstanding, 2) }}</span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Pending balance across milestone & EMI schedules</p>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Real-time ledger audit sync.</p>
             </div>
         </div>
     </div>
 
-    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL ── -->
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
+    {{-- Main Two-Column view --}}
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-                {{-- 1. Customer Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                    </div>
-                    <select x-model="filters.customer_id" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Customers</option>
-                        @foreach($customers as $c)
-                            <option value="{{ $c->id }}">{{ $c->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        {{-- Left side: Customer EMI Accounts Directory (2/3 width) --}}
+        <div class="lg:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+            <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-8 bg-[#a38c29] rounded-full shrink-0"></div>
+                    <div>
+                        <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider">Customer EMI Directory</h2>
+                        <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Directory of all active customers with outstanding schedules and payment logs.</p>
                     </div>
                 </div>
-
-                {{-- 2. Project Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                    </div>
-                    <select x-model="filters.project_id" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Projects</option>
-                        @foreach($projects as $p)
-                            <option value="{{ $p->id }}">{{ $p->name }}</option>
-                        @endforeach
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
-
-                {{-- 3. Payment Plan Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                    </div>
-                    <select x-model="filters.payment_plan" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Payment Plans</option>
-                        <option value="emi">EMI Plan</option>
-                        <option value="lump_sum">Lump Sum</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
-
-                {{-- 4. Balance Status Filter --}}
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
-                    </div>
-                    <select x-model="filters.balance_status" @change="currentPage = 1"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                        <option value="">All Balances</option>
-                        <option value="pending">Pending Balance</option>
-                        <option value="paid">Fully Paid</option>
-                    </select>
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                    </div>
-                </div>
-
             </div>
 
-            {{-- Reset Filters Button --}}
-            <button type="button" @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
-                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>RESET FILTERS</span>
-            </button>
-        </div>
-    </div>
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
+                            <th class="px-6 py-3.5">Booking No.</th>
+                            <th class="px-6 py-3.5">Customer</th>
+                            <th class="px-6 py-3.5">Project & Unit</th>
+                            <th class="px-6 py-3.5 text-right">Contract Value</th>
+                            <th class="px-6 py-3.5 text-right">Total Paid</th>
+                            <th class="px-6 py-3.5 text-right">Outstanding</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($sales as $sale)
+                            @php
+                                $totalPaid = $sale->receipts->sum('amount');
+                            @endphp
+                            <tr @click="selectedSaleId = (selectedSaleId == {{ $sale->id }} ? '' : {{ $sale->id }}); onSaleSelect()" 
+                                class="cursor-pointer transition-colors" 
+                                :class="selectedSaleId == {{ $sale->id }} ? 'bg-[#a38c29]/10 hover:bg-[#a38c29]/15' : 'hover:bg-slate-50'">
+                                <td class="px-6 py-4 font-bold text-[#a38c29]">
+                                    <a href="{{ route('emi-collections.ledger', $sale->id) }}" class="hover:underline" @click.stop>
+                                        {{ $sale->sale_number }}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-slate-900">{{ $sale->customer?->name ?? 'N/A' }}</div>
+                                    <div class="text-[10px] text-slate-400 font-medium">{{ $sale->customer?->phone ?? '' }}</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-semibold text-slate-800">{{ $sale->project?->name ?? 'N/A' }}</div>
+                                    @php
+                                        $formattedUnitText = '';
+                                        if($sale->saleUnits && $sale->saleUnits->isNotEmpty()) {
+                                            $unitStrings = [];
+                                            foreach($sale->saleUnits as $su) {
+                                                if($su->unit) {
+                                                    $door = trim(explode(',', $su->unit->door_no)[0]);
+                                                    $type = strtolower($su->unit->unitType?->name ?? '');
+                                                    if ($type === 'flat') $type = 'Apartment';
+                                                    elseif (strpos($type, 'parking') !== false) $type = 'Parking';
+                                                    else $type = ucfirst($type);
 
-    {{-- Customer EMI Directory Table (Full Width) --}}
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full">
-        <div class="px-6 py-4 bg-slate-50/70 border-b border-slate-200/80 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-1.5 h-8 bg-[#a38c29] rounded-full shrink-0"></div>
-                <div>
-                    <h2 class="text-sm font-black text-slate-900 uppercase tracking-wider">Customer EMI Directory</h2>
-                    <p class="text-[11px] text-slate-500 font-semibold mt-0.5">Directory of all active customers with outstanding schedules and payment logs.</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] font-bold px-3 py-1 bg-white border border-slate-200 text-slate-700 rounded-full shadow-2xs"
-                      x-text="filteredSales.length + ' Active Accounts'">
-                </span>
-            </div>
-        </div>
+                                                    $floor = trim($su->unit->floor?->name ?? '');
+                                                    if (preg_match('/^(floor|fl)\b/i', $floor)) {
+                                                        $floor = preg_replace('/^(floor|fl)\b/i', 'Floor', $floor);
+                                                    } elseif ($floor && is_numeric($floor)) {
+                                                        $floor = 'Floor ' . $floor;
+                                                    } elseif ($floor) {
+                                                        $floor = ucfirst($floor);
+                                                    }
+                                                    $unitStrings[] = $door . ($type ? "($type)" : "") . ($floor ? " - $floor" : "");
+                                                }
+                                            }
+                                            $formattedUnitText = implode(', ', $unitStrings);
+                                        } elseif($sale->unit) {
+                                            $door = trim(explode(',', $sale->unit->door_no)[0]);
+                                            $type = strtolower($sale->unit->unitType?->name ?? '');
+                                            if ($type === 'flat') $type = 'Apartment';
+                                            elseif (strpos($type, 'parking') !== false) $type = 'Parking';
+                                            else $type = ucfirst($type);
 
-        <div class="overflow-x-auto flex-1">
-            <table class="w-full text-xs text-left border-collapse">
-                <thead>
-                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9.5px] uppercase tracking-widest border-b border-[#8a7522]">
-                        <th class="px-5 py-3.5">Booking No.</th>
-                        <th class="px-5 py-3.5">Customer</th>
-                        <th class="px-5 py-3.5">Project & Unit</th>
-                        <th class="px-5 py-3.5 text-right">Contract Value</th>
-                        <th class="px-5 py-3.5 text-right">Total Paid</th>
-                        <th class="px-5 py-3.5 text-right">Outstanding</th>
-                        <th class="px-5 py-3.5 text-center w-[170px]">Actions</th>
-                    </tr>
-                </thead>
-                <template x-for="sale in paginatedSales" :key="sale.id">
-                    <tbody class="divide-y divide-slate-100 border-b border-slate-100">
-                        <tr @click="selectedSaleId = (selectedSaleId == sale.id ? '' : sale.id)" 
-                            class="cursor-pointer transition-colors" 
-                            :class="selectedSaleId == sale.id ? 'bg-[#a38c29]/10 hover:bg-[#a38c29]/15' : 'hover:bg-slate-50'">
-                            <td class="px-5 py-3.5 font-bold text-[#a38c29]">
-                                <a :href="'{{ url('emi-collections/ledger') }}/' + sale.id" class="hover:underline" @click.stop x-text="sale.sale_number"></a>
-                                <template x-if="sale.payment_plan === 'emi'">
-                                    <div class="mt-0.5">
-                                        <span class="text-[8.5px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-150 rounded"
-                                              x-text="(sale.emi_installment_count || 12) + ' ' + (sale.emi_frequency ? (sale.emi_frequency.charAt(0).toUpperCase() + sale.emi_frequency.slice(1)) : 'Monthly')">
-                                        </span>
+                                            $floor = trim($sale->unit->floor?->name ?? '');
+                                            if (preg_match('/^(floor|fl)\b/i', $floor)) {
+                                                $floor = preg_replace('/^(floor|fl)\b/i', 'Floor', $floor);
+                                            } elseif ($floor && is_numeric($floor)) {
+                                                $floor = 'Floor ' . $floor;
+                                            } elseif ($floor) {
+                                                $floor = ucfirst($floor);
+                                            }
+                                            $formattedUnitText = $door . ($type ? "($type)" : "") . ($floor ? " - $floor" : "");
+                                        } else {
+                                            $formattedUnitText = '—';
+                                        }
+                                    @endphp
+                                    <span class="text-[9px] bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 font-mono font-bold">Unit: {{ $formattedUnitText }}</span>
+                                </td>
+                                <td class="px-6 py-4 font-extrabold text-slate-900 font-mono text-right">₹{{ number_format($sale->total_amount, 2) }}</td>
+                                <td class="px-6 py-4 font-extrabold text-emerald-600 font-mono text-right">₹{{ number_format($totalPaid, 2) }}</td>
+                                <td class="px-6 py-4 font-extrabold text-rose-600 font-mono text-right">₹{{ number_format($sale->remaining_balance, 2) }}</td>
+                            </tr>
+                            <tr x-show="selectedSaleId == {{ $sale->id }}" style="display: none;" x-transition>
+                                <td colspan="6" class="p-0 border-b border-slate-100 bg-slate-50/50">
+                                    <div class="px-6 py-4 pl-12 border-l-4 border-[#a38c29]">
+                                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-3">Payment Logs</h4>
+                                        @if($sale->receipts->count() > 0)
+                                            <table class="w-full text-left text-[11px] bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
+                                                <thead>
+                                                    <tr class="bg-[#a38c29] text-white font-extrabold text-[9px] uppercase tracking-widest border-b border-[#8a7522]">
+                                                        <th class="px-4 py-2.5">Receipt Date</th>
+                                                        <th class="px-4 py-2.5">Payment Mode</th>
+                                                        <th class="px-4 py-2.5">Ref / Chq</th>
+                                                        <th class="px-4 py-2.5">Bank Name</th>
+                                                        <th class="px-4 py-2.5 text-right">Amount</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-slate-100">
+                                                    @foreach($sale->receipts as $receipt)
+                                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                                            <td class="px-4 py-2 text-slate-700 font-mono font-medium">{{ \Carbon\Carbon::parse($receipt->receipt_date)->format('d M Y') }}</td>
+                                                            <td class="px-4 py-2 text-slate-700">{{ $receipt->payment_mode }}</td>
+                                                            <td class="px-4 py-2 text-slate-500 font-mono">{{ $receipt->reference_no ?: '—' }}</td>
+                                                            <td class="px-4 py-2 text-slate-500">{{ $receipt->bank_name ?: '—' }}</td>
+                                                            <td class="px-4 py-2 text-emerald-600 font-extrabold font-mono text-right">₹{{ number_format($receipt->amount, 2) }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        @else
+                                            <p class="text-xs text-slate-400 italic bg-white p-3 border border-slate-200 rounded-lg">No payments recorded yet.</p>
+                                        @endif
                                     </div>
-                                </template>
-                                <template x-if="sale.payment_plan !== 'emi'">
-                                    <div class="mt-0.5">
-                                        <span class="text-[8.5px] font-bold px-1.5 py-0.5 bg-slate-100 text-slate-600 border border-slate-200 rounded">
-                                            Lump Sum
-                                        </span>
-                                    </div>
-                                </template>
-                            </td>
-                            <td class="px-5 py-3.5">
-                                <div class="font-bold text-slate-900" x-text="sale.customer_name"></div>
-                                <div class="text-[10px] text-slate-400 font-medium" x-text="sale.customer_phone"></div>
-                            </td>
-                            <td class="px-5 py-3.5">
-                                <div class="font-semibold text-slate-800" x-text="sale.project_name"></div>
-                                <span class="text-[9px] bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 font-mono font-bold mt-0.5 inline-block"
-                                      x-text="'Unit: ' + sale.unit_text">
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-10 text-center text-slate-400 italic">No customers found.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Pagination Controls --}}
+            @if($sales instanceof \Illuminate\Pagination\AbstractPaginator && $sales->hasPages())
+                <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                    <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                        Showing <span class="text-slate-900">{{ $sales->firstItem() }}</span> to 
+                        <span class="text-slate-900">{{ $sales->lastItem() }}</span> of 
+                        <span class="text-slate-900">{{ number_format($sales->total()) }}</span> Sales
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        {{-- Previous Page Link --}}
+                        @if ($sales->onFirstPage())
+                            <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-350 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                                Prev
+                            </span>
+                        @else
+                            <a href="{{ $sales->previousPageUrl() }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                                Prev
+                            </a>
+                        @endif
+
+                        {{-- Page Numbers --}}
+                        @php
+                            $currentPage = $sales->currentPage();
+                            $lastPage = $sales->lastPage();
+                            $start = max(1, $currentPage - 2);
+                            $end = min($lastPage, $currentPage + 2);
+                        @endphp
+
+                        @if ($start > 1)
+                            <a href="{{ $sales->url(1) }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                1
+                            </a>
+                            @if ($start > 2)
+                                <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                            @endif
+                        @endif
+
+                        @for ($page = $start; $page <= $end; $page++)
+                            @if ($page == $currentPage)
+                                <span class="px-2.5 py-1 bg-primary text-white border border-primary rounded-lg text-[10px] font-bold">
+                                    {{ $page }}
                                 </span>
-                            </td>
-                            <td class="px-5 py-3.5 font-extrabold text-slate-900 font-mono text-right" x-text="'₹' + Number(sale.total_amount).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></td>
-                            <td class="px-5 py-3.5 font-extrabold text-emerald-600 font-mono text-right" x-text="'₹' + Number(sale.total_paid).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></td>
-                            <td class="px-5 py-3.5 font-extrabold text-rose-600 font-mono text-right" x-text="'₹' + Number(sale.remaining_balance).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></td>
-                            <td class="px-5 py-3.5 text-center" @click.stop>
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <button type="button"
-                                            @click="openCollectModal({ id: sale.id, outstanding: sale.remaining_balance, customer_name: sale.customer_name, door_no: sale.unit_text })"
-                                            class="px-3 py-1.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] active:scale-95 text-white text-[10px] font-extrabold rounded-lg transition shadow-2xs hover:shadow uppercase tracking-wider cursor-pointer">
+                            @else
+                                <a href="{{ $sales->url($page) }}" 
+                                   class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                    {{ $page }}
+                                </a>
+                            @endif
+                        @endfor
+
+                        @if ($end < $lastPage)
+                            @if ($end < $lastPage - 1)
+                                <span class="px-2 py-1 text-[10px] text-slate-400 font-bold">...</span>
+                            @endif
+                            <a href="{{ $sales->url($lastPage) }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold transition-colors">
+                                {{ $lastPage }}
+                            </a>
+                        @endif
+
+                        {{-- Next Page Link --}}
+                        @if ($sales->hasMorePages())
+                            <a href="{{ $sales->nextPageUrl() }}" 
+                               class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 hover:bg-slate-50 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-colors">
+                                Next
+                            </a>
+                        @else
+                            <span class="px-2.5 py-1 bg-white border border-slate-100 text-slate-350 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-not-allowed bg-slate-50/50">
+                                Next
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            @endif
+        </div>
+
+        {{-- Right side: Active Bookings/Sales for quick receipt mapping (1/3 width) --}}
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-4">
+            <div>
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Map New Receipt</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Select a customer or sale below to register an incoming payment installment.</p>
+            </div>
+
+            {{-- Customer Select Box --}}
+            <div class="space-y-1.5" x-data="{ searchOpen: false, searchString: '' }" @click.outside="searchOpen = false">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Select Customer</label>
+                <div class="relative">
+                    <div @click="searchOpen = !searchOpen" 
+                         class="w-full pl-3 pr-8 py-2 bg-slate-50 border border-slate-200 focus-within:bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary rounded-xl text-xs font-semibold cursor-pointer flex justify-between items-center transition-all">
+                        <span class="text-ellipsis overflow-hidden whitespace-nowrap" 
+                              x-text="selectedSale ? ((selectedSale.customer ? selectedSale.customer.name : '-') + ' — ' + selectedSale.sale_number) : '-- Choose Customer... --'"></span>
+                        <svg class="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    
+                    <div x-show="searchOpen" x-transition class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-64 flex flex-col overflow-hidden" style="display: none;">
+                        <div class="p-2 border-b border-slate-100 bg-slate-50/50 relative group">
+                            <input type="text" x-model="searchString" placeholder="Search name or sale no..." 
+                                   class="w-full pl-8 pr-7 py-2 bg-white border border-slate-250 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                            <svg class="w-3.5 h-3.5 absolute left-4 top-1/2 -translate-y-1/2 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <ul class="overflow-y-auto flex-1 p-1">
+                            <li @click="selectedSaleId = ''; onSaleSelect(); searchOpen = false; searchString = ''" 
+                                class="px-3 py-2 text-xs cursor-pointer hover:bg-slate-50 rounded-lg text-slate-500 font-medium">-- Choose Customer... --</li>
+                            <template x-for="s in activeSales.filter(sale => {
+                                let searchText = ((sale.customer ? sale.customer.name : '-') + ' ' + sale.sale_number).toLowerCase();
+                                return searchText.includes(searchString.toLowerCase());
+                            })" :key="s.id">
+                                <li @click="selectedSaleId = s.id; onSaleSelect(); searchOpen = false; searchString = ''"
+                                    class="px-3 py-2 text-xs cursor-pointer hover:bg-primary-50 hover:text-primary-700 rounded-lg font-medium"
+                                    :class="selectedSaleId == s.id ? 'bg-primary-50 text-primary-700' : 'text-slate-700'">
+                                    <span x-text="(s.customer ? s.customer.name : '-') + ' — ' + s.sale_number"></span>
+                                </li>
+                            </template>
+                            <template x-if="activeSales.filter(sale => {
+                                let searchText = ((sale.customer ? sale.customer.name : '-') + ' ' + sale.sale_number).toLowerCase();
+                                return searchText.includes(searchString.toLowerCase());
+                            }).length === 0">
+                                <li class="px-3 py-4 text-xs text-center text-slate-400 italic">No matches found.</li>
+                            </template>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4 pt-2">
+                {{-- If a sale is selected --}}
+                <template x-if="selectedSale">
+                    <div class="p-3.5 bg-blue-50/40 border border-blue-100 rounded-xl space-y-2 hover:shadow-md transition-all duration-200">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-750 rounded border border-blue-200 font-mono" x-text="selectedSale.sale_number"></span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1"
+                                      x-text="selectedSale.payment_plan === 'emi' ? (selectedSale.emi_installment_count + ' ' + (selectedSale.emi_frequency ? selectedSale.emi_frequency.charAt(0).toUpperCase() + selectedSale.emi_frequency.slice(1) : 'Monthly')) : 'Lump Sum'">
+                                </span>
+                                <h3 class="text-xs font-bold text-slate-900 mt-2" x-text="selectedSale.customer ? selectedSale.customer.name : '-'"></h3>
+                                <p class="text-[10px] text-slate-400 mt-0.5" x-text="(selectedSale.project ? selectedSale.project.name : '') + ' · Unit: ' + (selectedSale.sale_units && selectedSale.sale_units.length ? selectedSale.sale_units.map(su => su.unit ? su.unit.door_no.split(',')[0].trim() : '').join(', ') : (selectedSale.unit ? selectedSale.unit.door_no.split(',')[0].trim() : 'No Unit'))"></p>
+                            </div>
+                            <span class="text-[11px] font-extrabold text-slate-900" x-text="'₹' + (Number(selectedSale.total_amount) / 100000).toFixed(1) + 'L'"></span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button @click="openCollectModal({ id: selectedSale.id, outstanding: selectedSale.remaining_balance, customer_name: selectedSale.customer ? selectedSale.customer.name : '-', door_no: selectedSale.sale_units && selectedSale.sale_units.length ? selectedSale.sale_units.map(su => su.unit ? su.unit.door_no.split(',')[0].trim() : '').join(', ') : (selectedSale.unit ? selectedSale.unit.door_no.split(',')[0].trim() : 'No Unit') })" 
+                                    class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
+                                Collect
+                            </button>
+                            <a :href="'/emi-collections/ledger/' + selectedSale.id"
+                               class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
+                                EMI &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- If no sale is selected, show recent list --}}
+                <template x-if="!selectedSale">
+                    <div class="space-y-4">
+                        @forelse($recentBookings as $booking)
+                            @php
+                                $simpleBUnit = '';
+                                if($booking->saleUnits && $booking->saleUnits->isNotEmpty()) {
+                                    $bStrings = [];
+                                    foreach($booking->saleUnits as $su) {
+                                        if($su->unit) {
+                                            $bStrings[] = trim(explode(',', $su->unit->door_no)[0]);
+                                        }
+                                    }
+                                    $simpleBUnit = implode(', ', $bStrings);
+                                } else {
+                                    $simpleBUnit = trim(explode(',', $booking->unit?->door_no ?? 'No Unit')[0]);
+                                }
+                            @endphp
+                            <div class="p-3.5 bg-slate-50 border border-slate-150 rounded-xl space-y-2 hover:border-primary-300 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="text-[9px] font-bold px-1.5 py-0.5 bg-primary-50 text-primary-700 rounded border border-primary-100 font-mono">{{ $booking->sale_number }}</span>
+                                        @if($booking->payment_plan === 'emi')
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 bg-purple-50 text-purple-700 border-purple-100 rounded border ml-1">
+                                                {{ $booking->emi_installment_count ?? 12 }} {{ ucfirst($booking->emi_frequency ?? 'Monthly') }}
+                                            </span>
+                                        @else
+                                            <span class="text-[9px] font-bold px-1.5 py-0.5 bg-slate-50 text-slate-600 border-slate-100 rounded border ml-1">
+                                                Lump Sum
+                                            </span>
+                                        @endif
+                                        <h3 class="text-xs font-bold text-slate-900 mt-2">{{ $booking->customer?->name ?? '-' }}</h3>
+                                        <p class="text-[10px] text-slate-400 mt-0.5">{{ $booking->project?->name ?? '-' }} · Unit: {{ $simpleBUnit }}</p>
+                                    </div>
+                                    <span class="text-[11px] font-extrabold text-slate-900">₹{{ number_format($booking->total_amount / 100000, 1) }}L</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mt-2">
+                                    <button @click="openCollectModal({ id: {{ $booking->id }}, outstanding: {{ $booking->remaining_balance }}, customer_name: '{{ addslashes($booking->customer?->name ?? '-') }}', door_no: '{{ addslashes($simpleBUnit) }}' })" 
+                                            class="py-1.5 bg-[#a38c29] hover:bg-[#8e7a23] active:scale-95 text-white text-[10px] font-extrabold rounded-xl transition-all shadow-2xs hover:shadow uppercase tracking-wider">
                                         Collect
                                     </button>
-                                    <a :href="'{{ url('emi-collections/ledger') }}/' + sale.id"
-                                       class="px-2.5 py-1.5 bg-white border border-slate-250 hover:border-[#a38c29] text-slate-700 hover:text-[#a38c29] text-[10px] font-bold rounded-lg transition uppercase tracking-wider flex items-center gap-0.5 shadow-2xs hover:bg-slate-50">
-                                        <span>EMI</span>
-                                        <span>&rarr;</span>
+                                    <a href="{{ route('emi-collections.ledger', $booking->id) }}"
+                                       class="py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary text-[10px] font-bold rounded-lg transition uppercase tracking-wide text-center flex items-center justify-center">
+                                        EMI &rarr;
                                     </a>
                                 </div>
-                            </td>
-                        </tr>
-                        <tr x-show="selectedSaleId == sale.id" style="display: none;" x-transition>
-                            <td colspan="7" class="p-0 border-b border-slate-100 bg-slate-50/50">
-                                <div class="px-6 py-4 pl-12 border-l-4 border-[#a38c29]">
-                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-widest mb-3">Payment Logs</h4>
-                                    <template x-if="sale.receipts && sale.receipts.length > 0">
-                                        <table class="w-full text-left text-[11px] bg-white rounded-lg border border-slate-200 overflow-hidden shadow-sm">
-                                            <thead>
-                                                <tr class="bg-[#a38c29] text-white font-extrabold text-[9px] uppercase tracking-widest border-b border-[#8a7522]">
-                                                    <th class="px-4 py-2.5">Receipt Date</th>
-                                                    <th class="px-4 py-2.5">Payment Mode</th>
-                                                    <th class="px-4 py-2.5">Ref / Chq</th>
-                                                    <th class="px-4 py-2.5">Bank Name</th>
-                                                    <th class="px-4 py-2.5 text-right">Amount</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-slate-100">
-                                                <template x-for="(rc, idx) in sale.receipts" :key="idx">
-                                                    <tr class="hover:bg-slate-50/80 transition-colors">
-                                                        <td class="px-4 py-2 text-slate-700 font-mono font-medium" x-text="rc.receipt_date"></td>
-                                                        <td class="px-4 py-2 text-slate-700" x-text="rc.payment_mode"></td>
-                                                        <td class="px-4 py-2 text-slate-500 font-mono" x-text="rc.reference_no"></td>
-                                                        <td class="px-4 py-2 text-slate-500" x-text="rc.bank_name"></td>
-                                                        <td class="px-4 py-2 text-emerald-600 font-extrabold font-mono text-right" x-text="'₹' + Number(rc.amount).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></td>
-                                                    </tr>
-                                                </template>
-                                            </tbody>
-                                        </table>
-                                    </template>
-                                    <template x-if="!sale.receipts || sale.receipts.length === 0">
-                                        <p class="text-xs text-slate-400 italic bg-white p-3 border border-slate-200 rounded-lg">No payments recorded yet.</p>
-                                    </template>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
+                            </div>
+                        @empty
+                            <p class="text-xs text-slate-455 italic text-center py-4">No recent active sales with outstanding balances found.</p>
+                        @endforelse
+                    </div>
                 </template>
-                <tbody x-show="filteredSales.length === 0">
-                    <tr>
-                        <td colspan="7" class="px-6 py-10 text-center text-slate-400 italic">No customer accounts match your filters.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        {{-- Pagination Controls --}}
-        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl">
-            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                Showing <span class="text-slate-900" x-text="filteredSales.length ? (currentPage - 1) * perPage + 1 : 0"></span> to 
-                <span class="text-slate-900" x-text="Math.min(currentPage * perPage, filteredSales.length)"></span> of 
-                <span class="text-slate-900" x-text="filteredSales.length"></span> Sales
-            </div>
-            <div class="flex items-center gap-1.5" x-show="totalPages > 1">
-                <button type="button" 
-                        @click="if(currentPage > 1) currentPage--"
-                        :disabled="currentPage === 1"
-                        :class="currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-100'"
-                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-2xs transition">
-                    Prev
-                </button>
-                
-                <template x-for="p in totalPages" :key="p">
-                    <button type="button" 
-                            x-show="p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)"
-                            @click="currentPage = p"
-                            :class="currentPage === p ? 'bg-[#a38c29] text-white border-[#a38c29]' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'"
-                            class="px-2.5 py-1 rounded-lg text-[10px] font-bold border shadow-2xs transition cursor-pointer"
-                            x-text="p">
-                    </button>
-                </template>
-
-                <button type="button" 
-                        @click="if(currentPage < totalPages) currentPage++"
-                        :disabled="currentPage >= totalPages"
-                        :class="currentPage >= totalPages ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-slate-100'"
-                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-2xs transition">
-                    Next
-                </button>
             </div>
         </div>
+
     </div>
+
 
     {{-- Toast Notification --}}
     <div x-show="toast.open" 
@@ -621,55 +747,6 @@ function emiApp() {
             type: 'success'
         },
         errors: {},
-
-        allSales: @json($allSalesFormatted ?? []),
-        filters: {
-            customer_id: '',
-            project_id: '{{ $projects->first()?->id ?? '' }}',
-            payment_plan: '',
-            balance_status: ''
-        },
-        currentPage: 1,
-        perPage: 20,
-
-        get filteredSales() {
-            let list = this.allSales || [];
-            if (this.filters.customer_id) {
-                list = list.filter(s => s.customer_id == this.filters.customer_id);
-            }
-            if (this.filters.project_id) {
-                list = list.filter(s => s.project_id == this.filters.project_id);
-            }
-            if (this.filters.payment_plan) {
-                const pp = this.filters.payment_plan.toLowerCase();
-                list = list.filter(s => (s.payment_plan || '').toLowerCase() === pp);
-            }
-            if (this.filters.balance_status) {
-                if (this.filters.balance_status === 'pending') {
-                    list = list.filter(s => Number(s.remaining_balance) > 0);
-                } else if (this.filters.balance_status === 'paid') {
-                    list = list.filter(s => Number(s.remaining_balance) <= 0);
-                }
-            }
-            return list;
-        },
-
-        get totalPages() {
-            return Math.ceil(this.filteredSales.length / this.perPage) || 1;
-        },
-
-        get paginatedSales() {
-            const start = (this.currentPage - 1) * this.perPage;
-            return this.filteredSales.slice(start, start + this.perPage);
-        },
-
-        resetFilters() {
-            this.filters.customer_id = '';
-            this.filters.project_id = '{{ $projects->first()?->id ?? '' }}';
-            this.filters.payment_plan = '';
-            this.filters.balance_status = '';
-            this.currentPage = 1;
-        },
 
         activeSales: @json($activeSales),
         selectedSaleId: '',
