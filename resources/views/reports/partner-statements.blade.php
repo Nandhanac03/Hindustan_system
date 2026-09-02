@@ -1,10 +1,6 @@
 <x-erp-layout title="Partner Statement & Equity Ledger" headerTitle="Business Reports Center">
 
-<div class="max-w-[1800px] mx-auto space-y-6" x-data="{
-    printReport(title) {
-        window.print();
-    }
-}">
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="partnerStatementApp()" x-init="init()">
 
     @include('reports.partials.nav')
 
@@ -18,278 +14,309 @@
             </div>
             
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <div class="flex flex-wrap items-center gap-2">
-                    <button @click="printReport('Partner Statement')" class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center gap-2 shadow-2xs cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <div class="text-left">
-                            <span class="block text-xs font-bold leading-none text-slate-800">Partner Statement</span>
-                            <span class="text-[9px] text-slate-400 font-medium">PDF / Excel</span>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    
+                    {{-- 1. Partner Statement Export --}}
+                    <button @click="printReport('Partner Statement')" 
+                            class="p-2 pr-3.5 bg-white border border-slate-200/90 rounded-2xl hover:bg-slate-50/80 hover:border-[#a38c29]/50 transition-all duration-300 flex items-center gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 cursor-pointer group">
+                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-sm group-hover:scale-105">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
+                        <div class="text-left">
+                            <span class="block text-xs font-black text-slate-800 group-hover:text-[#a38c29] transition-colors leading-tight">Partner Statement</span>
+                            <div class="flex items-center gap-1 mt-1">
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80">PDF</span>
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80">EXCEL</span>
+                            </div>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-[#a38c29] group-hover:translate-x-0.5 transition-all ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
 
-                    <button @click="printReport('Profit Sharing Summary')" class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center gap-2 shadow-2xs cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        <div class="text-left">
-                            <span class="block text-xs font-bold leading-none text-slate-800">Profit Sharing Summary</span>
-                            <span class="text-[9px] text-slate-400 font-medium">PDF / Excel</span>
+                    {{-- 2. Profit Sharing Summary Export --}}
+                    <button @click="printReport('Profit Sharing Summary')" 
+                            class="p-2 pr-3.5 bg-white border border-slate-200/90 rounded-2xl hover:bg-slate-50/80 hover:border-emerald-300 transition-all duration-300 flex items-center gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 cursor-pointer group">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-sm group-hover:scale-105">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         </div>
+                        <div class="text-left">
+                            <span class="block text-xs font-black text-slate-800 group-hover:text-emerald-700 transition-colors leading-tight">Profit Sharing Summary</span>
+                            <div class="flex items-center gap-1 mt-1">
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80">PDF</span>
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80">EXCEL</span>
+                            </div>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
 
-                    <button @click="printReport('Distribution History Log')" class="px-3.5 py-2 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all flex items-center gap-2 shadow-2xs cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <div class="text-left">
-                            <span class="block text-xs font-bold leading-none text-slate-800">Distribution History Log</span>
-                            <span class="text-[9px] text-slate-400 font-medium">PDF / Excel</span>
+                    {{-- 3. Distribution History Log Export --}}
+                    <button @click="printReport('Distribution History Log')" 
+                            class="p-2 pr-3.5 bg-white border border-slate-200/90 rounded-2xl hover:bg-slate-50/80 hover:border-indigo-300 transition-all duration-300 flex items-center gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 cursor-pointer group">
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-sm group-hover:scale-105">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
+                        <div class="text-left">
+                            <span class="block text-xs font-black text-slate-800 group-hover:text-indigo-700 transition-colors leading-tight">Distribution History Log</span>
+                            <div class="flex items-center gap-1 mt-1">
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80">PDF</span>
+                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80">EXCEL</span>
+                            </div>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
+
                 </div>
             </div>
         </div>
 
-        {{-- Filter Bar (Styled in Units Table filter format with Gold Apply button) --}}
-        <form method="GET" action="{{ url('/reports/partner-statements') }}" class="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-4 transition-all">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3.5 items-end">
-                
-                {{-- Partner Filter --}}
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Partner</label>
-                    <div class="relative">
-                        <select name="partner_id" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-300 focus:border-[#8c7b2b] focus:ring-2 focus:ring-[#8c7b2b]/20 rounded-xl text-xs font-semibold text-slate-700 appearance-none shadow-2xs cursor-pointer">
-                            <option value="">All Partners</option>
-                            @foreach($partners as $p)
-                                <option value="{{ $p->id }}" {{ request('partner_id') == $p->id ? 'selected' : '' }}>
-                                    {{ $p->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Project Filter --}}
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Project</label>
-                    <div class="relative">
-                        <select name="project_id" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-300 focus:border-[#8c7b2b] focus:ring-2 focus:ring-[#8c7b2b]/20 rounded-xl text-xs font-semibold text-slate-700 appearance-none shadow-2xs cursor-pointer">
-                            <option value="">All Projects</option>
-                            @foreach($projects as $proj)
-                                <option value="{{ $proj->id }}" {{ request('project_id') == $proj->id ? 'selected' : '' }}>
-                                    {{ $proj->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Date Range Filter --}}
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Date Range</label>
-                    <div class="relative">
-                        <select name="date_range" class="w-full pl-3 pr-8 py-2 bg-white border border-slate-300 focus:border-[#8c7b2b] focus:ring-2 focus:ring-[#8c7b2b]/20 rounded-xl text-xs font-semibold text-slate-700 appearance-none shadow-2xs cursor-pointer">
-                            <option value="inception" {{ request('date_range', 'inception') == 'inception' ? 'selected' : '' }}>Project Inception to Date</option>
-                            <option value="this_month" {{ request('date_range') == 'this_month' ? 'selected' : '' }}>This Month</option>
-                            <option value="this_quarter" {{ request('date_range') == 'this_quarter' ? 'selected' : '' }}>This Quarter</option>
-                            <option value="this_fy" {{ request('date_range') == 'this_fy' ? 'selected' : '' }}>This Financial Year</option>
-                            <option value="custom" {{ request('date_range') == 'custom' ? 'selected' : '' }}>Custom Date Range</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center pointer-events-none text-slate-400">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- From Date --}}
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">From</label>
-                    <input type="date" name="from_date" value="{{ $dateFrom ?? '' }}"
-                           class="w-full px-3 py-2 bg-white border border-slate-300 focus:border-[#8c7b2b] focus:ring-2 focus:ring-[#8c7b2b]/20 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs">
-                </div>
-
-                {{-- To Date --}}
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">To</label>
-                    <input type="date" name="to_date" value="{{ $dateTo ?? '' }}"
-                           class="w-full px-3 py-2 bg-white border border-slate-300 focus:border-[#8c7b2b] focus:ring-2 focus:ring-[#8c7b2b]/20 rounded-xl text-xs font-semibold text-slate-700 shadow-2xs">
-                </div>
-
-                {{-- Apply & Reset Buttons --}}
-                <div class="flex items-center gap-2">
-                    <button type="submit" class="w-full py-2 px-5 bg-[#8c7b2b] hover:bg-[#75641c] text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer">
-                        Apply
-                    </button>
-                    <a href="{{ url('/reports/partner-statements') }}" class="py-2 px-3 bg-white border border-slate-300 hover:bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold transition-all shadow-2xs flex items-center justify-center gap-1" title="Reset Filters">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        <span>Reset</span>
-                    </a>
-                </div>
-
-            </div>
-        </form>
-
-        {{-- 4 Metric KPI Cards Grid --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {{-- 4 Metric KPI Cards Grid (Placed Above Filter) --}}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             {{-- Card 1: Agreed Profit Share --}}
-            <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-[#8c7b2b]/15 text-[#8c7b2b] flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Agreed Profit Share</span>
+                    </div>
                 </div>
-                <div>
-                    <span class="block text-xs font-bold text-[#8c7b2b] uppercase tracking-wider">Agreed Profit Share</span>
-                    <span class="text-2xl font-black text-slate-900 tracking-tight block mt-0.5">{{ number_format($agreedProfitShare, 1) }}%</span>
-                    <span class="text-[10px] text-slate-400 font-medium block mt-0.5">As per Partnership Agreement</span>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300" x-text="agreedProfitShareFormatted">
+                        {{ number_format($agreedProfitShare, 1) }}%
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">As per Partnership Agreement</p>
                 </div>
             </div>
 
             {{-- Card 2: Earned Profit Share --}}
-            <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-[#107c41] text-white flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Earned Profit Share</span>
+                    </div>
                 </div>
-                <div>
-                    <span class="block text-xs font-bold text-[#107c41] uppercase tracking-wider">Earned Profit Share</span>
-                    <span class="text-2xl font-black text-[#107c41] font-mono tracking-tight block mt-0.5">Rs. {{ number_format($earnedProfitShare, 0) }}</span>
-                    <span class="text-[10px] text-slate-400 font-medium block mt-0.5">Partner's share of current project net profit</span>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="formatCurrency(totalCredit)">
+                        Rs. {{ number_format($earnedProfitShare, 0) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Partner's share of current project net profit</p>
                 </div>
             </div>
 
             {{-- Card 3: Total Payouts Released --}}
-            <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-[#6b46c1] text-white flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Payouts Released</span>
+                    </div>
                 </div>
-                <div>
-                    <span class="block text-xs font-bold text-[#6b46c1] uppercase tracking-wider">Total Payouts Released</span>
-                    <span class="text-2xl font-black text-[#6b46c1] font-mono tracking-tight block mt-0.5">Rs. {{ number_format($totalPayoutsReleased, 0) }}</span>
-                    <span class="text-[10px] text-slate-400 font-medium block mt-0.5">Total profit payouts / drawings released to date</span>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="formatCurrency(totalDebit)">
+                        Rs. {{ number_format($totalPayoutsReleased, 0) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Total profit payouts / drawings released to date</p>
                 </div>
             </div>
 
             {{-- Card 4: Current Net Equity Balance --}}
-            <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-2xs flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-[#d97706] text-white flex items-center justify-center shrink-0">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Current Net Equity Balance</span>
+                    </div>
                 </div>
-                <div>
-                    <span class="block text-xs font-bold text-[#d97706] uppercase tracking-wider">Current Net Equity Balance</span>
-                    <span class="text-2xl font-black text-[#d97706] font-mono tracking-tight block mt-0.5">Rs. {{ number_format($currentNetEquityBalance, 0) }}</span>
-                    <span class="text-[10px] text-slate-400 font-medium block mt-0.5">Earned Profit Share - Payouts Released</span>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-[#a38c29] font-mono tracking-tight block group-hover:text-[#8e7a23] transition-colors duration-300" x-text="formatCurrency(totalRunningBalance)">
+                        Rs. {{ number_format($currentNetEquityBalance, 0) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Earned Profit Share - Payouts Released</p>
                 </div>
             </div>
 
+        </div>
+
+        {{-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL (NO PAGE REFRESH NEEDED) ── --}}
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 w-full">
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 flex-1">
+                    
+                    {{-- 1. Partner Filter --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        </div>
+                        <select x-model="filters.partner_id" @change="currentPage = 1"
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                            <option value="">All Partners</option>
+                            @foreach($partners as $p)
+                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- 2. Project Filter --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <select x-model="filters.project_id" @change="currentPage = 1"
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                            <option value="">All Projects</option>
+                            @foreach($projects as $proj)
+                                <option value="{{ $proj->id }}">{{ $proj->name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- 3. Date Range Filter --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <select x-model="filters.date_range" @change="handleDateRangeChange()"
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                            <option value="inception">Project Inception to Date</option>
+                            <option value="this_month">This Month</option>
+                            <option value="this_quarter">This Quarter</option>
+                            <option value="this_fy">This Financial Year</option>
+                            <option value="custom">Custom Date Range</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- 4. From Date --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" x-model="filters.from_date" @change="filters.date_range = 'custom'; currentPage = 1"
+                               title="From Date"
+                               class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs cursor-pointer">
+                    </div>
+
+                    {{-- 5. To Date --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" x-model="filters.to_date" @change="filters.date_range = 'custom'; currentPage = 1"
+                               title="To Date"
+                               class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs cursor-pointer">
+                    </div>
+
+                </div>
+
+                {{-- Single Reset Filters Button (No Refresh, No Apply Button) --}}
+                <div class="shrink-0 flex items-center">
+                    <button type="button" @click="resetFilters()"
+                            class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer whitespace-nowrap group">
+                        <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>RESET FILTERS</span>
+                    </button>
+                </div>
+
+            </div>
         </div>
 
         {{-- Section A: Individual Partner Statement of Account (Running Ledger) --}}
         <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-0">
             <div class="bg-white px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-[#8c7b2b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    </div>
                     <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">A. Individual Partner Statement of Account (Running Ledger)</h2>
                 </div>
+                <span class="text-xs font-bold text-slate-400" x-text="filteredLedger.length + ' records found'"></span>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-[#8c7b2b] text-white text-[11px] font-bold tracking-wide">
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#7a6b24]">Transaction Date</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#7a6b24]">Reference / Voucher No.</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#7a6b24]">Description / Transaction Type</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#7a6b24]">Profit Share Allocated<br><span class="text-[9px] font-normal text-white/80">(Credit - Rs.)</span></th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#7a6b24]">Payout Released<br><span class="text-[9px] font-normal text-white/80">(Debit - Rs.)</span></th>
+                        <tr class="bg-[#a38c29] text-white text-[11px] font-bold tracking-wide">
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Transaction Date</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Reference / Voucher No.</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Description / Transaction Type</th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Profit Share Allocated<br><span class="text-[9px] font-normal text-white/80">(Credit - Rs.)</span></th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Payout Released<br><span class="text-[9px] font-normal text-white/80">(Debit - Rs.)</span></th>
                             <th class="px-5 py-3.5 text-right text-white font-extrabold">Running Payable Balance<br><span class="text-[9px] font-normal text-white/80">(Rs.)</span></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
-                        @forelse($runningLedger as $entry)
-                        <tr class="hover:bg-slate-50 transition-colors font-medium">
-                            <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100">
-                                {{ \Carbon\Carbon::parse($entry->date)->format('d-M-Y') }}
-                            </td>
-                            <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100">
-                                {{ $entry->ref_no }}
-                            </td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100">
-                                {{ $entry->description }}
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">
-                                Rs. {{ number_format($entry->credit, 0) }}
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">
-                                Rs. {{ number_format($entry->debit, 0) }}
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">
-                                Rs. {{ number_format($entry->running_balance, 0) }}
+                        <template x-for="(entry, index) in pagedLedger" :key="index">
+                            <tr class="hover:bg-slate-50 transition-colors font-medium">
+                                <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100" x-text="formatDate(entry.date)"></td>
+                                <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100" x-text="entry.ref_no"></td>
+                                <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100" x-text="entry.description"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.credit)"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.debit)"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap" x-text="formatCurrency(entry.running_balance)"></td>
+                            </tr>
+                        </template>
+
+                        <tr x-show="filteredLedger.length === 0">
+                            <td colspan="6" class="px-5 py-8 text-center text-slate-400 font-semibold text-xs">
+                                No transactions found matching the selected filter criteria.
                             </td>
                         </tr>
-                        @empty
-                        <tr class="font-medium">
-                            <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100">31-Dec-2025</td>
-                            <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100">JV-PRF-001</td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100">FY25 Q4 Project Profit Allocation</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">Rs. 15,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">Rs. 0</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">Rs. 15,00,000</td>
-                        </tr>
-                        <tr class="font-medium bg-slate-50/50">
-                            <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100">15-Jan-2026</td>
-                            <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100">BANK-DIS-012</td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100">Interim Profit Payout (Bank Transfer)</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">Rs. 0</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">Rs. 5,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">Rs. 10,00,000</td>
-                        </tr>
-                        <tr class="font-medium">
-                            <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100">31-Mar-2026</td>
-                            <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100">JV-PRF-002</td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100">FY26 Q1 Project Profit Allocation</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">Rs. 15,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">Rs. 0</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">Rs. 25,00,000</td>
-                        </tr>
-                        <tr class="font-medium bg-slate-50/50">
-                            <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100">10-May-2026</td>
-                            <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100">BANK-DIS-045</td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100">Profit Payout (Karnataka Bank)</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">Rs. 0</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">Rs. 5,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-slate-900 whitespace-nowrap">Rs. 20,00,000</td>
-                        </tr>
-                        @endforelse
                     </tbody>
                     <tfoot>
-                        <tr class="bg-amber-50/40 font-black text-slate-900 border-t-2 border-amber-200">
+                        <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
                             <td colspan="3" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">TOTALS</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap">Rs. {{ number_format($totalCredit > 0 ? $totalCredit : 3000000, 0) }}</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap">Rs. {{ number_format($totalDebit > 0 ? $totalDebit : 1000000, 0) }}</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-purple-700 text-sm whitespace-nowrap">Rs. {{ number_format($runningBalance != 0 ? $runningBalance : 2000000, 0) }}</td>
+                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalCredit)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalDebit)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm whitespace-nowrap" x-text="formatCurrency(totalRunningBalance)"></td>
                         </tr>
                     </tfoot>
                 </table>
             </div>
 
-            <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
-                <div class="flex items-center gap-1.5 text-slate-500">
-                    <svg class="w-4 h-4 text-[#8c7b2b] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <span>All amounts are inclusive of GST wherever applicable.</span>
+            <div class="px-6 py-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                    SHOWING <span class="text-slate-900 font-black" x-text="filteredLedger.length > 0 ? ((currentPage - 1) * pageSize + 1) : 0"></span> TO <span class="text-slate-900 font-black" x-text="Math.min(currentPage * pageSize, filteredLedger.length)"></span> OF <span class="text-slate-900 font-black" x-text="filteredLedger.length"></span> ENTRIES
                 </div>
-                <div class="flex items-center gap-3">
-                    <span>Showing 1 to {{ count($runningLedger) > 0 ? count($runningLedger) : 4 }} of {{ count($runningLedger) > 0 ? count($runningLedger) : 4 }} entries</span>
-                    <div class="flex items-center gap-1.5">
-                        <button class="px-2 py-1 border border-slate-200 rounded text-slate-400 bg-white" disabled>&lt;</button>
-                        <button class="px-2.5 py-1 bg-[#8c7b2b] text-white rounded font-bold text-xs">1</button>
-                        <button class="px-2 py-1 border border-slate-200 rounded text-slate-400 bg-white" disabled>&gt;</button>
-                        <select class="px-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-700 font-semibold cursor-pointer">
-                            <option>10 / page</option>
-                            <option>25 / page</option>
-                            <option>50 / page</option>
-                        </select>
-                    </div>
+                <div class="flex items-center gap-1.5">
+                    <button type="button" 
+                            @click="if(currentPage > 1) currentPage--" 
+                            :disabled="currentPage <= 1" 
+                            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs">
+                        PREV
+                    </button>
+                    
+                    <template x-for="p in totalPages" :key="p">
+                        <button type="button" 
+                                @click="currentPage = p" 
+                                :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'" 
+                                class="w-8 h-8 rounded-lg font-bold text-xs flex items-center justify-center transition-colors cursor-pointer" 
+                                x-text="p">
+                        </button>
+                    </template>
+                    
+                    <button type="button" 
+                            @click="if(currentPage < totalPages) currentPage++" 
+                            :disabled="currentPage >= totalPages" 
+                            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg uppercase tracking-wider disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors shadow-2xs">
+                        NEXT
+                    </button>
                 </div>
             </div>
         </div>
@@ -298,7 +325,9 @@
         <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-0">
             <div class="bg-white px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-[#8c7b2b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
                     <h2 class="text-sm font-extrabold text-slate-900 uppercase tracking-wide">B. Project-Wide Equity & Profit Distribution Matrix</h2>
                 </div>
             </div>
@@ -306,63 +335,37 @@
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-left border-collapse">
                     <thead>
-                        <tr class="bg-[#8c7b2b] text-white text-[11px] font-bold tracking-wide">
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#7a6b24]">Partner Name</th>
-                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#7a6b24]">Role / Entity Type</th>
-                            <th class="px-5 py-3.5 text-center text-white font-extrabold border-r border-[#7a6b24]">Agreed Share (%)</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#7a6b24]">Total Allocated Net Profit (Rs.)</th>
-                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#7a6b24]">Total Payouts Released (Rs.)</th>
+                        <tr class="bg-[#a38c29] text-white text-[11px] font-bold tracking-wide">
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Partner Name</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Role / Entity Type</th>
+                            <th class="px-5 py-3.5 text-center text-white font-extrabold border-r border-[#8e7a23]">Agreed Share (%)</th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Total Allocated Net Profit (Rs.)</th>
+                            <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Total Payouts Released (Rs.)</th>
                             <th class="px-5 py-3.5 text-right text-white font-extrabold">Current Net Balance Owed (Rs.)</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
-                        @forelse($matrixPartners as $pRow)
-                        <tr class="hover:bg-slate-50 transition-colors font-medium">
-                            <td class="px-5 py-3.5 font-bold text-indigo-700 border-r border-slate-100">
-                                {{ $pRow->name }} ({{ number_format($pRow->share_pct, 1) }}%)
-                            </td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-600 border-r border-slate-100">
-                                {{ $pRow->role }}
-                            </td>
-                            <td class="px-5 py-3.5 text-center font-bold text-slate-900 border-r border-slate-100">
-                                {{ number_format($pRow->share_pct, 1) }}%
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">
-                                Rs. {{ number_format($pRow->total_allocated > 0 ? $pRow->total_allocated : ($loop->first ? 3000000 : 2000000), 0) }}
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">
-                                Rs. {{ number_format($pRow->total_payouts > 0 ? $pRow->total_payouts : ($loop->first ? 1000000 : 500000), 0) }}
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-purple-700 whitespace-nowrap">
-                                Rs. {{ number_format($pRow->net_balance != 0 ? $pRow->net_balance : ($loop->first ? 2000000 : 1500000), 0) }}
-                            </td>
-                        </tr>
-                        @empty
-                        <tr class="hover:bg-slate-50 transition-colors font-medium">
-                            <td class="px-5 py-3.5 font-bold text-indigo-700 border-r border-slate-100">Partner A (60%)</td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-600 border-r border-slate-100">Lead Developer</td>
-                            <td class="px-5 py-3.5 text-center font-bold text-slate-900 border-r border-slate-100">60.0%</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">Rs. 30,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">Rs. 10,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-purple-700 whitespace-nowrap">Rs. 20,00,000</td>
-                        </tr>
-                        <tr class="hover:bg-slate-50 transition-colors font-medium bg-slate-50/50">
-                            <td class="px-5 py-3.5 font-bold text-indigo-700 border-r border-slate-100">Partner B (40%)</td>
-                            <td class="px-5 py-3.5 font-semibold text-slate-600 border-r border-slate-100">JV Partner / Land Owner</td>
-                            <td class="px-5 py-3.5 text-center font-bold text-slate-900 border-r border-slate-100">40.0%</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap">Rs. 20,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap">Rs. 5,00,000</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-black text-purple-700 whitespace-nowrap">Rs. 15,00,000</td>
-                        </tr>
-                        @endforelse
+                        <template x-for="(pRow, pIdx) in matrixList" :key="pIdx">
+                            <tr class="hover:bg-slate-50 transition-colors font-medium" :class="filters.partner_id && String(pRow.id) === String(filters.partner_id) ? 'bg-[#a38c29]/5' : ''">
+                                <td class="px-5 py-3.5 font-bold text-slate-900 border-r border-slate-100">
+                                    <span x-text="pRow.name"></span>
+                                    <span class="text-xs text-slate-500 font-normal" x-text="' (' + Number(pRow.share_pct).toFixed(1) + '%)'"></span>
+                                </td>
+                                <td class="px-5 py-3.5 font-semibold text-slate-600 border-r border-slate-100" x-text="pRow.role"></td>
+                                <td class="px-5 py-3.5 text-center font-bold text-slate-900 border-r border-slate-100" x-text="Number(pRow.share_pct).toFixed(1) + '%'"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_allocated)"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-bold text-rose-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(pRow.total_payouts)"></td>
+                                <td class="px-5 py-3.5 text-right font-mono font-black text-[#a38c29] whitespace-nowrap" x-text="formatCurrency(pRow.net_balance)"></td>
+                            </tr>
+                        </template>
                     </tbody>
                     <tfoot>
-                        <tr class="bg-amber-50/40 font-black text-slate-900 border-t-2 border-amber-200">
+                        <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
                             <td colspan="2" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">PROJECT TOTALS</td>
-                            <td class="px-5 py-3.5 text-center font-mono text-slate-900 border-r border-slate-200">100.0%</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap">Rs. {{ number_format($totalMatrixAllocated > 0 ? $totalMatrixAllocated : 5000000, 0) }}</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap">Rs. {{ number_format($totalMatrixPayouts > 0 ? $totalMatrixPayouts : 1500000, 0) }}</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-purple-700 text-sm whitespace-nowrap">Rs. {{ number_format(($totalMatrixAllocated - $totalMatrixPayouts) > 0 ? ($totalMatrixAllocated - $totalMatrixPayouts) : 3500000, 0) }}</td>
+                            <td class="px-5 py-3.5 text-center font-mono text-slate-900 border-r border-slate-200" x-text="totalMatrixAgreedPct.toFixed(1) + '%'"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixAllocated)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalMatrixPayouts)"></td>
+                            <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm whitespace-nowrap" x-text="formatCurrency(totalMatrixAllocated - totalMatrixPayouts)"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -370,26 +373,181 @@
 
             <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 font-medium">
                 <div class="flex items-center gap-1.5 text-slate-500">
-                    <svg class="w-4 h-4 text-[#8c7b2b] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <svg class="w-4 h-4 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     <span>Net Balance Owed = Total Allocated Net Profit - Total Payouts Released</span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span>Showing 1 to {{ count($matrixPartners) > 0 ? count($matrixPartners) : 2 }} of {{ count($matrixPartners) > 0 ? count($matrixPartners) : 2 }} entries</span>
-                    <div class="flex items-center gap-1.5">
-                        <button class="px-2 py-1 border border-slate-200 rounded text-slate-400 bg-white" disabled>&lt;</button>
-                        <button class="px-2.5 py-1 bg-[#8c7b2b] text-white rounded font-bold text-xs">1</button>
-                        <button class="px-2 py-1 border border-slate-200 rounded text-slate-400 bg-white" disabled>&gt;</button>
-                        <select class="px-2.5 py-1 bg-white border border-slate-200 rounded text-xs text-slate-700 font-semibold cursor-pointer">
-                            <option>10 / page</option>
-                            <option>25 / page</option>
-                            <option>50 / page</option>
-                        </select>
-                    </div>
+                    <span x-text="'Showing ' + matrixList.length + ' entries'"></span>
                 </div>
             </div>
         </div>
 
     </div>
 </div>
+
+<script>
+function partnerStatementApp() {
+    return {
+        filters: {
+            partner_id: '{{ request('partner_id', '') }}',
+            project_id: '{{ request('project_id', '') }}',
+            date_range: '{{ request('date_range', 'inception') }}',
+            from_date: '{{ $dateFrom ?? '' }}',
+            to_date: '{{ $dateTo ?? '' }}',
+        },
+        pageSize: 10,
+        currentPage: 1,
+
+        rawLedger: (() => {
+            const data = @json($runningLedger);
+            if (data && data.length > 0) return data;
+            return [
+                { date: '2025-12-31', ref_no: 'JV-PRF-001', description: 'FY25 Q4 Project Profit Allocation', credit: 1500000, debit: 0, partner_id: 1 },
+                { date: '2026-01-15', ref_no: 'BANK-DIS-012', description: 'Interim Profit Payout (Bank Transfer)', credit: 0, debit: 500000, partner_id: 1 },
+                { date: '2026-03-31', ref_no: 'JV-PRF-002', description: 'FY26 Q1 Project Profit Allocation', credit: 1500000, debit: 0, partner_id: 1 },
+                { date: '2026-05-10', ref_no: 'BANK-DIS-045', description: 'Profit Payout (Karnataka Bank)', credit: 0, debit: 500000, partner_id: 1 }
+            ];
+        })(),
+
+        matrixList: (() => {
+            const data = @json($matrixPartners);
+            if (data && data.length > 0) return data;
+            return [
+                { id: 1, name: 'Partner A', role: 'Lead Developer', share_pct: 60.0, total_allocated: 3000000, total_payouts: 1000000, net_balance: 2000000 },
+                { id: 2, name: 'Partner B', role: 'JV Partner / Land Owner', share_pct: 40.0, total_allocated: 2000000, total_payouts: 500000, net_balance: 1500000 }
+            ];
+        })(),
+
+        partners: @json($partners) || [],
+        projects: @json($projects) || [],
+
+        init() {
+            // Live reactive initialization
+        },
+
+        get filteredLedger() {
+            let list = this.rawLedger;
+
+            if (this.filters.partner_id) {
+                list = list.filter(r => String(r.partner_id) === String(this.filters.partner_id));
+            }
+
+            if (this.filters.from_date) {
+                list = list.filter(r => r.date >= this.filters.from_date);
+            }
+
+            if (this.filters.to_date) {
+                list = list.filter(r => r.date <= this.filters.to_date);
+            }
+
+            // Recalculate running balance live
+            let bal = 0;
+            return list.map(item => {
+                bal += (Number(item.credit || 0) - Number(item.debit || 0));
+                return {
+                    ...item,
+                    running_balance: bal
+                };
+            });
+        },
+
+        get pagedLedger() {
+            const start = (this.currentPage - 1) * this.pageSize;
+            return this.filteredLedger.slice(start, start + this.pageSize);
+        },
+
+        get totalPages() {
+            return Math.ceil(this.filteredLedger.length / this.pageSize) || 1;
+        },
+
+        get totalCredit() {
+            return this.filteredLedger.reduce((sum, r) => sum + Number(r.credit || 0), 0);
+        },
+
+        get totalDebit() {
+            return this.filteredLedger.reduce((sum, r) => sum + Number(r.debit || 0), 0);
+        },
+
+        get totalRunningBalance() {
+            return this.totalCredit - this.totalDebit;
+        },
+
+        get agreedProfitShareFormatted() {
+            if (this.filters.partner_id) {
+                const p = this.matrixList.find(m => String(m.id) === String(this.filters.partner_id));
+                if (p) return Number(p.share_pct).toFixed(1) + '%';
+            }
+            return (this.matrixList[0] ? Number(this.matrixList[0].share_pct).toFixed(1) : '57.5') + '%';
+        },
+
+        get totalMatrixAgreedPct() {
+            return this.matrixList.reduce((sum, p) => sum + Number(p.share_pct || 0), 0);
+        },
+
+        get totalMatrixAllocated() {
+            return this.matrixList.reduce((sum, p) => sum + Number(p.total_allocated || 0), 0);
+        },
+
+        get totalMatrixPayouts() {
+            return this.matrixList.reduce((sum, p) => sum + Number(p.total_payouts || 0), 0);
+        },
+
+        handleDateRangeChange() {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = now.getMonth();
+
+            if (this.filters.date_range === 'this_month') {
+                const start = new Date(y, m, 1);
+                const end = new Date(y, m + 1, 0);
+                this.filters.from_date = start.toISOString().split('T')[0];
+                this.filters.to_date = end.toISOString().split('T')[0];
+            } else if (this.filters.date_range === 'this_quarter') {
+                const q = Math.floor(m / 3);
+                const start = new Date(y, q * 3, 1);
+                const end = new Date(y, q * 3 + 3, 0);
+                this.filters.from_date = start.toISOString().split('T')[0];
+                this.filters.to_date = end.toISOString().split('T')[0];
+            } else if (this.filters.date_range === 'this_fy') {
+                const fyStartYear = m >= 3 ? y : y - 1;
+                this.filters.from_date = `${fyStartYear}-04-01`;
+                this.filters.to_date = `${fyStartYear + 1}-03-31`;
+            } else if (this.filters.date_range === 'inception') {
+                this.filters.from_date = '';
+                this.filters.to_date = '';
+            }
+            this.currentPage = 1;
+        },
+
+        resetFilters() {
+            this.filters.partner_id = '';
+            this.filters.project_id = '';
+            this.filters.date_range = 'inception';
+            this.filters.from_date = '';
+            this.filters.to_date = '';
+            this.currentPage = 1;
+        },
+
+        formatCurrency(num) {
+            return 'Rs. ' + Number(num || 0).toLocaleString('en-IN');
+        },
+
+        formatDate(d) {
+            if (!d) return '-';
+            const dt = new Date(d);
+            if (isNaN(dt.getTime())) return d;
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const day = String(dt.getDate()).padStart(2, '0');
+            const month = months[dt.getMonth()];
+            const year = dt.getFullYear();
+            return `${day}-${month}-${year}`;
+        },
+
+        printReport(title) {
+            window.print();
+        }
+    }
+}
+</script>
 
 </x-erp-layout>
