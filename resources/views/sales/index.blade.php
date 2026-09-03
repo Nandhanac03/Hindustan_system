@@ -2040,7 +2040,7 @@ function salesApp() {
         selectedReturnSale: null,
         targetReturnStatus: '',
         selectedExchangeSale: null,
-        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: '', reason: 'Customer Request', detailed_reason: '', refund_mode: 'Bank Transfer', refund_remarks: '', revert_unsold: true },
+        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: '', reason: 'Customer Request', detailed_reason: '', refund_mode: 'Bank Transfer', cheque_number: '', refund_remarks: '', revert_unsold: true },
         returnFormErrors: {},
         exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '', payment_plan: 'emi', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (function() { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })(), initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', initial_payment_date: new Date().toISOString().split('T')[0], reference_no: '', bank_id: '' },
         exchangeAvailableUnits: [],
@@ -2515,6 +2515,8 @@ function salesApp() {
                     refund_amount: approvedRefund,
                     refund_mode: this.returnForm.refund_mode,
                     refund_remarks: this.returnForm.refund_remarks,
+                    cheque_number: this.returnForm.cheque_number,
+                    reference_no: this.returnForm.cheque_number,
                     revert_unsold: this.returnForm.revert_unsold
                 })
             })

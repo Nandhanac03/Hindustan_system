@@ -332,7 +332,7 @@
 
         {{-- PROCESS RETURN / CANCELLATION DETAILS MODAL POPUP --}}
 
-        <div x-show="selectedReturnSale" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+        <div x-show="selectedReturnSale" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
             <!-- VIEW MODE MODAL (New Design) -->
             <template x-if="!isEditReturn">
                 <div class="w-full max-w-4xl max-h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="selectedReturnSale = null">
@@ -625,20 +625,20 @@
             <!-- ACTIVE FORM MODAL (Original Edit Design) -->
             <template x-if="isEditReturn">
 <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="selectedReturnSale = null">
-                {{-- Header --}}
-                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10">
-                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                {{-- Header (Image 2 style) --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0 rounded-t-2xl">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between gap-4">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                                <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="!isEditReturn ? 'View Mode' : 'Active Form'"></span>
-                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="selectedReturnSale ? (selectedReturnSale.status === 'cancelled' ? 'Cancellation' : 'Return') : ''"></span>
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30 shrink-0">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
-                            <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="!isEditReturn ? 'View Return Details' : (targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details')"></h2>
-                            <p class="text-[10px] text-slate-400 font-semibold mt-1" x-show="selectedReturnSale"
-                               x-text="selectedReturnSale ? (selectedReturnSale.project ? (selectedReturnSale.project.code || selectedReturnSale.project.name) : 'N/A') + ' - ' + (selectedReturnSale.unit ? selectedReturnSale.unit.door_no : 'N/A') + ' • Customer: ' + (selectedReturnSale.customer ? selectedReturnSale.customer.name : 'N/A') + ' • Sale No: ' + selectedReturnSale.sale_number : ''"></p>
+                            <div>
+                                <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="selectedReturnSale ? (selectedReturnSale.status === 'cancelled' ? 'Cancellation' : 'Return') : 'Audit Trail'">Audit Trail</span>
+                                <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-0.5" x-text="!isEditReturn ? 'View Return Details' : (targetReturnStatus === 'cancelled' ? 'Process Cancellation Details' : 'Process Cancel Details')">Process Cancellation Details</h2>
+                            </div>
                         </div>
-                        <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                        <button type="button" @click="selectedReturnSale = null" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                     </div>
                 </div>
                 
@@ -735,245 +735,406 @@
                             class="px-4 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
                         Confirm Return & Refund
                     </button>
-            </div>
+                </div>
             </template>
         </div>
+        </template>
 
-    {{-- INITIATE NEW RETURN / CANCELLATION MODAL POPUP (Redesigned) --}}
-    <div x-show="openNewReturnModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-5xl bg-slate-50 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" @click.away="openNewReturnModal = false">
-            {{-- Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-[#a38c29]/10">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+    {{-- INITIATE NEW RETURN / CANCELLATION MODAL POPUP (Redesigned matching Image 2 style) --}}
+    <template x-teleport="body">
+    <div x-show="openNewReturnModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-cloak x-transition.opacity>
+        <div class="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="openNewReturnModal = false">
+            {{-- Header (Image 2 style) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-lg bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] border border-[#a38c29]/30">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
                         <div>
-                            <h2 class="text-lg font-extrabold text-white tracking-tight" x-text="isCancellationTab ? 'Cancel Sale' : 'Return Sale'"></h2>
-                            <p class="text-xs text-slate-400 mt-1">Search and select the sale to be cancelled and provide cancellation details.</p>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider" x-text="isCancellationTab ? 'Sale Cancellation' : 'Return Sale'">Return Sale</h2>
+                            <p class="text-[11px] text-slate-300 mt-0.5 font-normal">Search and select the sale to be cancelled and provide cancellation details.</p>
                         </div>
                     </div>
-                    <button type="button" @click="openNewReturnModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+                    <button type="button" @click="openNewReturnModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
             </div>
 
             {{-- Stepper --}}
-            <div class="bg-white px-6 py-4 border-b border-slate-200 flex justify-center">
-                <div class="flex items-center gap-8 text-xs font-semibold">
-                    <div class="flex items-center gap-3" :class="newReturnStep >= 1 ? 'text-[#a38c29]' : 'text-slate-400'">
-                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-white" :class="newReturnStep >= 1 ? 'bg-[#a38c29]' : 'bg-slate-300'">1</div>
-                        <div class="flex flex-col"><span class="font-bold">Select Sale</span><span class="text-[10px] font-normal text-slate-500">Search and choose sale</span></div>
+            <div class="bg-slate-50/80 px-6 py-3 border-b border-slate-200/80 flex justify-center flex-shrink-0">
+                <div class="flex items-center gap-4 sm:gap-8 text-xs font-semibold">
+                    <div class="flex items-center gap-2.5" :class="newReturnStep >= 1 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition shadow-2xs" :class="newReturnStep >= 1 ? 'bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white shadow-[#a38c29]/30' : 'bg-white text-slate-400 border border-slate-200'">1</div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-xs" :class="newReturnStep >= 1 ? 'text-slate-900' : 'text-slate-400'">Select Sale</span>
+                            <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">Search and choose sale</span>
+                        </div>
                     </div>
-                    <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    <div class="flex items-center gap-3" :class="newReturnStep >= 2 ? 'text-[#a38c29]' : 'text-slate-400'">
-                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-white border" :class="newReturnStep >= 2 ? 'bg-[#a38c29] border-[#a38c29]' : 'bg-white border-slate-300 text-slate-500'">2</div>
-                        <div class="flex flex-col"><span class="font-bold">Cancellation Details</span><span class="text-[10px] font-normal text-slate-500">Provide cancellation information</span></div>
+                    <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-2.5" :class="newReturnStep >= 2 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition shadow-2xs" :class="newReturnStep >= 2 ? 'bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white shadow-[#a38c29]/30' : 'bg-white text-slate-400 border border-slate-200'">2</div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-xs" :class="newReturnStep >= 2 ? 'text-slate-900' : 'text-slate-400'">Cancellation Details</span>
+                            <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">Provide cancellation info</span>
+                        </div>
                     </div>
-                    <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    <div class="flex items-center gap-3" :class="newReturnStep >= 3 ? 'text-[#a38c29]' : 'text-slate-400'">
-                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-white border" :class="newReturnStep >= 3 ? 'bg-[#a38c29] border-[#a38c29]' : 'bg-white border-slate-300 text-slate-500'">3</div>
-                        <div class="flex flex-col"><span class="font-bold">Review & Confirm</span><span class="text-[10px] font-normal text-slate-500">Review and confirm cancellation</span></div>
+                    <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-2.5" :class="newReturnStep >= 3 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition shadow-2xs" :class="newReturnStep >= 3 ? 'bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white shadow-[#a38c29]/30' : 'bg-white text-slate-400 border border-slate-200'">3</div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-xs" :class="newReturnStep >= 3 ? 'text-slate-900' : 'text-slate-400'">Review & Confirm</span>
+                            <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">Confirm and submit</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Content Area --}}
-            <div class="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+            {{-- Content Area (Scrollable Body) --}}
+            <div class="p-6 overflow-y-auto flex-grow space-y-5 bg-white">
 
                 {{-- STEP 1: SELECT SALE --}}
                 <div x-show="newReturnStep === 1" class="space-y-4">
-                    <div class="bg-white rounded-xl border border-slate-200 p-5">
-                        <div class="flex items-center gap-2 mb-4 text-[#a38c29] font-bold text-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <span>Step 1: Select Sale</span>
+                    {{-- Search Sale --}}
+                    <div class="space-y-1.5 relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
+                        <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Search Sale</label>
+                        <div class="relative">
+                            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" x-model="search" @focus="open = true" placeholder="Search by Sale ID, Customer Name, Unit / Plot, Project..." class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs">
                         </div>
                         
-                        <div class="space-y-2 relative" x-data="{ open: false, search: '' }" @click.outside="open = false">
-                            <label class="text-xs font-bold text-slate-700">Search Sale</label>
-                            <div class="relative">
-                                <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                <input type="text" x-model="search" @focus="open = true" placeholder="Search by Sale ID, Customer Name, Unit / Plot, Project..." class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-1 focus:ring-[#a38c29]/50 focus:border-[#a38c29]">
-                            </div>
-                            
-                            {{-- Dropdown for search --}}
-                            <div x-show="open && search.length > 0" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                <template x-for="sale in sales.filter(s => s.status === 'active' && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase()) || (s.unit?.door_no||'').toLowerCase().includes(search.toLowerCase())))" :key="sale.id">
-                                    <div @click="newReturnSaleId = sale.id; open = false; search = ''; selectNewReturnSale();" class="px-4 py-2 hover:bg-slate-50 cursor-pointer text-xs border-b border-slate-100 last:border-0 flex justify-between items-center">
+                        {{-- Dropdown for search --}}
+                        <div x-show="open && search.length > 0" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100">
+                            <template x-for="sale in sales.filter(s => s.status === 'active' && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase()) || (s.unit?.door_no||'').toLowerCase().includes(search.toLowerCase())))" :key="sale.id">
+                                <div @click="newReturnSaleId = sale.id; open = false; search = ''; selectNewReturnSale();" class="px-4 py-2.5 hover:bg-amber-50/50 cursor-pointer text-xs flex justify-between items-center transition">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
                                         <div>
-                                            <span class="font-bold text-slate-800" x-text="sale.sale_number"></span> • <span class="text-slate-600" x-text="sale.customer ? sale.customer.name : 'N/A'"></span>
+                                            <span class="font-extrabold text-slate-800" x-text="sale.sale_number"></span>
+                                            <span class="text-slate-500 ml-1 font-medium" x-text="'• ' + (sale.customer ? sale.customer.name : 'N/A')"></span>
                                         </div>
-                                        <span class="text-slate-500" x-text="getUnitsDisplay(sale)"></span>
                                     </div>
-                                </template>
-                                <div x-show="!sales.some(s => s.status === 'active' && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase())))" class="px-4 py-3 text-xs text-slate-500 text-center">No matching active sales found.</div>
-                            </div>
-                        </div>
-
-                        <div class="mt-6">
-                            <div class="flex justify-between items-center mb-3">
-                                <h3 class="text-xs font-bold text-slate-700">Recent Sales</h3>
-                                <a href="#" class="text-[10px] font-bold text-[#a38c29] hover:underline">View All Sales →</a>
-                            </div>
-                            <div class="border border-slate-200 rounded-lg overflow-hidden">
-                                <table class="w-full text-left text-xs whitespace-nowrap">
-                                    <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
-                                        <tr>
-                                            <th class="px-4 py-3 font-semibold">Sale Details</th>
-                                            <th class="px-4 py-3 font-semibold">Customer</th>
-                                            <th class="px-4 py-3 font-semibold">Unit / Plot</th>
-                                            <th class="px-4 py-3 font-semibold">Sale Amount</th>
-                                            <th class="px-4 py-3 font-semibold">Booked On</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100">
-                                        <template x-for="sale in sales.filter(s => s.status === 'active').slice(0, 5)" :key="sale.id">
-                                            <tr class="hover:bg-slate-50/50 cursor-pointer transition-colors" @click="newReturnSaleId = sale.id; selectNewReturnSale();">
-                                                <td class="px-4 py-3 flex items-center gap-3">
-                                                    <div class="w-4 h-4 rounded-full border flex items-center justify-center" :class="newReturnSaleId == sale.id ? 'border-[#a38c29]' : 'border-slate-300'">
-                                                        <div class="w-2 h-2 rounded-full bg-[#a38c29]" x-show="newReturnSaleId == sale.id"></div>
-                                                    </div>
-                                                    <div class="flex flex-col">
-                                                        <span class="font-bold text-slate-800" x-text="sale.sale_number"></span>
-                                                        <span class="text-[10px] text-slate-500" x-text="(sale.project ? sale.project.code : '')"></span>
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3 text-slate-700" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                                <td class="px-4 py-3 text-slate-700" x-text="getUnitsDisplay(sale)"></td>
-                                                <td class="px-4 py-3 font-mono text-slate-800 font-medium" x-text="fmtIndian(sale.total_amount)"></td>
-                                                <td class="px-4 py-3 text-slate-500" x-text="formatDate(sale.agreement_date || sale.created_at)"></td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold" x-text="getUnitsDisplay(sale)"></span>
+                                </div>
+                            </template>
+                            <div x-show="!sales.some(s => s.status === 'active' && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase())))" class="px-4 py-3 text-xs text-slate-400 text-center font-medium">No matching active sales found.</div>
                         </div>
                     </div>
-                    <div class="flex justify-end gap-3 mt-4">
-                        <button type="button" @click="if(newReturnSale) newReturnStep = 2; else showToast('Please select a sale first', 'error');" class="px-5 py-2 bg-[#a38c29] text-white rounded-lg text-xs font-bold hover:bg-[#8e7a23] transition shadow-sm">Next</button>
+
+                    {{-- Table of Recent Sales --}}
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between px-1">
+                            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>Recent Sales</span>
+                                <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-[10px] text-slate-600 font-semibold">Active Bookings</span>
+                            </h4>
+                            <span class="text-[10px] font-bold text-[#a38c29]">Click row to select</span>
+                        </div>
+
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-2xs">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-3.5 py-3 w-10 text-center"></th>
+                                        <th class="px-4 py-3">Sale Details</th>
+                                        <th class="px-4 py-3">Customer</th>
+                                        <th class="px-4 py-3">Unit / Plot</th>
+                                        <th class="px-4 py-3 text-right">Sale Amount</th>
+                                        <th class="px-4 py-3 text-right">Booked On</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs">
+                                    <template x-for="sale in sales.filter(s => s.status === 'active').slice(0, 6)" :key="sale.id">
+                                        <tr class="hover:bg-amber-50/40 cursor-pointer transition-colors" :class="newReturnSaleId == sale.id ? 'bg-amber-50/60' : ''" @click="newReturnSaleId = sale.id; selectNewReturnSale();">
+                                            <td class="px-3.5 py-3 text-center">
+                                                <div class="w-4 h-4 rounded-full border flex items-center justify-center mx-auto transition" :class="newReturnSaleId == sale.id ? 'border-[#a38c29] bg-[#a38c29]' : 'border-slate-300 bg-white'">
+                                                    <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="newReturnSaleId == sale.id"></div>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                                                    <span x-text="sale.sale_number"></span>
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 font-medium ml-3" x-text="(sale.project ? sale.project.code || sale.project.name : '')"></div>
+                                            </td>
+                                            <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                <span class="inline-block px-2.5 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-semibold text-slate-800" x-text="getUnitsDisplay(sale)"></span>
+                                            </td>
+                                            <td class="px-4 py-3 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap" x-text="fmtIndian(sale.total_amount)"></td>
+                                            <td class="px-4 py-3 text-right text-slate-500 font-medium whitespace-nowrap" x-text="formatDate(sale.agreement_date || sale.created_at)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
                 {{-- STEP 2: CANCELLATION DETAILS --}}
-                <div x-show="newReturnStep === 2" class="space-y-4">
-                    <div class="bg-white rounded-xl border border-slate-200 p-5">
-                        <div class="flex items-center gap-2 mb-4 text-[#a38c29] font-bold text-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <span>Step 2: Cancellation Details</span>
+                <div x-show="newReturnStep === 2" class="space-y-5">
+                    {{-- 2-Column Summary Cards (Sale Information & Cancellation Summary) --}}
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {{-- Left Box: Sale Information --}}
+                        <div class="bg-slate-50/70 rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-3.5">
+                            <div class="flex items-center gap-2 pb-2.5 border-b border-slate-200/70">
+                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <h4 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider">Sale Information</h4>
+                            </div>
+                            <div class="grid grid-cols-3 gap-y-3 gap-x-3 text-xs">
+                                <div>
+                                    <span class="text-[11px] font-medium text-slate-400 block">Sale ID</span>
+                                    <span class="font-bold text-slate-800 block mt-0.5" x-text="newReturnSale ? newReturnSale.sale_number : 'N/A'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-medium text-slate-400 block">Customer</span>
+                                    <span class="font-bold text-slate-800 block mt-0.5 truncate" x-text="newReturnSale && newReturnSale.customer ? newReturnSale.customer.name : 'N/A'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-medium text-slate-400 block">Project</span>
+                                    <span class="font-bold text-slate-800 block mt-0.5 truncate" x-text="newReturnSale?.project ? (newReturnSale.project.name || newReturnSale.project.code) : 'N/A'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-medium text-slate-400 block">Unit / Plot</span>
+                                    <span class="font-bold text-slate-800 block mt-0.5" x-text="getUnitsDisplay(newReturnSale)"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-medium text-slate-400 block">Sale Amount</span>
+                                    <span class="font-bold font-mono text-slate-800 block mt-0.5" x-text="newReturnSale ? fmtIndian(newReturnSale.total_amount) : '₹0.00'"></span>
+                                </div>
+                                <div>
+                                    <span class="text-[11px] font-medium text-slate-400 block">Total Paid</span>
+                                    <span class="font-bold font-mono text-emerald-600 block mt-0.5" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : '₹0.00'"></span>
+                                </div>
+                                <div class="col-span-3 pt-0.5">
+                                    <span class="text-[11px] font-medium text-slate-400 block">Booked On</span>
+                                    <span class="font-bold text-slate-800 block mt-0.5" x-text="newReturnSale ? formatDate(newReturnSale.agreement_date || newReturnSale.created_at) : 'N/A'"></span>
+                                </div>
+                            </div>
                         </div>
-                        
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {{-- Sale Info Card --}}
-                            <div class="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                                <h4 class="text-xs font-bold text-[#a38c29] mb-3 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Sale Information</h4>
-                                <div class="grid grid-cols-3 gap-y-4 text-xs">
-                                    <div><span class="block text-slate-500 mb-0.5">Sale ID</span><span class="font-bold text-slate-800" x-text="newReturnSale ? newReturnSale.sale_number : ''"></span></div>
-                                    <div><span class="block text-slate-500 mb-0.5">Customer</span><span class="font-bold text-slate-800" x-text="newReturnSale && newReturnSale.customer ? newReturnSale.customer.name : ''"></span></div>
-                                    <div><span class="block text-slate-500 mb-0.5">Project</span><span class="font-bold text-slate-800" x-text="newReturnSale && newReturnSale.project ? newReturnSale.project.name : ''"></span></div>
-                                    <div><span class="block text-slate-500 mb-0.5">Unit / Plot</span><span class="font-bold text-slate-800" x-text="getUnitsDisplay(newReturnSale)"></span></div>
-                                    <div><span class="block text-slate-500 mb-0.5">Sale Amount</span><span class="font-bold text-slate-800 font-mono" x-text="newReturnSale ? fmtIndian(newReturnSale.total_amount) : ''"></span></div>
-                                    <div><span class="block text-slate-500 mb-0.5">Total Paid</span><span class="font-bold text-emerald-600 font-mono" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : ''"></span></div>
-                                    <div><span class="block text-slate-500 mb-0.5">Booked On</span><span class="font-bold text-slate-800" x-text="newReturnSale ? formatDate(newReturnSale.agreement_date || newReturnSale.created_at) : ''"></span></div>
+
+                        {{-- Right Box: Cancellation Summary --}}
+                        <div class="bg-amber-50/20 rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between space-y-4">
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-2 pb-2.5 border-b border-slate-200/70">
+                                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    <h4 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider">Cancellation Summary</h4>
+                                </div>
+                                <div class="space-y-2.5 text-xs">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500 font-medium">Total Paid</span>
+                                        <span class="font-bold font-mono text-slate-800" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : '₹0.00'"></span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-slate-500 font-medium">Cancellation Fee</span>
+                                        <span class="font-bold font-mono text-rose-600" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span>
+                                    </div>
                                 </div>
                             </div>
-                            
-                            {{-- Summary Card --}}
-                            <div class="bg-[#a38c29]/5 rounded-lg p-4 border border-[#a38c29]/20 flex flex-col justify-between">
+
+                            <div class="pt-3.5 border-t border-slate-200/80 flex items-center justify-between">
+                                <span class="text-xs font-bold text-[#a38c29] uppercase tracking-wide">Amount to be Refunded</span>
+                                <span class="text-base md:text-lg font-black font-mono text-[#a38c29]" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Form Cards Grid --}}
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {{-- Cancellation Information Card --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-4">
+                            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                                <div class="w-7 h-7 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                </div>
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Cancellation Information</h4>
+                            </div>
+                            <div class="grid grid-cols-1 gap-3.5 text-xs">
                                 <div>
-                                    <h4 class="text-xs font-bold text-[#a38c29] mb-3 flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Cancellation Summary</h4>
-                                    <div class="space-y-2 text-xs">
-                                        <div class="flex justify-between"><span class="text-slate-600">Total Paid</span><span class="font-bold font-mono text-slate-800" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : '₹ 0.00'"></span></div>
-                                        <div class="flex justify-between"><span class="text-slate-600">Cancellation Fee</span><span class="font-bold font-mono text-red-600" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span></div>
-                                    </div>
+                                    <label class="block text-slate-600 mb-1 font-semibold">Cancellation Date <span class="text-red-500">*</span></label>
+                                    <input type="date" x-model="returnForm.date" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs">
+                                    <p x-show="returnFormErrors.date" x-text="returnFormErrors.date" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
                                 </div>
-                                <div class="flex justify-between items-end mt-4 pt-4 border-t border-[#a38c29]/20">
-                                    <span class="text-sm font-bold text-[#a38c29]">Amount to be Refunded</span>
-                                    <span class="text-lg font-bold font-mono text-[#a38c29]" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
-                                </div>
-                            </div>
-                            
-                            {{-- Cancellation Information --}}
-                            <div class="bg-white rounded-lg p-4 border border-slate-200 space-y-4">
-                                <h4 class="text-xs font-bold text-[#a38c29] flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg> Cancellation Information</h4>
-                                <div class="grid grid-cols-1 gap-4 text-xs">
-                                    <div>
-                                        <label class="block text-slate-600 mb-1 font-semibold">Cancellation Date <span class="text-red-500">*</span></label>
-                                        <input type="date" x-model="returnForm.date" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50">
-                                        <p x-show="returnFormErrors.date" x-text="returnFormErrors.date" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-slate-600 mb-1 font-semibold">Cancellation Reason <span class="text-red-500">*</span></label>
-                                        <select x-model="returnForm.reason" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50">
-                                            <option value="Customer Request">Customer Request</option>
-                                            <option value="Financial Issue">Financial Issue</option>
-                                            <option value="Legal Issue">Legal Issue</option>
-                                            <option value="Other">Other</option>
-                                        </select>
-                                        <p x-show="returnFormErrors.reason" x-text="returnFormErrors.reason" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
-                                    </div>
-                                    <div>
-                                        <label class="block text-slate-600 mb-1 font-semibold">Detailed Reason / Remarks <span class="text-red-500">*</span></label>
-                                        <textarea x-model="returnForm.detailed_reason" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50 resize-none" placeholder="Provide detailed reason..."></textarea>
-                                        <p x-show="returnFormErrors.detailed_reason" x-text="returnFormErrors.detailed_reason" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {{-- Cancellation Fee --}}
-                            <div class="bg-white rounded-lg p-4 border border-slate-200 flex flex-col space-y-4">
-                                <h4 class="text-xs font-bold text-[#a38c29] flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Cancellation Fee</h4>
                                 <div>
-                                    <label class="block text-slate-600 mb-1 font-semibold text-xs">
-                                        <span>Cancellation Fee Amount (₹)</span>
-                                        <span class="text-red-500">*</span>
-                                    </label>
-                                    <input type="number" step="1" x-model.number="returnForm.cancellation_fee" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50 font-mono" placeholder="Enter amount">
-                                    <p x-show="returnFormErrors.cancellation_fee" x-text="returnFormErrors.cancellation_fee" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                    <label class="block text-slate-600 mb-1 font-semibold">Cancellation Reason <span class="text-red-500">*</span></label>
+                                    <select x-model="returnForm.reason" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs">
+                                        <option value="Customer Request">Customer Request</option>
+                                        <option value="Financial Issue">Financial Issue</option>
+                                        <option value="Legal Issue">Legal Issue</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <p x-show="returnFormErrors.reason" x-text="returnFormErrors.reason" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
                                 </div>
-                                <div class="bg-blue-50 text-blue-700 px-3 py-2 rounded-md text-xs flex items-start gap-2 mt-auto">
-                                    <svg class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    <span>This amount will be deducted as cancellation fee.</span>
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-semibold">Detailed Reason / Remarks <span class="text-red-500">*</span></label>
+                                    <textarea x-model="returnForm.detailed_reason" rows="2" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs resize-none" placeholder="Provide detailed reason..."></textarea>
+                                    <p x-show="returnFormErrors.detailed_reason" x-text="returnFormErrors.detailed_reason" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
                                 </div>
                             </div>
-                            
-                            {{-- Refund & Payment Details (Full Width) --}}
-                            <div class="bg-white rounded-lg p-4 border border-slate-200 lg:col-span-2 space-y-4">
-                                <h4 class="text-xs font-bold text-[#a38c29] flex items-center gap-1.5"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg> Refund & Payment Details</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                                    <div>
-                                        <label class="block text-slate-600 mb-1 font-semibold">Refund Amount (₹)</label>
-                                        <input type="text" :value="calculateApprovedRefund(newReturnSale).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})" disabled class="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-100 text-slate-500 font-mono">
+                        </div>
+
+                        {{-- Cancellation Fee & Refund Info Card --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="flex items-center gap-2 pb-2 border-b border-slate-100 mb-3.5">
+                                    <div class="w-7 h-7 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                     </div>
+                                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Cancellation Fee Deduction</h4>
+                                </div>
+                                <div class="space-y-3">
                                     <div>
-                                        <label class="block text-slate-600 mb-1 font-semibold">Refund Mode <span class="text-red-500">*</span></label>
-                                        <select x-model="returnForm.refund_mode" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50">
-                                            @if(isset($paymentModes) && count($paymentModes) > 0)
-                                                @foreach($paymentModes as $pm)
-                                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
-                                                @endforeach
-                                            @else
-                                                <option value="Bank Transfer">Bank Transfer</option>
-                                                <option value="Cheque">Cheque</option>
-                                                <option value="Cash">Cash</option>
-                                            @endif
-                                        </select>
-                                        <p x-show="returnFormErrors.refund_mode" x-text="returnFormErrors.refund_mode" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                        <label class="block text-slate-600 mb-1 font-semibold text-xs">
+                                            <span>Cancellation Fee Amount (₹)</span>
+                                            <span class="text-red-500">*</span>
+                                        </label>
+                                        <input type="number" step="1" x-model.number="returnForm.cancellation_fee" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs" placeholder="Enter amount">
+                                        <p x-show="returnFormErrors.cancellation_fee" x-text="returnFormErrors.cancellation_fee" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
                                     </div>
-                                    <div>
-                                        <label class="block text-slate-600 mb-1 font-semibold">Refund Remarks</label>
-                                        <textarea x-model="returnForm.refund_remarks" rows="1" class="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-[#a38c29]/50 focus:border-[#a38c29] bg-slate-50 resize-none"></textarea>
+                                    <div class="bg-amber-50/80 border border-amber-200/60 text-amber-800 p-3 rounded-xl text-xs flex items-start gap-2.5 shadow-2xs">
+                                        <svg class="w-4 h-4 shrink-0 mt-0.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span class="text-[11px] leading-relaxed">This amount will be deducted as cancellation charge.</span>
                                     </div>
                                 </div>
-                                <div class="bg-amber-50 text-amber-700 px-3 py-2 rounded-md text-xs flex items-start gap-2 border border-amber-100">
-                                    <svg class="w-4 h-4 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                    <span>Refund will be processed as per the company refund policy.</span>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-600">Net Refund Payable:</span>
+                                <span class="text-base font-extrabold font-mono text-[#a38c29]" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
+                            </div>
+                        </div>
+
+                        {{-- Refund & Payment Details (Full Width Card) --}}
+                        <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs lg:col-span-2 space-y-4">
+                            <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                                <div class="w-7 h-7 rounded-lg bg-[#a38c29]/10 text-[#a38c29] flex items-center justify-center font-bold">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Refund & Settlement Details</h4>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-semibold">Refund Amount (₹)</label>
+                                    <input type="text" :value="calculateApprovedRefund(newReturnSale).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})" disabled class="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-100 text-slate-600 font-mono font-bold shadow-2xs cursor-not-allowed">
+                                </div>
+                                <div>
+                                    <label class="block text-slate-600 mb-1 font-semibold">Refund Mode <span class="text-red-500">*</span></label>
+                                    <select x-model="returnForm.refund_mode" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs">
+                                        @if(isset($paymentModes) && count($paymentModes) > 0)
+                                            @foreach($paymentModes as $pm)
+                                                <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                            <option value="Cheque">Cheque</option>
+                                            <option value="Cash">Cash</option>
+                                        @endif
+                                    </select>
+                                    <p x-show="returnFormErrors.refund_mode" x-text="returnFormErrors.refund_mode" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                </div>
+                                <div x-show="(returnForm.refund_mode || '').toLowerCase() === 'cheque'" x-transition>
+                                    <label class="block text-slate-600 mb-1 font-semibold">Reference / Cheque No.</label>
+                                    <input type="text" x-model="returnForm.cheque_number" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs" placeholder="Enter Reference / Cheque No.">
+                                </div>
+                                <div :class="(returnForm.refund_mode || '').toLowerCase() === 'cheque' ? 'md:col-span-3' : 'md:col-span-1'">
+                                    <label class="block text-slate-600 mb-1 font-semibold">Refund Remarks</label>
+                                    <textarea x-model="returnForm.refund_remarks" rows="1" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs resize-none"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center mt-4">
-                        <button type="button" @click="newReturnStep = 1" class="px-5 py-2 border border-slate-300 bg-white text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition shadow-sm">Back</button>
+                </div>
+                
+                {{-- STEP 3: REVIEW & CONFIRM --}}
+                <div x-show="newReturnStep === 3" class="space-y-5">
+                    {{-- Summary Theme Card --}}
+                    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/40 border border-[#a38c29]/30 p-5 shadow-md text-slate-900">
+                        <div class="absolute -top-14 -right-14 w-48 h-48 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                        <div class="flex items-center gap-2 pb-3 border-b border-[#a38c29]/15">
+                            <span class="px-2 py-0.5 rounded-full bg-[#a38c29]/10 text-[#a38c29] text-[9px] font-extrabold uppercase tracking-widest border border-[#a38c29]/30">Step 3</span>
+                            <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Final Verification & Cancellation Summary</h4>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-4">
+                            <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Sale ID</span>
+                                <span class="text-xs font-extrabold text-slate-800 mt-1 block" x-text="newReturnSale ? newReturnSale.sale_number : ''"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Customer</span>
+                                <span class="text-xs font-extrabold text-slate-800 mt-1 block truncate" x-text="newReturnSale && newReturnSale.customer ? newReturnSale.customer.name : ''"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Sale Amount</span>
+                                <span class="text-xs font-extrabold font-mono text-slate-800 mt-1 block" x-text="newReturnSale ? fmtIndian(newReturnSale.total_amount) : ''"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Paid</span>
+                                <span class="text-xs font-extrabold font-mono text-emerald-600 mt-1 block" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : ''"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200/60 shadow-2xs">
+                                <span class="text-[9px] font-bold text-rose-600 uppercase tracking-widest block">Cancellation Fee</span>
+                                <span class="text-xs font-extrabold font-mono text-rose-700 mt-1 block" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-[#a38c29]/15 border border-[#a38c29]/40 shadow-2xs">
+                                <span class="text-[9px] font-extrabold text-[#a38c29] uppercase tracking-widest block">Approved Refund</span>
+                                <span class="text-xs font-black font-mono text-slate-900 mt-1 block" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Details Box --}}
+                    <div class="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs space-y-3">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider pb-2 border-b border-slate-100">Settlement Info</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs" :class="(returnForm.refund_mode || '').toLowerCase() === 'cheque' ? 'md:grid-cols-4' : 'md:grid-cols-3'">
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Reason</span>
+                                <span class="font-bold text-slate-800 mt-0.5 block" x-text="returnForm.reason"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Refund Mode</span>
+                                <span class="font-bold text-slate-800 mt-0.5 block" x-text="returnForm.refund_mode"></span>
+                            </div>
+                            <div x-show="(returnForm.refund_mode || '').toLowerCase() === 'cheque'" class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Reference / Cheque No.</span>
+                                <span class="font-bold text-slate-800 mt-0.5 block font-mono" x-text="returnForm.cheque_number || '—'"></span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Detailed Remarks</span>
+                                <span class="font-semibold text-slate-700 mt-0.5 block" x-text="returnForm.detailed_reason"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {{-- Confirmation --}}
+                    <div class="bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80">
+                        <label class="flex items-center gap-2.5 cursor-pointer">
+                            <input type="checkbox" id="confirmCancelCheck" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]/50">
+                            <span class="text-xs text-slate-700 font-semibold">I confirm that the above cancellation information is verified and correct.</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Modal Footer (Docked Bottom Bar matching Image 2 style) --}}
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
+                <template x-if="newReturnStep === 1">
+                    <button type="button" @click="openNewReturnModal = false" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Close</button>
+                </template>
+                <template x-if="newReturnStep > 1">
+                    <button type="button" @click="newReturnStep--" class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">Back</button>
+                </template>
+
+                <div class="ml-auto">
+                    <template x-if="newReturnStep === 1">
+                        <button type="button" @click="if(newReturnSale) newReturnStep = 2; else showToast('Please select a sale first', 'error');" class="px-6 py-2.5 bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md shadow-[#a38c29]/25 flex items-center gap-1.5">
+                            <span>Next Step</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                    </template>
+                    <template x-if="newReturnStep === 2">
                         <button type="button" @click="
                             returnFormErrors = {};
                             if (!returnForm.date) returnFormErrors.date = 'Date is required.';
@@ -982,67 +1143,22 @@
                             if (returnForm.cancellation_fee === '' || returnForm.cancellation_fee === null) returnFormErrors.cancellation_fee = 'Cancellation fee is required.';
                             if (!returnForm.refund_mode) returnFormErrors.refund_mode = 'Refund mode is required.';
                             if (Object.keys(returnFormErrors).length === 0) newReturnStep = 3;
-                        " class="px-5 py-2 bg-[#a38c29] text-white rounded-lg text-xs font-bold hover:bg-[#8e7a23] transition shadow-sm">Next</button>
-                    </div>
+                        " class="px-6 py-2.5 bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md shadow-[#a38c29]/25 flex items-center gap-1.5">
+                            <span>Next: Review</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
+                    </template>
+                    <template x-if="newReturnStep === 3">
+                        <button type="button" @click="if(!document.getElementById('confirmCancelCheck').checked) showToast('Please check the confirmation box.', 'error'); else submitNewReturn();" class="px-6 py-2.5 bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md shadow-[#a38c29]/25 flex items-center gap-1.5">
+                            <span>Confirm Cancellation</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        </button>
+                    </template>
                 </div>
-                
-                {{-- STEP 3: REVIEW & CONFIRM --}}
-                <div x-show="newReturnStep === 3" class="space-y-4">
-                    <div class="bg-white rounded-xl border border-slate-200 p-5">
-                        <div class="flex items-center gap-2 mb-4 text-[#a38c29] font-bold text-sm">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
-                            <span>Step 3: Review & Confirm</span>
-                        </div>
-                        
-                        <div class="bg-slate-50 border border-slate-100 rounded-lg p-5 flex flex-wrap gap-8 text-xs mb-6 items-center">
-                            <div>
-                                <span class="block text-slate-500 mb-1">Sale ID</span>
-                                <span class="font-bold text-slate-800" x-text="newReturnSale ? newReturnSale.sale_number : ''"></span>
-                            </div>
-                            <div>
-                                <span class="block text-slate-500 mb-1">Customer</span>
-                                <span class="font-bold text-slate-800" x-text="newReturnSale && newReturnSale.customer ? newReturnSale.customer.name : ''"></span>
-                            </div>
-                            <div>
-                                <span class="block text-slate-500 mb-1">Sale Amount</span>
-                                <span class="font-bold font-mono text-slate-800" x-text="newReturnSale ? fmtIndian(newReturnSale.total_amount) : ''"></span>
-                            </div>
-                            <div>
-                                <span class="block text-slate-500 mb-1">Total Paid</span>
-                                <span class="font-bold font-mono text-emerald-600" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : ''"></span>
-                            </div>
-                            <div>
-                                <span class="block text-slate-500 mb-1">Cancellation Fee</span>
-                                <span class="font-bold font-mono text-red-600" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span>
-                            </div>
-                            <div class="ml-auto bg-[#a38c29]/10 px-4 py-2 rounded-md border border-[#a38c29]/20 text-right">
-                                <span class="block text-[#a38c29] mb-1 font-semibold">Amount to be Refunded</span>
-                                <span class="text-lg font-bold font-mono text-[#a38c29]" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4 text-xs">
-                            <div><span class="block text-slate-500">Reason</span><span class="font-semibold text-slate-800" x-text="returnForm.reason"></span></div>
-                            <div><span class="block text-slate-500">Refund Mode</span><span class="font-semibold text-slate-800" x-text="returnForm.refund_mode"></span></div>
-                            <div class="col-span-2"><span class="block text-slate-500">Detailed Remarks</span><span class="font-semibold text-slate-800" x-text="returnForm.detailed_reason"></span></div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4 bg-white p-4 rounded-xl border border-slate-200">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" id="confirmCancelCheck" class="w-4 h-4 text-[#a38c29] rounded border-slate-300 focus:ring-[#a38c29]/50">
-                            <span class="text-xs text-slate-600 font-semibold">I confirm that the above information is correct and I want to cancel this sale.</span>
-                        </label>
-                        <div class="flex gap-3">
-                            <button type="button" @click="openNewReturnModal = false" class="px-5 py-2 border border-slate-300 bg-white text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-50 transition shadow-sm">Cancel</button>
-                            <button type="button" @click="if(!document.getElementById('confirmCancelCheck').checked) showToast('Please check the confirmation box.', 'error'); else submitNewReturn();" class="px-5 py-2 bg-[#a38c29] text-white rounded-lg text-xs font-bold hover:bg-[#8e7a23] transition shadow-sm flex items-center gap-1.5">Review & Confirm <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
+    </template>
     @endif
 
 
