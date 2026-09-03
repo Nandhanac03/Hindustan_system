@@ -146,6 +146,12 @@ function reportsApp() {
                     table = excelTable;
                     filename = 'HindustanERP_Contractor_Statement_Report.xlsx';
                 }
+            } else if (this.activeTab === 'customer_ledger' || this.activeTab === 'customer_ledger_statement') {
+                const excelTable = document.querySelector("#customerLedgerExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Customer_Ledger_Statement.xlsx';
+                }
             }
 
             if (!table) {
@@ -292,11 +298,15 @@ function reportsApp() {
 
                     let vertAlign = cell.style.verticalAlign || 'middle';
 
-                    // Formatting detection from custom mso-number-format
-                    const numberFormat = cell.style.msoNumberFormat || '';
+                    // Formatting detection from custom mso-number-format or data attributes
+                    const numberFormat = cell.style.msoNumberFormat || cell.getAttribute("data-format") || '';
                     
                     // Populate excelCell value and format
-                    if (numberFormat.includes('dd-mmm-yyyy') || numberFormat.includes('dd\\-mmm\\-yyyy')) {
+                    if (numberFormat.includes('\\@') || numberFormat.includes('@') || cell.getAttribute("data-type") === 'text') {
+                        // Text / Phone number formatting - prevent scientific notation
+                        excelCell.value = rawVal.toString();
+                        excelCell.numFormat = '@';
+                    } else if (numberFormat.includes('dd-mmm-yyyy') || numberFormat.includes('dd\\-mmm\\-yyyy')) {
                         // Check if valid date string YYYY-MM-DD
                         if (rawVal && /^\d{4}-\d{2}-\d{2}$/.test(rawVal)) {
                             excelCell.value = new Date(rawVal);
@@ -312,6 +322,15 @@ function reportsApp() {
                             excelCell.value = rawVal;
                         }
                         excelCell.numFormat = '0.0%';
+                    } else if (numberFormat.includes('₹') || rawVal.startsWith('₹') || (rawVal.includes('₹') && !rawVal.includes(':'))) {
+                        const cleanVal = rawVal.replace(/[^\d\.\-]/g, '');
+                        const parsedNum = parseFloat(cleanVal);
+                        if (rawVal && !isNaN(parsedNum)) {
+                            excelCell.value = parsedNum;
+                            excelCell.numFormat = '₹#,##0.00';
+                        } else {
+                            excelCell.value = rawVal;
+                        }
                     } else if (numberFormat.includes('\\#\\,\\#\\#0') || numberFormat.includes('#,##0')) {
                         const cleanVal = rawVal.replace(/[^\d\.\-]/g, '');
                         const parsedNum = parseFloat(cleanVal);
@@ -320,10 +339,13 @@ function reportsApp() {
                         } else {
                             excelCell.value = '';
                         }
-                        excelCell.numFormat = '#,##0';
+                        excelCell.numFormat = '#,##0.00';
                     } else {
-                        // General number parsing if it looks like a clean integer/float
-                        if (rawVal && /^\-?\d+(\.\d+)?$/.test(rawVal)) {
+                        // Check if text is phone number (e.g. 10-12 digits without decimal)
+                        if (rawVal && /^\+?\d{10,12}$/.test(rawVal.trim())) {
+                            excelCell.value = rawVal.trim();
+                            excelCell.numFormat = '@';
+                        } else if (rawVal && /^\-?\d+(\.\d+)?$/.test(rawVal)) {
                             excelCell.value = parseFloat(rawVal);
                         } else {
                             excelCell.value = rawVal;
@@ -365,6 +387,23 @@ function reportsApp() {
                     colIdx += colspan;
                 }
             });
+
+            // Auto calculate generous column widths across all populated columns
+            const colCount = worksheet.columnCount || 10;
+            for (let i = 1; i <= colCount; i++) {
+                const column = worksheet.getColumn(i);
+                let maxLen = 0;
+                column.eachCell({ includeEmpty: false }, (cell) => {
+                    if (!cell.isMerged && cell.value !== null && cell.value !== undefined) {
+                        const strVal = cell.value.toString();
+                        if (strVal.length > maxLen && strVal.length < 60) {
+                            maxLen = strVal.length;
+                        }
+                    }
+                });
+                const existingWidth = column.width || 0;
+                column.width = Math.max(existingWidth, maxLen + 6, 18);
+            }
 
             // Write workbook and download
             workbook.xlsx.writeBuffer().then(function (data) {

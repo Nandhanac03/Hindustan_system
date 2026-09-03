@@ -571,7 +571,161 @@
             </div>
         </div>
     </div>
-</div>
+    {{-- Hidden Formatted Excel Export Table --}}
+    <div class="hidden">
+        <table id="customerLedgerExcelTable">
+            @if($selectedCustomers && $selectedCustomers->isNotEmpty())
+                <colgroup>
+                    <col style="width: 120px;">
+                    @if($selectedCustomers->count() > 1)
+                        <col style="width: 220px;">
+                    @endif
+                    <col style="width: 160px;">
+                    <col style="width: 280px;">
+                    <col style="width: 140px;">
+                    <col style="width: 160px;">
+                    <col style="width: 160px;">
+                    <col style="width: 160px;">
+                </colgroup>
+                <thead>
+                    <tr height="36">
+                        <th colspan="{{ $selectedCustomers->count() > 1 ? 8 : 7 }}" style="background-color: #1e293b; color: #ffffff; font-size: 13px; font-weight: bold; text-align: center; vertical-align: middle;">
+                            HINDUSTAN REAL ESTATE & INFRASTRUCTURE - CUSTOMER ACCOUNT LEDGER STATEMENT
+                        </th>
+                    </tr>
+                    <tr height="24">
+                        <th colspan="{{ $selectedCustomers->count() > 1 ? 8 : 7 }}" style="background-color: #f8fafc; color: #475569; font-size: 10px; text-align: center; vertical-align: middle;">
+                            Target Customer(s): {{ $selectedCustomers->pluck('name')->implode(', ') }} | Generated On: {{ date('d M Y, h:i A') }}
+                        </th>
+                    </tr>
+                    <tr height="12"><th colspan="{{ $selectedCustomers->count() > 1 ? 8 : 7 }}" data-no-border="true"></th></tr>
+                    <tr height="28">
+                        <td colspan="2" style="background-color: #f1f5f9; font-weight: bold; text-align: left;">TOTAL BILLED / SALE:</td>
+                        <td colspan="2" style="background-color: #f1f5f9; font-weight: bold; text-align: right; color: #0f172a;">₹{{ number_format($totalDebits, 2) }}</td>
+                        <td colspan="2" style="background-color: #ecfdf5; font-weight: bold; text-align: left; color: #047857;">TOTAL PAID RECEIPTS:</td>
+                        <td colspan="{{ $selectedCustomers->count() > 1 ? 2 : 1 }}" style="background-color: #ecfdf5; font-weight: bold; text-align: right; color: #047857;">₹{{ number_format($totalCredits, 2) }}</td>
+                    </tr>
+                    <tr height="28">
+                        <td colspan="2" style="background-color: #fff1f2; font-weight: bold; text-align: left; color: #be123c;">NET OUTSTANDING:</td>
+                        <td colspan="2" style="background-color: #fff1f2; font-weight: bold; text-align: right; color: #be123c;">₹{{ number_format($closingBalance, 2) }}</td>
+                        <td colspan="2" style="background-color: #fef3c7; font-weight: bold; text-align: left; color: #b45309;">STATEMENT TYPE:</td>
+                        <td colspan="{{ $selectedCustomers->count() > 1 ? 2 : 1 }}" style="background-color: #fef3c7; font-weight: bold; text-align: right; color: #b45309;">Detailed Ledger</td>
+                    </tr>
+                    <tr height="12"><th colspan="{{ $selectedCustomers->count() > 1 ? 8 : 7 }}" data-no-border="true"></th></tr>
+                    <tr height="30" style="background-color: #a38c29; color: #ffffff; font-weight: bold;">
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">POSTING DATE</th>
+                        @if($selectedCustomers->count() > 1)
+                            <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">CUSTOMER NAME</th>
+                        @endif
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">VOUCHER / REF NO.</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">NARRATIVE DESCRIPTION</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle;">PAYMENT MODE</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle;">DEBIT / DUE (₹)</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle;">CREDIT / RECEIPT (₹)</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle;">RUNNING BALANCE (₹)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($ledgerEntries as $row)
+                    <tr height="24">
+                        <td style="text-align: left;">{{ $row['date'] }}</td>
+                        @if($selectedCustomers->count() > 1)
+                            <td>{{ $row['customer_name'] ?? '-' }}</td>
+                        @endif
+                        <td>{{ $row['ref_no'] }}</td>
+                        <td>{{ $row['description'] }}</td>
+                        <td style="text-align: center;">{{ $row['payment_mode'] }}</td>
+                        <td style="text-align: right; color: #be123c;">{{ $row['debit'] > 0 ? number_format($row['debit'], 2) : '-' }}</td>
+                        <td style="text-align: right; color: #047857;">{{ $row['credit'] > 0 ? number_format($row['credit'], 2) : '-' }}</td>
+                        <td style="text-align: right; font-weight: bold;">{{ number_format($row['balance'] ?? 0, 2) }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr height="28" style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #a38c29;">
+                        <td colspan="{{ $selectedCustomers->count() > 1 ? 4 : 3 }}" style="text-align: right; font-weight: bold;">TOTAL SUMMARY:</td>
+                        <td></td>
+                        <td style="text-align: right; font-weight: bold; color: #be123c;">₹{{ number_format($totalDebits, 2) }}</td>
+                        <td style="text-align: right; font-weight: bold; color: #047857;">₹{{ number_format($totalCredits, 2) }}</td>
+                        <td style="text-align: right; font-weight: bold;">₹{{ number_format($closingBalance, 2) }}</td>
+                    </tr>
+                </tfoot>
+            @else
+                <colgroup>
+                    <col style="width: 70px;">
+                    <col style="width: 220px;">
+                    <col style="width: 150px;">
+                    <col style="width: 180px;">
+                    <col style="width: 120px;">
+                    <col style="width: 160px;">
+                    <col style="width: 160px;">
+                    <col style="width: 160px;">
+                    <col style="width: 140px;">
+                </colgroup>
+                <thead>
+                    <tr height="36">
+                        <th colspan="9" style="background-color: #1e293b; color: #ffffff; font-size: 13px; font-weight: bold; text-align: center; vertical-align: middle;">
+                            HINDUSTAN REAL ESTATE & INFRASTRUCTURE - ALL CUSTOMERS ACCOUNTS DIRECTORY
+                        </th>
+                    </tr>
+                    <tr height="24">
+                        <th colspan="9" style="background-color: #f8fafc; color: #475569; font-size: 10px; text-align: center; vertical-align: middle;">
+                            Generated On: {{ date('d M Y, h:i A') }} | Comprehensive Accounts Balances & Receivables Overview
+                        </th>
+                    </tr>
+                    <tr height="12"><th colspan="9" data-no-border="true"></th></tr>
+                    <tr height="28">
+                        <td colspan="2" style="background-color: #f1f5f9; font-weight: bold; text-align: left;">TOTAL SALES AGREEMENTS:</td>
+                        <td colspan="2" style="background-color: #f1f5f9; font-weight: bold; text-align: right; color: #0f172a;">₹{{ number_format($totalDebits, 2) }}</td>
+                        <td colspan="2" style="background-color: #ecfdf5; font-weight: bold; text-align: left; color: #047857;">TOTAL COLLECTIONS:</td>
+                        <td colspan="3" style="background-color: #ecfdf5; font-weight: bold; text-align: right; color: #047857;">₹{{ number_format($totalCredits, 2) }}</td>
+                    </tr>
+                    <tr height="28">
+                        <td colspan="2" style="background-color: #fff1f2; font-weight: bold; text-align: left; color: #be123c;">NET OUTSTANDING DUES:</td>
+                        <td colspan="2" style="background-color: #fff1f2; font-weight: bold; text-align: right; color: #be123c;">₹{{ number_format($closingBalance, 2) }}</td>
+                        <td colspan="2" style="background-color: #fef3c7; font-weight: bold; text-align: left; color: #b45309;">ACTIVE CUSTOMER ACCOUNTS:</td>
+                        <td colspan="3" style="background-color: #fef3c7; font-weight: bold; text-align: right; color: #b45309;">{{ count($customerSummaryList) }} Accounts</td>
+                    </tr>
+                    <tr height="12"><th colspan="9" data-no-border="true"></th></tr>
+                    <tr height="30" style="background-color: #a38c29; color: #ffffff; font-weight: bold;">
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle;">SL NO</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">CUSTOMER NAME</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">PHONE NUMBER</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">PROJECT NAME</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: left; vertical-align: middle;">UNIT NO</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle;">TOTAL SALE (₹)</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle;">TOTAL PAID (₹)</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: right; vertical-align: middle;">OUTSTANDING (₹)</th>
+                        <th style="background-color: #a38c29; color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle;">LAST PAYMENT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($customerSummaryList as $idx => $cs)
+                    <tr height="24">
+                        <td style="text-align: center;">{{ $idx + 1 }}</td>
+                        <td style="text-align: left; font-weight: bold;">{{ $cs['customer_name'] }}</td>
+                        <td style="mso-number-format:'\@'; text-align: left;" data-type="text" data-format="@">{{ $cs['phone'] ?? '-' }}</td>
+                        <td style="text-align: left;">{{ $cs['project'] }}</td>
+                        <td style="text-align: left;">{{ $cs['unit'] }}</td>
+                        <td style="text-align: right;">{{ number_format($cs['total_amount'], 2) }}</td>
+                        <td style="text-align: right; color: #047857;">{{ number_format($cs['paid_amount'], 2) }}</td>
+                        <td style="text-align: right; color: #be123c; font-weight: bold;">{{ number_format($cs['outstanding'], 2) }}</td>
+                        <td style="text-align: center;">{{ $cs['last_payment'] }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+                <tfoot>
+                    <tr height="28" style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #a38c29;">
+                        <td colspan="5" style="text-align: right; font-weight: bold;">TOTAL SUMMARY:</td>
+                        <td style="text-align: right; font-weight: bold;">₹{{ number_format($totalDebits, 2) }}</td>
+                        <td style="text-align: right; font-weight: bold; color: #047857;">₹{{ number_format($totalCredits, 2) }}</td>
+                        <td style="text-align: right; font-weight: bold; color: #be123c;">₹{{ number_format($closingBalance, 2) }}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            @endif
+        </table>
+    </div>
 
 @include('reports.partials.script')
 
