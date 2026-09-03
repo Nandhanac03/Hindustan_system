@@ -115,6 +115,12 @@ function reportsApp() {
                     table = excelTable;
                     filename = 'HindustanERP_Loan_Schedules_Report.xlsx';
                 }
+            } else if (this.activeTab === 'supplier_contractor') {
+                const excelTable = document.querySelector("#contractorExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Contractor_Statement_Report.xlsx';
+                }
             }
 
             if (!table) {
