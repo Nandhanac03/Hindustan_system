@@ -673,59 +673,59 @@ function partnerStatementApp() {
                 </th>
             </tr>
             <tr height="30" style="height: 30pt;">
-                <th colspan="8" bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                <th colspan="8" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding: 6px 10px; font-family: 'Calibri', 'Aptos', sans-serif;">
                     EXECUTIVE SUMMARY & METRIC KPIS
                 </th>
             </tr>
             <tr height="25" style="height: 25pt;">
-                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Agreed Profit Share:</th>
-                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #a38c29; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.0%';">{{ number_format((float)($agreedProfitShare ?? 0), 1) }}%</th>
-                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Earned Profit Share:</th>
-                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #059669; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($earnedProfitShare ?? $totalCredit ?? 0) }}</th>
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #17365D; font-weight: bold; font-size: 9.5pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Agreed Profit Share:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #17365D; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.00%';">{{ number_format((float)($agreedProfitShare ?? 0), 2) }}%</th>
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #17365D; font-weight: bold; font-size: 9.5pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Earned Profit Share:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #17365D; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($earnedProfitShare ?? $totalCredit ?? 0) }}</th>
             </tr>
             <tr height="25" style="height: 25pt;">
-                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Total Payouts Released:</th>
-                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #e11d48; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalPayoutsReleased ?? $totalDebit ?? 0) }}</th>
-                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Current Net Equity Balance:</th>
-                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #a38c29; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($currentNetEquityBalance ?? $runningBalance ?? 0) }}</th>
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #17365D; font-weight: bold; font-size: 9.5pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Total Payouts Released:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #17365D; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalPayoutsReleased ?? $totalDebit ?? 0) }}</th>
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #17365D; font-weight: bold; font-size: 9.5pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Current Net Equity Balance:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #17365D; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($currentNetEquityBalance ?? $runningBalance ?? 0) }}</th>
             </tr>
             <tr height="15" style="height: 15pt;"><th colspan="8" bgcolor="#ffffff" style="border: none;"></th></tr>
             <tr height="30" style="height: 30pt;">
-                <th colspan="8" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                <th colspan="8" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding: 6px 10px; font-family: 'Calibri', 'Aptos', sans-serif;">
                     A. INDIVIDUAL PARTNER STATEMENT OF ACCOUNT (RUNNING LEDGER)
                 </th>
             </tr>
             <tr height="35" style="height: 35pt;">
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">SL NO</th>
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23; mso-number-format: 'dd\-mmm\-yyyy';">TRANSACTION DATE</th>
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">PARTNER NAME</th>
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">VOUCHER / REF NO</th>
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">DESCRIPTION / TRANSACTION TYPE</th>
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">PROFIT SHARE ALLOCATED (CREDIT)</th>
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">PAYOUT RELEASED (DEBIT)</th>
-                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">RUNNING PAYABLE BALANCE</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">SL NO</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; mso-number-format: 'yyyy\-mm\-dd';">TRANSACTION DATE</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">PARTNER NAME</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">VOUCHER / REF NO</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">DESCRIPTION / TRANSACTION TYPE</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">PROFIT SHARE ALLOCATED (CREDIT)</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">PAYOUT RELEASED (DEBIT)</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">RUNNING PAYABLE BALANCE</th>
             </tr>
         </thead>
         <tbody>
             @foreach($runningLedger as $index => $entry)
                 <tr height="24" style="height: 24pt;">
                     <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">{{ $index + 1 }}</td>
-                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: 'dd\-mmm\-yyyy';">{{ is_object($entry) ? $entry->date : ($entry['date'] ?? '') }}</td>
+                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: 'yyyy\-mm\-dd';">{{ is_object($entry) ? $entry->date : ($entry['date'] ?? '') }}</td>
                     <td style="text-align: left; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->partner_name : ($entry['partner_name'] ?? '') }}</td>
                     <td style="text-align: center; font-family: monospace; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->ref_no : ($entry['ref_no'] ?? '') }}</td>
                     <td style="text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->description : ($entry['description'] ?? '') }}</td>
-                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->credit : ($entry['credit'] ?? 0)) }}</td>
-                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->debit : ($entry['debit'] ?? 0)) }}</td>
-                    <td style="text-align: right; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->running_balance : ($entry['running_balance'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($entry) ? $entry->credit : ($entry['credit'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($entry) ? $entry->debit : ($entry['debit'] ?? 0)) }}</td>
+                    <td style="text-align: right; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($entry) ? $entry->running_balance : ($entry['running_balance'] ?? 0)) }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
-            <tr height="28" style="height: 28pt; background-color: #fef08a;">
-                <td colspan="5" bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">TOTAL LEDGER BALANCE</td>
-                <td bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalCredit ?? 0) }}</td>
-                <td bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalDebit ?? 0) }}</td>
-                <td bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: right; color: #1e293b; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($runningBalance ?? 0) }}</td>
+            <tr height="28" style="height: 28pt; background-color: #ffffff;">
+                <td colspan="5" bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">TOTAL LEDGER BALANCE</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalCredit ?? 0) }}</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalDebit ?? 0) }}</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #17365D; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($runningBalance ?? 0) }}</td>
             </tr>
         </tfoot>
     </table>
@@ -748,13 +748,13 @@ function partnerStatementApp() {
                 </th>
             </tr>
             <tr height="35" style="height: 35pt;">
-                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">SL NO</th>
-                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">PARTNER NAME</th>
-                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">ROLE / ENTITY TYPE</th>
-                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">AGREED SHARE (%)</th>
-                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">TOTAL ALLOCATED NET PROFIT</th>
-                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">TOTAL PAYOUTS RELEASED</th>
-                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">CURRENT NET BALANCE OWED</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">SL NO</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">PARTNER NAME</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">ROLE / ENTITY TYPE</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">AGREED SHARE (%)</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">TOTAL ALLOCATED NET PROFIT</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">TOTAL PAYOUTS RELEASED</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">CURRENT NET BALANCE OWED</th>
             </tr>
         </thead>
         <tbody>
@@ -763,20 +763,20 @@ function partnerStatementApp() {
                     <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">{{ $pIdx + 1 }}</td>
                     <td style="text-align: left; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($pRow) ? $pRow->name : ($pRow['name'] ?? '') }}</td>
                     <td style="text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($pRow) ? $pRow->role : ($pRow['role'] ?? '') }}</td>
-                    <td style="text-align: center; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.0%';">{{ number_format((float)(is_object($pRow) ? $pRow->share_pct : ($pRow['share_pct'] ?? 0)), 1) }}%</td>
-                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($pRow) ? $pRow->total_allocated : ($pRow['total_allocated'] ?? 0)) }}</td>
-                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($pRow) ? $pRow->total_payouts : ($pRow['total_payouts'] ?? 0)) }}</td>
-                    <td style="text-align: right; color: #a38c29; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($pRow) ? $pRow->net_balance : ($pRow['net_balance'] ?? 0)) }}</td>
+                    <td style="text-align: center; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.00%';">{{ number_format((float)(is_object($pRow) ? $pRow->share_pct : ($pRow['share_pct'] ?? 0)), 2) }}%</td>
+                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($pRow) ? $pRow->total_allocated : ($pRow['total_allocated'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($pRow) ? $pRow->total_payouts : ($pRow['total_payouts'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #17365D; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($pRow) ? $pRow->net_balance : ($pRow['net_balance'] ?? 0)) }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
-            <tr height="28" style="height: 28pt; background-color: #d1fae5;">
-                <td colspan="3" bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">PROJECT TOTALS</td>
-                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.0%';">{{ number_format((float)($totalMatrixAgreedPct ?? 0), 1) }}%</td>
-                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalMatrixAllocated ?? 0) }}</td>
-                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalMatrixPayouts ?? 0) }}</td>
-                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: right; color: #047857; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(($totalMatrixAllocated ?? 0) - ($totalMatrixPayouts ?? 0)) }}</td>
+            <tr height="28" style="height: 28pt; background-color: #ffffff;">
+                <td colspan="3" bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">PROJECT TOTALS</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.00%';">{{ number_format((float)($totalMatrixAgreedPct ?? 0), 2) }}%</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalMatrixAllocated ?? 0) }}</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalMatrixPayouts ?? 0) }}</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #17365D; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(($totalMatrixAllocated ?? 0) - ($totalMatrixPayouts ?? 0)) }}</td>
             </tr>
         </tfoot>
     </table>
@@ -800,36 +800,36 @@ function partnerStatementApp() {
                 </th>
             </tr>
             <tr height="35" style="height: 35pt;">
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">SL NO</th>
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3; mso-number-format: 'dd\-mmm\-yyyy';">DATE</th>
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">PARTNER NAME</th>
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">REF / VOUCHER NO</th>
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">DESCRIPTION</th>
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">ALLOCATED PROFIT (CREDIT)</th>
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">PAYOUT RELEASED (DEBIT)</th>
-                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">RUNNING BALANCE</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">SL NO</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; mso-number-format: 'yyyy\-mm\-dd';">DATE</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">PARTNER NAME</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">REF / VOUCHER NO</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">DESCRIPTION</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">ALLOCATED PROFIT (CREDIT)</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">PAYOUT RELEASED (DEBIT)</th>
+                <th bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569;">RUNNING BALANCE</th>
             </tr>
         </thead>
         <tbody>
             @foreach($runningLedger as $index => $entry)
                 <tr height="24" style="height: 24pt;">
                     <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">{{ $index + 1 }}</td>
-                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: 'dd\-mmm\-yyyy';">{{ is_object($entry) ? $entry->date : ($entry['date'] ?? '') }}</td>
+                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: 'yyyy\-mm\-dd';">{{ is_object($entry) ? $entry->date : ($entry['date'] ?? '') }}</td>
                     <td style="text-align: left; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->partner_name : ($entry['partner_name'] ?? '') }}</td>
                     <td style="text-align: center; font-family: monospace; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->ref_no : ($entry['ref_no'] ?? '') }}</td>
                     <td style="text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->description : ($entry['description'] ?? '') }}</td>
-                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->credit : ($entry['credit'] ?? 0)) }}</td>
-                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->debit : ($entry['debit'] ?? 0)) }}</td>
-                    <td style="text-align: right; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->running_balance : ($entry['running_balance'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($entry) ? $entry->credit : ($entry['credit'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($entry) ? $entry->debit : ($entry['debit'] ?? 0)) }}</td>
+                    <td style="text-align: right; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)(is_object($entry) ? $entry->running_balance : ($entry['running_balance'] ?? 0)) }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
-            <tr height="28" style="height: 28pt; background-color: #e0e7ff;">
-                <td colspan="5" bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">TOTAL DISTRIBUTION LOG SUMMARY</td>
-                <td bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalCredit ?? 0) }}</td>
-                <td bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalDebit ?? 0) }}</td>
-                <td bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: right; color: #3730a3; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($runningBalance ?? 0) }}</td>
+            <tr height="28" style="height: 28pt; background-color: #ffffff;">
+                <td colspan="5" bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">TOTAL DISTRIBUTION LOG SUMMARY</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalCredit ?? 0) }}</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalDebit ?? 0) }}</td>
+                <td bgcolor="#ffffff" style="background-color: #ffffff; font-weight: bold; text-align: right; color: #17365D; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($runningBalance ?? 0) }}</td>
             </tr>
         </tfoot>
     </table>
