@@ -40,32 +40,12 @@ function reportsApp() {
             window.print();
         },
 
-        exportCurrentTable(targetType) {
+        exportCurrentTable() {
             let table = document.querySelector("#reportsTable");
             let filename = 'HindustanERP_Report_' + this.activeTab + '.xlsx';
             let isSales = false;
 
-            if (this.activeTab === 'partner_statements' || targetType === 'partner_statement' || targetType === 'profit_sharing_summary' || targetType === 'distribution_history_log') {
-                if (targetType === 'profit_sharing_summary') {
-                    const excelTable = document.querySelector("#profitSharingExcelTable");
-                    if (excelTable) {
-                        table = excelTable;
-                        filename = 'HindustanERP_Profit_Sharing_Summary.xlsx';
-                    }
-                } else if (targetType === 'distribution_history_log') {
-                    const excelTable = document.querySelector("#distributionHistoryExcelTable");
-                    if (excelTable) {
-                        table = excelTable;
-                        filename = 'HindustanERP_Distribution_History_Log.xlsx';
-                    }
-                } else {
-                    const excelTable = document.querySelector("#partnerStatementExcelTable");
-                    if (excelTable) {
-                        table = excelTable;
-                        filename = 'HindustanERP_Partner_Statement.xlsx';
-                    }
-                }
-            } else if (this.activeTab === 'sales') {
+            if (this.activeTab === 'sales') {
                 const excelTable = document.querySelector("#salesExcelTable");
                 if (excelTable) {
                     table = excelTable;
@@ -268,17 +248,13 @@ function reportsApp() {
                         }
                         excelCell.numFormat = 'dd-mmm-yyyy';
                     } else if (numberFormat.includes('0\\.0%') || numberFormat.includes('0.0%')) {
-                        if (rawVal && rawVal.includes('%')) {
-                            excelCell.value = rawVal.trim();
+                        const parsedFloat = parseFloat(rawVal);
+                        if (!isNaN(parsedFloat)) {
+                            excelCell.value = parsedFloat;
                         } else {
-                            const parsedFloat = parseFloat(rawVal);
-                            if (!isNaN(parsedFloat)) {
-                                excelCell.value = (parsedFloat > 1 ? (parsedFloat / 100) : parsedFloat);
-                                excelCell.numFormat = '0.0%';
-                            } else {
-                                excelCell.value = rawVal;
-                            }
+                            excelCell.value = rawVal;
                         }
+                        excelCell.numFormat = '0.0%';
                     } else if (numberFormat.includes('\\#\\,\\#\\#0') || numberFormat.includes('#,##0')) {
                         const cleanVal = rawVal.replace(/[^\d\.\-]/g, '');
                         const parsedNum = parseFloat(cleanVal);
@@ -331,37 +307,6 @@ function reportsApp() {
 
                     colIdx += colspan;
                 }
-            });
-
-            // Auto-fit column widths and set page setup to framed active columns
-            const totalCols = worksheet.columns.length;
-            const lastColChar = String.fromCharCode(64 + Math.min(totalCols, 26));
-            const totalRows = worksheet.rowCount;
-
-            worksheet.pageSetup = {
-                orientation: 'landscape',
-                paperSize: 9, // A4
-                fitToPage: true,
-                fitToWidth: 1,
-                fitToHeight: 0,
-                printArea: `A1:${lastColChar}${totalRows}`
-            };
-
-            worksheet.views = [
-                { state: 'frozen', xSplit: 0, ySplit: 0, activeCell: 'A1', showGridLines: true }
-            ];
-
-            worksheet.columns.forEach((column) => {
-                let maxLen = 10;
-                column.eachCell({ includeEmpty: true }, (cell) => {
-                    // Skip merged title header rows (rows 1-2) from inflating column widths
-                    if (cell.row <= 2) return;
-                    const valStr = cell.value ? String(cell.value) : '';
-                    if (valStr.length > maxLen && valStr.length < 60) {
-                        maxLen = valStr.length;
-                    }
-                });
-                column.width = Math.min(Math.max(maxLen + 4, 14), 45);
             });
 
             // Write workbook and download
@@ -896,14 +841,14 @@ function reportsApp() {
                 const supplierPaids  = {!! json_encode($supplierChartData['paids'] ?? []) !!};
                 new ApexCharts(document.querySelector("#supplierPayablesChart"), {
                     series: [
-                        { name: 'Commission Due', data: supplierDues },
-                        { name: 'Commission Paid', data: supplierPaids }
+                        { name: 'Net Approved Dues', data: supplierDues },
+                        { name: 'Paid Amount', data: supplierPaids }
                     ],
                     chart: { type: 'bar', height: 180, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
                     colors: ['#f97316', '#10b981'],
                     dataLabels: { enabled: false },
                     plotOptions: { bar: { columnWidth: '30%', borderRadius: 4 } },
-                    xaxis: { categories: supplierLabels.length ? supplierLabels : ['No Brokers'] },
+                    xaxis: { categories: supplierLabels.length ? supplierLabels : ['No Contractors'] },
                     yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
                     grid: { borderColor: '#f1f5f9' },
                     tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
