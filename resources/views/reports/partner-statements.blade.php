@@ -363,7 +363,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 text-slate-800">
-                        <template x-for="(pRow, pIdx) in matrixList" :key="pIdx">
+                        <template x-for="(pRow, pIdx) in filteredMatrixList" :key="pIdx">
                             <tr class="hover:bg-slate-50 transition-colors font-medium" :class="filters.partner_id && String(pRow.id) === String(filters.partner_id) ? 'bg-[#a38c29]/5' : ''">
                                 <td class="px-5 py-3.5 font-bold text-slate-900 border-r border-slate-100">
                                     <span x-text="pRow.name"></span>
@@ -395,7 +395,7 @@
                     <span>Net Balance Owed = Total Allocated Net Profit - Total Payouts Released</span>
                 </div>
                 <div class="flex items-center gap-3">
-                    <span x-text="'Showing ' + matrixList.length + ' entries'"></span>
+                    <span x-text="'Showing ' + filteredMatrixList.length + ' entries'"></span>
                 </div>
             </div>
         </div>
@@ -564,16 +564,21 @@ function partnerStatementApp() {
             return (this.matrixList[0] ? Number(this.matrixList[0].share_pct).toFixed(1) : '57.5') + '%';
         },
 
+        get filteredMatrixList() {
+            if (!this.filters.partner_id) return this.matrixList;
+            return this.matrixList.filter(p => String(p.id) === String(this.filters.partner_id));
+        },
+
         get totalMatrixAgreedPct() {
-            return this.matrixList.reduce((sum, p) => sum + Number(p.share_pct || 0), 0);
+            return this.filteredMatrixList.reduce((sum, p) => sum + Number(p.share_pct || 0), 0);
         },
 
         get totalMatrixAllocated() {
-            return this.matrixList.reduce((sum, p) => sum + Number(p.total_allocated || 0), 0);
+            return this.filteredMatrixList.reduce((sum, p) => sum + Number(p.total_allocated || 0), 0);
         },
 
         get totalMatrixPayouts() {
-            return this.matrixList.reduce((sum, p) => sum + Number(p.total_payouts || 0), 0);
+            return this.filteredMatrixList.reduce((sum, p) => sum + Number(p.total_payouts || 0), 0);
         },
 
         handleDateRangeChange() {
