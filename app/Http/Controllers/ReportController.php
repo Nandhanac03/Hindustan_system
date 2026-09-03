@@ -1453,27 +1453,60 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'supplier_contractor';
 
-        $supplierQuery = Brokerage::with(['broker', 'sale.project', 'sale.customer']);
-        if ($request->filled('broker_id')) {
-            $supplierQuery->where('broker_id', $request->broker_id);
+        // Contractors lookup list for filter dropdown
+        $suppliers = Payee::whereRaw("LOWER(type) = 'contractor'")->orderBy('name')->get();
+        if ($suppliers->isEmpty()) {
+            $suppliers = Payee::orderBy('name')->get();
         }
-        $supplierContractorEntries = $supplierQuery->paginate(50);
 
-        $brokerWise = Brokerage::with('broker')
-            ->when($request->filled('broker_id'), fn($q) => $q->where('broker_id', $request->broker_id))
-            ->selectRaw("broker_id, SUM(commission_amount) as total_due, SUM(paid_amount) as total_paid")
-            ->groupBy('broker_id')
+        // Query RA Bills for Contractor Statement
+        $supplierQuery = RaBill::with(['contractor', 'project', 'unit']);
+
+        if ($request->filled('contractor_id')) {
+            $supplierQuery->where('contractor_id', $request->contractor_id);
+        }
+
+        if ($request->filled('status')) {
+            $supplierQuery->where('status', $request->status);
+        }
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $supplierQuery->where(function($q) use ($search) {
+                $q->where('ra_bill_number', 'like', "%{$search}%")
+                  ->orWhere('contractor_name', 'like', "%{$search}%")
+                  ->orWhereHas('contractor', fn($c) => $c->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('project', fn($p) => $p->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        // Paginated for Web UI table
+        $supplierContractorEntries = (clone $supplierQuery)->orderByDesc('created_at')->paginate(50);
+
+        // Full dataset for Excel export (displays ALL contractor data)
+        $allSupplierContractorEntries = (clone $supplierQuery)->orderByDesc('created_at')->get();
+
+        // Contractor payables chart summary
+        $contractorSummary = RaBill::selectRaw("contractor_id, contractor_name, SUM(net_approved_amount) as total_due, SUM(paid_amount) as total_paid")
+            ->when($request->filled('contractor_id'), fn($q) => $q->where('contractor_id', $request->contractor_id))
+            ->groupBy('contractor_id', 'contractor_name')
             ->get();
 
         $supplierChartData = [
-            'labels' => $brokerWise->map(fn($b) => $b->broker?->name ?? 'Broker #' . $b->broker_id)->toArray(),
-            'dues' => $brokerWise->map(fn($b) => (float)$b->total_due)->toArray(),
-            'paids' => $brokerWise->map(fn($b) => (float)$b->total_paid)->toArray(),
-            'total_due' => (float)$brokerWise->sum('total_due'),
-            'total_paid' => (float)$brokerWise->sum('total_paid'),
+            'labels' => $contractorSummary->map(fn($c) => $c->contractor_name ?: ($c->contractor?->name ?? 'Contractor #' . $c->contractor_id))->toArray(),
+            'dues' => $contractorSummary->map(fn($c) => (float)$c->total_due)->toArray(),
+            'paids' => $contractorSummary->map(fn($c) => (float)$c->total_paid)->toArray(),
+            'total_due' => (float)$contractorSummary->sum('total_due'),
+            'total_paid' => (float)$contractorSummary->sum('total_paid'),
         ];
 
-        return view('reports.supplier-contractor', array_merge($lookups, compact('activeTab', 'supplierContractorEntries', 'supplierChartData')));
+        return view('reports.supplier-contractor', array_merge($lookups, compact(
+            'activeTab',
+            'suppliers',
+            'supplierContractorEntries',
+            'allSupplierContractorEntries',
+            'supplierChartData'
+        )));
     }
 
     public function salesReturn(Request $request): View

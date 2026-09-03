@@ -40,12 +40,33 @@ function reportsApp() {
             window.print();
         },
 
-        exportCurrentTable() {
+        exportCurrentTable(reportType = null) {
             let table = document.querySelector("#reportsTable");
             let filename = 'HindustanERP_Report_' + this.activeTab + '.xlsx';
             let isSales = false;
 
-            if (this.activeTab === 'sales') {
+            if (this.activeTab === 'partner_statements' || reportType) {
+                const type = reportType || 'partner_statement';
+                if (type === 'partner_statement') {
+                    const excelTable = document.querySelector("#partnerStatementExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Partner_Statement.xlsx';
+                    }
+                } else if (type === 'profit_sharing_summary') {
+                    const excelTable = document.querySelector("#profitSharingExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Profit_Sharing_Summary.xlsx';
+                    }
+                } else if (type === 'distribution_history_log') {
+                    const excelTable = document.querySelector("#distributionHistoryExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Distribution_History_Log.xlsx';
+                    }
+                }
+            } else if (this.activeTab === 'sales') {
                 const excelTable = document.querySelector("#salesExcelTable");
                 if (excelTable) {
                     table = excelTable;
@@ -94,6 +115,12 @@ function reportsApp() {
                     table = excelTable;
                     filename = 'HindustanERP_Loan_Schedules_Report.xlsx';
                 }
+            } else if (this.activeTab === 'supplier_contractor') {
+                const excelTable = document.querySelector("#contractorExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Contractor_Statement_Report.xlsx';
+                }
             }
 
             if (!table) {
@@ -107,6 +134,7 @@ function reportsApp() {
             const worksheet = workbook.addWorksheet(sheetName);
 
             // Configure views and page setups
+            worksheet.autoFilter = null;
             if (isSales) {
                 worksheet.views = [{ state: 'frozen', xSplit: 2, ySplit: 3, activePane: 'bottomRight' }];
                 worksheet.pageSetup = {
@@ -126,19 +154,19 @@ function reportsApp() {
             if (cols.length > 0) {
                 worksheet.columns = Array.from(cols).map((col) => {
                     const widthPt = col.style.width || col.getAttribute("width");
-                    let widthVal = 15; // default
+                    let widthVal = 18; // default
                     if (widthPt) {
                         const match = widthPt.match(/[\d\.]+/);
                         if (match) {
                             const val = parseFloat(match[0]);
                             if (widthPt.includes("pt")) {
-                                widthVal = val / 6.5;
+                                widthVal = val / 6.0;
                             } else {
-                                widthVal = val / 7.5;
+                                widthVal = val / 7.0;
                             }
                         }
                     }
-                    return { width: Math.max(widthVal, 8) };
+                    return { width: Math.max(widthVal + 6, 16) };
                 });
             }
 
@@ -183,13 +211,17 @@ function reportsApp() {
             rows.forEach((tr, rIdx) => {
                 const sheetRow = worksheet.getRow(rIdx + 1);
                 
-                // Set row height
+                // Set row height with generous padding
                 const heightAttr = tr.getAttribute("height") || tr.style.height;
                 if (heightAttr) {
                     const match = heightAttr.match(/[\d\.]+/);
                     if (match) {
-                        sheetRow.height = parseFloat(match[0]);
+                        sheetRow.height = Math.max(parseFloat(match[0]), 26);
+                    } else {
+                        sheetRow.height = 26;
                     }
+                } else {
+                    sheetRow.height = 26;
                 }
 
                 const cells = tr.cells;

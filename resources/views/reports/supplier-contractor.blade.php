@@ -150,6 +150,130 @@
     </div>
 </div>
 
+<div class="hidden" style="display: none;">
+    <table id="contractorExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="60" style="width: 45pt;" />    {{-- SL NO --}}
+            <col width="220" style="width: 165pt;" />  {{-- CONTRACTOR NAME --}}
+            <col width="160" style="width: 120pt;" />  {{-- RA BILL # / REF --}}
+            <col width="140" style="width: 105pt;" />  {{-- DATE --}}
+            <col width="220" style="width: 165pt;" />  {{-- PROJECT NAME --}}
+            <col width="170" style="width: 128pt;" />  {{-- NET APPROVED DUES --}}
+            <col width="170" style="width: 128pt;" />  {{-- PAID AMOUNT --}}
+            <col width="170" style="width: 128pt;" />  {{-- BALANCE DUE --}}
+            <col width="130" style="width: 98pt;" />   {{-- STATUS --}}
+        </colgroup>
+        <thead>
+            {{-- Top Spacer Row --}}
+            <tr height="15" style="height: 15pt;" data-no-border="true">
+                <th colspan="9" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            {{-- Main Corporate Header --}}
+            <tr height="40" style="height: 40pt;">
+                <th colspan="9" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 10px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    HINDUSTAN ERP : CONTRACTOR STATEMENT & RUNNING ACCOUNT (RA) BILL PAYABLES
+                </th>
+            </tr>
+            {{-- Company Sub-Header --}}
+            <tr height="26" style="height: 26pt;">
+                <th colspan="9" bgcolor="#A38C29" style="background-color: #A38C29; color: #ffffff; font-weight: bold; font-size: 10.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD. — BUSINESS REPORTS CENTER
+                </th>
+            </tr>
+            {{-- Metadata Filter Details Row --}}
+            <tr height="22" style="height: 22pt;">
+                <th colspan="9" bgcolor="#F1F5F9" style="background-color: #F1F5F9; color: #475569; font-style: italic; font-size: 9pt; text-align: center; vertical-align: middle; border: 1px solid #CBD5E1; padding: 4px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    Report Generated: {{ date('d-M-Y h:i A') }} | Contractor Filter: {{ request('contractor_id') ? ($suppliers->firstWhere('id', request('contractor_id'))->name ?? 'All Contractors') : 'All Contractors' }} | Status Filter: {{ request('status') ? strtoupper(str_replace('_', ' ', request('status'))) : 'All Statuses' }}
+                </th>
+            </tr>
+            {{-- Empty Spacer Row Middle --}}
+            <tr height="12" style="height: 12pt;" data-no-border="true">
+                <th colspan="9" style="background-color: #ffffff; border: none;"></th>
+            </tr>
+            {{-- Column Headers --}}
+            <tr height="32" style="height: 32pt;">
+                <th width="60" bgcolor="#1E293B" x:autofilter="all" style="background-color: #1E293B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: center; vertical-align: middle; border: 1px solid #475569; width: 45pt;">SL NO</th>
+                <th width="220" bgcolor="#1E293B" x:autofilter="all" style="background-color: #1E293B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; width: 165pt;">CONTRACTOR NAME</th>
+                <th width="160" bgcolor="#1E293B" x:autofilter="all" style="background-color: #1E293B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: center; vertical-align: middle; border: 1px solid #475569; width: 120pt;">RA BILL # / REF</th>
+                <th width="140" bgcolor="#1E293B" x:autofilter="all" style="background-color: #1E293B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: center; vertical-align: middle; border: 1px solid #475569; width: 105pt;">VERIFIED / SUBMIT DATE</th>
+                <th width="220" bgcolor="#1E293B" x:autofilter="all" style="background-color: #1E293B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #475569; padding-left: 8px; width: 165pt;">PROJECT / WORK LOCATION</th>
+                <th width="170" bgcolor="#1E293B" x:autofilter="all" style="background-color: #1E293B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; width: 128pt;">NET APPROVED DUES (₹)</th>
+                <th width="170" bgcolor="#047857" x:autofilter="all" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; width: 128pt;">PAID AMOUNT (₹)</th>
+                <th width="170" bgcolor="#991B1B" x:autofilter="all" style="background-color: #991B1B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: right; vertical-align: middle; border: 1px solid #475569; padding-right: 8px; width: 128pt;">BALANCE DUE (₹)</th>
+                <th width="130" bgcolor="#1E293B" x:autofilter="all" style="background-color: #1E293B; color: #ffffff; font-weight: bold; font-size: 9pt; text-align: center; vertical-align: middle; border: 1px solid #475569; width: 98pt;">STATUS</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $totApproved = 0;
+                $totPaid = 0;
+                $totBalance = 0;
+                $exportRows = $allSupplierContractorEntries ?? $supplierContractorEntries;
+            @endphp
+            @foreach($exportRows as $index => $row)
+                @php
+                    $approvedAmt = (float)$row->net_approved_amount;
+                    $paidAmt = (float)$row->paid_amount;
+                    $balAmt = (float)$row->balance_amount;
+
+                    $totApproved += $approvedAmt;
+                    $totPaid += $paidAmt;
+                    $totBalance += $balAmt;
+
+                    $rowBg = $loop->iteration % 2 == 0 ? 'background-color: #F8FAFC;' : 'background-color: #FFFFFF;';
+                    $status = strtolower($row->status ?? '');
+
+                    $statusStyle = 'background-color: #F1F5F9; color: #475569; font-weight: bold;';
+                    if ($status === 'cleared' || $status === 'paid') {
+                        $statusStyle = 'background-color: #DCFCE7; color: #166534; font-weight: bold;';
+                    } elseif ($status === 'partially_paid') {
+                        $statusStyle = 'background-color: #FEF9C3; color: #854D0E; font-weight: bold;';
+                    } elseif ($status === 'pending') {
+                        $statusStyle = 'background-color: #FFEDD5; color: #9A3412; font-weight: bold;';
+                    } elseif ($status === 'submitted') {
+                        $statusStyle = 'background-color: #F3E8FF; color: #6B21A8; font-weight: bold;';
+                    }
+
+                    $balanceStyle = $balAmt > 0 ? 'background-color: #FEE2E2; color: #991B1B; font-weight: bold;' : 'color: #166534; font-weight: bold;';
+                    $contractorName = strtoupper($row->contractor_name ?: ($row->contractor?->name ?? 'GENERAL CONTRACTOR'));
+                    $projectName = strtoupper($row->project?->name ?? 'GENERAL PROJECT');
+                    $billDate = $row->verified_date ? \Carbon\Carbon::parse($row->verified_date)->format('Y-m-d') : ($row->submit_date ? \Carbon\Carbon::parse($row->submit_date)->format('Y-m-d') : '');
+                @endphp
+                <tr height="25" style="height: 25pt; vertical-align: middle; {{ $rowBg }}">
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: center; font-weight: bold; mso-number-format: '\@';">{{ $loop->iteration }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: left; padding-left: 8px; font-weight: bold; color: #0F172A; mso-number-format: '\@';">{{ $contractorName }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: center; font-weight: bold; color: #4338CA; mso-number-format: '\@';">{{ $row->ra_bill_number }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: center; mso-number-format: 'dd-mmm-yyyy';">{{ $billDate }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: left; padding-left: 8px; color: #334155; mso-number-format: '\@';">{{ $projectName }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: right; padding-right: 8px; font-weight: bold; color: #0F172A; mso-number-format: '\#\,\#\#0\.00';">{{ $approvedAmt }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: right; padding-right: 8px; font-weight: bold; color: #047857; mso-number-format: '\#\,\#\#0\.00';">{{ $paidAmt }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: right; padding-right: 8px; {{ $balanceStyle }} mso-number-format: '\#\,\#\#0\.00';">{{ $balAmt }}</td>
+                    <td style="border: 0.5pt solid #CBD5E1; text-align: center; {{ $statusStyle }} mso-number-format: '\@';">{{ strtoupper(str_replace('_', ' ', $row->status)) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        @if(count($exportRows) > 0)
+        <tfoot>
+            <tr height="30" style="height: 30pt; font-weight: bold; color: #FFFFFF;">
+                <td colspan="5" bgcolor="#17365D" style="background-color: #17365D; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: left; padding-left: 12px; vertical-align: middle; border: 1px solid #475569;">
+                    TOTAL CONTRACTOR PAYABLES & DUES SUMMARY
+                </td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: right; padding-right: 8px; vertical-align: middle; border: 1px solid #475569; mso-number-format: '\#\,\#\#0\.00';">
+                    {{ $totApproved }}
+                </td>
+                <td bgcolor="#047857" style="background-color: #047857; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: right; padding-right: 8px; vertical-align: middle; border: 1px solid #475569; mso-number-format: '\#\,\#\#0\.00';">
+                    {{ $totPaid }}
+                </td>
+                <td bgcolor="#991B1B" style="background-color: #991B1B; color: #FFFFFF; font-weight: bold; font-size: 10pt; text-align: right; padding-right: 8px; vertical-align: middle; border: 1px solid #475569; mso-number-format: '\#\,\#\#0\.00';">
+                    {{ $totBalance }}
+                </td>
+                <td bgcolor="#17365D" style="background-color: #17365D; border: 1px solid #475569;"></td>
+            </tr>
+        </tfoot>
+        @endif
+    </table>
+</div>
+
 @include('reports.partials.script')
 
 </x-erp-layout>
