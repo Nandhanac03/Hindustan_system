@@ -204,16 +204,19 @@ class ReportController extends Controller
                             'type' => 'Output Tax (Sales)',
                             'invoice_number' => $sale->sale_number ?? ('INV-SALE-' . $sale->id),
                             'date' => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('d M Y') : $sale->created_at->format('d M Y'),
+                            'raw_date' => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('Y-m-d') : $sale->created_at->format('Y-m-d'),
                             'entity_name' => $sale->customer?->name ?? 'Customer',
                             'customer_name' => $sale->customer?->name ?? 'Customer',
                             'gstin' => $sale->customer?->gstin ?? 'N/A',
                             'project_name' => $sale->project?->name ?? 'N/A',
                             'unit_door' => $doorNo,
+                            'hsn_sac' => '995411',
                             'taxable_value' => $baseAmount,
                             'gst_rate' => $rate,
                             'cgst' => $cgst,
                             'sgst' => $sgst,
                             'igst' => 0.0,
+                            'cess' => 0.0,
                             'total_tax' => $taxAmount,
                             'grand_total' => (float)($su->line_total ?? ($baseAmount + $taxAmount)),
                             'tax_nature' => 'output'
@@ -260,16 +263,19 @@ class ReportController extends Controller
                         'type' => 'Output Tax (Sales)',
                         'invoice_number' => $sale->sale_number ?? ('INV-SALE-' . $sale->id),
                         'date' => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('d M Y') : $sale->created_at->format('d M Y'),
+                        'raw_date' => $sale->sale_date ? Carbon::parse($sale->sale_date)->format('Y-m-d') : $sale->created_at->format('Y-m-d'),
                         'entity_name' => $sale->customer?->name ?? 'Customer',
                         'customer_name' => $sale->customer?->name ?? 'Customer',
                         'gstin' => $sale->customer?->gstin ?? 'N/A',
                         'project_name' => $sale->project?->name ?? 'N/A',
                         'unit_door' => $sale->unit?->door_no ?? 'N/A',
+                        'hsn_sac' => '995411',
                         'taxable_value' => $baseAmount,
                         'gst_rate' => $rate,
                         'cgst' => $cgst,
                         'sgst' => $sgst,
                         'igst' => 0.0,
+                        'cess' => 0.0,
                         'total_tax' => $taxAmount,
                         'grand_total' => $baseAmount + $taxAmount,
                         'tax_nature' => 'output'
@@ -320,16 +326,19 @@ class ReportController extends Controller
                         'type' => 'Output Tax (Extra Work)',
                         'invoice_number' => 'EW-' . $ew->id . ' (' . ($ew->sale_number ?? 'SALE') . ')',
                         'date' => Carbon::parse($ew->created_at)->format('d M Y'),
+                        'raw_date' => Carbon::parse($ew->created_at)->format('Y-m-d'),
                         'entity_name' => $ew->customer_name ?? 'Customer',
                         'customer_name' => $ew->customer_name ?? 'Customer',
                         'gstin' => $ew->customer_gstin ?? 'N/A',
                         'project_name' => $ew->project_name ?? 'N/A',
                         'unit_door' => $ew->description ?? 'Custom Addition',
+                        'hsn_sac' => '9954',
                         'taxable_value' => $baseAmount,
                         'gst_rate' => $rate,
                         'cgst' => $cgst,
                         'sgst' => $sgst,
                         'igst' => 0.0,
+                        'cess' => 0.0,
                         'total_tax' => $taxAmount,
                         'grand_total' => (float)($ew->line_total ?? ($baseAmount + $taxAmount)),
                         'tax_nature' => 'output'
@@ -387,16 +396,19 @@ class ReportController extends Controller
                         'type' => 'Input Credit (Supplier)',
                         'invoice_number' => $bill->bill_number ?? ('SUP-BILL-' . $bill->id),
                         'date' => Carbon::parse($bill->created_at)->format('d M Y'),
+                        'raw_date' => Carbon::parse($bill->created_at)->format('Y-m-d'),
                         'entity_name' => $bill->payee_name ?? 'Material Supplier',
                         'customer_name' => $bill->payee_name ?? 'Material Supplier',
                         'gstin' => $bill->payee_gstin ?? 'N/A',
                         'project_name' => $bill->project_name ?? 'N/A',
                         'unit_door' => 'Raw Materials',
+                        'hsn_sac' => '6810',
                         'taxable_value' => $baseAmount,
                         'gst_rate' => $rate,
                         'cgst' => $cgst,
                         'sgst' => $sgst,
                         'igst' => 0.0,
+                        'cess' => 0.0,
                         'total_tax' => $taxAmount,
                         'grand_total' => $finalAmt,
                         'tax_nature' => 'input'
@@ -406,9 +418,69 @@ class ReportController extends Controller
         }
 
         $gstReportEntries = $gstReportEntries->filter(function ($entry) {
-            return (float)($entry->total_tax ?? 0) > 0 || (float)($entry->gst_rate ?? 0) > 0;
+            return (float)($entry->total_tax ?? 0) > 0 || (float)($entry->gst_rate ?? 0) > 0 || (float)($entry->taxable_value ?? 0) > 0;
         })->values();
 
+        $outputEntries = $gstReportEntries->where('tax_nature', 'output');
+        $inputEntries  = $gstReportEntries->where('tax_nature', 'input');
+
+        $totalTaxableSales = (float)$outputEntries->sum('taxable_value');
+        $outputTax         = (float)$outputEntries->sum('total_tax');
+        $inputTax          = (float)$inputEntries->sum('total_tax');
+        $netPayableGst     = max(0, $outputTax - $inputTax);
+        $effectiveTaxRate  = $totalTaxableSales > 0 ? round(($outputTax / $totalTaxableSales) * 100, 2) : 0.00;
+
+        $totalCgst = (float)$outputEntries->sum('cgst');
+        $totalSgst = (float)$outputEntries->sum('sgst');
+        $totalIgst = (float)$outputEntries->sum('igst');
+
+        $intraStateEntries = $outputEntries->filter(fn($e) => (float)($e->igst ?? 0) == 0);
+        $interStateEntries = $outputEntries->filter(fn($e) => (float)($e->igst ?? 0) > 0);
+
+        $intraTaxable = (float)$intraStateEntries->sum('taxable_value');
+        $interTaxable = (float)$interStateEntries->sum('taxable_value');
+
+        // Monthly Trend calculation for last 5 months
+        $trendMonths = [];
+        $outputTrend = [];
+        $inputTrend  = [];
+
+        for ($i = 4; $i >= 0; $i--) {
+            $monthDt = Carbon::now()->subMonths($i);
+            $monthKey = $monthDt->format('Y-m');
+            $mLabel = $monthDt->format('M Y');
+
+            $mOut = (float)$outputEntries->filter(fn($e) => isset($e->raw_date) && str_starts_with($e->raw_date, $monthKey))->sum('total_tax');
+            $mIn  = (float)$inputEntries->filter(fn($e) => isset($e->raw_date) && str_starts_with($e->raw_date, $monthKey))->sum('total_tax');
+
+            $trendMonths[] = $mLabel;
+            $outputTrend[] = $mOut;
+            $inputTrend[]  = $mIn;
+        }
+
+        // Real HSN / SAC Summary grouping
+        $hsnSummary = $gstReportEntries->groupBy('hsn_sac')->map(function ($group, $hsn) {
+            $taxable = (float)$group->sum('taxable_value');
+            $cgst    = (float)$group->sum('cgst');
+            $sgst    = (float)$group->sum('sgst');
+            $igst    = (float)$group->sum('igst');
+            $tax     = (float)$group->sum('total_tax');
+            $desc    = $hsn === '995411' ? 'Construction Services of Residential Apartments & Units' : ($hsn === '6810' ? 'Building Materials & Goods Supply' : 'General Construction & Extra Upgrades Services');
+            $avgRate = $taxable > 0 ? round(($tax / $taxable) * 100, 2) : 18.0;
+
+            return (object)[
+                'hsn_sac' => $hsn ?? '9954',
+                'description' => $desc,
+                'taxable_value' => $taxable,
+                'gst_rate' => $avgRate,
+                'cgst' => $cgst,
+                'sgst' => $sgst,
+                'igst' => $igst,
+                'total_tax' => $tax
+            ];
+        })->values();
+
+        // Section statistics
         $sectionStats = [
             'all' => [
                 'name' => 'All Sections',
@@ -417,55 +489,67 @@ class ReportController extends Controller
                 'tax' => $gstReportEntries->sum('total_tax'),
             ],
             'sales' => [
-                'name' => 'Sales & Bookings',
+                'name' => 'Sales & Unit Bookings',
                 'count' => $gstReportEntries->where('section_code', 'sales')->count(),
                 'taxable' => $gstReportEntries->where('section_code', 'sales')->sum('taxable_value'),
                 'tax' => $gstReportEntries->where('section_code', 'sales')->sum('total_tax'),
             ],
             'extra_works' => [
-                'name' => 'Extra Works',
+                'name' => 'Extra Works & Upgrades',
                 'count' => $gstReportEntries->where('section_code', 'extra_works')->count(),
                 'taxable' => $gstReportEntries->where('section_code', 'extra_works')->sum('taxable_value'),
                 'tax' => $gstReportEntries->where('section_code', 'extra_works')->sum('total_tax'),
             ],
             'suppliers' => [
-                'name' => 'Material Suppliers',
+                'name' => 'Material Purchases (ITC)',
                 'count' => $gstReportEntries->where('section_code', 'suppliers')->count(),
                 'taxable' => $gstReportEntries->where('section_code', 'suppliers')->sum('taxable_value'),
                 'tax' => $gstReportEntries->where('section_code', 'suppliers')->sum('total_tax'),
-            ],
+            ]
         ];
-
-        $outputTax = $gstReportEntries->where('tax_nature', 'output')->sum('total_tax');
-        $inputTax = $gstReportEntries->where('tax_nature', 'input')->sum('total_tax');
-        $netPayableGst = max(0, $outputTax - $inputTax);
 
         $gstStats = [
-            'total_taxable' => $gstReportEntries->sum('taxable_value'),
-            'total_cgst'    => $gstReportEntries->sum('cgst'),
-            'total_sgst'    => $gstReportEntries->sum('sgst'),
-            'total_igst'    => 0.0,
-            'total_tax'     => $gstReportEntries->sum('total_tax'),
-            'output_tax'    => $outputTax,
-            'input_tax'     => $inputTax,
-            'net_payable'   => $netPayableGst,
-            'count'         => $gstReportEntries->count(),
-            'section_stats' => $sectionStats,
-            'active_section' => $sectionFilter,
+            'total_taxable_sales' => $totalTaxableSales,
+            'output_tax' => $outputTax,
+            'input_tax' => $inputTax,
+            'net_payable' => $netPayableGst,
+            'effective_tax_rate' => $effectiveTaxRate,
+            'total_cgst' => $totalCgst,
+            'total_sgst' => $totalSgst,
+            'total_igst' => $totalIgst,
+            'intra_taxable' => $intraTaxable,
+            'inter_taxable' => $interTaxable,
+            'trend_months' => $trendMonths,
+            'output_trend' => $outputTrend,
+            'input_trend' => $inputTrend,
+            'total_taxable' => $totalTaxableSales,
+            'total_tax' => $outputTax
         ];
 
-        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-        $perPage = 50;
-        $currentPageItems = $gstReportEntries->slice(($currentPage - 1) * $perPage, $perPage)->values();
+        $perPage = 20;
+        $page = LengthAwarePaginator::resolveCurrentPage() ?: 1;
+        $allGstReportEntries = $gstReportEntries;
         $gstReportEntries = new LengthAwarePaginator(
-            $currentPageItems, 
-            $gstReportEntries->count(), 
-            $perPage, 
-            $currentPage, 
+            $allGstReportEntries->forPage($page, $perPage)->values(),
+            $allGstReportEntries->count(),
+            $perPage,
+            $page,
             ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => $request->query()]
         );
 
-        return view('reports.gst', array_merge($lookups, compact('activeTab', 'gstReportEntries', 'gstStats')));
+        $lookups = [
+            'projects' => DB::table('projects')->select('id', 'name')->orderBy('name')->get(),
+            'customers' => DB::table('customers')->select('id', 'name', 'phone', 'email')->orderBy('name')->get(),
+        ];
+
+        return view('reports.gst', array_merge($lookups, compact(
+            'activeTab',
+            'gstReportEntries',
+            'allGstReportEntries',
+            'gstStats',
+            'sectionStats',
+            'hsnSummary'
+        )));
     }
 
     public function activityStatements(Request $request): View

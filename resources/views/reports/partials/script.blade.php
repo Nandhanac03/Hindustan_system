@@ -7,7 +7,8 @@
 function reportsApp() {
     return {
         activeTab: '{{ $activeTab }}',
-        customerList: {!! json_encode($customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name, 'phone' => $c->phone, 'email' => $c->email]; })) !!},
+        tab: 'summary',
+        customerList: {!! json_encode(isset($customers) ? $customers->map(function($c) { return ['id' => $c->id, 'name' => $c->name ?? '', 'phone' => $c->phone ?? '', 'email' => $c->email ?? '']; }) : []) !!},
         selectedCustomerId: '{!! is_array(request('customer_id')) ? htmlspecialchars(request('customer_id')[0] ?? '', ENT_QUOTES) : htmlspecialchars(request('customer_id', ''), ENT_QUOTES) !!}',
 
         getFilteredCustomersList(search = '') {
@@ -1125,7 +1126,103 @@ function reportsApp() {
             }
             @endif
 
-            // 15. BALANCE SHEET
+
+
+
+
+            // 15.5 GST & TAX REPORT
+            @if($activeTab === 'gst' || $activeTab === 'gst_report')
+            if (this.activeTab === 'gst' || this.activeTab === 'gst_report') {
+                const totalCgst = {{ $gstStats['total_cgst'] ?? 0 }};
+                const totalSgst = {{ $gstStats['total_sgst'] ?? 0 }};
+                const totalIgst = {{ $gstStats['total_igst'] ?? 0 }};
+                const outputTax = {{ $gstStats['output_tax'] ?? 0 }};
+                const inputTax  = {{ $gstStats['input_tax'] ?? 0 }};
+
+                const trendMonths = {!! json_encode($gstStats['trend_months'] ?? []) !!};
+                const outputTrend = {!! json_encode($gstStats['output_trend'] ?? []) !!};
+                const inputTrend  = {!! json_encode($gstStats['input_trend'] ?? []) !!};
+
+                const donutSeries = (totalCgst + totalSgst + totalIgst) > 0 ? [totalCgst, totalSgst, totalIgst] : [0, 0, 0];
+
+                // 1. Donut Chart - GST Summary (by Tax Type)
+                if (document.querySelector("#gstTaxTypeDonutChart")) {
+                    new ApexCharts(document.querySelector("#gstTaxTypeDonutChart"), {
+                        series: donutSeries,
+                        labels: ['CGST', 'SGST', 'IGST'],
+                        chart: { type: 'donut', height: 210, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#a38c29', '#10b981', '#3b82f6'],
+                        legend: { show: false },
+                        dataLabels: { enabled: (totalCgst + totalSgst + totalIgst) > 0, formatter: (val) => val.toFixed(1) + '%' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '68%',
+                                    labels: {
+                                        show: true,
+                                        total: {
+                                            show: true,
+                                            label: 'Output Tax',
+                                            formatter: () => '₹' + (outputTax >= 100000 ? (outputTax/100000).toFixed(2)+'L' : (outputTax >= 1000 ? (outputTax/1000).toFixed(2)+'K' : outputTax.toFixed(2)))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
+
+                // 2. Donut Chart - ITC Summary
+                if (document.querySelector("#gstItcDonutChart")) {
+                    new ApexCharts(document.querySelector("#gstItcDonutChart"), {
+                        series: [inputTax, 0],
+                        labels: ['ITC Availed', 'ITC Reversed'],
+                        chart: { type: 'donut', height: 210, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#a38c29', '#64748b'],
+                        legend: { show: false },
+                        dataLabels: { enabled: inputTax > 0, formatter: (val) => val.toFixed(1) + '%' },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        plotOptions: {
+                            pie: {
+                                donut: {
+                                    size: '68%',
+                                    labels: {
+                                        show: true,
+                                        total: {
+                                            show: true,
+                                            label: 'Total ITC',
+                                            formatter: () => '₹' + (inputTax >= 100000 ? (inputTax/100000).toFixed(2)+'L' : (inputTax >= 1000 ? (inputTax/1000).toFixed(2)+'K' : inputTax.toFixed(2)))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }).render();
+                }
+
+                // 3. Spline Line Chart - GST Trend (Monthly)
+                if (document.querySelector("#gstTrendLineChart")) {
+                    new ApexCharts(document.querySelector("#gstTrendLineChart"), {
+                        series: [
+                            { name: 'Output Tax', data: outputTrend },
+                            { name: 'Input Tax Credit', data: inputTrend }
+                        ],
+                        chart: { type: 'line', height: 210, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
+                        colors: ['#a38c29', '#10b981'],
+                        stroke: { curve: 'smooth', width: 3 },
+                        markers: { size: 4, hover: { size: 6 } },
+                        xaxis: { categories: trendMonths, labels: { style: { colors: '#64748b', fontSize: '10px' } } },
+                        yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)) } },
+                        grid: { borderColor: '#f1f5f9', strokeDashArray: 4 },
+                        legend: { position: 'top', horizontalAlign: 'right', fontSize: '11px', fontWeight: 600 },
+                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
+                    }).render();
+                }
+            }
+            @endif
+
+            // 16. BALANCE SHEET
             @if($activeTab === 'balance_sheet')
             if (this.activeTab === 'balance_sheet') {
                 const assetsSum = {{ $balanceSheetEntries['assets']['total'] ?? 0 }};

@@ -2394,15 +2394,24 @@ function salesApp() {
             });
             return { totalExchanges, totalDiff, payableByCustomer, refundableToCustomer, completedExchanges };
         },
+        getNewUnit(sale) {
+            if (!sale) return null;
+            if (sale.replacement_sale) return sale.replacement_sale;
+            if (sale.new_sale) return sale.new_sale;
+            if (!sale.sale_number) return null;
+            return this.sales.find(s => s.notes && (s.notes.includes('Exchanged from sale ' + sale.sale_number) || s.notes.includes('Exchanged from ' + sale.sale_number)));
+        },
         getNewUnitDoorNo(sale) {
             if (sale.status !== 'exchanged') return '—';
-            const newSale = this.sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + sale.sale_number));
-            return newSale && newSale.unit ? this.formatUnitDisplay(newSale.unit) : '—';
+            const newSale = this.getNewUnit(sale);
+            if (!newSale) return '—';
+            if (newSale.sale_units && newSale.sale_units.length) return this.formatSaleUnits(newSale);
+            return newSale.unit ? this.formatUnitDisplay(newSale.unit) : '—';
         },
         getNewUnitValue(sale) {
             if (sale.status !== 'exchanged') return 0;
-            const newSale = this.sales.find(s => s.notes && s.notes.includes('Exchanged from sale ' + sale.sale_number));
-            return newSale ? parseFloat(newSale.total_amount) : 0;
+            const newSale = this.getNewUnit(sale);
+            return newSale ? parseFloat(newSale.total_amount || 0) : 0;
         },
         getExchangeNetDue(sale) {
             if (!sale || sale.status !== 'exchanged') return 0;
@@ -2980,11 +2989,27 @@ function salesApp() {
             return this.sales.filter(sale => {
                 if (sale.status === 'exchanged') return false;
                 if (this.returnFilters.search) {
-                    const q = this.returnFilters.search.toLowerCase();
-                    const cust = sale.customer ? sale.customer.name.toLowerCase() : '';
-                    const door = sale.unit ? sale.unit.door_no.toLowerCase() : '';
-                    const num = sale.sale_number ? sale.sale_number.toLowerCase() : '';
-                    if (!cust.includes(q) && !door.includes(q) && !num.includes(q)) return false;
+                    const q = this.returnFilters.search.toLowerCase().trim();
+                    if (q) {
+                        const cust = sale.customer ? (sale.customer.name || '').toLowerCase() : '';
+                        const door = sale.unit ? (sale.unit.door_no || '').toLowerCase() : '';
+                        const unitFormatted = sale.unit ? this.formatUnitDisplay(sale.unit).toLowerCase() : '';
+                        const unitsDisp = this.getUnitsDisplay ? this.getUnitsDisplay(sale).toLowerCase() : '';
+                        
+                        let unitMatch = door.includes(q) || unitFormatted.includes(q) || unitsDisp.includes(q);
+                        if (!unitMatch && sale.sale_units && sale.sale_units.length) {
+                            unitMatch = sale.sale_units.some(su => su.unit && (((su.unit.door_no || '').toLowerCase().includes(q)) || ((su.unit.name || '').toLowerCase().includes(q))));
+                        }
+                        if (!unitMatch && sale.units && sale.units.length) {
+                            unitMatch = sale.units.some(u => (((u.door_no || '').toLowerCase().includes(q)) || ((u.name || '').toLowerCase().includes(q))));
+                        }
+
+                        const retYear = new Date(sale.cancelled_at || sale.updated_at).getFullYear();
+                        const retNo = ('ret-' + retYear + '-' + String(sale.id).padStart(3, '0')).toLowerCase();
+                        const retMatch = retNo.includes(q);
+
+                        if (!cust.includes(q) && !unitMatch && !retMatch) return false;
+                    }
                 }
                 if (this.returnFilters.project_id && sale.project_id != this.returnFilters.project_id) return false;
                 if (this.returnFilters.type) {
@@ -3080,11 +3105,23 @@ function salesApp() {
                 if (!this.isSaleEligibleForExchange(sale)) return false;
 
                 if (this.exchangeFilters.search) {
-                    const q = this.exchangeFilters.search.toLowerCase();
-                    const cust = sale.customer ? sale.customer.name.toLowerCase() : '';
-                    const door = sale.unit ? sale.unit.door_no.toLowerCase() : '';
-                    const num = sale.sale_number.toLowerCase();
-                    if (!cust.includes(q) && !door.includes(q) && !num.includes(q)) return false;
+                    const q = this.exchangeFilters.search.toLowerCase().trim();
+                    if (q) {
+                        const cust = sale.customer ? (sale.customer.name || '').toLowerCase() : '';
+                        const door = sale.unit ? (sale.unit.door_no || '').toLowerCase() : '';
+                        const unitFormatted = sale.unit ? this.formatUnitDisplay(sale.unit).toLowerCase() : '';
+                        const unitsDisp = this.getUnitsDisplay ? this.getUnitsDisplay(sale).toLowerCase() : '';
+                        
+                        let unitMatch = door.includes(q) || unitFormatted.includes(q) || unitsDisp.includes(q);
+                        if (!unitMatch && sale.sale_units && sale.sale_units.length) {
+                            unitMatch = sale.sale_units.some(su => su.unit && (((su.unit.door_no || '').toLowerCase().includes(q)) || ((su.unit.name || '').toLowerCase().includes(q))));
+                        }
+                        if (!unitMatch && sale.units && sale.units.length) {
+                            unitMatch = sale.units.some(u => (((u.door_no || '').toLowerCase().includes(q)) || ((u.name || '').toLowerCase().includes(q))));
+                        }
+
+                        if (!cust.includes(q) && !unitMatch) return false;
+                    }
                 }
                 if (this.exchangeFilters.project_id && sale.project_id != this.exchangeFilters.project_id) return false;
                 if (this.exchangeFilters.type) {
