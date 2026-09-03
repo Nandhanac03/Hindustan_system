@@ -64,9 +64,25 @@
                         <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
 
+                    {{-- 4. Record Partner Payout Button --}}
+                    <button @click="showPayoutModal = true" 
+                            class="p-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        <span class="text-xs font-black tracking-wide">Record Partner Payout</span>
+                    </button>
+
                 </div>
             </div>
         </div>
+
+        @if(session('success'))
+            <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-emerald-800 text-xs font-bold shadow-2xs">
+                <div class="flex items-center gap-2.5">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>{{ session('success') }}</span>
+                </div>
+            </div>
+        @endif
 
         {{-- 4 Metric KPI Cards Grid (Placed Above Filter) --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -384,12 +400,95 @@
             </div>
         </div>
 
+        {{-- ── RECORD PARTNER PAYOUT MODAL ── --}}
+        <div x-show="showPayoutModal" 
+             x-transition.opacity 
+             class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+             style="display: none;">
+            <div @click.away="showPayoutModal = false" 
+                 class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden transform transition-all">
+                
+                {{-- Modal Header --}}
+                <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black tracking-tight">Record Partner Payout / Drawing</h3>
+                            <p class="text-[11px] text-slate-400 font-medium">Log a debit payout transfer to reduce partner payable balance</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="showPayoutModal = false" class="text-slate-400 hover:text-white transition-colors cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+
+                {{-- Modal Body Form --}}
+                <form action="{{ route('reports.partner_statements.payout') }}" method="POST" class="p-6 space-y-4">
+                    @csrf
+                    
+                    {{-- Partner Selection --}}
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Select Partner <span class="text-rose-500">*</span></label>
+                        <select name="partner_id" required class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all">
+                            <option value="">-- Choose Partner --</option>
+                            @foreach($partners as $partner)
+                                <option value="{{ $partner->id }}">{{ $partner->name }} ({{ $partner->role ?? 'Partner' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Project Selection --}}
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Select Project <span class="text-rose-500">*</span></label>
+                        <select name="project_id" required class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all">
+                            <option value="">-- Choose Project --</option>
+                            @foreach($projects as $project)
+                                <option value="{{ $project->id }}">{{ $project->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        {{-- Amount --}}
+                        <div>
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Payout Amount (Rs.) <span class="text-rose-500">*</span></label>
+                            <input type="number" name="allocated_amount" step="0.01" min="1" required placeholder="e.g. 50000" class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
+                        </div>
+
+                        {{-- Date --}}
+                        <div>
+                            <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Payout Date <span class="text-rose-500">*</span></label>
+                            <input type="date" name="date" value="{{ date('Y-m-d') }}" required class="w-full text-xs font-semibold bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
+                        </div>
+                    </div>
+
+                    {{-- Remarks --}}
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 uppercase tracking-wider mb-1.5">Reference / Narration</label>
+                        <textarea name="remarks" rows="2" placeholder="e.g. Bank Transfer / Drawing payout for Q2 profit share" class="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"></textarea>
+                    </div>
+
+                    {{-- Actions --}}
+                    <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                        <button type="button" @click="showPayoutModal = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-bold transition-all cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            Confirm & Post Payout
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
 function partnerStatementApp() {
     return {
+        showPayoutModal: false,
         filters: {
             partner_id: '{{ request('partner_id', '') }}',
             project_id: '{{ request('project_id', '') }}',
