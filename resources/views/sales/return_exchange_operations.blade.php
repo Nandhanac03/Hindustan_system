@@ -1717,30 +1717,61 @@
     </div>
     @endif
 
-    {{-- INITIATE NEW EXCHANGE MODAL POPUP (Redesigned) --}}
-    <div x-show="openNewExchangeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="openNewExchangeModal = false"></div>
-        <div class="relative w-full max-w-5xl bg-slate-50 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-            {{-- Header --}}
-            <div class="relative overflow-hidden bg-[#22211f] px-6 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <h2 class="text-lg font-extrabold text-white tracking-tight">Initiate Unit Exchange</h2>
+    {{-- INITIATE NEW EXCHANGE MODAL POPUP (Matching Return Sale style & Image) --}}
+    <template x-teleport="body">
+    <div x-show="openNewExchangeModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 modal-backdrop bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-cloak x-transition.opacity>
+        <div class="w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up" @click.away="openNewExchangeModal = false">
+            {{-- Header (Matching Image) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 flex-shrink-0 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30 shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                        </div>
+                        <div>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider">Unit Exchange</h2>
+                            <p class="text-[11px] text-slate-300 mt-0.5 font-normal">Search and select the sale to be exchanged and configure new unit details.</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="openNewExchangeModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
                 </div>
-                <button type="button" @click="openNewExchangeModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
+            </div>
+
+            {{-- Stepper --}}
+            <div class="bg-slate-50/80 px-6 py-3 border-b border-slate-200/80 flex justify-center flex-shrink-0">
+                <div class="flex items-center gap-4 sm:gap-8 text-xs font-semibold">
+                    <div class="flex items-center gap-2.5" :class="newExchangeStep >= 1 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition shadow-2xs" :class="newExchangeStep >= 1 ? 'bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white shadow-[#a38c29]/30' : 'bg-white text-slate-400 border border-slate-200'">1</div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-xs" :class="newExchangeStep >= 1 ? 'text-slate-900' : 'text-slate-400'">Select Sale</span>
+                            <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">Search and choose sale</span>
+                        </div>
+                    </div>
+                    <svg class="w-3.5 h-3.5 text-slate-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div class="flex items-center gap-2.5" :class="newExchangeStep >= 2 ? 'text-[#a38c29]' : 'text-slate-400'">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition shadow-2xs" :class="newExchangeStep >= 2 ? 'bg-gradient-to-br from-[#a38c29] to-[#8a7522] text-white shadow-[#a38c29]/30' : 'bg-white text-slate-400 border border-slate-200'">2</div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-xs" :class="newExchangeStep >= 2 ? 'text-slate-900' : 'text-slate-400'">Exchange Details</span>
+                            <span class="text-[10px] font-normal text-slate-400 hidden sm:inline">Configure target unit & payment</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Content Area --}}
-            <div class="p-6 overflow-y-auto flex-1 bg-white space-y-6" x-ref="newExchangeModalScroll">
+            <div class="p-6 overflow-y-auto flex-1 min-h-0 space-y-5 bg-white" x-ref="newExchangeModalScroll">
                 
-                {{-- Select Sale (Redesigned) --}}
-                <div class="space-y-4">
-                    <div class="space-y-2 relative" x-data="{ open: false, search: '' }" x-init="$watch('openNewExchangeModal', val => { if(!val) { search = ''; open = false; newExchangeStep = 1; newExchangeSaleId = ''; selectedExchangeSale = null; } })" @click.outside="open = false">
+                {{-- STEP 1: SELECT SALE --}}
+                <div x-show="newExchangeStep === 1" class="space-y-4">
+                    {{-- Search Sale --}}
+                    <div class="space-y-1.5 relative" x-data="{ open: false, search: '' }" x-init="$watch('openNewExchangeModal', val => { if(!val) { search = ''; open = false; newExchangeStep = 1; newExchangeSaleId = ''; selectedExchangeSale = null; } else { $nextTick(() => { if ($refs.newExchangeModalScroll) $refs.newExchangeModalScroll.scrollTop = 0; }); } }); $watch('newExchangeStep', val => { $nextTick(() => { if ($refs.newExchangeModalScroll) $refs.newExchangeModalScroll.scrollTop = 0; }); });" @click.outside="open = false">
                         <label class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block">Search Sale</label>
                         <div class="relative">
-                            <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <svg class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             <input type="text" x-model="search"
                                    :value="selectedExchangeSale ? (selectedExchangeSale.sale_number + ' - ' + (selectedExchangeSale.customer ? selectedExchangeSale.customer.name : '')) : search"
-                                   @focus="open = true" @input="if(newExchangeSaleId && $event.isTrusted) { newExchangeSaleId = ''; selectedExchangeSale = null; newExchangeStep = 1; }" placeholder="Search by Sale ID, Customer Name, Unit / Plot, Project..." class="w-full pl-9 pr-9 py-2.5 bg-white border border-slate-250 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] shadow-sm text-slate-800">
+                                   @focus="open = true" @input="if(newExchangeSaleId && $event.isTrusted) { newExchangeSaleId = ''; selectedExchangeSale = null; newExchangeStep = 1; }" placeholder="Search by Sale ID, Customer Name, Unit / Plot, Project..." class="w-full pl-10 pr-9 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs">
                             
                             {{-- Clear Selection Button --}}
                             <button type="button" x-show="newExchangeSaleId" @click="newExchangeSaleId = ''; selectedExchangeSale = null; newExchangeStep = 1; search = ''; $el.previousElementSibling.focus();" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors">
@@ -1749,54 +1780,68 @@
                         </div>
                         
                         {{-- Dropdown for search --}}
-                        <div x-show="open && search.length > 0 && !newExchangeSaleId" class="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                        <div x-show="open && search.length > 0 && !newExchangeSaleId" class="absolute z-20 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-slate-100">
                             <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleExchangeEligible(s) && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase()) || (s.unit?.door_no||'').toLowerCase().includes(search.toLowerCase())))" :key="sale.id">
-                                <div @click="newExchangeSaleId = sale.id; search = sale.sale_number + ' - ' + (sale.customer ? sale.customer.name : ''); open = false; selectExchangeSale(sale);" class="px-4 py-2 hover:bg-slate-50 cursor-pointer text-xs border-b border-slate-100 last:border-0 flex justify-between items-center">
-                                    <div>
-                                        <span class="font-bold text-slate-800" x-text="sale.sale_number"></span> • <span class="text-slate-600" x-text="sale.customer ? sale.customer.name : 'N/A'"></span>
+                                <div @click="newExchangeSaleId = sale.id; search = sale.sale_number + ' - ' + (sale.customer ? sale.customer.name : ''); open = false; selectExchangeSale(sale); newExchangeStep = 2;" class="px-4 py-2.5 hover:bg-amber-50/50 cursor-pointer text-xs flex justify-between items-center transition">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                                        <div>
+                                            <span class="font-extrabold text-slate-800" x-text="sale.sale_number"></span>
+                                            <span class="text-slate-500 ml-1 font-medium" x-text="'• ' + (sale.customer ? sale.customer.name : 'N/A')"></span>
+                                        </div>
                                     </div>
-                                    <span class="text-slate-500" x-text="sale.unit ? sale.unit.door_no : 'N/A'"></span>
+                                    <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold" x-text="getUnitsDisplay(sale)"></span>
                                 </div>
                             </template>
-                            <div x-show="!sales.some(s => (s.status === 'active' || s.status === 'cancelled') && isSaleExchangeEligible(s) && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase())))" class="px-4 py-3 text-xs text-slate-500 text-center">No matching exchangeable sales found.</div>
+                            <div x-show="!sales.some(s => (s.status === 'active' || s.status === 'cancelled') && isSaleExchangeEligible(s) && ((s.sale_number||'').toLowerCase().includes(search.toLowerCase()) || (s.customer?.name||'').toLowerCase().includes(search.toLowerCase())))" class="px-4 py-3 text-xs text-slate-400 text-center font-medium">No matching exchangeable sales found.</div>
                         </div>
                     </div>
 
-                    {{-- Recent Sales --}}
-                    <div class="mt-6" x-show="!newExchangeSaleId">
-                        <div class="flex justify-between items-center mb-3">
-                            <h3 class="text-xs font-bold text-slate-700">Recent Sales</h3>
+                    {{-- Recent Sales Table --}}
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between px-1">
+                            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                                <span>Recent Sales</span>
+                                <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-[10px] text-slate-600 font-semibold">Active Bookings</span>
+                            </h4>
+                            <span class="text-[10px] font-bold text-[#a38c29]">Click row to select</span>
                         </div>
-                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                            <table class="w-full text-left text-xs whitespace-nowrap">
-                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500">
-                                    <tr>
-                                        <th class="px-4 py-3 font-semibold">Sale Details</th>
-                                        <th class="px-4 py-3 font-semibold">Customer</th>
-                                        <th class="px-4 py-3 font-semibold">Unit / Plot</th>
-                                        <th class="px-4 py-3 font-semibold">Sale Amount</th>
-                                        <th class="px-4 py-3 font-semibold">Booked On</th>
+
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-2xs">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50/80 border-b border-slate-200 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                        <th class="px-3.5 py-3 w-10 text-center"></th>
+                                        <th class="px-4 py-3">Sale Details</th>
+                                        <th class="px-4 py-3">Customer</th>
+                                        <th class="px-4 py-3">Unit / Plot</th>
+                                        <th class="px-4 py-3 text-right">Sale Amount</th>
+                                        <th class="px-4 py-3 text-right">Booked On</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-100 bg-white">
+                                <tbody class="divide-y divide-slate-100 text-xs">
                                     <template x-for="sale in sales.filter(s => (s.status === 'active' || s.status === 'cancelled') && isSaleExchangeEligible(s)).slice(0, 10)" :key="sale.id">
-                                        <tr class="hover:bg-slate-50/50 cursor-pointer transition-colors"
-                                            :class="newExchangeSaleId == sale.id ? 'bg-[#a38c29]/5' : ''"
-                                            @click="newExchangeSaleId = sale.id; search = sale.sale_number + ' - ' + (sale.customer ? sale.customer.name : ''); selectExchangeSale(sale);">
-                                            <td class="px-4 py-3 flex items-center gap-3">
-                                                <div class="w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition-colors"
-                                                     :class="newExchangeSaleId == sale.id ? 'bg-[#a38c29] border-[#a38c29]' : 'border-slate-300 bg-white'">
+                                        <tr class="hover:bg-amber-50/40 cursor-pointer transition-colors"
+                                            :class="newExchangeSaleId == sale.id ? 'bg-amber-50/60' : ''"
+                                            @click="newExchangeSaleId = sale.id; search = sale.sale_number + ' - ' + (sale.customer ? sale.customer.name : ''); selectExchangeSale(sale); newExchangeStep = 2;">
+                                            <td class="px-3.5 py-3 text-center">
+                                                <div class="w-4 h-4 rounded-full border flex items-center justify-center mx-auto transition" :class="newExchangeSaleId == sale.id ? 'border-[#a38c29] bg-[#a38c29]' : 'border-slate-300 bg-white'">
                                                     <div class="w-1.5 h-1.5 rounded-full bg-white" x-show="newExchangeSaleId == sale.id"></div>
                                                 </div>
-                                                <div class="flex flex-col">
-                                                    <span class="font-bold text-slate-800" x-text="sale.sale_number"></span>
-                                                    <span class="text-[10px] text-slate-500" x-text="(sale.project ? sale.project.code || sale.project.name : '')"></span>
-                                                </div>
                                             </td>
-                                            <td class="px-4 py-3 text-slate-700 font-medium" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                            <td class="px-4 py-3 text-slate-700" x-text="sale.unit ? sale.unit.door_no : 'N/A'"></td>
-                                            <td class="px-4 py-3 font-mono text-slate-800 font-bold" x-text="fmtIndian(sale.total_amount)"></td>
-                                            <td class="px-4 py-3 text-slate-500" x-text="formatDate(sale.agreement_date || sale.created_at)"></td>
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></span>
+                                                    <span x-text="sale.sale_number"></span>
+                                                </div>
+                                                <div class="text-[10px] text-slate-400 font-medium ml-3" x-text="(sale.project ? sale.project.code || sale.project.name : '')"></div>
+                                            </td>
+                                            <td class="px-4 py-3 font-semibold text-slate-700 whitespace-nowrap" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                <span class="inline-block px-2.5 py-1 rounded-lg bg-slate-100/80 border border-slate-200/60 text-xs font-semibold text-slate-800" x-text="getUnitsDisplay(sale)"></span>
+                                            </td>
+                                            <td class="px-4 py-3 text-right font-mono font-extrabold text-slate-900 whitespace-nowrap" x-text="fmtIndian(sale.total_amount)"></td>
+                                            <td class="px-4 py-3 text-right text-slate-500 font-mono text-xs whitespace-nowrap" x-text="formatDate(sale.agreement_date || sale.created_at)"></td>
                                         </tr>
                                     </template>
                                 </tbody>
@@ -1805,7 +1850,8 @@
                     </div>
                 </div>
 
-                {{-- Exchange Form Content --}}
+                {{-- STEP 2: EXCHANGE CONFIGURATION DETAILS --}}
+                <div x-show="newExchangeStep === 2" class="space-y-5">
                 <template x-if="selectedExchangeSale">
                     <div class="space-y-6 animate-fade-in-up">
                         {{-- Old Unit Details --}}
@@ -2220,19 +2266,33 @@
                         </div>
                     </div>
                 </template>
+                </div>
             </div>
 
-            {{-- Footer --}}
-            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-white shrink-0">
-                <button type="button" @click="openNewExchangeModal = false" class="px-6 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold rounded-xl transition shadow-sm uppercase tracking-wider">
-                    Cancel
+            {{-- Modal Footer --}}
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-between bg-slate-50 flex-shrink-0">
+                <button type="button" x-show="newExchangeStep === 1" @click="openNewExchangeModal = false"
+                        class="px-5 py-2 border border-slate-250 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                    Close
                 </button>
-                <button type="button" @click="submitExchangePlan()" :disabled="!selectedExchangeSale" class="px-6 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition shadow-md uppercase tracking-wider">
-                    Finalize Exchange & New EMI
+                <button type="button" x-show="newExchangeStep === 2" @click="newExchangeStep = 1"
+                        class="px-5 py-2 border border-slate-250 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                    Back
                 </button>
+                <div x-show="newExchangeStep === 2" class="flex items-center gap-2">
+                    <button type="button" @click="openNewExchangeModal = false"
+                            class="px-4 py-2 border border-slate-250 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider">
+                        Cancel
+                    </button>
+                    <button type="button" @click="submitExchangePlan()" :disabled="!selectedExchangeSale"
+                            class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md">
+                        Finalize Exchange & New EMI
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+    </template>
 
     {{-- VIEW EXCHANGE DETAILS MODAL POPUP --}}
     <div x-show="openViewExchangeModal" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;" x-transition.opacity>
