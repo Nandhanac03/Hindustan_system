@@ -59,83 +59,101 @@
     @if(request('tab') === 'returns' || request('tab') === 'sale-return')
     
     {{-- Stats Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <!-- Card 1: Total Returns -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-purple-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.2)] hover:border-r-purple-500/20 hover:border-y-purple-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span x-text="isCancellationTab ? 'Total Cancellations' : 'Total Returns'">Total Returns</span>
-                <div class="w-6 h-6 rounded-md bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {{-- Card 1: Total Returns / Cancellations --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider" x-text="isCancellationTab ? 'Total Cancellations' : 'Total Returns'">Total Returns</span>
                 </div>
+                <span class="text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5" x-text="getReturnStats().totalReturns + ' ACCOUNTS'">
+                    0 ACCOUNTS
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="getReturnStats().totalReturns">
-                0
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300" x-text="getReturnStats().totalReturns">0</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Total cancellations recorded</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
-        <!-- Card 2: Return Amount -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span x-text="isCancellationTab ? 'Cancellation Amount' : 'Return Amount'">Return Amount</span>
-                <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{-- Card 2: Return / Cancellation Amount --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider" x-text="isCancellationTab ? 'Cancellation Amount' : 'Return Amount'">Return Amount</span>
                 </div>
+                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                    CONTRACT VALUE
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().returnAmount)">
-                ₹0.00
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="fmtIndian(getReturnStats().returnAmount)">₹0.00</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Gross value of cancelled bookings</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
-        <!-- Card 3: Payable to Customer -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.2)] hover:border-r-amber-500/20 hover:border-y-amber-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Payable to Customer</span>
-                <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        {{-- Card 3: Payable to Customer --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Payable to Customer</span>
                 </div>
+                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                    REFUND DUE
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().payableToCustomer)">
-                ₹0.00
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="fmtIndian(getReturnStats().payableToCustomer)">₹0.00</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Pending refund payout to customer</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
-        <!-- Card 4: Receivable from Customer -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-teal-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(20,184,166,0.2)] hover:border-r-teal-500/20 hover:border-y-teal-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Receivable from Customer</span>
-                <div class="w-6 h-6 rounded-md bg-teal-50 text-teal-600 border border-teal-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-teal-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        {{-- Card 4: Receivable from Customer --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Receivable from Customer</span>
                 </div>
+                <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                    PENDING DUES
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">
-                ₹0.00
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="fmtIndian(getReturnStats().receivableFromCustomer)">₹0.00</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Pending fee & charges to be recovered</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
-    </div></div>
+    </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5">
-        
-        {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
-        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 transition-all">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+    {{-- ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
                 {{-- Search Input --}}
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-primary group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
                     <input type="text" placeholder="Search Customer/Unit..." 
                            x-model="returnFilters.search"
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           @input="returnCurrentPage = 1"
+                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
                     
                     {{-- Clear Button --}}
                     <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
-                        <button type="button" x-show="returnFilters.search" @click="returnFilters.search = ''"
+                        <button type="button" x-show="returnFilters.search" @click="returnFilters.search = ''; returnCurrentPage = 1;"
                                 class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition" title="Clear Search">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
@@ -144,11 +162,11 @@
 
                 {{-- Project Filter --}}
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
-                    <select x-model="returnFilters.project_id"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                    <select x-model="returnFilters.project_id" @change="returnCurrentPage = 1"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
                         <option value="">All Projects</option>
                         @foreach($projects as $proj)
                             <option value="{{ $proj->id }}">{{ $proj->name }}</option>
@@ -161,11 +179,11 @@
 
                 {{-- Unit Type Filter --}}
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                     </div>
-                    <select x-model="returnFilters.type"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                    <select x-model="returnFilters.type" @change="returnCurrentPage = 1"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
                         <option value="">All Unit Types</option>
                         @if(isset($unitTypes))
                             @foreach($unitTypes as $ut)
@@ -180,11 +198,11 @@
 
                 {{-- Return Type Filter --}}
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
                     </div>
-                    <select x-model="returnFilters.status"
-                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-primary/60 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                    <select x-model="returnFilters.status" @change="returnCurrentPage = 1"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
                         <option value="">All Return Types</option>
                         <option value="cancelled">Cancellation</option>
                         <option value="returned">Return</option>
@@ -196,139 +214,140 @@
             </div>
             
             {{-- Reset Filters Button --}}
-            <button type="button" @click="returnFilters.search = ''; returnFilters.project_id = ''; returnFilters.type = ''; returnFilters.status = '';"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 px-6 py-2.5 text-xs font-extrabold text-slate-700 shadow-sm shadow-slate-200/50 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
-                <svg class="h-3.5 w-3.5 text-slate-500 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Reset</span>
+            <button type="button" @click="returnFilters.search = ''; returnFilters.project_id = ''; returnFilters.type = ''; returnFilters.status = ''; returnCurrentPage = 1;"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>Reset Filters</span>
             </button>
         </div>
+    </div>
 
-        {{-- Table --}}
-        <div class="border border-slate-100 rounded-xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-[11px] border-collapse">
-                    <thead class="bg-[#a38c29] border-b border-[#8a7522] font-bold text-white uppercase tracking-wider text-[10px]">
-                        <tr>
-                            <th class="px-3 py-3 text-left">Return No</th>
-                            <th class="px-3 py-3 text-left">Date</th>
-                            <th class="px-3 py-3 text-left">Project</th>
-                            <th class="px-3 py-3 text-left">Unit Details</th>
-                            <th class="px-3 py-3 text-left">Customer</th>
-                            <th class="px-3 py-3 text-left">Return Type</th>
-                            <th class="px-3 py-3 text-right">Amount</th>
-                            <th class="px-3 py-3 text-left">Payable / Receivable</th>
-                            <th class="px-3 py-3 text-center">Status</th>
-                            <th class="px-3 py-3 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-705">
-                        <template x-for="sale in paginatedReturnSales()" :key="sale.id">
-                            <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-3 py-2.5 text-primary font-bold text-left">
-                                    <span x-text="'RET-' + new Date(sale.cancelled_at || sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')"></span>
-                                </td>
-                                <td class="px-3 py-2.5 text-slate-500 text-left" x-text="formatDate(sale.cancelled_at || sale.updated_at)"></td>
-                                <td class="px-3 py-2.5 text-left" x-text="sale.project ? sale.project.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left" x-text="sale.unit ? formatUnitDisplay(sale.unit) : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left font-bold text-slate-900" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left" x-text="sale.status === 'cancelled' ? 'Cancellation' : 'Return'"></td>
-                                <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="fmt(sale.total_amount)"></td>
-                                <td class="px-3 py-2.5 text-left">
-                                    <template x-if="sale.status === 'returned' || sale.status === 'cancelled'">
-                                        <div>
-                                            <template x-if="getRefundDue(sale) > 0">
-                                                <div>
-                                                    <span class="text-orange-600 font-bold block" x-text="'Payable (' + fmt(getRemainingRefund(sale)) + ')'"></span>
-                                                    <template x-if="getRefundPaid(sale) > 0">
-                                                        <span class="text-[9px] text-slate-400 font-semibold block" x-text="'Paid: ' + fmt(getRefundPaid(sale)) + ' / Total: ' + fmt(getRefundDue(sale))"></span>
-                                                    </template>
-                                                </div>
-                                            </template>
-                                            <template x-if="getRefundDue(sale) <= 0">
-                                                <span class="text-teal-600 font-bold" x-text="'Receivable (' + fmt(Math.max(0, parseFloat(sale.cancellation_fee) - getPaidTillDate(sale))) + ')'"></span>
-                                            </template>
-                                        </div>
-                                    </template>
-                                </td>
-                                <td class="px-3 py-2.5 text-center">
-                                    <template x-if="sale.status === 'cancelled' || sale.status === 'returned'">
-                                        <div>
-                                            <template x-if="getRefundStatus(sale) === 'Pending'">
-                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-amber-50 text-amber-700 border border-amber-100">
-                                                    Pending
-                                                </span>
-                                            </template>
-                                            <template x-if="getRefundStatus(sale) === 'Partially Refunded'">
-                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">
-                                                    Partially Paid
-                                                </span>
-                                            </template>
-                                            <template x-if="getRefundStatus(sale) === 'Completed'">
-                                                <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">
-                                                    Completed
-                                                </span>
-                                            </template>
-                                        </div>
-                                    </template>
-                                    <template x-if="sale.status === 'exchanged'">
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">
-                                            Exchanged
-                                        </span>
-                                    </template>
-                                </td>
-                                <td class="px-3 py-2.5 text-right text-slate-500">
-                                    <div class="flex items-center justify-end gap-1.5">
-                                        <button type="button" @click="selectReturnSale(sale, 'returned'); isEditReturn = false;" 
-                                                class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" 
-                                                title="View Details">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
-
+    {{-- Table Container --}}
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full mb-6">
+        <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-[11px] border-collapse">
+                <thead class="bg-[#a38c29] border-b border-[#8a7522] font-bold text-white uppercase tracking-wider text-[10px]">
+                    <tr>
+                        <th class="px-3 py-3 text-left">Return No</th>
+                        <th class="px-3 py-3 text-left">Date</th>
+                        <th class="px-3 py-3 text-left">Project</th>
+                        <th class="px-3 py-3 text-left">Unit Details</th>
+                        <th class="px-3 py-3 text-left">Customer</th>
+                        <th class="px-3 py-3 text-left">Return Type</th>
+                        <th class="px-3 py-3 text-right">Amount</th>
+                        <th class="px-3 py-3 text-left">Payable / Receivable</th>
+                        <th class="px-3 py-3 text-center">Status</th>
+                        <th class="px-3 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-705">
+                    <template x-for="sale in paginatedReturnSales()" :key="sale.id">
+                        <tr class="hover:bg-slate-50/50 transition-colors">
+                            <td class="px-3 py-2.5 text-primary font-bold text-left">
+                                <span x-text="'RET-' + new Date(sale.cancelled_at || sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')"></span>
+                            </td>
+                            <td class="px-3 py-2.5 text-slate-500 text-left" x-text="formatDate(sale.cancelled_at || sale.updated_at)"></td>
+                            <td class="px-3 py-2.5 text-left" x-text="sale.project ? sale.project.name : 'N/A'"></td>
+                            <td class="px-3 py-2.5 text-left" x-text="sale.unit ? formatUnitDisplay(sale.unit) : 'N/A'"></td>
+                            <td class="px-3 py-2.5 text-left font-bold text-slate-900" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+                            <td class="px-3 py-2.5 text-left" x-text="sale.status === 'cancelled' ? 'Cancellation' : 'Return'"></td>
+                            <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="fmt(sale.total_amount)"></td>
+                            <td class="px-3 py-2.5 text-left">
+                                <template x-if="sale.status === 'returned' || sale.status === 'cancelled'">
+                                    <div>
+                                        <template x-if="getRefundDue(sale) > 0">
+                                            <div>
+                                                <span class="text-orange-600 font-bold block" x-text="'Payable (' + fmt(getRemainingRefund(sale)) + ')'"></span>
+                                                <template x-if="getRefundPaid(sale) > 0">
+                                                    <span class="text-[9px] text-slate-400 font-semibold block" x-text="'Paid: ' + fmt(getRefundPaid(sale)) + ' / Total: ' + fmt(getRefundDue(sale))"></span>
+                                                </template>
+                                            </div>
+                                        </template>
+                                        <template x-if="getRefundDue(sale) <= 0">
+                                            <span class="text-teal-600 font-bold" x-text="'Receivable (' + fmt(Math.max(0, parseFloat(sale.cancellation_fee) - getPaidTillDate(sale))) + ')'"></span>
+                                        </template>
                                     </div>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="filteredReturnSales().length === 0">
-                            <td colspan="10" class="px-3 py-8 text-center text-slate-400 italic">No sales found matching return filters.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                                </template>
+                            </td>
+                            <td class="px-3 py-2.5 text-center">
+                                <template x-if="sale.status === 'cancelled' || sale.status === 'returned'">
+                                    <div>
+                                        <template x-if="getRefundStatus(sale) === 'Pending'">
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-amber-50 text-amber-700 border border-amber-100">
+                                                Pending
+                                            </span>
+                                        </template>
+                                        <template x-if="getRefundStatus(sale) === 'Partially Refunded'">
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">
+                                                Partially Paid
+                                            </span>
+                                        </template>
+                                        <template x-if="getRefundStatus(sale) === 'Completed'">
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                                Completed
+                                            </span>
+                                        </template>
+                                    </div>
+                                </template>
+                                <template x-if="sale.status === 'exchanged'">
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-blue-50 text-blue-700 border border-blue-100">
+                                        Exchanged
+                                    </span>
+                                </template>
+                            </td>
+                            <td class="px-3 py-2.5 text-right text-slate-500">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <button type="button" @click="selectReturnSale(sale, 'returned'); isEditReturn = false;" 
+                                            class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" 
+                                            title="View Details">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </button>
 
-            {{-- Return Table Pagination Controls --}}
-            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl" x-show="filteredReturnSales().length > 0">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    SHOWING <span class="text-slate-900" x-text="(returnCurrentPage - 1) * returnPerPage + 1"></span> TO 
-                    <span class="text-slate-900" x-text="Math.min(returnCurrentPage * returnPerPage, filteredReturnSales().length)"></span> OF 
-                    <span class="text-slate-900" x-text="filteredReturnSales().length"></span> RETURNS
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <button type="button" @click="if(returnCurrentPage > 1) returnCurrentPage--" 
-                            :disabled="returnCurrentPage <= 1"
-                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
-                        PREV
-                    </button>
-                    
-                    {{-- Page Numbers --}}
-                    <template x-for="p in getReturnPageNumbers()" :key="p">
-                        <span class="inline-flex items-center gap-1">
-                            <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
-                            <button type="button" x-show="p !== '...'"
-                                    @click="returnCurrentPage = p"
-                                    x-text="p"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
-                                    :class="returnCurrentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
-                        </span>
+                                </div>
+                            </td>
+                        </tr>
                     </template>
-                    
-                    <button type="button" @click="if(returnCurrentPage < getReturnTotalPages()) returnCurrentPage++" 
-                            :disabled="returnCurrentPage >= getReturnTotalPages()"
-                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
-                        NEXT
-                    </button>
-                </div>
+                    <tr x-show="filteredReturnSales().length === 0">
+                        <td colspan="10" class="px-3 py-8 text-center text-slate-400 italic">No sales found matching return filters.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Return Table Pagination Controls --}}
+        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between" x-show="filteredReturnSales().length > 0">
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                SHOWING <span class="text-slate-900" x-text="(returnCurrentPage - 1) * returnPerPage + 1"></span> TO 
+                <span class="text-slate-900" x-text="Math.min(returnCurrentPage * returnPerPage, filteredReturnSales().length)"></span> OF 
+                <span class="text-slate-900" x-text="filteredReturnSales().length"></span> RETURNS
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button type="button" @click="if(returnCurrentPage > 1) returnCurrentPage--" 
+                        :disabled="returnCurrentPage <= 1"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                    PREV
+                </button>
+                
+                {{-- Page Numbers --}}
+                <template x-for="p in getReturnPageNumbers()" :key="p">
+                    <span class="inline-flex items-center gap-1">
+                        <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                        <button type="button" x-show="p !== '...'"
+                                @click="returnCurrentPage = p"
+                                x-text="p"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                                :class="returnCurrentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                    </span>
+                </template>
+                
+                <button type="button" @click="if(returnCurrentPage < getReturnTotalPages()) returnCurrentPage++" 
+                        :disabled="returnCurrentPage >= getReturnTotalPages()"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                    NEXT
+                </button>
             </div>
         </div>
+    </div>
 
         {{-- PROCESS RETURN / CANCELLATION DETAILS MODAL POPUP --}}
 
@@ -1165,92 +1184,115 @@
     {{-- RIGHT COLUMN: UNIT-TO-UNIT EXCHANGE PLAN --}}
     @if(request('tab') === 'exchange')
     {{-- Stats Cards Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-        <!-- Card 1: Total Exchanges -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-purple-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.2)] hover:border-r-purple-500/20 hover:border-y-purple-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Total Exchanges</span>
-                <div class="w-6 h-6 rounded-md bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-5">
+        {{-- Card 1: Total Exchanges --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Exchanges</span>
                 </div>
+                <span class="text-[9px] text-slate-600 font-bold bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/50 group-hover:text-[#a38c29] group-hover:bg-[#a38c29]/5" x-text="getExchangeStats().totalExchanges + ' TOTAL'">
+                    0 TOTAL
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="getExchangeStats().totalExchanges">
-                0
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300" x-text="getExchangeStats().totalExchanges">0</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Total exchange requests</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
-        <!-- Card 2: Total Difference Amount -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Total Difference Amount</span>
-                <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{-- Card 2: Total Difference Amount --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Total Difference</span>
                 </div>
+                <span class="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-emerald-300 group-hover:bg-emerald-100/60">
+                    NET DELTA
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().totalDiff)">
-                ₹0.00
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300" x-text="fmtIndian(getExchangeStats().totalDiff)">₹0.00</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Cumulative contract differential</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
-        <!-- Card 3: Payable by Customer -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.2)] hover:border-r-amber-500/20 hover:border-y-amber-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Payable by Customer</span>
-                <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 border border-amber-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+        {{-- Card 3: Payable by Customer --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-amber-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-amber-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 border border-amber-100/60 transition-all duration-300 group-hover:bg-amber-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Payable by Customer</span>
                 </div>
+                <span class="text-[9px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-amber-300 group-hover:bg-amber-100/60">
+                    TOP-UP DUE
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().payableByCustomer)">
-                ₹0.00
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-amber-600 font-mono tracking-tight block group-hover:text-amber-700 transition-colors duration-300" x-text="fmtIndian(getExchangeStats().payableByCustomer)">₹0.00</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Additional payment required</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
-        <!-- Card 4: Refundable to Customer -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-teal-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(20,184,166,0.2)] hover:border-r-teal-500/20 hover:border-y-teal-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Refundable to Customer</span>
-                <div class="w-6 h-6 rounded-md bg-teal-50 text-teal-600 border border-teal-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-teal-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+        {{-- Card 4: Refundable to Customer --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Refundable to Customer</span>
                 </div>
+                <span class="text-[9px] text-rose-700 font-bold bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:bg-rose-100/60">
+                    REFUND
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="fmtIndian(getExchangeStats().refundableToCustomer)">
-                ₹0.00
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300" x-text="fmtIndian(getExchangeStats().refundableToCustomer)">₹0.00</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Downgrade equity to refund</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
 
-        <!-- Card 5: Completed Exchanges -->
-        <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-blue-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.2)] hover:border-r-blue-500/20 hover:border-y-blue-500/20 cursor-default group">
-            <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
-                <span>Completed Exchanges</span>
-                <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        {{-- Card 5: Completed Exchanges --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-blue-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] cursor-default">
+            <div class="flex items-center justify-between gap-2 mb-3 relative z-10">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 border border-blue-100/60 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Completed</span>
                 </div>
+                <span class="text-[9px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-blue-300 group-hover:bg-blue-100/60">
+                    SETTLED
+                </span>
             </div>
-            <div class="text-base font-black font-mono text-slate-900" x-text="getExchangeStats().completedExchanges">
-                0
+            <div class="relative z-10 mt-1">
+                <span class="text-2xl font-black text-blue-600 font-mono tracking-tight block group-hover:text-blue-700 transition-colors duration-300" x-text="getExchangeStats().completedExchanges">0</span>
+                <p class="text-[10px] text-slate-400 mt-1.5 font-normal">Fully exchanged & settled</p>
             </div>
-            <div class="text-[10px] font-medium text-slate-400">This Month</div>
         </div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5">
-        {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
-        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 transition-all">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 flex-1">
+    {{-- ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 flex-1">
                 {{-- Search Input --}}
-                <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </div>
                     <input type="text" placeholder="Search Customer/Unit..." 
                            x-model="exchangeFilters.search"
-                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                           class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
                     
                     {{-- Clear Button --}}
                     <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
@@ -1263,8 +1305,8 @@
 
                 {{-- Project Filter --}}
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                     <select x-model="exchangeFilters.project_id"
                             class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
@@ -1280,8 +1322,8 @@
 
                 {{-- Type Filter --}}
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                     </div>
                     <select x-model="exchangeFilters.type"
                             class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
@@ -1296,8 +1338,8 @@
 
                 {{-- Status Filter --}}
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
                     </div>
                     <select x-model="exchangeFilters.status"
                             class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
@@ -1316,127 +1358,160 @@
             <button @click="exchangeFilters.search = ''; exchangeFilters.project_id = ''; exchangeFilters.type = ''; exchangeFilters.status = '';"
                     class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                <span>Reset</span>
+                <span>Reset Filters</span>
             </button>
         </div>
+    </div>
 
-        <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Exchange Register</h4>
-        </div>
+    {{-- Table Container --}}
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col w-full mb-6">
+        <div class="overflow-x-auto flex-1">
+            <table class="w-full text-left text-[11px] border-collapse">
+                <thead class="bg-[#a38c29] text-white uppercase text-[10px] font-extrabold tracking-wider">
+                    <tr class="border-b border-white/30">
+                        <th rowspan="2" class="px-4 py-3 text-left align-middle border-r border-white/30">Exchange No.</th>
+                        <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/30">Date</th>
+                        <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/40">Project</th>
+                        
+                        {{-- Old Unit Main Header (Golden Theme with White Border) --}}
+                        <th colspan="2" class="px-3 py-2 text-center bg-[#8f7a23] text-white border-r border-l border-white font-black tracking-wider">
+                            Old Unit (Cancelled)
+                        </th>
+                        
+                        {{-- New Unit Main Header (Golden Theme with White Border) --}}
+                        <th colspan="2" class="px-3 py-2 text-center bg-[#84711f] text-white border-r border-white font-black tracking-wider">
+                            New Unit (Booked)
+                        </th>
+                        
+                        <th rowspan="2" class="px-3 py-3 text-right align-middle border-r border-white/30">Difference Amount</th>
+                        <th rowspan="2" class="px-3 py-3 text-left align-middle border-r border-white/30">Payable / Refundable</th>
+                        <th rowspan="2" class="px-3 py-3 text-center align-middle border-r border-white/30">Status</th>
+                        <th rowspan="2" class="px-4 py-3 text-right align-middle">Actions</th>
+                    </tr>
+                    <tr class="border-b border-white/40 text-[9.5px]">
+                        {{-- Old Unit Subheaders (Golden Theme with White Border) --}}
+                        <th class="px-3 py-1.5 text-left bg-[#8f7a23] text-amber-100 border-l border-r border-white/40 font-extrabold uppercase tracking-wider">Unit Details</th>
+                        <th class="px-3 py-1.5 text-left bg-[#8f7a23] text-amber-100 border-r border-white font-extrabold uppercase tracking-wider">Customer</th>
+                        
+                        {{-- New Unit Subheaders (Golden Theme with White Border) --}}
+                        <th class="px-3 py-1.5 text-left bg-[#84711f] text-amber-100 border-r border-white/40 font-extrabold uppercase tracking-wider">Unit Details</th>
+                        <th class="px-3 py-1.5 text-left bg-[#84711f] text-amber-100 border-r border-white font-extrabold uppercase tracking-wider">Customer</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
+                    <template x-for="sale in paginatedExchangeSales()" :key="sale.id">
+                        <tr class="hover:bg-slate-50/70 transition-colors">
+                            {{-- Exchange No. --}}
+                            <td class="px-4 py-3 font-bold text-primary font-mono text-left whitespace-nowrap"
+                                x-text="sale.status === 'exchanged' ? ('EXC-' + new Date(sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')) : '—'"></td>
 
-        {{-- Table --}}
-        <div class="border border-slate-100 rounded-xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-[11px] border-collapse">
-                    <thead class="bg-[#a38c29] border-b border-[#8a7522] font-bold text-white uppercase tracking-wider text-[10px]">
-                        <tr>
-                            <th class="px-3 py-3 text-left">Exchange No.</th>
-                            <th class="px-3 py-3 text-left">Date</th>
-                            <th class="px-3 py-3 text-left">Project</th>
-                            <th class="px-3 py-3 text-left bg-[#8f7a23]/60" colspan="2">Old Unit (Cancelled)</th>
-                            <th class="px-3 py-3 text-left bg-[#8f7a23]/80" colspan="2">New Unit (Booked)</th>
-                            <th class="px-3 py-3 text-right">Difference Amount</th>
-                            <th class="px-3 py-3 text-left">Payable / Refundable</th>
-                            <th class="px-3 py-3 text-center">Status</th>
-                            <th class="px-3 py-3 text-right">Actions</th>
-                        </tr>
-                        <tr class="bg-[#8f7a23]/40 border-b border-[#8a7522] text-[9px] text-amber-100">
-                            <th class="px-3 py-1 font-normal" colspan="3"></th>
-                            <th class="px-3 py-1 bg-[#8f7a23]/50 font-semibold border-r border-[#8a7522]">Unit Details</th>
-                            <th class="px-3 py-1 bg-[#8f7a23]/50 font-semibold border-r border-[#8a7522]">Customer</th>
-                            <th class="px-3 py-1 bg-[#8f7a23]/70 font-semibold border-r border-[#8a7522]">Unit Details</th>
-                            <th class="px-3 py-1 bg-[#8f7a23]/70 font-semibold border-r border-[#8a7522]">Customer</th>
-                            <th class="px-3 py-1 font-normal" colspan="4"></th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 bg-white font-semibold text-slate-700">
-                        <template x-for="sale in paginatedExchangeSales()" :key="sale.id">
-                            <tr class="hover:bg-slate-50/50 transition-colors">
-                                <td class="px-3 py-2.5 font-bold text-primary text-left" x-text="sale.status === 'exchanged' ? ('EXC-' + new Date(sale.updated_at).getFullYear() + '-' + String(sale.id).padStart(3, '0')) : '—'"></td>
-                                <td class="px-3 py-2.5 text-slate-500 text-left" x-text="formatDate(sale.status === 'exchanged' ? sale.updated_at : sale.sale_date)"></td>
-                                <td class="px-3 py-2.5 text-left" x-text="sale.project ? sale.project.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left bg-slate-100/20 border-r border-slate-100" x-text="sale.unit ? formatUnitDisplay(sale.unit) : '—'"></td>
-                                <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-slate-100/20 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-left bg-primary/5 border-r border-slate-100 font-bold text-primary" x-text="getNewUnitDoorNo(sale)"></td>
-                                <td class="px-3 py-2.5 text-left font-bold text-slate-900 bg-primary/5 border-r border-slate-100" x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
-                                <td class="px-3 py-2.5 text-right font-mono text-slate-900" x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></td>
-                                <td class="px-3 py-2.5 text-left">
+                            {{-- Date --}}
+                            <td class="px-3 py-3 text-slate-500 text-left whitespace-nowrap text-[11px]"
+                                x-text="formatDate(sale.status === 'exchanged' ? sale.updated_at : sale.sale_date)"></td>
+
+                            {{-- Project --}}
+                            <td class="px-3 py-3 text-left text-slate-800 font-bold max-w-[170px] truncate"
+                                x-text="sale.project ? sale.project.name : 'N/A'" :title="sale.project ? sale.project.name : ''"></td>
+
+                            {{-- Old Unit Details --}}
+                            <td class="px-3 py-3 text-left text-slate-700 bg-amber-50/20 border-l border-slate-100"
+                                x-text="sale.unit ? formatUnitDisplay(sale.unit) : '—'"></td>
+
+                            {{-- Old Customer --}}
+                            <td class="px-3 py-3 text-left font-bold text-slate-900 bg-amber-50/20 border-r border-slate-100"
+                                x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+
+                            {{-- New Unit Details --}}
+                            <td class="px-3 py-3 text-left text-slate-800 font-semibold bg-emerald-50/15"
+                                x-text="getNewUnitDoorNo(sale)"></td>
+
+                            {{-- New Customer --}}
+                            <td class="px-3 py-3 text-left font-bold text-slate-900 bg-emerald-50/15 border-r border-slate-100"
+                                x-text="sale.customer ? sale.customer.name : 'N/A'"></td>
+
+                            {{-- Difference Amount --}}
+                            <td class="px-3 py-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap"
+                                x-text="sale.status === 'exchanged' ? fmt(getDifferenceAmount(sale)) : '—'"></td>
+
+                            {{-- Payable / Refundable --}}
+                            <td class="px-3 py-3 text-left whitespace-nowrap">
+                                <template x-if="sale.status === 'exchanged'">
+                                    <span :class="getExchangeNetDue(sale) > 0 ? 'text-orange-600 font-bold' : (getExchangeNetDue(sale) < 0 ? 'text-teal-600 font-bold' : 'text-slate-600 font-bold')"
+                                          x-text="getExchangeStatusText(sale)"></span>
+                                </template>
+                                <template x-if="sale.status !== 'exchanged'">
+                                    <span class="text-slate-400 font-normal">—</span>
+                                </template>
+                            </td>
+
+                            {{-- Status --}}
+                            <td class="px-3 py-3 text-center whitespace-nowrap">
+                                <span class="px-2.5 py-1 rounded-md text-[9px] font-extrabold uppercase tracking-wide inline-block shadow-2xs"
+                                      :class="sale.status === 'exchanged' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (sale.status === 'cancelled' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-amber-50 text-amber-700 border border-amber-200')"
+                                      x-text="sale.status === 'exchanged' ? 'Completed' : (sale.status === 'cancelled' ? 'Pending' : 'Active')"></span>
+                            </td>
+
+                            {{-- Actions --}}
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    <template x-if="sale.status === 'active' || sale.status === 'cancelled'">
+                                        <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;"
+                                                class="px-3 py-1.5 bg-primary hover:bg-primary-700 text-white font-extrabold rounded-lg text-[10.5px] uppercase transition-all tracking-wide shadow-sm">
+                                            Process Exchange
+                                        </button>
+                                    </template>
                                     <template x-if="sale.status === 'exchanged'">
-                                        <span :class="getExchangeNetDue(sale) > 0 ? 'text-orange-600 font-bold' : (getExchangeNetDue(sale) < 0 ? 'text-teal-600 font-bold' : 'text-slate-600 font-bold')"
-                                              x-text="getExchangeStatusText(sale)"></span>
+                                        <button type="button" @click="viewExchangeSale = sale; openViewExchangeModal = true;" 
+                                                class="w-7 h-7 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29] text-[#a38c29] hover:text-white transition-all inline-flex items-center justify-center shadow-2xs" 
+                                                title="View Details">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
                                     </template>
-                                    <template x-if="sale.status !== 'exchanged'">
-                                        <span class="text-slate-400 font-normal">—</span>
-                                    </template>
-                                </td>
-                                <td class="px-3 py-2.5 text-center">
-                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block"
-                                          :class="sale.status === 'exchanged' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : (sale.status === 'cancelled' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 'bg-amber-50 text-amber-700 border border-amber-100')"
-                                          x-text="sale.status === 'exchanged' ? 'Completed' : (sale.status === 'cancelled' ? 'Pending' : 'Active')"></span>
-                                </td>
-                                <td class="px-3 py-2.5 text-right">
-                                    <div class="flex items-center justify-end gap-1.5">
-                                        <template x-if="sale.status === 'active' || sale.status === 'cancelled'">
-                                            <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;"
-                                                    class="px-3 py-1.5 bg-primary hover:bg-primary-700 text-white font-extrabold rounded-lg text-[11px] uppercase transition-all tracking-wide shadow-sm">
-                                                Process Exchange
-                                            </button>
-                                        </template>
-                                        <template x-if="sale.status === 'exchanged'">
-                                            <div class="flex items-center gap-1.5 justify-end">
-                                                <button type="button" @click="viewExchangeSale = sale; openViewExchangeModal = true;" class="w-7 h-7 rounded-xl bg-[#f5f2df] text-[#8a7620] hover:bg-[#eae5cb] flex items-center justify-center transition-all" title="View Details">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                                </button>
-                                                <!-- <button type="button" @click="selectExchangeSale(sale); newExchangeStep = 2; openNewExchangeModal = true;" class="w-7 h-7 rounded-xl bg-[#e6f4ee] text-[#107b6e] hover:bg-[#d5ebe2] flex items-center justify-center transition-all" title="Edit Exchange">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                                </button> -->
-                                            </div>
-                                        </template>
-                                    </div>
-                                </td>
-                            </tr>
-                        </template>
-                        <tr x-show="filteredExchangeSales().length === 0">
-                            <td colspan="11" class="px-3 py-8 text-center text-slate-400 italic">No sales found matching exchange filters.</td>
+                                </div>
+                            </td>
                         </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- Exchange Table Pagination Controls --}}
-            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between rounded-b-2xl" x-show="filteredExchangeSales().length > 0">
-                <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    SHOWING <span class="text-slate-900" x-text="(exchangeCurrentPage - 1) * exchangePerPage + 1"></span> TO 
-                    <span class="text-slate-900" x-text="Math.min(exchangeCurrentPage * exchangePerPage, filteredExchangeSales().length)"></span> OF 
-                    <span class="text-slate-900" x-text="filteredExchangeSales().length"></span> EXCHANGES
-                </div>
-                <div class="flex items-center gap-1.5">
-                    <button type="button" @click="if(exchangeCurrentPage > 1) exchangeCurrentPage--" 
-                            :disabled="exchangeCurrentPage <= 1"
-                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
-                        PREV
-                    </button>
-                    
-                    {{-- Page Numbers --}}
-                    <template x-for="p in getExchangePageNumbers()" :key="p">
-                        <span class="inline-flex items-center gap-1">
-                            <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
-                            <button type="button" x-show="p !== '...'"
-                                    @click="exchangeCurrentPage = p"
-                                    x-text="p"
-                                    class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
-                                    :class="exchangeCurrentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
-                        </span>
                     </template>
-                    
-                    <button type="button" @click="if(exchangeCurrentPage < getExchangeTotalPages()) exchangeCurrentPage++" 
-                            :disabled="exchangeCurrentPage >= getExchangeTotalPages()"
-                            class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
-                        NEXT
-                    </button>
-                </div>
+                    <tr x-show="filteredExchangeSales().length === 0">
+                        <td colspan="11" class="px-4 py-8 text-center text-slate-400 italic">No sales found matching exchange filters.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Exchange Table Pagination Controls --}}
+        <div class="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between" x-show="filteredExchangeSales().length > 0">
+            <div class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                SHOWING <span class="text-slate-900" x-text="(exchangeCurrentPage - 1) * exchangePerPage + 1"></span> TO 
+                <span class="text-slate-900" x-text="Math.min(exchangeCurrentPage * exchangePerPage, filteredExchangeSales().length)"></span> OF 
+                <span class="text-slate-900" x-text="filteredExchangeSales().length"></span> EXCHANGES
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button type="button" @click="if(exchangeCurrentPage > 1) exchangeCurrentPage--" 
+                        :disabled="exchangeCurrentPage <= 1"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                    PREV
+                </button>
+                
+                {{-- Page Numbers --}}
+                <template x-for="p in getExchangePageNumbers()" :key="p">
+                    <span class="inline-flex items-center gap-1">
+                        <span x-show="p === '...'" class="px-2 py-1 text-[10px] text-slate-400 font-bold" x-text="p"></span>
+                        <button type="button" x-show="p !== '...'"
+                                @click="exchangeCurrentPage = p"
+                                x-text="p"
+                                class="px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors shadow-2xs"
+                                :class="exchangeCurrentPage === p ? 'bg-primary text-white border border-primary' : 'bg-white border border-slate-200 text-slate-650 hover:bg-slate-50'"></button>
+                    </span>
+                </template>
+                
+                <button type="button" @click="if(exchangeCurrentPage < getExchangeTotalPages()) exchangeCurrentPage++" 
+                        :disabled="exchangeCurrentPage >= getExchangeTotalPages()"
+                        class="px-2.5 py-1 bg-white border border-slate-200 text-slate-650 rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs">
+                    NEXT
+                </button>
             </div>
         </div>
+    </div>
 
         {{-- EXECUTE EXCHANGE PLAN PANEL --}}
         <template x-if="selectedExchangeSale && !openNewExchangeModal">
