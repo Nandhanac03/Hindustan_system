@@ -460,8 +460,8 @@
         </div>
 
         <!-- 📈 Accounting & Financial Reports (Restricted) -->
-        <div x-data="{ openAccounting: {{ Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openAccounting = !openAccounting" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openAccounting: {{ Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openAccounting = !openAccounting" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.trial_balance') || Request::routeIs('reports.profit_loss') || Request::routeIs('reports.balance_sheet') || Request::routeIs('reports.gst_report') || Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.index') || Request::routeIs('reports.audit_trail') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
@@ -485,7 +485,7 @@
                 <a href="{{ route('reports.gst_report') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.gst_report') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     GST & Tax Report
                 </a>
-                <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <a href="{{ route('reports.customer_ledger') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.customer_ledger') || Request::routeIs('vouchers.ledger.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Ledger & Accounts
                 </a>
                 <!-- <a href="{{ route('reports.trial_balance') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.trial_balance') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">

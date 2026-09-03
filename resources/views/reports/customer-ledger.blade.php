@@ -43,9 +43,26 @@
 
     @include('reports.partials.nav')
 
+    {{-- Main Header & Action Bar --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-2xl bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center text-xl shrink-0 shadow-2xs border border-[#a38c29]/30">
+                <svg class="w-6 h-6 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    Customer Ledger & Accounts Statement
+                </h1>
+                <p class="text-xs text-slate-500 font-medium">View comprehensive customer posting ledger, payment allocations, receipts and outstanding balances.</p>
+            </div>
+        </div>
+    </div>
+
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6">
         <div class="space-y-6">
-            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Customer Ledger Statement</h3>
+            <h3 class="text-xs font-extrabold text-slate-900 uppercase tracking-widest border-b pb-3">Customer Selection & Filters</h3>
 
             {{-- Customer Selection & Action Filter Bar --}}
             <div class="bg-slate-50 border border-slate-200/90 rounded-2xl p-5 shadow-2xs">
@@ -80,7 +97,7 @@
                              get selectedCustomers() {
                                  return (customerList || []).filter(c => this.isSelected(c.id));
                              }
-                         }" 
+                          }" 
                          @click.outside="open = false">
                         
                         <template x-for="id in localSelectedIds" :key="id">
@@ -198,23 +215,23 @@
                     <div class="flex items-center gap-2 self-stretch sm:self-auto shrink-0">
                         <button type="submit" 
                                 :disabled="isLoading"
-                                class="h-10 px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 flex items-center justify-center gap-2 cursor-pointer">
+                                class="h-[42px] px-5 bg-[#a38c29] hover:bg-[#8a7522] disabled:opacity-50 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow flex items-center justify-center gap-2 cursor-pointer">
                             <template x-if="isLoading">
                                 <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                             </template>
                             <template x-if="!isLoading">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                             </template>
                             <span>Generate Statement</span>
                         </button>
                         <button type="button" @click="printReport()" 
-                                class="h-10 px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-extrabold rounded-xl transition shadow-2xs flex items-center gap-1.5 uppercase tracking-wider cursor-pointer">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                class="h-[42px] px-4 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-extrabold rounded-xl transition shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                             Print
                         </button>
                         <button type="button" @click="exportCurrentTable()" 
-                                class="h-10 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition shadow flex items-center gap-1.5 uppercase tracking-wider cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                class="h-[42px] px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition shadow flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                             Export Excel
                         </button>
                     </div>
@@ -233,7 +250,7 @@
                 @if($selectedCustomers && $selectedCustomers->isNotEmpty())
                 <div id="ledger-results"></div>
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-                    {{-- Card 1: Customer Statement & Financial Overview (Light Theme) --}}
+                    {{-- Card 1: Customer Statement & Financial Overview --}}
                     <div class="lg:col-span-7 bg-white rounded-2xl p-5 border border-[#a38c29]/30 shadow-2xs flex flex-col justify-between space-y-4">
                         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                             <div class="flex items-center gap-2.5 min-w-0">
@@ -363,39 +380,72 @@
                 @else
                 {{-- DEFAULT FULL DISPLAY — ALL CUSTOMERS LEDGER SUMMARY --}}
                 <div class="space-y-6">
+                    {{-- Top 4 KPI Metric Cards (Top-Aligned Small Icons with Background Reflections) --}}
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 shadow-2xs space-y-1">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Total Sales Agreements</span>
-                            <div class="text-xl font-mono font-black text-slate-900">₹{{ number_format($totalDebits, 2) }}</div>
-                            <span class="text-[10px] text-slate-400 font-semibold block">Combined sales value</span>
+                        {{-- Card 1: Total Sales Agreements --}}
+                        <div class="bg-gradient-to-br from-white via-white to-blue-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-blue-500 shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Total Sales Agreements</span>
+                                <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 shadow-2xs border border-blue-100 group-hover:scale-105 transition-transform">
+                                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-base lg:text-lg font-black text-slate-900 truncate font-mono">₹{{ number_format($totalDebits, 2) }}</div>
+                                <span class="text-[10px] text-slate-400 font-semibold block">Combined Sales Value</span>
+                            </div>
                         </div>
 
-                        <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-emerald-50/40 shadow-2xs space-y-1">
-                            <span class="text-[9px] font-black text-emerald-600 uppercase tracking-widest block">Total Collections</span>
-                            <div class="text-xl font-mono font-black text-emerald-700">₹{{ number_format($totalCredits, 2) }}</div>
-                            <span class="text-[10px] text-emerald-600/80 font-semibold block">Total receipts received</span>
+                        {{-- Card 2: Total Collections --}}
+                        <div class="bg-gradient-to-br from-white via-white to-emerald-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-emerald-500 shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Total Collections</span>
+                                <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 shadow-2xs border border-emerald-100 group-hover:scale-105 transition-transform">
+                                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-base lg:text-lg font-black text-emerald-700 truncate font-mono">₹{{ number_format($totalCredits, 2) }}</div>
+                                <span class="text-[10px] text-emerald-600/80 font-semibold block">Total Receipts Received</span>
+                            </div>
                         </div>
 
-                        <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-rose-50/40 shadow-2xs space-y-1">
-                            <span class="text-[9px] font-black text-rose-600 uppercase tracking-widest block">Net Outstanding Due</span>
-                            <div class="text-xl font-mono font-black text-rose-700">₹{{ number_format($closingBalance, 2) }}</div>
-                            <span class="text-[10px] text-rose-600/80 font-semibold block">Overall pending receivables</span>
+                        {{-- Card 3: Net Outstanding Due --}}
+                        <div class="bg-gradient-to-br from-white via-white to-rose-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-rose-500 shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Net Outstanding Due</span>
+                                <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs border border-rose-100 group-hover:scale-105 transition-transform">
+                                    <svg class="w-3.5 h-3.5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-base lg:text-lg font-black text-rose-700 truncate font-mono">₹{{ number_format($closingBalance, 2) }}</div>
+                                <span class="text-[10px] text-rose-600/80 font-semibold block">Overall Pending Receivables</span>
+                            </div>
                         </div>
 
-                        <div class="p-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-amber-50/40 shadow-2xs space-y-1">
-                            <span class="text-[9px] font-black text-[#a38c29] uppercase tracking-widest block">Active Customer Accounts</span>
-                            <div class="text-xl font-mono font-black text-slate-900">{{ count($customerSummaryList) }}</div>
-                            <span class="text-[10px] text-slate-400 font-semibold block">Customers with active sales</span>
+                        {{-- Card 4: Active Customer Accounts --}}
+                        <div class="bg-gradient-to-br from-white via-white to-amber-50/40 p-4 rounded-2xl border border-slate-200/90 border-l-4 border-l-[#a38c29] shadow-2xs space-y-2 hover:-translate-y-1 hover:shadow-md transition-all duration-200 cursor-default group">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Active Customer Accounts</span>
+                                <div class="w-7 h-7 rounded-lg bg-amber-50 text-[#a38c29] flex items-center justify-center shrink-0 shadow-2xs border border-amber-200/60 group-hover:scale-105 transition-transform">
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-base lg:text-lg font-black text-slate-900 truncate font-mono">{{ count($customerSummaryList) }}</div>
+                                <span class="text-[10px] text-slate-400 font-semibold block">Customers with Active Sales</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="px-6 py-4 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white flex items-center justify-between border-b border-[#8a7522]">
+                        <div class="px-6 py-4 bg-white flex items-center justify-between border-b border-slate-200/80">
                             <div>
-                                <h4 class="text-xs font-black uppercase tracking-wider text-white">All Customers Account Balances Directory</h4>
-                                <p class="text-[10px] text-amber-100 font-medium mt-0.5">Overview of customer agreements, total payments received, and current outstanding dues.</p>
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-900">All Customers Account Balances Directory</h4>
+                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">Overview of customer agreements, total payments received, and current outstanding dues.</p>
                             </div>
-                            <span class="px-3 py-1 bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                            <span class="px-3 py-1 bg-amber-50 text-[#8a7522] border border-amber-200/80 text-[10px] font-black uppercase tracking-wider rounded-lg">
                                 {{ $customerSummaryList instanceof \Illuminate\Pagination\LengthAwarePaginator ? $customerSummaryList->total() : count($customerSummaryList) }} Customers
                             </span>
                         </div>
@@ -466,12 +516,12 @@
                     </div>
 
                     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <div class="px-6 py-4 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white flex items-center justify-between border-b border-[#8a7522]">
+                        <div class="px-6 py-4 bg-white flex items-center justify-between border-b border-slate-200/80">
                             <div>
-                                <h4 class="text-xs font-black uppercase tracking-wider text-white">System-Wide Customer Ledger Transaction Log</h4>
-                                <p class="text-[10px] text-amber-100 font-medium mt-0.5">Chronological transaction history combining sale agreements and receipts across all customers.</p>
+                                <h4 class="text-xs font-black uppercase tracking-wider text-slate-900">System-Wide Customer Ledger Transaction Log</h4>
+                                <p class="text-[10px] text-slate-500 font-medium mt-0.5">Chronological transaction history combining sale agreements and receipts across all customers.</p>
                             </div>
-                            <span class="px-3 py-1 bg-white/20 text-white border border-white/30 text-[10px] font-black uppercase tracking-wider rounded-lg">
+                            <span class="px-3 py-1 bg-amber-50 text-[#8a7522] border border-amber-200/80 text-[10px] font-black uppercase tracking-wider rounded-lg">
                                 {{ $ledgerEntries instanceof \Illuminate\Pagination\LengthAwarePaginator ? $ledgerEntries->total() : count($ledgerEntries) }} Transactions
                             </span>
                         </div>
