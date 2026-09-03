@@ -17,7 +17,7 @@
                 <div class="flex flex-wrap items-center gap-2.5">
                     
                     {{-- 1. Partner Statement Export --}}
-                    <button @click="printReport('Partner Statement')" 
+                    <button @click="exportExcel('partner_statement')" 
                             class="p-2 pr-3.5 bg-white border border-slate-200/90 rounded-2xl hover:bg-slate-50/80 hover:border-[#a38c29]/50 transition-all duration-300 flex items-center gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 cursor-pointer group">
                         <div class="w-9 h-9 rounded-xl bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-sm group-hover:scale-105">
                             <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -25,15 +25,15 @@
                         <div class="text-left">
                             <span class="block text-xs font-black text-slate-800 group-hover:text-[#a38c29] transition-colors leading-tight">Partner Statement</span>
                             <div class="flex items-center gap-1 mt-1">
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80">PDF</span>
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80">EXCEL</span>
+                                <span @click.stop="printReport('Partner Statement')" class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80 hover:bg-rose-600 hover:text-white transition-colors cursor-pointer">PDF</span>
+                                <span @click.stop="exportExcel('partner_statement')" class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">EXCEL</span>
                             </div>
                         </div>
                         <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-[#a38c29] group-hover:translate-x-0.5 transition-all ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
 
                     {{-- 2. Profit Sharing Summary Export --}}
-                    <button @click="printReport('Profit Sharing Summary')" 
+                    <button @click="exportExcel('profit_sharing_summary')" 
                             class="p-2 pr-3.5 bg-white border border-slate-200/90 rounded-2xl hover:bg-slate-50/80 hover:border-emerald-300 transition-all duration-300 flex items-center gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 cursor-pointer group">
                         <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-sm group-hover:scale-105">
                             <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -41,15 +41,15 @@
                         <div class="text-left">
                             <span class="block text-xs font-black text-slate-800 group-hover:text-emerald-700 transition-colors leading-tight">Profit Sharing Summary</span>
                             <div class="flex items-center gap-1 mt-1">
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80">PDF</span>
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80">EXCEL</span>
+                                <span @click.stop="printReport('Profit Sharing Summary')" class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80 hover:bg-rose-600 hover:text-white transition-colors cursor-pointer">PDF</span>
+                                <span @click.stop="exportExcel('profit_sharing_summary')" class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">EXCEL</span>
                             </div>
                         </div>
                         <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                     </button>
 
                     {{-- 3. Distribution History Log Export --}}
-                    <button @click="printReport('Distribution History Log')" 
+                    <button @click="exportExcel('distribution_history_log')" 
                             class="p-2 pr-3.5 bg-white border border-slate-200/90 rounded-2xl hover:bg-slate-50/80 hover:border-indigo-300 transition-all duration-300 flex items-center gap-3 shadow-2xs hover:shadow-md hover:-translate-y-0.5 cursor-pointer group">
                         <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-indigo-600 group-hover:text-white group-hover:shadow-sm group-hover:scale-105">
                             <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -57,8 +57,8 @@
                         <div class="text-left">
                             <span class="block text-xs font-black text-slate-800 group-hover:text-indigo-700 transition-colors leading-tight">Distribution History Log</span>
                             <div class="flex items-center gap-1 mt-1">
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80">PDF</span>
-                                <span class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80">EXCEL</span>
+                                <span @click.stop="printReport('Distribution History Log')" class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-rose-50 text-rose-600 border border-rose-100/80 hover:bg-rose-600 hover:text-white transition-colors cursor-pointer">PDF</span>
+                                <span @click.stop="exportExcel('distribution_history_log')" class="px-1.5 py-0.5 rounded text-[8px] font-extrabold tracking-wider bg-emerald-50 text-emerald-600 border border-emerald-100/80 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer">EXCEL</span>
                             </div>
                         </div>
                         <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all ml-1 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
@@ -254,6 +254,7 @@
                     <thead>
                         <tr class="bg-[#a38c29] text-white text-[11px] font-bold tracking-wide">
                             <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Transaction Date</th>
+                            <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Partner Name</th>
                             <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Reference / Voucher No.</th>
                             <th class="px-5 py-3.5 text-white font-extrabold border-r border-[#8e7a23]">Description / Transaction Type</th>
                             <th class="px-5 py-3.5 text-right text-white font-extrabold border-r border-[#8e7a23]">Profit Share Allocated<br><span class="text-[9px] font-normal text-white/80">(Credit - Rs.)</span></th>
@@ -265,6 +266,7 @@
                         <template x-for="(entry, index) in pagedLedger" :key="index">
                             <tr class="hover:bg-slate-50 transition-colors font-medium">
                                 <td class="px-5 py-3.5 whitespace-nowrap text-slate-700 font-semibold border-r border-slate-100" x-text="formatDate(entry.date)"></td>
+                                <td class="px-5 py-3.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap" x-text="entry.partner_name"></td>
                                 <td class="px-5 py-3.5 font-mono text-slate-700 font-bold border-r border-slate-100" x-text="entry.ref_no"></td>
                                 <td class="px-5 py-3.5 font-semibold text-slate-800 border-r border-slate-100" x-text="entry.description"></td>
                                 <td class="px-5 py-3.5 text-right font-mono font-bold text-emerald-600 border-r border-slate-100 whitespace-nowrap" x-text="formatCurrency(entry.credit)"></td>
@@ -274,14 +276,14 @@
                         </template>
 
                         <tr x-show="filteredLedger.length === 0">
-                            <td colspan="6" class="px-5 py-8 text-center text-slate-400 font-semibold text-xs">
+                            <td colspan="7" class="px-5 py-8 text-center text-slate-400 font-semibold text-xs">
                                 No transactions found matching the selected filter criteria.
                             </td>
                         </tr>
                     </tbody>
                     <tfoot>
                         <tr class="bg-[#a38c29]/10 font-black text-slate-900 border-t-2 border-[#a38c29]/30">
-                            <td colspan="3" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">TOTALS</td>
+                            <td colspan="4" class="px-5 py-3.5 uppercase tracking-wider text-slate-900 border-r border-slate-200">TOTALS</td>
                             <td class="px-5 py-3.5 text-right font-mono text-emerald-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalCredit)"></td>
                             <td class="px-5 py-3.5 text-right font-mono text-rose-600 border-r border-slate-200 whitespace-nowrap" x-text="formatCurrency(totalDebit)"></td>
                             <td class="px-5 py-3.5 text-right font-mono text-slate-900 font-black text-sm whitespace-nowrap" x-text="formatCurrency(totalRunningBalance)"></td>
@@ -398,25 +400,8 @@ function partnerStatementApp() {
         pageSize: 10,
         currentPage: 1,
 
-        rawLedger: (() => {
-            const data = @json($runningLedger);
-            if (data && data.length > 0) return data;
-            return [
-                { date: '2025-12-31', ref_no: 'JV-PRF-001', description: 'FY25 Q4 Project Profit Allocation', credit: 1500000, debit: 0, partner_id: 1 },
-                { date: '2026-01-15', ref_no: 'BANK-DIS-012', description: 'Interim Profit Payout (Bank Transfer)', credit: 0, debit: 500000, partner_id: 1 },
-                { date: '2026-03-31', ref_no: 'JV-PRF-002', description: 'FY26 Q1 Project Profit Allocation', credit: 1500000, debit: 0, partner_id: 1 },
-                { date: '2026-05-10', ref_no: 'BANK-DIS-045', description: 'Profit Payout (Karnataka Bank)', credit: 0, debit: 500000, partner_id: 1 }
-            ];
-        })(),
-
-        matrixList: (() => {
-            const data = @json($matrixPartners);
-            if (data && data.length > 0) return data;
-            return [
-                { id: 1, name: 'Partner A', role: 'Lead Developer', share_pct: 60.0, total_allocated: 3000000, total_payouts: 1000000, net_balance: 2000000 },
-                { id: 2, name: 'Partner B', role: 'JV Partner / Land Owner', share_pct: 40.0, total_allocated: 2000000, total_payouts: 500000, net_balance: 1500000 }
-            ];
-        })(),
+        rawLedger: @json($runningLedger) || [],
+        matrixList: @json($matrixPartners) || [],
 
         partners: @json($partners) || [],
         projects: @json($projects) || [],
@@ -545,9 +530,206 @@ function partnerStatementApp() {
 
         printReport(title) {
             window.print();
+        },
+
+        exportExcel(type = 'partner_statement') {
+            if (typeof reportsApp === 'function') {
+                const rApp = reportsApp();
+                if (rApp && typeof rApp.exportCurrentTable === 'function') {
+                    rApp.exportCurrentTable(type);
+                    return;
+                }
+            }
         }
     }
 }
 </script>
+
+{{-- ── HIDDEN EXCEL EXPORT TABLES (STYLED TO MATCH SALES REPORT EXCEL DESIGN) ── --}}
+<div class="hidden" style="display: none;">
+
+    {{-- 1. PARTNER STATEMENT EXCEL TABLE --}}
+    <table id="partnerStatementExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="60" style="width: 45pt;" />
+            <col width="130" style="width: 98pt;" />
+            <col width="180" style="width: 135pt;" />
+            <col width="140" style="width: 105pt;" />
+            <col width="320" style="width: 240pt;" />
+            <col width="160" style="width: 120pt;" />
+            <col width="160" style="width: 120pt;" />
+            <col width="180" style="width: 135pt;" />
+        </colgroup>
+        <thead>
+            <tr height="45" style="height: 45pt;">
+                <th colspan="8" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    HINDUSTAN ERP: PARTNER STATEMENT & EQUITY LEDGER REPORT
+                </th>
+            </tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="8" bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    EXECUTIVE SUMMARY & METRIC KPIS
+                </th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Agreed Profit Share:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #a38c29; font-weight: bold; font-size: 10pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.0%';">{{ number_format((float)($agreedProfitShare ?? 0), 1) }}%</th>
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Earned Profit Share:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #059669; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($earnedProfitShare ?? $totalCredit ?? 0) }}</th>
+            </tr>
+            <tr height="25" style="height: 25pt;">
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Total Payouts Released:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #e11d48; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalPayoutsReleased ?? $totalDebit ?? 0) }}</th>
+                <th colspan="2" bgcolor="#f8fafc" style="background-color: #f8fafc; color: #334155; font-weight: bold; font-size: 9pt; text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">Current Net Equity Balance:</th>
+                <th colspan="2" bgcolor="#ffffff" style="background-color: #ffffff; color: #a38c29; font-weight: bold; font-size: 10pt; text-align: right; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($currentNetEquityBalance ?? $runningBalance ?? 0) }}</th>
+            </tr>
+            <tr height="15" style="height: 15pt;"><th colspan="8" bgcolor="#ffffff" style="border: none;"></th></tr>
+            <tr height="30" style="height: 30pt;">
+                <th colspan="8" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    A. INDIVIDUAL PARTNER STATEMENT OF ACCOUNT (RUNNING LEDGER)
+                </th>
+            </tr>
+            <tr height="35" style="height: 35pt;">
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">SL NO</th>
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23; mso-number-format: 'dd\-mmm\-yyyy';">TRANSACTION DATE</th>
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">PARTNER NAME</th>
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">VOUCHER / REF NO</th>
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">DESCRIPTION / TRANSACTION TYPE</th>
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">PROFIT SHARE ALLOCATED (CREDIT)</th>
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">PAYOUT RELEASED (DEBIT)</th>
+                <th bgcolor="#a38c29" style="background-color: #a38c29; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #8e7a23;">RUNNING PAYABLE BALANCE</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($runningLedger as $index => $entry)
+                <tr height="24" style="height: 24pt;">
+                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">{{ $index + 1 }}</td>
+                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: 'dd\-mmm\-yyyy';">{{ is_object($entry) ? $entry->date : ($entry['date'] ?? '') }}</td>
+                    <td style="text-align: left; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->partner_name : ($entry['partner_name'] ?? '') }}</td>
+                    <td style="text-align: center; font-family: monospace; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->ref_no : ($entry['ref_no'] ?? '') }}</td>
+                    <td style="text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->description : ($entry['description'] ?? '') }}</td>
+                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->credit : ($entry['credit'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->debit : ($entry['debit'] ?? 0)) }}</td>
+                    <td style="text-align: right; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->running_balance : ($entry['running_balance'] ?? 0)) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr height="28" style="height: 28pt; background-color: #fef08a;">
+                <td colspan="5" bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">TOTAL LEDGER BALANCE</td>
+                <td bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalCredit ?? 0) }}</td>
+                <td bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalDebit ?? 0) }}</td>
+                <td bgcolor="#fef08a" style="background-color: #fef08a; font-weight: bold; text-align: right; color: #1e293b; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($runningBalance ?? 0) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {{-- 2. PROFIT SHARING SUMMARY EXCEL TABLE --}}
+    <table id="profitSharingExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="60" style="width: 45pt;" />
+            <col width="200" style="width: 150pt;" />
+            <col width="180" style="width: 135pt;" />
+            <col width="120" style="width: 90pt;" />
+            <col width="180" style="width: 135pt;" />
+            <col width="180" style="width: 135pt;" />
+            <col width="180" style="width: 135pt;" />
+        </colgroup>
+        <thead>
+            <tr height="45" style="height: 45pt;">
+                <th colspan="7" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    HINDUSTAN ERP: PROJECT PROFIT SHARING & EQUITY DISTRIBUTION SUMMARY
+                </th>
+            </tr>
+            <tr height="35" style="height: 35pt;">
+                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">SL NO</th>
+                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">PARTNER NAME</th>
+                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">ROLE / ENTITY TYPE</th>
+                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">AGREED SHARE (%)</th>
+                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">TOTAL ALLOCATED NET PROFIT</th>
+                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">TOTAL PAYOUTS RELEASED</th>
+                <th bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #065f46;">CURRENT NET BALANCE OWED</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($matrixPartners as $pIdx => $pRow)
+                <tr height="25" style="height: 25pt;">
+                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">{{ $pIdx + 1 }}</td>
+                    <td style="text-align: left; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($pRow) ? $pRow->name : ($pRow['name'] ?? '') }}</td>
+                    <td style="text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($pRow) ? $pRow->role : ($pRow['role'] ?? '') }}</td>
+                    <td style="text-align: center; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.0%';">{{ number_format((float)(is_object($pRow) ? $pRow->share_pct : ($pRow['share_pct'] ?? 0)), 1) }}%</td>
+                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($pRow) ? $pRow->total_allocated : ($pRow['total_allocated'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($pRow) ? $pRow->total_payouts : ($pRow['total_payouts'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #a38c29; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($pRow) ? $pRow->net_balance : ($pRow['net_balance'] ?? 0)) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr height="28" style="height: 28pt; background-color: #d1fae5;">
+                <td colspan="3" bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">PROJECT TOTALS</td>
+                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '0.0%';">{{ number_format((float)($totalMatrixAgreedPct ?? 0), 1) }}%</td>
+                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalMatrixAllocated ?? 0) }}</td>
+                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalMatrixPayouts ?? 0) }}</td>
+                <td bgcolor="#d1fae5" style="background-color: #d1fae5; font-weight: bold; text-align: right; color: #047857; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(($totalMatrixAllocated ?? 0) - ($totalMatrixPayouts ?? 0)) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {{-- 3. DISTRIBUTION HISTORY LOG EXCEL TABLE --}}
+    <table id="distributionHistoryExcelTable" border="1" style="border-collapse: collapse; font-family: 'Calibri', 'Aptos', sans-serif; font-size: 10pt; border: 2.0pt solid #1e293b;">
+        <colgroup>
+            <col width="60" style="width: 45pt;" />
+            <col width="130" style="width: 98pt;" />
+            <col width="180" style="width: 135pt;" />
+            <col width="150" style="width: 113pt;" />
+            <col width="320" style="width: 240pt;" />
+            <col width="160" style="width: 120pt;" />
+            <col width="160" style="width: 120pt;" />
+            <col width="180" style="width: 135pt;" />
+        </colgroup>
+        <thead>
+            <tr height="45" style="height: 45pt;">
+                <th colspan="8" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                    HINDUSTAN ERP: PARTNER PROFIT ALLOCATION & PAYOUT DISTRIBUTION HISTORY LOG
+                </th>
+            </tr>
+            <tr height="35" style="height: 35pt;">
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">SL NO</th>
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3; mso-number-format: 'dd\-mmm\-yyyy';">DATE</th>
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">PARTNER NAME</th>
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">REF / VOUCHER NO</th>
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">DESCRIPTION</th>
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">ALLOCATED PROFIT (CREDIT)</th>
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">PAYOUT RELEASED (DEBIT)</th>
+                <th bgcolor="#4338ca" style="background-color: #4338ca; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #3730a3;">RUNNING BALANCE</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($runningLedger as $index => $entry)
+                <tr height="24" style="height: 24pt;">
+                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">{{ $index + 1 }}</td>
+                    <td style="text-align: center; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: 'dd\-mmm\-yyyy';">{{ is_object($entry) ? $entry->date : ($entry['date'] ?? '') }}</td>
+                    <td style="text-align: left; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->partner_name : ($entry['partner_name'] ?? '') }}</td>
+                    <td style="text-align: center; font-family: monospace; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->ref_no : ($entry['ref_no'] ?? '') }}</td>
+                    <td style="text-align: left; vertical-align: middle; border: 1px solid #cbd5e1;">{{ is_object($entry) ? $entry->description : ($entry['description'] ?? '') }}</td>
+                    <td style="text-align: right; color: #059669; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->credit : ($entry['credit'] ?? 0)) }}</td>
+                    <td style="text-align: right; color: #e11d48; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->debit : ($entry['debit'] ?? 0)) }}</td>
+                    <td style="text-align: right; font-weight: bold; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)(is_object($entry) ? $entry->running_balance : ($entry['running_balance'] ?? 0)) }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+        <tfoot>
+            <tr height="28" style="height: 28pt; background-color: #e0e7ff;">
+                <td colspan="5" bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: center; vertical-align: middle; border: 1px solid #cbd5e1;">TOTAL DISTRIBUTION LOG SUMMARY</td>
+                <td bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: right; color: #059669; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalCredit ?? 0) }}</td>
+                <td bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: right; color: #e11d48; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($totalDebit ?? 0) }}</td>
+                <td bgcolor="#e0e7ff" style="background-color: #e0e7ff; font-weight: bold; text-align: right; color: #3730a3; vertical-align: middle; border: 1px solid #cbd5e1; mso-number-format: '\#\,\#\#0';">{{ (float)($runningBalance ?? 0) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+</div>
+
+@include('reports.partials.script')
 
 </x-erp-layout>
