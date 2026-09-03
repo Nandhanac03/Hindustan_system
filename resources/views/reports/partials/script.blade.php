@@ -40,12 +40,33 @@ function reportsApp() {
             window.print();
         },
 
-        exportCurrentTable() {
+        exportCurrentTable(reportType = null) {
             let table = document.querySelector("#reportsTable");
             let filename = 'HindustanERP_Report_' + this.activeTab + '.xlsx';
             let isSales = false;
 
-            if (this.activeTab === 'sales') {
+            if (this.activeTab === 'partner_statements' || reportType) {
+                const type = reportType || 'partner_statement';
+                if (type === 'partner_statement') {
+                    const excelTable = document.querySelector("#partnerStatementExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Partner_Statement.xlsx';
+                    }
+                } else if (type === 'profit_sharing_summary') {
+                    const excelTable = document.querySelector("#profitSharingExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Profit_Sharing_Summary.xlsx';
+                    }
+                } else if (type === 'distribution_history_log') {
+                    const excelTable = document.querySelector("#distributionHistoryExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Distribution_History_Log.xlsx';
+                    }
+                }
+            } else if (this.activeTab === 'sales') {
                 const excelTable = document.querySelector("#salesExcelTable");
                 if (excelTable) {
                     table = excelTable;
