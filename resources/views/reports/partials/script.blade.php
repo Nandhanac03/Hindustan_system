@@ -65,6 +65,30 @@ function reportsApp() {
                         table = excelTable;
                         filename = 'HindustanERP_Distribution_History_Log.xlsx';
                     }
+                } else if (type === 'cancellation_charges') {
+                    const excelTable = document.querySelector("#cancellationChargesExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Cancellation_Charges_Report.xlsx';
+                    }
+                } else if (type === 'additional_work') {
+                    const excelTable = document.querySelector("#additionalWorkExcelTable");
+                    if (excelTable) {
+                        table = excelTable;
+                        filename = 'HindustanERP_Additional_Work_Report.xlsx';
+                    }
+                }
+            } else if (this.activeTab === 'cancellation' || this.activeTab === 'cancellation_charges') {
+                const excelTable = document.querySelector("#cancellationChargesExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Cancellation_Charges_Report.xlsx';
+                }
+            } else if (this.activeTab === 'additional' || this.activeTab === 'additional_work') {
+                const excelTable = document.querySelector("#additionalWorkExcelTable");
+                if (excelTable) {
+                    table = excelTable;
+                    filename = 'HindustanERP_Additional_Work_Report.xlsx';
                 }
             } else if (this.activeTab === 'sales') {
                 const excelTable = document.querySelector("#salesExcelTable");
