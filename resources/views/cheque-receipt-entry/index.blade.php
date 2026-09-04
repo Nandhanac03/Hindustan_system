@@ -149,7 +149,7 @@
                         </div>
                     </div>
 
-                    {{-- 3. Payment Mode Filter (Only Cash, Cheque, Bank Transfer, Online) --}}
+                    {{-- 3. Payment Mode Filter --}}
                     <div class="relative">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
@@ -157,10 +157,16 @@
                         <select x-model="filters.payment_mode" @change="currentPage = 1"
                                 class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
                             <option value="">All Payment Modes</option>
-                            <option value="Cash">Cash</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Online">Online</option>
+                            @if(isset($paymentModes) && count($paymentModes) > 0)
+                                @foreach($paymentModes as $pm)
+                                    <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                @endforeach
+                            @else
+                                <option value="Cash">Cash</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Online">Online</option>
+                            @endif
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -479,9 +485,9 @@
                                 </div>
                             </div>
 
-                            {{-- Row 2: Action Type (33.3% width) & Payment Mode (66.7% width) --}}
+                            {{-- Row 2: Action Type, Payment Mode & Receipt Date --}}
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 pt-1">
-                                {{-- Action Type (4 cols = 33.3%) --}}
+                                {{-- Action Type (4 cols) --}}
                                 <div class="md:col-span-4 space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Action Type <span class="text-rose-500">*</span></label>
                                     <div class="grid grid-cols-2 gap-1.5">
@@ -494,20 +500,37 @@
                                     </div>
                                 </div>
 
-                                {{-- Payment Mode (8 cols = 66.7%) --}}
-                                <div class="md:col-span-8 space-y-1.5">
+                                {{-- Payment Mode Dropdown (4 cols) --}}
+                                <div class="md:col-span-4 space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Payment Mode <span class="text-rose-500">*</span></label>
-                                    <div class="grid grid-cols-4 gap-1.5">
-                                        <template x-for="mode in ['Cash', 'Cheque', 'Bank Transfer', 'Online']" :key="mode">
-                                            <button type="button" @click="form.payment_mode = mode; if(errors.payment_mode) delete errors.payment_mode;"
-                                                    :class="form.payment_mode === mode ? 'bg-[#a38c29] text-white border-[#a38c29] shadow-sm font-black' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-[#a38c29]/40 font-bold'"
-                                                    class="px-1.5 py-2.5 border rounded-xl text-[10px] uppercase tracking-tight transition-all cursor-pointer text-center whitespace-nowrap overflow-hidden"
-                                                    x-text="mode">
-                                            </button>
-                                        </template>
-                                    </div>
+                                    <select x-model="form.payment_mode" @change="if(errors.payment_mode) delete errors.payment_mode;"
+                                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs cursor-pointer"
+                                            :class="errors.payment_mode ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                        @if(isset($paymentModes) && count($paymentModes) > 0)
+                                            @foreach($paymentModes as $pm)
+                                                <option value="{{ $pm->name }}">{{ $pm->name }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="Cash">Cash</option>
+                                            <option value="Cheque">Cheque</option>
+                                            <option value="Bank Transfer">Bank Transfer</option>
+                                            <option value="Online">Online</option>
+                                        @endif
+                                    </select>
                                     <template x-if="errors.payment_mode">
                                         <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.payment_mode) ? errors.payment_mode[0] : errors.payment_mode"></span>
+                                    </template>
+                                </div>
+
+                                {{-- Receipt Date (4 cols) --}}
+                                <div class="md:col-span-4 space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Receipt Date <span class="text-rose-500">*</span></label>
+                                    <input type="date" x-model="form.receipt_date"
+                                           @input="if(errors.receipt_date) delete errors.receipt_date;"
+                                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
+                                           :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                    <template x-if="errors.receipt_date">
+                                        <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
                                     </template>
                                 </div>
                             </div>
@@ -526,9 +549,33 @@
                                 </template>
                             </div>
 
-                            {{-- Row 3: Amount, Date, and Reference (3 Columns) --}}
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            {{-- Expanded Section: Reference / Cheque No & Bank Name (When mode requires reference/bank or is not Cash) --}}
+                            <div x-show="isPaymentModeExpanded(form.payment_mode)" 
+                                 class="grid grid-cols-1 md:grid-cols-2 gap-3.5 p-4 bg-slate-50/80 border border-slate-200/80 rounded-2xl shadow-xs" 
+                                 x-cloak 
+                                 x-transition>
                                 <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block" 
+                                           x-text="isUpiMode(form.payment_mode) ? 'UPI Number / Transaction ID' : 'Reference / Cheque No'"></label>
+                                    <input type="text" x-model="form.reference_no" 
+                                           :placeholder="isUpiMode(form.payment_mode) ? 'Enter UPI Number or Ref ID' : 'e.g. UTR / Cheque number'"
+                                           class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs">
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Bank Name</label>
+                                    <select x-model="form.bank_id"
+                                            class="w-full px-3.5 py-2.5 bg-white border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs cursor-pointer">
+                                        <option value="">Select Bank Account</option>
+                                        @foreach($banks as $bank)
+                                        <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Row 3: Amount (4 cols) & Remarks / Notes (8 cols) --}}
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+                                <div class="md:col-span-4 space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Amount (₹) <span class="text-rose-500">*</span></label>
                                     <input type="number" step="1" x-model.number="form.amount" min="1"
                                            @input="if(errors.amount) delete errors.amount; if(form.amount && form.amount.toString().includes('.')) { form.amount = Math.floor(form.amount); }"
@@ -539,36 +586,7 @@
                                         <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.amount) ? errors.amount[0] : errors.amount"></span>
                                     </template>
                                 </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Receipt Date <span class="text-rose-500">*</span></label>
-                                    <input type="date" x-model="form.receipt_date"
-                                           @input="if(errors.receipt_date) delete errors.receipt_date;"
-                                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
-                                           :class="errors.receipt_date ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
-                                    <template x-if="errors.receipt_date">
-                                        <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.receipt_date) ? errors.receipt_date[0] : errors.receipt_date"></span>
-                                    </template>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Ref / Cheque / UTR No.</label>
-                                    <input type="text" x-model="form.reference_no" placeholder="Optional Reference..."
-                                           class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs">
-                                </div>
-                            </div>
-
-                            {{-- Row 4: Bank Name & Remarks (2 Columns) --}}
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                                <div class="space-y-1.5">
-                                    <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Bank Name</label>
-                                    <select x-model="form.bank_id"
-                                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs cursor-pointer">
-                                        <option value="">-- Optional / Select Bank --</option>
-                                        @foreach($banks as $bank)
-                                        <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="space-y-1.5">
+                                <div class="md:col-span-8 space-y-1.5">
                                     <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Remarks / Notes</label>
                                     <input type="text" x-model="form.remarks" placeholder="Optional notes regarding this receipt..."
                                            class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-semibold text-slate-900 transition-all shadow-xs">
@@ -728,6 +746,8 @@
             },
             errors: {},
 
+            paymentModesList: @json($paymentModes ?? []),
+            banksList: @json($banks ?? []),
             allReceipts: @json($allReceiptsFormatted ?? []),
             filters: {
                 search: '{{ request('search', '') }}',
@@ -738,6 +758,29 @@
             },
             currentPage: 1,
             perPage: 20,
+
+            isPaymentModeExpanded(mode) {
+                if (!mode) return false;
+                const m = String(mode).toLowerCase().trim();
+                if (m === 'cash') return false;
+
+                if (Array.isArray(this.paymentModesList) && this.paymentModesList.length > 0) {
+                    const found = this.paymentModesList.find(p => 
+                        (p.name && p.name.toLowerCase() === m) || 
+                        (p.code && p.code.toLowerCase() === m)
+                    );
+                    if (found) {
+                        return Boolean(found.requires_reference || found.requires_bank || (found.code && found.code.toUpperCase() !== 'CASH'));
+                    }
+                }
+                return !m.includes('cash');
+            },
+
+            isUpiMode(mode) {
+                if (!mode) return false;
+                const m = String(mode).toLowerCase().trim();
+                return m.includes('upi');
+            },
 
             get filteredReceipts() {
                 let list = this.allReceipts || [];

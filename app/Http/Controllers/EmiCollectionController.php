@@ -328,7 +328,7 @@ class EmiCollectionController extends Controller
             'sale_id'       => ['nullable', 'exists:sales,id'],
             'booking_id'    => ['nullable', 'exists:sales,id'], // fallback
             'amount'        => ['required_unless:collection_type,reschedule', 'nullable', 'numeric', 'min:0.01'],
-            'payment_mode'  => ['required_unless:collection_type,reschedule', 'nullable', 'in:Cash,Cheque,Bank Transfer,Online,Credit Card,UPI'],
+            'payment_mode'  => ['required_unless:collection_type,reschedule', 'nullable', 'string', 'max:100'],
             'receipt_date'  => ['nullable', 'date'],
             'reference_no'  => ['nullable', 'string', 'max:100'],
             'bank_id'       => ['nullable', 'exists:banks,id'],
