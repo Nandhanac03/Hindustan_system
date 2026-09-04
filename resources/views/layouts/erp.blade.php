@@ -270,8 +270,8 @@
         <!-- 🛠️ Contractor Operations (RA Bills) -->
         <p class="px-3 pt-4 pb-1 text-[10px] font-bold text-white/60 uppercase tracking-widest">Contractor Operations</p>
 
-        <div x-data="{ openContractors: {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') ? 'true' : 'false' }} }" class="space-y-1">
-            <button @click="openContractors = !openContractors" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openContractors: {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') || Request::routeIs('site-expenses.*') ? 'true' : 'false' }} }" class="space-y-1">
+            <button @click="openContractors = !openContractors" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('suppliers.*') || Request::routeIs('expenses.ra-bills.*') || Request::routeIs('reports.supplier_contractor') || Request::routeIs('site-expenses.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
@@ -327,7 +327,7 @@
             </div>
         </div>
 
-        <!-- 💵 Petty Cash & Site Expense -->
+        <!-- 💵 Petty Cash -->
         <div x-data="{ openPettyCash: {{ Request::routeIs('reports.petty_cash') || Request::routeIs('petty-cash.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
             <button @click="openPettyCash = !openPettyCash" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('reports.petty_cash') || Request::routeIs('petty-cash.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
@@ -353,9 +353,6 @@
                 <a href="{{ route('reports.petty_cash.reports') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.petty_cash.reports') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Petty Cash Book (report)
                 </a>
-                <!-- <a href="{{ route('reports.petty_cash') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('reports.petty_cash') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
-                    Petty Cash Book (report)
-                </a> -->
             </div>
         </div>
 
@@ -387,6 +384,25 @@
                 <a href="{{ route('dms.document-types.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('dms.document-types.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Document Types
                 </a>
+            </div>
+        </div>
+
+        <!-- 🏢 Site Expense Operations -->
+        <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+                <div class="flex items-center gap-3">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span>Site Expense Management</span>
+                </div>
+                <svg :class="openSiteExpensesMenu ? 'rotate-90' : ''" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </button>
+            <div x-show="openSiteExpensesMenu" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('site-expenses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Site Expense 
+                </a>
+              
             </div>
         </div>
 
@@ -618,6 +634,9 @@
                 </svg>
             </button>
             <div x-show="openMaster" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
+                <a href="{{ route('contractors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Vendor Master
+                </a>
                 <a href="{{ route('chart-of-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('chart-of-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Chart of Accounts
                 </a>
