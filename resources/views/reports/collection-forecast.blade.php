@@ -670,13 +670,13 @@ function collectionForecastApp() {
                 });
             }
 
-            // 5 Timeline Horizon Buckets
+            // 5 Timeline Horizon Buckets (Exact same color scheme as shown in the image)
             const horizons = {
-                '0-3M': { label: '0 - 3 Months (Immediate)', amount: 0, color: '#2563eb' },
-                '3-6M': { label: '3 - 6 Months (Near Term)', amount: 0, color: '#0284c7' },
-                '6-9M': { label: '6 - 9 Months (Mid Term)', amount: 0, color: '#0d9488' },
-                '9-12M': { label: '9 - 12 Months (Long Term)', amount: 0, color: '#16a34a' },
-                '>12M': { label: '> 12 Months (Future)', amount: 0, color: '#8b5cf6' }
+                '0-3M': { label: '0 - 3 Months', amount: 0, color: '#4f46e5' },
+                '3-6M': { label: '3 - 6 Months', amount: 0, color: '#f59e0b' },
+                '6-9M': { label: '6 - 9 Months', amount: 0, color: '#22c55e' },
+                '9-12M': { label: '9 - 12 Months', amount: 0, color: '#f97316' },
+                '>12M': { label: '> 12 Months', amount: 0, color: '#ec4899' }
             };
 
             this.filteredInstallments.forEach(inst => {
@@ -733,12 +733,11 @@ function collectionForecastApp() {
             } else {
                 const hData = this.upcomingScheduleData.horizons;
                 const amounts = hData.map(h => h.amount);
-                // If all upcoming are zero, supply balanced placeholder proportions
                 const hasNonZero = amounts.some(a => a > 0);
                 return {
                     labels: hData.map(h => h.label),
                     amounts: hasNonZero ? amounts : [1, 1, 1, 1, 1],
-                    colors: hData.map(h => h.color)
+                    colors: ['#4f46e5', '#f59e0b', '#22c55e', '#f97316', '#ec4899']
                 };
             }
         },
@@ -765,7 +764,7 @@ function collectionForecastApp() {
                     seriesName: 'Scheduled Inflow',
                     labels: mData.map(m => m.label),
                     amounts: mData.map(m => m.amount),
-                    colors: ['#3b82f6']
+                    colors: ['#ef4444']
                 };
             }
         },
