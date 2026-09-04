@@ -13,36 +13,13 @@ class VoucherTypeController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = VoucherType::orderBy('id');
-
-        if ($request->filled('search')) {
-            $search = trim($request->input('search'));
-            $query->where(function ($q) use ($search) {
-                $q->where('code', 'like', "%{$search}%")
-                  ->orWhere('name', 'like', "%{$search}%")
-                  ->orWhere('prefix', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('status')) {
-            $status = $request->input('status');
-            if ($status === 'active') {
-                $query->where('is_active', true);
-            } elseif ($status === 'inactive') {
-                $query->where('is_active', false);
-            }
-        }
-
-        $voucherTypes = $query->paginate(20)->withQueryString();
-
-        $all = VoucherType::all();
-        $totalCount  = $all->count();
-        $activeCount = $all->where('is_active', true)->count();
-        $inactiveCount = $all->where('is_active', false)->count();
+        $allVouchers = VoucherType::orderBy('id')->get();
+        $totalCount  = $allVouchers->count();
+        $activeCount = $allVouchers->where('is_active', true)->count();
+        $inactiveCount = $allVouchers->where('is_active', false)->count();
 
         return view('voucher-types.index', compact(
-            'voucherTypes',
+            'allVouchers',
             'totalCount',
             'activeCount',
             'inactiveCount'
