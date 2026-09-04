@@ -227,10 +227,30 @@ class ChequeReceiptEntryController extends Controller
 
         $realizationStatuses = Receipt::STATUSES;
 
-        $activeSales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType'])
+        $activeSales = Sale::with(['customer', 'project', 'unit.floor', 'unit.unitType', 'saleUnits.unit.floor', 'saleUnits.unit.unitType', 'customerInstallments'])
             ->where('status', 'active')
             ->latest()
             ->get();
+
+        foreach ($activeSales as $sale) {
+            $totalPaid = (float) Receipt::where('sale_id', $sale->id)->sum('amount');
+            $installments = $sale->customerInstallments;
+
+            $nextDueAmount = 0;
+            $allocated = $totalPaid;
+            if ($installments->isNotEmpty()) {
+                foreach ($installments as $inst) {
+                    $instAmt = (float)$inst->amount;
+                    if ($allocated >= $instAmt) {
+                        $allocated -= $instAmt;
+                    } else {
+                        $nextDueAmount = $instAmt - $allocated;
+                        break;
+                    }
+                }
+            }
+            $sale->next_due_amount = $nextDueAmount > 0 ? round($nextDueAmount, 0) : round((float)$sale->remaining_balance, 0);
+        }
 
         $banks = Bank::where('status', 'active')->orderBy('bank_name')->get();
 
