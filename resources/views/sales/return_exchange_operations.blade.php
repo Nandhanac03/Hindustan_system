@@ -2479,7 +2479,7 @@
                             <div x-data="{ openTables: false }" class="pt-1">
                                 <button type="button" @click="openTables = !openTables"
                                         class="text-[9px] font-extrabold text-blue-700 hover:text-blue-900 uppercase tracking-wider flex items-center gap-1 cursor-pointer">
-                                    <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : 'ðŸ“œ Expand Full Receipts & EMI Schedule Audit Log'"></span>
+                                    <span x-text="openTables ? 'Hide Detailed Receipts & EMI Schedule History' : '📜 Expand Full Receipts & EMI Schedule Audit Log'"></span>
                                     <svg class="w-3 h-3 transition-transform" :class="openTables ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                 </button>
 
