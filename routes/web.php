@@ -11,6 +11,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\UnitController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SalesController;
+use App\Http\Controllers\SiteExpenseController;
 
 // Helper route to trigger, repair, sync, and diagnose storage link on live server
 Route::get('/run-storage-link', function () {
@@ -362,6 +363,16 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/loans/{loan}/prepay', [\App\Http\Controllers\LoanController::class, 'prepay'])->name('loans.prepay');
     Route::post('/loans/{loan}/update-interest', [\App\Http\Controllers\LoanController::class, 'updateInterest'])->name('loans.update-interest');
 
+    // Site Expenses Module (Dedicated Direct Operational Expenses & Workflow)
+    Route::get('/site-expenses', [\App\Http\Controllers\SiteExpenseController::class, 'index'])->name('site-expenses.index');
+    Route::get('/site-expenses/workflow', [\App\Http\Controllers\SiteExpenseController::class, 'workflow'])->name('site-expenses.workflow');
+    Route::get('/site-expenses/create', [\App\Http\Controllers\SiteExpenseController::class, 'create'])->name('site-expenses.create');
+    Route::post('/site-expenses', [\App\Http\Controllers\SiteExpenseController::class, 'store'])->name('site-expenses.store');
+    Route::get('/site-expenses/{siteExpense}', [\App\Http\Controllers\SiteExpenseController::class, 'show'])->name('site-expenses.show');
+    Route::post('/site-expenses/{siteExpense}/approve', [\App\Http\Controllers\SiteExpenseController::class, 'approve'])->name('site-expenses.approve');
+    Route::post('/site-expenses/{siteExpense}/reject', [\App\Http\Controllers\SiteExpenseController::class, 'reject'])->name('site-expenses.reject');
+    Route::delete('/site-expenses/{siteExpense}', [\App\Http\Controllers\SiteExpenseController::class, 'destroy'])->name('site-expenses.destroy');
+
     // Site Expenses Module
     Route::get('/expenses/bills/create', [\App\Http\Controllers\ExpenseController::class, 'createBill'])->name('expenses.bills.create');
     Route::post('/expenses/bills', [\App\Http\Controllers\ExpenseController::class, 'storeBill'])->name('expenses.bills.store');
@@ -508,6 +519,15 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::delete('/loan-disbursals/{disbursal}', [\App\Http\Controllers\LoanDisbursalController::class, 'destroy'])->name('loan-disbursals.destroy');
     Route::post('/loan-disbursals/{disbursal}/post', [\App\Http\Controllers\LoanDisbursalController::class, 'post'])->name('loan-disbursals.post');
     Route::post('/loan-disbursals/{disbursal}/cancel', [\App\Http\Controllers\LoanDisbursalController::class, 'cancel'])->name('loan-disbursals.cancel');
+    // Site Expenses Module
+    Route::get('/site-expenses', [SiteExpenseController::class, 'index'])->name('site-expenses.index');
+    Route::get('/site-expenses/workflow', [SiteExpenseController::class, 'workflow'])->name('site-expenses.workflow');
+    Route::get('/site-expenses/create', [SiteExpenseController::class, 'create'])->name('site-expenses.create');
+    Route::post('/site-expenses', [SiteExpenseController::class, 'store'])->name('site-expenses.store');
+    Route::get('/site-expenses/{siteExpense}', [SiteExpenseController::class, 'show'])->name('site-expenses.show');
+    Route::post('/site-expenses/{siteExpense}/approve', [SiteExpenseController::class, 'approve'])->name('site-expenses.approve');
+    Route::post('/site-expenses/{siteExpense}/reject', [SiteExpenseController::class, 'reject'])->name('site-expenses.reject');
+    Route::delete('/site-expenses/{siteExpense}', [SiteExpenseController::class, 'destroy'])->name('site-expenses.destroy');
 });
 
 require __DIR__ . '/auth.php';

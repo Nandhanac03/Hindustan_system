@@ -74,6 +74,11 @@ class Project extends Model
         return $this->morphMany(Document::class, 'documentable');
     }
 
+    public function siteExpenses(): HasMany
+    {
+        return $this->hasMany(SiteExpense::class, 'project_id');
+    }
+
     public function getTotalFloorsAttribute(): int
     {
         return $this->floors()->count();
