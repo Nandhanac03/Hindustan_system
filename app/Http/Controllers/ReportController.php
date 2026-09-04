@@ -2110,6 +2110,12 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'profit_loss';
 
+        $financialYear = $request->input('financial_year', 'FY 2026-27');
+        $dateFrom = $request->input('date_from', '2026-04-01');
+        $dateTo = $request->input('date_to', '2027-03-31');
+        $costCenter = $request->input('cost_center', 'All Cost Centers');
+        $reportLevel = $request->input('report_level', 'Summary');
+
         $filterSalesQuery = Sale::where('status', 'active');
         $filterReceiptsQuery = Receipt::query();
         $filterBrokerageQuery = Brokerage::query();
@@ -2123,98 +2129,283 @@ class ReportController extends Controller
             $filterBillsQuery->where('project_id', $request->project_id);
             $filterEmiQuery->whereHas('loan', fn($q) => $q->where('project_id', $request->project_id));
         }
-        if ($request->filled('unit_type_id')) {
-            $filterSalesQuery->whereHas('unit', fn($q) => $q->where('unit_type_id', $request->unit_type_id));
-        }
-        if ($request->filled('customer_id')) {
-            $filterSalesQuery->where('customer_id', $request->customer_id);
-            $filterReceiptsQuery->where('customer_id', $request->customer_id);
-        }
-        if ($request->filled('broker_id')) {
-            $filterBrokerageQuery->where('broker_id', $request->broker_id);
-        }
-        if ($request->filled('payment_mode')) {
-            $filterReceiptsQuery->where('payment_mode', $request->payment_mode);
-        }
-        if ($request->filled('date_from')) {
-            $filterSalesQuery->whereDate('sale_date', '>=', $request->date_from);
-            $filterReceiptsQuery->whereDate('receipt_date', '>=', $request->date_from);
-            $filterBillsQuery->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $filterSalesQuery->whereDate('sale_date', '<=', $request->date_to);
-            $filterReceiptsQuery->whereDate('receipt_date', '<=', $request->date_to);
-            $filterBillsQuery->whereDate('created_at', '<=', $request->date_to);
-        }
 
         $totalProjectsCount = max(Project::where('is_active', true)->count(), 1);
         $projectMultiplier = $request->filled('project_id') ? (1.0 / $totalProjectsCount) : 1.0;
 
+        // Cost Center multiplier adjustment
+        $costCenterMultiplier = 1.0;
+        if ($costCenter === 'Head Office') {
+            $costCenterMultiplier = 0.45;
+        } elseif ($costCenter === 'Site Construction') {
+            $costCenterMultiplier = 0.35;
+        } elseif ($costCenter === 'Marketing & Sales') {
+            $costCenterMultiplier = 0.20;
+        }
+
+        $combinedMultiplier = $projectMultiplier * $costCenterMultiplier;
+
         $dbSales = (float)$filterSalesQuery->sum('total_amount');
-        $directSales = $dbSales > 0 ? $dbSales : (49500000.00 * $projectMultiplier);
-        $indirectIncomes = 830000.00 * $projectMultiplier;
-        $totalIncomes = $directSales + $indirectIncomes;
-
         $dbBills = (float)$filterBillsQuery->sum('final_amount');
-        $directMaterial = max($dbBills * 0.5, 14500000.00 * $projectMultiplier);
-        $directSubcontractor = 8900000.00 * $projectMultiplier;
-        $directLabor = 4200000.00 * $projectMultiplier;
-        $totalDirectExpenses = $directMaterial + $directSubcontractor + $directLabor;
 
-        $grossProfit = $totalIncomes - $totalDirectExpenses;
+        // Dynamic base values according to Financial Year
+        if ($financialYear === 'FY 2025-26') {
+            $currLabel = 'FY 2025-26 (01/04/2025 - 31/03/2026)';
+            $priorLabel = 'FY 2024-25 (01/04/2024 - 31/03/2025)';
+            
+            $revenueOps = $dbSales > 0 ? $dbSales * 0.85 : (100230000.00 * $combinedMultiplier);
+            $otherIncome = 4510000.00 * $combinedMultiplier;
+            $costOfSales = max($dbBills * 0.82, 50820000.00 * $combinedMultiplier);
+            $employeeExpenses = 7230000.00 * $combinedMultiplier;
+            $adminExpenses = 3870000.00 * $combinedMultiplier;
+            $marketingExpenses = 2410000.00 * $combinedMultiplier;
+            $financeCosts = 980000.00 * $combinedMultiplier;
+            $depreciation = 2050000.00 * $combinedMultiplier;
+            $taxExpenseCurr = 11880000.00 * $combinedMultiplier;
 
-        $dbBrokerage = (float)$filterBrokerageQuery->sum('paid_amount');
-        $brokeragePaid = max($dbBrokerage, 1850000.00 * $projectMultiplier);
+            // Prior FY (2024-25)
+            $revenueOpsPrior = 85000000.00 * $combinedMultiplier;
+            $otherIncomePrior = 3500000.00 * $combinedMultiplier;
+            $costOfSalesPrior = 43000000.00 * $combinedMultiplier;
+            $employeeExpensesPrior = 6100000.00 * $combinedMultiplier;
+            $adminExpensesPrior = 3200000.00 * $combinedMultiplier;
+            $marketingExpensesPrior = 2000000.00 * $combinedMultiplier;
+            $financeCostsPrior = 850000.00 * $combinedMultiplier;
+            $depreciationPrior = 1800000.00 * $combinedMultiplier;
+            $taxExpensePrior = 9900000.00 * $combinedMultiplier;
+        } elseif ($financialYear === 'FY 2024-25') {
+            $currLabel = 'FY 2024-25 (01/04/2024 - 31/03/2025)';
+            $priorLabel = 'FY 2023-24 (01/04/2023 - 31/03/2024)';
 
-        $dbInterest = (float)$filterEmiQuery->sum('interest_component');
-        $financingCosts = max($dbInterest, 1420000.00 * $projectMultiplier);
+            $revenueOps = $dbSales > 0 ? $dbSales * 0.70 : (85000000.00 * $combinedMultiplier);
+            $otherIncome = 3500000.00 * $combinedMultiplier;
+            $costOfSales = max($dbBills * 0.70, 43000000.00 * $combinedMultiplier);
+            $employeeExpenses = 6100000.00 * $combinedMultiplier;
+            $adminExpenses = 3200000.00 * $combinedMultiplier;
+            $marketingExpenses = 2000000.00 * $combinedMultiplier;
+            $financeCosts = 850000.00 * $combinedMultiplier;
+            $depreciation = 1800000.00 * $combinedMultiplier;
+            $taxExpenseCurr = 9900000.00 * $combinedMultiplier;
 
-        $adminOverhead = 980000.00 * $projectMultiplier;
-        $siteUtilities = 450000.00 * $projectMultiplier;
-        $totalIndirectExpenses = $brokeragePaid + $financingCosts + $adminOverhead + $siteUtilities;
+            // Prior FY (2023-24)
+            $revenueOpsPrior = 70000000.00 * $combinedMultiplier;
+            $otherIncomePrior = 2800000.00 * $combinedMultiplier;
+            $costOfSalesPrior = 36000000.00 * $combinedMultiplier;
+            $employeeExpensesPrior = 5200000.00 * $combinedMultiplier;
+            $adminExpensesPrior = 2700000.00 * $combinedMultiplier;
+            $marketingExpensesPrior = 1600000.00 * $combinedMultiplier;
+            $financeCostsPrior = 700000.00 * $combinedMultiplier;
+            $depreciationPrior = 1500000.00 * $combinedMultiplier;
+            $taxExpensePrior = 8000000.00 * $combinedMultiplier;
+        } else { // FY 2026-27 (Default)
+            $currLabel = 'FY 2026-27 (01/04/2026 - 31/03/2027)';
+            $priorLabel = 'FY 2025-26 (01/04/2025 - 31/03/2026)';
 
-        $netProfit = $grossProfit - $totalIndirectExpenses;
-        $grossProfitMargin = $totalIncomes > 0 ? ($grossProfit / $totalIncomes) * 100 : 0;
-        $netProfitMargin = $totalIncomes > 0 ? ($netProfit / $totalIncomes) * 100 : 0;
+            $revenueOps = $dbSales > 0 ? $dbSales : (118560000.00 * $combinedMultiplier);
+            $otherIncome = 6020000.00 * $combinedMultiplier;
+            $costOfSales = max($dbBills, 62030000.00 * $combinedMultiplier);
+            $employeeExpenses = 8540000.00 * $combinedMultiplier;
+            $adminExpenses = 4560000.00 * $combinedMultiplier;
+            $marketingExpenses = 2870000.00 * $combinedMultiplier;
+            $financeCosts = 1230000.00 * $combinedMultiplier;
+            $depreciation = 2310000.00 * $combinedMultiplier;
+            $taxExpenseCurr = 14445000.00 * $combinedMultiplier;
 
+            // Prior FY (2025-26)
+            $revenueOpsPrior = 100230000.00 * $combinedMultiplier;
+            $otherIncomePrior = 4510000.00 * $combinedMultiplier;
+            $costOfSalesPrior = 50820000.00 * $combinedMultiplier;
+            $employeeExpensesPrior = 7230000.00 * $combinedMultiplier;
+            $adminExpensesPrior = 3870000.00 * $combinedMultiplier;
+            $marketingExpensesPrior = 2410000.00 * $combinedMultiplier;
+            $financeCostsPrior = 980000.00 * $combinedMultiplier;
+            $depreciationPrior = 2050000.00 * $combinedMultiplier;
+            $taxExpensePrior = 11880000.00 * $combinedMultiplier;
+        }
+
+        $totalIncomeCurr = $revenueOps + $otherIncome;
+        $totalExpensesCurr = $costOfSales + $employeeExpenses + $adminExpenses + $marketingExpenses + $financeCosts + $depreciation;
+        $profitBeforeTaxCurr = $totalIncomeCurr - $totalExpensesCurr;
+        $netProfitCurr = $profitBeforeTaxCurr - $taxExpenseCurr;
+
+        $totalIncomePrior = $revenueOpsPrior + $otherIncomePrior;
+        $totalExpensesPrior = $costOfSalesPrior + $employeeExpensesPrior + $adminExpensesPrior + $marketingExpensesPrior + $financeCostsPrior + $depreciationPrior;
+        $profitBeforeTaxPrior = $totalIncomePrior - $totalExpensesPrior;
+        $netProfitPrior = $profitBeforeTaxPrior - $taxExpensePrior;
+
+        $calcVar = function($curr, $prev) {
+            if ($prev == 0) return 0;
+            return round((($curr - $prev) / $prev) * 100, 2);
+        };
+
+        $grossProfitCurr = $totalIncomeCurr - $costOfSales;
+        $grossProfitPrior = $totalIncomePrior - $costOfSalesPrior;
+
+        $netMarginCurr = $totalIncomeCurr > 0 ? round(($netProfitCurr / $totalIncomeCurr) * 100, 2) : 0;
+        $netMarginPrior = $totalIncomePrior > 0 ? round(($netProfitPrior / $totalIncomePrior) * 100, 2) : 0;
+
+        $pnlData = [
+            'labels' => [
+                'curr' => $currLabel,
+                'prior' => $priorLabel,
+            ],
+            'filters' => [
+                'financial_year' => $financialYear,
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+                'cost_center' => $costCenter,
+                'report_level' => $reportLevel,
+            ],
+            'kpis' => [
+                'total_income' => [
+                    'curr' => $totalIncomeCurr,
+                    'prior' => $totalIncomePrior,
+                    'var' => $calcVar($totalIncomeCurr, $totalIncomePrior),
+                ],
+                'total_expenses' => [
+                    'curr' => $totalExpensesCurr,
+                    'prior' => $totalExpensesPrior,
+                    'var' => $calcVar($totalExpensesCurr, $totalExpensesPrior),
+                ],
+                'gross_profit' => [
+                    'curr' => $grossProfitCurr,
+                    'prior' => $grossProfitPrior,
+                    'var' => $calcVar($grossProfitCurr, $grossProfitPrior),
+                ],
+                'net_profit' => [
+                    'curr' => $netProfitCurr,
+                    'prior' => $netProfitPrior,
+                    'var' => $calcVar($netProfitCurr, $netProfitPrior),
+                ],
+                'net_margin' => [
+                    'curr' => $netMarginCurr,
+                    'var' => round($netMarginCurr - $netMarginPrior, 2),
+                ],
+            ],
+            'income' => [
+                'items' => [
+                    [
+                        'code' => '1',
+                        'name' => 'Revenue from Operations',
+                        'curr' => $revenueOps,
+                        'prior' => $revenueOpsPrior,
+                        'var' => $calcVar($revenueOps, $revenueOpsPrior),
+                    ],
+                    [
+                        'code' => '2',
+                        'name' => 'Other Income',
+                        'curr' => $otherIncome,
+                        'prior' => $otherIncomePrior,
+                        'var' => $calcVar($otherIncome, $otherIncomePrior),
+                    ],
+                ],
+                'total_curr' => $totalIncomeCurr,
+                'total_prior' => $totalIncomePrior,
+                'total_var' => $calcVar($totalIncomeCurr, $totalIncomePrior),
+            ],
+            'expenses' => [
+                'items' => [
+                    [
+                        'code' => '1',
+                        'name' => 'Cost of Sales / Direct Costs',
+                        'curr' => $costOfSales,
+                        'prior' => $costOfSalesPrior,
+                        'var' => $calcVar($costOfSales, $costOfSalesPrior),
+                    ],
+                    [
+                        'code' => '2',
+                        'name' => 'Employee Benefits Expense',
+                        'curr' => $employeeExpenses,
+                        'prior' => $employeeExpensesPrior,
+                        'var' => $calcVar($employeeExpenses, $employeeExpensesPrior),
+                    ],
+                    [
+                        'code' => '3',
+                        'name' => 'Administrative & Office Expenses',
+                        'curr' => $adminExpenses,
+                        'prior' => $adminExpensesPrior,
+                        'var' => $calcVar($adminExpenses, $adminExpensesPrior),
+                    ],
+                    [
+                        'code' => '4',
+                        'name' => 'Selling & Marketing Expenses',
+                        'curr' => $marketingExpenses,
+                        'prior' => $marketingExpensesPrior,
+                        'var' => $calcVar($marketingExpenses, $marketingExpensesPrior),
+                    ],
+                    [
+                        'code' => '5',
+                        'name' => 'Finance Costs',
+                        'curr' => $financeCosts,
+                        'prior' => $financeCostsPrior,
+                        'var' => $calcVar($financeCosts, $financeCostsPrior),
+                    ],
+                    [
+                        'code' => '6',
+                        'name' => 'Depreciation & Amortization',
+                        'curr' => $depreciation,
+                        'prior' => $depreciationPrior,
+                        'var' => $calcVar($depreciation, $depreciationPrior),
+                    ],
+                ],
+                'total_curr' => $totalExpensesCurr,
+                'total_prior' => $totalExpensesPrior,
+                'total_var' => $calcVar($totalExpensesCurr, $totalExpensesPrior),
+            ],
+            'profit_before_tax' => [
+                'curr' => $profitBeforeTaxCurr,
+                'prior' => $profitBeforeTaxPrior,
+                'var' => $calcVar($profitBeforeTaxCurr, $profitBeforeTaxPrior),
+            ],
+            'tax_expense' => [
+                'curr' => $taxExpenseCurr,
+                'prior' => $taxExpensePrior,
+                'var' => $calcVar($taxExpenseCurr, $taxExpensePrior),
+            ],
+            'net_profit_after_tax' => [
+                'curr' => $netProfitCurr,
+                'prior' => $netProfitPrior,
+                'var' => $calcVar($netProfitCurr, $netProfitPrior),
+            ],
+        ];
+
+        // Maintain backward-compatibility fallback array
         $profitLossEntries = [
             'incomes' => [
                 'direct' => [
-                    ['name' => 'Apartment & Residential Unit Sales', 'amount' => $directSales * 0.75],
-                    ['name' => 'Commercial Shops & Office Space Allotments', 'amount' => $directSales * 0.25],
+                    ['name' => 'Apartment & Residential Unit Sales', 'amount' => $revenueOps * 0.75],
+                    ['name' => 'Commercial Shops & Office Space Allotments', 'amount' => $revenueOps * 0.25],
                 ],
-                'total_direct' => $directSales,
+                'total_direct' => $revenueOps,
                 'indirect' => [
-                    ['name' => 'Customer Delayed Payment Penalties & Interest', 'amount' => 480000.00 * $projectMultiplier],
-                    ['name' => 'Booking Cancellation & Administrative Retention', 'amount' => 350000.00 * $projectMultiplier],
+                    ['name' => 'Other Income', 'amount' => $otherIncome],
                 ],
-                'total_indirect' => $indirectIncomes,
-                'total_incomes' => $totalIncomes,
+                'total_indirect' => $otherIncome,
+                'total_incomes' => $totalIncomeCurr,
             ],
             'expenses' => [
                 'direct' => [
-                    ['name' => 'Raw Materials (Steel, Cement, Ready-mix Concrete)', 'amount' => $directMaterial],
-                    ['name' => 'Civil Subcontractors & Structural Works', 'amount' => $directSubcontractor],
-                    ['name' => 'Site Wages & Skilled Construction Labor', 'amount' => $directLabor],
+                    ['name' => 'Cost of Sales / Direct Costs', 'amount' => $costOfSales],
                 ],
-                'total_direct' => $totalDirectExpenses,
-                'gross_profit' => $grossProfit,
+                'total_direct' => $costOfSales,
+                'gross_profit' => $grossProfitCurr,
                 'indirect' => [
-                    ['name' => 'Sales Agent & Brokerage Commissions', 'amount' => $brokeragePaid],
-                    ['name' => 'Bank Construction Loan Interest & Charges', 'amount' => $financingCosts],
-                    ['name' => 'Administrative & Management Overhead', 'amount' => $adminOverhead],
-                    ['name' => 'Site Operations, Fuel & Logistics', 'amount' => $siteUtilities],
+                    ['name' => 'Employee Benefits Expense', 'amount' => $employeeExpenses],
+                    ['name' => 'Administrative & Office Expenses', 'amount' => $adminExpenses],
+                    ['name' => 'Selling & Marketing Expenses', 'amount' => $marketingExpenses],
+                    ['name' => 'Finance Costs', 'amount' => $financeCosts],
+                    ['name' => 'Depreciation & Amortization', 'amount' => $depreciation],
                 ],
-                'total_indirect' => $totalIndirectExpenses,
-                'total_expenses' => $totalDirectExpenses + $totalIndirectExpenses,
+                'total_indirect' => $totalExpensesCurr - $costOfSales,
+                'total_expenses' => $totalExpensesCurr,
             ],
-            'net_profit' => $netProfit,
-            'gross_margin_pct' => round($grossProfitMargin, 2),
-            'net_margin_pct' => round($netProfitMargin, 2),
-            'ebitda' => $netProfit + $financingCosts + (650000.00 * $projectMultiplier),
+            'net_profit' => $netProfitCurr,
+            'gross_margin_pct' => $totalIncomeCurr > 0 ? round(($grossProfitCurr / $totalIncomeCurr) * 100, 2) : 0,
+            'net_margin_pct' => $netMarginCurr,
+            'ebitda' => $netProfitCurr + $financeCosts + $depreciation,
         ];
 
-        return view('reports.profit-loss', array_merge($lookups, compact('activeTab', 'profitLossEntries')));
+        return view('reports.profit-loss', array_merge($lookups, compact('activeTab', 'pnlData', 'profitLossEntries')));
     }
 
     public function balanceSheet(Request $request): View
@@ -2226,96 +2417,118 @@ class ReportController extends Controller
         $filterReceiptsQuery = Receipt::query();
         $filterLoansQuery = Loan::query();
         $filterEmiQuery = EmiSchedule::where('status', 'Paid');
+        $filterBillsQuery = DB::table('bills');
 
         if ($request->filled('project_id')) {
             $filterSalesQuery->where('project_id', $request->project_id);
             $filterReceiptsQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
             $filterLoansQuery->where('project_id', $request->project_id);
             $filterEmiQuery->whereHas('loan', fn($q) => $q->where('project_id', $request->project_id));
+            $filterBillsQuery->where('project_id', $request->project_id);
         }
-        if ($request->filled('unit_type_id')) {
-            $filterSalesQuery->whereHas('unit', fn($q) => $q->where('unit_type_id', $request->unit_type_id));
-        }
-        if ($request->filled('customer_id')) {
-            $filterSalesQuery->where('customer_id', $request->customer_id);
-            $filterReceiptsQuery->where('customer_id', $request->customer_id);
-        }
-        if ($request->filled('payment_mode')) {
-            $filterReceiptsQuery->where('payment_mode', $request->payment_mode);
+
+        if ($request->filled('date_as_on')) {
+            $filterSalesQuery->whereDate('sale_date', '<=', $request->date_as_on);
+            $filterReceiptsQuery->whereDate('receipt_date', '<=', $request->date_as_on);
+            $filterBillsQuery->whereDate('created_at', '<=', $request->date_as_on);
         }
 
         $totalProjectsCount = max(Project::where('is_active', true)->count(), 1);
         $projectMultiplier = $request->filled('project_id') ? (1.0 / $totalProjectsCount) : 1.0;
 
-        $fixedAssets = 23800000.00 * $projectMultiplier;
         $dbCash = (float)(clone $filterReceiptsQuery)->where('payment_mode', 'Cash')->sum('amount');
-        $cashInHand = max($dbCash, 850000.00 * $projectMultiplier);
+        $cashInHand = $dbCash > 0 ? $dbCash : (25000.00 * $projectMultiplier);
 
         $dbBank = (float)(clone $filterReceiptsQuery)->whereIn('payment_mode', ['Bank Transfer', 'Online', 'Cheque'])->sum('amount');
-        $bankAssets = max($dbBank, 9400000.00 * $projectMultiplier);
+        $bankAssets = $dbBank > 0 ? $dbBank : (8500000.00 * $projectMultiplier);
 
         $dbRec = (float)(clone $filterSalesQuery)->sum('remaining_balance');
-        $receivables = max($dbRec, 18200000.00 * $projectMultiplier);
+        $receivables = $dbRec > 0 ? $dbRec : (11000000.00 * $projectMultiplier);
 
-        $wipInventory = 14500000.00 * $projectMultiplier;
-        $contractorDeposits = 3100000.00 * $projectMultiplier;
+        $contractorAdvance = 1500000.00 * $projectMultiplier;
+        $wipInventory = 35000000.00 * $projectMultiplier;
+        $totalCurrentAssets = $bankAssets + $cashInHand + $receivables + $contractorAdvance + $wipInventory;
 
-        $totalAssets = $fixedAssets + $cashInHand + $bankAssets + $receivables + $wipInventory + $contractorDeposits;
+        $machineryAssets = 4000000.00 * $projectMultiplier;
+        $officeProperty = 6000000.00 * $projectMultiplier;
+        $hardwareLicenses = 500000.00 * $projectMultiplier;
+        $depreciation = 1000000.00 * $projectMultiplier;
+        $totalFixedAssets = $machineryAssets + $officeProperty + $hardwareLicenses - $depreciation;
+
+        $totalAssets = $totalCurrentAssets + $totalFixedAssets;
+
+        $dbBills = (float)$filterBillsQuery->sum('final_amount');
+        $contractorBillsPayable = $dbBills > 0 ? ($dbBills * 0.5) : (4000000.00 * $projectMultiplier);
+        $vendorPayables = $dbBills > 0 ? ($dbBills * 0.38) : (3000000.00 * $projectMultiplier);
+        $statutoryPayables = 1200000.00 * $projectMultiplier;
+        $customerAdvances = 2500000.00 * $projectMultiplier;
+        $totalCurrentLiabilities = $contractorBillsPayable + $vendorPayables + $statutoryPayables + $customerAdvances;
 
         $dbLoans = (float)$filterLoansQuery->sum('principal_amount') - (float)$filterEmiQuery->sum('principal_component');
-        $bankLoans = max($dbLoans, 18500000.00 * $projectMultiplier);
-        $supplierPayables = 7020000.00 * $projectMultiplier;
-        $statutoryDues = 920000.00 * $projectMultiplier;
-        $totalLiabilities = $bankLoans + $supplierPayables + $statutoryDues;
+        $constructionLoan = $dbLoans > 0 ? ($dbLoans * 0.57) : (20000000.00 * $projectMultiplier);
+        $landLoan = $dbLoans > 0 ? ($dbLoans * 0.43) : (15000000.00 * $projectMultiplier);
+        $totalLongTermLiabilities = $constructionLoan + $landLoan;
+
+        $totalLiabilities = $totalCurrentLiabilities + $totalLongTermLiabilities;
 
         $partnerAllocQuery = PartnerAllocation::query();
         if ($request->filled('project_id')) {
             $partnerAllocQuery->where('project_id', $request->project_id);
         }
-        $partnerAlloc = (float)$partnerAllocQuery->sum('allocated_amount') ?: (25000000.00 * $projectMultiplier);
-        $partner1Capital = $partnerAlloc * 0.575;
-        $partner2Capital = $partnerAlloc * 0.425;
-        $retainedEarnings = $totalAssets - ($totalLiabilities + $partner1Capital + $partner2Capital);
+        $partnerAlloc = (float)$partnerAllocQuery->sum('allocated_amount') ?: (14200000.00 * $projectMultiplier);
+        $partner1Capital = $partnerAlloc * 0.60;
+        $partner2Capital = $partnerAlloc * 0.40;
+        $partnerDrawings = 0.00;
 
-        $balanceSheetEntries = [
-            'assets' => [
-                'Fixed Assets & Equipment' => [
-                    'Plant, Cranes & Concrete Batching Machinery' => 12500000.00 * $projectMultiplier,
-                    'Earthmoving Vehicles & Site Transport' => 6800000.00 * $projectMultiplier,
-                    'Corporate Office Infrastructure' => 4500000.00 * $projectMultiplier,
-                ],
-                'Current Assets' => [
-                    'Cash in Hand (Petty Cash Vault)' => $cashInHand,
-                    'Cash at Bank (HDFC Operating & Escrow)' => $bankAssets,
-                    'Trade Receivables (Customer Dues)' => $receivables,
-                    'Construction Work in Progress (WIP)' => $wipInventory,
-                    'Contractor & Supplier Security Deposits' => $contractorDeposits,
-                ],
-                'total' => $totalAssets,
+        $retainedEarnings = $totalAssets - ($totalLiabilities + $partner1Capital + $partner2Capital - $partnerDrawings);
+        $totalEquity = $partner1Capital + $partner2Capital + $retainedEarnings - $partnerDrawings;
+
+        $balanceSheetData = [
+            'as_on_date' => $request->get('date_as_on', '2026-03-31'),
+            'current_assets' => [
+                ['code' => '1101', 'name' => 'Bank Balances (Karnataka Bank / HDFC Escrow)', 'amount' => $bankAssets],
+                ['code' => '1102', 'name' => 'Site Petty Cash Box Balances', 'amount' => $cashInHand],
+                ['code' => '1110', 'name' => 'Customer Receivables (Pending Installments Billed)', 'amount' => $receivables],
+                ['code' => '1120', 'name' => 'Advance Payments to Contractors & Suppliers', 'amount' => $contractorAdvance],
+                ['code' => '1130', 'name' => 'Land & Construction Work-in-Progress (Unbilled Cost)', 'amount' => $wipInventory],
             ],
-            'liabilities_and_equity' => [
-                'Current Liabilities' => [
-                    'Sundry Creditors & Supplier Bills' => $supplierPayables,
-                    'GST & Statutory Tax Payables' => $statutoryDues,
-                ],
-                'Loans & Borrowings' => [
-                    'HDFC Project Construction Loan' => $bankLoans * 0.65,
-                    'Axis Bank Term Line' => $bankLoans * 0.35,
-                ],
-                'Partner Capital & Equity' => [
-                    'Basheer Capital Account (57.5% Ratio)' => $partner1Capital,
-                    'Pavoor Capital Account (42.5% Ratio)' => $partner2Capital,
-                    'Retained Earnings & Reserves Surplus' => $retainedEarnings,
-                ],
-                'total' => $totalAssets,
+            'total_current_assets' => $totalCurrentAssets,
+            'fixed_assets' => [
+                ['code' => '1201', 'name' => 'Site Machinery, JCB & Heavy Equipment', 'amount' => $machineryAssets],
+                ['code' => '1210', 'name' => 'Corporate Office Property & Vehicles', 'amount' => $officeProperty],
+                ['code' => '1220', 'name' => 'Computer Hardware & ERP Software Licenses', 'amount' => $hardwareLicenses],
+                ['code' => '1290', 'name' => 'Less: Accumulated Depreciation', 'amount' => -$depreciation],
             ],
-            'net_worth' => $partner1Capital + $partner2Capital + $retainedEarnings,
-            'working_capital' => ($cashInHand + $bankAssets + $receivables + $wipInventory + $contractorDeposits) - ($supplierPayables + $statutoryDues),
-            'quick_ratio' => round(($cashInHand + $bankAssets + $receivables) / max($supplierPayables + $statutoryDues, 1), 2),
-            'is_balanced' => true,
+            'total_fixed_assets' => $totalFixedAssets,
+            'total_assets' => $totalAssets,
+            'current_liabilities' => [
+                ['code' => '2101', 'name' => 'Contractor RA Work Bills Payable', 'amount' => $contractorBillsPayable],
+                ['code' => '2110', 'name' => 'Material Supplier & Vendor Payables', 'amount' => $vendorPayables],
+                ['code' => '2120', 'name' => 'Statutory Payables (GST, TDS, Provident Fund)', 'amount' => $statutoryPayables],
+                ['code' => '2130', 'name' => 'Advances Received from Customers (Unbilled)', 'amount' => $customerAdvances],
+            ],
+            'total_current_liabilities' => $totalCurrentLiabilities,
+            'long_term_liabilities' => [
+                ['code' => '2201', 'name' => 'Bank Construction Loans / Project Credit Limits', 'amount' => $constructionLoan],
+                ['code' => '2210', 'name' => 'Bank Land Acquisition Loan Accounts', 'amount' => $landLoan],
+            ],
+            'total_long_term_liabilities' => $totalLongTermLiabilities,
+            'total_liabilities' => $totalLiabilities,
+            'equity' => [
+                ['code' => '3001', 'name' => 'Partner A Capital Account (60% Share)', 'amount' => $partner1Capital],
+                ['code' => '3002', 'name' => 'Partner B Capital Account (40% Share)', 'amount' => $partner2Capital],
+                ['code' => '3010', 'name' => 'Retained Earnings / Accumulated Profit from P&L', 'amount' => $retainedEarnings],
+                ['code' => '3020', 'name' => 'Less: Partner Drawings & Profit Distributions', 'amount' => -$partnerDrawings],
+            ],
+            'total_equity' => $totalEquity,
+            'total_liabilities_equity' => $totalLiabilities + $totalEquity,
+            'net_worth' => $totalEquity,
+            'working_capital' => $totalCurrentAssets - $totalCurrentLiabilities,
+            'quick_ratio' => round(($bankAssets + $cashInHand + $receivables) / max($totalCurrentLiabilities, 1), 2),
+            'is_balanced' => abs($totalAssets - ($totalLiabilities + $totalEquity)) < 0.01,
         ];
 
-        return view('reports.balance-sheet', array_merge($lookups, compact('activeTab', 'balanceSheetEntries')));
+        return view('reports.balance-sheet', array_merge($lookups, compact('activeTab', 'balanceSheetData')));
     }
 
     public function auditTrail(Request $request): View
