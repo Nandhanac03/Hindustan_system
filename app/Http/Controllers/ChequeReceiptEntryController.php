@@ -222,7 +222,7 @@ class ChequeReceiptEntryController extends Controller
         $projects     = Project::where('is_active', true)->orderBy('name')->get(['id', 'name']);
 
         $paymentModes = class_exists(PaymentMode::class)
-            ? PaymentMode::where('status', 'active')->orderBy('name')->get(['id', 'name', 'code'])
+            ? PaymentMode::where('status', 'active')->orderBy('id')->get(['id', 'name', 'code', 'requires_reference', 'requires_bank'])
             : collect([]);
 
         $realizationStatuses = Receipt::STATUSES;
