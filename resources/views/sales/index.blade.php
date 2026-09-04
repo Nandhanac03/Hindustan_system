@@ -2940,8 +2940,12 @@ function salesApp() {
                 body: JSON.stringify({
                     status: 'exchanged',
                     new_unit_id: this.exchangeForm.new_unit_id,
-                    sale_rate: this.exchangeForm.sale_rate,
+                    expected_rate_per_sqft: this.exchangeForm.expected_rate_per_sqft || this.exchangeForm.expected_rate,
+                    expected_sale_amount: this.exchangeForm.expected_sale_amount,
+                    sale_rate: this.exchangeForm.sale_rate_per_sqft || this.exchangeForm.sale_rate,
+                    sale_rate_per_sqft: this.exchangeForm.sale_rate_per_sqft || this.exchangeForm.sale_rate,
                     agreed_sale_amount: this.exchangeForm.agreed_sale_amount,
+                    gst_type: this.exchangeForm.gst_type || 'none',
                     gst_percentage: this.exchangeForm.gst_percentage,
                     gst_amount: this.exchangeForm.gst_amount,
                     carry_forward: true,

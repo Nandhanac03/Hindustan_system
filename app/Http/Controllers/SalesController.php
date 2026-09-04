@@ -221,7 +221,7 @@ class SalesController extends Controller
                 $unitModel = Unit::findOrFail($item['unit_id']);
                 $area = (float)$unitModel->built_up_area ?: 1.0;
                 $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
-                $expectedRate = (float)($item['rate_per_sqft'] ?? $unitModel->expected_rate_per_sqft ?? 0.0);
+                $expectedRate = (float)($item['rate_per_sqft'] ?? $item['expected_rate_per_sqft'] ?? $unitModel->expected_rate_per_sqft ?? 0.0);
                 $saleRate = (float)($item['sale_rate_per_sqft'] ?? $item['rate_per_sqft'] ?? 0.0);
                 $rate = $isUnitParking ? 0.0 : ($saleRate > 0 ? $saleRate : $expectedRate);
                 $amount = (float)$item['sale_amount'];
@@ -246,6 +246,7 @@ class SalesController extends Controller
                     'unit_id' => $item['unit_id'],
                     'wing' => $item['wing'] ?? null,
                     'rate_per_sqft' => $rate,
+                    'expected_rate_per_sqft' => $expectedRate,
                     'area_sqft' => $area,
                     'base_amount' => $baseAmount,
                     'gst_type' => $gstType,
@@ -300,13 +301,16 @@ class SalesController extends Controller
             }
             // Save individual units & update status
             foreach ($processedUnits as $pUnit) {
-                $su = SaleUnit::create(array_merge($pUnit, ['sale_id' => $sale->id]));
+                $suData = $pUnit;
+                unset($suData['expected_rate_per_sqft']);
+                $su = SaleUnit::create(array_merge($suData, ['sale_id' => $sale->id]));
                 $unitModel = Unit::findOrFail($pUnit['unit_id']);
+                $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
 
-                $inputRate = (float)$pUnit['rate_per_sqft'];
-                if ($inputRate > 0 && $inputRate !== (float)$unitModel->expected_rate_per_sqft) {
+                $inputExpectedRate = (float)($pUnit['expected_rate_per_sqft'] ?? 0.0);
+                if (!$isUnitParking && $inputExpectedRate > 0 && abs($inputExpectedRate - (float)$unitModel->expected_rate_per_sqft) > 0.001) {
                     $rateService = resolve(\App\Services\UnitRateService::class);
-                    $rateService->updateRate($unitModel, $inputRate, now()->toDateString(), 'Edited during sale booking');
+                    $rateService->updateRate($unitModel, $inputExpectedRate, now()->toDateString(), 'Edited during sale booking');
                     $unitModel->refresh();
                 }
 
@@ -478,7 +482,7 @@ class SalesController extends Controller
                 $unitModel = Unit::findOrFail($item['unit_id']);
                 $area = (float)$unitModel->built_up_area ?: 1.0;
                 $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
-                $expectedRate = (float)($item['rate_per_sqft'] ?? $unitModel->expected_rate_per_sqft ?? 0.0);
+                $expectedRate = (float)($item['rate_per_sqft'] ?? $item['expected_rate_per_sqft'] ?? $unitModel->expected_rate_per_sqft ?? 0.0);
                 $saleRate = (float)($item['sale_rate_per_sqft'] ?? $item['rate_per_sqft'] ?? 0.0);
                 $rate = $isUnitParking ? 0.0 : ($saleRate > 0 ? $saleRate : $expectedRate);
                 $amount = (float)$item['sale_amount'];
@@ -503,6 +507,7 @@ class SalesController extends Controller
                     'unit_id' => $item['unit_id'],
                     'wing' => $item['wing'] ?? null,
                     'rate_per_sqft' => $rate,
+                    'expected_rate_per_sqft' => $expectedRate,
                     'area_sqft' => $area,
                     'base_amount' => $baseAmount,
                     'gst_type' => $gstType,
@@ -549,16 +554,19 @@ class SalesController extends Controller
             }
             // Save/update individual units & update status
             foreach ($processedUnits as $pUnit) {
+                $suData = $pUnit;
+                unset($suData['expected_rate_per_sqft']);
                 $su = $sale->saleUnits()->updateOrCreate(
                     ['unit_id' => $pUnit['unit_id']],
-                    $pUnit
+                    $suData
                 );
                 $unitModel = Unit::findOrFail($pUnit['unit_id']);
+                $isUnitParking = $unitModel->unitType && (strtolower($unitModel->unitType->name) === 'parking' || strtolower($unitModel->unitType->category) === 'parking');
 
-                $inputRate = (float)$pUnit['rate_per_sqft'];
-                if ($inputRate > 0 && $inputRate !== (float)$unitModel->expected_rate_per_sqft) {
+                $inputExpectedRate = (float)($pUnit['expected_rate_per_sqft'] ?? 0.0);
+                if (!$isUnitParking && $inputExpectedRate > 0 && abs($inputExpectedRate - (float)$unitModel->expected_rate_per_sqft) > 0.001) {
                     $rateService = resolve(\App\Services\UnitRateService::class);
-                    $rateService->updateRate($unitModel, $inputRate, now()->toDateString(), 'Edited during sale booking');
+                    $rateService->updateRate($unitModel, $inputExpectedRate, now()->toDateString(), 'Edited during sale booking');
                     $unitModel->refresh();
                 }
 
@@ -693,6 +701,10 @@ class SalesController extends Controller
             'initial_payment_date'   => ['nullable', 'date'],
             'agreed_sale_amount'     => ['nullable', 'numeric', 'min:0'],
             'sale_rate'              => ['nullable', 'numeric', 'min:0'],
+            'sale_rate_per_sqft'     => ['nullable', 'numeric', 'min:0'],
+            'expected_rate_per_sqft' => ['nullable', 'numeric', 'min:0'],
+            'expected_rate'          => ['nullable', 'numeric', 'min:0'],
+            'expected_sale_amount'   => ['nullable', 'numeric', 'min:0'],
             'gst_type'               => ['nullable', Rule::in(['none', 'exclusive', 'inclusive'])],
             'gst_percentage'         => ['nullable', 'numeric', 'min:0'],
             'gst_amount'             => ['nullable', 'numeric', 'min:0'],
@@ -793,8 +805,23 @@ class SalesController extends Controller
                     'gst_amount'         => 0.00,
                 ]);
             }
+            $inputExpectedRate = isset($validated['expected_rate_per_sqft']) 
+                ? (float)$validated['expected_rate_per_sqft'] 
+                : (isset($validated['expected_rate']) ? (float)$validated['expected_rate'] : null);
+            $inputExpectedSaleAmount = isset($validated['expected_sale_amount']) ? (float)$validated['expected_sale_amount'] : null;
+
+            if (!$newUnitIsParking && $inputExpectedRate !== null && $inputExpectedRate > 0 && abs($inputExpectedRate - (float)$newUnit->expected_rate_per_sqft) > 0.001) {
+                $rateService = resolve(\App\Services\UnitRateService::class);
+                $rateService->updateRate($newUnit, $inputExpectedRate, now()->toDateString(), 'Edited during sale exchange');
+                $newUnit->refresh();
+            } elseif ($newUnitIsParking && $inputExpectedSaleAmount !== null && $inputExpectedSaleAmount > 0 && abs($inputExpectedSaleAmount - (float)$newUnit->expected_sale_amount) > 0.001) {
+                $rateService = resolve(\App\Services\UnitRateService::class);
+                $rateService->updateRate($newUnit, $inputExpectedSaleAmount, now()->toDateString(), 'Edited during sale exchange');
+                $newUnit->refresh();
+            }
+
             $newAmount = isset($validated['agreed_sale_amount']) ? (float)$validated['agreed_sale_amount'] : (float)$newUnit->expected_sale_amount;
-            $newRate = isset($validated['sale_rate']) ? (float)$validated['sale_rate'] : (float)$newUnit->expected_rate_per_sqft;
+            $newRate = isset($validated['sale_rate']) ? (float)$validated['sale_rate'] : (isset($validated['sale_rate_per_sqft']) ? (float)$validated['sale_rate_per_sqft'] : (float)$newUnit->expected_rate_per_sqft);
             $gstType = $validated['gst_type'] ?? $newUnit->gst_behavior ?? $sale->gst_type ?? 'none';
             $gstPct = isset($validated['gst_percentage']) ? (float)$validated['gst_percentage'] : 18.0;
             $gstAmount = 0.0;
