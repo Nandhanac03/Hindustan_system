@@ -3,7 +3,7 @@
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="{ 
     activeTab: 'balance_sheet', 
     viewType: 'vertical', 
-    hideZero: false,
+    hideZero: {{ request('hide_zero') ? 'true' : 'false' }},
     printReport() { window.print(); },
     exportExcel() {
         const table = document.querySelector('#balanceSheetExcelTable');
@@ -185,7 +185,7 @@
                     {{-- As-On Date --}}
                     <div class="flex items-center gap-2 min-w-[200px]">
                         <label class="text-xs font-extrabold text-slate-700 shrink-0">As-On Date</label>
-                        <input type="date" name="date_as_on" value="{{ request('date_as_on', '2026-03-31') }}" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition-all">
+                        <input type="date" name="date_as_on" value="{{ request('date_as_on', $balanceSheetData['as_on_date'] ?? '2026-03-31') }}" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition-all">
                     </div>
 
                     {{-- View Type Radio Options --}}
@@ -205,7 +205,7 @@
                     <div class="flex items-center gap-2 border-l border-slate-200 pl-4">
                         <label class="text-xs font-extrabold text-slate-700">Zero-Balance Accounts</label>
                         <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer">
-                            <input type="checkbox" name="hide_zero" x-model="hideZero" class="rounded text-[#a38c29] focus:ring-[#a38c29]">
+                            <input type="checkbox" name="hide_zero" value="1" x-model="hideZero" class="rounded text-[#a38c29] focus:ring-[#a38c29]">
                             <span>Hide Zero-Balance Accounts</span>
                         </label>
                     </div>
@@ -225,7 +225,7 @@
         </form>
 
         {{-- STATEMENT OF FINANCIAL POSITION (ASSETS Left vs LIABILITIES & EQUITY Right) --}}
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" :class="viewType === 't_format' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-2'">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {{-- 1. ASSETS TABLE CONTAINER --}}
             <div class="border border-slate-300 rounded-xl overflow-hidden shadow-sm bg-white flex flex-col justify-between">
@@ -255,41 +255,21 @@
                                 <td class="px-4 py-2 font-black text-blue-700 border-r border-slate-200 pl-6">1100</td>
                                 <td colspan="3" class="px-4 py-2 font-black text-blue-700 uppercase tracking-wider">CURRENT ASSETS</td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1101</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Bank Balances (Karnataka Bank / HDFC Escrow)</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">85,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
+                            @foreach($balanceSheetData['current_assets'] as $idx => $item)
+                            <tr x-show="!hideZero || {{ abs($item['amount']) > 0 ? 'true' : 'false' }}" class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">{{ $item['code'] }}</td>
+                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">{{ $item['name'] }}</td>
+                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">{{ number_format($item['amount'], 2) }}</td>
+                                <td class="px-4 py-2 text-right font-mono {{ $loop->last ? 'font-bold text-blue-700' : '' }}">
+                                    {{ $loop->last ? number_format($balanceSheetData['total_current_assets'], 2) : '' }}
+                                </td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1102</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Site Petty Cash Box Balances</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">25,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1110</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Customer Receivables (Pending Installments Billed)</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">1,10,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1120</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Advance Payments to Contractors & Suppliers</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">15,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1130</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Land & Construction Work-in-Progress (Unbilled Cost)</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">3,50,00,000</td>
-                                <td class="px-4 py-2 text-right font-bold text-blue-700 font-mono">5,60,25,000</td>
-                            </tr>
+                            @endforeach
                             <tr class="bg-emerald-50/70 border-y border-emerald-200 font-black">
                                 <td class="px-4 py-2.5 text-emerald-800 border-r border-emerald-200 uppercase">SUBTOTAL</td>
                                 <td class="px-4 py-2.5 text-emerald-800 border-r border-emerald-200 uppercase tracking-wider">Total Current Assets</td>
                                 <td class="px-4 py-2.5 text-right border-r border-emerald-200 font-mono"></td>
-                                <td class="px-4 py-2.5 text-right text-emerald-800 font-mono">5,60,25,000</td>
+                                <td class="px-4 py-2.5 text-right text-emerald-800 font-mono">{{ number_format($balanceSheetData['total_current_assets'], 2) }}</td>
                             </tr>
 
                             {{-- 1200 NON-CURRENT / FIXED ASSETS --}}
@@ -297,35 +277,23 @@
                                 <td class="px-4 py-2 font-black text-blue-700 border-r border-slate-200 pl-6">1200</td>
                                 <td colspan="3" class="px-4 py-2 font-black text-blue-700 uppercase tracking-wider">NON-CURRENT / FIXED ASSETS</td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1201</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Site Machinery, JCB & Heavy Equipment</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">40,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
+                            @foreach($balanceSheetData['fixed_assets'] as $idx => $item)
+                            <tr x-show="!hideZero || {{ abs($item['amount']) > 0 ? 'true' : 'false' }}" class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">{{ $item['code'] }}</td>
+                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">{{ $item['name'] }}</td>
+                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono {{ $item['amount'] < 0 ? 'text-rose-600' : '' }}">
+                                    {{ $item['amount'] < 0 ? '('.number_format(abs($item['amount']), 2).')' : number_format($item['amount'], 2) }}
+                                </td>
+                                <td class="px-4 py-2 text-right font-mono {{ $loop->index === 2 ? 'font-bold text-blue-700' : '' }}">
+                                    {{ $loop->index === 2 ? number_format($balanceSheetData['total_fixed_assets'], 2) : '' }}
+                                </td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1210</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Corporate Office Property & Vehicles</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">60,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1220</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Computer Hardware & ERP Software Licenses</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">5,00,000</td>
-                                <td class="px-4 py-2 text-right font-bold text-blue-700 font-mono">95,00,000</td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">1290</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Less: Accumulated Depreciation</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono text-rose-600">(10,00,000)</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
+                            @endforeach
                             <tr class="bg-emerald-50/70 border-y border-emerald-200 font-black">
                                 <td class="px-4 py-2.5 text-emerald-800 border-r border-emerald-200 uppercase">SUBTOTAL</td>
                                 <td class="px-4 py-2.5 text-emerald-800 border-r border-emerald-200 uppercase tracking-wider">Total Non-Current / Fixed Assets</td>
                                 <td class="px-4 py-2.5 text-right border-r border-emerald-200 font-mono"></td>
-                                <td class="px-4 py-2.5 text-right text-emerald-800 font-mono">95,00,000</td>
+                                <td class="px-4 py-2.5 text-right text-emerald-800 font-mono">{{ number_format($balanceSheetData['total_fixed_assets'], 2) }}</td>
                             </tr>
 
                         </tbody>
@@ -338,7 +306,7 @@
                         <span class="text-indigo-600 mr-2">TOTAL (A)</span>
                         <span>TOTAL ASSETS</span>
                     </div>
-                    <span class="font-mono text-indigo-700 text-sm">6,55,25,000</span>
+                    <span class="font-mono text-indigo-700 text-sm">{{ number_format($balanceSheetData['total_assets'], 2) }}</span>
                 </div>
             </div>
 
@@ -370,35 +338,21 @@
                                 <td class="px-4 py-2 font-black text-rose-700 border-r border-slate-200 pl-6">2100</td>
                                 <td colspan="3" class="px-4 py-2 font-black text-rose-700 uppercase tracking-wider">CURRENT LIABILITIES & PAYABLES</td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">2101</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Contractor RA Work Bills Payable</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">40,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
+                            @foreach($balanceSheetData['current_liabilities'] as $idx => $item)
+                            <tr x-show="!hideZero || {{ abs($item['amount']) > 0 ? 'true' : 'false' }}" class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">{{ $item['code'] }}</td>
+                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">{{ $item['name'] }}</td>
+                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">{{ number_format($item['amount'], 2) }}</td>
+                                <td class="px-4 py-2 text-right font-mono {{ $loop->last ? 'font-bold text-rose-700' : '' }}">
+                                    {{ $loop->last ? number_format($balanceSheetData['total_current_liabilities'], 2) : '' }}
+                                </td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">2110</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Material Supplier & Vendor Payables</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">30,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">2120</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Statutory Payables (GST, TDS, Provident Fund)</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">12,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">2130</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Advances Received from Customers (Unbilled)</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">25,00,000</td>
-                                <td class="px-4 py-2 text-right font-bold text-rose-700 font-mono">1,07,00,000</td>
-                            </tr>
+                            @endforeach
                             <tr class="bg-rose-50/70 border-y border-rose-200 font-black">
                                 <td class="px-4 py-2.5 text-rose-800 border-r border-rose-200 uppercase">SUBTOTAL</td>
                                 <td class="px-4 py-2.5 text-rose-800 border-r border-rose-200 uppercase tracking-wider">Total Current Liabilities</td>
                                 <td class="px-4 py-2.5 text-right border-r border-rose-200 font-mono"></td>
-                                <td class="px-4 py-2.5 text-right text-rose-800 font-mono">1,07,00,000</td>
+                                <td class="px-4 py-2.5 text-right text-rose-800 font-mono">{{ number_format($balanceSheetData['total_current_liabilities'], 2) }}</td>
                             </tr>
 
                             {{-- 2200 NON-CURRENT / LONG-TERM LIABILITIES --}}
@@ -406,29 +360,27 @@
                                 <td class="px-4 py-2 font-black text-rose-700 border-r border-slate-200 pl-6">2200</td>
                                 <td colspan="3" class="px-4 py-2 font-black text-rose-700 uppercase tracking-wider">NON-CURRENT / LONG-TERM LIABILITIES</td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">2201</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Bank Construction Loans / Project Credit Limits</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">2,00,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
+                            @foreach($balanceSheetData['long_term_liabilities'] as $idx => $item)
+                            <tr x-show="!hideZero || {{ abs($item['amount']) > 0 ? 'true' : 'false' }}" class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">{{ $item['code'] }}</td>
+                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">{{ $item['name'] }}</td>
+                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">{{ number_format($item['amount'], 2) }}</td>
+                                <td class="px-4 py-2 text-right font-mono {{ $loop->last ? 'font-bold text-rose-700' : '' }}">
+                                    {{ $loop->last ? number_format($balanceSheetData['total_long_term_liabilities'], 2) : '' }}
+                                </td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">2210</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Bank Land Acquisition Loan Accounts</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">1,50,00,000</td>
-                                <td class="px-4 py-2 text-right font-bold text-rose-700 font-mono">3,50,00,000</td>
-                            </tr>
+                            @endforeach
                             <tr class="bg-rose-50/70 border-y border-rose-200 font-black">
                                 <td class="px-4 py-2.5 text-rose-800 border-r border-rose-200 uppercase">SUBTOTAL</td>
                                 <td class="px-4 py-2.5 text-rose-800 border-r border-rose-200 uppercase tracking-wider">Total Long-Term Liabilities</td>
                                 <td class="px-4 py-2.5 text-right border-r border-rose-200 font-mono"></td>
-                                <td class="px-4 py-2.5 text-right text-rose-800 font-mono">3,50,00,000</td>
+                                <td class="px-4 py-2.5 text-right text-rose-800 font-mono">{{ number_format($balanceSheetData['total_long_term_liabilities'], 2) }}</td>
                             </tr>
                             <tr class="bg-rose-100/60 font-black text-rose-950 uppercase border-b border-rose-200">
                                 <td class="px-4 py-2.5 text-rose-700 border-r border-rose-200">TOTAL (B)</td>
                                 <td class="px-4 py-2.5 border-r border-rose-200 uppercase tracking-wider">TOTAL LIABILITIES</td>
                                 <td class="px-4 py-2.5 text-right border-r border-rose-200 font-mono"></td>
-                                <td class="px-4 py-2.5 text-right text-rose-900 font-mono">4,57,00,000</td>
+                                <td class="px-4 py-2.5 text-right text-rose-900 font-mono">{{ number_format($balanceSheetData['total_liabilities'], 2) }}</td>
                             </tr>
 
                             {{-- 3000 EQUITY & PARTNER CAPITAL --}}
@@ -436,35 +388,23 @@
                                 <td class="px-4 py-2 font-black text-purple-700 border-r border-slate-200">3000</td>
                                 <td colspan="3" class="px-4 py-2 font-black text-purple-700 uppercase tracking-wider">EQUITY & PARTNER CAPITAL</td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">3001</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Partner A Capital Account (60% Share)</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">85,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
+                            @foreach($balanceSheetData['equity'] as $idx => $item)
+                            <tr x-show="!hideZero || {{ abs($item['amount']) > 0 ? 'true' : 'false' }}" class="hover:bg-slate-50 transition">
+                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">{{ $item['code'] }}</td>
+                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">{{ $item['name'] }}</td>
+                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono {{ $item['amount'] < 0 ? 'text-rose-600' : '' }}">
+                                    {{ $item['amount'] < 0 ? '('.number_format(abs($item['amount']), 2).')' : number_format($item['amount'], 2) }}
+                                </td>
+                                <td class="px-4 py-2 text-right font-mono {{ $loop->index === 2 ? 'font-bold text-purple-700' : '' }}">
+                                    {{ $loop->index === 2 ? number_format($balanceSheetData['total_equity'], 2) : '' }}
+                                </td>
                             </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">3002</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Partner B Capital Account (40% Share)</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">57,00,000</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">3010</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Retained Earnings / Accumulated Profit from P&L</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono">56,25,000</td>
-                                <td class="px-4 py-2 text-right font-bold text-purple-700 font-mono">1,98,25,000</td>
-                            </tr>
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-2 text-slate-500 border-r border-slate-200 pl-8">3020</td>
-                                <td class="px-4 py-2 text-slate-700 border-r border-slate-200 font-bold">Less: Partner Drawings & Profit Distributions</td>
-                                <td class="px-4 py-2 text-right border-r border-slate-200 font-bold font-mono text-rose-600">(0)</td>
-                                <td class="px-4 py-2 text-right font-mono"></td>
-                            </tr>
+                            @endforeach
                             <tr class="bg-purple-50/70 border-y border-purple-200 font-black">
                                 <td class="px-4 py-2.5 text-purple-800 border-r border-purple-200 uppercase">TOTAL (C)</td>
                                 <td class="px-4 py-2.5 text-purple-800 border-r border-purple-200 uppercase tracking-wider">Total Equity & Owners' Reserves</td>
                                 <td class="px-4 py-2.5 text-right border-r border-purple-200 font-mono"></td>
-                                <td class="px-4 py-2.5 text-right text-purple-800 font-mono">1,98,25,000</td>
+                                <td class="px-4 py-2.5 text-right text-purple-800 font-mono">{{ number_format($balanceSheetData['total_equity'], 2) }}</td>
                             </tr>
 
                         </tbody>
@@ -477,7 +417,7 @@
                         <span class="text-indigo-600 mr-2">CHECK</span>
                         <span>TOTAL LIABILITIES & OWUITY (B + C)</span>
                     </div>
-                    <span class="font-mono text-indigo-700 text-sm">6,55,25,000</span>
+                    <span class="font-mono text-indigo-700 text-sm">{{ number_format($balanceSheetData['total_liabilities_equity'], 2) }}</span>
                 </div>
             </div>
 
@@ -492,15 +432,15 @@
                 <div class="space-y-2 text-xs font-bold text-slate-700 font-mono">
                     <div class="flex justify-between border-b border-slate-100 pb-1">
                         <span class="font-sans font-semibold text-slate-600">Total Assets</span>
-                        <span class="text-slate-900">Rs. 6,55,25,000</span>
+                        <span class="text-slate-900">Rs. {{ number_format($balanceSheetData['total_assets'], 2) }}</span>
                     </div>
                     <div class="flex justify-between border-b border-slate-100 pb-1">
                         <span class="font-sans font-semibold text-slate-600">Total Liabilities</span>
-                        <span class="text-slate-900">Rs. 4,57,00,000</span>
+                        <span class="text-slate-900">Rs. {{ number_format($balanceSheetData['total_liabilities'], 2) }}</span>
                     </div>
                     <div class="flex justify-between border-b border-slate-100 pb-1">
                         <span class="font-sans font-semibold text-slate-600">Total Equity</span>
-                        <span class="text-slate-900">Rs. 1,98,25,000</span>
+                        <span class="text-slate-900">Rs. {{ number_format($balanceSheetData['total_equity'], 2) }}</span>
                     </div>
                 </div>
                 <div class="pt-2 flex items-center justify-between border-t border-slate-100">
@@ -578,19 +518,26 @@
                 <tbody>
                     <tr height="25" style="height: 25pt;"><td style="font-weight: bold; color: #059669;">1000</td><td colspan="3" style="font-weight: bold; color: #059669;">ASSETS</td></tr>
                     <tr height="25" style="height: 25pt;"><td style="font-weight: bold; color: #1d4ed8;">1100</td><td colspan="3" style="font-weight: bold; color: #1d4ed8;">CURRENT ASSETS</td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1101</td><td>Bank Balances (Karnataka Bank / HDFC Escrow)</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">8500000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1102</td><td>Site Petty Cash Box Balances</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">25000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1110</td><td>Customer Receivables (Pending Installments Billed)</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">11000000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1120</td><td>Advance Payments to Contractors & Suppliers</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">1500000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1130</td><td>Land & Construction Work-in-Progress (Unbilled Cost)</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">35000000</td><td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">56025000</td></tr>
-                    <tr height="28" style="height: 28pt; background-color: #d1fae5;"><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">SUBTOTAL</td><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">Total Current Assets</td><td></td><td bgcolor="#d1fae5" style="text-align: right; font-weight: bold; color: #065f46; mso-number-format: '\#\,\#\#0\.00';">56025000</td></tr>
+                    @foreach($balanceSheetData['current_assets'] as $idx => $item)
+                    <tr height="24" style="height: 24pt;">
+                        <td>{{ $item['code'] }}</td>
+                        <td>{{ $item['name'] }}</td>
+                        <td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">{{ $item['amount'] }}</td>
+                        <td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">{{ $loop->last ? $balanceSheetData['total_current_assets'] : '' }}</td>
+                    </tr>
+                    @endforeach
+                    <tr height="28" style="height: 28pt; background-color: #d1fae5;"><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">SUBTOTAL</td><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">Total Current Assets</td><td></td><td bgcolor="#d1fae5" style="text-align: right; font-weight: bold; color: #065f46; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_current_assets'] }}</td></tr>
                     <tr height="25" style="height: 25pt;"><td style="font-weight: bold; color: #1d4ed8;">1200</td><td colspan="3" style="font-weight: bold; color: #1d4ed8;">NON-CURRENT / FIXED ASSETS</td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1201</td><td>Site Machinery, JCB & Heavy Equipment</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">4000000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1210</td><td>Corporate Office Property & Vehicles</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">6000000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1220</td><td>Computer Hardware & ERP Software Licenses</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">500000</td><td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">9500000</td></tr>
-                    <tr height="24" style="height: 24pt;"><td>1290</td><td>Less: Accumulated Depreciation</td><td style="text-align: right; color: #e11d48; mso-number-format: '\#\,\#\#0\.00';">-1000000</td><td></td></tr>
-                    <tr height="28" style="height: 28pt; background-color: #d1fae5;"><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">SUBTOTAL</td><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">Total Non-Current / Fixed Assets</td><td></td><td bgcolor="#d1fae5" style="text-align: right; font-weight: bold; color: #065f46; mso-number-format: '\#\,\#\#0\.00';">9500000</td></tr>
-                    <tr height="30" style="height: 30pt; background-color: #e0e7ff;"><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">TOTAL (A)</td><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">TOTAL ASSETS</td><td></td><td bgcolor="#e0e7ff" style="text-align: right; font-weight: bold; color: #3730a3; mso-number-format: '\#\,\#\#0\.00';">65525000</td></tr>
+                    @foreach($balanceSheetData['fixed_assets'] as $idx => $item)
+                    <tr height="24" style="height: 24pt;">
+                        <td>{{ $item['code'] }}</td>
+                        <td>{{ $item['name'] }}</td>
+                        <td style="text-align: right; mso-number-format: '\#\,\#\#0\.00'; {{ $item['amount'] < 0 ? 'color: #e11d48;' : '' }}">{{ $item['amount'] }}</td>
+                        <td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">{{ $loop->index === 2 ? $balanceSheetData['total_fixed_assets'] : '' }}</td>
+                    </tr>
+                    @endforeach
+                    <tr height="28" style="height: 28pt; background-color: #d1fae5;"><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">SUBTOTAL</td><td bgcolor="#d1fae5" style="font-weight: bold; color: #065f46;">Total Non-Current / Fixed Assets</td><td></td><td bgcolor="#d1fae5" style="text-align: right; font-weight: bold; color: #065f46; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_fixed_assets'] }}</td></tr>
+                    <tr height="30" style="height: 30pt; background-color: #e0e7ff;"><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">TOTAL (A)</td><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">TOTAL ASSETS</td><td></td><td bgcolor="#e0e7ff" style="text-align: right; font-weight: bold; color: #3730a3; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_assets'] }}</td></tr>
 
                     <tr height="15" style="height: 15pt;"><td colspan="4" style="border: none;"></td></tr>
                     <tr height="30" style="height: 30pt;">
@@ -600,24 +547,38 @@
                     </tr>
                     <tr height="25" style="height: 25pt;"><td style="font-weight: bold; color: #e11d48;">2000</td><td colspan="3" style="font-weight: bold; color: #e11d48;">LIABILITIES</td></tr>
                     <tr height="25" style="height: 25pt;"><td style="font-weight: bold; color: #e11d48;">2100</td><td colspan="3" style="font-weight: bold; color: #e11d48;">CURRENT LIABILITIES & PAYABLES</td></tr>
-                    <tr height="24" style="height: 24pt;"><td>2101</td><td>Contractor RA Work Bills Payable</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">4000000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>2110</td><td>Material Supplier & Vendor Payables</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">3000000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>2120</td><td>Statutory Payables (GST, TDS, Provident Fund)</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">1200000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>2130</td><td>Advances Received from Customers (Unbilled)</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">2500000</td><td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">10700000</td></tr>
-                    <tr height="28" style="height: 28pt; background-color: #fee2e2;"><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">SUBTOTAL</td><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">Total Current Liabilities</td><td></td><td bgcolor="#fee2e2" style="text-align: right; font-weight: bold; color: #9f1239; mso-number-format: '\#\,\#\#0\.00';">10700000</td></tr>
+                    @foreach($balanceSheetData['current_liabilities'] as $idx => $item)
+                    <tr height="24" style="height: 24pt;">
+                        <td>{{ $item['code'] }}</td>
+                        <td>{{ $item['name'] }}</td>
+                        <td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">{{ $item['amount'] }}</td>
+                        <td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">{{ $loop->last ? $balanceSheetData['total_current_liabilities'] : '' }}</td>
+                    </tr>
+                    @endforeach
+                    <tr height="28" style="height: 28pt; background-color: #fee2e2;"><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">SUBTOTAL</td><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">Total Current Liabilities</td><td></td><td bgcolor="#fee2e2" style="text-align: right; font-weight: bold; color: #9f1239; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_current_liabilities'] }}</td></tr>
                     <tr height="25" style="height: 25pt;"><td style="font-weight: bold; color: #e11d48;">2200</td><td colspan="3" style="font-weight: bold; color: #e11d48;">NON-CURRENT / LONG-TERM LIABILITIES</td></tr>
-                    <tr height="24" style="height: 24pt;"><td>2201</td><td>Bank Construction Loans / Project Credit Limits</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">20000000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>2210</td><td>Bank Land Acquisition Loan Accounts</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">15000000</td><td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">35000000</td></tr>
-                    <tr height="28" style="height: 28pt; background-color: #fee2e2;"><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">SUBTOTAL</td><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">Total Long-Term Liabilities</td><td></td><td bgcolor="#fee2e2" style="text-align: right; font-weight: bold; color: #9f1239; mso-number-format: '\#\,\#\#0\.00';">35000000</td></tr>
-                    <tr height="28" style="height: 28pt; background-color: #ffe4e6;"><td bgcolor="#ffe4e6" style="font-weight: bold; color: #be123c;">TOTAL (B)</td><td bgcolor="#ffe4e6" style="font-weight: bold; color: #be123c;">TOTAL LIABILITIES</td><td></td><td bgcolor="#ffe4e6" style="text-align: right; font-weight: bold; color: #be123c; mso-number-format: '\#\,\#\#0\.00';">45700000</td></tr>
+                    @foreach($balanceSheetData['long_term_liabilities'] as $idx => $item)
+                    <tr height="24" style="height: 24pt;">
+                        <td>{{ $item['code'] }}</td>
+                        <td>{{ $item['name'] }}</td>
+                        <td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">{{ $item['amount'] }}</td>
+                        <td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">{{ $loop->last ? $balanceSheetData['total_long_term_liabilities'] : '' }}</td>
+                    </tr>
+                    @endforeach
+                    <tr height="28" style="height: 28pt; background-color: #fee2e2;"><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">SUBTOTAL</td><td bgcolor="#fee2e2" style="font-weight: bold; color: #9f1239;">Total Long-Term Liabilities</td><td></td><td bgcolor="#fee2e2" style="text-align: right; font-weight: bold; color: #9f1239; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_long_term_liabilities'] }}</td></tr>
+                    <tr height="28" style="height: 28pt; background-color: #ffe4e6;"><td bgcolor="#ffe4e6" style="font-weight: bold; color: #be123c;">TOTAL (B)</td><td bgcolor="#ffe4e6" style="font-weight: bold; color: #be123c;">TOTAL LIABILITIES</td><td></td><td bgcolor="#ffe4e6" style="text-align: right; font-weight: bold; color: #be123c; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_liabilities'] }}</td></tr>
 
                     <tr height="25" style="height: 25pt;"><td style="font-weight: bold; color: #7c3aed;">3000</td><td colspan="3" style="font-weight: bold; color: #7c3aed;">EQUITY & PARTNER CAPITAL</td></tr>
-                    <tr height="24" style="height: 24pt;"><td>3001</td><td>Partner A Capital Account (60% Share)</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">8500000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>3002</td><td>Partner B Capital Account (40% Share)</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">5700000</td><td></td></tr>
-                    <tr height="24" style="height: 24pt;"><td>3010</td><td>Retained Earnings / Accumulated Profit from P&L</td><td style="text-align: right; mso-number-format: '\#\,\#\#0\.00';">5625000</td><td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">19825000</td></tr>
-                    <tr height="24" style="height: 24pt;"><td>3020</td><td>Less: Partner Drawings & Profit Distributions</td><td style="text-align: right; color: #e11d48; mso-number-format: '\#\,\#\#0\.00';">0</td><td></td></tr>
-                    <tr height="28" style="height: 28pt; background-color: #f3e8ff;"><td bgcolor="#f3e8ff" style="font-weight: bold; color: #6b21a8;">TOTAL (C)</td><td bgcolor="#f3e8ff" style="font-weight: bold; color: #6b21a8;">Total Equity & Owners' Reserves</td><td></td><td bgcolor="#f3e8ff" style="text-align: right; font-weight: bold; color: #6b21a8; mso-number-format: '\#\,\#\#0\.00';">19825000</td></tr>
-                    <tr height="30" style="height: 30pt; background-color: #e0e7ff;"><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">CHECK</td><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">TOTAL LIABILITIES & OWUITY (B + C)</td><td></td><td bgcolor="#e0e7ff" style="text-align: right; font-weight: bold; color: #3730a3; mso-number-format: '\#\,\#\#0\.00';">65525000</td></tr>
+                    @foreach($balanceSheetData['equity'] as $idx => $item)
+                    <tr height="24" style="height: 24pt;">
+                        <td>{{ $item['code'] }}</td>
+                        <td>{{ $item['name'] }}</td>
+                        <td style="text-align: right; mso-number-format: '\#\,\#\#0\.00'; {{ $item['amount'] < 0 ? 'color: #e11d48;' : '' }}">{{ $item['amount'] }}</td>
+                        <td style="text-align: right; font-weight: bold; mso-number-format: '\#\,\#\#0\.00';">{{ $loop->index === 2 ? $balanceSheetData['total_equity'] : '' }}</td>
+                    </tr>
+                    @endforeach
+                    <tr height="28" style="height: 28pt; background-color: #f3e8ff;"><td bgcolor="#f3e8ff" style="font-weight: bold; color: #6b21a8;">TOTAL (C)</td><td bgcolor="#f3e8ff" style="font-weight: bold; color: #6b21a8;">Total Equity & Owners' Reserves</td><td></td><td bgcolor="#f3e8ff" style="text-align: right; font-weight: bold; color: #6b21a8; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_equity'] }}</td></tr>
+                    <tr height="30" style="height: 30pt; background-color: #e0e7ff;"><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">CHECK</td><td bgcolor="#e0e7ff" style="font-weight: bold; color: #3730a3;">TOTAL LIABILITIES & OWUITY (B + C)</td><td></td><td bgcolor="#e0e7ff" style="text-align: right; font-weight: bold; color: #3730a3; mso-number-format: '\#\,\#\#0\.00';">{{ $balanceSheetData['total_liabilities_equity'] }}</td></tr>
                 </tbody>
             </table>
         </div>
