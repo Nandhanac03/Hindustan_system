@@ -543,6 +543,14 @@
                             <textarea name="remarks" x-model="modalData.remarks" rows="2" required placeholder="Partner Profit Payout - Q2 Distribution" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs"></textarea>
                         </div>
 
+                        {{-- Live Error Banner --}}
+                        <template x-if="modalErrorMessage">
+                            <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-700 text-xs font-bold shadow-2xs">
+                                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span x-text="modalErrorMessage"></span>
+                            </div>
+                        </template>
+
                         {{-- 6. Live Dynamic Balance Summary Box --}}
                         <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs">
                             <template x-if="modalSelectedBankAccount">
@@ -579,7 +587,10 @@
                         <button type="button" @click="showPayoutModal = false" class="px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-extrabold rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer">
                             CANCEL
                         </button>
-                        <button type="submit" class="px-6 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all cursor-pointer">
+                        <button type="submit"
+                                :disabled="Boolean(modalErrorMessage)"
+                                :class="modalErrorMessage ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400' : 'bg-[#a38c29] hover:bg-[#8e7a23] cursor-pointer'"
+                                class="px-6 py-2.5 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md transition-all">
                             CONFIRM & POST PAYOUT
                         </button>
                     </div>
@@ -661,6 +672,25 @@ function partnerStatementApp() {
 
         get modalBalanceAfterPayout() {
             return this.modalSelectedPartnerBalance - this.modalPayoutAmount;
+        },
+
+        get isBankInsufficient() {
+            if (!this.modalSelectedBankAccount) return false;
+            return this.modalPayoutAmount > 0 && this.modalPayoutAmount > this.modalSelectedBankBalance;
+        },
+
+        get isPartnerInsufficient() {
+            return this.modalPayoutAmount > 0 && this.modalPayoutAmount > this.modalSelectedPartnerBalance;
+        },
+
+        get modalErrorMessage() {
+            if (this.isBankInsufficient) {
+                return `Insufficient Bank Funds! Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available balance in ${this.modalSelectedBankAccount?.bank_name || 'selected bank'} (${this.formatCurrency(this.modalSelectedBankBalance)}).`;
+            }
+            if (this.isPartnerInsufficient) {
+                return `Payout amount (${this.formatCurrency(this.modalPayoutAmount)}) exceeds available partner balance (${this.formatCurrency(this.modalSelectedPartnerBalance)}).`;
+            }
+            return '';
         },
 
         init() {

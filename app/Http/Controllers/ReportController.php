@@ -1531,6 +1531,16 @@ class ReportController extends Controller
         $companyBank = $companyBankId ? \App\Models\CompanyBankAccount::find($companyBankId) : null;
         $bankName = $companyBank ? ($companyBank->bank_name . ($companyBank->account_number ? ' (' . $companyBank->account_number . ')' : '')) : '';
 
+        // Validate available bank account balance
+        if ($companyBank) {
+            $availBal = (float)($companyBank->current_balance ?? $companyBank->opening_balance ?? 0);
+            if ($amount > $availBal) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Insufficient Bank Funds! Payout amount (Rs. ' . number_format($amount, 2) . ') exceeds available balance in ' . $companyBank->bank_name . ' Account (Rs. ' . number_format($availBal, 2) . ').');
+            }
+        }
+
         DB::transaction(function () use ($systemId, $partner, $validated, $user, $amount, $paymentMode, $companyBankId, $bankName) {
             // Deduct payout amount from selected CompanyBankAccount balance
             if ($companyBankId) {
