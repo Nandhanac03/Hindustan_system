@@ -2600,8 +2600,16 @@ function unitsApp() {
                 return;
             }
 
-            const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString() : 'N/A';
-            const fmtMoney = (v) => v != null && v !== '' ? '₹' + Number(v).toLocaleString() : 'N/A';
+            const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') : 'N/A';
+            const fmtMoney = (v) => {
+                if (v == null || v === '') return 'N/A';
+                const num = Number(v);
+                if (isNaN(num)) return v;
+                if (num < 0) {
+                    return '₹ -' + Math.abs(num).toLocaleString('en-IN');
+                }
+                return '₹' + num.toLocaleString('en-IN');
+            };
             const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString() + ' Sq Ft' : 'N/A';
             const statusBadge = (s) => {
                 const cls = {
@@ -3913,17 +3921,17 @@ function unitsApp() {
         }
 
         // Helpers
-        const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString() : 'N/A';
+        const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') : 'N/A';
         const fmtMoney = (v) => {
             if (v == null || v === '') return 'N/A';
             const num = Number(v);
             if (isNaN(num)) return v;
             if (num < 0) {
-                return '-₹' + Math.abs(num).toLocaleString();
+                return '₹ -' + Math.abs(num).toLocaleString('en-IN');
             }
-            return '₹' + num.toLocaleString();
+            return '₹' + num.toLocaleString('en-IN');
         };
-        const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString() + ' Sq Ft' : 'N/A';
+        const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') + ' Sq Ft' : 'N/A';
 
         // Group units by floor
         let groups = [];

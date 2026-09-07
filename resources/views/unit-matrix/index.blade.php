@@ -2,36 +2,36 @@
 
 
 
-<div class="max-w-[1800px] mx-auto space-y-6" x-data="unitsApp()">
+@php
+    // Summary aggregates
+    $totalUnitsCount = 0;
+    $availableCount = 0;
+    $blockedCount = 0;
+    $soldCount = 0;
+    $bookedCount = 0;
+    $parkingCount = 0;
+    foreach ($floorMatrix as $row) {
+        foreach ($row['columns'] as $u) {
+            if ($u) {
+                $totalUnitsCount++;
+                $st = strtolower($u->status);
+                if ($st === 'sold') $soldCount++;
+                elseif ($st === 'blocked') $blockedCount++;
+                elseif ($st === 'available') $availableCount++;
+                elseif ($st === 'booked') $bookedCount++;
+            }
+        }
+    }
+    
+    if (!empty($parkingRows)) {
+        foreach ($parkingRows as $pRow) {
+            if ($pRow['display_name'] === 'P3' || $pRow['units']->count() == 0) continue;
+            $parkingCount += $pRow['units']->count();
+        }
+    }
+@endphp
 
-    {{-- Top Action Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <!-- <div class="flex items-center gap-3">
-                <h1 class="text-lg font-bold text-slate-900 tracking-tight uppercase">
-                    Project:
-                </h1>
-                @if(isset($projects) && $projects->count() > 1)
-                    <form method="GET" action="{{ route('unit-matrix.index') }}" class="inline">
-                        <select name="project_id" onchange="this.form.submit()" class="px-3 py-1 text-xs font-extrabold uppercase tracking-wide rounded-xl border border-slate-300 bg-white text-primary-700 focus:ring-2 focus:ring-[#a38c29]/50 shadow-sm cursor-pointer">
-                            @foreach($projects as $p)
-                                <option value="{{ $p->id }}" {{ $project->id == $p->id ? 'selected' : '' }}>
-                                    {{ $p->name }} {{ $p->is_active ? '(Active)' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </form>
-                @else
-                    <span class="text-primary-700 text-lg font-extrabold uppercase">{{ $project->name }}</span>
-                @endif
-            </div> -->
-
-        </div>
-
-        <div class="flex items-center gap-2.5">
-            <!-- Space for future actions if needed -->
-        </div>
-    </div>
+<div class="max-w-[1800px] mx-auto space-y-6" x-data="unitMatrixApp()">
 
     {{-- Notification Toast --}}
     <div x-show="toast.open" 
@@ -45,7 +45,142 @@
          :class="toast.type === 'success' ? 'bg-emerald-50 border-emerald-250 text-emerald-800' : 'bg-rose-50 border-rose-250 text-rose-800'"
          style="display: none;">
         <span x-text="toast.message"></span>
-        <button @click="toast.open = false" class="ml-2 hover:opacity-75">?</button>
+        <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
+    </div>
+
+    {{-- Filter Units and Excel Report by Status --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm">
+        <div class="flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4">
+            <div class="flex-1 w-full relative" x-data="{ open: false }" @click.outside="open = false">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                    </svg>
+                    FILTER UNITS AND EXCEL REPORT BY STATUS
+                </label>
+                
+                <div class="relative flex-1">
+                    <button type="button" 
+                            @click="open = !open"
+                            :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'"
+                            class="w-full min-h-[42px] px-3 py-2 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs text-slate-700">
+                        
+                        <template x-if="selectedStatus && selectedStatus !== 'all' && selectedStatus !== ''">
+                            <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-wide border shadow-2xs"
+                                      :class="{
+                                          'bg-emerald-50 text-emerald-700 border-emerald-200': selectedStatus === 'available',
+                                          'bg-rose-50 text-rose-700 border-rose-200': selectedStatus === 'sold',
+                                          'bg-amber-50 text-amber-700 border-amber-200': selectedStatus === 'blocked',
+                                          'bg-indigo-50 text-indigo-700 border-indigo-200': selectedStatus === 'booked'
+                                      }">
+                                    <span class="w-2 h-2 rounded-full"
+                                          :class="{
+                                              'bg-emerald-500': selectedStatus === 'available',
+                                              'bg-rose-500': selectedStatus === 'sold',
+                                              'bg-amber-500': selectedStatus === 'blocked',
+                                              'bg-indigo-500': selectedStatus === 'booked'
+                                          }"></span>
+                                    <span x-text="selectedStatus.toUpperCase()"></span>
+                                    <button type="button" @click.stop="selectedStatus = ''" class="ml-1 opacity-70 hover:opacity-100 hover:text-rose-600 rounded p-0.5 transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                </span>
+                            </div>
+                        </template>
+
+                        <template x-if="!selectedStatus || selectedStatus === 'all' || selectedStatus === ''">
+                            <div class="flex items-center gap-1.5 text-slate-500 font-bold px-1">
+                                <span>— Filter by Status —</span>
+                            </div>
+                        </template>
+
+                        <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                            <template x-if="selectedStatus && selectedStatus !== 'all' && selectedStatus !== ''">
+                                <span @click.stop="selectedStatus = ''" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear status filter">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </button>
+
+                    <div x-show="open"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                         class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
+                         style="display: none;">
+                        
+                        <button type="button" @click="selectedStatus = ''; open = false"
+                                class="w-full px-3.5 py-2.5 text-left text-xs font-bold text-slate-600 hover:bg-slate-50 border-b border-slate-100 flex items-center justify-between transition cursor-pointer">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                                <span>— All Statuses —</span>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{{ $totalUnitsCount + $parkingCount }} Units</span>
+                        </button>
+
+                        <div class="p-1.5 space-y-1">
+                            {{-- Available --}}
+                            <button type="button"
+                                    @click="selectedStatus = 'available'; open = false"
+                                    :class="selectedStatus === 'available' ? 'bg-emerald-50 border-emerald-200 text-emerald-800 font-extrabold shadow-2xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                    class="w-full p-2.5 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg bg-emerald-500 flex items-center justify-center shrink-0 shadow-xs">
+                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                    <span class="font-bold text-xs uppercase tracking-wide">Available</span>
+                                </div>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">{{ $availableCount }} Units</span>
+                            </button>
+
+                            {{-- Sold --}}
+                            <button type="button"
+                                    @click="selectedStatus = 'sold'; open = false"
+                                    :class="selectedStatus === 'sold' ? 'bg-rose-50 border-rose-200 text-rose-800 font-extrabold shadow-2xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                    class="w-full p-2.5 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg bg-rose-600 flex items-center justify-center shrink-0 shadow-xs">
+                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                                    </div>
+                                    <span class="font-bold text-xs uppercase tracking-wide">Sold</span>
+                                </div>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">{{ $soldCount }} Units</span>
+                            </button>
+
+                            {{-- Blocked --}}
+                            <button type="button"
+                                    @click="selectedStatus = 'blocked'; open = false"
+                                    :class="selectedStatus === 'blocked' ? 'bg-amber-50 border-amber-200 text-amber-800 font-extrabold shadow-2xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                    class="w-full p-2.5 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-6 h-6 rounded-lg bg-amber-500 flex items-center justify-center shrink-0 shadow-xs">
+                                        <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                    </div>
+                                    <span class="font-bold text-xs uppercase tracking-wide">Blocked</span>
+                                </div>
+                                <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">{{ $blockedCount }} Units</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2.5 shrink-0">
+                <button @click="exportAvailabilityReport()" type="button"
+                        class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Availability Report
+                </button>
+            </div>
+        </div>
     </div>
 
 
@@ -280,7 +415,8 @@
                                                     <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: 'Car Parking Space', status: '{{ $isOccupied ? 'Reserved' : 'Available' }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 300000) }}' }; hoveredEl = $el"
                                                          @mouseleave="hoveredUnit = null"
                                                          @click="fetchUnit({{ $unit->id }})"
-                                                         class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-md cursor-pointer duration-200
+                                                         :class="selectedStatus && selectedStatus !== 'all' && selectedStatus !== '' && !isStatusMatching('{{ $isOccupied ? 'sold' : 'available' }}') ? 'opacity-20 grayscale-[70%] scale-95 pointer-events-none' : 'opacity-100 scale-100'"
+                                                         class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_4px_-1px_rgba(0,0,0,0.05)] border border-transparent transition-all duration-200 hover:-translate-y-1 hover:shadow-md cursor-pointer
                                                          @if($isOccupied) bg-[#0B1E36] text-white shadow-slate-300/50 hover:shadow-slate-400/50 hover:border-slate-500 @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
                                                         <span class="text-[11px] font-black uppercase font-sans tracking-wide leading-tight drop-shadow-sm">{{ $unit->door_no }}</span>
                                                         <span class="text-[8.5px] font-bold mt-1 font-mono leading-none opacity-90 drop-shadow-sm">Parking</span>
@@ -307,7 +443,8 @@
                                                     <div @mouseenter="hoveredUnit = { door_no: '{{ addslashes($unit->door_no) }}', floor: '{{ addslashes($row['display_name']) }}', area: '{{ $unit->built_up_area ? $unit->built_up_area.' sq.ft' : 'N/A' }}', status: '{{ ucfirst($unit->status) }}', price: '₹{{ number_format($unit->expected_sale_amount ?? 0) }}', customer: '{{ addslashes($custName) }}' }; hoveredEl = $el"
                                                          @mouseleave="hoveredUnit = null"
                                                          @click="fetchUnit({{ $unit->id }})"
-                                                         class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_6px_-2px_rgba(0,0,0,0.1)] border border-transparent transition-all hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-200/40 cursor-pointer duration-200
+                                                         :class="selectedStatus && selectedStatus !== 'all' && selectedStatus !== '' && !isStatusMatching('{{ strtolower($unit->status) }}') ? 'opacity-20 grayscale-[70%] scale-95 pointer-events-none' : 'opacity-100 scale-100'"
+                                                         class="w-full min-w-[85px] py-2 px-2 flex flex-col items-center justify-center rounded-xl shadow-[0_2px_6px_-2px_rgba(0,0,0,0.1)] border border-transparent transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-200/40 cursor-pointer
                                                          @if ($isSold) bg-rose-600 text-white shadow-rose-200/50 hover:shadow-rose-300/50 hover:border-rose-400
                                                          @elseif ($isBlocked) bg-amber-500 text-white shadow-amber-200/50 hover:shadow-amber-300/50 hover:border-amber-400
                                                          @else bg-emerald-500 text-white shadow-emerald-200/50 hover:shadow-emerald-300/50 hover:border-emerald-400 @endif">
@@ -1516,8 +1653,16 @@ function unitsApp() {
                 return;
             }
 
-            const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString() : 'N/A';
-            const fmtMoney = (v) => v != null && v !== '' ? '\u20B9' + Number(v).toLocaleString() : 'N/A';
+            const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') : 'N/A';
+            const fmtMoney = (v) => {
+                if (v == null || v === '') return 'N/A';
+                const num = Number(v);
+                if (isNaN(num)) return v;
+                if (num < 0) {
+                    return '₹ -' + Math.abs(num).toLocaleString('en-IN');
+                }
+                return '₹' + num.toLocaleString('en-IN');
+            };
             const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString() + ' Sq Ft' : 'N/A';
             const statusBadge = (s) => {
                 const cls = {
@@ -2430,6 +2575,390 @@ function unitsApp() {
 
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
+    let isExportingAvailability = false;
+
+    function unitMatrixApp() {
+        return {
+            selectedStatus: '{{ strtolower($selectedStatus ?? "") }}',
+            allUnits: @json($allUnits ?? []),
+            isExportingAvailability: false,
+            toast: { open: false, message: '', type: 'success' },
+            showToast(msg, type = 'success') {
+                this.toast.message = msg;
+                this.toast.type = type;
+                this.toast.open = true;
+                setTimeout(() => { this.toast.open = false; }, 4000);
+            },
+            isStatusMatching(unitStatus) {
+                if (!this.selectedStatus || this.selectedStatus === 'all' || this.selectedStatus === '') return true;
+                return (unitStatus || '').toLowerCase() === this.selectedStatus.toLowerCase();
+            }
+        };
+    }
+
+    function buildUnitsWorksheet(workbook, sheetName, bannerTitle, sheetUnits, appData) {
+        if (!sheetUnits || sheetUnits.length === 0) return;
+
+        // Sanitize sheet name for Excel rules (max 31 chars, no special chars)
+        const safeSheetName = (sheetName || 'Units').replace(/[\\/?*:[\]]/g, '').trim().substring(0, 31) || 'Units';
+
+        const worksheet = workbook.addWorksheet(safeSheetName, {
+            views: [{ showGridLines: true }]
+        });
+
+        // 12 Column Definitions
+        worksheet.columns = [
+            { header: 'FLOOR', key: 'floor', width: 15 },
+            { header: 'FLOOR NO.', key: 'floor_no', width: 16 },
+            { header: 'TYPE', key: 'type', width: 14 },
+            { header: 'DOOR NO', key: 'door_no', width: 14 },
+            { header: 'BUILT UP AREA (IN SQ FT)', key: 'built_up_area', width: 22 },
+            { header: 'CARPET AREA (IN SQ FT)', key: 'carpet_area', width: 22 },
+            { header: '₹ EXPECTED / SQ.FT', key: 'expected_rate', width: 20 },
+            { header: '₹ EXPECTED SALE', key: 'expected_sale', width: 22 },
+            { header: '₹ SALE PER SQ.FT', key: 'sale_rate', width: 20 },
+            { header: '₹ SALE AMOUNT', key: 'sale_amount', width: 26 },
+            { header: 'DIFFERENCE', key: 'difference', width: 18 },
+            { header: 'STATUS', key: 'status', width: 16 }
+        ];
+
+        // 1. Top Title Banner Row (Row 1) - Center Aligned
+        worksheet.spliceRows(1, 0, []); // Insert row 1
+        
+        worksheet.mergeCells('A1:L1');
+        const titleCell = worksheet.getCell('A1');
+        titleCell.value = bannerTitle;
+        titleCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(1).height = 36;
+
+        ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1'].forEach(cellCoord => {
+            const c = worksheet.getCell(cellCoord);
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        });
+
+        // 2. Table Header Row (Row 2) - Brand Gold
+        const headerRow = worksheet.getRow(2);
+        headerRow.height = 30;
+        headerRow.values = [
+            'FLOOR',
+            'FLOOR NO.',
+            'TYPE',
+            'DOOR NO',
+            'BUILT UP AREA (IN SQ FT)',
+            'CARPET AREA (IN SQ FT)',
+            '₹ EXPECTED / SQ.FT',
+            '₹ EXPECTED SALE',
+            '₹ SALE PER SQ.FT',
+            '₹ SALE AMOUNT',
+            'DIFFERENCE',
+            'STATUS'
+        ];
+
+        for (let col = 1; col <= 12; col++) {
+            const cell = headerRow.getCell(col);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                bottom: { style: 'medium', color: { argb: 'FF8A7522' } },
+                left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                right: { style: 'thin', color: { argb: 'FF8A7522' } }
+            };
+        }
+
+        // Helpers
+        const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') : 'N/A';
+        const fmtMoney = (v) => {
+            if (v == null || v === '') return 'N/A';
+            const num = Number(v);
+            if (isNaN(num)) return v;
+            if (num < 0) {
+                return '₹ -' + Math.abs(num).toLocaleString('en-IN');
+            }
+            return '₹' + num.toLocaleString('en-IN');
+        };
+        const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString('en-IN') + ' Sq Ft' : 'N/A';
+
+        // Group units by floor
+        let groups = [];
+        let currentFloorId = null;
+        let currentGroup = null;
+        for (let unit of sheetUnits) {
+            let floorId = unit.floor ? unit.floor.id : (unit.floor_id || 'default');
+            let floorName = unit.floor ? unit.floor.name : (unit.floor_name || 'Ground Floor');
+            if (floorId !== currentFloorId) {
+                currentFloorId = floorId;
+                currentGroup = {
+                    floor_id: floorId,
+                    floor_name: floorName,
+                    units: []
+                };
+                groups.push(currentGroup);
+            }
+            currentGroup.units.push(unit);
+        }
+
+        // 3. Populate Data Rows Floor-by-Floor
+        let currentRowIdx = 3;
+
+        groups.forEach((group) => {
+            const startRow = currentRowIdx;
+            const endRow = currentRowIdx + group.units.length - 1;
+            const floorDisplayName = (group.floor_name || 'Floor').toUpperCase();
+
+            group.units.forEach((unit, uIdx) => {
+                const row = worksheet.getRow(currentRowIdx);
+                const isParkingUnit = unit.unit_type && (
+                    (unit.unit_type.name || '').toLowerCase() === 'parking' || 
+                    (unit.unit_type.category || '').toLowerCase() === 'parking'
+                );
+
+                const floorName = unit.floor ? unit.floor.name : group.floor_name;
+                const unitTypeName = unit.unit_type ? unit.unit_type.name : '';
+                const doorNo = unit.door_no || '';
+                const builtUpArea = fmtArea(unit.built_up_area);
+                const carpetArea = fmtArea(unit.carpet_area);
+                const expRate = isParkingUnit ? 'N/A' : fmtMoney(unit.expected_rate_per_sqft);
+                const expSale = fmtMoney(unit.expected_sale_amount);
+                const saleRate = isParkingUnit ? 'N/A' : (unit.sale_rate_per_sqft ? fmtMoney(unit.sale_rate_per_sqft) : 'N/A');
+
+                let saleAmount = unit.sale_amount ? fmtMoney(unit.sale_amount) : 'N/A';
+                let activeSale = null;
+                if (unit.sale) {
+                    activeSale = unit.sale;
+                } else if (unit.sale_units && unit.sale_units.length > 0) {
+                    const asu = unit.sale_units.find(su => su.sale && su.sale.status === 'active');
+                    if (asu) activeSale = asu.sale;
+                }
+
+                const isSold = (unit.status || '').toLowerCase() === 'sold';
+                let customerLabel = '';
+                if (isSold && activeSale && activeSale.customer && activeSale.customer.name) {
+                    customerLabel = '\nSOLD TO: ' + activeSale.customer.name.toUpperCase();
+                    saleAmount += customerLabel;
+                }
+
+                const diff = fmtMoney(unit.difference);
+                const rawStatus = (unit.status || 'available').toLowerCase();
+                const statusDisplay = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+
+                row.values = [
+                    uIdx === 0 ? floorDisplayName : '', // Col 1: Floor
+                    floorName,                          // Col 2: Floor No.
+                    unitTypeName,                       // Col 3: Type
+                    doorNo,                             // Col 4: Door No
+                    builtUpArea,                        // Col 5: Built Up Area
+                    carpetArea,                         // Col 6: Carpet Area
+                    expRate,                            // Col 7: Expected / Sq.Ft
+                    expSale,                            // Col 8: Expected Sale
+                    saleRate,                           // Col 9: Sale Per Sq.Ft
+                    saleAmount,                         // Col 10: Sale Amount
+                    diff,                               // Col 11: Difference
+                    statusDisplay                       // Col 12: Status
+                ];
+
+                row.height = isSold && customerLabel ? 38 : 28;
+                const isLastInFloor = uIdx === group.units.length - 1;
+
+                // Style Columns B to L (Cols 2 to 12)
+                for (let col = 2; col <= 12; col++) {
+                    const cell = row.getCell(col);
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF1E293B' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        bottom: { style: isLastInFloor ? 'medium' : 'thin', color: isLastInFloor ? { argb: 'FFA38C29' } : { argb: 'FFE2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                    };
+
+                    // Subtle alternating row tint
+                    if (uIdx % 2 === 1) {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBFBFA' } };
+                    }
+
+                    // Door No Bold
+                    if (col === 4) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                    }
+
+                    // Expected Sale Bold Emerald
+                    if (col === 8) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF047857' } };
+                    }
+
+                    // Sale Amount
+                    if (col === 10) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: isSold ? { argb: 'FF047857' } : { argb: 'FF64748B' } };
+                    }
+
+                    // Difference styling (highlight negative difference)
+                    if (col === 11) {
+                        const numDiff = Number(unit.difference);
+                        if (!isNaN(numDiff) && numDiff < 0) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+                        }
+                    }
+
+                    // Status Badge Color
+                    if (col === 12) {
+                        if (rawStatus === 'sold') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFBE123C' } };
+                        } else if (rawStatus === 'available') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF047857' } };
+                        } else if (rawStatus === 'blocked') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFB45309' } };
+                        } else if (rawStatus === 'booked') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E7FF' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF4338CA' } };
+                        }
+                    }
+                }
+
+                currentRowIdx++;
+            });
+
+            // Merge Column A for Floor with Smart Orientation & Warm Gold Styling
+            if (endRow >= startRow) {
+                if (endRow > startRow) {
+                    worksheet.mergeCells(startRow, 1, endRow, 1);
+                }
+                const floorCell = worksheet.getCell(startRow, 1);
+                floorCell.value = floorDisplayName;
+                floorCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+                floorCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6F1DF' } };
+                
+                // Use vertical rotation ONLY when height is sufficient (3+ rows), otherwise horizontal wrap
+                const useVerticalRotation = group.units.length >= 3;
+                floorCell.alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center',
+                    textRotation: useVerticalRotation ? 90 : 0,
+                    wrapText: true
+                };
+
+                for (let r = startRow; r <= endRow; r++) {
+                    const c = worksheet.getCell(r, 1);
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6F1DF' } };
+                    c.border = {
+                        top: r === startRow ? { style: 'medium', color: { argb: 'FFA38C29' } } : { style: 'thin', color: { argb: 'FFE6DEC8' } },
+                        bottom: r === endRow ? { style: 'medium', color: { argb: 'FFA38C29' } } : { style: 'thin', color: { argb: 'FFE6DEC8' } },
+                        left: { style: 'medium', color: { argb: 'FFA38C29' } },
+                        right: { style: 'medium', color: { argb: 'FFA38C29' } }
+                    };
+                }
+            }
+        });
+
+        // 4. Bottom Footer Banner Row (Row N+1)
+        const footerRowIdx = currentRowIdx;
+        worksheet.mergeCells(`A${footerRowIdx}:L${footerRowIdx}`);
+        const footLeft = worksheet.getCell(`A${footerRowIdx}`);
+        footLeft.value = `Total Units: ${sheetUnits.length}`;
+        footLeft.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        footLeft.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        footLeft.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(footerRowIdx).height = 28;
+
+        ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(c => {
+            const cell = worksheet.getCell(`${c}${footerRowIdx}`);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        });
+    }
+
+    async function exportAvailabilityReport() {
+        if (isExportingAvailability) return;
+        isExportingAvailability = true;
+
+        try {
+            let appData = null;
+            try {
+                const rootEl = document.querySelector('[x-data*="unitMatrixApp"]');
+                if (rootEl && window.Alpine) {
+                    appData = window.Alpine.$data(rootEl);
+                }
+            } catch (e) {
+                console.warn('Alpine $data retrieval:', e);
+            }
+
+            let units = (appData && Array.isArray(appData.allUnits) && appData.allUnits.length > 0) ? appData.allUnits : [];
+            
+            if (units.length === 0) {
+                alert("No units available to export.");
+                return;
+            }
+
+            const activeStatus = appData && appData.selectedStatus && appData.selectedStatus !== 'all' ? appData.selectedStatus.toLowerCase() : '';
+            const statusSuffix = activeStatus ? ` — Status: ${activeStatus.toUpperCase()}` : '';
+            const filename = activeStatus ? `TABASCO_Units_Availability_${activeStatus.toUpperCase()}.xlsx` : `TABASCO_Units_Availability_Report.xlsx`;
+
+            // Create workbook
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'TABASCO Human Capital';
+            workbook.lastModifiedBy = 'TABASCO ERP';
+            workbook.created = new Date();
+            workbook.modified = new Date();
+
+            // 1. Master Sheet: All Units
+            const mainUnits = activeStatus ? units.filter(u => (u.status || '').toLowerCase() === activeStatus) : units;
+            buildUnitsWorksheet(
+                workbook,
+                activeStatus ? `${activeStatus.charAt(0).toUpperCase() + activeStatus.slice(1)} Units` : 'All Units',
+                `TABASCO  HUMAN CAPITAL   |   Unit Availability Master${statusSuffix}`,
+                mainUnits,
+                appData
+            );
+
+            // 2. Status Breakup Sheets: Available, Sold, Blocked (and Booked if present)
+            const statuses = ['available', 'sold', 'blocked', 'booked'];
+            statuses.forEach(st => {
+                const filtered = units.filter(u => (u.status || '').toLowerCase() === st);
+                if (filtered.length > 0) {
+                    const stName = st.charAt(0).toUpperCase() + st.slice(1);
+                    // If we already created this sheet as the first tab when filtered, skip duplicate tab name
+                    if (!activeStatus || activeStatus !== st) {
+                        const sheetTitle = `TABASCO  HUMAN CAPITAL   |   Unit Availability - ${stName} Units`;
+                        buildUnitsWorksheet(
+                            workbook,
+                            stName,
+                            sheetTitle,
+                            filtered,
+                            appData
+                        );
+                    }
+                }
+            });
+
+            // Write workbook and trigger download
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = filename;
+            anchor.click();
+            window.URL.revokeObjectURL(url);
+
+            if (appData && typeof appData.showToast === 'function') {
+                appData.showToast('Availability Report downloaded successfully!', 'success');
+            }
+        } catch (err) {
+            console.error("Availability Report Export Error:", err);
+            alert("Error exporting availability report: " + err.message);
+        } finally {
+            setTimeout(() => {
+                isExportingAvailability = false;
+            }, 1000);
+        }
+    }
+
     function exportCurrentTable() {
         const table = document.querySelector("#salesExcelTable");
         if (!table) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\Floor;
+use App\Models\Unit;
 use App\Models\UnitType;
 use App\Models\Customer;
 use App\Models\Sale;
@@ -30,6 +31,8 @@ class UnitMatrixController extends Controller
             ->get();
         $customers = Customer::orderBy('name')->get();
 
+        $selectedStatus = $request->input('status');
+
         $floorMatrix = [];
         $parkingRows = [];
         $matrixColumns = [];
@@ -54,6 +57,12 @@ class UnitMatrixController extends Controller
                     });
                 }
             }])
+            ->get();
+
+        $allUnits = Unit::with(['floor', 'unitType', 'booking', 'sale.customer', 'saleUnits.sale.customer'])
+            ->where('project_id', $project->id)
+            ->orderBy('floor_id')
+            ->orderBy('door_no')
             ->get();
 
         $regularFloors = [];
@@ -126,6 +135,6 @@ class UnitMatrixController extends Controller
         ->orderByDesc('sale_date')
         ->get();
 
-        return view('unit-matrix.index', compact('project', 'projects', 'floorMatrix', 'parkingRows', 'matrixColumns', 'floors', 'unitTypes', 'customers', 'salesList'));
+        return view('unit-matrix.index', compact('project', 'projects', 'floorMatrix', 'parkingRows', 'matrixColumns', 'floors', 'unitTypes', 'customers', 'salesList', 'allUnits', 'selectedStatus'));
     }
 }
