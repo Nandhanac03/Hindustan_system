@@ -203,111 +203,19 @@ class SiteExpenseController extends Controller
     }
 
     /**
-     * Show Interactive 5-Step Workflow View (Workflow Pipeline Dashboard)
+     * Show Interactive Workflow View (Redirects to main Site Expenses Register)
      */
-    public function workflow(Request $request): View
+    public function workflow(Request $request): RedirectResponse
     {
-        $projects = Project::where('is_active', true)->orderBy('name')->get();
-        $selectedProjectId = $request->query('project_id', $projects->first()?->id);
-        $selectedProject = Project::find($selectedProjectId) ?? $projects->first();
-
-        $selectedExpenseId = $request->query('expense_id');
-        if ($selectedExpenseId) {
-            $activeExpense = SiteExpense::with(['project', 'floor', 'payee', 'companyBankAccount', 'loan', 'creator'])->find($selectedExpenseId);
-        } else {
-            $activeExpense = SiteExpense::with(['project', 'floor', 'payee', 'companyBankAccount', 'loan', 'creator'])
-                ->where('project_id', $selectedProjectId)
-                ->latest()
-                ->first();
-        }
-
-        // Financial & Profitability Summary for Project
-        $expectedRev = (float) Unit::where('project_id', $selectedProjectId)->sum('expected_sale_amount');
-        $actualRev   = (float) Sale::where('project_id', $selectedProjectId)->where('status', 'active')->sum('total_amount');
-        if ($actualRev <= 0) $actualRev = $expectedRev > 0 ? $expectedRev : 56000000;
-
-        $landCost = 12500000;
-        $constructionCost = 28750000;
-        $indirectSiteExpenses = 2102000;
-
-        $directSiteExpenses = (float) SiteExpense::where('project_id', $selectedProjectId)->sum('net_amount');
-        if ($directSiteExpenses <= 0) $directSiteExpenses = 3257500;
-
-        $totalProjectCost = $landCost + $constructionCost + $directSiteExpenses + $indirectSiteExpenses;
-        $grossProfit = max(0, $actualRev - $totalProjectCost);
-        $grossMarginPct = $actualRev > 0 ? round(($grossProfit / $actualRev) * 100, 2) : 0.0;
-        
-        $totalSqFt = 10000;
-        $costPerSqFt = round($totalProjectCost / $totalSqFt, 2);
-
-        $recentExpenses = SiteExpense::where('project_id', $selectedProjectId)
-            ->latest()
-            ->take(5)
-            ->get();
-
-        $payees = Payee::orderBy('name')->get();
-        $bankAccounts = CompanyBankAccount::orderBy('bank_name')->get();
-        $loans = Loan::orderBy('lender_name')->get();
-        $expenseCategories = $this->getExpenseCategories();
-        $autoVoucherNumber = $this->generateVoucherNumber();
-
-        return view('expenses.site-expenses.workflow', compact(
-            'projects',
-            'selectedProject',
-            'activeExpense',
-            'expectedRev',
-            'actualRev',
-            'landCost',
-            'constructionCost',
-            'directSiteExpenses',
-            'indirectSiteExpenses',
-            'totalProjectCost',
-            'grossProfit',
-            'grossMarginPct',
-            'costPerSqFt',
-            'recentExpenses',
-            'payees',
-            'bankAccounts',
-            'loans',
-            'expenseCategories',
-            'autoVoucherNumber'
-        ));
+        return redirect()->route('site-expenses.index');
     }
 
     /**
-     * Show form for creating a new site expense
+     * Show form for creating a new site expense (Redirects to Modal Popup on Index)
      */
-    public function create(Request $request): View
+    public function create(Request $request): RedirectResponse
     {
-        $projects          = Project::where('is_active', true)->orderBy('name')->get();
-        $floors            = Floor::with('project')->orderBy('floor_number')->get();
-        $payees            = Payee::orderBy('name')->get();
-        $expenseCategories = $this->getExpenseCategories();
-        
-        // Payment sources
-        $bankAccounts = CompanyBankAccount::where('status', 'Active')
-            ->orWhere('status', '1')
-            ->orderBy('bank_name')
-            ->get();
-        if ($bankAccounts->isEmpty()) {
-            $bankAccounts = CompanyBankAccount::orderBy('bank_name')->get();
-        }
-
-        $loans = Loan::with('project')->orderBy('lender_name')->get();
-
-        $autoVoucherNumber = $this->generateVoucherNumber();
-        $selectedProjectId = $request->query('project_id', $projects->first()?->id);
-
-        return view('expenses.site-expenses.create', compact(
-            'projects',
-            'floors',
-            'payees',
-            'expenseCategories',
-            'bankAccounts',
-            'loans',
-            'autoVoucherNumber',
-            'selectedProjectId'
-        ));
+        return redirect()->route('site-expenses.index', ['create' => 1]);
     }
 
     /**
@@ -483,7 +391,7 @@ class SiteExpenseController extends Controller
 
             DB::commit();
 
-            return redirect()->route('site-expenses.workflow', ['expense_id' => $siteExpense->id, 'project_id' => $siteExpense->project_id])
+            return redirect()->route('site-expenses.index')
                 ->with('success', "Site Expense Voucher {$voucherNumber} of ₹" . number_format($net, 2) . " successfully saved!");
         } catch (\Exception $e) {
             DB::rollBack();
@@ -522,7 +430,7 @@ class SiteExpenseController extends Controller
             $siteExpense->update(['status' => 'Approved']);
             DB::commit();
 
-            return redirect()->route('site-expenses.workflow', ['expense_id' => $siteExpense->id, 'project_id' => $siteExpense->project_id])
+            return redirect()->route('site-expenses.index')
                 ->with('success', "Voucher {$siteExpense->voucher_number} approved and posted to journal entries!");
         } catch (\Exception $e) {
             DB::rollBack();
@@ -536,7 +444,7 @@ class SiteExpenseController extends Controller
     public function reject(SiteExpense $siteExpense): RedirectResponse
     {
         $siteExpense->update(['status' => 'Rejected']);
-        return redirect()->route('site-expenses.workflow', ['expense_id' => $siteExpense->id, 'project_id' => $siteExpense->project_id])
+        return redirect()->route('site-expenses.index')
             ->with('info', "Voucher {$siteExpense->voucher_number} sent back / rejected.");
     }
 

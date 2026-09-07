@@ -23,6 +23,9 @@
         </div>
 
         <div class="flex items-center gap-3">
+            <a href="{{ route('site-expenses.workflow', ['expense_id' => $siteExpense->id, 'project_id' => $siteExpense->project_id]) }}" class="px-4 py-2 text-xs font-bold rounded-xl bg-[#a38c29] text-white hover:bg-[#8d7923] shadow-md transition">
+                <i data-lucide="git-merge" class="w-4 h-4 inline mr-1"></i> Interactive Workflow View
+            </a>
             <a href="{{ route('site-expenses.index') }}" class="px-4 py-2 text-xs font-bold rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50">
                 Back to Register
             </a>

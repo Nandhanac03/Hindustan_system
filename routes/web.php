@@ -521,6 +521,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/loan-disbursals/{disbursal}/cancel', [\App\Http\Controllers\LoanDisbursalController::class, 'cancel'])->name('loan-disbursals.cancel');
     // Site Expenses Module
     Route::get('/site-expenses', [SiteExpenseController::class, 'index'])->name('site-expenses.index');
+    Route::get('/expenses/site-expenses', [SiteExpenseController::class, 'index']);
     Route::get('/site-expenses/workflow', [SiteExpenseController::class, 'workflow'])->name('site-expenses.workflow');
     Route::get('/site-expenses/create', [SiteExpenseController::class, 'create'])->name('site-expenses.create');
     Route::post('/site-expenses', [SiteExpenseController::class, 'store'])->name('site-expenses.store');
