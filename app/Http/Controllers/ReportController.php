@@ -1225,6 +1225,7 @@ class ReportController extends Controller
         $partnerAccountIds = array_keys($partnerAccountMap);
 
         // 1. Fetch Partner Shares
+        $allPartnerShares = PartnerShare::all();
         $sharesQuery = PartnerShare::with(['partner', 'project']);
         if ($partnerId) {
             $sharesQuery->where('partner_id', $partnerId);
@@ -1234,7 +1235,23 @@ class ReportController extends Controller
         }
         $partnerShares = $sharesQuery->get();
 
-        // 2. Fetch Allocations (Credit - Profit Shares)
+        // 2. Fetch Receipts (Credits - Collection Share)
+        $receiptsQuery = Receipt::with(['sale.project', 'sale.unit', 'customer'])
+            ->whereNull('partner_id')
+            ->orderBy('receipt_date');
+
+        if ($projectId) {
+            $receiptsQuery->where('project_id', $projectId);
+        }
+        if ($dateFrom) {
+            $receiptsQuery->whereDate('receipt_date', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $receiptsQuery->whereDate('receipt_date', '<=', $dateTo);
+        }
+        $receipts = $receiptsQuery->get();
+
+        // 3. Fetch Allocations (Debits - Payouts / Drawings Released)
         $allocQuery = PartnerAllocation::with(['partner', 'project', 'voucher', 'payment']);
         if ($partnerId) {
             $allocQuery->where('partner_id', $partnerId);
@@ -1250,10 +1267,8 @@ class ReportController extends Controller
         }
         $allocations = $allocQuery->orderBy('date')->get();
 
-        // 3. Fetch Payouts (Debit - Payouts Released)
-        // Source A: bill_payments
-        $billPayoutsQuery = DB::table('bill_payments')
-            ->whereIn('payee_id', $partnerPayeeIds);
+        // 4. Additional Payouts (bill_payments & voucher_lines)
+        $billPayoutsQuery = DB::table('bill_payments')->whereIn('payee_id', $partnerPayeeIds);
         if ($partnerId) {
             $billPayoutsQuery->where('payee_id', $partnerId);
         }
@@ -1265,7 +1280,6 @@ class ReportController extends Controller
         }
         $billPayouts = $billPayoutsQuery->orderBy('date')->get();
 
-        // Source B: Payment vouchers against partner linked accounts (excluding those linked to PartnerAllocation)
         $allocVoucherIds = $allocations->pluck('voucher_id')->filter()->toArray();
         $voucherPayoutsQuery = DB::table('voucher_lines')
             ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
@@ -1288,30 +1302,74 @@ class ReportController extends Controller
             'vouchers.narration'
         )->get();
 
-        // 4. Combine into Section A Running Ledger
+        // 5. Combine into Section A Running Ledger
         $ledgerTransactions = collect();
 
+        // Add Receipts Collection Shares (Credits)
+        foreach ($receipts as $receipt) {
+            $targetShares = $allPartnerShares->where('project_id', $receipt->project_id);
+            if ($partnerId) {
+                $targetShares = $targetShares->where('partner_id', $partnerId);
+            }
+
+            foreach ($targetShares as $share) {
+                $sharePct = (float)$share->share_pct;
+                $partnerAmount = (float)$receipt->amount * ($sharePct / 100);
+                $partnerObj = $partners->firstWhere('id', $share->partner_id);
+
+                $desc = 'Share of collection (' . $sharePct . '%) from ' . ($receipt->customer?->name ?? 'Customer')
+                    . ' — ' . ($receipt->sale?->project?->name ?? 'Project')
+                    . ($receipt->sale?->unit?->door_no ? (' Unit ' . $receipt->sale->unit->door_no) : '')
+                    . ($receipt->reference_no ? (' (Ref: ' . $receipt->reference_no . ')') : '');
+
+                $ledgerTransactions->push((object)[
+                    'date' => Carbon::parse($receipt->receipt_date)->format('Y-m-d'),
+                    'ref_no' => $receipt->receipt_number ?: ($receipt->reference_no ?: ('RCT-' . str_pad((string)$receipt->id, 5, '0', STR_PAD_LEFT))),
+                    'description' => $desc,
+                    'payment_mode' => $receipt->payment_mode ?? 'Bank Transfer',
+                    'credit' => (float)$partnerAmount,
+                    'debit' => 0.00,
+                    'partner_id' => $share->partner_id,
+                    'partner_name' => $partnerObj?->name ?? ('Partner #' . $share->partner_id),
+                ]);
+            }
+        }
+
+        // Add Allocations Payouts (Debits)
         foreach ($allocations as $alloc) {
-            $isPayment = ($alloc->voucher?->type === 'Payment');
             $dateStr = $alloc->date ? Carbon::parse($alloc->date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+            $paymentMode = $alloc->payment_mode ?? '';
+            if (empty($paymentMode)) {
+                $narration = $alloc->voucher?->narration ?? $alloc->remarks ?? '';
+                if (stripos($narration, 'Bank Transfer') !== false) $paymentMode = 'Bank Transfer';
+                elseif (stripos($narration, 'Cheque') !== false) $paymentMode = 'Cheque';
+                elseif (stripos($narration, 'Cash') !== false) $paymentMode = 'Cash';
+                elseif (stripos($narration, 'UPI') !== false || stripos($narration, 'Online') !== false) $paymentMode = 'UPI / Online';
+            }
+
+            $baseDesc = ($alloc->project?->name ? ($alloc->project->name . ' - ') : '') . 'Profit Payout / Drawing' . ($alloc->remarks ? (' - ' . $alloc->remarks) : '');
+
             $ledgerTransactions->push((object)[
                 'date' => $dateStr,
-                'ref_no' => $alloc->voucher?->voucher_number ?? ('JV-PRF-' . str_pad((string)$alloc->id, 3, '0', STR_PAD_LEFT)),
-                'description' => ($alloc->project?->name ? ($alloc->project->name . ' - ') : '') . ($isPayment ? 'Profit Payout / Drawing' : 'Project Profit Allocation'),
-                'credit' => $isPayment ? 0.00 : (float)$alloc->allocated_amount,
-                'debit' => $isPayment ? (float)$alloc->allocated_amount : 0.00,
+                'ref_no' => $alloc->voucher?->voucher_number ?? ('PY-PTR-' . Carbon::parse($dateStr)->format('Ymd') . '-' . str_pad((string)$alloc->id, 5, '0', STR_PAD_LEFT)),
+                'description' => $baseDesc,
+                'payment_mode' => $paymentMode,
+                'credit' => 0.00,
+                'debit' => (float)$alloc->allocated_amount,
                 'partner_id' => $alloc->partner_id,
                 'partner_name' => $alloc->partner?->name ?? ('Partner #' . $alloc->partner_id),
             ]);
         }
 
+        // Add Bill Payouts (Debits)
         foreach ($billPayouts as $pay) {
             $pName = $partners->firstWhere('id', $pay->payee_id)?->name ?? ('Partner #' . $pay->payee_id);
             $dateStr = $pay->date ? Carbon::parse($pay->date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
             $ledgerTransactions->push((object)[
                 'date' => $dateStr,
                 'ref_no' => 'BILL-PAY-' . str_pad((string)$pay->id, 3, '0', STR_PAD_LEFT),
-                'description' => 'Profit Payout / Drawing (Bank Transfer)',
+                'description' => 'Profit Payout / Drawing',
+                'payment_mode' => '',
                 'credit' => 0.00,
                 'debit' => (float)$pay->amount,
                 'partner_id' => $pay->payee_id,
@@ -1319,15 +1377,24 @@ class ReportController extends Controller
             ]);
         }
 
+        // Add Voucher Payouts (Debits)
         foreach ($voucherPayouts as $vp) {
             $pId = $partnerAccountMap[$vp->account_id] ?? null;
             if ($pId && (!$partnerId || (string)$pId === (string)$partnerId)) {
                 $pName = $partners->firstWhere('id', $pId)?->name ?? ('Partner #' . $pId);
                 $dateStr = $vp->v_date ? Carbon::parse($vp->v_date)->format('Y-m-d') : Carbon::now()->format('Y-m-d');
+                $narr = $vp->narration ?? $vp->line_narration ?? '';
+                $paymentMode = '';
+                if (stripos($narr, 'Bank Transfer') !== false) $paymentMode = 'Bank Transfer';
+                elseif (stripos($narr, 'Cheque') !== false) $paymentMode = 'Cheque';
+                elseif (stripos($narr, 'Cash') !== false) $paymentMode = 'Cash';
+                elseif (stripos($narr, 'UPI') !== false || stripos($narr, 'Online') !== false) $paymentMode = 'UPI / Online';
+
                 $ledgerTransactions->push((object)[
                     'date' => $dateStr,
                     'ref_no' => $vp->voucher_number,
                     'description' => $vp->line_narration ?: ($vp->narration ?: 'Profit Payout / Drawing'),
+                    'payment_mode' => $paymentMode,
                     'credit' => 0.00,
                     'debit' => (float)$vp->debit,
                     'partner_id' => $pId,
@@ -1354,84 +1421,36 @@ class ReportController extends Controller
             $runningLedger->push($row);
         }
 
-        // 5. Section B: Project-Wide Equity & Profit Distribution Matrix
-        // Build project-wide transactions (not restricted by partner filter, but respecting project and date filters)
-        $matrixAllocQuery = PartnerAllocation::with(['partner', 'project', 'voucher']);
-        if ($projectId) {
-            $matrixAllocQuery->where('project_id', $projectId);
-        }
-        if ($dateFrom) {
-            $matrixAllocQuery->whereDate('date', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $matrixAllocQuery->whereDate('date', '<=', $dateTo);
-        }
-        $matrixAllocations = $matrixAllocQuery->get();
-
-        $matrixBillPayoutsQuery = DB::table('bill_payments')->whereIn('payee_id', $partnerPayeeIds);
-        if ($dateFrom) {
-            $matrixBillPayoutsQuery->whereDate('date', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $matrixBillPayoutsQuery->whereDate('date', '<=', $dateTo);
-        }
-        $matrixBillPayouts = $matrixBillPayoutsQuery->get();
-
-        $matrixAllocVoucherIds = $matrixAllocations->pluck('voucher_id')->filter()->toArray();
-        $matrixVoucherPayoutsQuery = DB::table('voucher_lines')
-            ->join('vouchers', 'voucher_lines.voucher_id', '=', 'vouchers.id')
-            ->whereIn('voucher_lines.account_id', $partnerAccountIds)
-            ->where('vouchers.type', 'Payment')
-            ->where('voucher_lines.debit', '>', 0);
-        if (!empty($matrixAllocVoucherIds)) {
-            $matrixVoucherPayoutsQuery->whereNotIn('vouchers.id', $matrixAllocVoucherIds);
-        }
-        if ($dateFrom) {
-            $matrixVoucherPayoutsQuery->whereDate('vouchers.date', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $matrixVoucherPayoutsQuery->whereDate('vouchers.date', '<=', $dateTo);
-        }
-        $matrixVoucherPayouts = $matrixVoucherPayoutsQuery->select('voucher_lines.*', 'vouchers.date as v_date')->get();
-
-        $matrixTxns = collect();
-        foreach ($matrixAllocations as $alloc) {
-            $isPayment = ($alloc->voucher?->type === 'Payment');
-            $matrixTxns->push((object)[
-                'credit' => $isPayment ? 0.00 : (float)$alloc->allocated_amount,
-                'debit' => $isPayment ? (float)$alloc->allocated_amount : 0.00,
-                'partner_id' => $alloc->partner_id,
-            ]);
-        }
-        foreach ($matrixBillPayouts as $pay) {
-            $matrixTxns->push((object)[
-                'credit' => 0.00,
-                'debit' => (float)$pay->amount,
-                'partner_id' => $pay->payee_id,
-            ]);
-        }
-        foreach ($matrixVoucherPayouts as $vp) {
-            $pId = $partnerAccountMap[$vp->account_id] ?? null;
-            if ($pId) {
-                $matrixTxns->push((object)[
-                    'credit' => 0.00,
-                    'debit' => (float)$vp->debit,
-                    'partner_id' => $pId,
-                ]);
-            }
-        }
-
+        // 6. Section B: Project-Wide Equity & Profit Distribution Matrix
         $matrixPartners = collect();
         $totalMatrixAllocated = 0.0;
         $totalMatrixPayouts = 0.0;
         $totalMatrixAgreedPct = 0.0;
 
         foreach ($partners as $partner) {
-            $pShare = $partnerShares->where('partner_id', $partner->id)->first();
+            $pShare = $allPartnerShares->where('partner_id', $partner->id)->first();
             $sharePct = $pShare ? (float)$pShare->share_pct : ($partner->id == 1 ? 57.5 : 42.5);
 
-            $partnerAllocTotal = (float)$matrixTxns->where('partner_id', $partner->id)->sum('credit');
-            $partnerPayoutTotal = (float)$matrixTxns->where('partner_id', $partner->id)->sum('debit');
+            // Credits for this partner (from all receipts)
+            $partnerAllocTotal = 0.0;
+            foreach ($receipts as $receipt) {
+                $targetShare = $allPartnerShares->where('project_id', $receipt->project_id)->where('partner_id', $partner->id)->first();
+                if ($targetShare) {
+                    $partnerAllocTotal += (float)$receipt->amount * ((float)$targetShare->share_pct / 100);
+                }
+            }
+
+            // Debits for this partner (from allocations, bill payouts, voucher payouts)
+            $partnerPayoutTotal = (float)$allocations->where('partner_id', $partner->id)->sum('allocated_amount')
+                + (float)$billPayouts->where('payee_id', $partner->id)->sum('amount');
+
+            foreach ($voucherPayouts as $vp) {
+                $vpPartnerId = $partnerAccountMap[$vp->account_id] ?? null;
+                if ($vpPartnerId && (string)$vpPartnerId === (string)$partner->id) {
+                    $partnerPayoutTotal += (float)$vp->debit;
+                }
+            }
+
             $partnerNetBalance = $partnerAllocTotal - $partnerPayoutTotal;
 
             $totalMatrixAgreedPct += $sharePct;
@@ -1449,7 +1468,7 @@ class ReportController extends Controller
             ]);
         }
 
-        // 6. KPI Card Metrics
+        // 7. KPI Card Metrics
         $selectedPartnerObj = $partnerId ? $partners->firstWhere('id', $partnerId) : null;
         $agreedProfitShare = $selectedPartnerObj
             ? ($matrixPartners->firstWhere('id', $selectedPartnerObj->id)->share_pct ?? 0.0)
@@ -1459,10 +1478,18 @@ class ReportController extends Controller
         $totalPayoutsReleased = (float)$totalDebit;
         $currentNetEquityBalance = $earnedProfitShare - $totalPayoutsReleased;
 
+        $companyBankAccounts = \App\Models\CompanyBankAccount::orderByDesc('is_default')->orderBy('bank_name')->get();
+        $paymentModes = \App\Models\PaymentMode::where('status', 'active')->orderBy('id')->get();
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = \App\Models\PaymentMode::orderBy('id')->get();
+        }
+
         return view('reports.partner-statements', array_merge($lookups, compact(
             'activeTab',
             'partners',
             'projects',
+            'companyBankAccounts',
+            'paymentModes',
             'runningLedger',
             'totalCredit',
             'totalDebit',
@@ -1485,47 +1512,123 @@ class ReportController extends Controller
     public function recordPartnerPayout(Request $request)
     {
         $validated = $request->validate([
-            'partner_id'       => 'required|exists:payees,id',
-            'project_id'       => 'required|exists:projects,id',
-            'allocated_amount' => 'required|numeric|min:1',
-            'date'             => 'required|date',
-            'remarks'          => 'nullable|string|max:500',
+            'partner_id'              => 'required|exists:payees,id',
+            'project_id'              => 'required|exists:projects,id',
+            'payment_mode'            => 'required|string|max:100',
+            'company_bank_account_id' => 'nullable|exists:company_bank_accounts,id',
+            'allocated_amount'        => 'required|numeric|min:1',
+            'date'                    => 'required|date',
+            'remarks'                 => 'nullable|string|max:500',
         ]);
 
         $systemId = auth()->user()->system_id ?? 1;
         $user = auth()->user();
         $partner = \App\Models\Payee::where('type', 'Partner')->findOrFail($validated['partner_id']);
         $amount = (float) $validated['allocated_amount'];
+        $paymentMode = $validated['payment_mode'];
+        $companyBankId = !empty($validated['company_bank_account_id']) ? (int)$validated['company_bank_account_id'] : null;
 
-        DB::transaction(function () use ($systemId, $partner, $validated, $user, $amount) {
+        $companyBank = $companyBankId ? \App\Models\CompanyBankAccount::find($companyBankId) : null;
+        $bankName = $companyBank ? ($companyBank->bank_name . ($companyBank->account_number ? ' (' . $companyBank->account_number . ')' : '')) : '';
+
+        DB::transaction(function () use ($systemId, $partner, $validated, $user, $amount, $paymentMode, $companyBankId, $bankName) {
+            // Deduct payout amount from selected CompanyBankAccount balance
+            if ($companyBankId) {
+                $bankAccount = \App\Models\CompanyBankAccount::lockForUpdate()->find($companyBankId);
+                if ($bankAccount) {
+                    $currentBal = (float)($bankAccount->current_balance ?? $bankAccount->opening_balance ?? 0);
+                    $bankAccount->current_balance = $currentBal - $amount;
+                    $bankAccount->save();
+                }
+            }
+
+            $narrationText = 'Partner Payout / Drawing (' . $paymentMode . ($bankName ? ' via ' . $bankName : '') . ') — ' . $partner->name;
+            if (!empty($validated['remarks'])) {
+                $narrationText .= ' (' . $validated['remarks'] . ')';
+            }
+
             $voucher = \App\Models\Voucher::create([
                 'system_id'      => $systemId,
                 'voucher_number' => 'PY-PTR-' . date('Ymd-His'),
                 'type'           => 'Payment',
                 'date'           => $validated['date'],
-                'amount'         => $amount,
-                'narration'      => 'Partner Payout / Drawing — ' . $partner->name . ($validated['remarks'] ? ' (' . $validated['remarks'] . ')' : ''),
+                'narration'      => $narrationText,
                 'created_by'     => $user->id ?? 1,
+                'status'         => 'Posted',
             ]);
 
+            // 1. Debit Partner Drawing / Equity Account
             $partnerAccountId = $partner->linked_account_id ?? 2;
-            \App\Models\VoucherLine::create([
-                'voucher_id'  => $voucher->id,
-                'account_id'  => $partnerAccountId,
-                'debit'       => $amount,
-                'credit'      => 0.00,
-                'description' => 'Partner Payout Release (Debit Drawing)',
+            $debitLine = \App\Models\VoucherLine::create([
+                'voucher_id'     => $voucher->id,
+                'account_id'     => $partnerAccountId,
+                'debit'          => $amount,
+                'credit'         => 0.00,
+                'line_narration' => 'Partner Payout Release (Debit Drawing)',
             ]);
 
+            \App\Models\LedgerEntry::create([
+                'system_id'       => $systemId,
+                'account_id'      => $partnerAccountId,
+                'voucher_id'      => $voucher->id,
+                'voucher_line_id' => $debitLine->id,
+                'date'            => $validated['date'],
+                'debit'           => $amount,
+                'credit'          => 0.00,
+                'running_balance' => 0.00,
+            ]);
+
+            // 2. Credit Pay-From Bank / Cash Account
+            $payFromAccountId = null;
+            if ($companyBankId) {
+                $bankAccountChart = \App\Models\Account::where('system_id', $systemId)
+                    ->where('type', 'Asset')
+                    ->where(function($q) use ($bankName) {
+                        $q->where('name', 'like', '%' . $bankName . '%')->orWhere('code', 'like', '%bank%');
+                    })->first();
+                $payFromAccountId = $bankAccountChart ? $bankAccountChart->id : null;
+            }
+
+            if (!$payFromAccountId) {
+                $defaultBank = \App\Models\Account::where('system_id', $systemId)
+                    ->where('type', 'Asset')
+                    ->where(function($q) {
+                        $q->where('name', 'like', '%bank%')->orWhere('code', 'like', '%bank%')->orWhere('code', 'CASH-HAND');
+                    })->first();
+                $payFromAccountId = $defaultBank ? $defaultBank->id : 1;
+            }
+
+            $creditLine = \App\Models\VoucherLine::create([
+                'voucher_id'     => $voucher->id,
+                'account_id'     => $payFromAccountId,
+                'debit'          => 0.00,
+                'credit'         => $amount,
+                'line_narration' => 'Credit Pay-From Account (' . $paymentMode . ($bankName ? ' - ' . $bankName : '') . ')',
+            ]);
+
+            \App\Models\LedgerEntry::create([
+                'system_id'       => $systemId,
+                'account_id'      => $payFromAccountId,
+                'voucher_id'      => $voucher->id,
+                'voucher_line_id' => $creditLine->id,
+                'date'            => $validated['date'],
+                'debit'           => 0.00,
+                'credit'          => $amount,
+                'running_balance' => 0.00,
+            ]);
+
+            // 3. Create PartnerAllocation record storing payment_mode, remarks, and company_bank_account_id in DB
             \App\Models\PartnerAllocation::create([
-                'system_id'        => $systemId,
-                'partner_id'       => $partner->id,
-                'project_id'       => $validated['project_id'],
-                'allocated_amount' => $amount,
-                'date'             => $validated['date'],
-                'voucher_id'       => $voucher->id,
-                'remarks'          => $validated['remarks'] ?? 'Partner Payout Released (Drawing)',
-                'created_by'       => $user->id ?? 1,
+                'system_id'               => $systemId,
+                'partner_id'              => $partner->id,
+                'project_id'              => $validated['project_id'],
+                'allocated_amount'        => $amount,
+                'payment_mode'            => $paymentMode,
+                'remarks'                 => $validated['remarks'] ?? ('Partner Payout Released (' . $paymentMode . ')'),
+                'company_bank_account_id' => $companyBankId,
+                'date'                    => $validated['date'],
+                'voucher_id'              => $voucher->id,
+                'created_by'              => $user->id ?? 1,
             ]);
         });
 
