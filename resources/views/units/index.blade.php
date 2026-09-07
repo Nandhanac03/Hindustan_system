@@ -252,11 +252,23 @@
                 </div>
             </div>
             
-            <button onclick="exportCurrentTable()" type="button"
-                    class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Sale Report 
-            </button>
+            <div class="flex items-center gap-2.5 shrink-0">
+                <button @click="exportSalesReport()" type="button"
+                        class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Sale Report
+                </button>
+
+                <button @click="exportUnitsExcel()" type="button"
+                        class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    Unit Report
+                </button>
+            </div>
         </form>
     </div>
 
@@ -2713,6 +2725,14 @@ function unitsApp() {
             }, 3000);
         },
 
+        exportUnitsExcel() {
+            exportUnitsExcel();
+        },
+
+        exportSalesReport() {
+            exportSalesReport();
+        },
+
         // Modal triggers
         openAddModal() {
             this.errors = {};
@@ -3817,10 +3837,388 @@ function unitsApp() {
 
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
-    function exportCurrentTable() {
+    let isExportingUnits = false;
+
+    function buildUnitsWorksheet(workbook, sheetName, bannerTitle, sheetUnits, appData) {
+        if (!sheetUnits || sheetUnits.length === 0) return;
+
+        // Sanitize sheet name for Excel rules (max 31 chars, no special chars)
+        const safeSheetName = (sheetName || 'Units').replace(/[\\/?*:[\]]/g, '').trim().substring(0, 31) || 'Units';
+
+        const worksheet = workbook.addWorksheet(safeSheetName, {
+            views: [{ showGridLines: true }]
+        });
+
+        // 12 Column Definitions (Without Actions column)
+        worksheet.columns = [
+            { header: 'FLOOR', key: 'floor', width: 15 },
+            { header: 'FLOOR NO.', key: 'floor_no', width: 16 },
+            { header: 'TYPE', key: 'type', width: 14 },
+            { header: 'DOOR NO', key: 'door_no', width: 14 },
+            { header: 'BUILT UP AREA (IN SQ FT)', key: 'built_up_area', width: 22 },
+            { header: 'CARPET AREA (IN SQ FT)', key: 'carpet_area', width: 22 },
+            { header: '₹ EXPECTED / SQ.FT', key: 'expected_rate', width: 20 },
+            { header: '₹ EXPECTED SALE', key: 'expected_sale', width: 22 },
+            { header: '₹ SALE PER SQ.FT', key: 'sale_rate', width: 20 },
+            { header: '₹ SALE AMOUNT', key: 'sale_amount', width: 26 },
+            { header: 'DIFFERENCE', key: 'difference', width: 18 },
+            { header: 'STATUS', key: 'status', width: 16 }
+        ];
+
+        // 1. Top Title Banner Row (Row 1) - Center Aligned
+        worksheet.spliceRows(1, 0, []); // Insert row 1
+        
+        worksheet.mergeCells('A1:L1');
+        const titleCell = worksheet.getCell('A1');
+        titleCell.value = bannerTitle;
+        titleCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+        titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(1).height = 36;
+
+        ['A1','B1','C1','D1','E1','F1','G1','H1','I1','J1','K1','L1'].forEach(cellCoord => {
+            const c = worksheet.getCell(cellCoord);
+            c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        });
+
+        // 2. Table Header Row (Row 2) - Brand Gold
+        const headerRow = worksheet.getRow(2);
+        headerRow.height = 30;
+        headerRow.values = [
+            'FLOOR',
+            'FLOOR NO.',
+            'TYPE',
+            'DOOR NO',
+            'BUILT UP AREA (IN SQ FT)',
+            'CARPET AREA (IN SQ FT)',
+            '₹ EXPECTED / SQ.FT',
+            '₹ EXPECTED SALE',
+            '₹ SALE PER SQ.FT',
+            '₹ SALE AMOUNT',
+            'DIFFERENCE',
+            'STATUS'
+        ];
+
+        for (let col = 1; col <= 12; col++) {
+            const cell = headerRow.getCell(col);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+            cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+            cell.border = {
+                top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                bottom: { style: 'medium', color: { argb: 'FF8A7522' } },
+                left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                right: { style: 'thin', color: { argb: 'FF8A7522' } }
+            };
+        }
+
+        // Helpers
+        const fmtNum = (v) => v != null && v !== '' ? Number(v).toLocaleString() : 'N/A';
+        const fmtMoney = (v) => {
+            if (v == null || v === '') return 'N/A';
+            const num = Number(v);
+            if (isNaN(num)) return v;
+            if (num < 0) {
+                return '-₹' + Math.abs(num).toLocaleString();
+            }
+            return '₹' + num.toLocaleString();
+        };
+        const fmtArea = (v) => v != null && v !== '' ? Number(v).toLocaleString() + ' Sq Ft' : 'N/A';
+
+        // Group units by floor
+        let groups = [];
+        let currentFloorId = null;
+        let currentGroup = null;
+        for (let unit of sheetUnits) {
+            let floorId = unit.floor ? unit.floor.id : (unit.floor_id || 'default');
+            let floorName = unit.floor ? unit.floor.name : (unit.floor_name || 'Ground Floor');
+            if (floorId !== currentFloorId) {
+                currentFloorId = floorId;
+                currentGroup = {
+                    floor_id: floorId,
+                    floor_name: floorName,
+                    units: []
+                };
+                groups.push(currentGroup);
+            }
+            currentGroup.units.push(unit);
+        }
+
+        // 3. Populate Data Rows Floor-by-Floor
+        let currentRowIdx = 3;
+
+        groups.forEach((group) => {
+            const startRow = currentRowIdx;
+            const endRow = currentRowIdx + group.units.length - 1;
+            const floorDisplayName = (group.floor_name || 'Floor').toUpperCase();
+
+            group.units.forEach((unit, uIdx) => {
+                const row = worksheet.getRow(currentRowIdx);
+                const isParkingUnit = unit.unit_type && (
+                    (unit.unit_type.name || '').toLowerCase() === 'parking' || 
+                    (unit.unit_type.category || '').toLowerCase() === 'parking'
+                );
+
+                const floorName = unit.floor ? unit.floor.name : group.floor_name;
+                const unitTypeName = unit.unit_type ? unit.unit_type.name : '';
+                const doorNo = unit.door_no || '';
+                const builtUpArea = fmtArea(unit.built_up_area);
+                const carpetArea = fmtArea(unit.carpet_area);
+                const expRate = isParkingUnit ? 'N/A' : fmtMoney(unit.expected_rate_per_sqft);
+                const expSale = fmtMoney(unit.expected_sale_amount);
+                const saleRate = isParkingUnit ? 'N/A' : (unit.sale_rate_per_sqft ? fmtMoney(unit.sale_rate_per_sqft) : 'N/A');
+
+                let saleAmount = unit.sale_amount ? fmtMoney(unit.sale_amount) : 'N/A';
+                let activeSale = null;
+                if (appData && typeof appData.getUnitActiveSale === 'function') {
+                    activeSale = appData.getUnitActiveSale(unit);
+                } else if (unit.sale) {
+                    activeSale = unit.sale;
+                } else if (unit.sale_units && unit.sale_units.length > 0) {
+                    const asu = unit.sale_units.find(su => su.sale && su.sale.status === 'active');
+                    if (asu) activeSale = asu.sale;
+                }
+
+                const isSold = (unit.status || '').toLowerCase() === 'sold';
+                let customerLabel = '';
+                if (isSold && activeSale && activeSale.customer && activeSale.customer.name) {
+                    customerLabel = '\nSOLD TO: ' + activeSale.customer.name.toUpperCase();
+                    saleAmount += customerLabel;
+                }
+
+                const diff = fmtMoney(unit.difference);
+                const rawStatus = (unit.status || 'available').toLowerCase();
+                const statusDisplay = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1);
+
+                row.values = [
+                    uIdx === 0 ? floorDisplayName : '', // Col 1: Floor
+                    floorName,                          // Col 2: Floor No.
+                    unitTypeName,                       // Col 3: Type
+                    doorNo,                             // Col 4: Door No
+                    builtUpArea,                        // Col 5: Built Up Area
+                    carpetArea,                         // Col 6: Carpet Area
+                    expRate,                            // Col 7: Expected / Sq.Ft
+                    expSale,                            // Col 8: Expected Sale
+                    saleRate,                           // Col 9: Sale Per Sq.Ft
+                    saleAmount,                         // Col 10: Sale Amount
+                    diff,                               // Col 11: Difference
+                    statusDisplay                       // Col 12: Status
+                ];
+
+                row.height = isSold && customerLabel ? 38 : 28;
+                const isLastInFloor = uIdx === group.units.length - 1;
+
+                // Style Columns B to L (Cols 2 to 12)
+                for (let col = 2; col <= 12; col++) {
+                    const cell = row.getCell(col);
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF1E293B' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                    
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        bottom: { style: isLastInFloor ? 'medium' : 'thin', color: isLastInFloor ? { argb: 'FFA38C29' } : { argb: 'FFE2E8F0' } },
+                        left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+                        right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+                    };
+
+                    // Subtle alternating row tint
+                    if (uIdx % 2 === 1) {
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFBFBFA' } };
+                    }
+
+                    // Door No Bold
+                    if (col === 4) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
+                    }
+
+                    // Expected Sale Bold Emerald
+                    if (col === 8) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF047857' } };
+                    }
+
+                    // Sale Amount
+                    if (col === 10) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: isSold ? { argb: 'FF047857' } : { argb: 'FF64748B' } };
+                    }
+
+                    // Difference styling (highlight negative difference if any)
+                    if (col === 11) {
+                        const numDiff = Number(unit.difference);
+                        if (!isNaN(numDiff) && numDiff < 0) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+                        }
+                    }
+
+                    // Status Badge Color
+                    if (col === 12) {
+                        if (rawStatus === 'sold') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFBE123C' } };
+                        } else if (rawStatus === 'available') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDCFCE7' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF047857' } };
+                        } else if (rawStatus === 'blocked') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEF3C7' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFB45309' } };
+                        } else if (rawStatus === 'booked') {
+                            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E7FF' } };
+                            cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF4338CA' } };
+                        }
+                    }
+                }
+
+                currentRowIdx++;
+            });
+
+            // Merge Column A for Floor with Smart Orientation & Warm Gold Styling
+            if (endRow >= startRow) {
+                if (endRow > startRow) {
+                    worksheet.mergeCells(startRow, 1, endRow, 1);
+                }
+                const floorCell = worksheet.getCell(startRow, 1);
+                floorCell.value = floorDisplayName;
+                floorCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+                floorCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6F1DF' } }; // Warm brand cream
+                
+                // Use vertical rotation ONLY when height is sufficient (3+ rows), otherwise horizontal wrap
+                const useVerticalRotation = group.units.length >= 3;
+                floorCell.alignment = {
+                    vertical: 'middle',
+                    horizontal: 'center',
+                    textRotation: useVerticalRotation ? 90 : 0,
+                    wrapText: true
+                };
+
+                for (let r = startRow; r <= endRow; r++) {
+                    const c = worksheet.getCell(r, 1);
+                    c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF6F1DF' } };
+                    c.border = {
+                        top: r === startRow ? { style: 'medium', color: { argb: 'FFA38C29' } } : { style: 'thin', color: { argb: 'FFE6DEC8' } },
+                        bottom: r === endRow ? { style: 'medium', color: { argb: 'FFA38C29' } } : { style: 'thin', color: { argb: 'FFE6DEC8' } },
+                        left: { style: 'medium', color: { argb: 'FFA38C29' } },
+                        right: { style: 'medium', color: { argb: 'FFA38C29' } }
+                    };
+                }
+            }
+        });
+
+        // 4. Bottom Footer Banner Row (Row N+1)
+        const footerRowIdx = currentRowIdx;
+        worksheet.mergeCells(`A${footerRowIdx}:L${footerRowIdx}`);
+        const footLeft = worksheet.getCell(`A${footerRowIdx}`);
+        footLeft.value = `Total Units: ${sheetUnits.length}`;
+        footLeft.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+        footLeft.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        footLeft.alignment = { horizontal: 'center', vertical: 'middle' };
+        worksheet.getRow(footerRowIdx).height = 28;
+
+        ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(c => {
+            const cell = worksheet.getCell(`${c}${footerRowIdx}`);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+        });
+    }
+
+    async function exportUnitsExcel() {
+        if (isExportingUnits) return;
+        isExportingUnits = true;
+
+        try {
+            let appData = null;
+            try {
+                const rootEl = document.querySelector('[x-data*="unitsApp"]');
+                if (rootEl && window.Alpine) {
+                    appData = window.Alpine.$data(rootEl);
+                }
+            } catch (e) {
+                console.warn('Alpine $data retrieval:', e);
+            }
+
+            let units = (appData && Array.isArray(appData.units) && appData.units.length > 0) ? appData.units : [];
+            
+            if (units.length === 0) {
+                const tbody = document.getElementById('units-tbody');
+                if (!tbody || tbody.querySelectorAll('tr.unit-table-row').length === 0) {
+                    alert("No units available to export.");
+                    return;
+                }
+            }
+
+            // Detect if customer filter is active
+            let customerSuffix = '';
+            if (appData && Array.isArray(appData.selectedCustomers) && appData.selectedCustomers.length > 0) {
+                const names = appData.selectedCustomers.map(c => c.name).filter(Boolean);
+                if (names.length > 0) {
+                    customerSuffix = ` — Customer: ${names.join(', ').toUpperCase()}`;
+                }
+            }
+
+            const filename = customerSuffix ? `TABASCO_Units_Report_Customer_Filtered.xlsx` : `TABASCO_Units_Unit_Master.xlsx`;
+
+            // Create workbook
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'TABASCO Human Capital';
+            workbook.lastModifiedBy = 'TABASCO ERP';
+            workbook.created = new Date();
+            workbook.modified = new Date();
+
+            // 1. Primary Sheet: All Units Master
+            buildUnitsWorksheet(
+                workbook,
+                'All Units',
+                `TABASCO  HUMAN CAPITAL   |   Units (Unit Master)${customerSuffix}`,
+                units,
+                appData
+            );
+
+            // 2. Unit Type Wise Breakup Sheets (e.g. Shop, Apartment, Parking)
+            const typeMap = {};
+            units.forEach(unit => {
+                const typeName = unit.unit_type ? unit.unit_type.name : 'Other';
+                if (!typeMap[typeName]) {
+                    typeMap[typeName] = [];
+                }
+                typeMap[typeName].push(unit);
+            });
+
+            // Generate a dedicated tab for each Unit Type
+            Object.keys(typeMap).forEach(typeName => {
+                const typeUnits = typeMap[typeName];
+                const sheetTitle = `TABASCO  HUMAN CAPITAL   |   Units Master - ${typeName}${customerSuffix}`;
+                buildUnitsWorksheet(
+                    workbook,
+                    typeName,
+                    sheetTitle,
+                    typeUnits,
+                    appData
+                );
+            });
+
+            // Write workbook and download
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = filename;
+            anchor.click();
+            window.URL.revokeObjectURL(url);
+        } finally {
+            setTimeout(() => {
+                isExportingUnits = false;
+            }, 1000);
+        }
+    }
+
+    let isExportingSales = false;
+
+    function exportSalesReport() {
+        if (isExportingSales) return;
+        isExportingSales = true;
+
         const table = document.querySelector("#salesExcelTable");
         if (!table) {
-            alert("No table available to export.");
+            alert("No sale report table available to export.");
+            isExportingSales = false;
             return;
         }
 
@@ -3904,7 +4302,6 @@ function unitsApp() {
         rows.forEach((tr, rIdx) => {
             const sheetRow = worksheet.getRow(rIdx + 1);
             
-            // Set row height
             const heightAttr = tr.getAttribute("height") || tr.style.height;
             if (heightAttr) {
                 const match = heightAttr.match(/[\d\.]+/);
@@ -3919,7 +4316,6 @@ function unitsApp() {
             for (let cIdx = 0; cIdx < cells.length; cIdx++) {
                 const cell = cells[cIdx];
 
-                // Find next free cell column in sheet
                 while (isMerged(rIdx + 1, colIdx)) {
                     colIdx++;
                 }
@@ -3938,7 +4334,6 @@ function unitsApp() {
                 const excelCell = worksheet.getCell(rIdx + 1, colIdx);
                 const rawVal = cell.textContent ? cell.textContent.trim() : '';
 
-                // Styling extractions (using inline style attributes directly to support hidden table)
                 const bgColorAttr = cell.getAttribute("bgcolor") || cell.style.backgroundColor;
                 const bgColorHex = cssColorToHex(bgColorAttr);
                 
@@ -3949,19 +4344,14 @@ function unitsApp() {
                 const fontSizeMatch = (cell.style.fontSize || '').match(/[\d\.]+/);
                 const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[0]) : 10;
 
-                // Alignments
                 let horizAlign = cell.style.textAlign || (cell.tagName === 'TH' ? 'center' : 'left');
                 if (horizAlign === 'start') horizAlign = 'left';
                 if (horizAlign === 'end') horizAlign = 'right';
 
                 let vertAlign = cell.style.verticalAlign || 'middle';
-
-                // Formatting detection from custom mso-number-format
                 const numberFormat = cell.style.msoNumberFormat || '';
                 
-                // Populate excelCell value and format
                 if (numberFormat.includes('dd-mmm-yyyy') || numberFormat.includes('dd\\-mmm\\-yyyy')) {
-                    // Check if valid YYYY-MM-DD
                     if (rawVal && /^\d{4}-\d{2}-\d{2}$/.test(rawVal)) {
                         excelCell.value = new Date(rawVal);
                     } else {
@@ -3986,7 +4376,6 @@ function unitsApp() {
                     }
                     excelCell.numFormat = '#,##0';
                 } else {
-                    // General number parsing if it looks like a clean integer/float
                     if (rawVal && /^\-?\d+(\.\d+)?$/.test(rawVal)) {
                         excelCell.value = parseFloat(rawVal);
                     } else {
@@ -3994,7 +4383,6 @@ function unitsApp() {
                     }
                 }
 
-                // Apply formatting styles
                 excelCell.font = {
                     name: 'Calibri',
                     size: fontSize,
@@ -4016,7 +4404,6 @@ function unitsApp() {
                     wrapText: true
                 };
 
-                // Add thin gray borders
                 excelCell.border = {
                     top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
                     left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
@@ -4037,8 +4424,17 @@ function unitsApp() {
             anchor.download = filename;
             anchor.click();
             window.URL.revokeObjectURL(url);
+            setTimeout(() => { isExportingSales = false; }, 1000);
+        }).catch(err => {
+            console.error('Export sales error:', err);
+            isExportingSales = false;
         });
     }
+
+    // Export aliases
+    window.exportSalesReport = exportSalesReport;
+    window.exportCurrentTable = exportSalesReport;
+    window.exportUnitsExcel = exportUnitsExcel;
 </script>
 
 </x-erp-layout>
