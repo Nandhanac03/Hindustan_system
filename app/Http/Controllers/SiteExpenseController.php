@@ -421,6 +421,97 @@ class SiteExpenseController extends Controller
     }
 
     /**
+     * Update existing site expense in database
+     */
+    public function update(Request $request, SiteExpense $siteExpense): RedirectResponse
+    {
+        $validated = $request->validate([
+            'project_id'               => 'required|exists:projects,id',
+            'tower_block_tag'          => 'nullable|string|max:100',
+            'floor_id'                 => 'nullable|exists:floors,id',
+            'voucher_date'             => 'required|date',
+            'payee_type'               => 'required|in:registered,one_time',
+            'payee_id'                 => 'required_if:payee_type,registered|nullable|exists:payees,id',
+            'casual_payee_name'        => 'required_if:payee_type,one_time|nullable|string|max:255',
+            'expense_category_code'    => 'required|string',
+            'gross_amount'             => 'required|numeric|min:0.01',
+            'cgst_amount'              => 'nullable|numeric|min:0',
+            'sgst_amount'              => 'nullable|numeric|min:0',
+            'igst_amount'              => 'nullable|numeric|min:0',
+            'net_amount'               => 'required|numeric|min:0.01',
+            'payment_source_type'      => 'required|in:bank,loan',
+            'company_bank_account_id'  => 'required_if:payment_source_type,bank|nullable|exists:company_bank_accounts,id',
+            'loan_id'                  => 'required_if:payment_source_type,loan|nullable|exists:loans,id',
+            'transaction_reference_no' => 'required|string|max:100',
+            'narration'                => 'nullable|string|max:1000',
+            'attachment'               => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+            'submit_action'            => 'nullable|string|in:draft,submit',
+        ]);
+
+        $categories = $this->getExpenseCategories();
+        $categoryCode = $validated['expense_category_code'];
+        $categoryName = $categories[$categoryCode] ?? 'General Site Expense';
+
+        $cgst = (float) ($validated['cgst_amount'] ?? 0);
+        $sgst = (float) ($validated['sgst_amount'] ?? 0);
+        $igst = (float) ($validated['igst_amount'] ?? 0);
+        $totalGst = $cgst + $sgst + $igst;
+
+        $gross = (float) $validated['gross_amount'];
+        $net   = (float) $validated['net_amount'];
+        $status = ($request->submit_action === 'draft') ? 'Draft' : 'Approved';
+
+        // Handle File Attachment if newly uploaded
+        $attachmentPath = $siteExpense->attachment_path;
+        if ($request->hasFile('attachment') && $request->file('attachment')->isValid()) {
+            $file = $request->file('attachment');
+            $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+            $attachmentPath = $file->storeAs('site_expenses', $fileName, 'public');
+        }
+
+        DB::beginTransaction();
+        try {
+            $chartOfAccount = ChartOfAccount::where('account_code', $categoryCode)->first();
+
+            $siteExpense->update([
+                'project_id'               => $validated['project_id'],
+                'floor_id'                 => $validated['floor_id'] ?? null,
+                'tower_block_tag'          => $validated['tower_block_tag'] ?? null,
+                'voucher_date'             => $validated['voucher_date'],
+                'payee_type'               => $validated['payee_type'],
+                'payee_id'                 => $validated['payee_type'] === 'registered' ? $validated['payee_id'] : null,
+                'casual_payee_name'        => $validated['payee_type'] === 'one_time' ? $validated['casual_payee_name'] : null,
+                'chart_of_account_id'      => $chartOfAccount?->id,
+                'expense_category_code'    => $categoryCode,
+                'expense_category_name'    => $categoryName,
+                'gross_amount'             => $gross,
+                'cgst_amount'              => $cgst,
+                'sgst_amount'              => $sgst,
+                'igst_amount'              => $igst,
+                'total_gst_amount'         => $totalGst,
+                'net_amount'               => $net,
+                'payment_source_type'      => $validated['payment_source_type'],
+                'company_bank_account_id'  => $validated['payment_source_type'] === 'bank' ? $validated['company_bank_account_id'] : null,
+                'loan_id'                  => $validated['payment_source_type'] === 'loan' ? $validated['loan_id'] : null,
+                'transaction_reference_no' => $validated['transaction_reference_no'],
+                'narration'                => $validated['narration'] ?? null,
+                'attachment_path'          => $attachmentPath,
+                'status'                   => $status,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('site-expenses.index')
+                ->with('success', "Site Expense Voucher {$siteExpense->voucher_number} updated successfully!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to update Site Expense: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Approve Site Expense Voucher
      */
     public function approve(SiteExpense $siteExpense): RedirectResponse

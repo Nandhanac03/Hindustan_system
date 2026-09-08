@@ -368,6 +368,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/site-expenses/workflow', [\App\Http\Controllers\SiteExpenseController::class, 'workflow'])->name('site-expenses.workflow');
     Route::get('/site-expenses/create', [\App\Http\Controllers\SiteExpenseController::class, 'create'])->name('site-expenses.create');
     Route::post('/site-expenses', [\App\Http\Controllers\SiteExpenseController::class, 'store'])->name('site-expenses.store');
+    Route::put('/site-expenses/{siteExpense}', [\App\Http\Controllers\SiteExpenseController::class, 'update'])->name('site-expenses.update');
     Route::get('/site-expenses/{siteExpense}', [\App\Http\Controllers\SiteExpenseController::class, 'show'])->name('site-expenses.show');
     Route::post('/site-expenses/{siteExpense}/approve', [\App\Http\Controllers\SiteExpenseController::class, 'approve'])->name('site-expenses.approve');
     Route::post('/site-expenses/{siteExpense}/reject', [\App\Http\Controllers\SiteExpenseController::class, 'reject'])->name('site-expenses.reject');

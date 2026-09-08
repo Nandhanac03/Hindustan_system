@@ -7,20 +7,25 @@
     showCreateModal: {{ request()->has('create') ? 'true' : 'false' }},
     showViewModal: false,
     selectedExpense: null,
+    projectId: '{{ old('project_id', $projects->first()?->id ?? '') }}',
+    voucherDate: '{{ old('voucher_date', date('Y-m-d')) }}',
+    expenseCategoryCode: '{{ old('expense_category_code', '4020') }}',
+    paymentSourceType: 'bank',
+    companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
     payeeType: '{{ old('payee_type', 'registered') }}',
     payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
     payeesData: {{ json_encode($payees->keyBy('id')) }},
-    casualPayeeName: '{{ old('casual_payee_name', 'Saju Tea Stall') }}',
-    selectedVendorGstin: '32ABCDE1234F1Z5',
-    gross: {{ old('gross_amount', 45000) }},
+    casualPayeeName: '{{ old('casual_payee_name', '') }}',
+    selectedVendorGstin: '',
+    transactionRef: '{{ old('transaction_reference_no', '') }}',
+    billDate: '{{ old('bill_date', date('Y-m-d')) }}',
+    dueDate: '{{ old('due_date', '') }}',
+    gross: '{{ old('gross_amount', '') }}',
     gstPct: 18,
-    paymentSourceType: 'bank',
-    companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
-    transactionRef: '{{ old('transaction_reference_no', 'JCB/0525/0148') }}',
-    narration: '{{ old('narration', 'JCB rental for excavation work – Block A (Month of May 2025)') }}',
+    narration: '{{ old('narration', '') }}',
     uploadedFile: null,
-    fileName: 'JCB_Rental_Bill_0525.pdf',
-    fileSize: '125 KB',
+    fileName: '',
+    fileSize: '',
 
     showConfirmModal: false,
     confirmType: 'reject',
@@ -41,18 +46,53 @@
         this.showViewModal = true;
     },
 
+    openCreateModal() {
+        this.selectedExpense = null;
+        this.projectId = '{{ $projects->first()?->id ?? '' }}';
+        this.voucherDate = '{{ date('Y-m-d') }}';
+        this.expenseCategoryCode = '4020';
+        this.payeeType = 'registered';
+        this.payeeId = '{{ $payees->first()?->id ?? '' }}';
+        this.casualPayeeName = '';
+        this.companyBankAccountId = '{{ $bankAccounts->first()?->id ?? '1' }}';
+        this.transactionRef = '';
+        this.billDate = '{{ date('Y-m-d') }}';
+        this.dueDate = '';
+        this.gross = '';
+        this.gstPct = 18;
+        this.narration = '';
+        this.uploadedFile = null;
+        this.fileName = '';
+        this.fileSize = '';
+        this.onPayeeChange();
+        this.showCreateModal = true;
+    },
+
     openEditModal(exp) {
         this.selectedExpense = exp;
-        if (exp.gross_raw) {
-            this.gross = parseFloat(exp.gross_raw) || 0;
+        if (exp.project_id) this.projectId = exp.project_id;
+        if (exp.voucher_date || exp.raw_voucher_date) this.voucherDate = exp.voucher_date || exp.raw_voucher_date;
+        if (exp.expense_category_code) this.expenseCategoryCode = exp.expense_category_code;
+        if (exp.company_bank_account_id) this.companyBankAccountId = exp.company_bank_account_id;
+        if (exp.payee_type || exp.raw_payee_type) {
+            let pType = (exp.raw_payee_type || exp.payee_type || 'registered').toLowerCase();
+            this.payeeType = pType.includes('one') ? 'one_time' : 'registered';
         }
-        if (exp.payee_type) this.payeeType = exp.payee_type;
         if (exp.payee_id) this.payeeId = exp.payee_id;
         if (exp.casual_payee_name) this.casualPayeeName = exp.casual_payee_name;
-        if (exp.transaction_ref && exp.transaction_ref !== '-') this.transactionRef = exp.transaction_ref;
-        if (exp.narration && exp.narration !== '-') this.narration = exp.narration;
-        if (exp.company_bank_account_id) this.companyBankAccountId = exp.company_bank_account_id;
-        if (exp.payment_source_type) this.paymentSourceType = exp.payment_source_type;
+        this.transactionRef = (exp.transaction_ref && exp.transaction_ref !== '-') ? exp.transaction_ref : '';
+        if (exp.bill_date) this.billDate = exp.bill_date;
+        if (exp.due_date) this.dueDate = exp.due_date;
+        if (exp.gross_raw !== undefined && exp.gross_raw !== null && exp.gross_raw !== '') {
+            this.gross = parseFloat(exp.gross_raw) || 0;
+        }
+        if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '') {
+            this.gstPct = parseFloat(exp.gst_rate) || 0;
+        }
+        this.narration = (exp.narration && exp.narration !== '-') ? exp.narration : '';
+        this.fileName = exp.attachment_name || '';
+        this.uploadedFile = null;
+        this.onPayeeChange();
         this.showCreateModal = true;
     },
 
@@ -112,11 +152,11 @@
 }" x-init="
     onPayeeChange();
     if (window.location.hash === '#add-site-expense-form' || window.location.search.includes('create=1')) {
-        showCreateModal = true;
+        openCreateModal();
     }
     window.addEventListener('hashchange', () => {
         if (window.location.hash === '#add-site-expense-form') {
-            showCreateModal = true;
+            openCreateModal();
         }
     });
 " class="px-4 sm:px-6 lg:px-8 py-6 space-y-6 bg-slate-100 min-h-screen text-slate-800">
@@ -157,7 +197,7 @@
         </div>
 
         <div class="flex items-center gap-2.5 self-start sm:self-auto">
-            <button type="button" @click="showCreateModal = true"
+            <button type="button" @click="openCreateModal()"
                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 uppercase tracking-wider cursor-pointer">
                 <i data-lucide="plus" class="w-4 h-4 text-white"></i>
                 <span>Add Site Expense</span>
@@ -472,34 +512,55 @@
                                                     id: {{ $expense->id }},
                                                     voucher_number: '{{ $expense->voucher_number }}',
                                                     voucher_date: '{{ \Carbon\Carbon::parse($expense->voucher_date)->format('d M Y') }}',
+                                                    raw_voucher_date: '{{ \Carbon\Carbon::parse($expense->voucher_date)->format('Y-m-d') }}',
                                                     status: '{{ $expense->status }}',
+                                                    project_id: '{{ $expense->project_id ?? '' }}',
                                                     project_name: '{{ addslashes($expense->project?->name ?? '-') }}',
+                                                    payee_id: '{{ $expense->payee_id ?? '' }}',
                                                     payee_name: '{{ addslashes($expense->payee_display_name) }}',
                                                     payee_type: '{{ ucfirst($expense->payee_type ?? 'registered') }} Payee',
+                                                    raw_payee_type: '{{ $expense->payee_type ?? 'registered' }}',
+                                                    casual_payee_name: '{{ addslashes($expense->casual_payee_name ?? '') }}',
+                                                    expense_category_code: '{{ $expense->expense_category_code ?? '4020' }}',
                                                     category_name: '{{ addslashes($expense->expense_category_code . ' - ' . $expense->expense_category_name) }}',
                                                     payment_source: '{{ addslashes($expense->payment_source_display_name) }}',
-                                                    transaction_ref: '{{ addslashes($expense->transaction_reference_no ?? '-') }}',
-                                                    narration: '{{ addslashes($expense->narration ?? '-') }}',
+                                                    payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
+                                                    company_bank_account_id: '{{ $expense->company_bank_account_id ?? '' }}',
+                                                    transaction_ref: '{{ addslashes($expense->transaction_reference_no ?? '') }}',
+                                                    bill_date: '{{ $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '' }}',
+                                                    due_date: '{{ $expense->due_date ? \Carbon\Carbon::parse($expense->due_date)->format('Y-m-d') : '' }}',
+                                                    narration: '{{ addslashes($expense->narration ?? '') }}',
                                                     gross_amount: '{{ number_format($expense->gross_amount ?? $expense->net_amount, 2) }}',
+                                                    gross_raw: '{{ $expense->gross_amount ?? $expense->net_amount }}',
+                                                    gst_rate: {{ $expense->gst_rate ?? 18 }},
                                                     gst_amount: '{{ number_format($expense->gst_amount ?? 0, 2) }}',
                                                     net_amount: '{{ number_format($expense->net_amount, 2) }}',
-                                                    attachment_url: '{{ $expense->attachment_path ? Storage::url($expense->attachment_path) : '' }}'
+                                                    attachment_url: '{{ $expense->attachment_path ? Storage::url($expense->attachment_path) : '' }}',
+                                                    attachment_name: '{{ $expense->attachment_path ? basename($expense->attachment_path) : '' }}'
                                                 })" 
                                                 class="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-amber-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Details">
                                             <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                                         </button>
                                         <button type="button" 
                                                 @click="openEditModal({
-                                                    id: '{{ $expense->id }}',
+                                                    id: {{ $expense->id }},
                                                     voucher_number: '{{ $expense->voucher_number }}',
-                                                    gross_raw: '{{ $expense->gross_amount ?? $expense->net_amount }}',
+                                                    voucher_date: '{{ \Carbon\Carbon::parse($expense->voucher_date)->format('Y-m-d') }}',
+                                                    status: '{{ $expense->status }}',
+                                                    project_id: '{{ $expense->project_id ?? '' }}',
+                                                    expense_category_code: '{{ $expense->expense_category_code ?? '4020' }}',
+                                                    payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
+                                                    company_bank_account_id: '{{ $expense->company_bank_account_id ?? '' }}',
                                                     payee_type: '{{ $expense->payee_type ?? 'registered' }}',
                                                     payee_id: '{{ $expense->payee_id ?? '' }}',
                                                     casual_payee_name: '{{ addslashes($expense->casual_payee_name ?? '') }}',
-                                                    payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
-                                                    company_bank_account_id: '{{ $expense->company_bank_account_id ?? '' }}',
                                                     transaction_ref: '{{ addslashes($expense->transaction_reference_no ?? '') }}',
-                                                    narration: '{{ addslashes($expense->narration ?? '') }}'
+                                                    bill_date: '{{ $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '' }}',
+                                                    due_date: '{{ $expense->due_date ? \Carbon\Carbon::parse($expense->due_date)->format('Y-m-d') : '' }}',
+                                                    gross_raw: '{{ $expense->gross_amount ?? $expense->net_amount }}',
+                                                    gst_rate: {{ $expense->gst_rate ?? 18 }},
+                                                    narration: '{{ addslashes($expense->narration ?? '') }}',
+                                                    attachment_name: '{{ $expense->attachment_path ? basename($expense->attachment_path) : '' }}'
                                                 })" 
                                                 class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Edit Expense">
                                             <i data-lucide="pencil" class="w-3.5 h-3.5 text-blue-600"></i>
@@ -589,21 +650,48 @@
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
             {{-- Modal Header Bar --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-4.5 border-b border-[#a38c29]/20 flex items-center justify-between shrink-0">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="px-2.5 py-0.5 rounded-lg bg-[#a38c29]/20 text-[#d9bf3b] border border-[#a38c29]/30 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Site Expense Management</span>
-                        <span class="px-2 py-0.5 text-[9px] font-bold rounded-lg bg-white/10 text-slate-300 uppercase tracking-wider">COA 4000s Direct</span>
+            <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                                TABASCO HINDUSTAN · SITE EXPENSE MANAGEMENT
+                            </p>
+                            <template x-if="selectedExpense">
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs"
+                                      :class="{
+                                          'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': selectedExpense?.status === 'Approved',
+                                          'bg-amber-500/20 text-amber-300 border border-amber-500/30': selectedExpense?.status === 'Draft' || selectedExpense?.status === 'Pending',
+                                          'bg-rose-500/20 text-rose-300 border border-rose-500/30': selectedExpense?.status === 'Rejected'
+                                      }"
+                                      x-text="selectedExpense?.status || 'Draft'">
+                                </span>
+                            </template>
+                            <template x-if="!selectedExpense">
+                                <span class="px-2 py-0.5 text-[9px] font-bold rounded-lg bg-white/10 text-slate-300 uppercase tracking-wider">COA 4000s Direct</span>
+                            </template>
+                        </div>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider" 
+                            x-text="selectedExpense ? ('Edit Site Expense — ' + (selectedExpense.voucher_number || '')) : 'Add New Site Expense'"></h2>
                     </div>
-                    <h2 class="text-base sm:text-lg font-black text-white uppercase tracking-wider" x-text="selectedExpense ? 'Edit Site Expense Voucher' : 'Add New Site Expense'"></h2>
+                    <button type="button" @click="showCreateModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="showCreateModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-sm cursor-pointer border-0">✕</button>
             </div>
 
             {{-- Spacious Executive Form Body --}}
-            <form id="site-expense-form" action="{{ route('site-expenses.store') }}" method="POST" enctype="multipart/form-data" class="p-3.5 sm:p-5 space-y-3 text-xs bg-slate-50/70 overflow-y-auto flex-1">
+            <form id="site-expense-form" 
+                  :action="selectedExpense ? ('{{ url('/site-expenses') }}/' + selectedExpense.id) : '{{ route('site-expenses.store') }}'" 
+                  method="POST" 
+                  enctype="multipart/form-data" 
+                  class="p-3.5 sm:p-5 space-y-3 text-xs bg-slate-50/70 overflow-y-auto flex-1">
                 @csrf
+                <template x-if="selectedExpense">
+                    <input type="hidden" name="_method" value="PUT">
+                </template>
 
                 {{-- SECTION 1: PROJECT ASSOCIATION & CATEGORY --}}
                 <div class="p-3.5 sm:p-4 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-3">
@@ -620,7 +708,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
                         <div class="sm:col-span-3">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Project Name <span class="text-rose-500">*</span></label>
-                            <select name="project_id" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                            <select name="project_id" x-model="projectId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
                                 @if($projects->count() !== 1)
                                     <option value="">-- Select Project --</option>
                                 @endif
@@ -636,11 +724,11 @@
                         </div>
                         <div class="sm:col-span-2">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Voucher Date <span class="text-rose-500">*</span></label>
-                            <input type="date" name="voucher_date" value="{{ old('voucher_date', date('Y-m-d')) }}" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                            <input type="date" name="voucher_date" x-model="voucherDate" value="{{ old('voucher_date', date('Y-m-d')) }}" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
                         </div>
                         <div class="sm:col-span-3">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Expense Category (COA) <span class="text-rose-500">*</span></label>
-                            <select name="expense_category_code" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                            <select name="expense_category_code" x-model="expenseCategoryCode" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
                                 @foreach($expenseCategories as $code => $name)
                                     <option value="{{ $code }}" {{ old('expense_category_code', '4020') == $code ? 'selected' : '' }}>
                                         {{ $code }} - {{ $name }}
@@ -727,11 +815,11 @@
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Bill Date</label>
-                            <input type="date" value="{{ date('Y-m-d') }}" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <input type="date" name="bill_date" x-model="billDate" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Due Date (Optional)</label>
-                            <input type="date" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <input type="date" name="due_date" x-model="dueDate" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                     </div>
                 </div>
@@ -809,13 +897,15 @@
                 <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition border-0 cursor-pointer">
                     Cancel
                 </button>
-                <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
-                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-700"></i>
-                    <span>Save as Draft</span>
-                </button>
+                <template x-if="!selectedExpense || selectedExpense.status === 'Draft'">
+                    <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-700"></i>
+                        <span>Save as Draft</span>
+                    </button>
+                </template>
                 <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs shadow-md uppercase tracking-wider transition cursor-pointer flex items-center gap-2 border-0">
                     <i data-lucide="check" class="w-4 h-4 text-white"></i>
-                    <span>Save & Approve</span>
+                    <span x-text="selectedExpense ? 'Update Expense' : 'Save & Approve'">Save & Approve</span>
                 </button>
             </div>
 
@@ -843,12 +933,15 @@
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
             {{-- Modal Header Bar --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/20 flex-shrink-0">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between gap-4">
-                    <div class="min-w-0">
-                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span class="px-2.5 py-0.5 rounded-lg bg-[#a38c29]/20 text-[#d9bf3b] border border-[#a38c29]/30 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Site Expense Voucher</span>
+            <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1">
+                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                                TABASCO HINDUSTAN · SITE EXPENSE MANAGEMENT
+                            </p>
                             <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs"
                                   :class="{
                                       'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': selectedExpense?.status === 'Approved',
@@ -858,9 +951,12 @@
                                   x-text="selectedExpense?.status || 'Approved'">
                             </span>
                         </div>
-                        <h2 class="text-lg sm:text-xl font-black text-white uppercase tracking-wider" x-text="'VIEW VOUCHER — ' + (selectedExpense?.voucher_number || '')"></h2>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider" 
+                            x-text="'View Voucher — ' + (selectedExpense?.voucher_number || '')"></h2>
                     </div>
-                    <button type="button" @click="showViewModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-sm cursor-pointer border-0">✕</button>
+                    <button type="button" @click="showViewModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
             </div>
 
@@ -1073,17 +1169,21 @@
 
         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" @click.away="showConfirmModal = false">
 
-            {{-- Unified Black + Gold Header --}}
-            <div class="relative overflow-hidden bg-[#181610] px-6 py-5 border-b border-[#a38c29]/20">
-                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+            {{-- Unified Executive Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
-                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap"
-                              x-text="confirmType === 'approve' ? 'Confirmation' : 'Safety Check'"></span>
-                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1"
+                        <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                            <span x-text="confirmType === 'approve' ? 'Action Confirmation' : 'Security Verification'"></span>
+                        </p>
+                        <h2 class="text-sm sm:text-base font-extrabold text-white uppercase tracking-wider"
                             x-text="confirmType === 'reject' ? 'Reject Voucher' : (confirmType === 'delete' ? 'Delete Site Expense' : 'Approve Voucher')"></h2>
                     </div>
-                    <button type="button" @click="showConfirmModal = false" class="w-7 h-7 rounded-full bg-[#a38c29]/20 hover:bg-[#a38c29]/40 text-[#d9bf3b] flex items-center justify-center transition shrink-0 border border-[#a38c29]/30 cursor-pointer text-xs">✕</button>
+                    <button type="button" @click="showConfirmModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
             </div>
 
