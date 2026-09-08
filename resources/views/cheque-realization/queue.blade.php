@@ -7,9 +7,31 @@
         statusName: '',
         selectedBankId: '',
         remarksText: '',
-        banks: {{ json_encode($companyBankAccounts->map->only('id', 'bank_name', 'account_name', 'account_number', 'branch_name')) }},
+        banks: {{ json_encode($companyBankAccounts->map->only('id', 'bank_name', 'account_name', 'account_number', 'branch_name', 'current_balance', 'opening_balance')) }},
         chequeStatuses: {{ json_encode($chequeStatuses->map->only('id', 'name', 'system_name')) }},
         formAction: '#',
+        
+        get selectedBankObj() {
+            if (!this.selectedBankId) return null;
+            return this.banks.find(b => String(b.id) === String(this.selectedBankId)) || null;
+        },
+
+        get selectedBankBalance() {
+            const b = this.selectedBankObj;
+            if (!b) return 0;
+            return Number(b.current_balance !== null && b.current_balance !== undefined ? b.current_balance : (b.opening_balance || 0));
+        },
+
+        get receiptAmount() {
+            return this.targetReceipt ? Number(this.targetReceipt.amount || 0) : 0;
+        },
+
+        get bankBalanceAfterRealization() {
+            if (['bounced', 'cancelled'].includes(this.statusName)) {
+                return this.selectedBankBalance;
+            }
+            return this.selectedBankBalance + this.receiptAmount;
+        },
         
         allReceipts: {{ json_encode($allReceiptsFormatted) }},
         filters: {
@@ -569,7 +591,7 @@
                                                         x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
                                                     <option value="">-- Select Company Account --</option>
                                                     <template x-for="b in banks" :key="b.id">
-                                                        <option :value="b.id" x-text="b.bank_name + (b.account_number ? ' - ' + b.account_number.slice(-4) : '')"></option>
+                                                         <option :value="b.id" x-text="b.bank_name + (b.account_number ? ' - ' + b.account_number.slice(-4) : '') + ' — Avail: ₹' + Number(b.current_balance !== null && b.current_balance !== undefined ? b.current_balance : (b.opening_balance || 0)).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></option>
                                                     </template>
                                                 </select>
                                                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
@@ -597,6 +619,29 @@
                                                     <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Branch</span>
                                                     <span class="font-semibold text-slate-700 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.branch_name || '—'"></span>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        {{-- Live Dynamic Bank Balance Summary Card (Matching Partner Statement Card Design) --}}
+                                        <div x-show="selectedBankId && !['bounced', 'cancelled'].includes(statusName)" 
+                                             class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs mt-3" 
+                                             style="display: none;" 
+                                             x-transition>
+                                            <div class="flex items-center justify-between gap-3 text-xs">
+                                                <span class="font-bold text-slate-600">
+                                                    Selected Bank Account Balance (<span x-text="selectedBankObj?.bank_name || 'Bank'"></span>)
+                                                </span>
+                                                <span class="font-mono font-extrabold text-blue-600 text-sm shrink-0" x-text="' ₹' + selectedBankBalance.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
+                                            </div>
+                                            
+                                            <div class="flex items-center justify-between gap-3 text-xs">
+                                                <span class="font-bold text-slate-600">Receipt / Cheque Amount</span>
+                                                <span class="font-mono font-extrabold text-emerald-600 text-sm shrink-0" x-text="'+ ₹' + receiptAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">+ ₹0.00</span>
+                                            </div>
+
+                                            <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+                                                <span class="font-extrabold text-slate-900 uppercase tracking-wider pr-2">Bank Balance After Realization</span>
+                                                <span class="font-mono font-black text-slate-900 text-base shrink-0" x-text="' ₹' + bankBalanceAfterRealization.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
                                             </div>
                                         </div>
                                     </div>

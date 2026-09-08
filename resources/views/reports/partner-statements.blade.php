@@ -555,28 +555,28 @@
                         <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs">
                             <template x-if="modalSelectedBankAccount">
                                 <div class="space-y-1.5 pb-2 border-b border-slate-200/80">
-                                    <div class="flex items-center justify-between">
+                                    <div class="flex items-center justify-between gap-3">
                                         <span class="font-bold text-slate-600">Selected Bank Account Balance (<span x-text="modalSelectedBankAccount?.bank_name"></span>)</span>
-                                        <span class="font-mono font-extrabold text-blue-600 text-sm" x-text="formatCurrency(modalSelectedBankBalance)">Rs. 0</span>
+                                        <span class="font-mono font-extrabold text-blue-600 text-sm shrink-0" x-text="formatCurrency(modalSelectedBankBalance)">Rs. 0</span>
                                     </div>
-                                    <div class="flex items-center justify-between">
+                                    <div class="flex items-center justify-between gap-3">
                                         <span class="font-bold text-slate-600">Bank Balance After Payout</span>
-                                        <span class="font-mono font-bold text-sm" :class="modalBankBalanceAfterPayout < 0 ? 'text-rose-600 font-extrabold' : 'text-slate-800'" x-text="formatCurrency(modalBankBalanceAfterPayout)">Rs. 0</span>
+                                        <span class="font-mono font-bold text-sm shrink-0" :class="modalBankBalanceAfterPayout < 0 ? 'text-rose-600 font-extrabold' : 'text-slate-800'" x-text="formatCurrency(modalBankBalanceAfterPayout)">Rs. 0</span>
                                     </div>
                                 </div>
                             </template>
 
-                            <div class="flex items-center justify-between pt-1">
+                            <div class="flex items-center justify-between gap-3 pt-1">
                                 <span class="font-bold text-slate-600">Available Partner Balance</span>
-                                <span class="font-mono font-extrabold text-emerald-600 text-sm" x-text="formatCurrency(modalSelectedPartnerBalance)">Rs. 0</span>
+                                <span class="font-mono font-extrabold text-emerald-600 text-sm shrink-0" x-text="formatCurrency(modalSelectedPartnerBalance)">Rs. 0</span>
                             </div>
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between gap-3">
                                 <span class="font-bold text-slate-600">Payout Amount</span>
-                                <span class="font-mono font-extrabold text-rose-500 text-sm" x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
+                                <span class="font-mono font-extrabold text-rose-500 text-sm shrink-0" x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
                             </div>
-                            <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between">
-                                <span class="font-extrabold text-slate-900 uppercase tracking-wider">Partner Balance After Payout</span>
-                                <span class="font-mono font-black text-slate-900 text-base" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
+                            <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-3">
+                                <span class="font-extrabold text-slate-900 uppercase tracking-wider pr-2">Partner Balance After Payout</span>
+                                <span class="font-mono font-black text-slate-900 text-base shrink-0" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
                             </div>
                         </div>
 
