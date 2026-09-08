@@ -469,21 +469,21 @@
                                     <div class="flex items-center justify-center gap-1.5 text-slate-500">
                                         <button type="button" 
                                                 @click="openViewModal({
+                                                    id: {{ $expense->id }},
                                                     voucher_number: '{{ $expense->voucher_number }}',
                                                     voucher_date: '{{ \Carbon\Carbon::parse($expense->voucher_date)->format('d M Y') }}',
                                                     status: '{{ $expense->status }}',
-                                                    project_name: '{{ addslashes($expense->project?->name ?? 'Skyline Heights') }}',
-                                                    tower_block_tag: '{{ addslashes($expense->tower_block_tag ?? 'Tower A') }}',
+                                                    project_name: '{{ addslashes($expense->project?->name ?? '-') }}',
                                                     payee_name: '{{ addslashes($expense->payee_display_name) }}',
                                                     payee_type: '{{ ucfirst($expense->payee_type ?? 'registered') }} Payee',
                                                     category_name: '{{ addslashes($expense->expense_category_code . ' - ' . $expense->expense_category_name) }}',
                                                     payment_source: '{{ addslashes($expense->payment_source_display_name) }}',
-                                                    transaction_ref: '{{ addslashes($expense->transaction_reference_no ?? 'JCB/0525/0148') }}',
-                                                    narration: '{{ addslashes($expense->narration ?? 'Site Expense Voucher') }}',
+                                                    transaction_ref: '{{ addslashes($expense->transaction_reference_no ?? '-') }}',
+                                                    narration: '{{ addslashes($expense->narration ?? '-') }}',
                                                     gross_amount: '{{ number_format($expense->gross_amount ?? $expense->net_amount, 2) }}',
                                                     gst_amount: '{{ number_format($expense->gst_amount ?? 0, 2) }}',
                                                     net_amount: '{{ number_format($expense->net_amount, 2) }}',
-                                                    attachment_url: '{{ $expense->attachment_path ? Storage::url($expense->attachment_path) : '#' }}'
+                                                    attachment_url: '{{ $expense->attachment_path ? Storage::url($expense->attachment_path) : '' }}'
                                                 })" 
                                                 class="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-amber-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Details">
                                             <i data-lucide="eye" class="w-3.5 h-3.5"></i>
@@ -583,7 +583,7 @@
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showCreateModal = false"></div>
 
         {{-- Modal Dialog Container --}}
-        <div class="relative bg-white w-full max-w-7xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[95vh]"
+        <div class="relative bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[90vh]"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
@@ -607,7 +607,7 @@
             </div>
 
             {{-- Spacious Executive Form Body --}}
-            <form action="{{ route('site-expenses.store') }}" method="POST" enctype="multipart/form-data" class="p-3.5 sm:p-5 space-y-3 text-xs bg-slate-50/70 overflow-y-auto flex-1">
+            <form id="site-expense-form" action="{{ route('site-expenses.store') }}" method="POST" enctype="multipart/form-data" class="p-3.5 sm:p-5 space-y-3 text-xs bg-slate-50/70 overflow-y-auto flex-1">
                 @csrf
 
                 {{-- SECTION 1: PROJECT ASSOCIATION & CATEGORY --}}
@@ -622,7 +622,7 @@
                         <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">COA 4000s Series</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
                         <div class="sm:col-span-3">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Project Name <span class="text-rose-500">*</span></label>
                             <select name="project_id" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
@@ -753,15 +753,15 @@
                         <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Auto GST Calculation</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
                         <div class="sm:col-span-3">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Amount (₹) <span class="text-rose-500">*</span></label>
-                            <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="45000.00" class="w-full text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs" required>
+                            <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="45000.00" class="w-full h-9 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs" required>
                         </div>
 
                         <div class="sm:col-span-3">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">GST Rate (%)</label>
-                            <select x-model.number="gstPct" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <select x-model.number="gstPct" class="w-full h-9 text-xs font-bold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                                 <option value="0">0% (Nil)</option>
                                 <option value="5">5%</option>
                                 <option value="12">12%</option>
@@ -771,50 +771,59 @@
                         </div>
 
                         <div class="sm:col-span-6">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px] opacity-0">Net Total</label>
-                            <div class="p-2.5 rounded-xl bg-[#a38c29] text-white flex items-center justify-between shadow-md">
+                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Net Total Payable</label>
+                            <div class="h-9 px-3.5 rounded-xl bg-[#a38c29] text-white flex items-center justify-between shadow-xs">
                                 <div>
                                     <span class="font-black text-amber-100 text-[10px] block uppercase tracking-wider">Net Total Payable (₹)</span>
                                 </div>
                                 <input type="hidden" name="net_amount" :value="netTotal">
-                                <span class="font-black text-white font-mono text-lg sm:text-xl" x-text="formatCurrency(netTotal)">₹ 53,100.00</span>
+                                <span class="font-black text-white font-mono text-base sm:text-lg" x-text="formatCurrency(netTotal)">₹ 53,100.00</span>
                             </div>
                         </div>
                     </div>
 
                     {{-- Remarks & Attach File Dropzone --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
                         <div class="sm:col-span-7">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Remarks / Particulars</label>
-                            <input type="text" name="narration" x-model="narration" placeholder="e.g. JCB rental for excavation work – Block A" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <input type="text" name="narration" x-model="narration" placeholder="e.g. JCB rental for excavation work – Block A" class="w-full h-9 text-xs font-semibold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                         <div class="sm:col-span-5">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Attach Bill / Document</label>
-                            <div class="p-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-center hover:bg-amber-50/40 hover:border-[#a38c29] transition cursor-pointer relative shadow-2xs group">
-                                <input type="file" name="attachment" accept=".pdf,.png,.jpg,.jpeg" @change="handleFileUpload($event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
-                                <div class="flex items-center justify-center gap-2">
-                                    <i data-lucide="upload-cloud" class="w-3.5 h-3.5 text-[#a38c29]"></i>
-                                    <span class="text-[11px] font-extrabold text-slate-800 truncate" x-text="fileName || 'Upload PDF / Image'">Upload Bill / PDF Document</span>
+                            <div class="h-9 px-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-amber-50/40 hover:border-[#a38c29] transition cursor-pointer relative shadow-2xs group flex items-center justify-between">
+                                <input type="file" name="attachment" accept=".pdf,.png,.jpg,.jpeg" @change="handleFileUpload($event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
+                                <div class="flex items-center gap-2 min-w-0 flex-1">
+                                    <i data-lucide="paperclip" class="w-3.5 h-3.5 text-[#a38c29] shrink-0"></i>
+                                    <span class="text-[11px] font-bold text-slate-800 truncate" x-text="fileName || 'Upload Bill / PDF Document'">Upload Bill / PDF Document</span>
                                 </div>
+                                <template x-if="fileName">
+                                    <span class="text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded shrink-0 ml-2">Attached</span>
+                                </template>
+                                <template x-if="!fileName">
+                                    <span class="text-[10px] font-bold text-slate-400 shrink-0 ml-2">Browse</span>
+                                </template>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Modal Footer Bar --}}
-                <div class="px-6 py-3 bg-white flex items-center justify-end shrink-0 rounded-b-3xl">
-                    <div class="flex items-center gap-3">
-                        <button type="button" @click="showCreateModal = false" class="px-5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition border-0 cursor-pointer">
-                            Cancel
-                        </button>
-                        <button type="submit" name="submit_action" value="submit" class="px-6 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs shadow-md uppercase tracking-wider transition cursor-pointer flex items-center gap-2 border-0">
-                            <i data-lucide="check" class="w-4 h-4 text-white"></i>
-                            <span>Save Site Expense</span>
-                        </button>
-                    </div>
-                </div>
-
             </form>
+
+            {{-- Pinned Footer — outside scrollable form --}}
+            <div class="px-5 py-3 bg-white border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
+                <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition border-0 cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                    <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-700"></i>
+                    <span>Save as Draft</span>
+                </button>
+                <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs shadow-md uppercase tracking-wider transition cursor-pointer flex items-center gap-2 border-0">
+                    <i data-lucide="check" class="w-4 h-4 text-white"></i>
+                    <span>Save & Approve</span>
+                </button>
+            </div>
+
         </div>
     </div>
 
@@ -833,28 +842,24 @@
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showViewModal = false"></div>
 
         {{-- Modal Dialog Container --}}
-        <div class="relative bg-white w-full max-w-7xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[95vh]"
+        <div class="relative bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[90vh]"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
             {{-- Modal Header Bar --}}
-            <div class="relative overflow-hidden bg-[#181610] px-6 py-4 flex items-center justify-between shrink-0">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between w-full pr-4">
+            <div class="relative overflow-hidden bg-[#181610] px-6 py-5 border-b border-[#a38c29]/20">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-[#a38c29]/20 text-[#d4af37] text-[10px] font-black uppercase tracking-wider border border-[#a38c29]/30">
-                                VOUCHER DETAIL VIEW
-                            </span>
-                            <span class="text-amber-300 font-mono font-bold text-xs bg-amber-500/20 px-2.5 py-0.5 rounded-md border border-amber-500/30" x-text="selectedExpense?.voucher_number || 'EXP-2026-0003'"></span>
-                        </div>
-                        <h2 class="text-base sm:text-xl font-black text-white uppercase tracking-tight" x-text="selectedExpense?.category_name || 'Site Expense Detail'"></h2>
+                        <p class="text-[#a38c29] text-[9px] font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                            HINDUSTAN ERP · SITE EXPENSE MANAGEMENT
+                        </p>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider" x-text="'View Voucher — ' + (selectedExpense?.voucher_number || '')"></h2>
                     </div>
+                    <button type="button" @click="showViewModal = false" class="w-7 h-7 rounded-full bg-[#a38c29]/20 hover:bg-[#a38c29]/40 text-[#d9bf3b] flex items-center justify-center transition cursor-pointer border border-[#a38c29]/30 shrink-0 text-xs">✕</button>
                 </div>
-                <button type="button" @click="showViewModal = false" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0 shrink-0">
-                    <i data-lucide="x" class="w-4.5 h-4.5"></i>
-                </button>
             </div>
 
             {{-- Modal Body --}}
@@ -1035,18 +1040,18 @@
                 <span class="text-xs text-slate-400 font-semibold">HindustanERP • Site Expense Management</span>
                 <div class="flex items-center gap-2.5">
                     <button type="button" 
-                            @click="showViewModal = false; openConfirmModal('reject', selectedExpense?.id, selectedExpense?.voucher_number, '/site-expenses/' + selectedExpense?.id + '/reject', 'POST')" 
+                            @click="showViewModal = false; openConfirmModal('reject', selectedExpense?.id, selectedExpense?.voucher_number)" 
                             class="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 border border-amber-200">
                         <i data-lucide="x-circle" class="w-4 h-4 text-amber-600"></i>
-                        <span>Reject / Send Back</span>
+                        <span>Reject</span>
                     </button>
 
                     <template x-if="selectedExpense?.status !== 'Approved'">
                         <button type="button" 
-                                @click="showViewModal = false; openConfirmModal('approve', selectedExpense?.id, selectedExpense?.voucher_number, '/site-expenses/' + selectedExpense?.id + '/approve', 'POST')" 
+                                @click="showViewModal = false; openConfirmModal('approve', selectedExpense?.id, selectedExpense?.voucher_number)" 
                                 class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm border-0">
                             <i data-lucide="check-circle" class="w-4 h-4 text-white"></i>
-                            <span>Approve Voucher</span>
+                            <span>Approve</span>
                         </button>
                     </template>
 
@@ -1062,116 +1067,85 @@
 
         </div>
     </div>
-</div>
 
     {{-- CUSTOM DESIGNED CONFIRMATION MODAL (REJECT / DELETE / APPROVE) --}}
-<div x-show="showConfirmModal" 
-     x-cloak
-     x-transition:enter="transition ease-out duration-200"
-     x-transition:enter-start="opacity-0"
-     x-transition:enter-end="opacity-100"
-     x-transition:leave="transition ease-in duration-150"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0"
-     class="fixed inset-0 z-[60] overflow-y-auto">
-     
-    {{-- Backdrop --}}
-    <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity" @click="showConfirmModal = false"></div>
+    <div x-show="showConfirmModal"
+         x-cloak
+         x-transition.opacity
+         class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+         style="background: rgba(2,6,23,0.65); backdrop-filter: blur(4px);">
 
-    <div class="flex min-h-full items-center justify-center p-4 text-center">
-        <div class="relative transform overflow-hidden rounded-3xl bg-white text-left shadow-2xl transition-all w-full max-w-md p-6 sm:p-7 space-y-5 animate-scaleUp">
-            
-            {{-- Close button --}}
-            <button type="button" @click="showConfirmModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-full hover:bg-slate-100 transition cursor-pointer">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" @click.away="showConfirmModal = false">
 
-            {{-- Icon Header & Colors based on type --}}
-            <div class="flex items-center gap-4">
-                {{-- REJECT TYPE ICON --}}
-                <template x-if="confirmType === 'reject'">
-                    <div class="w-13 h-13 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/80 flex items-center justify-center shrink-0 shadow-xs">
-                        <i data-lucide="alert-triangle" class="w-7 h-7 text-amber-600"></i>
+            {{-- Unified Black + Gold Header --}}
+            <div class="relative overflow-hidden bg-[#181610] px-6 py-5 border-b border-[#a38c29]/20">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div>
+                        <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap"
+                              x-text="confirmType === 'approve' ? 'Confirmation' : 'Safety Check'"></span>
+                        <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1"
+                            x-text="confirmType === 'reject' ? 'Reject Voucher' : (confirmType === 'delete' ? 'Delete Site Expense' : 'Approve Voucher')"></h2>
                     </div>
-                </template>
-
-                {{-- DELETE TYPE ICON --}}
-                <template x-if="confirmType === 'delete'">
-                    <div class="w-13 h-13 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200/80 flex items-center justify-center shrink-0 shadow-xs">
-                        <i data-lucide="trash-2" class="w-7 h-7 text-rose-600"></i>
-                    </div>
-                </template>
-
-                {{-- APPROVE TYPE ICON --}}
-                <template x-if="confirmType === 'approve'">
-                    <div class="w-13 h-13 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200/80 flex items-center justify-center shrink-0 shadow-xs">
-                        <i data-lucide="check-circle" class="w-7 h-7 text-emerald-600"></i>
-                    </div>
-                </template>
-
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Confirmation Required</span>
-                    <h3 class="text-lg font-black text-slate-900">
-                        <span x-show="confirmType === 'reject'">Reject Voucher</span>
-                        <span x-show="confirmType === 'delete'">Delete Site Expense</span>
-                        <span x-show="confirmType === 'approve'">Approve Voucher</span>
-                    </h3>
+                    <button type="button" @click="showConfirmModal = false" class="w-7 h-7 rounded-full bg-[#a38c29]/20 hover:bg-[#a38c29]/40 text-[#d9bf3b] flex items-center justify-center transition shrink-0 border border-[#a38c29]/30 cursor-pointer text-xs">✕</button>
                 </div>
             </div>
 
-            {{-- Voucher Details Box --}}
-            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between">
-                <span class="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Voucher No.</span>
-                <span class="font-mono font-black text-sm text-slate-900 bg-white px-3 py-1 rounded-xl border border-slate-200 shadow-2xs" x-text="confirmVoucherNumber"></span>
+            {{-- Body --}}
+            <div class="p-6 bg-slate-50/50 text-xs font-sans space-y-4">
+                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
+
+                    {{-- Voucher Reference --}}
+                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Voucher No.</span>
+                        <span class="font-mono font-black text-xs text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg" x-text="confirmVoucherNumber"></span>
+                    </div>
+
+                    {{-- Message per type --}}
+                    <template x-if="confirmType === 'reject'">
+                        <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-amber-700">reject and send back</strong> this site expense voucher? It will revert to draft status for correction.</p>
+                    </template>
+                    <template x-if="confirmType === 'delete'">
+                        <div>
+                            <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-rose-700">permanently delete</strong> this site expense record?</p>
+                            <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wide mt-1">This action cannot be undone and will remove the record.</p>
+                        </div>
+                    </template>
+                    <template x-if="confirmType === 'approve'">
+                        <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-emerald-700">approve and post</strong> this site expense voucher? This will register the ledger entry.</p>
+                    </template>
+
+                </div>
             </div>
 
-            {{-- Description Text --}}
-            <div class="text-xs text-slate-600 leading-relaxed font-semibold">
-                <template x-if="confirmType === 'reject'">
-                    <p>Are you sure you want to <strong>reject and send back</strong> this site expense voucher? It will revert back to draft status for correction.</p>
-                </template>
-                <template x-if="confirmType === 'delete'">
-                    <p>Are you sure you want to <strong>permanently delete</strong> this site expense record? This action cannot be undone.</p>
-                </template>
-                <template x-if="confirmType === 'approve'">
-                    <p>Are you sure you want to <strong>approve and post</strong> this site expense voucher? This will register the ledger entry.</p>
-                </template>
-            </div>
-
-            {{-- Action Buttons --}}
-            <div class="flex items-center justify-end gap-3 pt-2">
-                <button type="button" @click="showConfirmModal = false" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition cursor-pointer border-0">
+            {{-- Footer --}}
+            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                <button type="button" @click="showConfirmModal = false"
+                        class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer bg-white">
                     Cancel
                 </button>
 
-                {{-- REJECT CONFIRM BUTTON --}}
                 <button x-show="confirmType === 'reject'" type="button"
                         @click="document.getElementById('reject-form-' + confirmExpenseId).submit()"
-                        class="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-black text-xs transition shadow-md shadow-amber-600/20 cursor-pointer flex items-center gap-2 border-0">
-                    <i data-lucide="x-circle" class="w-4 h-4 text-white"></i>
-                    <span>Reject Voucher</span>
+                        class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer border-0">
+                    Reject Voucher
                 </button>
 
-                {{-- DELETE CONFIRM BUTTON --}}
                 <button x-show="confirmType === 'delete'" type="button"
                         @click="document.getElementById('delete-form-' + confirmExpenseId).submit()"
-                        class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs transition shadow-md shadow-rose-600/20 cursor-pointer flex items-center gap-2 border-0">
-                    <i data-lucide="trash-2" class="w-4 h-4 text-white"></i>
-                    <span>Delete Expense</span>
+                        class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer border-0">
+                    Confirm Delete
                 </button>
 
-                {{-- APPROVE CONFIRM BUTTON --}}
                 <button x-show="confirmType === 'approve'" type="button"
                         @click="document.getElementById('approve-form-' + confirmExpenseId).submit()"
-                        class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition shadow-md shadow-emerald-600/20 cursor-pointer flex items-center gap-2 border-0">
-                    <i data-lucide="check-circle" class="w-4 h-4 text-white"></i>
-                    <span>Approve Voucher</span>
+                        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer border-0">
+                    Approve Voucher
                 </button>
             </div>
 
         </div>
     </div>
-</div>
 
 </div>
 @endsection

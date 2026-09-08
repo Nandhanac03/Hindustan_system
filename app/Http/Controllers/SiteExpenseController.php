@@ -100,9 +100,13 @@ class SiteExpenseController extends Controller
 
         // Status Tab Filter
         $statusTab = $request->query('status', 'all');
-        if ($statusTab === 'pending') {
+        if ($statusTab === 'draft') {
             $query->where('status', 'Draft');
+        } elseif ($statusTab === 'pending') {
+            $query->whereIn('status', ['Pending', 'Draft']);
         } elseif ($statusTab === 'approved') {
+            $query->where('status', 'Approved');
+        } elseif ($statusTab === 'posted') {
             $query->where('status', 'Approved');
         } elseif ($statusTab === 'rejected') {
             $query->where('status', 'Rejected');
@@ -157,7 +161,7 @@ class SiteExpenseController extends Controller
             'pending'  => (clone $allQuery)->whereIn('status', ['Pending', 'Draft'])->count(),
             'approved' => (clone $allQuery)->where('status', 'Approved')->count(),
             'rejected' => (clone $allQuery)->where('status', 'Rejected')->count(),
-            'posted'   => (clone $allQuery)->where('status', 'Posted')->count(),
+            'posted'   => (clone $allQuery)->where('status', 'Approved')->count(),
         ];
 
         $totalCount            = (clone $allQuery)->count();
