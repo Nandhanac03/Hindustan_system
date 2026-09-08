@@ -366,14 +366,22 @@
                 <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                     
                     {{-- Search Input Box --}}
-                    <div class="relative flex-1">
-                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3"></i>
+                    <div class="relative flex-1 group">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <i data-lucide="search" class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                        </div>
                         <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by voucher no, vendor, project..."
-                               class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-10 pr-4 text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] transition shadow-2xs placeholder-slate-400">
+                               class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2.5 pl-10 pr-4 text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs placeholder-slate-400 outline-none">
                     </div>
 
-                    {{-- Filters Action Button (Gold Background as requested) --}}
+                    {{-- Filters Action Buttons --}}
                     <div class="flex items-center gap-2 shrink-0">
+                        @if(request()->anyFilled(['search', 'project_id', 'category_code', 'payment_source', 'payment_mode']))
+                            <a href="{{ route('site-expenses.index') }}" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold text-xs uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
+                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-500"></i>
+                                <span>Reset</span>
+                            </a>
+                        @endif
                         <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 cursor-pointer border-0">
                             <i data-lucide="sliders-horizontal" class="w-4 h-4 text-white"></i>
                             <span>Filters</span>
@@ -381,11 +389,18 @@
                     </div>
                 </div>
 
-                {{-- Filter Select Dropdowns Grid --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 pt-1">
+                {{-- Filter Select Dropdowns Grid with Gold Theme Icons --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
+                    
+                    {{-- 1. Project Filter --}}
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Project</label>
-                        <select name="project_id" onchange="this.form.submit()" class="w-full text-xs font-semibold rounded-xl border-slate-200 bg-slate-50/50 py-1.5 px-2.5 text-slate-700 focus:bg-white focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
+                                <i data-lucide="building-2" class="w-2.5 h-2.5"></i>
+                            </span>
+                            <span>Project</span>
+                        </label>
+                        <select name="project_id" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
                             @if($projects->count() !== 1)
                                 <option value="">All Projects</option>
                             @endif
@@ -397,9 +412,15 @@
                         </select>
                     </div>
 
+                    {{-- 2. Category Filter --}}
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Category</label>
-                        <select name="category_code" onchange="this.form.submit()" class="w-full text-xs font-semibold rounded-xl border-slate-200 bg-slate-50/50 py-1.5 px-2.5 text-slate-700 focus:bg-white focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
+                                <i data-lucide="layers" class="w-2.5 h-2.5"></i>
+                            </span>
+                            <span>Category</span>
+                        </label>
+                        <select name="category_code" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
                             <option value="">All Categories</option>
                             @foreach($expenseCategories as $code => $name)
                                 <option value="{{ $code }}" {{ request()->query('category_code') == $code ? 'selected' : '' }}>
@@ -409,9 +430,15 @@
                         </select>
                     </div>
 
+                    {{-- 3. Payment Source Filter --}}
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Payment Source</label>
-                        <select name="payment_source" onchange="this.form.submit()" class="w-full text-xs font-semibold rounded-xl border-slate-200 bg-slate-50/50 py-1.5 px-2.5 text-slate-700 focus:bg-white focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
+                                <i data-lucide="landmark" class="w-2.5 h-2.5"></i>
+                            </span>
+                            <span>Payment Source</span>
+                        </label>
+                        <select name="payment_source" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
                             <option value="">All Sources</option>
                             @foreach($bankAccounts as $bank)
                                 <option value="{{ $bank->id }}" {{ request()->query('payment_source') == $bank->id ? 'selected' : '' }}>
@@ -421,22 +448,37 @@
                         </select>
                     </div>
 
+                    {{-- 4. Payment Mode Filter --}}
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Payment Mode</label>
-                        <select name="payment_mode" onchange="this.form.submit()" class="w-full text-xs font-semibold rounded-xl border-slate-200 bg-slate-50/50 py-1.5 px-2.5 text-slate-700 focus:bg-white focus:ring-2 focus:ring-[#a38c29]">
+                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
+                                <i data-lucide="credit-card" class="w-2.5 h-2.5"></i>
+                            </span>
+                            <span>Payment Mode</span>
+                        </label>
+                        <select name="payment_mode" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
                             <option value="">All Modes</option>
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="RTGS / NEFT">RTGS / NEFT</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="UPI">UPI</option>
+                            <option value="Bank Transfer" {{ request('payment_mode') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                            <option value="RTGS / NEFT" {{ request('payment_mode') === 'RTGS / NEFT' ? 'selected' : '' }}>RTGS / NEFT</option>
+                            <option value="Cheque" {{ request('payment_mode') === 'Cheque' ? 'selected' : '' }}>Cheque</option>
+                            <option value="UPI" {{ request('payment_mode') === 'UPI' ? 'selected' : '' }}>UPI</option>
                         </select>
                     </div>
 
+                    {{-- 5. Date Range Filter --}}
                     <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Date Range</label>
-                        <div class="relative">
-                            <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2"></i>
-                            <input type="text" value="01/05/2025 - 20/05/2025" readonly class="w-full text-[11px] font-semibold rounded-xl border-slate-200 bg-slate-50/50 py-1.5 pl-8 pr-2 text-slate-600">
+                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
+                                <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
+                            </span>
+                            <span>Date Range</span>
+                        </label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                            </div>
+                            <input type="text" name="date_range" value="{{ request('date_range', '01/05/2025 - 20/05/2025') }}" 
+                                   class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-9 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs outline-none">
                         </div>
                     </div>
                 </div>
