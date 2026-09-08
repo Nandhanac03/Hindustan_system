@@ -21,44 +21,88 @@
                 <span class="bg-[#e6f4ea] text-[#1e8e3e] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ml-2">Real-time Tracking</span>
             </div>
             <div class="flex items-center gap-3">
-                <a href="#" class="flex items-center gap-2 px-4 py-1.5 bg-white border border-gray-300 rounded text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-wider shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <a href="#" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-extrabold transition-all duration-200 uppercase tracking-wider shadow-sm cursor-pointer">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     Export Excel
                 </a>
-                <button class="flex items-center gap-2 px-4 py-1.5 bg-white border border-gray-300 rounded text-[11px] font-bold text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-wider shadow-sm">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                    Print
-                </button>
             </div>
         </div>
     </div>
 
     <div id="petty-cash-content" class="relative">
-        <!-- Metrics (Border-left style cards) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <!-- Opening Balance (Blue) -->
-            <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#a38c29] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#a38c29]/50">
-                <p class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider mb-1">Opening Balance</p>
-                <h4 class="text-[22px] font-bold text-[#8a7522] m-0">₹ {{ number_format($openingBalance, 2) }}</h4>
-                <p class="text-[10px] text-gray-500 mt-1">From Previous Day</p>
+        <!-- 4 Metric KPI Cards Grid (Matches Partner Statements Design) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            
+            <!-- Card 1: Opening Balance -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Opening Balance</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                        ₹ {{ number_format($openingBalance, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">From Previous Day</p>
+                </div>
             </div>
-            <!-- Cash In (Green) -->
-            <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#10b981] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#10b981]/30">
-                <p class="text-[11px] font-bold text-[#10b981] uppercase tracking-wider mb-1">Cash In (Today)</p>
-                <h4 class="text-[22px] font-bold text-[#10b981] m-0">₹ {{ number_format($cashIn, 2) }}</h4>
-                <p class="text-[10px] text-gray-500 mt-1">Bank Withdrawals & Receipts</p>
+
+            <!-- Card 2: Cash In (Today) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Cash In (Today)</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                        ₹ {{ number_format($cashIn, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Bank Withdrawals & Receipts</p>
+                </div>
             </div>
-            <!-- Cash Out (Red) -->
-            <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#ef4444] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#ef4444]/30">
-                <p class="text-[11px] font-bold text-[#ef4444] uppercase tracking-wider mb-1">Cash Out (Today)</p>
-                <h4 class="text-[22px] font-bold text-[#ef4444] m-0">₹ {{ number_format($cashOut, 2) }}</h4>
-                <p class="text-[10px] text-gray-500 mt-1">Site Expenses</p>
+
+            <!-- Card 3: Cash Out (Today) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Cash Out (Today)</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                        ₹ {{ number_format($cashOut, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Site Expenses</p>
+                </div>
             </div>
-            <!-- Closing Balance (Gray/Black) -->
-            <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-gray-700 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-gray-300 group">
-                <p class="text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1 group-hover:text-[#a38c29] transition-colors duration-300">Closing Balance</p>
-                <h4 class="text-[22px] font-bold text-gray-800 m-0 group-hover:text-[#a38c29] transition-colors duration-300">₹ {{ number_format($closingBalance, 2) }}</h4>
-                <p class="text-[10px] text-gray-500 mt-1">Current Cash in Hand</p>
+
+            <!-- Card 4: Closing Balance -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-700 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(51,65,85,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Closing Balance</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                        ₹ {{ number_format($closingBalance, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Current Cash In Hand</p>
+                </div>
             </div>
         </div>
 
@@ -208,12 +252,14 @@
                     </div>
                 </div>
 
-                {{-- Reset Filters Button --}}
-                <a href="{{ route('petty-cash.balance-register') }}"
-                        class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 text-[12px] font-semibold text-gray-500 hover:text-[#a38c29] transition-colors flex-shrink-0">
-                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    <span>Reset Filters</span>
-                </a>
+                {{-- Reset Filters Button (Matches Partner Statements / Standard ERP Filter Bar) --}}
+                <div class="shrink-0 flex items-center">
+                    <a href="{{ route('petty-cash.balance-register') }}"
+                       class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer whitespace-nowrap group">
+                        <svg class="w-4 h-4 transition-transform group-hover:rotate-180 duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>RESET FILTERS</span>
+                    </a>
+                </div>
             </form>
         </div>
 
