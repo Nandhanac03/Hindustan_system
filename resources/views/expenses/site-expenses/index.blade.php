@@ -389,96 +389,91 @@
                     </div>
                 </div>
 
-                {{-- Filter Select Dropdowns Grid with Gold Theme Icons --}}
+                {{-- Filter Select Dropdowns Grid with Gold Theme Icons Inside Boxes --}}
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
                     
                     {{-- 1. Project Filter --}}
                     <div>
-                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
-                                <i data-lucide="building-2" class="w-2.5 h-2.5"></i>
-                            </span>
-                            <span>Project</span>
-                        </label>
-                        <select name="project_id" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                            @if($projects->count() !== 1)
-                                <option value="">All Projects</option>
-                            @endif
-                            @foreach($projects as $proj)
-                                <option value="{{ $proj->id }}" {{ ($projects->count() === 1 || request()->query('project_id') == $proj->id) ? 'selected' : '' }}>
-                                    {{ $proj->name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Project</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
+                                <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                            </div>
+                            <select name="project_id" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                                @if($projects->count() !== 1)
+                                    <option value="">All Projects</option>
+                                @endif
+                                @foreach($projects as $proj)
+                                    <option value="{{ $proj->id }}" {{ ($projects->count() === 1 || request()->query('project_id') == $proj->id) ? 'selected' : '' }}>
+                                        {{ $proj->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     {{-- 2. Category Filter --}}
                     <div>
-                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
-                                <i data-lucide="layers" class="w-2.5 h-2.5"></i>
-                            </span>
-                            <span>Category</span>
-                        </label>
-                        <select name="category_code" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                            <option value="">All Categories</option>
-                            @foreach($expenseCategories as $code => $name)
-                                <option value="{{ $code }}" {{ request()->query('category_code') == $code ? 'selected' : '' }}>
-                                    {{ $name }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Category</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
+                                <i data-lucide="layers" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                            </div>
+                            <select name="category_code" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                                <option value="">All Categories</option>
+                                @foreach($expenseCategories as $code => $name)
+                                    <option value="{{ $code }}" {{ request()->query('category_code') == $code ? 'selected' : '' }}>
+                                        {{ $name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     {{-- 3. Payment Source Filter --}}
                     <div>
-                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
-                                <i data-lucide="landmark" class="w-2.5 h-2.5"></i>
-                            </span>
-                            <span>Payment Source</span>
-                        </label>
-                        <select name="payment_source" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                            <option value="">All Sources</option>
-                            @foreach($bankAccounts as $bank)
-                                <option value="{{ $bank->id }}" {{ request()->query('payment_source') == $bank->id ? 'selected' : '' }}>
-                                    {{ $bank->bank_name }} {{ $bank->account_name ? '('.$bank->account_name.')' : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Payment Source</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
+                                <i data-lucide="landmark" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                            </div>
+                            <select name="payment_source" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                                <option value="">All Sources</option>
+                                @foreach($bankAccounts as $bank)
+                                    <option value="{{ $bank->id }}" {{ request()->query('payment_source') == $bank->id ? 'selected' : '' }}>
+                                        {{ $bank->bank_name }} {{ $bank->account_name ? '('.$bank->account_name.')' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
 
                     {{-- 4. Payment Mode Filter --}}
                     <div>
-                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
-                                <i data-lucide="credit-card" class="w-2.5 h-2.5"></i>
-                            </span>
-                            <span>Payment Mode</span>
-                        </label>
-                        <select name="payment_mode" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 px-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                            <option value="">All Modes</option>
-                            <option value="Bank Transfer" {{ request('payment_mode') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                            <option value="RTGS / NEFT" {{ request('payment_mode') === 'RTGS / NEFT' ? 'selected' : '' }}>RTGS / NEFT</option>
-                            <option value="Cheque" {{ request('payment_mode') === 'Cheque' ? 'selected' : '' }}>Cheque</option>
-                            <option value="UPI" {{ request('payment_mode') === 'UPI' ? 'selected' : '' }}>UPI</option>
-                        </select>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Payment Mode</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
+                                <i data-lucide="credit-card" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                            </div>
+                            <select name="payment_mode" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                                <option value="">All Modes</option>
+                                <option value="Bank Transfer" {{ request('payment_mode') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
+                                <option value="RTGS / NEFT" {{ request('payment_mode') === 'RTGS / NEFT' ? 'selected' : '' }}>RTGS / NEFT</option>
+                                <option value="Cheque" {{ request('payment_mode') === 'Cheque' ? 'selected' : '' }}>Cheque</option>
+                                <option value="UPI" {{ request('payment_mode') === 'UPI' ? 'selected' : '' }}>UPI</option>
+                            </select>
+                        </div>
                     </div>
 
                     {{-- 5. Date Range Filter --}}
                     <div>
-                        <label class="text-[10px] font-extrabold text-slate-600 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                            <span class="w-4 h-4 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0">
-                                <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
-                            </span>
-                            <span>Date Range</span>
-                        </label>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Date Range</label>
                         <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i data-lucide="calendar-range" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
+                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
                             </div>
                             <input type="text" name="date_range" value="{{ request('date_range', '01/05/2025 - 20/05/2025') }}" 
-                                   class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-9 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs outline-none">
+                                   class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs outline-none">
                         </div>
                     </div>
                 </div>
