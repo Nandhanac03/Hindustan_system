@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
+use App\Models\JournalVoucher;
+use App\Models\JournalEntry;
+use App\Models\ChartOfAccount;
+use App\Models\VoucherType;
 
 class Receipt extends Model
 {
@@ -207,6 +211,72 @@ class Receipt extends Model
                 'remarks'     => $remarks ?? 'Cheque cleared by bank.',
                 'changed_by'  => $userId,
             ]);
+
+            // Create Double Entry Accounting Postings
+            try {
+                $requiredAccounts = [
+                    '1001' => ['name' => 'Karnataka Bank', 'type' => 'ASSET'],
+                    '1010' => ['name' => 'Customer Receivable', 'type' => 'ASSET'],
+                ];
+                foreach ($requiredAccounts as $accCode => $accInfo) {
+                    ChartOfAccount::firstOrCreate(
+                        ['account_code' => $accCode],
+                        [
+                            'account_name' => $accInfo['name'],
+                            'account_type' => $accInfo['type'],
+                            'is_active'    => true,
+                        ]
+                    );
+                }
+
+                $voucherType = VoucherType::firstOrCreate(
+                    ['code' => 'CUSTOMER_RECEIPT'],
+                    [
+                        'name'        => 'Customer Payment Receipt',
+                        'prefix'      => 'JV-CR',
+                        'description' => 'Generated on cheque realization / payment receipt',
+                        'is_active'   => true,
+                    ]
+                );
+
+                $custName = $this->customer ? $this->customer->name : 'Customer';
+                $refNo = $this->reference_no ? $this->reference_no : $this->id;
+
+                $journalVoucher = JournalVoucher::firstOrCreate(
+                    [
+                        'voucher_type_id' => $voucherType->id,
+                        'reference_id'    => $this->id,
+                    ],
+                    [
+                        'voucher_no'      => 'JV-CR-' . date('Y') . '-' . str_pad((string)$this->id, 4, '0', STR_PAD_LEFT),
+                        'voucher_date'    => date('Y-m-d'),
+                        'narration'       => 'Cheque #' . $refNo . ' cleared - ' . $custName,
+                        'is_active'       => true,
+                    ]
+                );
+
+                if ($journalVoucher->wasRecentlyCreated) {
+                    // 1. Bank Account (Debit 1001: Asset Increases)
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => '1001',
+                        'debit_amount'   => $this->amount,
+                        'credit_amount'  => 0.00,
+                        'line_narration' => ($this->companyBankAccount ? $this->companyBankAccount->bank_name : 'Karnataka Bank') . ' (Asset Increases)',
+                    ]);
+
+                    // 2. Customer Receivables (Credit 1010: Debt Decreases)
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => '1010',
+                        'debit_amount'   => 0.00,
+                        'credit_amount'  => $this->amount,
+                        'line_narration' => 'Customer Receivables (' . $custName . ' Debt Decreases)',
+                    ]);
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Receipt Model Realize #' . $this->id . ': ' . $e->getMessage());
+            }
         });
 
         return $this->fresh();

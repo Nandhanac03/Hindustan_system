@@ -16,6 +16,9 @@ use App\Models\Voucher;
 use App\Models\VoucherType;
 use App\Models\VoucherLine;
 use App\Models\LedgerEntry;
+use App\Models\JournalVoucher;
+use App\Models\JournalEntry;
+use App\Models\ChartOfAccount;
 use App\Models\Project;
 use App\Models\Sale;
 use App\Models\PartnerAllocation;
@@ -1654,6 +1657,64 @@ class VoucherController extends Controller
                 'credit' => $amount,
                 'running_balance' => 0.00,
             ]);
+
+            // Create Double Entry Accounting Postings in journal_vouchers & journal_entries
+            try {
+                $requiredAccounts = [
+                    '1002' => ['name' => 'Petty Cash Box', 'type' => 'ASSET'],
+                    '1001' => ['name' => 'Karnataka Bank', 'type' => 'ASSET'],
+                ];
+                foreach ($requiredAccounts as $accCode => $accInfo) {
+                    ChartOfAccount::firstOrCreate(
+                        ['account_code' => $accCode],
+                        [
+                            'account_name' => $accInfo['name'],
+                            'account_type' => $accInfo['type'],
+                            'is_active'    => true,
+                        ]
+                    );
+                }
+
+                $voucherType = VoucherType::firstOrCreate(
+                    ['code' => 'PETTY_CASH_CONTRA'],
+                    [
+                        'id'          => 9,
+                        'name'        => 'Petty Cash Contra Transfer',
+                        'prefix'      => 'JV-PC',
+                        'description' => 'Generated on bank cash withdrawal to petty cash box',
+                        'is_active'   => true,
+                    ]
+                );
+
+                $journalVoucher = JournalVoucher::create([
+                    'voucher_no'      => 'JV-PC-' . date('Y') . '-' . str_pad((string)rand(1, 9999), 4, '0', STR_PAD_LEFT),
+                    'voucher_type_id' => $voucherType->id,
+                    'voucher_date'    => $request->date,
+                    'reference_id'    => $voucher->id,
+                    'narration'       => $request->narration ?? 'Cash withdrawal for site petty cash box',
+                    'is_active'       => true,
+                ]);
+
+                // 1. Petty Cash Box (Debit 1002: Cash Asset Increases)
+                JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => '1002',
+                    'debit_amount'   => $amount,
+                    'credit_amount'  => 0.00,
+                    'line_narration' => 'Petty Cash Box (Cash Asset Increases)',
+                ]);
+
+                // 2. Bank Account (Credit 1001: Bank Asset Decreases)
+                JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => '1001',
+                    'debit_amount'   => 0.00,
+                    'credit_amount'  => $amount,
+                    'line_narration' => ($creditAcc ? $creditAcc->name : 'Karnataka Bank') . ' (Bank Asset Decreases)',
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Contra Voucher #' . $voucher->id . ': ' . $e->getMessage());
+            }
         });
 
         return redirect()->route('vouchers.contra.create')->with('status', 'Contra Voucher ' . $request->voucher_number . ' posted successfully.');

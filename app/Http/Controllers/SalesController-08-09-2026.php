@@ -14,10 +14,6 @@ use App\Models\CustomerInstallment;
 use App\Models\Bank;
 use App\Models\UnitType;
 use App\Models\PaymentMode;
-use App\Models\JournalVoucher;
-use App\Models\JournalEntry;
-use App\Models\ChartOfAccount;
-use App\Models\VoucherType;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -360,118 +356,6 @@ class SalesController extends Controller
                 'event_type'   => 'created',
                 'performed_by' => auth()->id(),
             ]);
-
-            // Create Double Entry Accounting Postings in journal_vouchers & journal_entries
-            try {
-                $requiredAccounts = [
-                    '1010' => ['name' => 'Customer Receivable', 'type' => 'ASSET'],
-                    '3001' => ['name' => 'Apartment Sales Revenue', 'type' => 'REVENUE'],
-                    '2021' => ['name' => 'Output CGST Payable (2.5%)', 'type' => 'LIABILITY'],
-                    '2022' => ['name' => 'Output SGST Payable (2.5%)', 'type' => 'LIABILITY'],
-                    '4003' => ['name' => 'Brokerage Expense', 'type' => 'EXPENSE'],
-                    '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
-                ];
-                foreach ($requiredAccounts as $accCode => $accInfo) {
-                    ChartOfAccount::firstOrCreate(
-                        ['account_code' => $accCode],
-                        [
-                            'account_name' => $accInfo['name'],
-                            'account_type' => $accInfo['type'],
-                            'is_active'    => true,
-                        ]
-                    );
-                }
-
-                $voucherType = VoucherType::firstOrCreate(
-                    ['code' => 'SALES_BOOKING'],
-                    [
-                        'name'        => 'Sales Booking Voucher',
-                        'prefix'      => 'JV-SB',
-                        'description' => 'Generated on unit booking agreement',
-                        'is_active'   => true,
-                    ]
-                );
-
-                $customerModel = Customer::find($validated['customer_id']);
-                $unitModelFirst = Unit::find($firstLine['unit_id']);
-                $brokerModel = ($brokerInvolved && !empty($validated['broker_id'])) ? Broker::find($validated['broker_id']) : null;
-
-                $narrStr = 'Booking ' . ($customerModel ? $customerModel->name : 'Customer') . ($unitModelFirst ? ' Unit ' . $unitModelFirst->door_no : '') . ($brokerModel ? ' with Agent ' . $brokerModel->name : '');
-
-                $journalVoucher = JournalVoucher::create([
-                    'voucher_no'      => 'JV-SB-' . date('Y') . '-' . str_pad((string)$sale->id, 4, '0', STR_PAD_LEFT),
-                    'voucher_type_id' => $voucherType->id,
-                    'voucher_date'    => $validated['agreement_date'],
-                    'reference_id'    => $sale->id,
-                    'narration'       => $narrStr,
-                    'is_active'       => true,
-                ]);
-
-                // 1. Customer Receivable (Debit total receivable)
-                if ($totalContractAmount > 0) {
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '1010',
-                        'debit_amount'   => $totalContractAmount,
-                        'credit_amount'  => 0.00,
-                        'line_narration' => 'Customer Receivable (' . ($customerModel ? $customerModel->name : '') . ')',
-                    ]);
-                }
-
-                // 2. Sales Revenue (Credit base sale amount)
-                if ($totalBaseAmount > 0) {
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '3001',
-                        'debit_amount'   => 0.00,
-                        'credit_amount'  => $totalBaseAmount,
-                        'line_narration' => 'Apartment Sales Revenue',
-                    ]);
-                }
-
-                // 3. Output CGST & SGST (Credit tax amounts)
-                if ($totalGstAmount > 0) {
-                    $cgstAmt = round($totalGstAmount / 2, 2);
-                    $sgstAmt = round($totalGstAmount - $cgstAmt, 2);
-
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '2021',
-                        'debit_amount'   => 0.00,
-                        'credit_amount'  => $cgstAmt,
-                        'line_narration' => 'Output CGST Payable',
-                    ]);
-
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '2022',
-                        'debit_amount'   => 0.00,
-                        'credit_amount'  => $sgstAmt,
-                        'line_narration' => 'Output SGST Payable',
-                    ]);
-                }
-
-                // 4. Brokerage Expense & Liability (Debit expense & credit agent liability if broker involved)
-                if ($brokerInvolved && isset($brokerageAmount) && $brokerageAmount > 0) {
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '4003',
-                        'debit_amount'   => $brokerageAmount,
-                        'credit_amount'  => 0.00,
-                        'line_narration' => 'Brokerage Expense',
-                    ]);
-
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '2003',
-                        'debit_amount'   => 0.00,
-                        'credit_amount'  => $brokerageAmount,
-                        'line_narration' => 'Agent Payable Liability (' . ($brokerModel ? $brokerModel->name : '') . ')',
-                    ]);
-                }
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Sale #' . $sale->id . ': ' . $e->getMessage());
-            }
             // Create initial payment receipt
             if ($initialPayment > 0) {
                 $receipt = Receipt::create([

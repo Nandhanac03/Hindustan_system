@@ -353,8 +353,8 @@ class DatabaseSeeder extends Seeder
         \App\Models\Bank::firstOrCreate(['ifsc_code' => 'FDRL0000789'], ['bank_name' => 'Federal Bank', 'status' => 'inactive']);
 
         // 9.6 Seed Master Tables (Voucher Types, Chart of Accounts, Engineers, Cheque Statuses)
-        $this->call(VoucherTypeSeeder::class);
-        $this->call(ChartOfAccountSeeder::class);
+        // $this->call(VoucherTypeSeeder::class);
+        // $this->call(ChartOfAccountSeeder::class);
         $this->call(EngineerSeeder::class);
         $this->call(ChequeStatusSeeder::class);
 
