@@ -8,19 +8,19 @@
     showViewModal: false,
     selectedExpense: null,
     payeeType: '{{ old('payee_type', 'registered') }}',
-    payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
+    payeeId: '{{ old('payee_id', '') }}',
     payeesData: {{ json_encode($payees->keyBy('id')) }},
-    casualPayeeName: '{{ old('casual_payee_name', 'Saju Tea Stall') }}',
-    selectedVendorGstin: '32ABCDE1234F1Z5',
-    gross: {{ old('gross_amount', 45000) }},
+    casualPayeeName: '{{ old('casual_payee_name', '') }}',
+    selectedVendorGstin: '',
+    gross: {{ old('gross_amount') ? old('gross_amount') : "''" }},
     gstPct: 18,
     paymentSourceType: 'bank',
-    companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
-    transactionRef: '{{ old('transaction_reference_no', 'JCB/0525/0148') }}',
-    narration: '{{ old('narration', 'JCB rental for excavation work – Block A (Month of May 2025)') }}',
+    companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '') }}',
+    transactionRef: '{{ old('transaction_reference_no', '') }}',
+    narration: '{{ old('narration', '') }}',
     uploadedFile: null,
-    fileName: 'JCB_Rental_Bill_0525.pdf',
-    fileSize: '125 KB',
+    fileName: '',
+    fileSize: '',
 
     showConfirmModal: false,
     confirmType: 'reject',
@@ -28,6 +28,27 @@
     confirmVoucherNumber: '',
     confirmActionUrl: '',
     confirmMethod: 'POST',
+
+    openCreateModal() {
+        this.selectedExpense = null;
+        this.gross = '';
+        this.gstPct = 18;
+        this.transactionRef = '';
+        this.narration = '';
+        this.fileName = '';
+        this.fileSize = '';
+        this.uploadedFile = null;
+        this.casualPayeeName = '';
+        this.payeeType = 'registered';
+        this.payeeId = '';
+        this.selectedVendorGstin = '';
+        this.paymentSourceType = 'bank';
+        const form = document.getElementById('site-expense-form');
+        if (form) form.reset();
+        const fileInput = document.querySelector('input[name="attachment"]');
+        if (fileInput) fileInput.value = '';
+        this.showCreateModal = true;
+    },
 
     openConfirmModal(type, id, voucherNumber) {
         this.confirmType = type;
@@ -94,7 +115,9 @@
     onPayeeChange() {
         if (this.payeeType === 'registered' && this.payeeId && this.payeesData[this.payeeId]) {
             let p = this.payeesData[this.payeeId];
-            this.selectedVendorGstin = p.gstin || '32ABCDE1234F1Z5';
+            this.selectedVendorGstin = p.gstin || '';
+        } else {
+            this.selectedVendorGstin = '';
         }
     },
     handleFileUpload(event) {
@@ -105,18 +128,24 @@
             this.fileSize = (file.size / 1024).toFixed(0) + ' KB';
         }
     },
+    clearFile() {
+        this.uploadedFile = null;
+        this.fileName = '';
+        this.fileSize = '';
+        const fileInput = document.querySelector('input[name="attachment"]');
+        if (fileInput) fileInput.value = '';
+    },
     formatCurrency(val) {
         let n = parseFloat(val) || 0;
         return '₹ ' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 }" x-init="
-    onPayeeChange();
     if (window.location.hash === '#add-site-expense-form' || window.location.search.includes('create=1')) {
-        showCreateModal = true;
+        openCreateModal();
     }
     window.addEventListener('hashchange', () => {
         if (window.location.hash === '#add-site-expense-form') {
-            showCreateModal = true;
+            openCreateModal();
         }
     });
 " class="px-4 sm:px-6 lg:px-8 py-6 space-y-6 bg-slate-100 min-h-screen text-slate-800">
@@ -157,7 +186,7 @@
         </div>
 
         <div class="flex items-center gap-2.5 self-start sm:self-auto">
-            <button type="button" @click="showCreateModal = true"
+            <button type="button" @click="openCreateModal()"
                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 uppercase tracking-wider cursor-pointer">
                 <i data-lucide="plus" class="w-4 h-4 text-white"></i>
                 <span>Add Site Expense</span>
@@ -703,14 +732,14 @@
                             <template x-if="payeeType === 'registered'">
                                 <div>
                                     <select name="payee_id" x-model="payeeId" @change="onPayeeChange()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
-                                        <option value="">-- Search vendor master --</option>
+                                        <option value="">-- Select Vendor / Payee --</option>
                                         @foreach($payees as $payee)
                                             <option value="{{ $payee->id }}">
                                                 {{ $payee->name }} {{ $payee->gstin ? '(GSTIN: '.$payee->gstin.')' : '' }}
                                             </option>
                                         @endforeach
                                         @if($payees->isEmpty())
-                                            <option value="1" selected>Local JCB Owner - Rajesh (GSTIN: 32ABCDE1234F1Z5)</option>
+                                            <option value="1">Local JCB Owner - Rajesh (GSTIN: 32ABCDE1234F1Z5)</option>
                                             <option value="2">Sub Registrar Office (Government Legal)</option>
                                         @endif
                                     </select>
@@ -727,16 +756,16 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Bill / Ref Voucher No.</label>
-                            <input type="text" name="transaction_reference_no" x-model="transactionRef" placeholder="e.g. JCB/0525/0148" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Bill / Ref Voucher No. <span class="text-rose-500">*</span></label>
+                            <input type="text" name="transaction_reference_no" x-model="transactionRef" placeholder="e.g. BILL-2026/0148" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Bill Date</label>
-                            <input type="date" value="{{ date('Y-m-d') }}" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <input type="date" name="bill_date" value="{{ date('Y-m-d') }}" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                         <div>
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Due Date (Optional)</label>
-                            <input type="date" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <input type="date" name="due_date" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                     </div>
                 </div>
@@ -756,7 +785,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
                         <div class="sm:col-span-3">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Amount (₹) <span class="text-rose-500">*</span></label>
-                            <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="45000.00" class="w-full h-9 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs" required>
+                            <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="0.00" class="w-full h-9 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs" required>
                         </div>
 
                         <div class="sm:col-span-3">
@@ -777,16 +806,22 @@
                                     <span class="font-black text-amber-100 text-[10px] block uppercase tracking-wider">Net Total Payable (₹)</span>
                                 </div>
                                 <input type="hidden" name="net_amount" :value="netTotal">
-                                <span class="font-black text-white font-mono text-base sm:text-lg" x-text="formatCurrency(netTotal)">₹ 53,100.00</span>
+                                <span class="font-black text-white font-mono text-base sm:text-lg" x-text="formatCurrency(netTotal)">₹ 0.00</span>
                             </div>
                         </div>
+                    </div>
+
+                    {{-- Dynamic Amount in Words Banner --}}
+                    <div x-show="amountInWords" x-cloak class="px-3.5 py-1.5 rounded-xl bg-amber-50/90 border border-amber-200/80 text-amber-950 flex items-center gap-2">
+                        <span class="text-[9px] font-black uppercase tracking-wider text-amber-800 bg-amber-200/70 px-2 py-0.5 rounded shrink-0">In Words:</span>
+                        <span x-text="amountInWords" class="text-xs font-extrabold tracking-wide"></span>
                     </div>
 
                     {{-- Remarks & Attach File Dropzone --}}
                     <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
                         <div class="sm:col-span-7">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Remarks / Particulars</label>
-                            <input type="text" name="narration" x-model="narration" placeholder="e.g. JCB rental for excavation work – Block A" class="w-full h-9 text-xs font-semibold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <input type="text" name="narration" x-model="narration" placeholder="Enter expense remarks / particulars..." class="w-full h-9 text-xs font-semibold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                         <div class="sm:col-span-5">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">Attach Bill / Document</label>
@@ -797,7 +832,10 @@
                                     <span class="text-[11px] font-bold text-slate-800 truncate" x-text="fileName || 'Upload Bill / PDF Document'">Upload Bill / PDF Document</span>
                                 </div>
                                 <template x-if="fileName">
-                                    <span class="text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded shrink-0 ml-2">Attached</span>
+                                    <div class="flex items-center gap-1.5 shrink-0 ml-2 z-20">
+                                        <span class="text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded" x-text="fileName.length > 18 ? fileName.substring(0, 15) + '...' : fileName">Attached</span>
+                                        <button type="button" @click.stop.prevent="clearFile()" class="w-4 h-4 rounded-full bg-slate-200 hover:bg-rose-100 hover:text-rose-600 text-slate-600 flex items-center justify-center cursor-pointer transition text-[10px] font-black" title="Remove file">✕</button>
+                                    </div>
                                 </template>
                                 <template x-if="!fileName">
                                     <span class="text-[10px] font-bold text-slate-400 shrink-0 ml-2">Browse</span>
@@ -911,21 +949,21 @@
                                 </div>
                                 <div class="col-span-2">
                                     <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-0.5">Expense Category</span>
-                                    <span class="font-extrabold text-slate-900 block" x-text="selectedExpense?.category_name || '4003 - Agent Commission Expense'"></span>
+                                    <span class="font-extrabold text-slate-900 block" x-text="selectedExpense?.category_name || '-'"></span>
                                 </div>
                                 <div>
                                     <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-0.5">Payment Source Account</span>
-                                    <span class="font-bold text-slate-800 block" x-text="selectedExpense?.payment_source || 'HDFC - A/c 0678'"></span>
+                                    <span class="font-bold text-slate-800 block" x-text="selectedExpense?.payment_source || '-'"></span>
                                 </div>
                                 <div>
                                     <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-0.5">Transaction Ref / UTR</span>
-                                    <span class="font-mono font-bold text-slate-800 block" x-text="selectedExpense?.transaction_ref || 'JCB/0525/0148'"></span>
+                                    <span class="font-mono font-bold text-slate-800 block" x-text="selectedExpense?.transaction_ref || '-'"></span>
                                 </div>
                             </div>
 
                             <div class="pt-3 border-t border-slate-100">
                                 <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1.5">Narration / Particulars</span>
-                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 text-slate-700 text-xs leading-relaxed" x-text="selectedExpense?.narration || 'JCB rental for excavation work – Block A (Month of May 2025)'"></div>
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 text-slate-700 text-xs leading-relaxed" x-text="selectedExpense?.narration || '-'"></div>
                             </div>
                         </div>
 
