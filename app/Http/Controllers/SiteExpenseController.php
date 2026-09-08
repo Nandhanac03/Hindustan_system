@@ -40,16 +40,16 @@ class SiteExpenseController extends Controller
     ];
 
     /**
-     * Get 4000-Series Expense Categories merged with ChartOfAccount table
+     * Get Expense Categories from ChartOfAccount table master
      */
     protected function getExpenseCategories(): array
     {
-        $categories = $this->defaultCategories;
+        $categories = [];
 
         try {
             if (Schema::hasTable('chart_of_accounts')) {
-                $dbAccounts = ChartOfAccount::where('account_code', 'like', '4%')
-                    ->where('is_active', true)
+                $dbAccounts = ChartOfAccount::where('is_active', true)
+                    ->orderBy('account_code')
                     ->get();
 
                 foreach ($dbAccounts as $acc) {
@@ -60,7 +60,10 @@ class SiteExpenseController extends Controller
             // Fallback to defaults if table query fails
         }
 
-        ksort($categories);
+        if (empty($categories)) {
+            $categories = $this->defaultCategories;
+        }
+
         return $categories;
     }
 
@@ -148,21 +151,30 @@ class SiteExpenseController extends Controller
             $allQuery->where('project_id', $request->project_id);
         }
 
+        $tabCounts = [
+            'all'      => (clone $allQuery)->count(),
+            'draft'    => (clone $allQuery)->where('status', 'Draft')->count(),
+            'pending'  => (clone $allQuery)->whereIn('status', ['Pending', 'Draft'])->count(),
+            'approved' => (clone $allQuery)->where('status', 'Approved')->count(),
+            'rejected' => (clone $allQuery)->where('status', 'Rejected')->count(),
+            'posted'   => (clone $allQuery)->where('status', 'Posted')->count(),
+        ];
+
         $totalCount            = (clone $allQuery)->count();
         $totalAmount           = (float) (clone $allQuery)->sum('net_amount');
-        if ($totalAmount <= 0) $totalAmount = 2845300;
 
         $approvedAmount        = (float) (clone $allQuery)->where('status', 'Approved')->sum('net_amount');
-        if ($approvedAmount <= 0) $approvedAmount = 2578200;
 
-        $pendingAmount         = (float) (clone $allQuery)->where('status', 'Draft')->sum('net_amount');
-        if ($pendingAmount <= 0) $pendingAmount = 267100;
+        $pendingAmount         = (float) (clone $allQuery)->whereIn('status', ['Draft', 'Pending'])->sum('net_amount');
 
         $thisMonthExpenses     = (float) (clone $allQuery)->whereMonth('voucher_date', now()->month)->whereYear('voucher_date', now()->year)->sum('net_amount');
-        if ($thisMonthExpenses <= 0) $thisMonthExpenses = 432500;
 
+        
         $budgetTotal = 7800000;
-        $budgetUtilizationPct = round(($totalAmount / $budgetTotal) * 100, 1);
+        $budgetUtilizationPct = $totalAmount > 0 ? round(($totalAmount / $budgetTotal) * 100, 1) : 0;
+
+        $unpostedAmount        = (float) (clone $allQuery)->where('status', 'Rejected')->sum('net_amount');
+        $unpostedPct           = $totalAmount > 0 ? round(($unpostedAmount / $totalAmount) * 100, 1) : 0;
 
         $registeredPayeeAmount = (float) (clone $allQuery)->where('payee_type', 'registered')->sum('net_amount');
         $oneTimePayeeAmount    = (float) (clone $allQuery)->where('payee_type', 'one_time')->sum('net_amount');
@@ -194,11 +206,14 @@ class SiteExpenseController extends Controller
             'thisMonthExpenses',
             'budgetTotal',
             'budgetUtilizationPct',
+            'unpostedAmount',
+            'unpostedPct',
             'registeredPayeeAmount',
             'oneTimePayeeAmount',
             'bankSourceAmount',
             'loanSourceAmount',
-            'statusTab'
+            'statusTab',
+            'tabCounts'
         ));
     }
 
