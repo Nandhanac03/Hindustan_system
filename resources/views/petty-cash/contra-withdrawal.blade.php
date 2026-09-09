@@ -33,6 +33,20 @@
                 <form action="{{ route('petty-cash.store-contra-withdrawal') }}" method="POST" enctype="multipart/form-data" class="px-6 pb-6 pt-6">
                     @csrf
                     
+                    @if(session('error'))
+                        <div class="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-700 text-xs font-bold shadow-2xs">
+                            <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{{ session('error') }}</span>
+                        </div>
+                    @endif
+
+                    @if(session('success'))
+                        <div class="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 text-emerald-700 text-xs font-bold shadow-2xs">
+                            <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <span>{{ session('success') }}</span>
+                        </div>
+                    @endif
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5 mb-6">
                         <!-- Voucher No -->
                         <div>
@@ -82,7 +96,15 @@
                         <!-- Amount -->
                         <div>
                             <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Amount (₹) <span class="text-red-500">*</span></label>
-                            <input type="number" name="amount" x-model="amount" @input="updateBalance" step="0.01" class="w-full bg-white border border-gray-200 rounded-lg px-3 h-10 text-[13px] font-bold text-gray-800 outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] transition-all" placeholder="0.00">
+                            <input type="number" name="amount" x-model="amount" step="0.01" class="w-full bg-white border border-gray-200 rounded-lg px-3 h-10 text-[13px] font-bold text-gray-800 outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] transition-all" placeholder="0.00">
+                            
+                            <!-- Insufficient Bank Balance Live Warning -->
+                            <template x-if="isBankInsufficient">
+                                <div class="mt-2 p-2.5 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2 text-rose-700 text-[11px] font-bold">
+                                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>Insufficient Bank Balance! Amount (<span x-text="formatCurrency(parsedAmount)"></span>) exceeds available bank balance (<span x-text="formatCurrency(selectedBankBalance)"></span>).</span>
+                                </div>
+                            </template>
                         </div>
 
                         <!-- Narration -->
@@ -144,7 +166,10 @@
                         </a>
                         
                         <div class="flex items-center gap-3">
-                            <button type="submit" class="px-8 py-2.5 bg-[#a38c29] text-white text-[12px] font-bold rounded-lg hover:bg-[#8f7a22] transition-colors shadow-sm shadow-[#a38c29]/30">
+                            <button type="submit"
+                                    :disabled="isBankInsufficient"
+                                    :class="isBankInsufficient ? 'opacity-50 cursor-not-allowed bg-gray-400 hover:bg-gray-400' : 'bg-[#a38c29] hover:bg-[#8f7a22] cursor-pointer'"
+                                    class="px-8 py-2.5 text-white text-[12px] font-bold rounded-lg transition-colors shadow-sm shadow-[#a38c29]/30">
                                 Save & Post
                             </button>
                         </div>
@@ -166,21 +191,25 @@
                         <tbody class="divide-y divide-gray-100 divide-dashed">
                             <tr>
                                 <td class="py-3 font-medium text-gray-600">Bank Balance (As on {{ date('d-M-Y') }})</td>
-                                <td class="py-3 text-right font-bold text-gray-900" x-text="formatCurrency(selectedBankBalance)">₹ 2,45,600.00</td>
+                                <td class="py-3 text-right font-bold text-gray-900" x-text="formatCurrency(selectedBankBalance)">₹ 0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 font-medium text-gray-600">Bank Balance (After Payout)</td>
+                                <td class="py-3 text-right font-bold" :class="bankBalanceAfterPayout < 0 ? 'text-rose-600 font-extrabold' : 'text-slate-900'" x-text="formatCurrency(bankBalanceAfterPayout)">₹ 0.00</td>
                             </tr>
                             <tr>
                                 <td class="py-3 font-medium text-gray-600">Petty Cash Balance (Before)</td>
-                                <td class="py-3 text-right font-bold text-gray-900" x-text="formatCurrency(pettyCashBefore)">₹ 30,750.00</td>
+                                <td class="py-3 text-right font-bold text-gray-900" x-text="formatCurrency(pettyCashBefore)">₹ 0.00</td>
                             </tr>
                             <tr>
                                 <td class="py-3 font-medium text-gray-600">Withdrawal Amount</td>
-                                <td class="py-3 text-right font-bold text-gray-900" x-text="formatCurrency(amount)">₹ 0.00</td>
+                                <td class="py-3 text-right font-bold text-gray-900" x-text="formatCurrency(parsedAmount)">₹ 0.00</td>
                             </tr>
                         </tbody>
                         <tfoot class="border-t border-gray-200">
                             <tr>
                                 <td class="pt-4 pb-2 font-bold text-[#10b981] text-[13px]">Petty Cash Balance (After)</td>
-                                <td class="pt-4 pb-2 text-right font-extrabold text-[#10b981] text-[15px]" x-text="formatCurrency(pettyCashAfter)">₹ 30,750.00</td>
+                                <td class="pt-4 pb-2 text-right font-extrabold text-[#10b981] text-[15px]" x-text="formatCurrency(pettyCashAfter)">₹ 0.00</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -258,20 +287,31 @@
                 }
             },
             
+            get parsedAmount() {
+                return parseFloat(this.amount) || 0;
+            },
+
             get selectedBankBalance() {
-                return this.selectedBank ? this.bankBalances[this.selectedBank] : 0;
+                return this.selectedBank ? (parseFloat(this.bankBalances[this.selectedBank]) || 0) : 0;
             },
             
+            get bankBalanceAfterPayout() {
+                return this.selectedBankBalance - this.parsedAmount;
+            },
+
             get pettyCashAfter() {
-                let amt = parseFloat(this.amount) || 0;
-                return this.pettyCashBefore + amt;
+                return this.pettyCashBefore + this.parsedAmount;
             },
             
+            get isBankInsufficient() {
+                return Boolean(this.selectedBank && this.parsedAmount > 0 && this.parsedAmount > this.selectedBankBalance);
+            },
+
             formatCurrency(value) {
                 return '₹ ' + new Intl.NumberFormat('en-IN', {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2
-                }).format(value);
+                }).format(value || 0);
             }
         }))
     })

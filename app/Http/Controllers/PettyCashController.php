@@ -208,13 +208,19 @@ class PettyCashController extends Controller
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 
-        $amount = $request->input('amount');
+        $amount = (float) $request->input('amount');
         
         // Safely map Bank Account (CompanyBankAccount -> Chart of Account)
         $companyBank = \App\Models\CompanyBankAccount::find($request->input('bank_account_id'));
         if ($companyBank) {
+            $availBal = (float)($companyBank->current_balance ?? $companyBank->opening_balance ?? 0);
+            if ($amount > $availBal) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Insufficient Bank Funds! Withdrawal amount (Rs. ' . number_format($amount, 2) . ') exceeds available balance in ' . $companyBank->bank_name . ' (Rs. ' . number_format($availBal, 2) . ').');
+            }
             // Deduct the withdrawn amount from the actual Company Bank Account balance
-            $companyBank->current_balance -= $amount;
+            $companyBank->current_balance = $availBal - $amount;
             $companyBank->save();
         }
         
