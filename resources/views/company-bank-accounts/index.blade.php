@@ -190,19 +190,21 @@
         </div>
     </div>
 
-    {{-- Modals Wrapper --}}
-    <div>
-
     {{-- Company Bank Add Modal --}}
-    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="addModalOpen = false">
-            {{-- Modal Header: Dark-Gold Hero Header --}}
-            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">BANK ACCOUNTS MASTER</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">ADD COMPANY BANK ACCOUNT</h3>
+    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="addModalOpen = false">
+            {{-- Modal Header: Add Unit Style --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bank Accounts Master</p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider">Add Company Bank Account</h2>
+                    </div>
+                    <button type="button" @click="addModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer bg-transparent border-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="addModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
             <div class="p-6">
@@ -261,8 +263,6 @@
                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
-
-
                         {{-- UPI ID --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company UPI ID / VPA</label>
@@ -279,16 +279,11 @@
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
-
-
                     </div>
 
                     <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                        <button type="button" @click="addModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#a38c29] hover:bg-[#8a7522] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Add Bank Account
-                        </button>
+                        <button type="button" @click="addModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide cursor-pointer">Add Bank Account</button>
                     </div>
                 </form>
             </div>
@@ -296,15 +291,20 @@
     </div>
 
     {{-- Company Bank Edit Modal --}}
-    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="editModalOpen = false">
-            {{-- Modal Header: Dark-Gold Hero Header --}}
-            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">BANK ACCOUNTS MASTER</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">EDIT COMPANY BANK ACCOUNT</h3>
+    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="editModalOpen = false">
+            {{-- Modal Header: Add Unit Style --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bank Accounts Master</p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider">Edit Company Bank Account</h2>
+                    </div>
+                    <button type="button" @click="editModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer bg-transparent border-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="editModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
             <div class="p-6">
@@ -364,10 +364,6 @@
                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
-
-
-
-
                         {{-- UPI ID --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company UPI ID / VPA</label>
@@ -384,16 +380,11 @@
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
-
-
                     </div>
 
                     <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                        <button type="button" @click="editModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-[#a38c29] hover:bg-[#8a7522] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Save Changes
-                        </button>
+                        <button type="button" @click="editModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide cursor-pointer">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -401,37 +392,37 @@
     </div>
 
     {{-- View Details Modal --}}
-    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="viewModalOpen = false">
-            {{-- Modal Header: BLACK with Gold Accents --}}
-            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-[#a38c29]/40">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#a38c29] border border-[#a38c29]/40 flex items-center justify-center font-black text-lg flex-shrink-0">
-                        <span x-text="viewForm.bank_name ? viewForm.bank_name.charAt(0) : 'B'"></span>
-                    </div>
+    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="viewModalOpen = false">
+            {{-- Modal Header: Add Unit Style --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
                     <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bank Accounts Master</p>
                         <div class="flex items-center gap-2">
-                            <h3 class="text-sm font-black text-white uppercase tracking-wider" x-text="viewForm.bank_name"></h3>
+                            <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider" x-text="viewForm.bank_name"></h2>
                             <template x-if="viewForm.is_default">
-                                <span class="px-2 py-0.5 bg-[#a38c29] text-white text-[9px] font-black rounded uppercase">PRIMARY</span>
+                                <span class="px-2 py-0.5 bg-[#a38c29]/20 text-[#e6ca65] text-[9px] font-black rounded uppercase border border-[#a38c29]/40 tracking-wider">PRIMARY</span>
                             </template>
                         </div>
-                        <p class="text-[11px] text-slate-400 font-medium" x-text="viewForm.account_name || 'Hindustan System Corporate Account'"></p>
                     </div>
+                    <button type="button" @click="viewModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer bg-transparent border-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="viewModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-[#a38c29] text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
             </div>
 
             <div class="p-6">
-                {{-- Account Summary Box --}}
-                <div class="mb-5 p-4 rounded-2xl bg-black text-white border border-[#a38c29]/40 shadow-inner flex items-center justify-between">
+                {{-- Account Summary Box: Gold Theme --}}
+                <div class="mb-5 p-4 rounded-2xl bg-gradient-to-br from-amber-50/90 via-amber-100/40 to-white border border-amber-200/90 shadow-xs flex items-center justify-between">
                     <div>
-                        <span class="text-[10px] font-bold text-[#a38c29] uppercase tracking-wider block">Current Account Liquidity</span>
-                        <span class="text-2xl font-black text-white block mt-0.5" x-text="'₹' + Number(viewForm.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                        <span class="text-[10px] font-black text-[#a38c29] uppercase tracking-wider block">Current Account Liquidity</span>
+                        <span class="text-2xl font-black text-slate-900 block mt-0.5" x-text="'₹' + Number(viewForm.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                     </div>
                     <div class="text-right">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Account Type</span>
-                        <span class="text-xs font-bold text-[#a38c29] block uppercase" x-text="(viewForm.account_type || 'Current') + ' A/C'"></span>
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Account Type</span>
+                        <span class="inline-block px-2.5 py-0.5 rounded-md bg-[#a38c29]/15 text-[#8a7522] border border-[#a38c29]/30 text-xs font-black uppercase mt-0.5" x-text="(viewForm.account_type || 'Current') + ' A/C'"></span>
                     </div>
                 </div>
 
@@ -456,53 +447,49 @@
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Company UPI ID</span>
                         <span class="text-xs font-bold font-mono text-slate-800 block mt-0.5" x-text="viewForm.upi_id || 'N/A'"></span>
                     </div>
-
-
                 </div>
 
-                <div class="mt-6 flex justify-end">
-                    <button type="button" @click="viewModalOpen = false" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-black hover:bg-slate-900 border border-slate-800 transition-colors uppercase tracking-wide">Close</button>
+                <div class="mt-6 flex items-center justify-end pt-4 border-t border-slate-100">
+                    <button type="button" @click="viewModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
     {{-- Company Bank Delete Modal --}}
-    <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-800 animate-fade-in-up" @click.away="deleteModalOpen = false">
-            {{-- Modal Header: BLACK --}}
-            <div class="bg-black text-white px-6 py-4 flex items-center justify-between border-b border-rose-500/40">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                    </div>
+    <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="deleteModalOpen = false">
+            {{-- Modal Header: Add Unit Style --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <h3 class="text-sm font-black text-white uppercase tracking-wider">DELETE BANK ACCOUNT</h3>
-                        <p class="text-[11px] text-slate-400 font-medium">Permanent removal of account record</p>
+                        <p class="text-rose-400 text-[10px] font-semibold uppercase tracking-widest mb-1">Security Verification</p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider">Delete Bank Account</h2>
                     </div>
+                    <button type="button" @click="deleteModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer bg-transparent border-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="deleteModalOpen = false" class="w-8 h-8 rounded-full bg-slate-900 hover:bg-rose-600 text-slate-400 hover:text-white transition flex items-center justify-center font-bold text-sm">✕</button>
             </div>
 
-            <div class="p-6 text-center">
+            <div class="p-6">
                 <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">
-                    Are you sure you want to delete <span class="font-bold text-slate-900" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-700" x-text="deleteForm.ifsc_code"></span>)? This action cannot be undone.
+                    Are you sure you want to delete <span class="font-bold text-slate-900" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-600" x-text="deleteForm.ifsc_code"></span>)? This action cannot be undone.
                 </p>
 
                 <form :action="deleteForm.action" method="POST">
                     @csrf
-                    <div class="mt-6 flex items-center justify-center gap-3">
-                        <button type="button" @click="deleteModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            Yes, Delete Now
+                    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                        <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-rose-600/30 uppercase tracking-wide inline-flex items-center gap-1.5 cursor-pointer border-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            Delete Account
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-    </div>
-    
     </div>
 
 </div>

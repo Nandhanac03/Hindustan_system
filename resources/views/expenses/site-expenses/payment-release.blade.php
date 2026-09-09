@@ -56,14 +56,14 @@
         <!-- Card 1: Total Approved Site Expenses -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md cursor-default">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">TOTAL APPROVED EXPENSES</span>
-                <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white shrink-0">
+                <span class="text-[10px] font-black uppercase tracking-wider text-[#a38c29]">TOTAL APPROVED EXPENSES</span>
+                <div class="w-7 h-7 rounded-full bg-amber-50 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white shrink-0 border border-amber-200/50">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
             </div>
             <div>
-                <div class="text-xl font-mono font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors">₹{{ number_format((float) $totalApproved, 2) }}</div>
-                <div class="text-[10px] text-blue-600 font-bold mt-1.5 pt-1.5 border-t border-blue-50">Total Approved Site Liability</div>
+                <div class="text-xl font-mono font-black text-slate-900 tracking-tight group-hover:text-[#a38c29] transition-colors">₹{{ number_format((float) $totalApproved, 2) }}</div>
+                <div class="text-[10px] text-[#8a7522] font-bold mt-1.5 pt-1.5 border-t border-amber-50">Total Approved Site Liability</div>
             </div>
         </div>
 
@@ -355,27 +355,27 @@
 
     <!-- ── POPUP MODAL: DISBURSE SITE EXPENSE PAYMENT ── -->
     <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="disburseModalOpen = false">
-            <div class="bg-[#2a2415] px-6 py-4 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-200 transform transition-all" @click.away="disburseModalOpen = false">
+            <div class="bg-[#a38c29] px-6 py-4 text-white flex items-center justify-between relative overflow-hidden border-b border-[#8a7522]">
                 <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-[9px] font-bold uppercase tracking-wider rounded border border-emerald-500/40 mb-0.5">TREASURY DISBURSEMENT</span>
+                    <span class="inline-block px-2.5 py-0.5 bg-white/20 text-white text-[9px] font-bold uppercase tracking-wider rounded border border-white/30 mb-0.5">TREASURY DISBURSEMENT</span>
                     <h3 class="font-extrabold text-xs sm:text-sm uppercase tracking-wider text-white">DISBURSE SITE EXPENSE PAYMENT</h3>
                 </div>
-                <button type="button" @click="disburseModalOpen = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                <button type="button" @click="disburseModalOpen = false" class="w-6 h-6 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer border-0">✕</button>
             </div>
 
             <form :action="selectedExpense ? '{{ url('site-expenses') }}/' + selectedExpense.id + '/disburse' : '#'" method="POST" class="px-6 pt-3.5 pb-6 space-y-3.5">
                 @csrf
 
                 <!-- Summary Header Card -->
-                <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl grid grid-cols-3 gap-3 text-center text-xs">
-                    <div class="border-r border-slate-200/80 pr-2">
+                <div class="p-3 bg-amber-50/50 border border-amber-200/70 rounded-xl grid grid-cols-3 gap-3 text-center text-xs">
+                    <div class="border-r border-amber-200/60 pr-2">
                         <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">VOUCHER NO.</span>
                         <span class="text-xs font-mono font-extrabold text-slate-900 mt-0.5 block" x-text="selectedExpense ? selectedExpense.voucher_number : ''"></span>
                     </div>
-                    <div class="border-r border-slate-200/80 pr-2">
+                    <div class="border-r border-amber-200/60 pr-2">
                         <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">NET BILL AMOUNT</span>
-                        <span class="text-xs font-mono font-extrabold text-blue-900 mt-0.5 block" x-text="selectedExpense ? '₹' + numberFormat(selectedExpense.net_amount) : ''"></span>
+                        <span class="text-xs font-mono font-extrabold text-slate-900 mt-0.5 block" x-text="selectedExpense ? '₹' + numberFormat(selectedExpense.net_amount) : ''"></span>
                     </div>
                     <div>
                         <span class="block text-[9.5px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BAL.</span>
