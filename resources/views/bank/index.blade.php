@@ -120,120 +120,176 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
     </div>
 
     {{-- Modals Wrapper to prevent space-y-6 margin inheritance --}}
     <div>
 
     {{-- Bank Add Modal --}}
-    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="addModalOpen = false">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-[#a38c29]/10 text-[#a38c29] mx-auto flex items-center justify-center mb-4 shadow-sm border border-[#a38c29]/20">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                </div>
-                <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">ADD BANK ACCOUNT</h3>
-                <p class="text-xs text-slate-500 font-medium mb-5">Configure corporate bank account and routing details</p>
+    <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
+        <div x-show="addModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="addModalOpen = false"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
 
-                <form action="{{ route('bank.store') }}" method="POST" @submit="submitAddBank($event)" novalidate class="text-left space-y-4">
-                    @csrf
+        <div x-show="addModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bank Name <span class="text-rose-500">*</span></label>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bank Loan Master</p>
+                        <h2 class="text-lg font-extrabold text-white">Add Bank Account</h2>
+                    </div>
+                    <button @click="addModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <form action="{{ route('bank.store') }}" method="POST" @submit="submitAddBank($event)" novalidate class="flex flex-col overflow-hidden max-h-[calc(90vh-100px)]">
+                @csrf
+                <div class="p-6 space-y-4 overflow-y-auto">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Bank Name <span class="text-rose-500">*</span></label>
                         <input type="text" name="bank_name" x-model="addForm.bank_name" required placeholder="e.g. HDFC Bank, ICICI Bank"
-                               :class="errors.bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                               :class="errors.bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                               class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         <template x-if="errors.bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.bank_name) ? errors.bank_name[0] : errors.bank_name"></p></template>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">IFSC Code <span class="text-rose-500">*</span></label>
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">IFSC Code <span class="text-rose-500">*</span></label>
                         <input type="text" name="ifsc_code" x-model="addForm.ifsc_code" required placeholder="e.g. HDFC0001234"
-                               :class="errors.ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                               :class="errors.ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                               class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] font-mono uppercase outline-none transition">
                         <template x-if="errors.ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.ifsc_code) ? errors.ifsc_code[0] : errors.ifsc_code"></p></template>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status <span class="text-rose-500">*</span></label>
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status <span class="text-rose-500">*</span></label>
                         <select name="status" x-model="addForm.status" required
-                                :class="errors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all">
+                                :class="errors.status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="mt-6 flex items-center justify-center gap-3 pt-3 border-t border-slate-100">
-                        <button type="button" @click="addModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#a38c29] hover:bg-[#8a7522] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Yes, Add Bank Account
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
+                    <button type="button" @click="addModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide inline-flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        Add Bank
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
     {{-- Bank Edit Modal --}}
-    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="editModalOpen = false">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-[#a38c29]/10 text-[#a38c29] mx-auto flex items-center justify-center mb-4 shadow-sm border border-[#a38c29]/20">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                </div>
-                <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">EDIT BANK ACCOUNT</h3>
-                <p class="text-xs text-slate-500 font-medium mb-5">Update bank name, IFSC code, or account status</p>
+    <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
+        <div x-show="editModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="editModalOpen = false"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
 
-                <form :action="editForm.action" method="POST" @submit="submitEditBank($event)" novalidate class="text-left space-y-4">
-                    @csrf
-                    @method('PUT')
+        <div x-show="editModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Bank Name <span class="text-rose-500">*</span></label>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bank Loan Master</p>
+                        <h2 class="text-lg font-extrabold text-white">Edit Bank Account</h2>
+                    </div>
+                    <button @click="editModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <form :action="editForm.action" method="POST" @submit="submitEditBank($event)" novalidate class="flex flex-col overflow-hidden max-h-[calc(90vh-100px)]">
+                @csrf
+                @method('PUT')
+                <div class="p-6 space-y-4 overflow-y-auto">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Bank Name <span class="text-rose-500">*</span></label>
                         <input type="text" name="bank_name" x-model="editForm.bank_name" required
-                               :class="errors.edit_bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                               :class="errors.edit_bank_name ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                               class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                         <template x-if="errors.edit_bank_name"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_bank_name) ? errors.edit_bank_name[0] : errors.edit_bank_name"></p></template>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">IFSC Code <span class="text-rose-500">*</span></label>
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">IFSC Code <span class="text-rose-500">*</span></label>
                         <input type="text" name="ifsc_code" x-model="editForm.ifsc_code" required
-                               :class="errors.edit_ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                               class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all uppercase">
+                               :class="errors.edit_ifsc_code ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                               class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] font-mono uppercase outline-none transition">
                         <template x-if="errors.edit_ifsc_code"><p class="text-[10px] text-rose-600 font-semibold mt-1" x-text="Array.isArray(errors.edit_ifsc_code) ? errors.edit_ifsc_code[0] : errors.edit_ifsc_code"></p></template>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Status <span class="text-rose-500">*</span></label>
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status <span class="text-rose-500">*</span></label>
                         <select name="status" x-model="editForm.status" required
-                                :class="errors.edit_status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-200 bg-slate-50'"
-                                class="w-full px-3.5 py-2.5 border focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all">
+                                :class="errors.edit_status ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/30' : 'border-slate-300 bg-white'"
+                                class="w-full px-3 py-2 text-xs border rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition">
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                         </select>
                     </div>
+                </div>
 
-                    <div class="mt-6 flex items-center justify-center gap-3 pt-3 border-t border-slate-100">
-                        <button type="button" @click="editModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-[#a38c29] hover:bg-[#8a7522] shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
+                    <button type="button" @click="editModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide inline-flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
     {{-- View Modal --}}
-    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="viewModalOpen = false">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-[#a38c29]/10 text-[#a38c29] mx-auto flex items-center justify-center mb-4 shadow-sm border border-[#a38c29]/20">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                </div>
-                <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-1">BANK ACCOUNT DETAILS</h3>
-                <p class="text-xs text-slate-500 font-medium mb-4">Corporate Bank Master Profile Information</p>
+    <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
+        <div x-show="viewModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="viewModalOpen = false"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
 
-                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-3">
+        <div x-show="viewModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bank Loan Master</p>
+                        <h2 class="text-lg font-extrabold text-white">Bank Account Details</h2>
+                    </div>
+                    <button @click="viewModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-left space-y-3">
                     <div class="flex justify-between items-center">
                         <div>
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bank Name</span>
@@ -241,7 +297,7 @@
                         </div>
                         <div class="text-right">
                             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Status</span>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase inline-block mt-0.5 border"
+                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase inline-block mt-0.5 border"
                                   :class="viewForm.status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
                                   x-text="viewForm.status"></span>
                         </div>
@@ -251,37 +307,66 @@
                         <span class="text-sm font-bold font-mono text-[#a38c29] uppercase" x-text="viewForm.ifsc_code"></span>
                     </div>
                 </div>
+            </div>
 
-                <div class="mt-6 flex justify-center">
-                    <button type="button" @click="viewModalOpen = false" class="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition-colors uppercase tracking-wide">Close</button>
-                </div>
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end bg-white">
+                <button type="button" @click="viewModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Close</button>
             </div>
         </div>
     </div>
 
     {{-- Bank Delete Modal --}}
-    <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 animate-fade-in-up" @click.away="deleteModalOpen = false">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center mb-4 shadow-sm border border-rose-100">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </div>
-                <h3 class="text-lg font-black text-slate-800 uppercase tracking-tight mb-2">DELETE BANK ACCOUNT</h3>
-                <p class="text-xs text-slate-500 font-medium leading-relaxed mb-4">
-                    You are about to delete <span class="font-bold text-slate-800 font-mono" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-700" x-text="deleteForm.ifsc_code"></span>). This action cannot be undone.
-                </p>
+    <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-cloak>
+        <div x-show="deleteModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="deleteModalOpen = false"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
 
-                <form :action="deleteForm.action" method="POST">
-                    @csrf
-                    <div class="mt-6 flex items-center justify-center gap-3">
-                        <button type="button" @click="deleteModalOpen = false" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors uppercase tracking-wide">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-md hover:shadow-lg transition-all uppercase tracking-wide inline-flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            Yes, Delete Now
-                        </button>
+        <div x-show="deleteModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-rose-400 text-[10px] font-semibold uppercase tracking-widest mb-1">Confirm Deletion</p>
+                        <h2 class="text-lg font-extrabold text-white">Delete Bank Account</h2>
                     </div>
-                </form>
+                    <button @click="deleteModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
             </div>
+
+            <div class="p-6">
+                <div class="p-4 rounded-xl bg-rose-50 border border-rose-100 flex items-start gap-3">
+                    <div class="p-2 rounded-lg bg-rose-100 text-rose-600 flex-shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-rose-900 uppercase tracking-wide">Warning: Permanent Action</h4>
+                        <p class="text-xs text-rose-700 mt-1 leading-relaxed">
+                            You are about to delete <span class="font-bold text-slate-900 font-mono" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-800" x-text="deleteForm.ifsc_code"></span>). This action cannot be undone.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <form :action="deleteForm.action" method="POST">
+                @csrf
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white">
+                    <button type="button" @click="deleteModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-rose-600/30 uppercase tracking-wide inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Delete Now
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
     

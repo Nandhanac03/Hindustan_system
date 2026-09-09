@@ -30,12 +30,12 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button @click="openInterestLogsModal()" class="inline-flex items-center gap-2 px-3.5 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs uppercase tracking-wide cursor-pointer bg-white">
-                <svg class="w-3.5 h-3.5 text-slate-550" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <button @click="openInterestLogsModal()" class="inline-flex items-center gap-2 px-3.5 py-2 border border-slate-200 hover:border-[#a38c29]/50 hover:bg-slate-50 text-slate-700 hover:text-[#8a7522] rounded-xl text-xs font-bold transition shadow-sm uppercase tracking-wide cursor-pointer bg-white">
+                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 Interest Edit Log
             </button>
-            <button @click="openAddModal()" class="inline-flex items-center gap-2 px-3.5 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition shadow-2xs uppercase tracking-wide cursor-pointer bg-white">
-                <svg class="w-3.5 h-3.5 text-slate-550" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            <button @click="openAddModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-xl text-xs font-bold transition shadow-md shadow-[#a38c29]/20 uppercase tracking-wide cursor-pointer">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Create Loan Account
             </button>
         </div>
@@ -138,55 +138,55 @@
             
             {{-- Search Account / Loan No --}}
             <div class="relative flex-grow min-w-[200px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                 </div>
-                <input type="text" name="loan_account_no" value="{{ request('loan_account_no') }}" placeholder="Search Account / Loan No..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none text-xs font-semibold text-slate-800 transition-all">
+                <input type="text" name="loan_account_no" value="{{ request('loan_account_no') }}" placeholder="Search Account / Loan No..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 transition-all shadow-2xs">
             </div>
 
             {{-- Lending Bank Dropdown --}}
             <div class="relative flex-grow min-w-[180px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                 </div>
-                <select name="lender_name" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all appearance-none">
+                <select name="lender_name" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all shadow-2xs appearance-none">
                     <option value="">All Lending Banks</option>
                     @foreach($banks as $b)
                         <option value="{{ $b->bank_name }}" {{ request('lender_name') === $b->bank_name ? 'selected' : '' }}>{{ $b->bank_name }}</option>
                     @endforeach
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
 
             {{-- Associated Project Select --}}
             <div class="relative flex-grow min-w-[180px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
-                <select name="project_id" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all appearance-none">
+                <select name="project_id" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all shadow-2xs appearance-none">
                     <option value="">All Projects</option>
                     @foreach($projects as $p)
                         <option value="{{ $p->id }}" {{ request('project_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
                     @endforeach
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
 
             {{-- Loan Status Select --}}
             <div class="relative flex-grow min-w-[150px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
-                <select name="status" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all appearance-none">
+                <select name="status" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all shadow-2xs appearance-none">
                     <option value="">All Statuses</option>
                     <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
                     <option value="Closed" {{ request('status') === 'Closed' ? 'selected' : '' }}>Closed</option>
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                 </div>
             </div>
@@ -591,13 +591,13 @@
     <div x-show="interestLogsModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="interestLogsModalOpen = false"></div>
         <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up flex flex-col max-h-[85vh]">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl shrink-0">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <span x-text="activeInterestLogAccount ? 'Interest Rate Modification Log: ' + activeInterestLogAccount : 'Interest Rate Modification Log'"></span>
-                    </h3>
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Audit Trail</p>
+                        <h2 class="text-lg font-extrabold text-white" x-text="activeInterestLogAccount ? 'Interest Modification: ' + activeInterestLogAccount : 'Interest Rate Modification Log'"></h2>
+                    </div>
                     <button @click="interestLogsModalOpen = false" class="text-slate-400 hover:text-white transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
@@ -829,10 +829,14 @@
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="addModalOpen = false"></div>
         <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-widest">Create New Project Loan Account</h3>
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Loans & Debt Servicing</p>
+                        <h2 class="text-lg font-extrabold text-white">Create Loan Account</h2>
+                    </div>
                     <button @click="addModalOpen = false" class="text-slate-400 hover:text-white transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>

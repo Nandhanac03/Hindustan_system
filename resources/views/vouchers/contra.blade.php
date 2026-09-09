@@ -3,7 +3,7 @@
 <div class="max-w-[1600px] mx-auto space-y-6" x-data="contraVoucherWorkspace()">
 
     {{-- Under Development Notice Banner --}}
-    <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-4 md:p-5 shadow-2xs relative overflow-hidden backdrop-blur-sm">
+    <!-- <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-4 md:p-5 shadow-2xs relative overflow-hidden backdrop-blur-sm">
         <div class="flex items-center gap-4">
             <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md text-xl">
                 🚧
@@ -21,7 +21,7 @@
                 </h2>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- ── 1. HEADER BAR WITH + ADD CONTRA ENTRY BUTTON ── -->
     <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">

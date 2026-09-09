@@ -2,6 +2,27 @@
 
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="reportsApp()">
 
+
+<div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-4 md:p-5 shadow-2xs relative overflow-hidden backdrop-blur-sm">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md text-xl">
+                🚧
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white">Under Development</span>
+                    <span class="flex items-center gap-1.5 text-xs font-bold text-red-700">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+                        Work In Progress
+                    </span>
+                </div>
+                <h2 class="text-sm md:text-base font-extrabold text-red-950 mt-0.5">
+                    We're working on this module. It is not yet ready for use and will be released shortly.
+                </h2>
+            </div>
+        </div>
+    </div>
+
     @include('reports.partials.nav')
 
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden p-6 space-y-6">

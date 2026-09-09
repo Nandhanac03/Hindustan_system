@@ -120,8 +120,8 @@
 
             {{-- Bank Filter --}}
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#a38c29]">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5m3 0h1m-4-8h1m-1-4h1m-5 4h1m-1-4h1m8 8v-4m0 4h-4m4-4h-4"/>
                     </svg>
                 </div>
@@ -134,7 +134,7 @@
                         </option>
                     @endforeach
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
@@ -143,8 +143,8 @@
 
             {{-- Loan Filter --}}
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#a38c29]">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
                     </svg>
                 </div>
@@ -157,7 +157,7 @@
                         </option>
                     @endforeach
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
@@ -166,8 +166,8 @@
 
             {{-- Status Filter --}}
             <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#a38c29]">
+                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2-2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                     </svg>
                 </div>
@@ -178,7 +178,7 @@
                     <option value="POSTED" {{ request('status') === 'POSTED' ? 'selected' : '' }}>Posted</option>
                     <option value="CANCELLED" {{ request('status') === 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
                 </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
@@ -305,109 +305,157 @@
     </div>
 
     {{-- MODAL: RECORD / EDIT DISBURSAL --}}
-    <div x-show="formModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="formModalOpen = false">
-            <div class="bg-[#a38c29] px-6 py-4 flex items-center justify-between">
-                <div>
-                    <span class="inline-block px-2 py-0.5 bg-white/20 text-white text-[9px] font-black uppercase tracking-wider rounded border border-white/30 mb-1">Bank Loan module</span>
-                    <h3 class="font-black text-sm uppercase tracking-wider text-white" x-text="isEdit ? 'Edit Loan Disbursal Entry' : 'Record Loan Disbursal Entry'"></h3>
+    <div x-show="formModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+        {{-- Backdrop --}}
+        <div x-show="formModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="formModalOpen = false"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+        {{-- Modal Panel --}}
+        <div x-show="formModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Bank Loan Module</p>
+                        <h2 class="text-lg font-extrabold text-white" x-text="isEdit ? 'Edit Loan Disbursal Entry' : 'Record Loan Disbursal Entry'"></h2>
+                    </div>
+                    <button type="button" @click="formModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="formModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
             
-            <form :action="isEdit ? '{{ url('/loan-disbursals') }}/' + formDisbursalId : '{{ route('loan-disbursals.store') }}'" method="POST" class="p-6 space-y-4">
+            <form :action="isEdit ? '{{ url('/loan-disbursals') }}/' + formDisbursalId : '{{ route('loan-disbursals.store') }}'" method="POST" class="flex flex-col overflow-hidden max-h-[calc(90vh-90px)]">
                 @csrf
                 <template x-if="isEdit">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Select Bank Loan <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="loan_id" x-model="form.loan_id" required class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition">
-                            <option value="">-- Choose Active Loan --</option>
-                            @foreach($loans as $loan)
-                                <option value="{{ $loan->id }}">
-                                    {{ $loan->lender_name }} - {{ $loan->loan_account_no }} (₹{{ number_format($loan->principal_amount, 2) }})
-                                </option>
-                            @endforeach
-                        </select>
+                <div class="p-6 space-y-4 overflow-y-auto">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Select Bank Loan <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="loan_id" x-model="form.loan_id" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white text-slate-800">
+                                <option value="">-- Choose Active Loan --</option>
+                                @foreach($loans as $loan)
+                                    <option value="{{ $loan->id }}">
+                                        {{ $loan->lender_name }} - {{ $loan->loan_account_no }} (₹{{ number_format($loan->principal_amount, 2) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Disbursal Date <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="date" name="disbursal_date" x-model="form.disbursal_date" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white text-slate-800">
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Disbursed Amount (₹) <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="number" step="0.01" name="amount" x-model="form.amount" required placeholder="0.00" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white text-slate-800">
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Disbursal Type <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="disbursal_type" x-model="form.disbursal_type" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white text-slate-800">
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="RTGS/NEFT">RTGS/NEFT</option>
+                                <option value="Demand Draft">Demand Draft</option>
+                                <option value="Cash">Cash</option>
+                            </select>
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reference No (Bank/Cheque Ref)</label>
+                            <input type="text" name="reference_no" x-model="form.reference_no" placeholder="Optional reference detail" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white text-slate-800">
+                        </div>
+
+                        <div class="space-y-1.5">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Transaction ID / Instrument No</label>
+                            <input type="text" name="transaction_no" x-model="form.transaction_no" placeholder="Optional transaction code" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white text-slate-800">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Disbursal Date <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="date" name="disbursal_date" x-model="form.disbursal_date" required class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Disbursed Amount (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="amount" x-model="form.amount" required placeholder="0.00" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Disbursal Type <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="disbursal_type" x-model="form.disbursal_type" required class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition">
-                            <option value="Bank Transfer">Bank Transfer</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="RTGS/NEFT">RTGS/NEFT</option>
-                            <option value="Demand Draft">Demand Draft</option>
-                            <option value="Cash">Cash</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Reference No (Bank/Cheque Ref)</label>
-                        <input type="text" name="reference_no" x-model="form.reference_no" placeholder="Optional reference detail" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Transaction ID / Instrument No</label>
-                        <input type="text" name="transaction_no" x-model="form.transaction_no" placeholder="Optional transaction code" class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition">
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Remarks / Internal Notes</label>
+                        <textarea name="remarks" x-model="form.remarks" rows="3" placeholder="Describe the disbursal release detail..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white text-slate-800"></textarea>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Remarks / Internal Notes</label>
-                    <textarea name="remarks" x-model="form.remarks" rows="3" placeholder="Describe the disbursal release detail..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition"></textarea>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                    <button type="button" @click="formModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">Cancel</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase rounded-xl transition shadow-md shadow-[#a38c29]/20 cursor-pointer">Save Draft</button>
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white flex-shrink-0">
+                    <button type="button" @click="formModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide inline-flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Save Draft
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     {{-- MODAL: CANCEL DISBURSAL ENTRY --}}
-    <div x-show="cancelModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="cancelModalOpen = false">
-            <div class="bg-rose-700 px-6 py-4 flex items-center justify-between">
-                <div>
-                    <span class="inline-block px-2 py-0.5 bg-white/20 text-white text-[9px] font-black uppercase tracking-wider rounded border border-white/30 mb-1">Reversal request</span>
-                    <h3 class="font-black text-sm uppercase tracking-wider text-white">Cancel Loan Disbursal Entry</h3>
+    <div x-show="cancelModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;">
+        {{-- Backdrop --}}
+        <div x-show="cancelModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             @click="cancelModalOpen = false"
+             class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"></div>
+
+        {{-- Modal Panel --}}
+        <div x-show="cancelModalOpen"
+             x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+             class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+             @click.stop>
+            
+            {{-- Dark Header --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-rose-400 text-[10px] font-semibold uppercase tracking-widest mb-1">Reversal Request</p>
+                        <h2 class="text-lg font-extrabold text-white">Cancel Loan Disbursal Entry</h2>
+                    </div>
+                    <button type="button" @click="cancelModalOpen = false" class="text-slate-400 hover:text-white transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="cancelModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
             
-            <form :action="'{{ url('/loan-disbursals') }}/' + cancelDisbursalId + '/cancel'" method="POST" class="p-6 space-y-4">
+            <form :action="'{{ url('/loan-disbursals') }}/' + cancelDisbursalId + '/cancel'" method="POST" class="flex flex-col overflow-hidden">
                 @csrf
-                <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs font-semibold leading-relaxed">
-                    <p class="font-black uppercase tracking-wider mb-1 flex items-center gap-1 text-rose-900">
-                        <svg class="w-4 h-4 text-rose-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                        Warning: High Risk Reversal
-                    </p>
-                    This will permanently cancel the disbursal entry and mark it as <strong class="text-rose-900 uppercase">cancelled</strong>. This action cannot be undone. Please write the explanation for audit purposes.
+                <div class="p-6 space-y-4">
+                    <div class="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl text-xs font-semibold leading-relaxed">
+                        <p class="font-black uppercase tracking-wider mb-1 flex items-center gap-1.5 text-rose-900">
+                            <svg class="w-4 h-4 text-rose-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            Warning: High Risk Reversal
+                        </p>
+                        This will permanently cancel the disbursal entry and mark it as <strong class="text-rose-900 uppercase">cancelled</strong>. This action cannot be undone. Please provide an explanation for audit purposes.
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">Reason for Cancellation <span class="text-rose-500 font-bold">*</span></label>
+                        <textarea name="cancellation_reason" required rows="3" placeholder="Provide cancellation reason for registry logs..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500/40 focus:border-rose-500 outline-none transition bg-white text-slate-800"></textarea>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Reason for Cancellation <span class="text-rose-500 font-bold">*</span></label>
-                    <textarea name="cancellation_reason" required rows="3" placeholder="Provide cancellation reason for registry logs..." class="w-full text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-750 focus:bg-white focus:border-[#a38c29] focus:outline-none transition"></textarea>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                    <button type="button" @click="cancelModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">Close</button>
-                    <button type="submit" class="px-5 py-2.5 bg-rose-700 hover:bg-rose-800 text-white text-xs font-black uppercase rounded-xl transition shadow-md shadow-rose-700/20 cursor-pointer">Confirm Cancel</button>
+                <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-white flex-shrink-0">
+                    <button type="button" @click="cancelModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide">Close</button>
+                    <button type="submit" class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition shadow-lg shadow-rose-700/30 uppercase tracking-wide inline-flex items-center gap-2">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        Confirm Cancel
+                    </button>
                 </div>
             </form>
         </div>
