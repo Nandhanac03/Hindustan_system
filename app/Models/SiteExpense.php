@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class SiteExpense extends Model
@@ -34,6 +35,8 @@ class SiteExpense extends Model
         'igst_amount',
         'total_gst_amount',
         'net_amount',
+        'paid_amount',
+        'balance_amount',
         'payment_source_type',
         'company_bank_account_id',
         'loan_id',
@@ -42,6 +45,7 @@ class SiteExpense extends Model
         'attachment_path',
         'created_by',
         'status',
+        'payment_status',
     ];
 
     protected $casts = [
@@ -52,6 +56,8 @@ class SiteExpense extends Model
         'igst_amount'       => 'decimal:2',
         'total_gst_amount'  => 'decimal:2',
         'net_amount'        => 'decimal:2',
+        'paid_amount'       => 'decimal:2',
+        'balance_amount'    => 'decimal:2',
     ];
 
     /**
@@ -144,5 +150,36 @@ class SiteExpense extends Model
         }
 
         return ucfirst($this->payment_source_type ?? 'Bank') . ' Account';
+    }
+
+    /**
+     * Get disbursement payment transactions
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(SiteExpensePayment::class, 'site_expense_id')->orderBy('payment_date', 'asc');
+    }
+
+    /**
+     * Recalculate paid and balance amounts after disbursement
+     */
+    public function recalculateBalances(): void
+    {
+        $totalPaid = (float) $this->payments()->sum('paid_amount');
+        $net = (float) $this->net_amount;
+        $balance = max(0, $net - $totalPaid);
+
+        $paymentStatus = 'unpaid';
+        if ($totalPaid >= $net && $net > 0) {
+            $paymentStatus = 'paid';
+        } elseif ($totalPaid > 0) {
+            $paymentStatus = 'partially_paid';
+        }
+
+        $this->update([
+            'paid_amount'    => $totalPaid,
+            'balance_amount' => $balance,
+            'payment_status' => $paymentStatus,
+        ]);
     }
 }

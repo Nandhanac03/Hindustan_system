@@ -525,19 +525,28 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     @if($expense->status === 'Approved')
-                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-md border border-emerald-200">
+                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-md border border-emerald-200 inline-flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             Approved
                                         </span>
-                                    @elseif($expense->status === 'Draft' || $expense->status === 'Pending')
-                                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 font-bold text-[11px] rounded-md border border-amber-200">
-                                            Pending
+                                    @elseif($expense->status === 'Pending')
+                                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 font-bold text-[11px] rounded-md border border-amber-200 inline-flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                            Pending Approval
+                                        </span>
+                                    @elseif($expense->status === 'Draft')
+                                        <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-[11px] rounded-md border border-slate-200 inline-flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                            Draft
                                         </span>
                                     @elseif($expense->status === 'Posted')
-                                        <span class="px-2.5 py-0.5 bg-amber-50 text-[#8a741f] font-bold text-[11px] rounded-md border border-amber-200">
+                                        <span class="px-2.5 py-0.5 bg-amber-50 text-[#8a741f] font-bold text-[11px] rounded-md border border-amber-200 inline-flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-[#8a741f]"></span>
                                             Posted
                                         </span>
                                     @else
-                                        <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 font-bold text-[11px] rounded-md border border-rose-200">
+                                        <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 font-bold text-[11px] rounded-md border border-rose-200 inline-flex items-center gap-1">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
                                             Rejected
                                         </span>
                                     @endif
@@ -602,27 +611,37 @@
                                                 class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Edit Expense">
                                             <i data-lucide="pencil" class="w-3.5 h-3.5 text-blue-600"></i>
                                         </button>
-                                        @if($expense->status !== 'Approved')
-                                            {{-- Hidden Approve Form --}}
+
+                                        @if($expense->status === 'Approved')
+                                            {{-- Step 3 Shortcut: Jump to Payment Release desk --}}
+                                            <a href="{{ route('site-expenses.payment-release', ['search' => $expense->voucher_number]) }}" 
+                                               class="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition inline-flex items-center justify-center shadow-2xs" 
+                                               title="Step 3: Release Payment (Disbursement)">
+                                                <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                            </a>
+                                        @else
+                                            {{-- Step 2 Action: Approve Voucher --}}
                                             <form id="approve-form-{{ $expense->id }}" action="{{ route('site-expenses.approve', $expense->id) }}" method="POST" style="display:none">
                                                 @csrf
                                             </form>
                                             <button type="button" 
                                                     @click="openConfirmModal('approve', {{ $expense->id }}, '{{ $expense->voucher_number }}')" 
-                                                    class="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Approve Voucher">
+                                                    class="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Step 2: Approve Voucher (Confirm Liability)">
                                                 <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
                                             </button>
                                         @endif
 
-                                        {{-- Hidden Reject Form --}}
-                                        <form id="reject-form-{{ $expense->id }}" action="{{ route('site-expenses.reject', $expense->id) }}" method="POST" style="display:none">
-                                            @csrf
-                                        </form>
-                                        <button type="button" 
-                                                @click="openConfirmModal('reject', {{ $expense->id }}, '{{ $expense->voucher_number }}')" 
-                                                class="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Reject / Send Back Voucher">
-                                            <i data-lucide="x-circle" class="w-3.5 h-3.5 text-amber-700"></i>
-                                        </button>
+                                        @if($expense->status !== 'Approved')
+                                            {{-- Hidden Reject Form --}}
+                                            <form id="reject-form-{{ $expense->id }}" action="{{ route('site-expenses.reject', $expense->id) }}" method="POST" style="display:none">
+                                                @csrf
+                                            </form>
+                                            <button type="button" 
+                                                    @click="openConfirmModal('reject', {{ $expense->id }}, '{{ $expense->voucher_number }}')" 
+                                                    class="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Reject / Send Back Voucher">
+                                                <i data-lucide="x-circle" class="w-3.5 h-3.5 text-amber-700"></i>
+                                            </button>
+                                        @endif
 
                                         {{-- Hidden Delete Form --}}
                                         <form id="delete-form-{{ $expense->id }}" action="{{ route('site-expenses.destroy', $expense->id) }}" method="POST" style="display:none">
@@ -941,8 +960,8 @@
                     </button>
                 </template>
                 <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs shadow-md uppercase tracking-wider transition cursor-pointer flex items-center gap-2 border-0">
-                    <i data-lucide="check" class="w-4 h-4 text-white"></i>
-                    <span x-text="selectedExpense ? 'Update Expense' : 'Save & Approve'">Save & Approve</span>
+                    <i data-lucide="send" class="w-4 h-4 text-white"></i>
+                    <span x-text="selectedExpense ? 'Update Expense' : 'Submit for Approval'">Submit for Approval</span>
                 </button>
             </div>
 
@@ -982,10 +1001,11 @@
                             <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs"
                                   :class="{
                                       'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': selectedExpense?.status === 'Approved',
-                                      'bg-amber-500/20 text-amber-300 border border-amber-500/30': selectedExpense?.status === 'Draft' || selectedExpense?.status === 'Pending',
+                                      'bg-amber-500/20 text-amber-300 border border-amber-500/30': selectedExpense?.status === 'Pending',
+                                      'bg-slate-500/20 text-slate-300 border border-slate-500/30': selectedExpense?.status === 'Draft',
                                       'bg-rose-500/20 text-rose-300 border border-rose-500/30': selectedExpense?.status === 'Rejected'
                                   }"
-                                  x-text="selectedExpense?.status || 'Approved'">
+                                  x-text="selectedExpense?.status === 'Pending' ? 'Pending Approval' : (selectedExpense?.status || 'Pending')">
                             </span>
                         </div>
                         <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider" 
@@ -1013,11 +1033,12 @@
                                     <i data-lucide="file-check" class="w-4.5 h-4.5 text-[#a38c29]"></i>
                                     Voucher Metadata & Payee
                                 </h4>
-                                <span x-text="selectedExpense?.status || 'Approved'" 
+                                <span x-text="selectedExpense?.status === 'Pending' ? 'Pending Approval' : (selectedExpense?.status || 'Pending')" 
                                       class="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider shadow-2xs"
                                       :class="{
                                           'bg-emerald-100 text-emerald-800 border border-emerald-200': selectedExpense?.status === 'Approved',
-                                          'bg-amber-100 text-amber-800 border border-amber-200': selectedExpense?.status === 'Draft' || selectedExpense?.status === 'Pending',
+                                          'bg-amber-100 text-amber-800 border border-amber-200': selectedExpense?.status === 'Pending',
+                                          'bg-slate-100 text-slate-800 border border-slate-200': selectedExpense?.status === 'Draft',
                                           'bg-rose-100 text-rose-800 border border-rose-200': selectedExpense?.status === 'Rejected'
                                       }">
                                 </span>
@@ -1245,7 +1266,7 @@
                         </div>
                     </template>
                     <template x-if="confirmType === 'approve'">
-                        <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-emerald-700">approve and post</strong> this site expense voucher? This will register the ledger entry.</p>
+                        <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-emerald-700">approve</strong> this site expense voucher? The liability will be confirmed and forwarded to the <strong>Site Expense Payment Release</strong> desk for disbursement.</p>
                     </template>
 
                 </div>

@@ -17,6 +17,8 @@ use App\Models\VoucherLine;
 use App\Models\Account;
 use App\Models\Sale;
 use App\Models\Unit;
+use App\Models\SiteExpensePayment;
+use App\Models\PaymentMode;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -103,7 +105,7 @@ class SiteExpenseController extends Controller
         if ($statusTab === 'draft') {
             $query->where('status', 'Draft');
         } elseif ($statusTab === 'pending') {
-            $query->whereIn('status', ['Pending', 'Draft']);
+            $query->where('status', 'Pending');
         } elseif ($statusTab === 'approved') {
             $query->where('status', 'Approved');
         } elseif ($statusTab === 'posted') {
@@ -158,7 +160,7 @@ class SiteExpenseController extends Controller
         $tabCounts = [
             'all'      => (clone $allQuery)->count(),
             'draft'    => (clone $allQuery)->where('status', 'Draft')->count(),
-            'pending'  => (clone $allQuery)->whereIn('status', ['Pending', 'Draft'])->count(),
+            'pending'  => (clone $allQuery)->where('status', 'Pending')->count(),
             'approved' => (clone $allQuery)->where('status', 'Approved')->count(),
             'rejected' => (clone $allQuery)->where('status', 'Rejected')->count(),
             'posted'   => (clone $allQuery)->where('status', 'Approved')->count(),
@@ -169,7 +171,7 @@ class SiteExpenseController extends Controller
 
         $approvedAmount        = (float) (clone $allQuery)->where('status', 'Approved')->sum('net_amount');
 
-        $pendingAmount         = (float) (clone $allQuery)->whereIn('status', ['Draft', 'Pending'])->sum('net_amount');
+        $pendingAmount         = (float) (clone $allQuery)->where('status', 'Pending')->sum('net_amount');
 
         $thisMonthExpenses     = (float) (clone $allQuery)->whereMonth('voucher_date', now()->month)->whereYear('voucher_date', now()->year)->sum('net_amount');
 
@@ -277,7 +279,8 @@ class SiteExpenseController extends Controller
 
         $gross = (float) $validated['gross_amount'];
         $net   = (float) $validated['net_amount'];
-        $status = ($request->submit_action === 'draft') ? 'Draft' : 'Approved';
+        // STEP 1: Site staff entry creates a Pending voucher (or Draft if saved as draft)
+        $status = ($request->submit_action === 'draft') ? 'Draft' : 'Pending';
 
         // Handle File Attachment
         $attachmentPath = null;
@@ -321,71 +324,10 @@ class SiteExpenseController extends Controller
                 'attachment_path'          => $attachmentPath,
                 'created_by'               => Auth::id(),
                 'status'                   => $status,
+                'paid_amount'              => 0.00,
+                'balance_amount'           => $net,
+                'payment_status'           => 'unpaid',
             ]);
-
-            if ($status === 'Approved') {
-                // 1. Double-Entry Posting & Financial Balance Adjustment
-                if ($validated['payment_source_type'] === 'bank' && !empty($validated['company_bank_account_id'])) {
-                    $bankAccount = CompanyBankAccount::find($validated['company_bank_account_id']);
-                    if ($bankAccount) {
-                        $bankAccount->decrement('current_balance', $net);
-                    }
-                } elseif ($validated['payment_source_type'] === 'loan' && !empty($validated['loan_id'])) {
-                    $loan = Loan::find($validated['loan_id']);
-                    if ($loan) {
-                        $loan->increment('outstanding_balance', $net);
-                    }
-                }
-
-                // 2. Double-Entry Accounting Voucher Entry
-                try {
-                    if (Schema::hasTable('vouchers')) {
-                        $voucher = Voucher::create([
-                            'system_id'      => Auth::user()->system_id ?? 1,
-                            'voucher_number' => 'JV-' . $voucherNumber,
-                            'type'           => 'Payment',
-                            'date'           => $validated['voucher_date'],
-                            'narration'      => $validated['narration'] ?? "Site Expense for Project #{$validated['project_id']} - {$categoryName}",
-                            'reference_no'   => $validated['transaction_reference_no'],
-                            'created_by'     => Auth::id() ?? 1,
-                            'status'         => 'Posted',
-                        ]);
-
-                        $expenseAccount = Account::where('code', $categoryCode)->first() ?? Account::where('type', 'Expense')->first();
-                        $cashBankAccountId = null;
-
-                        if ($validated['payment_source_type'] === 'bank') {
-                            $bankAccount = CompanyBankAccount::find($validated['company_bank_account_id']);
-                            $cashBankAccountId = Account::where('name', 'like', "%{$bankAccount?->bank_name}%")->first()?->id;
-                        }
-
-                        if (!$cashBankAccountId) {
-                            $cashBankAccountId = Account::where('type', 'Asset')->where('name', 'like', '%bank%')->first()?->id ?? 1;
-                        }
-                        if (!$expenseAccount) {
-                            $expenseAccount = Account::where('type', 'Expense')->first() ?? (object)['id' => 2];
-                        }
-
-                        if ($expenseAccount && $cashBankAccountId && Schema::hasTable('voucher_lines')) {
-                            VoucherLine::create([
-                                'voucher_id'     => $voucher->id,
-                                'account_id'     => $expenseAccount->id,
-                                'debit'          => $net,
-                                'credit'         => 0.00,
-                                'line_narration' => "Debit: {$categoryName} for {$siteExpense->payee_display_name}",
-                            ]);
-
-                            VoucherLine::create([
-                                'voucher_id'     => $voucher->id,
-                                'account_id'     => $cashBankAccountId,
-                                'debit'          => 0.00,
-                                'credit'         => $net,
-                                'line_narration' => "Credit: Payment Source ({$validated['transaction_reference_no']})",
-                            ]);
-                        }
-                    }
-                } catch (\Exception $e) {}
-            }
 
             // 3. DMS Document Store Integration
             if ($attachmentPath) {
@@ -397,7 +339,7 @@ class SiteExpenseController extends Controller
                         'category'             => 'Vendor & Operations',
                         'document_type'        => 'Site Expense Invoice / Receipt',
                         'title'                => "Receipt {$voucherNumber} - {$categoryName}",
-                        'description'          => "Site Expense Paid to {$siteExpense->payee_display_name} via {$siteExpense->payment_source_display_name}",
+                        'description'          => "Site Expense Recorded for {$siteExpense->payee_display_name}",
                         'file_path'            => $attachmentPath,
                         'file_name'            => basename($attachmentPath),
                         'file_size'            => Storage::disk('public')->exists($attachmentPath) ? Storage::disk('public')->size($attachmentPath) : 0,
@@ -410,8 +352,11 @@ class SiteExpenseController extends Controller
 
             DB::commit();
 
-            return redirect()->route('site-expenses.index')
-                ->with('success', "Site Expense Voucher {$voucherNumber} of ₹" . number_format($net, 2) . " successfully saved!");
+            $msg = ($status === 'Draft') 
+                ? "Draft Expense {$voucherNumber} saved successfully." 
+                : "Site Expense Voucher {$voucherNumber} of ₹" . number_format($net, 2) . " submitted for approval!";
+
+            return redirect()->route('site-expenses.index')->with('success', $msg);
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()
@@ -459,7 +404,9 @@ class SiteExpenseController extends Controller
 
         $gross = (float) $validated['gross_amount'];
         $net   = (float) $validated['net_amount'];
-        $status = ($request->submit_action === 'draft') ? 'Draft' : 'Approved';
+        $status = ($request->submit_action === 'draft') 
+            ? 'Draft' 
+            : ($siteExpense->status === 'Approved' ? 'Approved' : 'Pending');
 
         // Handle File Attachment if newly uploaded
         $attachmentPath = $siteExpense->attachment_path;
@@ -490,6 +437,7 @@ class SiteExpenseController extends Controller
                 'igst_amount'              => $igst,
                 'total_gst_amount'         => $totalGst,
                 'net_amount'               => $net,
+                'balance_amount'           => max(0, $net - (float)$siteExpense->paid_amount),
                 'payment_source_type'      => $validated['payment_source_type'],
                 'company_bank_account_id'  => $validated['payment_source_type'] === 'bank' ? $validated['company_bank_account_id'] : null,
                 'loan_id'                  => $validated['payment_source_type'] === 'loan' ? $validated['loan_id'] : null,
@@ -512,7 +460,8 @@ class SiteExpenseController extends Controller
     }
 
     /**
-     * Approve Site Expense Voucher
+     * Approve Site Expense Voucher (Step 2 of 3)
+     * Confirms the liability and makes it ready for Treasury disbursement in Payment Release
      */
     public function approve(SiteExpense $siteExpense): RedirectResponse
     {
@@ -522,26 +471,15 @@ class SiteExpenseController extends Controller
 
         DB::beginTransaction();
         try {
-            $net = (float) $siteExpense->net_amount;
+            // STEP 2: Approval confirms liability. Bank deduction happens in Step 3 (Disbursement desk).
+            $siteExpense->update([
+                'status' => 'Approved',
+            ]);
 
-            // Balance adjustment
-            if ($siteExpense->payment_source_type === 'bank' && $siteExpense->company_bank_account_id) {
-                $bankAccount = CompanyBankAccount::find($siteExpense->company_bank_account_id);
-                if ($bankAccount) {
-                    $bankAccount->decrement('current_balance', $net);
-                }
-            } elseif ($siteExpense->payment_source_type === 'loan' && $siteExpense->loan_id) {
-                $loan = Loan::find($siteExpense->loan_id);
-                if ($loan) {
-                    $loan->increment('outstanding_balance', $net);
-                }
-            }
-
-            $siteExpense->update(['status' => 'Approved']);
             DB::commit();
 
             return redirect()->route('site-expenses.index')
-                ->with('success', "Voucher {$siteExpense->voucher_number} approved and posted to journal entries!");
+                ->with('success', "Voucher {$siteExpense->voucher_number} approved! Liability confirmed and forwarded to Payment Release desk.");
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Failed to approve voucher: ' . $e->getMessage());
@@ -603,6 +541,188 @@ class SiteExpenseController extends Controller
             DB::rollBack();
             return redirect()->route('site-expenses.index')
                 ->with('error', 'Failed to delete Site Expense: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Treasury Desk: Site Expense Payment Release & Disbursement Register
+     */
+    public function paymentRelease(Request $request): View
+    {
+        $systemId = Auth::user()->system_id ?? 1;
+
+        $query = SiteExpense::with([
+            'project',
+            'floor',
+            'payee',
+            'companyBankAccount',
+            'loan',
+            'creator',
+            'payments' => function ($q) {
+                $q->orderBy('payment_date', 'asc')->with(['companyBankAccount', 'loan']);
+            }
+        ])
+        ->where('status', 'Approved')
+        ->orderByDesc('voucher_date')
+        ->orderByDesc('id');
+
+        if ($request->filled('project_id')) {
+            $query->where('project_id', $request->project_id);
+        }
+
+        if ($request->filled('payment_status')) {
+            if ($request->payment_status === 'unpaid') {
+                $query->where('balance_amount', '>', 0)->where('paid_amount', 0);
+            } elseif ($request->payment_status === 'partially_paid') {
+                $query->where('balance_amount', '>', 0)->where('paid_amount', '>', 0);
+            } elseif ($request->payment_status === 'paid') {
+                $query->where('balance_amount', '<=', 0);
+            } elseif ($request->payment_status === 'pending_disbursement') {
+                $query->where('balance_amount', '>', 0);
+            }
+        }
+
+        if ($request->filled('search')) {
+            $s = '%' . trim($request->search) . '%';
+            $query->where(function ($q) use ($s) {
+                $q->where('voucher_number', 'like', $s)
+                  ->orWhere('casual_payee_name', 'like', $s)
+                  ->orWhere('expense_category_name', 'like', $s)
+                  ->orWhere('transaction_reference_no', 'like', $s)
+                  ->orWhereHas('payee', fn($pq) => $pq->where('name', 'like', $s));
+            });
+        }
+
+        $siteExpenses = $query->paginate(20)->withQueryString();
+
+        // Summary KPI Calculations
+        $allApproved = SiteExpense::where('status', 'Approved');
+        if ($request->filled('project_id')) {
+            $allApproved->where('project_id', $request->project_id);
+        }
+
+        $totalApproved = (float) (clone $allApproved)->sum('net_amount');
+        $totalPaid     = (float) (clone $allApproved)->sum('paid_amount');
+        $totalBalance  = (float) (clone $allApproved)->sum('balance_amount');
+        $readyCount    = (clone $allApproved)->where('balance_amount', '>', 0)->count();
+
+        $projects = Project::where('is_active', true)->orderBy('name')->get();
+        $companyBankAccounts = CompanyBankAccount::where('status', 'active')
+            ->orderByDesc('is_default')
+            ->orderBy('bank_name')
+            ->get();
+        $loans = Loan::orderBy('lender_name')->get();
+        $paymentModes = PaymentMode::where('status', 'active')->orderBy('name')->get();
+        if ($paymentModes->isEmpty()) {
+            $paymentModes = collect([
+                (object) ['code' => 'NEFT', 'name' => 'NEFT / RTGS Transfer'],
+                (object) ['code' => 'Cheque', 'name' => 'Cheque'],
+                (object) ['code' => 'UPI', 'name' => 'UPI / Net Banking'],
+                (object) ['code' => 'Cash', 'name' => 'Cash'],
+            ]);
+        }
+
+        return view('expenses.site-expenses.payment-release', compact(
+            'siteExpenses',
+            'projects',
+            'companyBankAccounts',
+            'loans',
+            'paymentModes',
+            'totalApproved',
+            'totalPaid',
+            'totalBalance',
+            'readyCount'
+        ));
+    }
+
+    /**
+     * Process Payment Release / Disbursement for a Site Expense
+     */
+    public function disburse(Request $request, $id): RedirectResponse
+    {
+        $siteExpense = SiteExpense::findOrFail($id);
+
+        $balance = (float) $siteExpense->balance_amount;
+        if ($balance <= 0) {
+            return redirect()->back()->with('error', 'This site expense is already fully paid and disbursed.');
+        }
+
+        $validated = $request->validate([
+            'payment_date'            => 'required|date',
+            'paid_amount'             => 'required|numeric|min:0.01|max:' . $balance,
+            'payment_source_type'     => 'required|in:bank,loan',
+            'company_bank_account_id' => 'required_if:payment_source_type,bank|nullable|exists:company_bank_accounts,id',
+            'loan_id'                 => 'required_if:payment_source_type,loan|nullable|exists:loans,id',
+            'payment_mode'            => 'required|string|max:50',
+            'reference_no'            => 'nullable|string|max:100',
+            'remarks'                 => 'nullable|string|max:1000',
+        ], [
+            'paid_amount.max' => 'The disbursement amount cannot exceed the outstanding balance of ₹' . number_format($balance, 2),
+        ]);
+
+        $paidAmount = (float) $validated['paid_amount'];
+
+        DB::beginTransaction();
+        try {
+            $systemId = Auth::user()->system_id ?? 1;
+
+            // 1. Create Payment Voucher in Double-Entry Engine if table exists
+            $voucher = null;
+            if (Schema::hasTable('vouchers')) {
+                $voucher = Voucher::create([
+                    'system_id'      => $systemId,
+                    'voucher_number' => 'PV-SITE-' . time(),
+                    'type'           => 'Payment',
+                    'date'           => $validated['payment_date'],
+                    'narration'      => $validated['remarks'] ?? "Site Expense Payment Release for #{$siteExpense->voucher_number} - {$siteExpense->expense_category_name}",
+                    'reference_no'   => $validated['reference_no'] ?? null,
+                    'created_by'     => Auth::id() ?? 1,
+                ]);
+            }
+
+            // 2. Record disbursement payment
+            SiteExpensePayment::create([
+                'system_id'               => $systemId,
+                'site_expense_id'         => $siteExpense->id,
+                'payment_date'            => $validated['payment_date'],
+                'paid_amount'             => $paidAmount,
+                'payment_mode'            => $validated['payment_mode'],
+                'payment_source_type'     => $validated['payment_source_type'],
+                'company_bank_account_id' => $validated['payment_source_type'] === 'bank' ? $validated['company_bank_account_id'] : null,
+                'loan_id'                 => $validated['payment_source_type'] === 'loan' ? $validated['loan_id'] : null,
+                'reference_no'            => $validated['reference_no'] ?? null,
+                'voucher_id'              => $voucher?->id,
+                'status'                  => 'paid',
+                'remarks'                 => $validated['remarks'] ?? null,
+                'created_by'              => Auth::id(),
+            ]);
+
+            // 3. Balance deduction from bank / loan
+            if ($validated['payment_source_type'] === 'bank' && !empty($validated['company_bank_account_id'])) {
+                $bankAccount = CompanyBankAccount::find($validated['company_bank_account_id']);
+                if ($bankAccount) {
+                    $bankAccount->decrement('current_balance', $paidAmount);
+                }
+            } elseif ($validated['payment_source_type'] === 'loan' && !empty($validated['loan_id'])) {
+                $loan = Loan::find($validated['loan_id']);
+                if ($loan) {
+                    $loan->increment('outstanding_balance', $paidAmount);
+                }
+            }
+
+            // 4. Update site expense balance and status
+            $siteExpense->recalculateBalances();
+
+            DB::commit();
+
+            $formattedPaid = number_format($paidAmount, 2);
+            return redirect()->route('site-expenses.payment-release')
+                ->with('success', "Disbursement of ₹{$formattedPaid} released successfully for Site Expense #{$siteExpense->voucher_number}!");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Disbursement release failed: ' . $e->getMessage())
+                ->withInput();
         }
     }
 }
