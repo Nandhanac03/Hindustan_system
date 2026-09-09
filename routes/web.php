@@ -365,6 +365,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
 
     // Site Expenses Module (Dedicated Direct Operational Expenses & Workflow)
     Route::get('/site-expenses', [\App\Http\Controllers\SiteExpenseController::class, 'index'])->name('site-expenses.index');
+    Route::get('/site-expenses/payment-release', [\App\Http\Controllers\SiteExpenseController::class, 'paymentRelease'])->name('site-expenses.payment-release');
+    Route::match(['put', 'post'], '/site-expenses/{id}/disburse', [\App\Http\Controllers\SiteExpenseController::class, 'disburse'])->name('site-expenses.disburse');
     Route::get('/site-expenses/workflow', [\App\Http\Controllers\SiteExpenseController::class, 'workflow'])->name('site-expenses.workflow');
     Route::get('/site-expenses/create', [\App\Http\Controllers\SiteExpenseController::class, 'create'])->name('site-expenses.create');
     Route::post('/site-expenses', [\App\Http\Controllers\SiteExpenseController::class, 'store'])->name('site-expenses.store');

@@ -402,7 +402,9 @@
                 <a href="{{ route('site-expenses.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.index') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Site Expense 
                 </a>
-              
+                <a href="{{ route('site-expenses.payment-release') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Site Expense Payment Release
+                </a>
             </div>
         </div>
 
