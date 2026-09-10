@@ -12,6 +12,10 @@ use App\Models\Booking;
 use App\Models\Project;
 use App\Models\CompanyBankAccount;
 use App\Models\ActivityLog;
+use App\Models\JournalVoucher;
+use App\Models\JournalEntry;
+use App\Models\VoucherType;
+use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -426,6 +430,58 @@ class BrokerController extends Controller
                         'debit' => 0.00,
                         'credit' => $totalPaid,
                         'running_balance' => 0.00,
+                    ]);
+
+                    // Post JournalVoucher & JournalEntries (Double Entry System)
+                    $requiredAccounts = [
+                    '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
+                    ];
+                foreach ($requiredAccounts as $accCode => $accInfo) {
+                    ChartOfAccount::firstOrCreate(
+                        ['account_code' => $accCode],
+                        [
+                            'account_name' => $accInfo['name'],
+                            'account_type' => $accInfo['type'],
+                            'is_active'    => true,
+                        ]
+                    );
+                }
+                    $vt = VoucherType::where('code', 'AGENT_PAYMENT')->first();
+                    $vtId = $vt ? $vt->id : 8;
+
+                    $jvNumber = 'JV-AP-' . date('Y') . '-' . str_pad((string)$broker->id, 4, '0', STR_PAD_LEFT) . '-' . str_pad((string)mt_rand(10, 99), 2, '0', STR_PAD_LEFT);
+
+                    $jvNarration = $narration ?: ("Full brokerage payout to " . ($broker ? $broker->name : 'Agent'));
+
+                    $journalVoucher = JournalVoucher::create([
+                        'voucher_no'      => $jvNumber,
+                        'voucher_type_id' => $vtId,
+                        'voucher_date'    => now()->toDateString(),
+                        'reference_id'    => $broker->id,
+                        'narration'       => $jvNarration,
+                        'is_active'       => true,
+                    ]);
+
+                    // 1. Debit Agent Commission Payables (Account 2003)
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => '2003',
+                        'debit_amount'   => $totalPaid,
+                        'credit_amount'  => 0.00,
+                        'line_narration' => 'Agent Commission Payables (' . ($broker ? $broker->name : '') . ' Cleared)',
+                    ]);
+
+                    // 2. Credit Bank Account (Karnataka Bank / Selected Bank Asset)
+                    $bankAccountCoa = ChartOfAccount::where('account_name', 'LIKE', '%' . $bankAccount->bank_name . '%')
+                        ->orWhere('account_code', '1001')
+                        ->value('account_code') ?? '1001';
+
+                    JournalEntry::create([
+                        'voucher_id'     => $journalVoucher->id,
+                        'account_id'     => $bankAccountCoa,
+                        'debit_amount'   => 0.00,
+                        'credit_amount'  => $totalPaid,
+                        'line_narration' => ($bankAccount->bank_name ?? 'Bank Account') . ' (Bank Asset Decreases)',
                     ]);
                 }
             });
