@@ -147,12 +147,12 @@
             {{-- Right Action Buttons --}}
             <div class="flex items-center gap-2.5 shrink-0">
                 <button @click="exportExcel()" 
-                        class="px-4 py-2 bg-white border border-slate-300 hover:border-emerald-600 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-2 cursor-pointer">
-                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold transition-all shadow-sm hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer group active:scale-95">
+                    <svg class="w-4 h-4 text-white transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                     <span>Export to Excel</span>
                 </button>
 
-                <button @click="printReport()" 
+                <!-- <button @click="printReport()" 
                         class="px-4 py-2 bg-white border border-slate-300 hover:border-rose-600 hover:bg-rose-50 text-slate-700 hover:text-rose-700 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                     <span>Download PDF</span>
@@ -162,62 +162,70 @@
                         class="px-4 py-2 bg-white border border-slate-300 hover:border-slate-400 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center gap-2 cursor-pointer">
                     <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
                     <span>Print</span>
-                </button>
+                </button> -->
             </div>
         </div>
 
         {{-- Filter Bar Panel --}}
-        <form method="GET" action="{{ route('reports.balance_sheet') }}" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-2xs">
-            <div class="flex flex-wrap items-center gap-4 justify-between">
+        <form method="GET" action="{{ route('reports.balance_sheet') }}" class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
                 
-                <div class="flex flex-wrap items-center gap-4 flex-1">
-                    {{-- Entity / Scope --}}
-                    <div class="flex items-center gap-2 min-w-[240px]">
-                        <label class="text-xs font-extrabold text-slate-700 shrink-0">Entity / Scope</label>
-                        <select name="project_id" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition-all">
-                            <option value="">Skyline Heights (All Towers)</option>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 flex-1 items-center">
+                    
+                    {{-- 1. Entity / Scope --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        </div>
+                        <select name="project_id" onchange="this.form.submit()" class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                            <option value="">Tabasco Hindustan Infra (All Projects)</option>
                             @foreach($projects as $project)
                                 <option value="{{ $project->id }}" {{ request('project_id') == $project->id ? 'selected' : '' }}>{{ $project->name }}</option>
                             @endforeach
                         </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </div>
 
-                    {{-- As-On Date --}}
-                    <div class="flex items-center gap-2 min-w-[200px]">
-                        <label class="text-xs font-extrabold text-slate-700 shrink-0">As-On Date</label>
-                        <input type="date" name="date_as_on" value="{{ request('date_as_on', $balanceSheetData['as_on_date'] ?? '2026-03-31') }}" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition-all">
+                    {{-- 2. As-On Date --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                        <input type="date" name="date_as_on" 
+                               value="{{ request('date_as_on') ? \Carbon\Carbon::parse(request('date_as_on'))->format('Y-m-d') : '' }}" 
+                               onchange="if(this.value && this.value.length === 10) this.form.submit()" 
+                               class="w-full pl-10 pr-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs">
                     </div>
 
-                    {{-- View Type Radio Options --}}
-                    <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
-                        <label class="text-xs font-extrabold text-slate-700">View Type</label>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer">
-                            <input type="radio" name="view_type" value="vertical" x-model="viewType" class="text-[#a38c29] focus:ring-[#a38c29]">
-                            <span>Standard Vertical</span>
+                    {{-- 3. View Type Radio Options --}}
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 flex items-center justify-around h-[42px]">
+                        <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider shrink-0 mr-1">View:</span>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer select-none">
+                            <input type="radio" name="view_type" value="vertical" x-model="viewType" @change="this.form.submit()" class="text-[#a38c29] focus:ring-[#a38c29] h-3.5 w-3.5 border-slate-300 cursor-pointer">
+                            <span>Vertical</span>
                         </label>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer">
-                            <input type="radio" name="view_type" value="t_format" x-model="viewType" class="text-[#a38c29] focus:ring-[#a38c29]">
-                            <span>T-Format Horizontal</span>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-800 cursor-pointer select-none">
+                            <input type="radio" name="view_type" value="t_format" x-model="viewType" @change="this.form.submit()" class="text-[#a38c29] focus:ring-[#a38c29] h-3.5 w-3.5 border-slate-300 cursor-pointer">
+                            <span>T-Format</span>
                         </label>
                     </div>
 
-                    {{-- Zero-Balance Accounts --}}
-                    <div class="flex items-center gap-2 border-l border-slate-200 pl-4">
-                        <label class="text-xs font-extrabold text-slate-700">Zero-Balance Accounts</label>
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer">
-                            <input type="checkbox" name="hide_zero" value="1" x-model="hideZero" class="rounded text-[#a38c29] focus:ring-[#a38c29]">
-                            <span>Hide Zero-Balance Accounts</span>
+                    {{-- 4. Zero-Balance Accounts --}}
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 flex items-center h-[42px]">
+                        <label class="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer select-none w-full">
+                            <input type="checkbox" name="hide_zero" value="1" x-model="hideZero" @change="this.form.submit()" class="rounded text-[#a38c29] focus:ring-[#a38c29] h-4 w-4 border-slate-300 cursor-pointer">
+                            <span>Hide Zero Balances</span>
                         </label>
                     </div>
                 </div>
 
-                {{-- Filter Action Buttons --}}
-                <div class="flex items-center gap-2">
-                    <button type="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white font-extrabold text-xs rounded-xl shadow-sm transition-all uppercase tracking-wider cursor-pointer">
-                        Apply Filters
-                    </button>
-                    <a href="{{ route('reports.balance_sheet') }}" class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-extrabold text-xs rounded-xl transition-all uppercase tracking-wider">
-                        Reset
+                {{-- Filter Reset Button --}}
+                <div class="shrink-0 flex items-center gap-2">
+                    <a href="{{ route('reports.balance_sheet') }}" class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 whitespace-nowrap">
+                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>RESET FILTERS</span>
                     </a>
                 </div>
 

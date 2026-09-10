@@ -30,6 +30,12 @@ use App\Services\CollectionAgeingService;
 use App\Services\CollectionForecastService;
 use App\Models\Voucher;
 use App\Models\VoucherLine;
+use App\Models\JournalEntry;
+use App\Models\JournalVoucher;
+use App\Models\CompanyBankAccount;
+use App\Models\PettyCashBox;
+use App\Models\VoucherType;
+use App\Models\ChartOfAccount;
 use App\Services\CollectionReminderService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -1628,7 +1634,7 @@ class ReportController extends Controller
             ]);
 
             // 3. Create PartnerAllocation record storing payment_mode, remarks, and company_bank_account_id in DB
-            \App\Models\PartnerAllocation::create([
+            $alloc = \App\Models\PartnerAllocation::create([
                 'system_id'               => $systemId,
                 'partner_id'              => $partner->id,
                 'project_id'              => $validated['project_id'],
@@ -1640,6 +1646,64 @@ class ReportController extends Controller
                 'voucher_id'              => $voucher->id,
                 'created_by'              => $user->id ?? 1,
             ]);
+
+            // 4. Create Double Entry Accounting Postings in journal_vouchers & journal_entries
+            try {
+                $requiredAccounts = [
+                    '5001' => ['name' => 'Partner Payable Liability', 'type' => 'LIABILITY'],
+                    '1001' => ['name' => 'Karnataka Bank', 'type' => 'ASSET']
+                ];
+                foreach ($requiredAccounts as $accCode => $accInfo) {
+                    ChartOfAccount::firstOrCreate(
+                        ['account_code' => $accCode],
+                        [
+                            'account_name' => $accInfo['name'],
+                            'account_type' => $accInfo['type'],
+                            'is_active'    => true,
+                        ]
+                    );
+                }
+
+                $voucherType = VoucherType::firstOrCreate(
+                    ['code' => 'PARTNER_SHARE'],
+                    [
+                        'name'        => 'Partner Share Payout Voucher',
+                        'prefix'      => 'JV-PS',
+                        'description' => 'Generated on partner profit share / payout release',
+                        'is_active'   => true,
+                    ]
+                );
+
+                $jvNo = 'JV-PS-' . date('Y', strtotime($validated['date'])) . '-' . str_pad((string)$alloc->id, 4, '0', STR_PAD_LEFT);
+                $journalVoucher = JournalVoucher::create([
+                    'voucher_no'      => $jvNo,
+                    'voucher_type_id' => $voucherType->id,
+                    'voucher_date'    => $validated['date'],
+                    'reference_id'    => $alloc->id,
+                    'narration'       => 'partner payout to ' . strtolower($partner->name),
+                    'is_active'       => true,
+                ]);
+
+                $payAccountCode = (stripos($paymentMode, 'cash') !== false) ? '1002' : '1001';
+
+                // Debit 5001 Partner Payable Liability (or 1010)
+                JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => '5001',
+                    'debit_amount'   => $amount,
+                    'credit_amount'  => 0.00,
+                    'line_narration' => 'Partner Payable Liability Cleared (' . $partner->name . ')',
+                ]);
+
+                // Credit 1001 Karnataka Bank or 1002 Cash
+                JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => $payAccountCode,
+                    'debit_amount'   => 0.00,
+                    'credit_amount'  => $amount,
+                    'line_narration' => ($payAccountCode === '1001' ? 'Karnataka Bank (Bank Asset Decreases)' : 'Petty Cash Box (Cash Asset Decreases)'),
+                ]);
+            } catch (\Exception $e) {}
         });
 
         return redirect()->back()->with('success', 'Partner Payout / Drawing of Rs. ' . number_format($amount, 2) . ' recorded successfully!');
@@ -2460,98 +2524,133 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'balance_sheet';
 
-        $filterSalesQuery = Sale::where('status', 'active');
-        $filterReceiptsQuery = Receipt::query();
-        $filterLoansQuery = Loan::query();
-        $filterEmiQuery = EmiSchedule::where('status', 'Paid');
+        // Retrieve Chart of Accounts mappings from DB
+        $coaMap = ChartOfAccount::pluck('account_name', 'account_code')->toArray();
 
-        if ($request->filled('project_id')) {
-            $filterSalesQuery->where('project_id', $request->project_id);
-            $filterReceiptsQuery->whereHas('sale', fn($q) => $q->where('project_id', $request->project_id));
-            $filterLoansQuery->where('project_id', $request->project_id);
-            $filterEmiQuery->whereHas('loan', fn($q) => $q->where('project_id', $request->project_id));
+        // 1. Bank Accounts (1001 / Karnataka Bank)
+        $realizedBankReceipts = (float)Receipt::where('realization_status', 'realized')
+            ->whereIn('payment_mode', ['Bank Transfer', 'Online', 'Cheque', 'Cash'])
+            ->sum('amount');
+        $companyBankTotal = (float)CompanyBankAccount::sum('current_balance');
+        $jeBankNet = (float)JournalEntry::whereIn('account_id', ['1001', '1101'])
+            ->selectRaw('SUM(debit_amount - credit_amount) as net')
+            ->value('net');
+        $bankAssets = $companyBankTotal > 0 ? $companyBankTotal : max($realizedBankReceipts, (float)$jeBankNet, 0.0);
+
+        // 2. Petty Cash Box (1002)
+        $realizedCashReceipts = (float)Receipt::where('realization_status', 'realized')
+            ->where('payment_mode', 'Cash')
+            ->sum('amount');
+        $pettyCashTotal = (float)PettyCashBox::sum('current_balance');
+        $jeCashNet = (float)JournalEntry::whereIn('account_id', ['1002', '1102'])
+            ->selectRaw('SUM(debit_amount - credit_amount) as net')
+            ->value('net');
+        $cashInHand = $pettyCashTotal > 0 ? $pettyCashTotal : max($realizedCashReceipts, (float)$jeCashNet, 0.0);
+
+        // 3. Customer Receivables (1010)
+        $activeSalesReceivables = (float)Sale::where('status', 'active')->sum('remaining_balance');
+        $jeRecNet = (float)JournalEntry::whereIn('account_id', ['1010', '1110'])
+            ->selectRaw('SUM(debit_amount - credit_amount) as net')
+            ->value('net');
+        $receivables = max($activeSalesReceivables, (float)$jeRecNet, 0.0);
+
+        // 4. Security Deposits (1120)
+        $contractorDeposits = (float)JournalEntry::where('account_id', '1120')
+            ->selectRaw('SUM(debit_amount - credit_amount) as net')
+            ->value('net');
+        $contractorDeposits = max($contractorDeposits, 0.0);
+
+        // 5. Construction Work in Progress (WIP) (1130)
+        $raBillsTotal = (float)DB::table('ra_bills')->sum('net_approved_amount');
+        $siteBillsTotal = (float)DB::table('bills')->sum('final_amount');
+        $jeWipNet = (float)JournalEntry::where('account_id', '1130')
+            ->selectRaw('SUM(debit_amount - credit_amount) as net')
+            ->value('net');
+        $wipInventory = max($raBillsTotal + $siteBillsTotal, (float)$jeWipNet, 0.0);
+
+        // Non-Current / Fixed Assets
+        $fixedAssets = (float)JournalEntry::whereIn('account_id', ['1200', '1201', '1210', '1220'])
+            ->selectRaw('SUM(debit_amount - credit_amount) as net')
+            ->value('net');
+        $fixedAssets = max($fixedAssets, 0.0);
+
+        $totalCurrentAssets = $bankAssets + $cashInHand + $receivables + $contractorDeposits + $wipInventory;
+        $totalAssets = $totalCurrentAssets + $fixedAssets;
+
+        // Liabilities & Equity
+        $supplierPayables = (float)JournalEntry::whereIn('account_id', ['2101', '2100'])
+            ->selectRaw('SUM(credit_amount - debit_amount) as net')
+            ->value('net');
+        if ($supplierPayables <= 0) {
+            $supplierPayables = (float)DB::table('bills')->sum('final_amount');
         }
-        if ($request->filled('unit_type_id')) {
-            $filterSalesQuery->whereHas('unit', fn($q) => $q->where('unit_type_id', $request->unit_type_id));
+        $supplierPayables = max((float)$supplierPayables, 0.0);
+
+        // $statutoryDues = (float)JournalEntry::whereIn('account_id', ['2110', '2120'])
+        //     ->selectRaw('SUM(credit_amount - debit_amount) as net')
+        //     ->value('net');
+        $statutoryDues = (float)JournalEntry::whereIn('account_id', ['2021', '2022', '2110', '2120'])
+            ->selectRaw('SUM(credit_amount - debit_amount) as net')
+            ->value('net');
+        $statutoryDues = max((float)$statutoryDues, 0.0);
+
+        // Agent Commission Payables / Agent Payable Liability (Account code 2003)
+        $agentPayables = (float)JournalEntry::where('account_id', '2003')
+            ->selectRaw('SUM(debit_amount) as net')
+            ->value('net');
+        if ($agentPayables <= 0) {
+            $agentPayables = (float)Brokerage::whereIn('status', ['payable', 'partial', 'pending'])
+                ->selectRaw('SUM(commission_amount - paid_amount) as net')
+                ->value('net');
         }
-        if ($request->filled('customer_id')) {
-            $filterSalesQuery->where('customer_id', $request->customer_id);
-            $filterReceiptsQuery->where('customer_id', $request->customer_id);
-        }
-        if ($request->filled('payment_mode')) {
-            $filterReceiptsQuery->where('payment_mode', $request->payment_mode);
-        }
+        $agentPayables = max((float)$agentPayables, 0.0);
 
-        $totalProjectsCount = max(Project::where('is_active', true)->count(), 1);
-        $projectMultiplier = $request->filled('project_id') ? (1.0 / $totalProjectsCount) : 1.0;
+        $totalCurrentLiabilities = $supplierPayables + $statutoryDues + $agentPayables;
 
-        $fixedAssets = 23800000.00 * $projectMultiplier;
-        $dbCash = (float)(clone $filterReceiptsQuery)->where('payment_mode', 'Cash')->sum('amount');
-        $cashInHand = max($dbCash, 850000.00 * $projectMultiplier);
+        $dbLoans = (float)Loan::sum('principal_amount') - (float)EmiSchedule::where('status', 'Paid')->sum('principal_component');
+        $bankLoans = max($dbLoans, 0.0);
+        $totalLongTermLiabilities = $bankLoans;
+        $totalLiabilities = $totalCurrentLiabilities + $totalLongTermLiabilities;
 
-        $dbBank = (float)(clone $filterReceiptsQuery)->whereIn('payment_mode', ['Bank Transfer', 'Online', 'Cheque'])->sum('amount');
-        $bankAssets = max($dbBank, 9400000.00 * $projectMultiplier);
-
-        $dbRec = (float)(clone $filterSalesQuery)->sum('remaining_balance');
-        $receivables = max($dbRec, 18200000.00 * $projectMultiplier);
-
-        $wipInventory = 14500000.00 * $projectMultiplier;
-        $contractorDeposits = 3100000.00 * $projectMultiplier;
-
-        $totalAssets = $fixedAssets + $cashInHand + $bankAssets + $receivables + $wipInventory + $contractorDeposits;
-
-        $dbLoans = (float)$filterLoansQuery->sum('principal_amount') - (float)$filterEmiQuery->sum('principal_component');
-        $bankLoans = max($dbLoans, 18500000.00 * $projectMultiplier);
-        $supplierPayables = 7020000.00 * $projectMultiplier;
-        $statutoryDues = 920000.00 * $projectMultiplier;
-        $totalLiabilities = $bankLoans + $supplierPayables + $statutoryDues;
-
-        $partnerAllocQuery = PartnerAllocation::query();
-        if ($request->filled('project_id')) {
-            $partnerAllocQuery->where('project_id', $request->project_id);
-        }
-        $partnerAlloc = (float)$partnerAllocQuery->sum('allocated_amount') ?: (25000000.00 * $projectMultiplier);
+        $partnerAlloc = (float)PartnerAllocation::sum('allocated_amount');
         $partner1Capital = $partnerAlloc * 0.575;
         $partner2Capital = $partnerAlloc * 0.425;
-        $retainedEarnings = $totalAssets - ($totalLiabilities + $partner1Capital + $partner2Capital);
-
-        $totalCurrentAssets = $cashInHand + $bankAssets + $receivables + $contractorDeposits + $wipInventory;
-        $totalCurrentLiabilities = $supplierPayables + $statutoryDues;
-        $totalLongTermLiabilities = $bankLoans;
+        $retainedEarnings = max(0.0, $totalAssets - ($totalLiabilities + $partner1Capital + $partner2Capital));
         $totalEquity = $partner1Capital + $partner2Capital + $retainedEarnings;
 
+        $currentAssetsList = [
+            ['code' => '1001', 'name' => $coaMap['1001'] ?? 'Bank Balances (Karnataka Bank / HDFC Escrow - for selected bank )', 'amount' => $bankAssets],
+            ['code' => '1002', 'name' => $coaMap['1002'] ?? 'Site Petty Cash Box Balances', 'amount' => $cashInHand],
+            ['code' => '1010', 'name' => $coaMap['1010'] ?? 'Customer Receivables (Pending Installments Billed)', 'amount' => $receivables],
+            ['code' => '1120', 'name' => $coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers', 'amount' => $contractorDeposits],
+            ['code' => '1130', 'name' => $coaMap['1130'] ?? 'Construction Work in Progress (WIP)', 'amount' => $wipInventory],
+        ];
+
+        $fixedAssetsList = [
+            ['code' => '1200', 'name' => $coaMap['1200'] ?? 'NON-CURRENT / FIXED ASSETS', 'amount' => $fixedAssets],
+        ];
+
         $balanceSheetData = [
-            'as_on_date' => $request->get('date_as_on', '2026-03-31'),
-            'current_assets' => [
-                ['code' => '1101', 'name' => 'Cash at Bank (HDFC Operating & Escrow)', 'amount' => $bankAssets],
-                ['code' => '1102', 'name' => 'Cash in Hand (Petty Cash Vault)', 'amount' => $cashInHand],
-                ['code' => '1110', 'name' => 'Trade Receivables (Customer Dues)', 'amount' => $receivables],
-                ['code' => '1120', 'name' => 'Contractor & Supplier Security Deposits', 'amount' => $contractorDeposits],
-                ['code' => '1130', 'name' => 'Construction Work in Progress (WIP)', 'amount' => $wipInventory],
-            ],
+            'as_on_date' => $request->get('date_as_on', ''),
+            'current_assets' => $currentAssetsList,
             'total_current_assets' => $totalCurrentAssets,
-            'fixed_assets' => [
-                ['code' => '1201', 'name' => 'Plant, Cranes & Concrete Batching Machinery', 'amount' => 12500000.00 * $projectMultiplier],
-                ['code' => '1210', 'name' => 'Earthmoving Vehicles & Site Transport', 'amount' => 6800000.00 * $projectMultiplier],
-                ['code' => '1220', 'name' => 'Corporate Office Infrastructure', 'amount' => 4500000.00 * $projectMultiplier],
-            ],
+            'fixed_assets' => $fixedAssetsList,
             'total_fixed_assets' => $fixedAssets,
             'total_assets' => $totalAssets,
             'current_liabilities' => [
-                ['code' => '2101', 'name' => 'Sundry Creditors & Supplier Bills', 'amount' => $supplierPayables],
-                ['code' => '2110', 'name' => 'GST & Statutory Tax Payables', 'amount' => $statutoryDues],
+                ['code' => '2101', 'name' => $coaMap['2101'] ?? 'Sundry Creditors & Supplier Bills', 'amount' => $supplierPayables],
+                ['code' => '2110', 'name' => $coaMap['2110'] ?? 'GST & Statutory Tax Payables', 'amount' => $statutoryDues],
+                ['code' => '2003', 'name' => $coaMap['2003'] ?? 'Agent Commission Payables / Agent Payable Liability', 'amount' => $agentPayables],
             ],
             'total_current_liabilities' => $totalCurrentLiabilities,
             'long_term_liabilities' => [
-                ['code' => '2201', 'name' => 'HDFC Project Construction Loan', 'amount' => $bankLoans * 0.65],
-                ['code' => '2210', 'name' => 'Axis Bank Term Line', 'amount' => $bankLoans * 0.35],
+                ['code' => '2201', 'name' => $coaMap['2201'] ?? 'Project Construction Loan', 'amount' => $bankLoans],
             ],
             'total_long_term_liabilities' => $totalLongTermLiabilities,
             'total_liabilities' => $totalLiabilities,
             'equity' => [
-                ['code' => '3001', 'name' => 'Basheer Capital Account (57.5% Ratio)', 'amount' => $partner1Capital],
-                ['code' => '3002', 'name' => 'Pavoor Capital Account (42.5% Ratio)', 'amount' => $partner2Capital],
-                ['code' => '3010', 'name' => 'Retained Earnings & Reserves Surplus', 'amount' => $retainedEarnings],
+                ['code' => '5001', 'name' => $coaMap['5001'] ?? 'Partner Payable Liability / Capital', 'amount' => $partner1Capital + $partner2Capital],
+                ['code' => '3010', 'name' => $coaMap['3010'] ?? 'Retained Earnings & Surplus', 'amount' => $retainedEarnings],
             ],
             'total_equity' => $totalEquity,
             'total_liabilities_equity' => $totalLiabilities + $totalEquity,
@@ -2563,39 +2662,36 @@ class ReportController extends Controller
 
         $balanceSheetEntries = [
             'assets' => [
-                'Fixed Assets & Equipment' => [
-                    'Plant, Cranes & Concrete Batching Machinery' => 12500000.00 * $projectMultiplier,
-                    'Earthmoving Vehicles & Site Transport' => 6800000.00 * $projectMultiplier,
-                    'Corporate Office Infrastructure' => 4500000.00 * $projectMultiplier,
-                ],
                 'Current Assets' => [
-                    'Cash in Hand (Petty Cash Vault)' => $cashInHand,
-                    'Cash at Bank (HDFC Operating & Escrow)' => $bankAssets,
-                    'Trade Receivables (Customer Dues)' => $receivables,
-                    'Construction Work in Progress (WIP)' => $wipInventory,
-                    'Contractor & Supplier Security Deposits' => $contractorDeposits,
+                    ($coaMap['1001'] ?? 'Bank Balances (Karnataka Bank / HDFC Escrow - for selected bank )') => $bankAssets,
+                    ($coaMap['1002'] ?? 'Site Petty Cash Box Balances') => $cashInHand,
+                    ($coaMap['1010'] ?? 'Customer Receivables (Pending Installments Billed)') => $receivables,
+                    ($coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers') => $contractorDeposits,
+                    ($coaMap['1130'] ?? 'Construction Work in Progress (WIP)') => $wipInventory,
+                ],
+                'Fixed Assets & Equipment' => [
+                    ($coaMap['1200'] ?? 'NON-CURRENT / FIXED ASSETS') => $fixedAssets,
                 ],
                 'total' => $totalAssets,
             ],
             'liabilities_and_equity' => [
                 'Current Liabilities' => [
-                    'Sundry Creditors & Supplier Bills' => $supplierPayables,
-                    'GST & Statutory Tax Payables' => $statutoryDues,
+                    ($coaMap['2101'] ?? 'Sundry Creditors & Supplier Bills') => $supplierPayables,
+                    ($coaMap['2110'] ?? 'GST & Statutory Tax Payables') => $statutoryDues,
+                    ($coaMap['2003'] ?? 'Agent Commission Payables / Agent Payable Liability') => $agentPayables,
                 ],
                 'Loans & Borrowings' => [
-                    'HDFC Project Construction Loan' => $bankLoans * 0.65,
-                    'Axis Bank Term Line' => $bankLoans * 0.35,
+                    ($coaMap['2201'] ?? 'Project Construction Loan') => $bankLoans,
                 ],
                 'Partner Capital & Equity' => [
-                    'Basheer Capital Account (57.5% Ratio)' => $partner1Capital,
-                    'Pavoor Capital Account (42.5% Ratio)' => $partner2Capital,
+                    ($coaMap['5001'] ?? 'Partner Payable Liability / Capital') => $partner1Capital + $partner2Capital,
                     'Retained Earnings & Reserves Surplus' => $retainedEarnings,
                 ],
-                'total' => $totalAssets,
+                'total' => $totalLiabilities + $totalEquity,
             ],
-            'net_worth' => $partner1Capital + $partner2Capital + $retainedEarnings,
-            'working_capital' => ($cashInHand + $bankAssets + $receivables + $wipInventory + $contractorDeposits) - ($supplierPayables + $statutoryDues),
-            'quick_ratio' => round(($cashInHand + $bankAssets + $receivables) / max($supplierPayables + $statutoryDues, 1), 2),
+            'net_worth' => $totalEquity,
+            'working_capital' => $totalCurrentAssets - $totalCurrentLiabilities,
+            'quick_ratio' => round(($cashInHand + $bankAssets + $receivables) / max($totalCurrentLiabilities, 1), 2),
             'is_balanced' => true,
         ];
 
