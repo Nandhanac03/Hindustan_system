@@ -81,7 +81,7 @@ class ChartOfAccountController extends Controller
             'is_active'    => 'nullable|boolean',
         ]);
 
-        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : false;
+        $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : $chartOfAccount->is_active;
 
         $chartOfAccount->update($validated);
 

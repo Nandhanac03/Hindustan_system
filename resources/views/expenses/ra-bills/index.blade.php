@@ -664,13 +664,19 @@
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="addModalOpen = false">
-            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">CONTRACTOR RA BILLS</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">LOG NEW CONTRACTOR RA PROGRESS BILL</h3>
+        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="addModalOpen = false">
+            {{-- Dark Header (Matched with Add Unit Modal) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills</p>
+                        <h2 class="text-lg font-extrabold text-white">Log New Contractor RA Progress Bill</h2>
+                    </div>
+                    <button type="button" @click="addModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="addModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('expenses.ra-bills.store') }}" method="POST" class="p-6 space-y-4">
@@ -779,13 +785,19 @@
 
     <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
     <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="verifyModalOpen = false">
-            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">ENGINEER VERIFICATION</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">SITE ENGINEER VERIFICATION & CORRECTION SIGN-OFF</h3>
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="verifyModalOpen = false">
+            {{-- Dark Header (Matched with Add Unit Modal) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Engineer Verification</p>
+                        <h2 class="text-lg font-extrabold text-white">Site Engineer Verification & Correction Sign-Off</h2>
+                    </div>
+                    <button type="button" @click="verifyModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="verifyModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
             <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="p-6 space-y-4">
@@ -888,16 +900,22 @@
 
     <!-- ── MODAL 3: STAGGERED DISBURSEMENT RELEASE ── -->
     <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="disburseModalOpen = false">
-            <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 text-[9px] font-black uppercase tracking-wider rounded border border-emerald-500/40 mb-1">PAYMENT DISBURSEMENT</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">DISBURSE STAGGERED CONTRACTOR PAYMENT</h3>
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="disburseModalOpen = false">
+            {{-- Dark Header (Matched with Add Unit Modal) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Payment Disbursement</p>
+                        <h2 class="text-lg font-extrabold text-white">Disburse Staggered Contractor Payment</h2>
+                    </div>
+                    <button type="button" @click="disburseModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="disburseModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" class="p-6 space-y-4">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="p-6 space-y-4">
                 @csrf
 
                 <!-- Summary Card -->
@@ -925,7 +943,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-emerald-900 uppercase tracking-wider mb-1.5">PAID AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="paid_amount" :max="selectedBill ? selectedBill.balance_amount : 0" required
+                        <input type="number" step="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedBill ? selectedBill.balance_amount : 0" required
                                class="w-full px-3.5 py-2.5 bg-emerald-50/70 border border-emerald-300 rounded-xl text-sm font-mono font-black text-emerald-950 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                                oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
                         <p class="mt-1 text-[10px] font-bold text-slate-500" x-text="selectedBill ? 'Max Payable Balance: ₹' + numberFormat(selectedBill.balance_amount) : ''"></p>
@@ -935,24 +953,77 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="company_bank_account_id" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+                        <select name="company_bank_account_id" x-model="selectedBankId" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
                             @foreach($companyBankAccounts as $bank)
                                 <option value="{{ $bank->id }}">
-                                    {{ $bank->bank_name }} — A/C: {{ $bank->account_number }} (Bal: ₹{{ number_format((float)$bank->current_balance, 2) }})
+                                    {{ $bank->bank_name }} — A/C: {{ $bank->account_number }}
                                 </option>
                             @endforeach
                         </select>
+                        <div class="mt-1 flex items-center justify-between text-[10px]">
+                            <span class="text-slate-500 font-bold">Bank Balance:</span>
+                            <span class="font-mono font-black text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md" x-text="'₹' + numberFormat(getBankBalance())"></span>
+                        </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PAYMENT MODE <span class="text-rose-500 font-bold">*</span></label>
                         <select name="payment_mode" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
-                            <option value="NEFT">NEFT Transfer</option>
-                            <option value="RTGS">RTGS Transfer</option>
-                            <option value="Cheque">Cheque</option>
-                            <option value="UPI">UPI / Net Banking</option>
-                            <option value="Cash">Cash</option>
+                            @foreach(($paymentModes ?? []) as $pm)
+                                @php
+                                    $pmCode = is_object($pm) ? ($pm->code ?? $pm->name) : $pm;
+                                    $pmName = is_object($pm) ? ($pm->name ?? $pm->code) : $pm;
+                                @endphp
+                                <option value="{{ $pmCode }}">{{ $pmName }}</option>
+                            @endforeach
                         </select>
+                    </div>
+                </div>
+
+                <!-- ── BELOW STRIP: LIVE BANK BALANCE & CONTRACTOR DUES INTELLIGENCE STRIP ── -->
+                <div class="p-3 bg-gradient-to-r from-slate-50 via-amber-50/25 to-emerald-50/30 border border-slate-200 rounded-xl shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-200/70 pb-1.5">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full" :class="isBankSufficient() ? 'bg-emerald-500' : 'bg-rose-500 animate-ping'"></span>
+                            <span class="text-[9.5px] font-black uppercase tracking-wider text-slate-700">Bank Balance & Contractor Dues Analysis</span>
+                        </div>
+                        <div>
+                            <span x-show="isBankSufficient()" class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1">
+                                <span>✓ Sufficient Bank Balance</span>
+                            </span>
+                            <span x-show="!isBankSufficient()" class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1">
+                                <span>⚠️ Insufficient Funds (Shortfall: ₹<span x-text="numberFormat(getShortfall())"></span>)</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-[10px]">
+                        <!-- 1. Bank Account Balance & Post-Payment Balance Check -->
+                        <div class="p-2 bg-white rounded-lg border border-slate-200 shadow-2xs">
+                            <span class="block text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">Current Bank Balance</span>
+                            <div class="font-mono font-black text-slate-900 text-xs mt-0.5" x-text="'₹' + numberFormat(getBankBalance())"></div>
+                            <div class="text-[9px] font-semibold text-slate-500 mt-1">
+                                Post-Payment: <strong :class="getPostBankBalance() >= 0 ? 'text-emerald-700 font-mono font-bold' : 'text-rose-600 font-mono font-black'" x-text="'₹' + numberFormat(getPostBankBalance())"></strong>
+                            </div>
+                        </div>
+
+                        <!-- 2. This RA Bill Remaining Balance (Kodukaanullath) -->
+                        <div class="p-2 bg-white rounded-lg border border-slate-200 shadow-2xs">
+                            <span class="block text-[8.5px] font-bold text-slate-400 uppercase tracking-wider">This Bill Due Remaining</span>
+                            <div class="font-mono font-black text-rose-700 text-xs mt-0.5" x-text="'₹' + numberFormat(getBillRemaining())"></div>
+                            <div class="text-[9px] font-semibold text-slate-500 mt-1">
+                                Current Due: <span class="font-mono font-bold text-slate-700" x-text="'₹' + numberFormat(selectedBill ? selectedBill.balance_amount : 0)"></span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Total Contractor Pending Balance (Total Cash Due to this Contractor across all bills) -->
+                        <div class="p-2 bg-white rounded-lg border border-slate-200 shadow-2xs">
+                            <span class="block text-[8.5px] font-bold text-[#a38c29] uppercase tracking-wider">Contractor Total Dues</span>
+                            <div class="font-mono font-black text-[#8a7522] text-xs mt-0.5" x-text="'₹' + numberFormat(getContractorTotalDues())"></div>
+                            <div class="text-[8.5px] text-slate-500 truncate mt-1">
+                                Payee: <span class="font-bold text-slate-700" x-text="selectedBill ? (selectedBill.contractor_name || 'Contractor') : 'Contractor'"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -964,7 +1035,7 @@
 
                 <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
                     <button type="button" @click="disburseModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
+                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 border border-[#a38c29]/40 cursor-pointer">
                         RELEASE PAYMENT & PRINT VOUCHER
                     </button>
                 </div>
@@ -974,13 +1045,19 @@
 
     <!-- ── MODAL 4: REGISTER NEW CONTRACTOR MASTER ── -->
     <div x-show="addContractorModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="addContractorModalOpen = false">
-            <div class="bg-slate-900 p-5 text-white flex items-center justify-between border-b border-slate-800">
-                <div>
-                    <span class="inline-block px-2.5 py-0.5 bg-blue-500/20 text-blue-300 text-[9px] font-black uppercase tracking-wider rounded border border-blue-500/40 mb-1">CONTRACTOR MASTER</span>
-                    <h3 class="font-black text-base uppercase tracking-wider text-white">REGISTER NEW CONTRACTOR MASTER</h3>
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden transform transition-all" @click.away="addContractorModalOpen = false">
+            {{-- Dark Header (Matched with Add Unit Modal) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
+                    <div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor Master</p>
+                        <h2 class="text-lg font-extrabold text-white">Register New Contractor Master</h2>
+                    </div>
+                    <button type="button" @click="addContractorModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="addContractorModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
             </div>
 
             <form action="{{ route('expenses.ra-bills.contractor.store') }}" method="POST" class="p-6 space-y-4 text-xs font-semibold">
@@ -1063,6 +1140,9 @@ function raBillManagement() {
         verifyRemarksInput: '',
         contractorLedgerSummaries: @json($contractorLedgerSummaries ?? []),
         allLedgerEntries: @json($allLedgerEntries ?? []),
+        companyBankAccounts: @json($companyBankAccounts ?? []),
+        selectedBankId: '{{ $companyBankAccounts->first()?->id ?? "" }}',
+        disbursePaidAmount: '',
 
         init() {
             if (!this.selectedContractorId && this.allContractors && this.allContractors.length === 1) {
@@ -1147,7 +1227,58 @@ function raBillManagement() {
 
         openDisburseModal(bill) {
             this.selectedBill = bill;
+            this.disbursePaidAmount = bill.balance_amount || '';
+            if (!this.selectedBankId && this.companyBankAccounts.length > 0) {
+                this.selectedBankId = this.companyBankAccounts[0].id;
+            }
             this.disburseModalOpen = true;
+
+            this.$nextTick(() => {
+                const inputEl = document.querySelector('input[name="paid_amount"]');
+                if (inputEl && window.updateAmountInWordsForInput) {
+                    window.updateAmountInWordsForInput(inputEl);
+                }
+            });
+        },
+
+        getBankBalance() {
+            if (!this.selectedBankId) return 0;
+            const b = this.companyBankAccounts.find(x => x.id == this.selectedBankId);
+            return b ? parseFloat(b.current_balance) || 0 : 0;
+        },
+
+        getPostBankBalance() {
+            const current = this.getBankBalance();
+            const paid = parseFloat(this.disbursePaidAmount) || 0;
+            return current - paid;
+        },
+
+        isBankSufficient() {
+            return this.getPostBankBalance() >= 0;
+        },
+
+        getShortfall() {
+            const paid = parseFloat(this.disbursePaidAmount) || 0;
+            const current = this.getBankBalance();
+            return Math.max(0, paid - current);
+        },
+
+        getBillRemaining() {
+            const billBal = parseFloat(this.selectedBill?.balance_amount) || 0;
+            const paid = parseFloat(this.disbursePaidAmount) || 0;
+            return Math.max(0, billBal - paid);
+        },
+
+        getContractorTotalDues() {
+            if (!this.selectedBill) return 0;
+            const cId = this.selectedBill.contractor_id;
+            if (cId) {
+                const summary = this.contractorLedgerSummaries.find(x => x.id == cId);
+                if (summary) {
+                    return parseFloat(summary.total_balance) || 0;
+                }
+            }
+            return parseFloat(this.selectedBill.balance_amount) || 0;
         },
 
         recalcNet() {

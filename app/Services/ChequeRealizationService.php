@@ -10,6 +10,7 @@ use App\Models\ReceiptRealizationLog;
 use App\Models\Voucher;
 use App\Models\VoucherLine;
 use App\Models\Account;
+use App\Models\Payee;
 use App\Models\JournalVoucher;
 use App\Models\JournalEntry;
 use App\Models\ChartOfAccount;
@@ -335,25 +336,36 @@ class ChequeRealizationService
             $systemId  = $data['system_id'] ?? 1;
             $createdBy = $data['created_by'];
 
-            // Generate sequential voucher number
+            // Generate sequential voucher number safely
             $lastVoucher = Voucher::where('system_id', $systemId)
                 ->where('type', 'Payment')
+                ->where('voucher_number', 'LIKE', 'PV-%')
                 ->lockForUpdate()
                 ->orderByDesc('id')
+                
                 ->first();
 
-            $voucherNumber = 'PV-' . str_pad(
-                (string) (($lastVoucher ? (int) substr($lastVoucher->voucher_number, 3) : 0) + 1),
-                5,
-                '0',
-                STR_PAD_LEFT
-            );
+            $nextSeq = 1;
+            if ($lastVoucher && preg_match('/^PV-(\d+)$/', $lastVoucher->voucher_number, $matches)) {
+                $nextSeq = ((int) $matches[1]) + 1;
+            }
+
+            // Ensure no duplicate collision
+            do {
+                $voucherNumber = 'PV-' . str_pad((string) $nextSeq, 5, '0', STR_PAD_LEFT);
+                $exists = Voucher::where('system_id', $systemId)
+                    ->where('voucher_number', $voucherNumber)
+                    ->exists();
+                if ($exists) {
+                    $nextSeq++;
+                }
+            } while ($exists);
 
             $narration = $data['narration'] ?? match($data['purpose'] ?? 'other') {
-                'supplier_payment' => 'Supplier Payment via ' . $bankAccount->bank_name,
-                'customer_refund'  => 'Customer Refund via ' . $bankAccount->bank_name,
-                'site_expense'     => 'Site Expense via ' . $bankAccount->bank_name,
-                default            => 'Treasury Disbursement via ' . $bankAccount->bank_name,
+                'contractor_payment', 'supplier_payment' => 'Contractor Payment via ' . $bankAccount->bank_name,
+                'customer_refund'                        => 'Customer Refund via ' . $bankAccount->bank_name,
+                'site_expense'                           => 'Site Expense via ' . $bankAccount->bank_name,
+                default                                  => 'Treasury Disbursement via ' . $bankAccount->bank_name,
             };
 
             // Step 5.6: Create the Payment Voucher
@@ -368,8 +380,8 @@ class ChequeRealizationService
                 'status'         => 'Posted',
             ]);
 
-            // Resolve debit account (Expense / Payable based on purpose)
-            $debitAccount  = $this->resolveDebitAccount($systemId, $data['purpose'] ?? 'other');
+            // Resolve debit account (Expense / Payable based on purpose and payee linked account)
+            $debitAccount  = $this->resolveDebitAccount($systemId, $data['purpose'] ?? 'other', $data['payee_id'] ?? null);
             // Credit account = Company Bank Account (Asset)
             $creditAccount = $this->resolveBankAssetAccount($systemId, $bankAccount);
 
@@ -405,15 +417,26 @@ class ChequeRealizationService
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
-     * Find the appropriate debit (expense/payable) account based on payment purpose.
+     * Find the appropriate debit (expense/payable) account based on payment purpose and payee.
      */
-    private function resolveDebitAccount(int $systemId, string $purpose): ?Account
+    private function resolveDebitAccount(int $systemId, string $purpose, ?int $payeeId = null): ?Account
     {
+        // 1. If payee is specified, prioritize the payee's linked account
+        if ($payeeId) {
+            $payee = Payee::find($payeeId);
+            if ($payee && $payee->linked_account_id) {
+                $linkedAcc = Account::where('system_id', $systemId)->find($payee->linked_account_id);
+                if ($linkedAcc) {
+                    return $linkedAcc;
+                }
+            }
+        }
+
         $searchTerms = match ($purpose) {
-            'supplier_payment' => ['Payable', 'Supplier', 'Vendor', 'Accounts Payable'],
-            'customer_refund'  => ['Customer', 'Refund', 'Receivable'],
-            'site_expense'     => ['Site', 'Expense', 'Construction'],
-            default            => ['Expense'],
+            'contractor_payment', 'supplier_payment' => ['Contractor', 'Payable'],
+            'customer_refund'                        => ['Customer', 'Refund', 'Receivable'],
+            'site_expense'                           => ['Site', 'Expense', 'Construction'],
+            default                                  => ['Expense'],
         };
 
         return Account::where('system_id', $systemId)
@@ -422,6 +445,7 @@ class ChequeRealizationService
                     $q->orWhere('name', 'LIKE', "%{$term}%");
                 }
             })
+            ->where('name', 'NOT LIKE', '%Broker%') // Never use broker commission accounts for contractor payments
             ->first();
     }
 

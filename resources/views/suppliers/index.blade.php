@@ -512,20 +512,47 @@
         <!-- 4. DELETE CONTRACTOR CONFIRMATION MODAL -->
         <!-- ========================================== -->
         <div x-show="openDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openDeleteModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md flex flex-col p-6 text-center">
-                <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center mb-4 border border-rose-200">
-                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div @click.away="openDeleteModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md flex flex-col">
+                {{-- Dark Header --}}
+                <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                                TABASCO HINDUSTAN · CONTRACTOR MASTER
+                            </p>
+                            <h2 class="text-base font-extrabold text-white uppercase tracking-wider">Delete Contractor</h2>
+                        </div>
+                        <button type="button" @click="openDeleteModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
-                <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-1">Delete Contractor?</h3>
-                <p class="text-xs text-slate-500 font-semibold mb-6">
-                    Are you sure you want to delete <span class="font-extrabold text-slate-900 uppercase" x-text="contractorToDelete.name"></span>? This will deactivate the contractor payee profile.
-                </p>
-                <div class="flex items-center justify-center gap-3">
+
+                {{-- Modal Body --}}
+                <div class="p-6 text-center bg-white">
+                    <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center mb-4 border border-rose-200">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-1">Delete Contractor?</h3>
+                    <p class="text-xs text-slate-500 font-semibold mb-2">
+                        Are you sure you want to delete <span class="font-extrabold text-slate-900 uppercase" x-text="contractorToDelete.name"></span>?
+                    </p>
+                    <p class="text-xs text-slate-400">
+                        This action will deactivate the contractor payee profile.
+                    </p>
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
                     <button type="button" @click="openDeleteModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
                     <form :action="'{{ url('/contractors') }}/' + contractorToDelete.id" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer">YES, DELETE</button>
+                        <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer flex items-center gap-2">
+                            <span>YES, DELETE</span>
+                        </button>
                     </form>
                 </div>
             </div>

@@ -304,10 +304,6 @@
                         <option value="EXPENSE">EXPENSE</option>
                     </select>
                 </div>
-                <div class="flex items-center gap-2 pt-1">
-                    <input type="checkbox" name="is_active" id="add_is_active" value="1" checked class="w-4 h-4 rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
-                    <label for="add_is_active" class="text-xs font-bold text-slate-700">Active Account Status</label>
-                </div>
                 <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
                     <button type="button" @click="openAddModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
                     <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">SAVE ACCOUNT</button>
@@ -345,10 +341,6 @@
                         <option value="REVENUE">REVENUE</option>
                         <option value="EXPENSE">EXPENSE</option>
                     </select>
-                </div>
-                <div class="flex items-center gap-2 pt-1">
-                    <input type="checkbox" name="is_active" id="edit_is_active" value="1" :checked="editAccount.is_active" class="w-4 h-4 rounded border-slate-300 text-[#a38c29] focus:ring-[#a38c29]">
-                    <label for="edit_is_active" class="text-xs font-bold text-slate-700">Active Account Status</label>
                 </div>
                 <div class="flex justify-end gap-3 pt-3 border-t border-slate-100">
                     <button type="button" @click="openEditModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>

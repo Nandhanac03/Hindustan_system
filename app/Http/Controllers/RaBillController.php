@@ -19,8 +19,12 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
+use App\Models\ChartOfAccount;
 use App\Models\Engineer;
+use App\Models\JournalEntry;
+use App\Models\JournalVoucher;
 use App\Models\PaymentMode;
+use App\Models\VoucherType;
 
 class RaBillController extends Controller
 {
@@ -160,6 +164,76 @@ class RaBillController extends Controller
             ];
         });
 
+        // Look up or initialize Journal Vouchers for these RA Bills
+        $raVoucherType = VoucherType::firstOrCreate(
+            ['code' => 'CONTRACTOR_RA_BILL'],
+            [
+                'name'        => 'Contractor RA Bill Voucher',
+                'prefix'      => 'JV-RA',
+                'description' => 'Generated on site engineer verified RA bill',
+                'is_active'   => true,
+            ]
+        );
+
+        $journalVouchersByRaId = JournalVoucher::where('voucher_type_id', $raVoucherType->id)
+            ->whereIn('reference_id', $raBills->pluck('id'))
+            ->get()
+            ->keyBy('reference_id');
+
+        // Auto-sync any existing verified bills that don't have a journal voucher yet
+        $hasNewSync = false;
+        foreach ($raBills as $bill) {
+            if (!empty($bill->verified_date) && (float) $bill->net_approved_amount > 0 && !$journalVouchersByRaId->has($bill->id)) {
+                $this->recordRaBillJournalVoucher($bill);
+                $hasNewSync = true;
+            }
+        }
+
+        if ($hasNewSync) {
+            $journalVouchersByRaId = JournalVoucher::where('voucher_type_id', $raVoucherType->id)
+                ->whereIn('reference_id', $raBills->pluck('id'))
+                ->get()
+                ->keyBy('reference_id');
+        }
+
+        // Look up or initialize Contractor Payment Journal Vouchers
+        $cpVoucherType = VoucherType::updateOrCreate(
+            ['id' => 5],
+            [
+                'code'        => 'CONTRACTOR_PAYMENT',
+                'name'        => 'Contractor Payment Release',
+                'prefix'      => 'JV-CP',
+                'description' => 'Generated on contractor payment disbursement',
+                'is_active'   => true,
+            ]
+        );
+
+        $paymentJvsByPayId = JournalVoucher::where('voucher_type_id', $cpVoucherType->id)
+            ->whereIn('reference_id', $raBills->flatMap->payments->pluck('id'))
+            ->get()
+            ->keyBy('reference_id');
+
+        // Auto-sync any existing disbursements that don't have a journal voucher yet
+        $hasNewPaySync = false;
+        foreach ($raBills as $bill) {
+            foreach ($bill->payments as $pay) {
+                if ((float) $pay->paid_amount > 0 && !$paymentJvsByPayId->has($pay->id)) {
+                    $this->recordContractorPaymentJournalVoucher($bill, $pay, [
+                        'company_bank_account_id' => $pay->company_bank_account_id,
+                        'reference_no'            => $pay->reference_no,
+                    ]);
+                    $hasNewPaySync = true;
+                }
+            }
+        }
+
+        if ($hasNewPaySync) {
+            $paymentJvsByPayId = JournalVoucher::where('voucher_type_id', $cpVoucherType->id)
+                ->whereIn('reference_id', $raBills->flatMap->payments->pluck('id'))
+                ->get()
+                ->keyBy('reference_id');
+        }
+
         // Detailed Ledger Statement Entries (Claims & Payment Releases)
         $allLedgerEntries = collect();
         foreach ($raBills as $bill) {
@@ -168,6 +242,7 @@ class RaBillController extends Controller
             $uName = $bill->unit_name ?: ($bill->unit?->door_no ?? '');
 
             // 1. Verified RA Bill Claim (Accrued Credit)
+            $jv = $journalVouchersByRaId->get($bill->id);
             $allLedgerEntries->push([
                 'type'              => 'CLAIM',
                 'date'              => $bill->verified_date ? $bill->verified_date->format('Y-m-d') : ($bill->submit_date ? $bill->submit_date->format('Y-m-d') : null),
@@ -184,13 +259,14 @@ class RaBillController extends Controller
                 'net_approved'      => (float) $bill->net_approved_amount,
                 'paid_amount'       => 0.00,
                 'status'            => $bill->verified_date ? 'Verified' : 'Submitted',
-                'voucher_id'        => null,
-                'ref_no'            => "RA-{$bill->ra_bill_number}",
+                'voucher_id'        => $jv?->id,
+                'ref_no'            => $jv ? $jv->voucher_no : "RA-{$bill->ra_bill_number}",
             ]);
 
             // 2. Disbursed Payment Release (Payment Debit)
             foreach ($bill->payments as $pay) {
                 $bankName = $pay->companyBankAccount?->bank_name ?? 'Bank';
+                $payJv = $paymentJvsByPayId->get($pay->id);
                 $allLedgerEntries->push([
                     'type'              => 'DISBURSEMENT',
                     'date'              => $pay->payment_date ? $pay->payment_date->format('Y-m-d') : null,
@@ -208,7 +284,7 @@ class RaBillController extends Controller
                     'paid_amount'       => (float) $pay->paid_amount,
                     'status'            => 'Disbursed',
                     'voucher_id'        => $pay->voucher_id,
-                    'ref_no'            => $pay->reference_no ?: "VCH-{$pay->voucher_id}",
+                    'ref_no'            => $payJv ? $payJv->voucher_no : ($pay->reference_no ?: "PAY-{$pay->id}"),
                 ]);
             }
         }
@@ -290,7 +366,7 @@ class RaBillController extends Controller
             $unitName = Unit::find($validated['unit_id'])?->door_no;
         }
 
-        RaBill::create([
+        $raBill = RaBill::create([
             'system_id'           => $systemId,
             'ra_bill_number'      => $validated['ra_bill_number'],
             'contractor_id'       => $validated['contractor_id'] ?? null,
@@ -312,6 +388,11 @@ class RaBillController extends Controller
             'remarks'             => $validated['remarks'] ?? null,
             'created_by'          => Auth::id(),
         ]);
+
+        // If verified date provided at creation, record double entry journal voucher immediately
+        if (!empty($raBill->verified_date) && (float) $raBill->net_approved_amount > 0) {
+            $this->recordRaBillJournalVoucher($raBill);
+        }
 
         return redirect()->back()
             ->with('success', "✅ Contractor RA Bill #{$validated['ra_bill_number']} logged successfully!");
@@ -374,6 +455,9 @@ class RaBillController extends Controller
                 'status'              => $status,
                 'remarks'             => $validated['remarks'] ?? $raBill->remarks,
             ]);
+
+            // Create or update double-entry accounting postings in journal_vouchers & journal_entries
+            $this->recordRaBillJournalVoucher($raBill);
         });
 
         return redirect()->back()
@@ -418,13 +502,13 @@ class RaBillController extends Controller
                     'payment_date'            => $validated['payment_date'],
                     'payment_mode'            => $validated['payment_mode'],
                     'reference_no'            => $validated['reference_no'] ?? null,
-                    'purpose'                 => 'supplier_payment',
+                    'purpose'                 => 'contractor_payment',
                     'narration'               => "Staggered RA Bill Disbursement for #{$raBill->ra_bill_number} ({$contractorName})",
                     'created_by'              => Auth::id(),
                     'system_id'               => Auth::user()->system_id ?? 1,
                 ]);
 
-                RaBillPayment::create([
+                $payment = RaBillPayment::create([
                     'system_id'               => Auth::user()->system_id ?? 1,
                     'ra_bill_id'              => $raBill->id,
                     'payment_date'            => $validated['payment_date'],
@@ -437,6 +521,9 @@ class RaBillController extends Controller
                     'remarks'                 => $validated['remarks'] ?? null,
                     'created_by'              => Auth::id(),
                 ]);
+
+                // Create double-entry accounting posting in journal_vouchers & journal_entries
+                $this->recordContractorPaymentJournalVoucher($raBill, $payment, $validated);
 
                 $raBill->recalculateBalances();
 
@@ -530,5 +617,213 @@ class RaBillController extends Controller
 
         return redirect()->back()
             ->with('success', '✅ Contractor registered successfully and ledger account created!');
+    }
+
+    /**
+     * Create or update double-entry accounting postings in journal_vouchers & journal_entries
+     * for verified Contractor RA Bills (following the pattern in SalesController).
+     */
+    protected function recordRaBillJournalVoucher(RaBill $raBill): void
+    {
+        $netApproved = (float) $raBill->net_approved_amount;
+        if ($netApproved <= 0.00) {
+            return;
+        }
+
+        try {
+            // 1. Ensure required Chart of Accounts exist
+            $requiredAccounts = [
+                '4002' => ['name' => 'Contractor Work Expenses', 'type' => 'EXPENSE'],
+                '2002' => ['name' => 'Contractor Payables',      'type' => 'LIABILITY'],
+            ];
+
+            foreach ($requiredAccounts as $accCode => $accInfo) {
+                ChartOfAccount::firstOrCreate(
+                    ['account_code' => $accCode],
+                    [
+                        'account_name' => $accInfo['name'],
+                        'account_type' => $accInfo['type'],
+                        'is_active'    => true,
+                    ]
+                );
+            }
+
+            // 2. Ensure VoucherType exists (Code: CONTRACTOR_RA_BILL, ID: 6, Prefix: JV-RA)
+            $voucherType = VoucherType::firstOrCreate(
+                ['code' => 'CONTRACTOR_RA_BILL'],
+                [
+                    'name'        => 'Contractor RA Bill Voucher',
+                    'prefix'      => 'JV-RA',
+                    'description' => 'Generated on site engineer verified RA bill',
+                    'is_active'   => true,
+                ]
+            );
+
+            $contractorName = $raBill->contractor_name ?: ($raBill->contractor?->name ?? 'Contractor');
+            $engName = $raBill->engineer_name ? " (Verified by: {$raBill->engineer_name})" : '';
+            $narration = "Verified RA Bill #{$raBill->ra_bill_number} - {$contractorName}{$engName}";
+            $date = $raBill->verified_date ? $raBill->verified_date->format('Y-m-d') : date('Y-m-d');
+            $year = $raBill->verified_date ? $raBill->verified_date->format('Y') : date('Y');
+
+            // 3. Resolve unique voucher number
+            $existingVoucher = JournalVoucher::where('voucher_type_id', $voucherType->id)
+                ->where('reference_id', $raBill->id)
+                ->first();
+
+            if ($existingVoucher) {
+                $voucherNo = $existingVoucher->voucher_no;
+            } else {
+                $baseVoucherNo = 'JV-RA-' . $year . '-' . str_pad((string) $raBill->id, 4, '0', STR_PAD_LEFT);
+                $voucherNo = $baseVoucherNo;
+                $suffix = 1;
+                while (JournalVoucher::where('voucher_no', $voucherNo)->exists()) {
+                    $voucherNo = $baseVoucherNo . '-' . $suffix;
+                    $suffix++;
+                }
+            }
+
+            // 4. Create or update Journal Voucher header
+            $journalVoucher = JournalVoucher::updateOrCreate(
+                [
+                    'voucher_type_id' => $voucherType->id,
+                    'reference_id'    => $raBill->id,
+                ],
+                [
+                    'voucher_no'   => $voucherNo,
+                    'voucher_date' => $date,
+                    'narration'    => $narration,
+                    'is_active'    => true,
+                ]
+            );
+
+            // 5. Clear previous entries for this voucher (avoids duplicates on re-verification)
+            JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
+
+            // 6. Debit: Contractor Work Expenses (Expense increases)
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => '4002',
+                'debit_amount'   => $netApproved,
+                'credit_amount'  => 0.00,
+                'line_narration' => "Contractor Work Expenses ({$contractorName} - RA #{$raBill->ra_bill_number})",
+            ]);
+
+            // 7. Credit: Contractor Payables (Liability increases)
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => '2002',
+                'debit_amount'   => 0.00,
+                'credit_amount'  => $netApproved,
+                'line_narration' => "Contractor Payables Liability ({$contractorName} - RA #{$raBill->ra_bill_number})",
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on RA Bill #' . $raBill->id . ': ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Create double-entry accounting postings in journal_vouchers & journal_entries
+     * for Contractor Payment Release (debits Contractor Payables, credits Bank Account).
+     */
+    protected function recordContractorPaymentJournalVoucher(RaBill $raBill, RaBillPayment $payment, array $validated): void
+    {
+        $paidAmount = (float) $payment->paid_amount;
+        if ($paidAmount <= 0.00) {
+            return;
+        }
+
+        try {
+            // 1. Ensure required Chart of Accounts exist
+            $bankModel = !empty($validated['company_bank_account_id'])
+                ? CompanyBankAccount::find($validated['company_bank_account_id'])
+                : null;
+            $bankName = $bankModel?->bank_name ?? 'Bank Account';
+
+            $requiredAccounts = [
+                '2002' => ['name' => 'Contractor Payables', 'type' => 'LIABILITY'],
+                '1001' => ['name' => $bankName,             'type' => 'ASSET'],
+            ];
+
+            foreach ($requiredAccounts as $accCode => $accInfo) {
+                ChartOfAccount::firstOrCreate(
+                    ['account_code' => $accCode],
+                    [
+                        'account_name' => $accInfo['name'],
+                        'account_type' => $accInfo['type'],
+                        'is_active'    => true,
+                    ]
+                );
+            }
+
+            // 2. Ensure VoucherType exists (Code: CONTRACTOR_PAYMENT, ID: 5, Prefix: JV-CP)
+            $voucherType = VoucherType::updateOrCreate(
+                ['id' => 5],
+                [
+                    'code'        => 'CONTRACTOR_PAYMENT',
+                    'name'        => 'Contractor Payment Release',
+                    'prefix'      => 'JV-CP',
+                    'description' => 'Generated on contractor payment disbursement',
+                    'is_active'   => true,
+                ]
+            );
+
+            $contractorName = $raBill->contractor_name ?: ($raBill->contractor?->name ?? 'Contractor');
+            $date = $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('Y-m-d') : date('Y-m-d');
+            $year = date('Y', strtotime($date));
+
+            // 3. Resolve unique voucher number
+            $existingVoucher = JournalVoucher::where('voucher_type_id', $voucherType->id)
+                ->where('reference_id', $payment->id)
+                ->first();
+
+            if ($existingVoucher) {
+                $voucherNo = $existingVoucher->voucher_no;
+            } else {
+                $baseVoucherNo = 'JV-CP-' . $year . '-' . str_pad((string) $payment->id, 4, '0', STR_PAD_LEFT);
+                $voucherNo = $baseVoucherNo;
+                $suffix = 1;
+                while (JournalVoucher::where('voucher_no', $voucherNo)->exists()) {
+                    $voucherNo = $baseVoucherNo . '-' . $suffix;
+                    $suffix++;
+                }
+            }
+
+            // 4. Create or update Journal Voucher header
+            $journalVoucher = JournalVoucher::updateOrCreate(
+                [
+                    'voucher_type_id' => $voucherType->id,
+                    'reference_id'    => $payment->id,
+                ],
+                [
+                    'voucher_no'   => $voucherNo,
+                    'voucher_date' => $date,
+                    'narration'    => "Contractor Payment Release for RA Bill #{$raBill->ra_bill_number} to {$contractorName} via {$bankName}",
+                    'is_active'    => true,
+                ]
+            );
+
+            // 5. Clear previous entries for this voucher (avoids duplicates)
+            JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
+
+            // 6. Debit: Contractor Payables (Liability Clears)
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => '2002',
+                'debit_amount'   => $paidAmount,
+                'credit_amount'  => 0.00,
+                'line_narration' => "Contractor Payables Cleared ({$contractorName} - RA #{$raBill->ra_bill_number})",
+            ]);
+
+            // 7. Credit: Bank Account (Asset Decreases)
+            JournalEntry::create([
+                'voucher_id'     => $journalVoucher->id,
+                'account_id'     => '1001',
+                'debit_amount'   => 0.00,
+                'credit_amount'  => $paidAmount,
+                'line_narration' => "Payment Disbursed via {$bankName} (Ref: " . ($validated['reference_no'] ?? 'N/A') . ")",
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on RA Payment #' . $payment->id . ': ' . $e->getMessage());
+        }
     }
 }
