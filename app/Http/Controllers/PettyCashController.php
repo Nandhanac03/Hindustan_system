@@ -21,27 +21,38 @@ class PettyCashController extends Controller
         $projects = Project::where('is_active', true)->get();
         
         // 2. Handle filters (Project and Date)
-        $selectedProject = $request->input('project_id', $projects->first()->id ?? null);
+        if ($request->has('project_id')) {
+            $selectedProject = $request->filled('project_id') ? $request->input('project_id') : null;
+        } else {
+            $selectedProject = $projects->first()->id ?? null;
+        }
+        
         $selectedDate = $request->input('date');
         
-        $project = Project::find($selectedProject);
-        $siteName = $project ? $project->name : 'Green City Site';
-        
-        // Find or create the Petty Cash Box for this site
-        $pettyCashBox = PettyCashBox::firstOrCreate(
-            ['project_id' => $selectedProject],
-            [
-                'box_code' => 'PC-' . strtoupper($project ? $project->code : 'GEN') . '-001',
-                'incharge_id' => auth()->id(),
-                'current_balance' => 0
-            ]
-        );
+        if ($selectedProject) {
+            $project = Project::find($selectedProject);
+            $siteName = $project ? $project->name : 'Site ' . $selectedProject;
+            
+            // Find or create the Petty Cash Box for this site
+            $pettyCashBox = PettyCashBox::firstOrCreate(
+                ['project_id' => $selectedProject],
+                [
+                    'box_code' => 'PC-' . strtoupper($project ? $project->code : 'GEN') . '-001',
+                    'incharge_id' => auth()->id(),
+                    'current_balance' => 0
+                ]
+            );
 
-        $cashBoxIncharge = $pettyCashBox->incharge ? $pettyCashBox->incharge->name : (auth()->check() ? auth()->user()->name : 'System Admin');
-        $cashBoxCode = $pettyCashBox->box_code;
-        
-        // 3. Database Data for Metrics & Transactions
-        $transactionsQuery = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id);
+            $cashBoxIncharge = $pettyCashBox->incharge ? $pettyCashBox->incharge->name : (auth()->check() ? auth()->user()->name : 'System Admin');
+            $cashBoxCode = $pettyCashBox->box_code;
+            
+            $transactionsQuery = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id);
+        } else {
+            $siteName = 'All Sites';
+            $cashBoxIncharge = auth()->check() ? auth()->user()->name : 'System Admin';
+            $cashBoxCode = 'ALL-BOXES';
+            $transactionsQuery = PettyCashTransaction::query();
+        }
         
         // Opening Balance calculation
         $openingBalance = 0;
@@ -53,22 +64,27 @@ class PettyCashController extends Controller
             }
             $transactionsQuery->whereDate('transaction_date', $selectedDate);
         } else {
-            // If no date is selected, opening balance is from the very beginning (i.e. 0)
             $openingBalance = 0;
         }
             
         if ($request->filled('search')) {
-            $transactionsQuery->where(function($q) use ($request) {
-                $q->where('voucher_number', 'like', '%' . $request->search . '%')
-                  ->orWhere('narration', 'like', '%' . $request->search . '%')
-                  ->orWhere('reference_no', 'like', '%' . $request->search . '%');
+            $searchTerm = '%' . trim($request->search) . '%';
+            $transactionsQuery->where(function($q) use ($searchTerm) {
+                $q->where('voucher_number', 'like', $searchTerm)
+                  ->orWhere('narration', 'like', $searchTerm)
+                  ->orWhere('reference_no', 'like', $searchTerm)
+                  ->orWhere('transaction_type', 'like', $searchTerm)
+                  ->orWhere('payment_mode', 'like', $searchTerm);
             });
         }
         
         if ($request->filled('status')) {
-            $statusMap = ['active' => 'Posted', 'pending' => 'Draft'];
-            if (isset($statusMap[$request->status])) {
-                $transactionsQuery->where('status', $statusMap[$request->status]);
+            if ($request->status === 'active') {
+                $transactionsQuery->whereIn('status', ['Posted', 'approved', 'Active', 'active']);
+            } elseif ($request->status === 'pending') {
+                $transactionsQuery->whereIn('status', ['pending', 'Draft', 'Pending', 'draft']);
+            } else {
+                $transactionsQuery->where('status', $request->status);
             }
         }
 
@@ -102,7 +118,7 @@ class PettyCashController extends Controller
 
         $closingBalance = $runningBalance;
         $bankWithdrawal = $dbTransactions->where('transaction_type', 'Contra')->sum('cash_in'); // Cash in from contra
-        $siteExpenses = $dbTransactions->whereIn('transaction_type', ['Payment', 'Journal'])->sum('cash_out');
+        $siteExpenses = $dbTransactions->whereIn('transaction_type', ['Payment', 'Journal', 'Site Expense'])->sum('cash_out');
         $netCashFlow = $cashIn - $cashOut;
 
         // Summaries (Dynamic)
