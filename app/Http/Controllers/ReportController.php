@@ -2559,14 +2559,18 @@ class ReportController extends Controller
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $contractorDeposits = max($contractorDeposits, 0.0);
-
-        // 5. Construction Work in Progress (WIP) (1130)
         $raBillsTotal = (float)DB::table('ra_bills')->sum('net_approved_amount');
+        $contractorRabillPayable = (float)JournalEntry::where('account_id', '2002')
+            ->selectRaw('SUM(debit_amount - credit_amount) as net')
+            ->value('net');
+        $contractorRabills = max($raBillsTotal, (float)$contractorRabillPayable, 0.0);
+        // 5. Construction Work in Progress (WIP) (1130)
+        // $raBillsTotal = (float)DB::table('ra_bills')->sum('net_approved_amount');
         $siteBillsTotal = (float)DB::table('bills')->sum('final_amount');
         $jeWipNet = (float)JournalEntry::where('account_id', '1130')
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
-        $wipInventory = max($raBillsTotal + $siteBillsTotal, (float)$jeWipNet, 0.0);
+        $wipInventory = max($siteBillsTotal, (float)$jeWipNet, 0.0);
 
         // Non-Current / Fixed Assets
         $fixedAssets = (float)JournalEntry::whereIn('account_id', ['1200', '1201', '1210', '1220'])
@@ -2574,7 +2578,7 @@ class ReportController extends Controller
             ->value('net');
         $fixedAssets = max($fixedAssets, 0.0);
 
-        $totalCurrentAssets = $bankAssets + $cashInHand + $receivables + $contractorDeposits + $wipInventory;
+        $totalCurrentAssets = $bankAssets + $cashInHand + $receivables +  $contractorRabills + $wipInventory;
         $totalAssets = $totalCurrentAssets + $fixedAssets;
 
         // Liabilities & Equity
@@ -2585,6 +2589,17 @@ class ReportController extends Controller
             $supplierPayables = (float)DB::table('bills')->sum('final_amount');
         }
         $supplierPayables = max((float)$supplierPayables, 0.0);
+
+        // Contractor RA Work Bills Payable (Account code 2002)
+        $contractorPayables = (float)JournalEntry::where('account_id', '2002')
+            ->selectRaw('SUM(credit_amount - debit_amount) as net')
+            ->value('net');
+        if ($contractorPayables <= 0) {
+            $contractorPayables = (float)DB::table('ra_bills')
+                ->selectRaw('SUM(net_approved_amount - paid_amount) as net')
+                ->value('net');
+        }
+        $contractorPayables = max((float)$contractorPayables, 0.0);
 
         // $statutoryDues = (float)JournalEntry::whereIn('account_id', ['2110', '2120'])
         //     ->selectRaw('SUM(credit_amount - debit_amount) as net')
@@ -2605,7 +2620,7 @@ class ReportController extends Controller
         }
         $agentPayables = max((float)$agentPayables, 0.0);
 
-        $totalCurrentLiabilities = $supplierPayables + $statutoryDues + $agentPayables;
+        $totalCurrentLiabilities = $supplierPayables + $contractorPayables + $statutoryDues + $agentPayables;
 
         $dbLoans = (float)Loan::sum('principal_amount') - (float)EmiSchedule::where('status', 'Paid')->sum('principal_component');
         $bankLoans = max($dbLoans, 0.0);
@@ -2621,8 +2636,8 @@ class ReportController extends Controller
         $currentAssetsList = [
             ['code' => '1001', 'name' => $coaMap['1001'] ?? 'Bank Balances (Karnataka Bank / HDFC Escrow - for selected bank )', 'amount' => $bankAssets],
             ['code' => '1002', 'name' => $coaMap['1002'] ?? 'Site Petty Cash Box Balances', 'amount' => $cashInHand],
-            ['code' => '1010', 'name' => $coaMap['1010'] ?? 'Customer Receivables (Pending Installments Billed)', 'amount' => $receivables],
-            ['code' => '1120', 'name' => $coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers', 'amount' => $contractorDeposits],
+            ['code' => '1010', 'name' => $coaMap['1010'] ?? 'Customer Receivables', 'amount' => $receivables],
+            ['code' => '1120', 'name' => $coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers', 'amount' => $contractorRabills],
             ['code' => '1130', 'name' => $coaMap['1130'] ?? 'Construction Work in Progress (WIP)', 'amount' => $wipInventory],
         ];
 
@@ -2639,6 +2654,7 @@ class ReportController extends Controller
             'total_assets' => $totalAssets,
             'current_liabilities' => [
                 ['code' => '2101', 'name' => $coaMap['2101'] ?? 'Sundry Creditors & Supplier Bills', 'amount' => $supplierPayables],
+                ['code' => '2002', 'name' => $coaMap['2002'] ?? 'Contractor RA Work Bills Payable', 'amount' => $contractorPayables],
                 ['code' => '2110', 'name' => $coaMap['2110'] ?? 'GST & Statutory Tax Payables', 'amount' => $statutoryDues],
                 ['code' => '2003', 'name' => $coaMap['2003'] ?? 'Agent Commission Payables / Agent Payable Liability', 'amount' => $agentPayables],
             ],
@@ -2665,8 +2681,8 @@ class ReportController extends Controller
                 'Current Assets' => [
                     ($coaMap['1001'] ?? 'Bank Balances (Karnataka Bank / HDFC Escrow - for selected bank )') => $bankAssets,
                     ($coaMap['1002'] ?? 'Site Petty Cash Box Balances') => $cashInHand,
-                    ($coaMap['1010'] ?? 'Customer Receivables (Pending Installments Billed)') => $receivables,
-                    ($coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers') => $contractorDeposits,
+                    ($coaMap['1010'] ?? 'Customer Receivables') => $receivables,
+                    ($coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers') => $contractorRabills,
                     ($coaMap['1130'] ?? 'Construction Work in Progress (WIP)') => $wipInventory,
                 ],
                 'Fixed Assets & Equipment' => [
