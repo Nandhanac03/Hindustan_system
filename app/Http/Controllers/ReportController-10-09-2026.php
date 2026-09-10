@@ -2548,17 +2548,11 @@ class ReportController extends Controller
         $cashInHand = $pettyCashTotal > 0 ? $pettyCashTotal : max($realizedCashReceipts, (float)$jeCashNet, 0.0);
 
         // 3. Customer Receivables (1010)
+        $activeSalesReceivables = (float)Sale::where('status', 'active')->sum('remaining_balance');
         $jeRecNet = (float)JournalEntry::whereIn('account_id', ['1010', '1110'])
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
-        $activeSalesReceivables = (float)Sale::where('status', 'active')->sum('remaining_balance');
-        if ($activeSalesReceivables <= 0) {
-            $activeSalesReceivables = (float)DB::table('customer_installments')
-                ->where('status', '!=', 'paid')
-                ->selectRaw('SUM(amount - paid_amount) as net')
-                ->value('net');
-        }
-        $receivables = max((float)$jeRecNet, $activeSalesReceivables, 0.0);
+        $receivables = max($activeSalesReceivables, (float)$jeRecNet, 0.0);
 
         // 4. Security Deposits (1120)
         $contractorDeposits = (float)JournalEntry::where('account_id', '1120')
