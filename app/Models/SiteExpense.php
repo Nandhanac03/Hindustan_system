@@ -30,6 +30,7 @@ class SiteExpense extends Model
         'expense_category_code',
         'expense_category_name',
         'gross_amount',
+        'gst_rate',
         'cgst_amount',
         'sgst_amount',
         'igst_amount',
@@ -51,6 +52,7 @@ class SiteExpense extends Model
     protected $casts = [
         'voucher_date'      => 'date',
         'gross_amount'      => 'decimal:2',
+        'gst_rate'          => 'decimal:2',
         'cgst_amount'       => 'decimal:2',
         'sgst_amount'       => 'decimal:2',
         'igst_amount'       => 'decimal:2',
@@ -150,6 +152,39 @@ class SiteExpense extends Model
         }
 
         return ucfirst($this->payment_source_type ?? 'Bank') . ' Account';
+    }
+
+    /**
+     * Accessor for GST Rate (%)
+     */
+    public function getGstRateAttribute($value): float
+    {
+        if ($value !== null && (float)$value > 0) {
+            return (float)$value;
+        }
+
+        $gross = (float)($this->attributes['gross_amount'] ?? 0);
+        $net = (float)($this->attributes['net_amount'] ?? 0);
+        if ($gross > 0 && $net > $gross) {
+            return round((($net - $gross) / $gross) * 100, 2);
+        }
+
+        return (float)($value ?? 0.00);
+    }
+
+    /**
+     * Accessor for GST Tax Amount
+     */
+    public function getGstAmountAttribute(): float
+    {
+        $totalGst = (float)($this->attributes['total_gst_amount'] ?? 0);
+        if ($totalGst > 0) {
+            return $totalGst;
+        }
+
+        $gross = (float)($this->attributes['gross_amount'] ?? 0);
+        $net = (float)($this->attributes['net_amount'] ?? 0);
+        return max(0.00, round($net - $gross, 2));
     }
 
     /**

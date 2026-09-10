@@ -254,6 +254,7 @@ class SiteExpenseController extends Controller
             'casual_payee_name'        => 'required_if:payee_type,one_time|nullable|string|max:255',
             'expense_category_code'    => 'required|string',
             'gross_amount'             => 'required|numeric|min:0.01',
+            'gst_rate'                 => 'nullable|numeric|min:0|max:100',
             'cgst_amount'              => 'nullable|numeric|min:0',
             'sgst_amount'              => 'nullable|numeric|min:0',
             'igst_amount'              => 'nullable|numeric|min:0',
@@ -271,14 +272,24 @@ class SiteExpenseController extends Controller
         $categoryCode = $validated['expense_category_code'];
         $categoryName = $categories[$categoryCode] ?? 'General Site Expense';
 
+        $gross = (float) $validated['gross_amount'];
+        $net   = (float) $validated['net_amount'];
+        $gstRate = isset($validated['gst_rate']) ? (float)$validated['gst_rate'] : (float)$request->input('gst_rate', 0);
+        if ($gstRate <= 0 && $gross > 0 && $net > $gross) {
+            $gstRate = round((($net - $gross) / $gross) * 100, 2);
+        }
+
         // Calculate tax totals
         $cgst = (float) ($validated['cgst_amount'] ?? 0);
         $sgst = (float) ($validated['sgst_amount'] ?? 0);
         $igst = (float) ($validated['igst_amount'] ?? 0);
         $totalGst = $cgst + $sgst + $igst;
+        if ($totalGst <= 0 && $net > $gross) {
+            $totalGst = round($net - $gross, 2);
+            $cgst = round($totalGst / 2, 2);
+            $sgst = round($totalGst / 2, 2);
+        }
 
-        $gross = (float) $validated['gross_amount'];
-        $net   = (float) $validated['net_amount'];
         // STEP 1: Site staff entry creates a Pending voucher (or Draft if saved as draft)
         $status = ($request->submit_action === 'draft') ? 'Draft' : 'Pending';
 
@@ -311,6 +322,7 @@ class SiteExpenseController extends Controller
                 'expense_category_code'    => $categoryCode,
                 'expense_category_name'    => $categoryName,
                 'gross_amount'             => $gross,
+                'gst_rate'                 => $gstRate,
                 'cgst_amount'              => $cgst,
                 'sgst_amount'              => $sgst,
                 'igst_amount'              => $igst,
@@ -380,6 +392,7 @@ class SiteExpenseController extends Controller
             'casual_payee_name'        => 'required_if:payee_type,one_time|nullable|string|max:255',
             'expense_category_code'    => 'required|string',
             'gross_amount'             => 'required|numeric|min:0.01',
+            'gst_rate'                 => 'nullable|numeric|min:0|max:100',
             'cgst_amount'              => 'nullable|numeric|min:0',
             'sgst_amount'              => 'nullable|numeric|min:0',
             'igst_amount'              => 'nullable|numeric|min:0',
@@ -397,13 +410,24 @@ class SiteExpenseController extends Controller
         $categoryCode = $validated['expense_category_code'];
         $categoryName = $categories[$categoryCode] ?? 'General Site Expense';
 
+        $gross = (float) $validated['gross_amount'];
+        $net   = (float) $validated['net_amount'];
+        $gstRate = isset($validated['gst_rate']) ? (float)$validated['gst_rate'] : (float)$request->input('gst_rate', 0);
+        if ($gstRate <= 0 && $gross > 0 && $net > $gross) {
+            $gstRate = round((($net - $gross) / $gross) * 100, 2);
+        }
+
+        // Calculate tax totals
         $cgst = (float) ($validated['cgst_amount'] ?? 0);
         $sgst = (float) ($validated['sgst_amount'] ?? 0);
         $igst = (float) ($validated['igst_amount'] ?? 0);
         $totalGst = $cgst + $sgst + $igst;
+        if ($totalGst <= 0 && $net > $gross) {
+            $totalGst = round($net - $gross, 2);
+            $cgst = round($totalGst / 2, 2);
+            $sgst = round($totalGst / 2, 2);
+        }
 
-        $gross = (float) $validated['gross_amount'];
-        $net   = (float) $validated['net_amount'];
         $status = ($request->submit_action === 'draft') 
             ? 'Draft' 
             : ($siteExpense->status === 'Approved' ? 'Approved' : 'Pending');
@@ -432,6 +456,7 @@ class SiteExpenseController extends Controller
                 'expense_category_code'    => $categoryCode,
                 'expense_category_name'    => $categoryName,
                 'gross_amount'             => $gross,
+                'gst_rate'                 => $gstRate,
                 'cgst_amount'              => $cgst,
                 'sgst_amount'              => $sgst,
                 'igst_amount'              => $igst,

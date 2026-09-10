@@ -86,8 +86,14 @@
         if (exp.gross_raw !== undefined && exp.gross_raw !== null && exp.gross_raw !== '') {
             this.gross = parseFloat(exp.gross_raw) || 0;
         }
-        if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '') {
+        if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '' && parseFloat(exp.gst_rate) > 0) {
+            this.gstPct = parseFloat(exp.gst_rate);
+        } else if (exp.net_raw && exp.gross_raw && parseFloat(exp.gross_raw) > 0 && parseFloat(exp.net_raw) > parseFloat(exp.gross_raw)) {
+            this.gstPct = Math.round(((parseFloat(exp.net_raw) - parseFloat(exp.gross_raw)) / parseFloat(exp.gross_raw)) * 100);
+        } else if (exp.gst_rate !== undefined && exp.gst_rate !== null && exp.gst_rate !== '') {
             this.gstPct = parseFloat(exp.gst_rate) || 0;
+        } else {
+            this.gstPct = 0;
         }
         this.narration = (exp.narration && exp.narration !== '-') ? exp.narration : '';
         this.fileName = exp.attachment_name || '';
@@ -578,7 +584,8 @@
                                                     narration: '{{ addslashes($expense->narration ?? '') }}',
                                                     gross_amount: '{{ number_format($expense->gross_amount ?? $expense->net_amount, 2) }}',
                                                     gross_raw: '{{ $expense->gross_amount ?? $expense->net_amount }}',
-                                                    gst_rate: {{ $expense->gst_rate ?? 18 }},
+                                                    net_raw: '{{ $expense->net_amount }}',
+                                                    gst_rate: {{ (float)($expense->gst_rate ?? 0) }},
                                                     gst_amount: '{{ number_format($expense->gst_amount ?? 0, 2) }}',
                                                     net_amount: '{{ number_format($expense->net_amount, 2) }}',
                                                     attachment_url: '{{ $expense->attachment_path ? Storage::url($expense->attachment_path) : '' }}',
@@ -604,7 +611,8 @@
                                                     bill_date: '{{ $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '' }}',
                                                     due_date: '{{ $expense->due_date ? \Carbon\Carbon::parse($expense->due_date)->format('Y-m-d') : '' }}',
                                                     gross_raw: '{{ $expense->gross_amount ?? $expense->net_amount }}',
-                                                    gst_rate: {{ $expense->gst_rate ?? 18 }},
+                                                    net_raw: '{{ $expense->net_amount }}',
+                                                    gst_rate: {{ (float)($expense->gst_rate ?? 0) }},
                                                     narration: '{{ addslashes($expense->narration ?? '') }}',
                                                     attachment_name: '{{ $expense->attachment_path ? basename($expense->attachment_path) : '' }}'
                                                 })" 
@@ -900,11 +908,11 @@
 
                         <div class="sm:col-span-3">
                             <label class="block font-bold text-slate-700 mb-1 text-[11px]">GST Rate (%)</label>
-                            <select x-model.number="gstPct" class="w-full h-9 text-xs font-bold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <select name="gst_rate" x-model.number="gstPct" class="w-full h-9 text-xs font-bold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                                 <option value="0">0% (Nil)</option>
                                 <option value="5">5%</option>
                                 <option value="12">12%</option>
-                                <option value="18" selected>18% Standard</option>
+                                <option value="18">18% Standard</option>
                                 <option value="28">28%</option>
                             </select>
                         </div>
@@ -915,7 +923,10 @@
                                 <div>
                                     <span class="font-black text-amber-100 text-[10px] block uppercase tracking-wider">Net Total Payable (₹)</span>
                                 </div>
-                                <input type="hidden" name="net_amount" :value="netTotal">
+                                <input type="hidden" name="net_amount" :value="netTotal.toFixed(2)">
+                                <input type="hidden" name="total_gst_amount" :value="gstAmount.toFixed(2)">
+                                <input type="hidden" name="cgst_amount" :value="(gstAmount / 2).toFixed(2)">
+                                <input type="hidden" name="sgst_amount" :value="(gstAmount / 2).toFixed(2)">
                                 <span class="font-black text-white font-mono text-base sm:text-lg" x-text="formatCurrency(netTotal)">₹ 53,100.00</span>
                             </div>
                         </div>
@@ -1139,7 +1150,7 @@
                                 </div>
                                 <template x-if="parseFloat(selectedExpense?.gst_amount?.replace(/,/g, '') || 0) > 0">
                                     <div class="flex items-center justify-between text-slate-600">
-                                        <span class="font-bold">GST Tax Amount</span>
+                                        <span class="font-bold" x-text="'GST Tax Amount' + (selectedExpense?.gst_rate ? ' (' + selectedExpense.gst_rate + '%)' : '')">GST Tax Amount</span>
                                         <span class="font-mono font-bold text-slate-800" x-text="'₹ ' + selectedExpense.gst_amount"></span>
                                     </div>
                                 </template>
