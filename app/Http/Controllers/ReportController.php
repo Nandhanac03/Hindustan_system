@@ -1649,11 +1649,24 @@ class ReportController extends Controller
 
             // 4. Create Double Entry Accounting Postings in journal_vouchers & journal_entries
             try {
+                // Dynamically calculate account code starting from 3001 (3001 for Partner A, 3002 for Partner B, etc.)
+                $allPartners = Payee::where('type', 'Partner')->orderBy('id')->get();
+                $partnerIndex = $allPartners->search(function ($item) use ($partner) {
+                    return $item->id == $partner->id;
+                });
+                $partnerCode = (string)(3001 + ($partnerIndex !== false ? $partnerIndex : 0));
+
+                // Fetch partner share percentage for this project if available
+                $partnerShare = PartnerShare::where('project_id', $validated['project_id'])
+                    ->where('partner_id', $partner->id)
+                    ->first();
+                $sharePctText = $partnerShare ? (' (' . (float)$partnerShare->share_pct . '% Share)') : '';
+
                 $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
                 $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                 $requiredAccounts = [
-                    '3001' => ['name' => 'Partner Payable Liability', 'type' => 'LIABILITY'],
-                    '1001' => ['name' => $bankAccountName, 'type' => 'ASSET']
+                    $partnerCode => ['name' => 'Partner ' . $partner->name . ' Capital Account' . $sharePctText, 'type' => 'LIABILITY'],
+                    '1001'       => ['name' => $bankAccountName, 'type' => 'ASSET'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
                     ChartOfAccount::firstOrCreate(
@@ -1686,24 +1699,22 @@ class ReportController extends Controller
                     'is_active'       => true,
                 ]);
 
-                $payAccountCode = (stripos($paymentMode, 'cash') !== false) ? '1002' : '1001';
-
-                // Debit 5001 Partner Payable Liability (or 1010)
+                // Debit Partner Capital Account (Account 3001 for 1st Partner, 3002 for 2nd Partner, etc.)
                 JournalEntry::create([
                     'voucher_id'     => $journalVoucher->id,
-                    'account_id'     => '5001',
+                    'account_id'     => $partnerCode,
                     'debit_amount'   => $amount,
                     'credit_amount'  => 0.00,
-                    'line_narration' => 'Partner Payable Liability Cleared (' . $partner->name . ')',
+                    'line_narration' => 'Partner Capital Liability Cleared (' . $partner->name . ')',
                 ]);
 
-                // Credit 1001 Karnataka Bank or 1002 Cash
+                // Credit 1001 Bank Account
                 JournalEntry::create([
                     'voucher_id'     => $journalVoucher->id,
-                    'account_id'     => $payAccountCode,
+                    'account_id'     => '1001',
                     'debit_amount'   => 0.00,
                     'credit_amount'  => $amount,
-                    'line_narration' => ($payAccountCode === '1001' ? 'Karnataka Bank (Bank Asset Decreases)' : 'Petty Cash Box (Cash Asset Decreases)'),
+                    'line_narration' => 'Bank Account (Bank Asset Decreases)',
                 ]);
             } catch (\Exception $e) {}
         });
