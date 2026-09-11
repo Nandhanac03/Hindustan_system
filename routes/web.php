@@ -347,6 +347,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
 
     // Customers
     Route::get('/customers', [\App\Http\Controllers\CustomerController::class, 'index'])->name('customers.index');
+    Route::get('customers/{customer}/statement-data', [\App\Http\Controllers\CustomerController::class, 'statementData'])->name('customers.statement-data');
     Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::get('customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::match(['put', 'post'], 'customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');

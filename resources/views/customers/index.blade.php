@@ -17,7 +17,147 @@
         <button @click="toast.open = false" class="ml-2 hover:opacity-75">✕</button>
     </div>
 
-    {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
+    {{-- Top Action & Customer Filter Bar (Above Filter Panel) --}}
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3.5 transition-all">
+        {{-- Customer Search & Select Dropdown Filter (Like Image) --}}
+        <div class="flex-1 min-w-[260px] relative" 
+             x-data="{ 
+                 open: false, 
+                 search: '',
+                 get selectedCustomer() {
+                     return (allCustomerList || []).find(c => c.id == filters.customer_id);
+                 },
+                 getFilteredList() {
+                     const q = (this.search || '').toLowerCase().trim();
+                     if (!q) return allCustomerList;
+                     return (allCustomerList || []).filter(c => 
+                         (c.name && c.name.toLowerCase().includes(q)) || 
+                         (c.phone && c.phone.includes(q)) || 
+                         (c.email && c.email.toLowerCase().includes(q))
+                     );
+                 },
+                 selectCustomer(id) {
+                     filters.customer_id = id;
+                     this.open = false;
+                     this.search = '';
+                     fetchCustomers();
+                 },
+                 clearCustomer() {
+                     filters.customer_id = '';
+                     this.open = false;
+                     this.search = '';
+                     fetchCustomers();
+                 }
+             }" 
+             @click.outside="open = false">
+
+            <div class="relative w-full">
+                <button type="button"
+                        @click="open = !open; if (open) { $nextTick(() => $refs.customerSearchInput?.focus()); }"
+                        :class="open ? 'border-[#a38c29] ring-4 ring-[#a38c29]/10 bg-white shadow-sm' : 'border-slate-300 bg-white hover:bg-slate-50 hover:border-slate-400'"
+                        class="w-full min-h-[42px] px-3 py-1.5 border rounded-xl text-xs flex items-center justify-between transition-all cursor-pointer text-left shadow-2xs text-slate-700">
+                    
+                    <template x-if="selectedCustomer">
+                        <div class="flex items-center gap-2 overflow-hidden min-w-0 flex-1">
+                            <span class="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-lg bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/20 text-xs font-bold">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                <span x-text="selectedCustomer.name" class="whitespace-nowrap max-w-[220px] truncate"></span>
+                                <button type="button" @click.stop="clearCustomer()" class="text-[#8a7522]/70 hover:text-rose-600 hover:bg-rose-50 rounded p-0.5 transition-colors">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </span>
+                        </div>
+                    </template>
+
+                    <template x-if="!selectedCustomer">
+                        <div class="flex items-center gap-2 text-slate-500 font-bold px-1">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            <span class="text-xs">Filter by Customers</span>
+                        </div>
+                    </template>
+
+                    <div class="flex items-center gap-1.5 shrink-0 ml-2">
+                        <template x-if="selectedCustomer">
+                            <span @click.stop="clearCustomer()" class="p-1 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-100 transition" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </button>
+
+                <div x-show="open"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                     class="absolute left-0 top-full mt-1.5 w-full bg-white border border-slate-200/90 shadow-2xl rounded-2xl overflow-hidden max-h-80 flex flex-col z-[100]"
+                     style="display: none;">
+                    
+                    <div class="p-2.5 bg-slate-50/80 border-b border-slate-100 sticky top-0 z-10 backdrop-blur-xs">
+                        <div class="relative">
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text"
+                                   x-model="search"
+                                   x-ref="customerSearchInput"
+                                   placeholder="Type name or phone number..."
+                                   @keydown.escape="open = false"
+                                   class="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition-all placeholder:text-slate-400 font-medium">
+                            <template x-if="search">
+                                <button type="button" @click="search = ''; $refs.customerSearchInput?.focus()" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">✕</button>
+                            </template>
+                        </div>
+                    </div>
+
+                    <button type="button" @click="clearCustomer()"
+                            class="w-full px-3.5 py-2.5 text-left text-xs font-bold text-slate-500 hover:bg-amber-50/50 hover:text-[#8a7522] border-b border-slate-100 flex items-center gap-2 transition cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>— Clear Selection (All Customers) —</span>
+                    </button>
+
+                    <div class="overflow-y-auto flex-1 p-1.5 space-y-1">
+                        <template x-for="c in getFilteredList()" :key="c.id">
+                            <button type="button"
+                                    @click="selectCustomer(c.id)"
+                                    :class="filters.customer_id == c.id ? 'bg-[#a38c29]/10 border-[#a38c29]/20 text-[#8a7522] shadow-xs' : 'hover:bg-slate-50 border-transparent text-slate-700'"
+                                    class="w-full p-2 text-left text-xs rounded-xl border transition-all duration-150 flex items-center justify-between gap-2 group cursor-pointer font-medium">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div :class="filters.customer_id == c.id ? 'bg-[#a38c29] text-white' : 'bg-slate-100 text-slate-600 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'"
+                                         class="w-7 h-7 rounded-full font-bold text-xs flex items-center justify-center shrink-0 transition-colors"
+                                         x-text="(c.name || '?').charAt(0).toUpperCase()">
+                                    </div>
+                                    <div class="min-w-0">
+                                        <p class="font-bold text-xs truncate leading-snug" :class="filters.customer_id == c.id ? 'text-[#8a7522]' : 'text-slate-800'" x-text="c.name"></p>
+                                        <div class="flex items-center gap-2 text-[10px] font-bold text-slate-400 font-mono mt-0.5" x-show="c.phone">
+                                            <span class="flex items-center gap-1">
+                                                <svg class="w-2.5 h-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                                <span x-text="c.phone"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- Export Excel Button (Aligned on the right of this top bar) --}}
+        <div class="flex items-center gap-2.5 shrink-0">
+            <button type="button" @click="exportCustomersExcel()"
+                    class="h-[42px] px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl transition shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Export Customers</span>
+            </button>
+        </div>
+    </div>
+
+    {{-- Ultra-Clean Modern Light Search & Filter Panel (Below Top Bar) --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3.5 transition-all">
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
             {{-- Search: Name / Email / Phone --}}
@@ -53,14 +193,14 @@
 
         <div class="flex items-center gap-2 flex-shrink-0">
             <button @click="resetFilters()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
                 <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                 <span>Reset</span>
             </button>
             <button @click="openAddModal()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider">
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-slate-900/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
                 <svg class="w-4 h-4 text-[#d9bf3b]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                Add Customer
+                <span>Add Customer</span>
             </button>
         </div>
     </div>
@@ -400,14 +540,17 @@
 </div>
 
 {{-- ═══════════════════════════════════════════
-     ALPINE.JS LOGIC CODE
+     ALPINE.JS LOGIC CODE & EXCELJS
 ═══════════════════════════════════════════ --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
 function customersApp() {
     return {
+        allCustomerList: {{ Js::from($allCustomers ?? []) }},
         customers: [],
         filters: {
             search: '',
+            customer_id: '',
             status: ''
         },
         modals: {
@@ -449,6 +592,7 @@ function customersApp() {
         fetchCustomers() {
             let params = new URLSearchParams();
             if (this.filters.search) params.append('search', this.filters.search);
+            if (this.filters.customer_id) params.append('customer_id', this.filters.customer_id);
             if (this.filters.status !== '') params.append('status', this.filters.status);
 
             fetch('{{ route('customers.index') }}?' + params.toString(), {
@@ -459,7 +603,7 @@ function customersApp() {
             })
             .then(res => res.json())
             .then(data => {
-                this.customers = data.customers;
+                this.customers = data.customers || [];
             })
             .catch(err => {
                 console.error('Error fetching customers:', err);
@@ -469,8 +613,649 @@ function customersApp() {
 
         resetFilters() {
             this.filters.search = '';
+            this.filters.customer_id = '';
             this.filters.status = '';
             this.fetchCustomers();
+        },
+
+        async exportSingleCustomerStatement(customerId) {
+            if (typeof ExcelJS === 'undefined') {
+                alert('ExcelJS library is loading. Please try again in a moment.');
+                return;
+            }
+
+            try {
+                this.showToast('Generating Statement of Account Excel...', 'success');
+                const res = await fetch(`{{ url('customers') }}/${customerId}/statement-data`, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!res.ok) {
+                    this.showToast('Failed to load customer statement transactions.', 'error');
+                    return;
+                }
+
+                const data = await res.json();
+                await this.buildAndDownloadStatementWorkbook(data);
+            } catch (err) {
+                console.error('Error generating statement:', err);
+                this.showToast('Error generating statement: ' + err.message, 'error');
+            }
+        },
+
+        async exportCustomersExcel() {
+            if (typeof ExcelJS === 'undefined') {
+                alert('ExcelJS library is loading. Please try again in a moment.');
+                return;
+            }
+
+            if (this.filters.customer_id) {
+                await this.exportSingleCustomerStatement(this.filters.customer_id);
+                return;
+            }
+
+            if (this.customers && this.customers.length === 1) {
+                await this.exportSingleCustomerStatement(this.customers[0].id);
+                return;
+            }
+
+            if (!this.customers || this.customers.length === 0) {
+                alert('No customers available to export.');
+                return;
+            }
+
+            // If multiple customers and no specific one selected, export the first customer's statement or prompt
+            const firstCustomer = this.customers[0];
+            await this.exportSingleCustomerStatement(firstCustomer.id);
+        },
+
+        async buildAndDownloadStatementWorkbook(statementData) {
+            const customer = statementData.customer || {};
+            const projectTitle = statementData.project_title || 'Tabasco Hindustan Infra Developers Pvt. Ltd';
+            const properties = statementData.properties || [];
+            const installments = statementData.installments || [];
+            const allTransactions = statementData.transactions || [];
+
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'TABASCO Human Capital';
+            workbook.lastModifiedBy = 'TABASCO ERP';
+            workbook.created = new Date();
+            workbook.modified = new Date();
+
+            const goldBorder = {
+                top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                bottom: { style: 'thin', color: { argb: 'FF8A7522' } },
+                left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                right: { style: 'thin', color: { argb: 'FF8A7522' } }
+            };
+
+            const doubleGoldBorder = {
+                top: { style: 'thin', color: { argb: 'FF8A7522' } },
+                bottom: { style: 'double', color: { argb: 'FF8A7522' } },
+                left: { style: 'thin', color: { argb: 'FF8A7522' } },
+                right: { style: 'thin', color: { argb: 'FF8A7522' } }
+            };
+
+            const thinGrayBorder = {
+                top: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                bottom: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                left: { style: 'thin', color: { argb: 'FFD1D5DB' } },
+                right: { style: 'thin', color: { argb: 'FFD1D5DB' } }
+            };
+
+            // Helper to build statement ledger worksheet
+            const buildLedgerSheet = (sheetName, statementType, txList) => {
+                const ws = workbook.addWorksheet(sheetName, {
+                    views: [{ showGridLines: true }]
+                });
+
+                ws.columns = [
+                    { key: 'date', width: 15 },
+                    { key: 'v_no', width: 18 },
+                    { key: 'description', width: 34 },
+                    { key: 'payment_type', width: 16 },
+                    { key: 'debit', width: 20 },
+                    { key: 'credit', width: 20 },
+                    { key: 'balance', width: 22 }
+                ];
+
+                // Row 1: Blank Spacer
+                ws.addRow([]);
+                ws.getRow(1).height = 15;
+
+                // Row 2: Brand Dark Emerald Banner (#0B3B2E)
+                const r2 = ws.addRow([projectTitle + '   |   STATEMENT OF ACCOUNT']);
+                ws.mergeCells('A2:G2');
+                r2.height = 30;
+                const c2 = ws.getCell('A2');
+                c2.font = { name: 'Calibri', size: 11.5, bold: true, color: { argb: 'FFFFFFFF' } };
+                c2.alignment = { vertical: 'middle', horizontal: 'center' };
+                c2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                for (let c = 1; c <= 7; c++) { 
+                    ws.getRow(2).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                    ws.getRow(2).getCell(c).border = goldBorder; 
+                }
+
+                // Row 3: Client Details Sub-Banner (#0B3B2E)
+                const r3 = ws.addRow(['Client Details', '', '', '', customer.name || 'N/A', '', '']);
+                ws.mergeCells('A3:D3');
+                ws.mergeCells('E3:G3');
+                r3.height = 24;
+                for (let c = 1; c <= 7; c++) {
+                    const cell = ws.getRow(3).getCell(c);
+                    cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                    cell.border = goldBorder;
+                }
+                ws.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
+                ws.getCell('E3').alignment = { vertical: 'middle', horizontal: 'center' };
+
+                // Row 4: STATEMENT OF ACCOUNT Header
+                const r4 = ws.addRow(['STATEMENT OF ACCOUNT']);
+                ws.mergeCells('A4:G4');
+                r4.height = 24;
+                const c4 = ws.getCell('A4');
+                c4.font = { name: 'Calibri', size: 11, bold: true, underline: true, color: { argb: 'FF0B3B2E' } };
+                c4.alignment = { vertical: 'middle', horizontal: 'center' };
+
+                // Row 5: Dates & Statement Type
+                let startDateStr = '01-04-2024';
+                let endDateStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+                if (txList.length > 0) {
+                    if (txList[0].date_dmy && txList[0].date_dmy !== 'N/A') startDateStr = txList[0].date_dmy.replace(/\//g, '-');
+                    const lastTx = txList[txList.length - 1];
+                    if (lastTx.date_dmy && lastTx.date_dmy !== 'N/A') endDateStr = lastTx.date_dmy.replace(/\//g, '-');
+                }
+
+                const r5 = ws.addRow([`From ${startDateStr} To ${endDateStr}`, '', '', '', `Statement Type: ${statementType}`, '', '']);
+                ws.mergeCells('A5:D5');
+                ws.mergeCells('E5:G5');
+                r5.height = 22;
+                const c5L = ws.getCell('A5');
+                c5L.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FF0B3B2E' } };
+                c5L.alignment = { vertical: 'middle', horizontal: 'left' };
+
+                const c5R = ws.getCell('E5');
+                c5R.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFC00000' } };
+                c5R.alignment = { vertical: 'middle', horizontal: 'right' };
+
+                // Row 6: Table Header (Brand Gold)
+                const headers = ['Date', 'V.No', 'Description', 'Payment Type', 'Debit', 'Credit', 'Balance'];
+                const r6 = ws.addRow(headers);
+                r6.height = 26;
+                r6.eachCell((cell) => {
+                    cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    cell.border = goldBorder;
+                });
+
+                // Rows 7+: Data Rows (Clean White with thin gray borders)
+                let runningBalance = 0;
+                let totalDebit = 0;
+                let totalCredit = 0;
+
+                txList.forEach(tx => {
+                    const debitVal = Number(tx.debit || 0);
+                    const creditVal = Number(tx.credit || 0);
+                    totalDebit += debitVal;
+                    totalCredit += creditVal;
+                    runningBalance = runningBalance + debitVal - creditVal;
+
+                    const row = ws.addRow([
+                        tx.date || 'N/A',
+                        tx.v_no || '',
+                        tx.description || '',
+                        tx.payment_type || 'Cheque',
+                        debitVal > 0 ? debitVal : '',
+                        creditVal > 0 ? creditVal : '',
+                        runningBalance
+                    ]);
+                    row.height = 21;
+
+                    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                        cell.border = thinGrayBorder;
+                        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                        cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+
+                        if (colNumber === 1 || colNumber === 2 || colNumber === 4) {
+                            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                        } else if (colNumber === 3) {
+                            cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                        } else if (colNumber >= 5 && colNumber <= 7) {
+                            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                            cell.numFmt = '0.00';
+                        }
+                    });
+                });
+
+                if (txList.length === 0) {
+                    const emptyRow = ws.addRow(['-', '-', 'No transactions recorded', statementType, '', '', '0.00']);
+                    emptyRow.height = 22;
+                    emptyRow.eachCell(c => {
+                        c.border = thinGrayBorder;
+                        c.font = { name: 'Calibri', size: 10, color: { argb: 'FF64748B' } };
+                        c.alignment = { vertical: 'middle', horizontal: 'center' };
+                    });
+                }
+
+                // Sub Total Row
+                const subTotalRow = ws.addRow(['Sub Total', '', '', '', totalDebit, totalCredit, runningBalance]);
+                const subRowNum = ws.rowCount;
+                ws.mergeCells(`A${subRowNum}:D${subRowNum}`);
+                subTotalRow.height = 24;
+                subTotalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                    cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                    cell.border = thinGrayBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                    else if (colNumber >= 5 && colNumber <= 7) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                        cell.numFmt = '0.00';
+                    }
+                });
+
+                // Grand Total Row
+                const grandTotalRow = ws.addRow(['Grand Total', '', '', '', totalDebit, totalCredit, runningBalance]);
+                const grandRowNum = ws.rowCount;
+                ws.mergeCells(`A${grandRowNum}:D${grandRowNum}`);
+                grandTotalRow.height = 26;
+                grandTotalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                    cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                    cell.border = doubleGoldBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                    else if (colNumber >= 5 && colNumber <= 7) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                        cell.numFmt = '0.00';
+                    }
+                });
+            };
+
+            // 1. SHEET: Client Master (Exact match with user image)
+            const wsMaster = workbook.addWorksheet('Client Master', { views: [{ showGridLines: true }] });
+            wsMaster.columns = [
+                { key: 'colA', width: 6 },   // #
+                { key: 'colB', width: 22 },  // Sale / Booking No.
+                { key: 'colC', width: 34 },  // Project Name / Client Name
+                { key: 'colD', width: 28 },  // Block / Door No. / Milestone
+                { key: 'colE', width: 18 },  // Floor / Due Date
+                { key: 'colF', width: 16 },  // Unit Type / Total Installment (₹)
+                { key: 'colG', width: 18 },  // Agreement Date / Paid Amount (₹)
+                { key: 'colH', width: 24 },  // Total Consideration (₹) / Balance Due (₹)
+                { key: 'colI', width: 16 }   // Status
+            ];
+
+            // Row 1: Blank Spacer
+            wsMaster.addRow([]);
+            wsMaster.getRow(1).height = 15;
+
+            // Row 2: Top Title Banner (#0B3B2E)
+            const mr2 = wsMaster.addRow([projectTitle + '   |   CLIENT MASTER']);
+            wsMaster.mergeCells('A2:I2');
+            mr2.height = 30;
+            const mc2 = wsMaster.getCell('A2');
+            mc2.font = { name: 'Calibri', size: 11.5, bold: true, color: { argb: 'FFFFFFFF' } };
+            mc2.alignment = { vertical: 'middle', horizontal: 'center' };
+            mc2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+            for (let c = 1; c <= 9; c++) { 
+                wsMaster.getRow(2).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                wsMaster.getRow(2).getCell(c).border = goldBorder; 
+            }
+
+            // Row 3: Client Details Sub-Banner (#0B3B2E)
+            const mr3 = wsMaster.addRow(['Client Details', '', '', '', '', customer.name || 'N/A', '', '', '']);
+            wsMaster.mergeCells('A3:E3');
+            wsMaster.mergeCells('F3:I3');
+            mr3.height = 24;
+            for (let c = 1; c <= 9; c++) {
+                const cell = wsMaster.getRow(3).getCell(c);
+                cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                cell.border = goldBorder;
+            }
+            wsMaster.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
+            wsMaster.getCell('F3').alignment = { vertical: 'middle', horizontal: 'center' };
+
+            // Rows 4, 5, 6: Customer Info Card
+            const mr4 = wsMaster.addRow(['Customer ID', ':', customer.id || '-', '', 'Email Address', ':', customer.email || 'N/A', '', '']);
+            wsMaster.mergeCells('C4:D4');
+            wsMaster.mergeCells('G4:I4');
+
+            const mr5 = wsMaster.addRow(['Full Name', ':', customer.name || 'N/A', '', 'Phone Number', ':', customer.phone || 'N/A', '', '']);
+            wsMaster.mergeCells('C5:D5');
+            wsMaster.mergeCells('G5:I5');
+
+            const mr6 = wsMaster.addRow(['Status', ':', customer.is_active ? 'ACTIVE' : 'INACTIVE', '', 'Address', ':', customer.address || 'N/A', '', '']);
+            wsMaster.mergeCells('C6:D6');
+            wsMaster.mergeCells('G6:I6');
+
+            [mr4, mr5, mr6].forEach(r => {
+                r.height = 21;
+                r.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                    cell.border = thinGrayBorder;
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    if (colNumber === 1 || colNumber === 5) {
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                    } else if (colNumber === 2 || colNumber === 6) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    } else {
+                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                    }
+                });
+            });
+
+            // Row 7: Section 1 Title: ASSOCIATED PROPERTIES & SALES DIRECTORY
+            const ptRow = wsMaster.addRow(['ASSOCIATED PROPERTIES & SALES DIRECTORY']);
+            const ptNum = wsMaster.rowCount;
+            wsMaster.mergeCells(`A${ptNum}:I${ptNum}`);
+            ptRow.height = 24;
+            const ptCell = wsMaster.getCell(`A${ptNum}`);
+            ptCell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
+            ptCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+            ptCell.alignment = { vertical: 'middle', horizontal: 'center' };
+            for (let c = 1; c <= 9; c++) { 
+                wsMaster.getRow(ptNum).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                wsMaster.getRow(ptNum).getCell(c).border = goldBorder; 
+            }
+
+            // Row 8: Table Header: Block / Door No.
+            const propHeaders = ['#', 'Sale / Booking No.', 'Project Name', 'Block / Door No.', 'Floor', 'Unit Type', 'Agreement Date', 'Total Consideration (₹)', 'Status'];
+            const phr = wsMaster.addRow(propHeaders);
+            phr.height = 26;
+            phr.eachCell(c => {
+                c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+                c.alignment = { vertical: 'middle', horizontal: 'center' };
+                c.border = goldBorder;
+            });
+
+            // Rows 9+: Properties Data Rows
+            let totalPropsVal = 0;
+            properties.forEach((prop, idx) => {
+                const val = Number(prop.total_amount || 0);
+                totalPropsVal += val;
+                const row = wsMaster.addRow([
+                    idx + 1,
+                    prop.sale_number || 'N/A',
+                    prop.project_name || 'Tabasco Hindustan Infra Developers',
+                    prop.unit_name || 'N/A',
+                    prop.floor || 'N/A',
+                    prop.unit_type || 'N/A',
+                    prop.agreement_date || 'N/A',
+                    val,
+                    prop.status || 'ACTIVE'
+                ]);
+                row.height = 21;
+                row.eachCell((cell, colNumber) => {
+                    cell.border = thinGrayBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                    if (colNumber === 1 || colNumber === 2 || colNumber === 5 || colNumber === 6 || colNumber === 7 || colNumber === 9) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    } else if (colNumber === 3 || colNumber === 4) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                    } else if (colNumber === 8) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                        cell.numFmt = '0.00';
+                    }
+                });
+            });
+
+            if (properties.length === 0) {
+                const row = wsMaster.addRow(['-', '-', 'No property sales recorded', '-', '-', '-', '-', '0.00', '-']);
+                row.height = 21;
+                row.eachCell(c => { c.border = thinGrayBorder; c.alignment = { vertical: 'middle', horizontal: 'center' }; });
+            }
+
+            // Total Consideration Row
+            const ptotRow = wsMaster.addRow(['Total Consideration Value', '', '', '', '', '', '', totalPropsVal, '']);
+            const ptotNum = wsMaster.rowCount;
+            wsMaster.mergeCells(`A${ptotNum}:G${ptotNum}`);
+            ptotRow.height = 24;
+            ptotRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                cell.border = doubleGoldBorder;
+                if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                if (colNumber === 8) { cell.alignment = { vertical: 'middle', horizontal: 'right' }; cell.numFmt = '0.00'; }
+            });
+
+            // Blank spacer
+            const spRow = wsMaster.addRow([]);
+            spRow.height = 16;
+
+            // Section 2 Title: CUSTOMER EMI & INSTALLMENT PAYMENT SCHEDULE
+            const emiRow = wsMaster.addRow(['CUSTOMER EMI & INSTALLMENT PAYMENT SCHEDULE']);
+            const emiNum = wsMaster.rowCount;
+            wsMaster.mergeCells(`A${emiNum}:I${emiNum}`);
+            emiRow.height = 24;
+            const emiCell = wsMaster.getCell(`A${emiNum}`);
+            emiCell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
+            emiCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+            emiCell.alignment = { vertical: 'middle', horizontal: 'center' };
+            for (let c = 1; c <= 9; c++) { 
+                wsMaster.getRow(emiNum).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                wsMaster.getRow(emiNum).getCell(c).border = goldBorder; 
+            }
+
+            // Installments Table Header (Col C is Client Name / Unit)
+            const emiHeaders = ['#', 'Sale / Booking No.', 'Client Name', 'Installment / Milestone', 'Due Date', 'Total Installment (₹)', 'Paid Amount (₹)', 'Balance Due (₹)', 'Status'];
+            const ehr = wsMaster.addRow(emiHeaders);
+            ehr.height = 26;
+            ehr.eachCell(c => {
+                c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+                c.alignment = { vertical: 'middle', horizontal: 'center' };
+                c.border = goldBorder;
+            });
+
+            // Filter to only paid installments (no unpaid pending)
+            const paidInstallments = (installments || []).filter(inst => {
+                return Number(inst.paid_amount || 0) > 0 || (inst.status && inst.status.toUpperCase() === 'PAID');
+            });
+
+            // Installment Data Rows
+            let totalEmiScheduled = 0;
+            let totalEmiPaid = 0;
+            let totalEmiBalance = 0;
+
+            paidInstallments.forEach((inst, idx) => {
+                const amt = Number(inst.amount || 0);
+                const paid = Number(inst.paid_amount || 0);
+                const bal = Number(inst.balance_amount || 0);
+                totalEmiScheduled += amt;
+                totalEmiPaid += paid;
+                totalEmiBalance += bal;
+
+                const row = wsMaster.addRow([
+                    idx + 1,
+                    inst.sale_number || 'N/A',
+                    inst.unit_name || 'N/A',
+                    inst.label || (inst.installment_no === 0 ? 'Down Payment' : `EMI - ${inst.installment_no}`),
+                    inst.due_date || 'N/A',
+                    amt,
+                    paid,
+                    bal,
+                    inst.status || 'PAID'
+                ]);
+                row.height = 21;
+                row.eachCell((cell, colNumber) => {
+                    cell.border = thinGrayBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                    if (colNumber === 1 || colNumber === 2 || colNumber === 4 || colNumber === 5 || colNumber === 9) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    } else if (colNumber === 3) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                    } else if (colNumber >= 6 && colNumber <= 8) {
+                        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                        cell.numFmt = '0.00';
+                    }
+                });
+            });
+
+            if (paidInstallments.length === 0) {
+                const row = wsMaster.addRow(['-', '-', 'No paid installment records found', '-', '-', '0.00', '0.00', '0.00', '-']);
+                row.height = 21;
+                row.eachCell(c => { c.border = thinGrayBorder; c.alignment = { vertical: 'middle', horizontal: 'center' }; });
+            }
+
+            // Total Installments Row
+            const etotRow = wsMaster.addRow(['Total Installments Summary', '', '', '', '', totalEmiScheduled, totalEmiPaid, totalEmiBalance, '']);
+            const etotNum = wsMaster.rowCount;
+            wsMaster.mergeCells(`A${etotNum}:E${etotNum}`);
+            etotRow.height = 24;
+            etotRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                cell.border = doubleGoldBorder;
+                if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                if (colNumber >= 6 && colNumber <= 8) { cell.alignment = { vertical: 'middle', horizontal: 'right' }; cell.numFmt = '0.00'; }
+            });
+
+            // 2. SHEET: Statement-Loan (Cheque / Bank / Loan transactions)
+            const loanTx = allTransactions.filter(t => !t.is_cash);
+            buildLedgerSheet('Statement-Loan', 'Loan', loanTx);
+
+            // 3. SHEET: Statement-Group (Cash / Group transactions)
+            const groupTx = allTransactions.filter(t => t.is_cash);
+            buildLedgerSheet('Statement-Group', 'Group', groupTx);
+
+            // 4. SHEET: Statement-All (All transactions)
+            buildLedgerSheet('Statement-All', 'All', allTransactions);
+
+            // 5. SHEET: Summary
+            const wsSum = workbook.addWorksheet('Summary', { views: [{ showGridLines: true }] });
+            wsSum.columns = [
+                { key: 'idx', width: 8 },
+                { key: 'metric', width: 42 },
+                { key: 'amount', width: 25 },
+                { key: 'notes', width: 32 }
+            ];
+
+            // Row 1: Blank Spacer
+            wsSum.addRow([]);
+            wsSum.getRow(1).height = 15;
+
+            // Row 2: Title Banner
+            const sr2 = wsSum.addRow([projectTitle + '   |   ACCOUNT STATEMENT SUMMARY']);
+            wsSum.mergeCells('A2:D2');
+            sr2.height = 30;
+            const sc2 = wsSum.getCell('A2');
+            sc2.font = { name: 'Calibri', size: 11.5, bold: true, color: { argb: 'FFFFFFFF' } };
+            sc2.alignment = { vertical: 'middle', horizontal: 'center' };
+            sc2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+            for (let c = 1; c <= 4; c++) { 
+                wsSum.getRow(2).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                wsSum.getRow(2).getCell(c).border = goldBorder; 
+            }
+
+            // Row 3: Client Details Sub-Banner
+            const sr3 = wsSum.addRow(['Client Details', '', customer.name || 'N/A', '']);
+            wsSum.mergeCells('A3:B3');
+            wsSum.mergeCells('C3:D3');
+            sr3.height = 24;
+            for (let c = 1; c <= 4; c++) {
+                const cell = wsSum.getRow(3).getCell(c);
+                cell.font = { name: 'Calibri', size: 10.5, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
+                cell.border = goldBorder;
+            }
+            wsSum.getCell('A3').alignment = { vertical: 'middle', horizontal: 'center' };
+            wsSum.getCell('C3').alignment = { vertical: 'middle', horizontal: 'center' };
+
+            wsSum.addRow([]); // Blank spacer
+
+            let totalSales = 0;
+            let totalExtraWork = 0;
+            let totalChequePaid = 0;
+            let totalCashPaid = 0;
+            let totalReturns = 0;
+
+            allTransactions.forEach(t => {
+                if (t.debit > 0) {
+                    if (t.description && t.description.toLowerCase().includes('additional')) {
+                        totalExtraWork += Number(t.debit);
+                    } else {
+                        totalSales += Number(t.debit);
+                    }
+                }
+                if (t.credit > 0) {
+                    if (t.description && t.description.toLowerCase().includes('return')) {
+                        totalReturns += Number(t.credit);
+                    } else if (t.is_cash) {
+                        totalCashPaid += Number(t.credit);
+                    } else {
+                        totalChequePaid += Number(t.credit);
+                    }
+                }
+            });
+
+            const netOutstanding = (totalSales + totalExtraWork) - (totalChequePaid + totalCashPaid + totalReturns);
+
+            const sthRow = wsSum.addRow(['#', 'Financial Metric', 'Amount (₹)', 'Remarks / Channel']);
+            sthRow.height = 26;
+            sthRow.eachCell(c => {
+                c.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
+                c.alignment = { vertical: 'middle', horizontal: 'center' };
+                c.border = goldBorder;
+            });
+
+            const summaryItems = [
+                { idx: 1, metric: 'Total Sales Consideration', amount: totalSales, notes: 'Total Booked Sales Value' },
+                { idx: 2, metric: 'Total Additional Work Value', amount: totalExtraWork, notes: 'Approved Extra Works' },
+                { idx: 3, metric: 'Total Paid via Cheque / Bank / Online', amount: totalChequePaid, notes: 'Realized Cheque / RTGS / NEFT' },
+                { idx: 4, metric: 'Total Paid via Cash', amount: totalCashPaid, notes: 'Realized Cash Payments' },
+                { idx: 5, metric: 'Total Sales Returns / Cancellation Refunds', amount: totalReturns, notes: 'Cancelled Units / Adjustments' }
+            ];
+
+            summaryItems.forEach(item => {
+                const row = wsSum.addRow([item.idx, item.metric, item.amount, item.notes]);
+                row.height = 21;
+                row.eachCell((cell, colNumber) => {
+                    cell.border = thinGrayBorder;
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                    if (colNumber === 1) cell.alignment = { vertical: 'middle', horizontal: 'center' };
+                    if (colNumber === 2) cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                    if (colNumber === 3) { cell.alignment = { vertical: 'middle', horizontal: 'right' }; cell.numFmt = '0.00'; }
+                    if (colNumber === 4) cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                });
+            });
+
+            const outRow = wsSum.addRow(['', 'NET OUTSTANDING BALANCE PAYABLE', netOutstanding, 'Current Due Balance']);
+            outRow.height = 26;
+            outRow.eachCell((cell, colNumber) => {
+                cell.border = doubleGoldBorder;
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF000000' } };
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+                if (colNumber === 2) cell.alignment = { vertical: 'middle', horizontal: 'left' };
+                if (colNumber === 3) {
+                    cell.alignment = { vertical: 'middle', horizontal: 'right' };
+                    cell.numFmt = '0.00';
+                    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: netOutstanding > 0 ? 'FFC00000' : 'FF059669' } };
+                }
+                if (colNumber === 4) cell.alignment = { vertical: 'middle', horizontal: 'left' };
+            });
+
+            // Download file
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const safeName = (customer.name || 'Customer').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim();
+            a.download = `${customer.id}.Customer-${safeName}.xlsx`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            this.showToast('Statement of Account exported successfully.');
         },
 
         openAddModal() {
