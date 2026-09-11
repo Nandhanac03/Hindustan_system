@@ -197,10 +197,9 @@ class RaBillController extends Controller
         }
 
         // Look up or initialize Contractor Payment Journal Vouchers
-        $cpVoucherType = VoucherType::updateOrCreate(
-            ['id' => 5],
+        $cpVoucherType = VoucherType::firstOrCreate(
+            ['code' => 'CONTRACTOR_PAYMENT'],
             [
-                'code'        => 'CONTRACTOR_PAYMENT',
                 'name'        => 'Contractor Payment Release',
                 'prefix'      => 'JV-CP',
                 'description' => 'Generated on contractor payment disbursement',
@@ -756,11 +755,10 @@ class RaBillController extends Controller
                 );
             }
 
-            // 2. Ensure VoucherType exists (Code: CONTRACTOR_PAYMENT, ID: 5, Prefix: JV-CP)
-            $voucherType = VoucherType::updateOrCreate(
-                ['id' => 5],
+            // 2. Ensure VoucherType exists (Code: CONTRACTOR_PAYMENT, Prefix: JV-CP)
+            $voucherType = VoucherType::firstOrCreate(
+                ['code' => 'CONTRACTOR_PAYMENT'],
                 [
-                    'code'        => 'CONTRACTOR_PAYMENT',
                     'name'        => 'Contractor Payment Release',
                     'prefix'      => 'JV-CP',
                     'description' => 'Generated on contractor payment disbursement',
