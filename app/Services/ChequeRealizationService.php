@@ -102,12 +102,15 @@ class ChequeRealizationService
 
             // 4. Create Double Entry Accounting Postings (ONLY when instrument is Realized)
             try {
+                $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
+                $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
+
                 $requiredAccounts = [
-                    '1001' => ['name' => 'Karnataka Bank', 'type' => 'ASSET'],
+                    '1001' => ['name' => $bankAccountName, 'type' => 'ASSET'],
                     '1010' => ['name' => 'Customer Receivable', 'type' => 'ASSET'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
-                    ChartOfAccount::firstOrCreate(
+                    $coa = ChartOfAccount::firstOrCreate(
                         ['account_code' => $accCode],
                         [
                             'account_name' => $accInfo['name'],
@@ -115,6 +118,10 @@ class ChequeRealizationService
                             'is_active'    => true,
                         ]
                     );
+
+                    if ($accCode === '1001' && $coa->account_name !== $accInfo['name']) {
+                        $coa->update(['account_name' => $accInfo['name']]);
+                    }
                 }
 
                 $voucherType = VoucherType::firstOrCreate(
