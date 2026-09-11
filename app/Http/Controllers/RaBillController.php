@@ -738,10 +738,11 @@ class RaBillController extends Controller
                 ? CompanyBankAccount::find($validated['company_bank_account_id'])
                 : null;
             $bankName = $bankModel?->bank_name ?? 'Bank Account';
-
+            $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
+            $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
             $requiredAccounts = [
                 '2002' => ['name' => 'Contractor Payables', 'type' => 'LIABILITY'],
-                '1001' => ['name' => $bankName,             'type' => 'ASSET'],
+                '1001' => ['name' => $bankAccountName, 'type' => 'ASSET']
             ];
 
             foreach ($requiredAccounts as $accCode => $accInfo) {

@@ -433,8 +433,11 @@ class BrokerController extends Controller
                     ]);
 
                     // Post JournalVoucher & JournalEntries (Double Entry System)
+                    $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
+                    $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                     $requiredAccounts = [
                     '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
+                    '1001' => ['name' => $bankAccountName, 'type' => 'ASSET']
                     ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
                     ChartOfAccount::firstOrCreate(
@@ -446,8 +449,16 @@ class BrokerController extends Controller
                         ]
                     );
                 }
-                    $vt = VoucherType::where('code', 'AGENT_PAYMENT')->first();
-                    $vtId = $vt ? $vt->id : 8;
+                    $vt = VoucherType::firstOrCreate(
+                        ['code' => 'AGENT_PAYMENT'],
+                        [
+                            'name'        => 'Agent Payment Disbursement',
+                            'prefix'      => 'JV-AP',
+                            'description' => 'Generated on paying commission to broker',
+                            'is_active'   => true,
+                        ]
+                    );
+                    $vtId = $vt->id;
 
                     $jvNumber = 'JV-AP-' . date('Y') . '-' . str_pad((string)$broker->id, 4, '0', STR_PAD_LEFT) . '-' . str_pad((string)mt_rand(10, 99), 2, '0', STR_PAD_LEFT);
 

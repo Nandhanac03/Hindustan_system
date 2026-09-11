@@ -1660,9 +1660,11 @@ class VoucherController extends Controller
 
             // Create Double Entry Accounting Postings in journal_vouchers & journal_entries
             try {
+                $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
+                $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                 $requiredAccounts = [
                     '1002' => ['name' => 'Petty Cash Box', 'type' => 'ASSET'],
-                    '1001' => ['name' => 'Karnataka Bank', 'type' => 'ASSET'],
+                    '1001' => ['name' => $bankAccountName, 'type' => 'ASSET']
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
                     ChartOfAccount::firstOrCreate(

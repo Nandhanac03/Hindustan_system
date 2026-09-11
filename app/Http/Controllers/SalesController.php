@@ -365,7 +365,7 @@ class SalesController extends Controller
             try {
                 $requiredAccounts = [
                     '1010' => ['name' => 'Customer Receivable', 'type' => 'ASSET'],
-                    '3001' => ['name' => 'Apartment Sales Revenue', 'type' => 'REVENUE'],
+                    '5010' => ['name' => 'Apartment Sales Revenue', 'type' => 'REVENUE'],
                     '2021' => ['name' => 'Output CGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     '2022' => ['name' => 'Output SGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     '4003' => ['name' => 'Brokerage Expense', 'type' => 'EXPENSE'],
@@ -422,7 +422,7 @@ class SalesController extends Controller
                 if ($totalBaseAmount > 0) {
                     JournalEntry::create([
                         'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '3001',
+                        'account_id'     => '5010',
                         'debit_amount'   => 0.00,
                         'credit_amount'  => $totalBaseAmount,
                         'line_narration' => 'Apartment Sales Revenue',
