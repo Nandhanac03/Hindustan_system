@@ -624,7 +624,7 @@
                                         {{-- Remarks / Reason (Exact Same Height h-10 as Left Column) --}}
                                         <div>
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]" 
-                                                   x-text="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Reason for ' + (statusName.charAt(0).toUpperCase() + statusName.slice(1)) : 'Audit Remarks (Optional)'">Remarks</label>
+                                                   x-text="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Reason for ' + (statusName.charAt(0).toUpperCase() + statusName.slice(1)) : 'Remarks (Optional)'">Remarks</label>
                                             <input type="text" name="remarks" 
                                                    class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs" 
                                                    :placeholder="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Enter reason for this state...' : 'Enter any clearing notes or remarks...'" x-model="remarksText">
