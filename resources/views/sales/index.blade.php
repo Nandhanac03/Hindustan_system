@@ -2040,7 +2040,7 @@ function salesApp() {
         selectedReturnSale: null,
         targetReturnStatus: '',
         selectedExchangeSale: null,
-        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: '', reason: 'Customer Request', detailed_reason: '', refund_mode: 'Bank Transfer', cheque_number: '', refund_remarks: '', revert_unsold: true },
+        returnForm: { date: new Date().toISOString().split('T')[0], cancellation_fee: '', additional_refund_amount: '', reason: 'Customer Request', detailed_reason: '', refund_mode: 'Bank Transfer', cheque_number: '', refund_remarks: '', revert_unsold: true },
         returnFormErrors: {},
         exchangeForm: { new_project_id: '{{ request('project_id') ?: ($projects->first()?->id ?? '') }}', new_unit_type: '', new_unit_id: '', new_unit_value: 0, equity_applied: 0, carry_forward: true, reason: '', payment_plan: 'emi', emi_type: 'equal', emi_installment_count: 12, emi_frequency: 'monthly', first_installment_date: (function() { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toISOString().split('T')[0]; })(), initial_payment_amount: 0, initial_payment_percentage: '', payment_mode: 'Cash', initial_payment_date: new Date().toISOString().split('T')[0], reference_no: '', bank_id: '' },
         exchangeAvailableUnits: [],
@@ -2275,6 +2275,9 @@ function salesApp() {
             this.returnForm.cancellation_fee = (sale.cancellation_fee !== null && sale.cancellation_fee !== undefined) 
                 ? Number(sale.cancellation_fee) 
                 : '';
+            this.returnForm.additional_refund_amount = (sale.additional_refund_amount !== null && sale.additional_refund_amount !== undefined && Number(sale.additional_refund_amount) > 0)
+                ? Number(sale.additional_refund_amount)
+                : '';
             this.returnForm.reason = sale.cancellation_reason || '';
             this.returnForm.date = sale.cancelled_at 
                 ? new Date(sale.cancelled_at).toISOString().split('T')[0] 
@@ -2284,7 +2287,8 @@ function salesApp() {
         calculateApprovedRefund(sale) {
             const paid = this.getPaidTillDate(sale);
             let fee = Number(this.returnForm.cancellation_fee) || 0;
-            return Math.max(0, paid - fee);
+            let additional = Number(this.returnForm.additional_refund_amount) || 0;
+            return Math.max(0, paid - fee + additional);
         },
         submitReturnRefund() {
             if (!this.returnForm.reason) {
@@ -2304,6 +2308,7 @@ function salesApp() {
                     reason: this.returnForm.reason,
                     detailed_reason: this.returnForm.detailed_reason,
                     cancellation_fee: this.returnForm.cancellation_fee,
+                    additional_refund_amount: this.returnForm.additional_refund_amount,
                     refund_amount: approvedRefund,
                     refund_mode: this.returnForm.refund_mode,
                     refund_remarks: this.returnForm.refund_remarks,
@@ -2330,7 +2335,8 @@ function salesApp() {
             if (!sale) return 0;
             const paidIntake = this.getPaidTillDate(sale);
             const fee = Number(sale.cancellation_fee || 0);
-            return Math.max(0, paidIntake - fee);
+            const additional = Number(sale.additional_refund_amount || 0);
+            return Math.max(0, paidIntake - fee + additional);
         },
         getRemainingRefund(sale) {
             if (!sale) return 0;
@@ -2467,6 +2473,7 @@ function salesApp() {
             this.newReturnStep = 2;
             this.returnForm.date = new Date().toISOString().split('T')[0];
             this.returnForm.cancellation_fee = '';
+            this.returnForm.additional_refund_amount = '';
             this.returnForm.reason = 'Customer Request';
             this.returnForm.detailed_reason = '';
             this.returnForm.refund_mode = 'Bank Transfer';
@@ -2521,6 +2528,7 @@ function salesApp() {
                     reason: this.returnForm.reason,
                     detailed_reason: this.returnForm.detailed_reason,
                     cancellation_fee: this.returnForm.cancellation_fee,
+                    additional_refund_amount: this.returnForm.additional_refund_amount,
                     refund_amount: approvedRefund,
                     refund_mode: this.returnForm.refund_mode,
                     refund_remarks: this.returnForm.refund_remarks,

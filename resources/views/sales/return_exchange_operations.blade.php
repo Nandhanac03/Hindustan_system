@@ -407,7 +407,7 @@
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                                     Cancellation Summary
                                 </h3>
-                                <div class="grid grid-cols-3 gap-4 border-t border-slate-100 pt-4">
+                                <div class="grid grid-cols-3 md:grid-cols-4 gap-4 border-t border-slate-100 pt-4">
                                     <div>
                                         <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Total Paid</div>
                                         <div class="text-sm font-extrabold text-slate-800 font-mono" x-text="selectedReturnSale ? fmt(getPaidTillDate(selectedReturnSale)) : '—'"></div>
@@ -415,6 +415,10 @@
                                     <div class="border-l border-slate-100 pl-4">
                                         <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Cancellation Fee</div>
                                         <div class="text-sm font-extrabold text-red-600 font-mono" x-text="selectedReturnSale && selectedReturnSale.cancellation_fee ? '- ' + fmt(selectedReturnSale.cancellation_fee) : '- ₹0.00'"></div>
+                                    </div>
+                                    <div class="border-l border-slate-100 pl-4" x-show="selectedReturnSale && Number(selectedReturnSale.additional_refund_amount) > 0">
+                                        <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Additional Refund (Owner Approved)</div>
+                                        <div class="text-sm font-extrabold text-emerald-600 font-mono" x-text="'+ ' + fmt(selectedReturnSale.additional_refund_amount)"></div>
                                     </div>
                                     <div class="border-l border-slate-100 pl-4">
                                         <div class="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Approved Refund Amount</div>
@@ -685,7 +689,7 @@
                     </div>
 
                     {{-- Refund Calculations Grid --}}
-                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-white relative overflow-hidden shadow-md">
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 border border-slate-800 rounded-xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4 text-center text-white relative overflow-hidden shadow-md">
                         <div class="absolute -top-12 -left-12 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
                         <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center">
                             <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Total Paid</span>
@@ -697,6 +701,14 @@
                                 <span class="text-slate-400 font-bold text-xs">- ₹</span>
                                 <input type="number" step="1" x-model.number="returnForm.cancellation_fee" :disabled="!isEditReturn"
                                        class="w-28 px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 text-rose-305 font-bold font-mono rounded-lg text-center text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 disabled:opacity-75">
+                            </div>
+                        </div>
+                        <div class="relative z-10 border-b md:border-b-0 md:border-r border-slate-700/50 pb-3 md:pb-0 md:pr-4 flex flex-col justify-center items-center">
+                            <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Additional Refund (Owner Approved)</span>
+                            <div class="flex items-center justify-center gap-1 mt-1">
+                                <span class="text-emerald-400 font-bold text-xs">+ ₹</span>
+                                <input type="number" step="1" x-model.number="returnForm.additional_refund_amount" :disabled="!isEditReturn" placeholder="0 (Optional)"
+                                       class="w-28 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-bold font-mono rounded-lg text-center text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 disabled:opacity-75">
                             </div>
                         </div>
                         <div class="relative z-10 flex flex-col justify-center">
@@ -949,6 +961,12 @@
                                         <span class="text-slate-500 font-medium">Cancellation Fee</span>
                                         <span class="font-bold font-mono text-rose-600" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span>
                                     </div>
+                                    <template x-if="Number(returnForm.additional_refund_amount) > 0">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500 font-medium">Additional Refund (Owner Approved)</span>
+                                            <span class="font-bold font-mono text-emerald-600" x-text="'+ ' + fmtIndian(Number(returnForm.additional_refund_amount) || 0)"></span>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
 
@@ -1004,16 +1022,24 @@
                                 </div>
                                 <div class="space-y-3">
                                     <div>
-                                        <label class="block text-slate-600 mb-1 font-semibold text-xs">
+                                        <label class="block text-slate-600 mb-1 font-semibold text-xs flex items-center justify-between">
                                             <span>Cancellation Fee Amount (₹)</span>
-                                            <span class="text-red-500">*</span>
+                                            <span class="text-[10px] text-slate-400 font-normal">(Optional)</span>
                                         </label>
-                                        <input type="number" step="1" x-model.number="returnForm.cancellation_fee" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs" placeholder="Enter amount">
+                                        <input type="number" step="1" x-model.number="returnForm.cancellation_fee" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs" placeholder="Enter amount (optional)">
                                         <p x-show="returnFormErrors.cancellation_fee" x-text="returnFormErrors.cancellation_fee" class="text-red-500 text-[10px] mt-1 font-semibold"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-slate-600 mb-1 font-semibold text-xs flex items-center justify-between">
+                                            <span>Additional Refund Amount (Owner Approved) (₹)</span>
+                                            <span class="text-[10px] text-slate-400 font-normal">(Optional)</span>
+                                        </label>
+                                        <input type="number" step="1" x-model.number="returnForm.additional_refund_amount" class="w-full px-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition shadow-2xs" placeholder="Enter owner approved additional refund amount">
+                                        <p class="text-[10px] text-slate-400 mt-1 font-medium">This is not a required field and can be added to the refund amount.</p>
                                     </div>
                                     <div class="bg-amber-50/80 border border-amber-200/60 text-amber-800 p-3 rounded-xl text-xs flex items-start gap-2.5 shadow-2xs">
                                         <svg class="w-4 h-4 shrink-0 mt-0.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        <span class="text-[11px] leading-relaxed">This amount will be deducted as cancellation charge.</span>
+                                        <span class="text-[11px] leading-relaxed">Fee amount will be deducted and approved additional refund will be added to total refund.</span>
                                     </div>
                                 </div>
                             </div>
@@ -1096,6 +1122,12 @@
                                 <span class="text-[9px] font-bold text-rose-600 uppercase tracking-widest block">Cancellation Fee</span>
                                 <span class="text-xs font-extrabold font-mono text-rose-700 mt-1 block" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span>
                             </div>
+                            <template x-if="Number(returnForm.additional_refund_amount) > 0">
+                                <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/60 shadow-2xs">
+                                    <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest block">Additional Refund</span>
+                                    <span class="text-xs font-extrabold font-mono text-emerald-700 mt-1 block" x-text="'+ ' + fmtIndian(Number(returnForm.additional_refund_amount) || 0)"></span>
+                                </div>
+                            </template>
                             <div class="p-3 rounded-xl bg-[#a38c29]/15 border border-[#a38c29]/40 shadow-2xs">
                                 <span class="text-[9px] font-extrabold text-[#a38c29] uppercase tracking-widest block">Approved Refund</span>
                                 <span class="text-xs font-black font-mono text-slate-900 mt-1 block" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
@@ -1159,7 +1191,6 @@
                             if (!returnForm.date) returnFormErrors.date = 'Date is required.';
                             if (!returnForm.reason) returnFormErrors.reason = 'Reason is required.';
                             if (!returnForm.detailed_reason) returnFormErrors.detailed_reason = 'Detailed reason is required.';
-                            if (returnForm.cancellation_fee === '' || returnForm.cancellation_fee === null) returnFormErrors.cancellation_fee = 'Cancellation fee is required.';
                             if (!returnForm.refund_mode) returnFormErrors.refund_mode = 'Refund mode is required.';
                             if (Object.keys(returnFormErrors).length === 0) newReturnStep = 3;
                         " class="px-6 py-2.5 bg-gradient-to-br from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73621b] text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md shadow-[#a38c29]/25 flex items-center gap-1.5">
