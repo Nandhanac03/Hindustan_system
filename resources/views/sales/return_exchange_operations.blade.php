@@ -2764,11 +2764,23 @@
                             <span x-show="customerRefundFormErrors.refund_amount" class="text-[10px] text-rose-500 font-bold block" x-text="customerRefundFormErrors.refund_amount"></span>
                         </div>
 
+                        {{-- Insufficient Funds Error Banner (Image 2 design) --}}
+                        <template x-if="getSelectedBankAccount() && (Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0))">
+                            <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 flex items-start gap-3 text-rose-800 shadow-2xs">
+                                <svg class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <p class="text-xs font-bold leading-relaxed" x-text="'Insufficient Bank Funds! Payout amount (' + fmt(customerRefundForm.refund_amount || 0) + ') exceeds available balance in ' + (getSelectedBankAccount().bank_name + (getSelectedBankAccount().account_number ? ' ' + getSelectedBankAccount().account_number : '')) + ' (' + fmt(getSelectedBankAccount().current_balance || 0) + ').'"></p>
+                            </div>
+                        </template>
+
                         {{-- Info Box --}}
-                        <div class="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
-                            <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <p class="leading-relaxed">This amount will be credited to the customer's bank account as per the selected company account.</p>
-                        </div>
+                        <template x-if="!getSelectedBankAccount() || !(Number(customerRefundForm.refund_amount || 0) > Number(getSelectedBankAccount().current_balance || 0))">
+                            <div class="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
+                                <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <p class="leading-relaxed">This amount will be credited to the customer's bank account as per the selected company account.</p>
+                            </div>
+                        </template>
                     </div>
 
                 </div>

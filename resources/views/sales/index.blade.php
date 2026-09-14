@@ -2415,6 +2415,16 @@ function salesApp() {
             if (!this.customerRefundForm.refund_amount || Number(this.customerRefundForm.refund_amount) <= 0) {
                 this.customerRefundFormErrors.refund_amount = 'Please enter a valid refund amount.';
             }
+            let selectedBank = this.getSelectedBankAccount();
+            if (selectedBank && Number(this.customerRefundForm.refund_amount || 0) > Number(selectedBank.current_balance || 0)) {
+                let reqAmt = Number(this.customerRefundForm.refund_amount || 0);
+                let availBal = Number(selectedBank.current_balance || 0);
+                let bankName = selectedBank.bank_name + (selectedBank.account_number ? ' ' + selectedBank.account_number : '');
+                let errMsg = `Insufficient Bank Funds! Payout amount (${this.fmt(reqAmt)}) exceeds available balance in ${bankName} (${this.fmt(availBal)}).`;
+                this.customerRefundFormErrors.refund_amount = errMsg;
+                this.showToast(errMsg, 'error');
+                return;
+            }
             if (Object.keys(this.customerRefundFormErrors).length > 0) return;
 
             this.isSubmittingRefund = true;

@@ -1384,6 +1384,10 @@ class SalesController extends Controller
                 $companyBank = CompanyBankAccount::lockForUpdate()->find($companyBankId);
                 if ($companyBank) {
                     $currentBal = (float) ($companyBank->current_balance ?? $companyBank->opening_balance ?? 0);
+                    if ($amount > $currentBal) {
+                        $accDisplayName = $companyBank->bank_name . ($companyBank->account_number ? ' ' . $companyBank->account_number : '');
+                        throw new \Exception('Insufficient Bank Funds! Payout amount (Rs. ' . number_format($amount, 2) . ') exceeds available balance in ' . $accDisplayName . ' (Rs. ' . number_format($currentBal, 2) . ').');
+                    }
                     $companyBank->current_balance = $currentBal - $amount;
                     $companyBank->save();
                 }
@@ -1426,24 +1430,22 @@ class SalesController extends Controller
                         'is_active'   => true,
                     ]
                 );
-
-                ChartOfAccount::firstOrCreate(
-                    ['account_code' => '1001'],
-                    [
-                        'account_name' => 'Karnataka Bank Account',
-                        'account_type' => 'ASSET',
-                        'is_active'   => true,
-                    ]
-                );
-
-                ChartOfAccount::firstOrCreate(
-                    ['account_code' => '1010'],
-                    [
-                        'account_name' => 'Customer Receivables',
-                        'account_type' => 'ASSET',
-                        'is_active'   => true,
-                    ]
-                );
+                $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
+                $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
+                $requiredAccounts = [
+                '1001' => ['name' => $bankAccountName, 'type' => 'ASSET'],
+                '1010' => ['name' => 'Customer Receivables', 'type' => 'ASSET']
+                ];
+                foreach ($requiredAccounts as $accCode => $accInfo) {
+                    ChartOfAccount::firstOrCreate(
+                        ['account_code' => $accCode],
+                        [
+                            'account_name' => $accInfo['name'],
+                            'account_type' => $accInfo['type'],
+                            'is_active'    => true,
+                        ]
+                    );
+                }
 
                 // Generate Journal Voucher Header (journal_vouchers)
                 $jvNo = 'JV-RF-' . date('Y') . '-' . str_pad((string)$sale->id, 4, '0', STR_PAD_LEFT);

@@ -14,7 +14,6 @@ class ChartOfAccountSeeder extends Seeder
     {
         $accounts = [
             ['account_code' => '1001', 'account_name' => 'Karnataka Bank', 'account_type' => 'ASSET', 'is_active' => true],
-            ['account_code' => '1002', 'account_name' => 'State Bank of India', 'account_type' => 'ASSET', 'is_active' => true],
             ['account_code' => '1003', 'account_name' => 'Customer Receivables', 'account_type' => 'ASSET', 'is_active' => true],
             ['account_code' => '1004', 'account_name' => 'Petty Cash Box', 'account_type' => 'ASSET', 'is_active' => true],
             ['account_code' => '2001', 'account_name' => 'Supplier Payables', 'account_type' => 'LIABILITY', 'is_active' => true],
