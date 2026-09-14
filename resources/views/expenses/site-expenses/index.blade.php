@@ -4,6 +4,98 @@
 
 @section('content')
 <div x-data="{ 
+    filterSearch: '{{ request('search', '') }}',
+    filterProjectId: '{{ request('project_id', $projects->count() === 1 ? ($projects->first()->id ?? '') : '') }}',
+    filterCategoryCode: '{{ request('category_code', '') }}',
+    filterPaymentSource: '{{ request('payment_source', '') }}',
+    filterPaymentMode: '{{ request('payment_mode', '') }}',
+    filterStatusTab: '{{ request('status', 'all') }}',
+    counts: {
+        all: {{ $tabCounts['all'] ?? count($siteExpenses) }},
+        draft: {{ $tabCounts['draft'] ?? 0 }},
+        pending: {{ $tabCounts['pending'] ?? 0 }},
+        approved: {{ $tabCounts['approved'] ?? 0 }},
+        rejected: {{ $tabCounts['rejected'] ?? 0 }},
+        posted: {{ $tabCounts['posted'] ?? 0 }},
+    },
+
+    init() {
+        this.$nextTick(() => {
+            this.applyExpenseFilters();
+        });
+    },
+
+    applyExpenseFilters() {
+        const search = (this.filterSearch || '').trim().toLowerCase();
+        const projId = (this.filterProjectId || '').toString().trim();
+        const catCode = (this.filterCategoryCode || '').toString().trim();
+        const sourceId = (this.filterPaymentSource || '').toString().trim();
+        const mode = (this.filterPaymentMode || '').trim().toLowerCase();
+        const statusTab = (this.filterStatusTab || 'all').toLowerCase();
+
+        const rows = document.querySelectorAll('.expense-table-row');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const rowStatus = (row.dataset.status || '').toLowerCase();
+            const rowProj = (row.dataset.projectId || '').toString();
+            const rowCat = (row.dataset.categoryCode || '').toString();
+            const rowSource = (row.dataset.paymentSource || '').toString();
+            const rowMode = (row.dataset.paymentMode || '').toLowerCase();
+            const rowSearch = (row.dataset.search || '').toLowerCase();
+
+            let matchesStatus = true;
+            if (statusTab === 'draft') matchesStatus = (rowStatus === 'draft');
+            else if (statusTab === 'pending') matchesStatus = (rowStatus === 'pending');
+            else if (statusTab === 'approved' || statusTab === 'posted') matchesStatus = (rowStatus === 'approved' || rowStatus === 'posted');
+            else if (statusTab === 'rejected') matchesStatus = (rowStatus === 'rejected');
+
+            const matchesProj = !projId || rowProj === projId || ({{ $projects->count() }} === 1 && !rowProj);
+            const matchesCat = !catCode || rowCat === catCode;
+            const matchesSource = !sourceId || rowSource === sourceId;
+            const matchesMode = !mode || rowMode === mode;
+            const matchesSearch = !search || rowSearch.includes(search);
+
+            if (matchesStatus && matchesProj && matchesCat && matchesSource && matchesMode && matchesSearch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        const noRows = document.getElementById('no-expenses-row');
+        if (noRows) {
+            noRows.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+        }
+
+        const showingText = document.getElementById('showing-entries-text');
+        if (showingText) {
+            showingText.textContent = `Showing ${visibleCount} of ${rows.length} entries`;
+        }
+
+        try {
+            const url = new URL(window.location.href);
+            if (search) url.searchParams.set('search', search); else url.searchParams.delete('search');
+            if (projId) url.searchParams.set('project_id', projId); else url.searchParams.delete('project_id');
+            if (catCode) url.searchParams.set('category_code', catCode); else url.searchParams.delete('category_code');
+            if (sourceId) url.searchParams.set('payment_source', sourceId); else url.searchParams.delete('payment_source');
+            if (mode) url.searchParams.set('payment_mode', mode); else url.searchParams.delete('payment_mode');
+            if (statusTab && statusTab !== 'all') url.searchParams.set('status', statusTab); else url.searchParams.delete('status');
+            window.history.replaceState({}, '', url.toString());
+        } catch(e) {}
+    },
+
+    resetExpenseFilters() {
+        this.filterSearch = '';
+        this.filterProjectId = '{{ $projects->count() === 1 ? ($projects->first()->id ?? '') : '' }}';
+        this.filterCategoryCode = '';
+        this.filterPaymentSource = '';
+        this.filterPaymentMode = '';
+        this.filterStatusTab = 'all';
+        this.applyExpenseFilters();
+    },
+
     showCreateModal: {{ request()->has('create') ? 'true' : 'false' }},
     showViewModal: false,
     selectedExpense: null,
@@ -352,70 +444,50 @@
                 </div>
             </div>
 
-            {{-- Professional Segmented Pill Tabs Bar --}}
+            {{-- Professional Segmented Pill Tabs Bar (Instant Live Filtering) --}}
             <div class="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2 overflow-x-auto">
-                <a href="{{ route('site-expenses.index') }}" 
-                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 {{ empty($statusTab) || $statusTab === 'all' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50' }}">
+                <button type="button" @click="filterStatusTab = 'all'; applyExpenseFilters()" 
+                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer"
+                   :class="filterStatusTab === 'all' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'">
                     <span>All</span>
-                    <span class="{{ empty($statusTab) || $statusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }} text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['all'] ?? $siteExpenses->total() }}</span>
-                </a>
-                <a href="{{ route('site-expenses.index', ['status' => 'draft']) }}" 
-                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 {{ $statusTab === 'draft' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50' }}">
+                    <span :class="filterStatusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['all'] ?? count($siteExpenses) }}</span>
+                </button>
+                <button type="button" @click="filterStatusTab = 'draft'; applyExpenseFilters()" 
+                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer"
+                   :class="filterStatusTab === 'draft' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'">
                     <span>Draft</span>
-                    <span class="{{ $statusTab === 'draft' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }} text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['draft'] ?? 0 }}</span>
-                </a>
-                <a href="{{ route('site-expenses.index', ['status' => 'pending']) }}" 
-                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 {{ $statusTab === 'pending' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50' }}">
+                    <span :class="filterStatusTab === 'draft' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['draft'] ?? 0 }}</span>
+                </button>
+                <button type="button" @click="filterStatusTab = 'pending'; applyExpenseFilters()" 
+                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer"
+                   :class="filterStatusTab === 'pending' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'">
                     <span>Pending Approval</span>
-                    <span class="{{ $statusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800' }} text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['pending'] ?? 0 }}</span>
-                </a>
-                <a href="{{ route('site-expenses.index', ['status' => 'approved']) }}" 
-                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 {{ $statusTab === 'approved' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50' }}">
+                    <span :class="filterStatusTab === 'pending' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['pending'] ?? 0 }}</span>
+                </button>
+                <button type="button" @click="filterStatusTab = 'approved'; applyExpenseFilters()" 
+                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer"
+                   :class="filterStatusTab === 'approved' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'">
                     <span>Approved</span>
-                    <span class="{{ $statusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }} text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['approved'] ?? 0 }}</span>
-                </a>
-                <a href="{{ route('site-expenses.index', ['status' => 'rejected']) }}" 
-                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 {{ $statusTab === 'rejected' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50' }}">
+                    <span :class="filterStatusTab === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['approved'] ?? 0 }}</span>
+                </button>
+                <button type="button" @click="filterStatusTab = 'rejected'; applyExpenseFilters()" 
+                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer"
+                   :class="filterStatusTab === 'rejected' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'">
                     <span>Rejected</span>
-                    <span class="{{ $statusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800' }} text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['rejected'] ?? 0 }}</span>
-                </a>
-                <a href="{{ route('site-expenses.index', ['status' => 'posted']) }}" 
-                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 {{ $statusTab === 'posted' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50' }}">
+                    <span :class="filterStatusTab === 'rejected' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-800'" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['rejected'] ?? 0 }}</span>
+                </button>
+                <button type="button" @click="filterStatusTab = 'posted'; applyExpenseFilters()" 
+                   class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 whitespace-nowrap flex items-center gap-2 cursor-pointer"
+                   :class="filterStatusTab === 'posted' ? 'bg-[#a38c29] text-white shadow-sm shadow-[#a38c29]/30' : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:bg-slate-50'">
                     <span>Posted</span>
-                    <span class="{{ $statusTab === 'posted' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700' }} text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['posted'] ?? 0 }}</span>
-                </a>
+                    <span :class="filterStatusTab === 'posted' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ $tabCounts['posted'] ?? 0 }}</span>
+                </button>
             </div>
 
-            {{-- Professional Filter Controls Bar --}}
-            <form action="{{ route('site-expenses.index') }}" method="GET" class="p-4 bg-white border-b border-slate-200/80 space-y-3">
-                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                    
-                    {{-- Search Input Box --}}
-                    <div class="relative flex-1 group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <i data-lucide="search" class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
-                        </div>
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by voucher no, vendor, project..."
-                               class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2.5 pl-10 pr-4 text-slate-800 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs placeholder-slate-400 outline-none">
-                    </div>
-
-                    {{-- Filters Action Buttons --}}
-                    <div class="flex items-center gap-2 shrink-0">
-                        @if(request()->anyFilled(['search', 'project_id', 'category_code', 'payment_source', 'payment_mode']))
-                            <a href="{{ route('site-expenses.index') }}" class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-extrabold text-xs uppercase tracking-wider transition flex items-center gap-1.5 cursor-pointer">
-                                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-slate-500"></i>
-                                <span>Reset</span>
-                            </a>
-                        @endif
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20 flex items-center gap-2 cursor-pointer border-0">
-                            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-white"></i>
-                            <span>Filters</span>
-                        </button>
-                    </div>
-                </div>
-
+            {{-- Professional Filter Controls Bar (Instant - No Page Reload) --}}
+            <form @submit.prevent="applyExpenseFilters()" class="p-4 bg-white border-b border-slate-200/80">
                 {{-- Filter Select Dropdowns Grid with Gold Theme Icons Inside Boxes --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                     
                     {{-- 1. Project Filter --}}
                     <div>
@@ -424,12 +496,12 @@
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
                                 <i data-lucide="building-2" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
                             </div>
-                            <select name="project_id" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
-                                @if($projects->count() !== 1)
+                            <select x-model="filterProjectId" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                                @if($projects->count() > 1)
                                     <option value="">All Projects</option>
                                 @endif
                                 @foreach($projects as $proj)
-                                    <option value="{{ $proj->id }}" {{ ($projects->count() === 1 || request()->query('project_id') == $proj->id) ? 'selected' : '' }}>
+                                    <option value="{{ $proj->id }}" {{ ($projects->count() === 1 || request('project_id') == $proj->id) ? 'selected' : '' }}>
                                         {{ $proj->name }}
                                     </option>
                                 @endforeach
@@ -444,10 +516,10 @@
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
                                 <i data-lucide="layers" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
                             </div>
-                            <select name="category_code" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                            <select x-model="filterCategoryCode" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
                                 <option value="">All Categories</option>
                                 @foreach($expenseCategories as $code => $name)
-                                    <option value="{{ $code }}" {{ request()->query('category_code') == $code ? 'selected' : '' }}>
+                                    <option value="{{ $code }}">
                                         {{ $name }}
                                     </option>
                                 @endforeach
@@ -462,10 +534,10 @@
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
                                 <i data-lucide="landmark" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
                             </div>
-                            <select name="payment_source" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                            <select x-model="filterPaymentSource" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
                                 <option value="">All Sources</option>
                                 @foreach($bankAccounts as $bank)
-                                    <option value="{{ $bank->id }}" {{ request()->query('payment_source') == $bank->id ? 'selected' : '' }}>
+                                    <option value="{{ $bank->id }}">
                                         {{ $bank->bank_name }} {{ $bank->account_name ? '('.$bank->account_name.')' : '' }}
                                     </option>
                                 @endforeach
@@ -480,12 +552,12 @@
                             <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
                                 <i data-lucide="credit-card" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
                             </div>
-                            <select name="payment_mode" onchange="this.form.submit()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
+                            <select x-model="filterPaymentMode" @change="applyExpenseFilters()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs cursor-pointer outline-none">
                                 <option value="">All Modes</option>
-                                <option value="Bank Transfer" {{ request('payment_mode') === 'Bank Transfer' ? 'selected' : '' }}>Bank Transfer</option>
-                                <option value="RTGS / NEFT" {{ request('payment_mode') === 'RTGS / NEFT' ? 'selected' : '' }}>RTGS / NEFT</option>
-                                <option value="Cheque" {{ request('payment_mode') === 'Cheque' ? 'selected' : '' }}>Cheque</option>
-                                <option value="UPI" {{ request('payment_mode') === 'UPI' ? 'selected' : '' }}>UPI</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="RTGS / NEFT">RTGS / NEFT</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="UPI">UPI</option>
                             </select>
                         </div>
                     </div>
@@ -505,7 +577,7 @@
             </form>
 
             {{-- Table View --}}
-            <div class="overflow-x-auto">
+            <div class="overflow-x-auto min-h-[360px] pb-10">
                 <table class="w-full text-left text-slate-800 border-collapse">
                     <thead class="bg-[#a38c29] text-white font-black uppercase tracking-widest text-[10px] border-b border-[#a38c29]">
                         <tr>
@@ -523,7 +595,13 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs font-medium">
                         @forelse($siteExpenses as $expense)
-                            <tr class="hover:bg-amber-50/20 transition">
+                            <tr class="expense-table-row hover:bg-amber-50/20 transition"
+                                data-status="{{ strtolower($expense->status) }}"
+                                data-project-id="{{ $expense->project_id }}"
+                                data-category-code="{{ $expense->expense_category_code }}"
+                                data-payment-source="{{ $expense->company_bank_account_id }}"
+                                data-payment-mode="{{ strtolower($expense->payment_mode ?? 'bank transfer') }}"
+                                data-search="{{ strtolower($expense->voucher_number . ' ' . $expense->payee_display_name . ' ' . ($expense->project?->name ?? '') . ' ' . $expense->expense_category_name . ' ' . ($expense->transaction_reference_no ?? '') . ' ' . ($expense->payment_source_display_name ?? '')) }}">
                                 <td class="py-3 px-4 font-mono font-bold text-[#a38c29] text-[11px]">
                                     {{ $expense->voucher_number }}
                                 </td>
@@ -550,34 +628,30 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     @if($expense->status === 'Approved')
-                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-md border border-emerald-200 inline-flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-md border border-emerald-200 inline-block">
                                             Approved
                                         </span>
                                     @elseif($expense->status === 'Pending')
-                                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 font-bold text-[11px] rounded-md border border-amber-200 inline-flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 font-bold text-[11px] rounded-md border border-amber-200 inline-block">
                                             Pending Approval
                                         </span>
                                     @elseif($expense->status === 'Draft')
-                                        <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-[11px] rounded-md border border-slate-200 inline-flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                        <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-[11px] rounded-md border border-slate-200 inline-block">
                                             Draft
                                         </span>
                                     @elseif($expense->status === 'Posted')
-                                        <span class="px-2.5 py-0.5 bg-amber-50 text-[#8a741f] font-bold text-[11px] rounded-md border border-amber-200 inline-flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-[#8a741f]"></span>
+                                        <span class="px-2.5 py-0.5 bg-amber-50 text-[#8a741f] font-bold text-[11px] rounded-md border border-amber-200 inline-block">
                                             Posted
                                         </span>
                                     @else
-                                        <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 font-bold text-[11px] rounded-md border border-rose-200 inline-flex items-center gap-1">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                                        <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 font-bold text-[11px] rounded-md border border-rose-200 inline-block">
                                             Rejected
                                         </span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-4 text-center">
-                                    <div class="flex items-center justify-center gap-1.5 text-slate-500">
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-center gap-1.5">
+                                        {{-- View Details --}}
                                         <button type="button" 
                                                 @click="openViewModal({
                                                     id: {{ $expense->id }},
@@ -611,9 +685,12 @@
                                                     attachment_url: '{{ $expense->attachment_path ? Storage::url($expense->attachment_path) : '' }}',
                                                     attachment_name: '{{ $expense->attachment_path ? basename($expense->attachment_path) : '' }}'
                                                 })" 
-                                                class="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-amber-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Details">
-                                            <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                                                class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-amber-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                                title="View Details">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
+
+                                        {{-- Edit Expense --}}
                                         <button type="button" 
                                                 @click="openEditModal({
                                                     id: {{ $expense->id }},
@@ -636,50 +713,54 @@
                                                     narration: '{{ addslashes($expense->narration ?? '') }}',
                                                     attachment_name: '{{ $expense->attachment_path ? basename($expense->attachment_path) : '' }}'
                                                 })" 
-                                                class="p-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Edit Expense">
-                                            <i data-lucide="pencil" class="w-3.5 h-3.5 text-blue-600"></i>
+                                                class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-600 text-blue-600 hover:text-white border border-blue-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                                title="Edit Expense">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
 
                                         @if($expense->status === 'Approved')
-                                            {{-- Step 3 Shortcut: Jump to Payment Release desk --}}
+                                            {{-- Release Payment --}}
                                             <a href="{{ route('site-expenses.payment-release', ['search' => $expense->voucher_number]) }}" 
-                                               class="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition inline-flex items-center justify-center shadow-2xs" 
-                                               title="Step 3: Release Payment (Disbursement)">
-                                                <i data-lucide="wallet" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                               class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white border border-emerald-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                               title="Release Payment">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                                             </a>
                                         @else
-                                            {{-- Step 2 Action: Approve Voucher --}}
+                                            {{-- Approve Voucher --}}
                                             <form id="approve-form-{{ $expense->id }}" action="{{ route('site-expenses.approve', $expense->id) }}" method="POST" style="display:none">
                                                 @csrf
                                             </form>
                                             <button type="button" 
                                                     @click="openConfirmModal('approve', {{ $expense->id }}, '{{ $expense->voucher_number }}')" 
-                                                    class="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Step 2: Approve Voucher (Confirm Liability)">
-                                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+                                                    class="w-7 h-7 rounded-lg bg-emerald-50 hover:bg-emerald-600 text-emerald-600 hover:text-white border border-emerald-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                                    title="Approve Voucher">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             </button>
                                         @endif
 
                                         @if($expense->status !== 'Approved')
-                                            {{-- Hidden Reject Form --}}
+                                            {{-- Reject Voucher --}}
                                             <form id="reject-form-{{ $expense->id }}" action="{{ route('site-expenses.reject', $expense->id) }}" method="POST" style="display:none">
                                                 @csrf
                                             </form>
                                             <button type="button" 
                                                     @click="openConfirmModal('reject', {{ $expense->id }}, '{{ $expense->voucher_number }}')" 
-                                                    class="p-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Reject / Send Back Voucher">
-                                                <i data-lucide="x-circle" class="w-3.5 h-3.5 text-amber-700"></i>
+                                                    class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-600 text-amber-600 hover:text-white border border-amber-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                                    title="Reject Voucher">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                             </button>
                                         @endif
 
-                                        {{-- Hidden Delete Form --}}
+                                        {{-- Delete Expense --}}
                                         <form id="delete-form-{{ $expense->id }}" action="{{ route('site-expenses.destroy', $expense->id) }}" method="POST" style="display:none">
                                             @csrf
                                             @method('DELETE')
                                         </form>
                                         <button type="button" 
                                                 @click="openConfirmModal('delete', {{ $expense->id }}, '{{ $expense->voucher_number }}')" 
-                                                class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Delete Expense">
-                                            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-600"></i>
+                                                class="w-7 h-7 rounded-lg bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200/80 transition-all inline-flex items-center justify-center shadow-2xs cursor-pointer active:scale-95" 
+                                                title="Delete Expense">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                         </button>
                                     </div>
                                 </td>
@@ -699,13 +780,31 @@
                                 </td>
                             </tr>
                         @endforelse
+
+                        {{-- Dynamic Live Filter Empty Row --}}
+                        <tr id="no-expenses-row" style="display: none;">
+                            <td colspan="10" class="py-14 text-center bg-slate-50/50">
+                                <div class="flex flex-col items-center justify-center space-y-3">
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center">
+                                        <i data-lucide="inbox" class="w-6 h-6"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-sm font-bold text-slate-800">No Site Expenses Found</p>
+                                        <p class="text-xs text-slate-500">There are no expense records matching your active filters or search.</p>
+                                    </div>
+                                    <button type="button" @click="resetExpenseFilters()" class="mt-2 px-4 py-2 bg-slate-100 hover:bg-[#a38c29] hover:text-white text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer">
+                                        Reset All Filters
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
             {{-- Clean Table Footer (No Pagination Buttons as requested) --}}
             <div class="px-5 py-3.5 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between text-xs text-slate-600 font-semibold">
-                <span>Showing {{ $siteExpenses->count() }} of {{ $siteExpenses->total() ?? 45 }} entries</span>
+                <span id="showing-entries-text">Showing {{ $siteExpenses->count() }} of {{ $siteExpenses->count() }} entries</span>
                 <span class="text-[11px] text-slate-400 uppercase font-extrabold tracking-wider">Site Expense Management</span>
             </div>
 

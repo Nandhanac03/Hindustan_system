@@ -101,61 +101,12 @@ class SiteExpenseController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = SiteExpense::with(['project', 'floor', 'payee', 'vendor', 'companyBankAccount', 'loan', 'creator'])
+        $siteExpenses = SiteExpense::with(['project', 'floor', 'payee', 'vendor', 'companyBankAccount', 'loan', 'creator'])
             ->orderByDesc('voucher_date')
-            ->orderByDesc('id');
+            ->orderByDesc('id')
+            ->get();
 
-        // Status Tab Filter
         $statusTab = $request->query('status', 'all');
-        if ($statusTab === 'draft') {
-            $query->where('status', 'Draft');
-        } elseif ($statusTab === 'pending') {
-            $query->where('status', 'Pending');
-        } elseif ($statusTab === 'approved') {
-            $query->where('status', 'Approved');
-        } elseif ($statusTab === 'posted') {
-            $query->where('status', 'Approved');
-        } elseif ($statusTab === 'rejected') {
-            $query->where('status', 'Rejected');
-        }
-
-        // Filters
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
-        }
-
-        if ($request->filled('category_code')) {
-            $query->where('expense_category_code', $request->category_code);
-        }
-
-        if ($request->filled('payee_type')) {
-            $query->where('payee_type', $request->payee_type);
-        }
-
-        if ($request->filled('payment_source_type')) {
-            $query->where('payment_source_type', $request->payment_source_type);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('voucher_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('voucher_date', '<=', $request->date_to);
-        }
-
-        if ($request->filled('search')) {
-            $search = trim($request->search);
-            $query->where(function ($q) use ($search) {
-                $q->where('voucher_number', 'like', "%{$search}%")
-                  ->orWhere('transaction_reference_no', 'like', "%{$search}%")
-                  ->orWhere('casual_payee_name', 'like', "%{$search}%")
-                  ->orWhereHas('vendor', fn($vq) => $vq->where('name', 'like', "%{$search}%"))
-                  ->orWhereHas('payee', fn($pq) => $pq->where('name', 'like', "%{$search}%"));
-            });
-        }
-
-        $siteExpenses = $query->paginate(15)->withQueryString();
 
         // Calculate Summary Dashboard Metrics
         $allQuery = SiteExpense::query();
