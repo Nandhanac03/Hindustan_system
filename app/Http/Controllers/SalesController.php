@@ -1419,11 +1419,10 @@ class SalesController extends Controller
                     'status'         => 'Posted',
                 ]);
 
-                // 4. Double-Entry Accounting: Ensure VoucherType (voucher_type_id = 3 for CUSTOMER_REFUND) & ChartOfAccounts ('1001', '1010')
+                // 4. Double-Entry Accounting: Ensure VoucherType (CUSTOMER_REFUND) & ChartOfAccounts ('1001', '1010')
                 $voucherType = VoucherType::firstOrCreate(
-                    ['id' => 3],
+                    ['code' => 'CUSTOMER_REFUND'],
                     [
-                        'code'        => 'CUSTOMER_REFUND',
                         'name'        => 'Customer Refund Voucher',
                         'prefix'      => 'JV-RF',
                         'description' => 'Generated on booking cancellation / refund issue',
