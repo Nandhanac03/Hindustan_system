@@ -711,6 +711,7 @@ class SiteExpenseController extends Controller
                     'voucher_number' => 'PV-SITE-' . time(),
                     'type'           => 'Payment',
                     'date'           => $validated['payment_date'],
+                    'status'         => 'Posted',
                     'narration'      => $validated['remarks'] ?? "Site Expense Payment Release for #{$siteExpense->voucher_number} - {$siteExpense->expense_category_name}",
                     'reference_no'   => $validated['reference_no'] ?? null,
                     'created_by'     => Auth::id() ?? 1,

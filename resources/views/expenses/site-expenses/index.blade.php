@@ -149,6 +149,12 @@
             this.selectedVendorGstin = p.gstin || '';
         }
     },
+    get selectedVendor() {
+        if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
+            return this.vendorsData[this.vendorId];
+        }
+        return null;
+    },
     onVendorChange() {
         this.onPayeeChange();
     },
@@ -198,7 +204,7 @@
     @endif
 
     <!-- Header Title Section (Tabasco ERP Gold Theme Aligned) -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2 mb-1">
                 <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
@@ -218,8 +224,7 @@
                 <span>Vendor Master</span>
             </a>
             <button type="button" @click="openCreateModal()"
-               class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 uppercase tracking-wider cursor-pointer">
-                <i data-lucide="plus" class="w-4 h-4 text-white"></i>
+               class="inline-flex items-center justify-center rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 uppercase tracking-wider cursor-pointer">
                 <span>Add Site Expense</span>
             </button>
         </div>
@@ -722,15 +727,15 @@
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showCreateModal = false"></div>
 
-        {{-- Modal Dialog Container --}}
-        <div class="relative bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[90vh]"
+        {{-- Modal Dialog Container (Increased to max-w-5xl xl:max-w-6xl for optimal spacious layout) --}}
+        <div class="relative bg-white w-full max-w-5xl xl:max-w-6xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[92vh]"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
             {{-- Modal Header Bar --}}
             <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -top-10 -right-10 w-48 h-48 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
@@ -739,7 +744,7 @@
                                 TABASCO HINDUSTAN · SITE EXPENSE MANAGEMENT
                             </p>
                             <template x-if="selectedExpense">
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs"
+                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs"
                                       :class="{
                                           'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': selectedExpense?.status === 'Approved',
                                           'bg-amber-500/20 text-amber-300 border border-amber-500/30': selectedExpense?.status === 'Draft' || selectedExpense?.status === 'Pending',
@@ -749,14 +754,14 @@
                                 </span>
                             </template>
                             <template x-if="!selectedExpense">
-                                <span class="px-2 py-0.5 text-[9px] font-bold rounded-lg bg-white/10 text-slate-300 uppercase tracking-wider">COA 4000s Direct</span>
+                                <span class="px-2.5 py-0.5 text-[9px] font-bold rounded-lg bg-white/10 text-slate-300 uppercase tracking-wider">COA 4000s Direct</span>
                             </template>
                         </div>
-                        <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider" 
+                        <h2 class="text-base sm:text-xl font-extrabold text-white uppercase tracking-wider" 
                             x-text="selectedExpense ? ('Edit Site Expense — ' + (selectedExpense.voucher_number || '')) : 'Add New Site Expense'"></h2>
                     </div>
-                    <button type="button" @click="showCreateModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="showCreateModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
@@ -766,15 +771,15 @@
                   :action="selectedExpense ? ('{{ url('/site-expenses') }}/' + selectedExpense.id) : '{{ route('site-expenses.store') }}'" 
                   method="POST" 
                   enctype="multipart/form-data" 
-                  class="p-3.5 sm:p-5 space-y-3 text-xs bg-slate-50/70 overflow-y-auto flex-1">
+                  class="p-4 sm:p-6 space-y-4 text-xs bg-slate-50/70 overflow-y-auto flex-1">
                 @csrf
                 <template x-if="selectedExpense">
                     <input type="hidden" name="_method" value="PUT">
                 </template>
 
-                {{-- SECTION 1: PROJECT ASSOCIATION & CATEGORY --}}
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                {{-- SECTION 1: PROJECT ASSOCIATION & EXPENSE CATEGORY --}}
+                <div class="p-4 sm:p-5 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 uppercase tracking-wider">
                             <div class="w-6 h-6 rounded-md bg-amber-50 text-[#a38c29] flex items-center justify-center border border-amber-200/50">
                                 <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
@@ -784,10 +789,11 @@
                         <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">COA 4000s Series</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
-                        <div class="sm:col-span-3">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Project Name <span class="text-rose-500">*</span></label>
-                            <select name="project_id" x-model="projectId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-start">
+                        {{-- Project Name (Wide col-6) --}}
+                        <div class="lg:col-span-6">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Project Name <span class="text-rose-500">*</span></label>
+                            <select name="project_id" x-model="projectId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
                                 @if($projects->count() !== 1)
                                     <option value="">-- Select Project --</option>
                                 @endif
@@ -801,13 +807,11 @@
                                 @endif
                             </select>
                         </div>
-                        <div class="sm:col-span-2">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Voucher Date <span class="text-rose-500">*</span></label>
-                            <input type="date" name="voucher_date" x-model="voucherDate" value="{{ old('voucher_date', date('Y-m-d')) }}" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
-                        </div>
-                        <div class="sm:col-span-3">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Expense Category (COA) <span class="text-rose-500">*</span></label>
-                            <select name="expense_category_code" x-model="expenseCategoryCode" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+
+                        {{-- Expense Category (COA) (Wide col-6) --}}
+                        <div class="lg:col-span-6">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Expense Category (COA) <span class="text-rose-500">*</span></label>
+                            <select name="expense_category_code" x-model="expenseCategoryCode" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
                                 @foreach($expenseCategories as $code => $name)
                                     <option value="{{ $code }}" {{ old('expense_category_code', '4020') == $code ? 'selected' : '' }}>
                                         {{ $code }} - {{ $name }}
@@ -815,10 +819,18 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="sm:col-span-4">
+
+                        {{-- Voucher Date (col-4) --}}
+                        <div class="lg:col-span-4">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Voucher Date <span class="text-rose-500">*</span></label>
+                            <input type="date" name="voucher_date" x-model="voucherDate" value="{{ old('voucher_date', date('Y-m-d')) }}" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                        </div>
+
+                        {{-- Payment Source Account (col-8) --}}
+                        <div class="lg:col-span-8">
                             <input type="hidden" name="payment_source_type" value="bank">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Payment Source Account <span class="text-rose-500">*</span></label>
-                            <select name="company_bank_account_id" x-model="companyBankAccountId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Payment Source Account <span class="text-rose-500">*</span></label>
+                            <select name="company_bank_account_id" x-model="companyBankAccountId" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                                 @if($bankAccounts->count() !== 1)
                                     <option value="">-- Select Payment Source Account --</option>
                                 @endif
@@ -836,8 +848,8 @@
                 </div>
 
                 {{-- SECTION 2: PAYEE & INVOICE REFERENCE --}}
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div class="p-4 sm:p-5 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 uppercase tracking-wider">
                             <div class="w-6 h-6 rounded-md bg-amber-50 text-[#a38c29] flex items-center justify-center border border-amber-200/50">
                                 <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
@@ -846,32 +858,40 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                        <div class="sm:col-span-4 flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/60">
-                            <label class="flex items-center justify-center gap-1.5 cursor-pointer py-1.5 px-2.5 rounded-lg transition text-[11px] flex-1 text-center"
-                                   :class="payeeType === 'registered' ? 'bg-[#a38c29] text-white font-black shadow-xs' : 'text-slate-600 hover:text-slate-900 font-bold'">
-                                <input type="radio" name="payee_type" value="registered" x-model="payeeType" @change="onPayeeChange()" class="sr-only">
-                                <span>Registered Vendor</span>
-                            </label>
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                        {{-- Payee Type Toggle (col-4) --}}
+                        <div class="lg:col-span-4">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Payee Type</label>
+                            <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+                                <label class="flex items-center justify-center gap-1.5 cursor-pointer py-2 px-3 rounded-lg transition text-xs flex-1 text-center font-bold"
+                                       :class="payeeType === 'registered' ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                                    <input type="radio" name="payee_type" value="registered" x-model="payeeType" @change="onPayeeChange()" class="sr-only">
+                                    <i data-lucide="store" class="w-3.5 h-3.5"></i>
+                                    <span>Registered Vendor</span>
+                                </label>
 
-                            <label class="flex items-center justify-center gap-1.5 cursor-pointer py-1.5 px-2.5 rounded-lg transition text-[11px] flex-1 text-center"
-                                   :class="payeeType === 'one_time' ? 'bg-[#a38c29] text-white font-black shadow-xs' : 'text-slate-600 hover:text-slate-900 font-bold'">
-                                <input type="radio" name="payee_type" value="one_time" x-model="payeeType" class="sr-only">
-                                <span>One-Time Payee</span>
-                            </label>
+                                <label class="flex items-center justify-center gap-1.5 cursor-pointer py-2 px-3 rounded-lg transition text-xs flex-1 text-center font-bold"
+                                       :class="payeeType === 'one_time' ? 'bg-[#a38c29] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'">
+                                    <input type="radio" name="payee_type" value="one_time" x-model="payeeType" class="sr-only">
+                                    <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                                    <span>One-Time Payee</span>
+                                </label>
+                            </div>
                         </div>
 
-                        <div class="sm:col-span-8">
+                        {{-- Vendor Selector / One-Time Payee Name (col-8) --}}
+                        <div class="lg:col-span-8">
                             <template x-if="payeeType === 'registered'">
                                 <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <span class="text-[11px] font-bold text-slate-700">Select Registered Vendor <span class="text-rose-500">*</span></span>
-                                        <a href="{{ route('vendors.index') }}" target="_blank" class="text-[10px] text-[#a38c29] hover:underline font-extrabold flex items-center gap-1">
-                                            <span>+ Add New Vendor in Master</span>
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="font-bold text-slate-700 text-xs">Select Registered Vendor <span class="text-rose-500">*</span></label>
+                                        <a href="{{ route('vendors.index') }}" target="_blank" 
+                                           class="inline-flex items-center gap-1 text-[11px] font-bold text-[#a38c29] hover:text-[#8a741f] bg-amber-50 hover:bg-amber-100/80 px-2.5 py-0.5 rounded-lg border border-amber-200/60 transition shadow-2xs">
+                                            <i data-lucide="plus" class="w-3 h-3"></i>
+                                            <span>Add New Vendor in Master</span>
                                         </a>
                                     </div>
-                                    <select name="vendor_id" x-model="vendorId" @change="onVendorChange()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                    <select name="vendor_id" x-model="vendorId" @change="onVendorChange()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
                                         <option value="">-- Select Vendor from Vendor Master --</option>
                                         @foreach($vendors as $vendor)
                                             <option value="{{ $vendor->id }}">
@@ -887,32 +907,57 @@
 
                             <template x-if="payeeType === 'one_time'">
                                 <div>
-                                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">One-Time Payee Name <span class="text-rose-500">*</span></label>
-                                    <input type="text" name="casual_payee_name" x-model="casualPayeeName" placeholder="Enter casual payee name..." class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                                    <label class="block font-bold text-slate-700 mb-1.5 text-xs">One-Time Payee Full Name <span class="text-rose-500">*</span></label>
+                                    <input type="text" name="casual_payee_name" x-model="casualPayeeName" placeholder="Enter casual payee or recipient name..." class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                                 </div>
                             </template>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {{-- Dynamic Active Vendor Details Card --}}
+                    <template x-if="payeeType === 'registered' && selectedVendor">
+                        <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-md bg-[#a38c29] text-white font-mono font-bold text-[10px]" x-text="selectedVendor?.vendor_code"></span>
+                                <span class="font-extrabold text-slate-900 text-xs" x-text="selectedVendor?.name"></span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-600 text-[11px] font-medium flex-wrap">
+                                <span x-show="selectedVendor?.gstin" class="flex items-center gap-1 font-mono font-bold bg-white px-2 py-0.5 rounded border border-amber-200 text-slate-800">
+                                    <span class="text-slate-400 font-sans text-[10px]">GSTIN:</span>
+                                    <span x-text="selectedVendor?.gstin"></span>
+                                </span>
+                                <span x-show="selectedVendor?.phone" class="flex items-center gap-1">
+                                    <span class="text-slate-400">Phone:</span>
+                                    <span class="font-bold text-slate-800 font-mono" x-text="selectedVendor?.phone"></span>
+                                </span>
+                                <span x-show="selectedVendor?.bank_name" class="flex items-center gap-1">
+                                    <span class="text-slate-400">Bank:</span>
+                                    <span class="font-bold text-slate-800" x-text="selectedVendor?.bank_name"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </template>
+
+                    {{-- Invoice / Reference Row --}}
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                         <div>
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Bill / Ref Voucher No.</label>
-                            <input type="text" name="transaction_reference_no" x-model="transactionRef" placeholder="e.g. JCB/0525/0148" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Bill / Ref Voucher No.</label>
+                            <input type="text" name="transaction_reference_no" x-model="transactionRef" placeholder="e.g. JCB/0525/0148" class="w-full text-xs font-mono font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                         <div>
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Bill Date</label>
-                            <input type="date" name="bill_date" x-model="billDate" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Bill Date</label>
+                            <input type="date" name="bill_date" x-model="billDate" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                         <div>
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Due Date (Optional)</label>
-                            <input type="date" name="due_date" x-model="dueDate" class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Due Date (Optional)</label>
+                            <input type="date" name="due_date" x-model="dueDate" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
                     </div>
                 </div>
 
                 {{-- SECTION 3: FINANCIALS, TAXES & ATTACHMENT --}}
-                <div class="p-3.5 sm:p-4 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                <div class="p-4 sm:p-5 rounded-2xl bg-white shadow-xs border border-slate-200/80 space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
                         <div class="flex items-center gap-2 text-xs font-extrabold text-slate-900 uppercase tracking-wider">
                             <div class="w-6 h-6 rounded-md bg-amber-50 text-[#a38c29] flex items-center justify-center border border-amber-200/50">
                                 <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
@@ -922,58 +967,80 @@
                         <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">Auto GST Calculation</span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
-                        <div class="sm:col-span-3">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Amount (₹) <span class="text-rose-500">*</span></label>
-                            <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="45000.00" class="w-full h-9 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs" required>
-                        </div>
-
-                        <div class="sm:col-span-3">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">GST Rate (%)</label>
-                            <select name="gst_rate" x-model.number="gstPct" class="w-full h-9 text-xs font-bold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
-                                <option value="0">0% (Nil)</option>
-                                <option value="5">5%</option>
-                                <option value="12">12%</option>
-                                <option value="18">18% Standard</option>
-                                <option value="28">28%</option>
-                            </select>
-                        </div>
-
-                        <div class="sm:col-span-6">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Net Total Payable</label>
-                            <div class="h-9 px-3.5 rounded-xl bg-[#a38c29] text-white flex items-center justify-between shadow-xs">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                        {{-- Left Side: Base Amount & GST Selection (col-6) --}}
+                        <div class="lg:col-span-6 space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <span class="font-black text-amber-100 text-[10px] block uppercase tracking-wider">Net Total Payable (₹)</span>
+                                    <label class="block font-bold text-slate-700 mb-1.5 text-xs">Base Amount (₹) <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-bold text-xs">₹</span>
+                                        <input type="number" step="0.01" name="gross_amount" x-model.number="gross" placeholder="45000.00" class="w-full pl-8 pr-3.5 py-2.5 text-xs font-mono font-black text-slate-900 rounded-xl border border-slate-200 bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 transition shadow-2xs" required>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 text-xs">GST Rate (%)</label>
+                                    <select name="gst_rate" x-model.number="gstPct" class="w-full py-2.5 px-3 text-xs font-bold rounded-xl border border-slate-200 bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                                        <option value="0">0% (Nil / Exempted)</option>
+                                        <option value="5">5% GST</option>
+                                        <option value="12">12% GST</option>
+                                        <option value="18">18% Standard GST</option>
+                                        <option value="28">28% GST</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {{-- Tax Breakdown Pill Bar --}}
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs font-semibold text-slate-600">
+                                <span>Tax Breakdown:</span>
+                                <div class="flex items-center gap-3 font-mono font-bold">
+                                    <span>CGST: ₹ <span x-text="(gstAmount / 2).toFixed(2)">0.00</span></span>
+                                    <span class="text-slate-300">|</span>
+                                    <span>SGST: ₹ <span x-text="(gstAmount / 2).toFixed(2)">0.00</span></span>
+                                    <span class="text-slate-300">|</span>
+                                    <span class="text-[#a38c29]">Total GST: ₹ <span x-text="gstAmount.toFixed(2)">0.00</span></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Right Side: Executive Net Payable Card (col-6) --}}
+                        <div class="lg:col-span-6">
+                            <div class="p-4 rounded-2xl bg-gradient-to-br from-[#2c281b] via-[#3a3524] to-[#1f1c13] text-white border border-[#a38c29]/40 shadow-md space-y-2 relative overflow-hidden">
+                                <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-2xl pointer-events-none"></div>
+                                <div class="relative z-10 flex items-center justify-between">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-[#d4af37]">NET TOTAL PAYABLE (GROSS + GST)</span>
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase bg-[#a38c29]/30 text-amber-200 border border-[#a38c29]/50" x-text="gstPct + '% GST Included'"></span>
+                                </div>
+                                <div class="relative z-10 text-2xl sm:text-3xl font-black font-mono text-white tracking-tight" x-text="formatCurrency(netTotal)">
+                                    ₹ 0.00
+                                </div>
+                                <div class="relative z-10 text-[11px] font-semibold text-amber-200/80 italic line-clamp-1" x-text="inWords(Math.round(netTotal))">
+                                    Rupees Zero Only
                                 </div>
                                 <input type="hidden" name="net_amount" :value="netTotal.toFixed(2)">
                                 <input type="hidden" name="total_gst_amount" :value="gstAmount.toFixed(2)">
                                 <input type="hidden" name="cgst_amount" :value="(gstAmount / 2).toFixed(2)">
                                 <input type="hidden" name="sgst_amount" :value="(gstAmount / 2).toFixed(2)">
-                                <span class="font-black text-white font-mono text-base sm:text-lg" x-text="formatCurrency(netTotal)">₹ 53,100.00</span>
                             </div>
                         </div>
                     </div>
 
                     {{-- Remarks & Attach File Dropzone --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
-                        <div class="sm:col-span-7">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Remarks / Particulars</label>
-                            <input type="text" name="narration" x-model="narration" placeholder="e.g. JCB rental for excavation work – Block A" class="w-full h-9 text-xs font-semibold rounded-xl border border-slate-200 bg-white px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1 items-start">
+                        <div class="lg:col-span-8">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Remarks / Particulars / Work Narration</label>
+                            <input type="text" name="narration" x-model="narration" placeholder="e.g. JCB rental for excavation work at Block A, site foundation..." class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                         </div>
-                        <div class="sm:col-span-5">
-                            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Attach Bill / Document</label>
-                            <div class="h-9 px-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-amber-50/40 hover:border-[#a38c29] transition cursor-pointer relative shadow-2xs group flex items-center justify-between">
+                        <div class="lg:col-span-4">
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Attach Invoice / Bill / Document</label>
+                            <div class="py-2.5 px-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-amber-50/40 hover:border-[#a38c29] transition cursor-pointer relative shadow-2xs group flex items-center justify-between">
                                 <input type="file" name="attachment" accept=".pdf,.png,.jpg,.jpeg" @change="handleFileUpload($event)" class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10">
                                 <div class="flex items-center gap-2 min-w-0 flex-1">
-                                    <i data-lucide="paperclip" class="w-3.5 h-3.5 text-[#a38c29] shrink-0"></i>
-                                    <span class="text-[11px] font-bold text-slate-800 truncate" x-text="fileName || 'Upload Bill / PDF Document'">Upload Bill / PDF Document</span>
+                                    <i data-lucide="paperclip" class="w-4 h-4 text-[#a38c29] shrink-0"></i>
+                                    <span class="text-xs font-bold text-slate-800 truncate" x-text="fileName || 'Upload PDF / Invoice'">Upload PDF / Invoice</span>
                                 </div>
-                                <template x-if="fileName">
-                                    <span class="text-[10px] font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded shrink-0 ml-2">Attached</span>
-                                </template>
-                                <template x-if="!fileName">
-                                    <span class="text-[10px] font-bold text-slate-400 shrink-0 ml-2">Browse</span>
-                                </template>
+                                <span class="text-[10px] font-bold text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded shrink-0 ml-2" x-text="fileName ? 'Attached' : 'Browse'">Browse</span>
                             </div>
                         </div>
                     </div>
@@ -981,21 +1048,27 @@
 
             </form>
 
-            {{-- Pinned Footer — outside scrollable form --}}
-            <div class="px-5 py-3 bg-white border-t border-slate-100 flex items-center justify-end gap-2.5 shrink-0">
-                <button type="button" @click="showCreateModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs transition border-0 cursor-pointer">
-                    Cancel
-                </button>
-                <template x-if="!selectedExpense || selectedExpense.status === 'Draft'">
-                    <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300/80 font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs">
-                        <i data-lucide="file-text" class="w-3.5 h-3.5 text-amber-700"></i>
-                        <span>Save as Draft</span>
+            {{-- Executive Pinned Footer --}}
+            <div class="px-6 py-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                <div class="text-xs text-slate-500 flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+                    <span>Voucher will be auto-posted to Double-Entry General Ledger upon approval</span>
+                </div>
+
+                <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+                    <button type="button" @click="showCreateModal = false" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs uppercase tracking-wider transition border-0 cursor-pointer">
+                        Cancel
                     </button>
-                </template>
-                <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-5 py-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs shadow-md uppercase tracking-wider transition cursor-pointer flex items-center gap-2 border-0">
-                    <i data-lucide="send" class="w-4 h-4 text-white"></i>
-                    <span x-text="selectedExpense ? 'Update Expense' : 'Submit for Approval'">Submit for Approval</span>
-                </button>
+                    <template x-if="!selectedExpense || selectedExpense.status === 'Draft'">
+                        <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-amber-300/90 font-extrabold text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 shadow-2xs">
+                            <i data-lucide="file-text" class="w-4 h-4 text-[#a38c29]"></i>
+                            <span>Save as Draft</span>
+                        </button>
+                    </template>
+                    <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#a38c29] via-[#b89f33] to-[#8a741f] hover:from-[#8a741f] hover:to-[#736017] text-white font-black text-xs uppercase tracking-widest shadow-md shadow-[#a38c29]/25 hover:shadow-lg transition-all cursor-pointer border-0">
+                        <span x-text="selectedExpense ? 'Update Site Expense' : 'Add Site Expense'">Add Site Expense</span>
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -1016,7 +1089,7 @@
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showViewModal = false"></div>
 
         {{-- Modal Dialog Container --}}
-        <div class="relative bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[90vh]"
+        <div class="relative bg-white w-full max-w-5xl xl:max-w-6xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[92vh]"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
