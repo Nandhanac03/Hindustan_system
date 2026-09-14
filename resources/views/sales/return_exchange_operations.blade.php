@@ -303,6 +303,15 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                     </button>
 
+                                    <template x-if="sale.status === 'cancelled' || sale.status === 'returned'">
+                                        <button type="button" @click="openCustomerRefund(sale)" 
+                                                class="p-2 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm" 
+                                                title="Customer Refund">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </button>
+                                    </template>
                                 </div>
                             </td>
                         </tr>
@@ -2573,6 +2582,213 @@
                 </div>
                 
             </div>
+        </div>
+    </div>
+
+    {{-- CUSTOMER REFUND MODAL DIALOG --}}
+    <div x-show="openCustomerRefundModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 min-h-screen">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all flex flex-col max-h-[90vh] my-auto"
+             @click.away="openCustomerRefundModal = false">
+            
+            {{-- Modal Header --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 shrink-0 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-extrabold text-white tracking-tight">Customer Refund</h2>
+                            <p class="text-[11px] text-slate-300 font-medium">Process customer refund for cancellation</p>
+                        </div>
+                    </div>
+                    <button type="button" @click="openCustomerRefundModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                </div>
+            </div>
+
+            {{-- Modal Scrollable Body --}}
+            <div class="p-6 overflow-y-auto space-y-5 flex-1">
+                
+                {{-- Return Metadata Summary Card --}}
+                <template x-if="refundModalSale">
+                    <div class="bg-slate-50/80 rounded-xl border border-slate-200/80 p-4 text-xs font-medium text-slate-700 space-y-2">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return No.</span>
+                                <span class="font-extrabold text-slate-900" x-text="'RET-' + new Date(refundModalSale.cancelled_at || refundModalSale.updated_at).getFullYear() + '-' + String(refundModalSale.id).padStart(3, '0')"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Unit</span>
+                                <span class="font-bold text-slate-800" x-text="refundModalSale.unit ? formatUnitDisplay(refundModalSale.unit) : 'N/A'"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return Date</span>
+                                <span class="font-bold text-slate-800" x-text="formatDate(refundModalSale.cancelled_at || refundModalSale.updated_at)"></span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-slate-200/60">
+                            <div>
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Project</span>
+                                <span class="font-bold text-slate-800" x-text="refundModalSale.project ? refundModalSale.project.name : 'N/A'"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Customer</span>
+                                <span class="font-bold text-slate-900" x-text="refundModalSale.customer ? refundModalSale.customer.name : 'N/A'"></span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">Return Type</span>
+                                <span class="font-bold text-slate-800" x-text="refundModalSale.status === 'cancelled' ? 'Cancellation' : 'Return'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Two Column Layout --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    {{-- Left Column: Refund Details & Payment Mode --}}
+                    <div class="space-y-5">
+                        
+                        {{-- Refund Details Card --}}
+                        <div class="border border-slate-200 rounded-xl p-4 space-y-3 bg-white shadow-2xs">
+                            <div class="flex items-center gap-2 pb-2 border-b border-slate-100 text-xs font-extrabold uppercase text-slate-800 tracking-wider">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                <span>Refund Details</span>
+                            </div>
+
+                            <div class="space-y-2.5 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Customer Paid Amount</span>
+                                    <span class="font-bold text-emerald-600 font-mono" x-text="fmt(refundModalSale ? getPaidTillDate(refundModalSale) : 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Cancellation Fee <span class="text-[10px] text-slate-400">(If applicable)</span></span>
+                                    <span class="font-bold text-slate-700 font-mono" x-text="fmt(refundModalSale ? refundModalSale.cancellation_fee : 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium inline-flex items-center gap-1">
+                                        Owner Approved Additional Refund
+                                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" title="Approved additional refund amount"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </span>
+                                    <span class="font-bold text-slate-700 font-mono" x-text="fmt(refundModalSale ? refundModalSale.additional_refund_amount : 0)"></span>
+                                </div>
+                                <div class="pt-2 border-t border-slate-100 flex items-center justify-between bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-100">
+                                    <span class="font-extrabold text-emerald-900 uppercase text-[11px]">Total Refund Amount</span>
+                                    <span class="font-black text-emerald-600 font-mono text-sm" x-text="fmt(refundModalSale ? getRefundDue(refundModalSale) : 0)"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Payment Mode --}}
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Payment Mode <span class="text-rose-500">*</span></label>
+                            <select x-model="customerRefundForm.payment_mode"
+                                    class="w-full px-3 py-2.5 text-xs font-semibold bg-white border border-slate-250 rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-800">
+                                <template x-for="pm in paymentModesList" :key="pm.id || pm.name">
+                                    <option :value="pm.name" x-text="pm.name"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        {{-- Remarks --}}
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Remarks <span class="text-slate-400 font-normal lowercase">(Optional)</span></label>
+                                <span class="text-[10px] text-slate-400 font-medium" x-text="(customerRefundForm.remarks ? customerRefundForm.remarks.length : 0) + '/500'"></span>
+                            </div>
+                            <textarea rows="3" x-model="customerRefundForm.remarks" maxlength="500"
+                                      placeholder="Customer refund processed as per cancellation agreement."
+                                      class="w-full px-3 py-2 text-xs border border-slate-250 rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 font-medium text-slate-800 placeholder-slate-400"></textarea>
+                        </div>
+                    </div>
+
+                    {{-- Right Column: Select Company Account & Refund Amount --}}
+                    <div class="space-y-5">
+                        
+                        {{-- Select Company Account --}}
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-1.5 text-xs font-extrabold uppercase text-slate-800 tracking-wider">
+                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <span>Select Company Account <span class="text-rose-500">*</span></span>
+                            </div>
+                            <select x-model="customerRefundForm.company_bank_account_id"
+                                    class="w-full px-3 py-2.5 text-xs font-semibold bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-800"
+                                    :class="customerRefundFormErrors.company_bank_account_id ? 'border-rose-500' : 'border-slate-250'">
+                                <option value="">Select Company Account</option>
+                                <template x-for="acc in companyBankAccountsList" :key="acc.id">
+                                    <option :value="acc.id" x-text="acc.bank_name + (acc.account_type ? ' - ' + acc.account_type : '') + (acc.account_number ? ' / A/c No: ' + acc.account_number : '') + (acc.ifsc_code ? ' | IFSC: ' + acc.ifsc_code : '')"></option>
+                                </template>
+                            </select>
+                            <span x-show="customerRefundFormErrors.company_bank_account_id" class="text-[10px] text-rose-500 font-bold block" x-text="customerRefundFormErrors.company_bank_account_id"></span>
+
+                            {{-- Source Bank Account Summary Card (Image 1 replica) --}}
+                            <template x-if="getSelectedBankAccount()">
+                                <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2 shadow-2xs mt-2">
+                                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">SOURCE BANK ACCOUNT</span>
+                                        <span class="text-[11px] font-bold text-slate-800 truncate max-w-[200px]" x-text="getSelectedBankAccount().bank_name + (getSelectedBankAccount().account_number ? ' ' + getSelectedBankAccount().account_number : '')"></span>
+                                    </div>
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-slate-600 font-semibold text-[11px]">Current Bank Balance:</span>
+                                            <span class="font-mono font-bold text-blue-600 text-xs" x-text="fmt(getSelectedBankAccount().current_balance || 0)"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-2">
+                                            <span class="text-slate-600 font-semibold text-[11px]">Payout Deduction:</span>
+                                            <span class="font-mono font-bold text-rose-500 text-xs" x-text="'- ' + fmt(customerRefundForm.refund_amount || 0)"></span>
+                                        </div>
+                                        <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
+                                            <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">BANK BALANCE AFTER:</span>
+                                            <span class="font-mono font-black text-xs" :class="((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0)) < 0 ? 'text-rose-600' : 'text-slate-900'" x-text="fmt((getSelectedBankAccount().current_balance || 0) - (customerRefundForm.refund_amount || 0))"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        {{-- Refund Amount --}}
+                        <div class="space-y-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Refund Amount <span class="text-rose-500">*</span></label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-bold text-xs">
+                                    ₹
+                                </div>
+                                <input type="number" step="0.01" min="0.01" x-model="customerRefundForm.refund_amount"
+                                       class="w-full pl-8 pr-4 py-2.5 text-sm font-extrabold text-slate-900 bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20"
+                                       :class="customerRefundFormErrors.refund_amount ? 'border-rose-500' : 'border-slate-250'">
+                            </div>
+                            <span class="text-[10px] text-slate-400 font-medium block">(Total refund amount will be transferred to customer)</span>
+                            <span x-show="customerRefundFormErrors.refund_amount" class="text-[10px] text-rose-500 font-bold block" x-text="customerRefundFormErrors.refund_amount"></span>
+                        </div>
+
+                        {{-- Info Box --}}
+                        <div class="bg-blue-50/80 border border-blue-200/80 rounded-xl p-3.5 flex items-start gap-3 text-xs text-blue-900">
+                            <svg class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <p class="leading-relaxed">This amount will be credited to the customer's bank account as per the selected company account.</p>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-end gap-3">
+                <button type="button" @click="openCustomerRefundModal = false"
+                        class="px-5 py-2.5 rounded-xl border border-slate-250 text-slate-700 text-xs font-extrabold uppercase hover:bg-slate-100 transition shadow-2xs">
+                    Cancel
+                </button>
+                <button type="button" @click="submitCustomerRefund()" :disabled="isSubmittingRefund"
+                        class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-extrabold uppercase transition shadow-sm inline-flex items-center gap-2">
+                    <svg x-show="!isSubmittingRefund" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    <svg x-show="isSubmittingRefund" class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span>Confirm Refund</span>
+                </button>
+            </div>
+
         </div>
     </div>
 

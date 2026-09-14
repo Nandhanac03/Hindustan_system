@@ -18,6 +18,8 @@ use App\Models\JournalVoucher;
 use App\Models\JournalEntry;
 use App\Models\ChartOfAccount;
 use App\Models\VoucherType;
+use App\Models\CompanyBankAccount;
+use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
@@ -57,7 +59,7 @@ class SalesController extends Controller
             $query->whereDate('sale_date', '<=', $request->date_to);
         }
         $postedVouchers = DB::table('vouchers')
-            ->where('type', 'Receipt')
+            ->whereIn('type', ['Receipt', 'Payment'])
             ->where('status', 'Posted')
             ->whereNotNull('reference_no')
             ->get(['reference_no']);
@@ -88,6 +90,7 @@ class SalesController extends Controller
             'customers' => Customer::orderBy('name')->get(),
             'brokers' => Broker::orderBy('name')->get(),
             'bankAccounts' => Bank::where('status', 'active')->orderBy('bank_name')->get(),
+            'companyBankAccounts' => CompanyBankAccount::where('status', 'active')->orderBy('bank_name')->get(),
             'unitTypes' => UnitType::where('is_active', true)->orderBy('name')->get(),
             'paymentModes' => PaymentMode::where('status', 'active')->orderBy('name')->get(),
         ]);
@@ -1356,5 +1359,160 @@ class SalesController extends Controller
         }
 
         return $saleNo;
+    }
+
+    public function processCustomerRefund(Request $request, int|string $id): JsonResponse
+    {
+        $validated = $request->validate([
+            'company_bank_account_id' => 'required|exists:company_bank_accounts,id',
+            'refund_amount'           => 'required|numeric|min:0.01',
+            'payment_mode'            => 'required|string',
+            'remarks'                 => 'nullable|string|max:500',
+        ]);
+
+        $sale = Sale::with(['customer', 'unit', 'project'])->findOrFail($id);
+
+        try {
+            DB::transaction(function () use ($sale, $validated) {
+                $amount = (float) $validated['refund_amount'];
+                $companyBankId = (int) $validated['company_bank_account_id'];
+                $paymentMode = $validated['payment_mode'];
+                $remarks = $validated['remarks'] ?? '';
+                $systemId = $sale->system_id ?? 1;
+
+                // 1. Lock & Update Company Bank Account Balance
+                $companyBank = CompanyBankAccount::lockForUpdate()->find($companyBankId);
+                if ($companyBank) {
+                    $currentBal = (float) ($companyBank->current_balance ?? $companyBank->opening_balance ?? 0);
+                    $companyBank->current_balance = $currentBal - $amount;
+                    $companyBank->save();
+                }
+
+                // 2. Build Reference Allocation JSON for refund tracking
+                $refNoJson = json_encode([
+                    'allocations' => [
+                        [
+                            'type'      => 'refund',
+                            'target_id' => $sale->id,
+                            'amount'    => $amount,
+                        ]
+                    ],
+                    'payment_mode' => $paymentMode,
+                    'company_bank_account_id' => $companyBankId,
+                    'remarks' => $remarks
+                ]);
+
+                // 3. Create Voucher Record (Payment type)
+                $voucherNumber = 'PY-REF-' . date('Ymd-His') . '-' . rand(100, 999);
+                $voucher = Voucher::create([
+                    'system_id'      => $systemId,
+                    'voucher_number' => $voucherNumber,
+                    'type'           => 'Payment',
+                    'date'           => date('Y-m-d'),
+                    'reference_no'   => $refNoJson,
+                    'narration'      => 'Customer Refund for cancellation on Unit ' . ($sale->unit?->door_no ?? '') . ' (' . ($sale->customer?->name ?? 'Customer') . ') — ' . $paymentMode . ($remarks ? ' (' . $remarks . ')' : ''),
+                    'created_by'     => auth()->id() ?? 1,
+                    'status'         => 'Posted',
+                ]);
+
+                // 4. Double-Entry Accounting: Ensure VoucherType (voucher_type_id = 3 for CUSTOMER_REFUND) & ChartOfAccounts ('1001', '1010')
+                $voucherType = VoucherType::firstOrCreate(
+                    ['id' => 3],
+                    [
+                        'code'        => 'CUSTOMER_REFUND',
+                        'name'        => 'Customer Refund Voucher',
+                        'prefix'      => 'JV-RF',
+                        'description' => 'Generated on booking cancellation / refund issue',
+                        'is_active'   => true,
+                    ]
+                );
+
+                ChartOfAccount::firstOrCreate(
+                    ['account_code' => '1001'],
+                    [
+                        'account_name' => 'Karnataka Bank Account',
+                        'account_type' => 'ASSET',
+                        'is_active'   => true,
+                    ]
+                );
+
+                ChartOfAccount::firstOrCreate(
+                    ['account_code' => '1010'],
+                    [
+                        'account_name' => 'Customer Receivables',
+                        'account_type' => 'ASSET',
+                        'is_active'   => true,
+                    ]
+                );
+
+                // Generate Journal Voucher Header (journal_vouchers)
+                $jvNo = 'JV-RF-' . date('Y') . '-' . str_pad((string)$sale->id, 4, '0', STR_PAD_LEFT);
+                $counter = 1;
+                while (JournalVoucher::where('voucher_no', $jvNo)->exists()) {
+                    $jvNo = 'JV-RF-' . date('Y') . '-' . str_pad((string)$sale->id, 4, '0', STR_PAD_LEFT) . '-' . $counter;
+                    $counter++;
+                }
+
+                $journalVoucher = JournalVoucher::create([
+                    'voucher_no'      => $jvNo,
+                    'voucher_type_id' => $voucherType->id,
+                    'voucher_date'    => date('Y-m-d'),
+                    'reference_id'    => $sale->id,
+                    'narration'       => 'Booking Cancellation refund to ' . ($sale->customer?->name ?? 'Customer') . ($remarks ? ' (' . $remarks . ')' : ''),
+                    'is_active'       => true,
+                ]);
+
+                // Double Entries (journal_entries)
+                // 1. Debit Customer Receivables (Liability Cleared / Account '1010')
+                JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => '1010',
+                    'debit_amount'   => $amount,
+                    'credit_amount'  => 0.00,
+                    'line_narration' => 'Customer Receivables (Liability Cleared)',
+                ]);
+
+                // 2. Credit Source Bank Account (Bank Asset Decreases / Account '1001')
+                JournalEntry::create([
+                    'voucher_id'     => $journalVoucher->id,
+                    'account_id'     => '1001',
+                    'debit_amount'   => 0.00,
+                    'credit_amount'  => $amount,
+                    'line_narration' => ($companyBank ? $companyBank->bank_name : 'Karnataka Bank Account') . ' (Bank Asset Decreases)',
+                ]);
+
+                // 5. Update Sale refund_amount field
+                $existingRefund = (float) ($sale->refund_amount ?? 0);
+                $sale->refund_amount = $existingRefund + $amount;
+                $sale->save();
+
+                // 6. Log Sale Status Event
+                SaleStatusLog::create([
+                    'sale_id'       => $sale->id,
+                    'from_status'   => $sale->status,
+                    'to_status'     => $sale->status,
+                    'event_type'    => 'refund_processed',
+                    'reason'        => 'Processed customer refund of ₹' . number_format($amount, 2) . ' via ' . $paymentMode . ($companyBank ? ' (' . $companyBank->bank_name . ')' : ''),
+                    'performed_by'  => auth()->id(),
+                    'snapshot_data' => [
+                        'refund_amount' => $amount,
+                        'payment_mode' => $paymentMode,
+                        'company_bank_account' => $companyBank?->bank_name,
+                        'journal_voucher_no' => $journalVoucher->voucher_no,
+                        'remarks' => $remarks,
+                    ],
+                ]);
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer refund processed successfully.',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error'   => 'Failed to process refund: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 }

@@ -2057,6 +2057,13 @@ function salesApp() {
         newExchangeSaleId: '',
         openViewExchangeModal: false,
         viewExchangeSale: null,
+        companyBankAccountsList: {!! json_encode(($companyBankAccounts ?? \App\Models\CompanyBankAccount::where('status', 'active')->orderBy('bank_name')->get())->map(function($ba) { return ['id' => $ba->id, 'bank_name' => $ba->bank_name, 'account_name' => $ba->account_name, 'account_number' => $ba->account_number, 'account_type' => $ba->account_type, 'ifsc_code' => $ba->ifsc_code, 'current_balance' => (float)($ba->current_balance ?? 0)]; })) !!},
+        paymentModesList: {!! json_encode(($paymentModes ?? \App\Models\PaymentMode::where('status', 'active')->orderBy('name')->get())->map(function($pm) { return ['id' => $pm->id, 'name' => $pm->name]; })) !!},
+        openCustomerRefundModal: false,
+        refundModalSale: null,
+        customerRefundForm: { company_bank_account_id: '', refund_amount: 0, payment_mode: 'Bank Transfer', remarks: 'Customer refund processed as per cancellation agreement.' },
+        customerRefundFormErrors: {},
+        isSubmittingRefund: false,
         init() {
             this.fetchSales();
             this.$watch('returnFilters', () => {
@@ -2378,6 +2385,65 @@ function salesApp() {
                 }
             });
             return { totalReturns, returnAmount, payableToCustomer, receivableFromCustomer };
+        },
+        getSelectedBankAccount() {
+            if (!this.customerRefundForm || !this.customerRefundForm.company_bank_account_id) return null;
+            return this.companyBankAccountsList.find(acc => acc.id == this.customerRefundForm.company_bank_account_id) || null;
+        },
+        openCustomerRefund(sale) {
+            this.refundModalSale = sale;
+            let remaining = this.getRemainingRefund(sale);
+            if (remaining <= 0) {
+                remaining = this.getRefundDue(sale);
+            }
+            let defaultAccount = this.companyBankAccountsList.length > 0 ? this.companyBankAccountsList[0].id : '';
+            let defaultMode = this.paymentModesList.length > 0 ? this.paymentModesList[0].name : 'Bank Transfer';
+            this.customerRefundForm = {
+                company_bank_account_id: defaultAccount,
+                refund_amount: remaining,
+                payment_mode: defaultMode,
+                remarks: 'Customer refund processed as per cancellation agreement.'
+            };
+            this.customerRefundFormErrors = {};
+            this.openCustomerRefundModal = true;
+        },
+        submitCustomerRefund() {
+            this.customerRefundFormErrors = {};
+            if (!this.customerRefundForm.company_bank_account_id) {
+                this.customerRefundFormErrors.company_bank_account_id = 'Please select a company bank account.';
+            }
+            if (!this.customerRefundForm.refund_amount || Number(this.customerRefundForm.refund_amount) <= 0) {
+                this.customerRefundFormErrors.refund_amount = 'Please enter a valid refund amount.';
+            }
+            if (Object.keys(this.customerRefundFormErrors).length > 0) return;
+
+            this.isSubmittingRefund = true;
+            fetch(`/sales/${this.refundModalSale.id}/customer-refund`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(this.customerRefundForm)
+            })
+            .then(res => res.json().then(data => ({ status: res.status, body: data })))
+            .then(res => {
+                this.isSubmittingRefund = false;
+                if (res.status !== 200 || !res.body.success) {
+                    this.showToast(res.body.error || res.body.message || 'Failed to process customer refund.', 'error');
+                } else {
+                    this.showToast(res.body.message || 'Customer refund processed successfully.');
+                    this.openCustomerRefundModal = false;
+                    this.refundModalSale = null;
+                    this.fetchSales();
+                }
+            })
+            .catch(err => {
+                this.isSubmittingRefund = false;
+                console.error(err);
+                this.showToast('Network error processing customer refund.', 'error');
+            });
         },
         getExchangeStats() {
             let salesList = this.sales.filter(s => s.status === 'exchanged');
