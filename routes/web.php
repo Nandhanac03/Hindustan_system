@@ -377,6 +377,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/site-expenses/{siteExpense}/reject', [\App\Http\Controllers\SiteExpenseController::class, 'reject'])->name('site-expenses.reject');
     Route::delete('/site-expenses/{siteExpense}', [\App\Http\Controllers\SiteExpenseController::class, 'destroy'])->name('site-expenses.destroy');
 
+    // Vendor Master Module (Site Expense Payees)
+    Route::resource('vendors', \App\Http\Controllers\VendorController::class);
+
     // Site Expenses Module
     Route::get('/expenses/bills/create', [\App\Http\Controllers\ExpenseController::class, 'createBill'])->name('expenses.bills.create');
     Route::post('/expenses/bills', [\App\Http\Controllers\ExpenseController::class, 'storeBill'])->name('expenses.bills.store');

@@ -388,8 +388,8 @@
         </div>
 
         <!-- 🏢 Site Expense Operations -->
-        <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
-            <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
+        <div x-data="{ openSiteExpensesMenu: {{ Request::routeIs('site-expenses.*') || Request::routeIs('vendors.*') ? 'true' : 'false' }} }" class="space-y-1 mt-2">
+            <button @click="openSiteExpensesMenu = !openSiteExpensesMenu" class="w-full text-left flex items-center justify-between px-3 py-2.5 text-xs font-semibold rounded-lg hover:text-primary-300 hover:bg-slate-800/30 transition-all {{ Request::routeIs('site-expenses.*') || Request::routeIs('vendors.*') ? 'text-white bg-slate-800/20' : 'text-white/90' }}">
                 <div class="flex items-center gap-3">
                     <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -404,6 +404,9 @@
                 </a>
                 <a href="{{ route('site-expenses.payment-release') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('site-expenses.payment-release') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Site Expense Payment Release
+                </a>
+                <a href="{{ route('vendors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('vendors.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                    Vendor 
                 </a>
             </div>
         </div>
@@ -636,9 +639,9 @@
                 </svg>
             </button>
             <div x-show="openMaster" x-transition.opacity class="pl-8 space-y-1" style="display: none;">
-                <a href="{{ route('contractors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
+                <!-- <a href="{{ route('contractors.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('contractors.*') || Request::routeIs('suppliers.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Vendor 
-                </a>
+                </a> -->
                 <a href="{{ route('chart-of-accounts.index') }}" class="flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] font-semibold transition-all duration-200 {{ Request::routeIs('chart-of-accounts.*') ? 'bg-[#a38c29] text-white shadow-md font-bold' : 'text-white/80 hover:bg-slate-800 hover:text-white' }}">
                     Chart of Accounts
                 </a>

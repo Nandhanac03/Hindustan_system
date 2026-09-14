@@ -174,7 +174,7 @@
             openCreateModal();
         }
     });
-" class="px-4 sm:px-6 lg:px-8 py-6 space-y-6 bg-slate-100 min-h-screen text-slate-800">
+" class="max-w-[1800px] mx-auto space-y-6 text-slate-800">
 
     {{-- Top Flash Messages --}}
     @if(session('success'))
@@ -198,7 +198,7 @@
     @endif
 
     <!-- Header Title Section (Tabasco ERP Gold Theme Aligned) -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-2">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-4">
         <div>
             <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2 mb-1">
                 <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
@@ -212,6 +212,11 @@
         </div>
 
         <div class="flex items-center gap-2.5 self-start sm:self-auto">
+            <a href="{{ route('vendors.index') }}" 
+               class="inline-flex items-center justify-center gap-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 transition flex-shrink-0 uppercase tracking-wider shadow-2xs">
+                <i data-lucide="store" class="w-4 h-4 text-[#a38c29]"></i>
+                <span>Vendor Master</span>
+            </a>
             <button type="button" @click="openCreateModal()"
                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-black text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 uppercase tracking-wider cursor-pointer">
                 <i data-lucide="plus" class="w-4 h-4 text-white"></i>
