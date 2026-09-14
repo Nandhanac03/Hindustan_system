@@ -548,7 +548,7 @@
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-xs">
                                     
-                                    {{-- Left Column --}}
+                                    {{-- Left Column Inputs --}}
                                     <div class="space-y-4">
                                         {{-- Target Status --}}
                                         <div>
@@ -599,54 +599,9 @@
                                                 </div>
                                             </div>
                                         </div>
-
-                                        {{-- Company Bank Account Details Card (Clean 2x2 Grid) --}}
-                                        <div x-show="selectedBankId && !['bounced', 'cancelled'].includes(statusName)" class="rounded-xl p-3.5 bg-slate-50 border border-slate-200/70 shadow-2xs mt-2" style="display: none;" x-transition>
-                                            <div class="grid grid-cols-2 gap-x-3 gap-y-2 text-[11px]">
-                                                <div>
-                                                    <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Bank</span>
-                                                    <span class="font-bold text-slate-800 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.bank_name || '—'"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account No</span>
-                                                    <span class="font-mono font-bold text-slate-800 block" x-text="banks.find(b => b.id == selectedBankId)?.account_number || '—'"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account Name</span>
-                                                    <span class="font-semibold text-slate-700 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.account_name || '—'"></span>
-                                                </div>
-                                                <div>
-                                                    <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Branch</span>
-                                                    <span class="font-semibold text-slate-700 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.branch_name || '—'"></span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {{-- Live Dynamic Bank Balance Summary Card (Matching Partner Statement Card Design) --}}
-                                        <div x-show="selectedBankId && !['bounced', 'cancelled'].includes(statusName)" 
-                                             class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs mt-3" 
-                                             style="display: none;" 
-                                             x-transition>
-                                            <div class="flex items-center justify-between gap-3 text-xs">
-                                                <span class="font-bold text-slate-600">
-                                                    Selected Bank Account Balance (<span x-text="selectedBankObj?.bank_name || 'Bank'"></span>)
-                                                </span>
-                                                <span class="font-mono font-extrabold text-blue-600 text-sm shrink-0" x-text="' ₹' + selectedBankBalance.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
-                                            </div>
-                                            
-                                            <div class="flex items-center justify-between gap-3 text-xs">
-                                                <span class="font-bold text-slate-600">Receipt / Cheque Amount</span>
-                                                <span class="font-mono font-extrabold text-emerald-600 text-sm shrink-0" x-text="'+ ₹' + receiptAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">+ ₹0.00</span>
-                                            </div>
-
-                                            <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-3 text-xs">
-                                                <span class="font-extrabold text-slate-900 uppercase tracking-wider pr-2">Bank Balance After Realization</span>
-                                                <span class="font-mono font-black text-slate-900 text-base shrink-0" x-text="' ₹' + bankBalanceAfterRealization.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
-                                            </div>
-                                        </div>
                                     </div>
 
-                                    {{-- Right Column --}}
+                                    {{-- Right Column Inputs --}}
                                     <div class="space-y-4">
                                         {{-- Reference No --}}
                                         <div>
@@ -676,6 +631,55 @@
                                         </div>
                                     </div>
 
+                                </div>
+
+                                {{-- Bank Details & Balance Summary Row (2 Boxes lying Horizontally in 1 Line) --}}
+                                <div x-show="selectedBankId && !['bounced', 'cancelled'].includes(statusName)" 
+                                     class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4" 
+                                     style="display: none;" 
+                                     x-transition>
+                                    
+                                    {{-- Left Box: Company Bank Account Details Card --}}
+                                    <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
+                                        <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
+                                            <div>
+                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Bank</span>
+                                                <span class="font-bold text-slate-800 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.bank_name || '—'"></span>
+                                            </div>
+                                            <div>
+                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account No</span>
+                                                <span class="font-mono font-bold text-slate-800 block" x-text="banks.find(b => b.id == selectedBankId)?.account_number || '—'"></span>
+                                            </div>
+                                            <div>
+                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account Name</span>
+                                                <span class="font-semibold text-slate-700 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.account_name || '—'"></span>
+                                            </div>
+                                            <div>
+                                                <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Branch</span>
+                                                <span class="font-semibold text-slate-700 truncate block" x-text="banks.find(b => b.id == selectedBankId)?.branch_name || '—'"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Right Box: Live Dynamic Bank Balance Summary Card --}}
+                                    <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs flex flex-col justify-center">
+                                        <div class="flex items-center justify-between gap-3 text-xs">
+                                            <span class="font-bold text-slate-600">
+                                                Selected Bank Account Balance (<span x-text="selectedBankObj?.bank_name || 'Bank'"></span>)
+                                            </span>
+                                            <span class="font-mono font-extrabold text-blue-600 text-sm shrink-0" x-text="' ₹' + selectedBankBalance.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
+                                        </div>
+                                        
+                                        <div class="flex items-center justify-between gap-3 text-xs">
+                                            <span class="font-bold text-slate-600">Receipt / Cheque Amount</span>
+                                            <span class="font-mono font-extrabold text-emerald-600 text-sm shrink-0" x-text="'+ ₹' + receiptAmount.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">+ ₹0.00</span>
+                                        </div>
+
+                                        <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+                                            <span class="font-extrabold text-slate-900 uppercase tracking-wider pr-2">Bank Balance After Realization</span>
+                                            <span class="font-mono font-black text-slate-900 text-base shrink-0" x-text="' ₹' + bankBalanceAfterRealization.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"> ₹0.00</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
