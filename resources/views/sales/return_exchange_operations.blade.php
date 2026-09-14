@@ -365,21 +365,18 @@
             <template x-if="!isEditReturn">
                 <div class="w-full max-w-4xl max-h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="selectedReturnSale = null">
                     <!-- Header -->
-                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-primary-500/10 shrink-0">
-                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-purple-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10 shrink-0">
+                        <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                         <div class="relative z-10 flex items-center justify-between gap-4">
                             <div>
-                                <h2 class="text-xl font-extrabold text-white flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-full bg-[#a38c29]/20 text-[#d9bf3b] flex items-center justify-center shadow-sm">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    </div>
-                                    Cancel Sale Details
-                                </h2>
-                                <p class="text-[10px] text-slate-400 font-semibold mt-1 ml-10">View cancellation information and process status</p>
+                                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                                    <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sales Return & Cancellation</span>
+                                    <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Cancellation Details' : 'Return Details'"></span>
+                                </div>
+                                <h2 class="text-lg font-extrabold text-white tracking-tight mt-1" x-text="selectedReturnSale && selectedReturnSale.status === 'cancelled' ? 'Cancel Sale Details' : 'Sale Return Details'"></h2>
+                                <p class="text-[11px] text-slate-300 font-medium">View cancellation information and process status</p>
                             </div>
-                            <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                            </button>
+                            <button type="button" @click="selectedReturnSale = null" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 shadow-sm">✕</button>
                         </div>
                     </div>
 
@@ -2594,21 +2591,17 @@
              @click.away="openCustomerRefundModal = false">
             
             {{-- Modal Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/10 shrink-0 rounded-t-2xl">
-                <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-6 border-b border-primary-500/10 shrink-0 rounded-t-2xl">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl bg-[#a38c29]/20 flex items-center justify-center text-[#d9bf3b] shadow-inner shadow-[#a38c29]/30 shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                            <span class="px-2 py-0.5 rounded bg-primary/20 text-primary text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Sales Return & Cancellation</span>
+                            <span class="px-2 py-0.5 rounded bg-[#a38c29]/20 text-[#d9bf3b] text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Customer Refund</span>
                         </div>
-                        <div>
-                            <h2 class="text-base font-extrabold text-white tracking-tight">Customer Refund</h2>
-                            <p class="text-[11px] text-slate-300 font-medium">Process customer refund for cancellation</p>
-                        </div>
+                        <h2 class="text-lg font-extrabold text-white tracking-tight mt-1">Customer Refund <span class="text-xs font-normal text-slate-450 font-sans">(Process customer refund for cancellation)</span></h2>
                     </div>
-                    <button type="button" @click="openCustomerRefundModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs">✕</button>
+                    <button type="button" @click="openCustomerRefundModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                 </div>
             </div>
 
