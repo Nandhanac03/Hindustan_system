@@ -483,7 +483,7 @@ class RaBillController extends Controller
             'paid_amount'             => ['required', 'numeric', 'min:0.01', 'max:' . (float) $raBill->balance_amount],
             'payment_mode'            => ['required', 'string'],
             'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
-            'reference_no'            => ['nullable', 'string', 'max:100'],
+            'reference_no'            => ['required', 'string', 'max:100'],
             'remarks'                 => ['nullable', 'string', 'max:500'],
         ]);
 

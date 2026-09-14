@@ -12,9 +12,10 @@
     expenseCategoryCode: '{{ old('expense_category_code', '4020') }}',
     paymentSourceType: 'bank',
     companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
-    payeeType: '{{ old('payee_type', 'registered') }}',
     payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
     payeesData: {{ json_encode($payees->keyBy('id')) }},
+    vendorId: '{{ old('vendor_id', $vendors->first()?->id ?? '') }}',
+    vendorsData: {{ json_encode($vendors->keyBy('id')) }},
     casualPayeeName: '{{ old('casual_payee_name', '') }}',
     selectedVendorGstin: '',
     transactionRef: '{{ old('transaction_reference_no', '') }}',
@@ -53,6 +54,7 @@
         this.expenseCategoryCode = '4020';
         this.payeeType = 'registered';
         this.payeeId = '{{ $payees->first()?->id ?? '' }}';
+        this.vendorId = '{{ $vendors->first()?->id ?? '' }}';
         this.casualPayeeName = '';
         this.companyBankAccountId = '{{ $bankAccounts->first()?->id ?? '1' }}';
         this.transactionRef = '';
@@ -79,6 +81,7 @@
             this.payeeType = pType.includes('one') ? 'one_time' : 'registered';
         }
         if (exp.payee_id) this.payeeId = exp.payee_id;
+        if (exp.vendor_id) this.vendorId = exp.vendor_id;
         if (exp.casual_payee_name) this.casualPayeeName = exp.casual_payee_name;
         this.transactionRef = (exp.transaction_ref && exp.transaction_ref !== '-') ? exp.transaction_ref : '';
         if (exp.bill_date) this.billDate = exp.bill_date;
@@ -138,10 +141,16 @@
         return str.trim() + ' Rupees Only';
     },
     onPayeeChange() {
-        if (this.payeeType === 'registered' && this.payeeId && this.payeesData[this.payeeId]) {
+        if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
+            let v = this.vendorsData[this.vendorId];
+            this.selectedVendorGstin = v.gstin || '';
+        } else if (this.payeeType === 'registered' && this.payeeId && this.payeesData && this.payeesData[this.payeeId]) {
             let p = this.payeesData[this.payeeId];
-            this.selectedVendorGstin = p.gstin || '32ABCDE1234F1Z5';
+            this.selectedVendorGstin = p.gstin || '';
         }
+    },
+    onVendorChange() {
+        this.onPayeeChange();
     },
     handleFileUpload(event) {
         let file = event.target.files[0];
@@ -569,6 +578,7 @@
                                                     project_id: '{{ $expense->project_id ?? '' }}',
                                                     project_name: '{{ addslashes($expense->project?->name ?? '-') }}',
                                                     payee_id: '{{ $expense->payee_id ?? '' }}',
+                                                    vendor_id: '{{ $expense->vendor_id ?? '' }}',
                                                     payee_name: '{{ addslashes($expense->payee_display_name) }}',
                                                     payee_type: '{{ ucfirst($expense->payee_type ?? 'registered') }} Payee',
                                                     raw_payee_type: '{{ $expense->payee_type ?? 'registered' }}',
@@ -849,16 +859,22 @@
                         <div class="sm:col-span-8">
                             <template x-if="payeeType === 'registered'">
                                 <div>
-                                    <select name="payee_id" x-model="payeeId" @change="onPayeeChange()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
-                                        <option value="">-- Search vendor master --</option>
-                                        @foreach($payees as $payee)
-                                            <option value="{{ $payee->id }}">
-                                                {{ $payee->name }} {{ $payee->gstin ? '(GSTIN: '.$payee->gstin.')' : '' }}
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-[11px] font-bold text-slate-700">Select Registered Vendor <span class="text-rose-500">*</span></span>
+                                        <a href="{{ route('vendors.index') }}" target="_blank" class="text-[10px] text-[#a38c29] hover:underline font-extrabold flex items-center gap-1">
+                                            <span>+ Add New Vendor in Master</span>
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                                        </a>
+                                    </div>
+                                    <select name="vendor_id" x-model="vendorId" @change="onVendorChange()" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                        <option value="">-- Select Vendor from Vendor Master --</option>
+                                        @foreach($vendors as $vendor)
+                                            <option value="{{ $vendor->id }}">
+                                                {{ $vendor->name }} ({{ $vendor->vendor_code }}) {{ $vendor->gstin ? '• GST: '.$vendor->gstin : '' }}
                                             </option>
                                         @endforeach
-                                        @if($payees->isEmpty())
-                                            <option value="1" selected>Local JCB Owner - Rajesh (GSTIN: 32ABCDE1234F1Z5)</option>
-                                            <option value="2">Sub Registrar Office (Government Legal)</option>
+                                        @if($vendors->isEmpty())
+                                            <option value="" disabled>No Vendors registered in Vendor Master yet. Click "+ Add New Vendor in Master" above.</option>
                                         @endif
                                     </select>
                                 </div>
@@ -866,6 +882,7 @@
 
                             <template x-if="payeeType === 'one_time'">
                                 <div>
+                                    <label class="block font-bold text-slate-700 mb-1 text-[11px]">One-Time Payee Name <span class="text-rose-500">*</span></label>
                                     <input type="text" name="casual_payee_name" x-model="casualPayeeName" placeholder="Enter casual payee name..." class="w-full text-xs font-semibold rounded-xl border border-slate-200 bg-white py-2 px-3 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs">
                                 </div>
                             </template>

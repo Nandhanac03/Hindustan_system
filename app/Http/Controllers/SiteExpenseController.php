@@ -19,6 +19,7 @@ use App\Models\Sale;
 use App\Models\Unit;
 use App\Models\SiteExpensePayment;
 use App\Models\PaymentMode;
+use App\Models\Vendor;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -51,6 +52,10 @@ class SiteExpenseController extends Controller
         try {
             if (Schema::hasTable('chart_of_accounts')) {
                 $dbAccounts = ChartOfAccount::where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('account_type', 'EXPENSE')
+                          ->orWhere('account_code', 'like', '4%');
+                    })
                     ->orderBy('account_code')
                     ->get();
 
@@ -96,7 +101,7 @@ class SiteExpenseController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = SiteExpense::with(['project', 'floor', 'payee', 'companyBankAccount', 'loan', 'creator'])
+        $query = SiteExpense::with(['project', 'floor', 'payee', 'vendor', 'companyBankAccount', 'loan', 'creator'])
             ->orderByDesc('voucher_date')
             ->orderByDesc('id');
 
@@ -145,6 +150,7 @@ class SiteExpenseController extends Controller
                 $q->where('voucher_number', 'like', "%{$search}%")
                   ->orWhere('transaction_reference_no', 'like', "%{$search}%")
                   ->orWhere('casual_payee_name', 'like', "%{$search}%")
+                  ->orWhereHas('vendor', fn($vq) => $vq->where('name', 'like', "%{$search}%"))
                   ->orWhereHas('payee', fn($pq) => $pq->where('name', 'like', "%{$search}%"));
             });
         }
@@ -191,6 +197,7 @@ class SiteExpenseController extends Controller
         $projects          = Project::where('is_active', true)->orderBy('name')->get();
         $floors            = Floor::with('project')->orderBy('floor_number')->get();
         $payees            = Payee::orderBy('name')->get();
+        $vendors           = Vendor::where('is_active', true)->orderBy('name')->get();
         $bankAccounts      = CompanyBankAccount::orderBy('bank_name')->get();
         $loans             = Loan::orderBy('lender_name')->get();
         $expenseCategories = $this->getExpenseCategories();
@@ -201,6 +208,7 @@ class SiteExpenseController extends Controller
             'projects',
             'floors',
             'payees',
+            'vendors',
             'bankAccounts',
             'loans',
             'expenseCategories',
@@ -250,7 +258,8 @@ class SiteExpenseController extends Controller
             'floor_id'                 => 'nullable|exists:floors,id',
             'voucher_date'             => 'required|date',
             'payee_type'               => 'required|in:registered,one_time',
-            'payee_id'                 => 'required_if:payee_type,registered|nullable|exists:payees,id',
+            'vendor_id'                => 'required_if:payee_type,registered|nullable|exists:vendors,id',
+            'payee_id'                 => 'nullable|exists:payees,id',
             'casual_payee_name'        => 'required_if:payee_type,one_time|nullable|string|max:255',
             'expense_category_code'    => 'required|string',
             'gross_amount'             => 'required|numeric|min:0.01',
@@ -316,7 +325,8 @@ class SiteExpenseController extends Controller
                 'tower_block_tag'          => $validated['tower_block_tag'] ?? null,
                 'voucher_date'             => $validated['voucher_date'],
                 'payee_type'               => $validated['payee_type'],
-                'payee_id'                 => $validated['payee_type'] === 'registered' ? $validated['payee_id'] : null,
+                'vendor_id'                => $validated['payee_type'] === 'registered' ? ($validated['vendor_id'] ?? null) : null,
+                'payee_id'                 => $validated['payee_type'] === 'registered' ? ($validated['payee_id'] ?? null) : null,
                 'casual_payee_name'        => $validated['payee_type'] === 'one_time' ? $validated['casual_payee_name'] : null,
                 'chart_of_account_id'      => $chartOfAccount?->id,
                 'expense_category_code'    => $categoryCode,
@@ -388,7 +398,8 @@ class SiteExpenseController extends Controller
             'floor_id'                 => 'nullable|exists:floors,id',
             'voucher_date'             => 'required|date',
             'payee_type'               => 'required|in:registered,one_time',
-            'payee_id'                 => 'required_if:payee_type,registered|nullable|exists:payees,id',
+            'vendor_id'                => 'required_if:payee_type,registered|nullable|exists:vendors,id',
+            'payee_id'                 => 'nullable|exists:payees,id',
             'casual_payee_name'        => 'required_if:payee_type,one_time|nullable|string|max:255',
             'expense_category_code'    => 'required|string',
             'gross_amount'             => 'required|numeric|min:0.01',
@@ -450,7 +461,8 @@ class SiteExpenseController extends Controller
                 'tower_block_tag'          => $validated['tower_block_tag'] ?? null,
                 'voucher_date'             => $validated['voucher_date'],
                 'payee_type'               => $validated['payee_type'],
-                'payee_id'                 => $validated['payee_type'] === 'registered' ? $validated['payee_id'] : null,
+                'vendor_id'                => $validated['payee_type'] === 'registered' ? ($validated['vendor_id'] ?? null) : null,
+                'payee_id'                 => $validated['payee_type'] === 'registered' ? ($validated['payee_id'] ?? null) : null,
                 'casual_payee_name'        => $validated['payee_type'] === 'one_time' ? $validated['casual_payee_name'] : null,
                 'chart_of_account_id'      => $chartOfAccount?->id,
                 'expense_category_code'    => $categoryCode,
@@ -526,7 +538,7 @@ class SiteExpenseController extends Controller
      */
     public function show(SiteExpense $siteExpense): View
     {
-        $siteExpense->load(['project', 'floor', 'payee', 'companyBankAccount', 'loan', 'creator', 'documents']);
+        $siteExpense->load(['project', 'floor', 'payee', 'vendor', 'companyBankAccount', 'loan', 'creator', 'documents']);
         return view('expenses.site-expenses.show', compact('siteExpense'));
     }
 

@@ -2587,6 +2587,58 @@ class VoucherController extends Controller
         $voucher = Voucher::with(['lines.account', 'creator'])
             ->findOrFail($id);
 
-        return view('vouchers.payment-voucher-print', compact('voucher'));
+        $raBillPayment = class_exists(\App\Models\RaBillPayment::class)
+            ? \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
+            : null;
+
+        $siteExpense = (!$raBillPayment && class_exists(\App\Models\SiteExpense::class))
+            ? \App\Models\SiteExpense::where('voucher_id', $voucher->id)->first()
+            : null;
+
+        $commissionEntry = (!$raBillPayment && !$siteExpense && class_exists(\App\Models\CommissionEntry::class))
+            ? \App\Models\CommissionEntry::with('agent')->where('voucher_id', $voucher->id)->first()
+            : null;
+
+        $payeeName = null;
+        $paymentMode = null;
+        $billReference = null;
+
+        if ($raBillPayment) {
+            $payeeName = $raBillPayment->raBill?->contractor_name ?: ($raBillPayment->raBill?->contractor?->name ?? null);
+            $paymentMode = $raBillPayment->payment_mode ? ucwords(str_replace('_', ' ', $raBillPayment->payment_mode)) : null;
+            $billReference = $raBillPayment->raBill ? '#' . $raBillPayment->raBill->ra_bill_number : null;
+        } elseif ($siteExpense) {
+            $payeeName = $siteExpense->payee_name ?? $siteExpense->expense_category;
+            $paymentMode = $siteExpense->payment_mode ? ucwords(str_replace('_', ' ', $siteExpense->payment_mode)) : null;
+        } elseif ($commissionEntry) {
+            $payeeName = $commissionEntry->agent?->name ?? 'Agent Commission';
+            $paymentMode = 'Bank Transfer';
+        }
+
+        // If payeeName is still not found, try extracting from narration e.g. "for #RA-000001 (Luxstruct Builders PVT LTD)"
+        if (!$payeeName && $voucher->narration) {
+            if (preg_match('/\(([^)]+)\)/', $voucher->narration, $matches)) {
+                $payeeName = trim($matches[1]);
+            }
+        }
+
+        // Fallback to the debit account name (which represents the vendor / payee / expense head)
+        if (!$payeeName) {
+            $debitLine = $voucher->lines->firstWhere('debit', '>', 0);
+            $payeeName = $debitLine?->account?->name ?? 'Beneficiary / Payee';
+        }
+
+        if (!$paymentMode) {
+            $paymentMode = $voucher->reference_no ? 'Bank Transfer / Cheque' : 'Direct Payment';
+        }
+
+        return view('vouchers.payment-voucher-print', compact(
+            'voucher',
+            'raBillPayment',
+            'payeeName',
+            'paymentMode',
+            'billReference'
+        ));
     }
 }
+

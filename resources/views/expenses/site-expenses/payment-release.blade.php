@@ -196,7 +196,7 @@
                             <td class="px-3.5 py-3">
                                 <div class="font-bold text-slate-900">{{ $expense->payee_display_name }}</div>
                                 <div class="text-[10px] text-slate-400 uppercase font-medium">
-                                    {{ $expense->payee_type === 'registered' ? 'Registered Master Payee' : 'One-Time Payee' }}
+                                    {{ $expense->vendor_id ? 'Registered Vendor' : ($expense->payee_type === 'registered' ? 'Registered Payee' : 'One-Time Payee') }}
                                 </div>
                             </td>
 

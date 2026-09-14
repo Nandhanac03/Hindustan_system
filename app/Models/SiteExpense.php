@@ -25,6 +25,7 @@ class SiteExpense extends Model
         'voucher_date',
         'payee_type',
         'payee_id',
+        'vendor_id',
         'casual_payee_name',
         'chart_of_account_id',
         'expense_category_code',
@@ -87,6 +88,14 @@ class SiteExpense extends Model
     }
 
     /**
+     * Get Dedicated Registered Vendor
+     */
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class, 'vendor_id');
+    }
+
+    /**
      * Get Chart Of Account
      */
     public function chartOfAccount(): BelongsTo
@@ -127,10 +136,14 @@ class SiteExpense extends Model
     }
 
     /**
-     * Accessor for Display Name of Payee
+     * Accessor for Display Name of Payee / Vendor
      */
     public function getPayeeDisplayNameAttribute(): string
     {
+        if ($this->vendor_id && $this->vendor) {
+            return $this->vendor->name;
+        }
+
         if ($this->payee_type === 'registered' && $this->payee) {
             return $this->payee->name;
         }
