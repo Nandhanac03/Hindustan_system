@@ -2400,7 +2400,7 @@ function salesApp() {
             let defaultMode = this.paymentModesList.length > 0 ? this.paymentModesList[0].name : 'Bank Transfer';
             this.customerRefundForm = {
                 company_bank_account_id: defaultAccount,
-                refund_amount: remaining,
+                refund_amount: '',
                 payment_mode: defaultMode,
                 remarks: 'Customer refund processed as per cancellation agreement.'
             };

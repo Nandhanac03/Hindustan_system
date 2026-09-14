@@ -2678,9 +2678,29 @@
                                     </span>
                                     <span class="font-bold text-slate-700 font-mono" x-text="fmt(refundModalSale ? refundModalSale.additional_refund_amount : 0)"></span>
                                 </div>
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                    <span class="text-slate-700 font-bold">Total Refund Amount</span>
+                                    <span class="font-bold text-emerald-600 font-mono" x-text="fmt(refundModalSale ? getRefundDue(refundModalSale) : 0)"></span>
+                                </div>
+                                <template x-if="refundModalSale && getRefundPaid(refundModalSale) > 0">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-500 font-medium">Already Refunded</span>
+                                        <span class="font-bold text-teal-600 font-mono" x-text="fmt(getRefundPaid(refundModalSale))"></span>
+                                    </div>
+                                </template>
+                                <template x-if="customerRefundForm.refund_amount && Number(customerRefundForm.refund_amount) > 0">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-500 font-medium">Current Refund Issue</span>
+                                        <span class="font-bold text-rose-500 font-mono" x-text="'- ' + fmt(customerRefundForm.refund_amount)"></span>
+                                    </div>
+                                </template>
+
+                                {{-- Balance Refund Amount Row --}}
                                 <div class="pt-2 border-t border-slate-100 flex items-center justify-between bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-100">
-                                    <span class="font-extrabold text-emerald-900 uppercase text-[11px]">Total Refund Amount</span>
-                                    <span class="font-black text-emerald-600 font-mono text-sm" x-text="fmt(refundModalSale ? getRefundDue(refundModalSale) : 0)"></span>
+                                    <span class="font-extrabold text-emerald-900 uppercase text-[11px]">Balance Refund Amount</span>
+                                    <span class="font-black font-mono text-sm"
+                                          :class="Math.max(0, (refundModalSale ? getRefundDue(refundModalSale) : 0) - (refundModalSale ? getRefundPaid(refundModalSale) : 0) - (Number(customerRefundForm.refund_amount) || 0)) > 0 ? 'text-amber-600' : 'text-emerald-600'"
+                                          x-text="fmt(Math.max(0, (refundModalSale ? getRefundDue(refundModalSale) : 0) - (refundModalSale ? getRefundPaid(refundModalSale) : 0) - (Number(customerRefundForm.refund_amount) || 0)))"></span>
                                 </div>
                             </div>
                         </div>
@@ -2760,6 +2780,7 @@
                                     ₹
                                 </div>
                                 <input type="number" step="0.01" min="0.01" x-model="customerRefundForm.refund_amount"
+                                       placeholder="Enter refund amount (e.g. 500000)"
                                        class="w-full pl-8 pr-4 py-2.5 text-sm font-extrabold text-slate-900 bg-white border rounded-xl focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20"
                                        :class="customerRefundFormErrors.refund_amount ? 'border-rose-500' : 'border-slate-250'">
                             </div>
