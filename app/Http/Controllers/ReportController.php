@@ -1665,7 +1665,7 @@ class ReportController extends Controller
                 $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
                 $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                 $requiredAccounts = [
-                    $partnerCode => ['name' => 'Partner ' . $partner->name . ' Capital Account' . $sharePctText, 'type' => 'LIABILITY'],
+                    $partnerCode => ['name' => 'Partner ' . $partner->name . ' Capital Account' . $sharePctText, 'type' => 'EQUITY'],
                     '1001'       => ['name' => $bankAccountName, 'type' => 'ASSET'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
@@ -2537,10 +2537,7 @@ class ReportController extends Controller
         $lookups = $this->getCommonLookups($request);
         $activeTab = 'balance_sheet';
 
-        // Retrieve Chart of Accounts mappings from DB
-        $coaMap = ChartOfAccount::pluck('account_name', 'account_code')->toArray();
-
-        // 1. Bank Accounts (1001 / Karnataka Bank)
+        // 1. Bank Accounts (1001)
         $realizedBankReceipts = (float)Receipt::where('realization_status', 'realized')
             ->whereIn('payment_mode', ['Bank Transfer', 'Online', 'Cheque', 'Cash'])
             ->sum('amount');
@@ -2561,7 +2558,7 @@ class ReportController extends Controller
         $cashInHand = $pettyCashTotal > 0 ? $pettyCashTotal : max($realizedCashReceipts, (float)$jeCashNet, 0.0);
 
         // 3. Customer Receivables (1010)
-        $jeRecNet = (float)JournalEntry::whereIn('account_id', ['1010', '1110'])
+        $jeRecNet = (float)JournalEntry::whereIn('account_id', ['1010', '1110', '1003'])
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $activeSalesReceivables = (float)Sale::where('status', 'active')->sum('remaining_balance');
@@ -2583,25 +2580,25 @@ class ReportController extends Controller
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $contractorRabills = max($raBillsTotal, (float)$contractorRabillPayable, 0.0);
+
         // 5. Construction Work in Progress (WIP) (1130)
-        // $raBillsTotal = (float)DB::table('ra_bills')->sum('net_approved_amount');
         $siteBillsTotal = (float)DB::table('bills')->sum('final_amount');
         $jeWipNet = (float)JournalEntry::where('account_id', '1130')
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $wipInventory = max($siteBillsTotal, (float)$jeWipNet, 0.0);
 
-        // Non-Current / Fixed Assets
+        // Non-Current / Fixed Assets (1200)
         $fixedAssets = (float)JournalEntry::whereIn('account_id', ['1200', '1201', '1210', '1220'])
             ->selectRaw('SUM(debit_amount - credit_amount) as net')
             ->value('net');
         $fixedAssets = max($fixedAssets, 0.0);
 
-        $totalCurrentAssets = $bankAssets + $cashInHand + $receivables +  $contractorRabills + $wipInventory;
+        $totalCurrentAssets = $bankAssets + $cashInHand + $receivables + $contractorRabills + $wipInventory;
         $totalAssets = $totalCurrentAssets + $fixedAssets;
 
         // Liabilities & Equity
-        $supplierPayables = (float)JournalEntry::whereIn('account_id', ['2101', '2100'])
+        $supplierPayables = (float)JournalEntry::whereIn('account_id', ['2101', '2100', '2001'])
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
         if ($supplierPayables <= 0) {
@@ -2620,15 +2617,12 @@ class ReportController extends Controller
         }
         $contractorPayables = max((float)$contractorPayables, 0.0);
 
-        // $statutoryDues = (float)JournalEntry::whereIn('account_id', ['2110', '2120'])
-        //     ->selectRaw('SUM(credit_amount - debit_amount) as net')
-        //     ->value('net');
-        $statutoryDues = (float)JournalEntry::whereIn('account_id', ['2021', '2022', '2110', '2120'])
+        $statutoryDues = (float)JournalEntry::whereIn('account_id', ['2021', '2022', '2110', '2120', '2002'])
             ->selectRaw('SUM(credit_amount - debit_amount) as net')
             ->value('net');
         $statutoryDues = max((float)$statutoryDues, 0.0);
 
-        // Agent Commission Payables / Agent Payable Liability (Account code 2003)
+        // Agent Commission Payables (Account code 2003)
         $agentPayables = (float)JournalEntry::where('account_id', '2003')
             ->selectRaw('SUM(debit_amount) as net')
             ->value('net');
@@ -2657,89 +2651,159 @@ class ReportController extends Controller
         $totalLongTermLiabilities = $bankLoans;
         $totalLiabilities = $totalCurrentLiabilities + $totalLongTermLiabilities;
 
-        $partnerAlloc = (float)PartnerAllocation::sum('allocated_amount');
-        $partner1Capital = $partnerAlloc * 0.575;
-        $partner2Capital = $partnerAlloc * 0.425;
-        $retainedEarnings = max(0.0, $totalAssets - ($totalLiabilities + $partner1Capital + $partner2Capital));
-        $totalEquity = $partner1Capital + $partner2Capital + $retainedEarnings;
+        $netEquity = max(0.0, $totalAssets - $totalLiabilities);
 
-        $currentAssetsList = [
-            ['code' => '1001', 'name' => $coaMap['1001'] ?? 'Bank Balances (Karnataka Bank / HDFC Escrow - for selected bank )', 'amount' => $bankAssets],
-            ['code' => '1002', 'name' => $coaMap['1002'] ?? 'Site Petty Cash Box Balances', 'amount' => $cashInHand],
-            ['code' => '1010', 'name' => $coaMap['1010'] ?? 'Customer Receivables', 'amount' => $receivables],
-            ['code' => '1120', 'name' => $coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers', 'amount' => $contractorRabills],
-            ['code' => '1130', 'name' => $coaMap['1130'] ?? 'Construction Work in Progress (WIP)', 'amount' => $wipInventory],
+        // Fetch dynamic partner share percentages from DB
+        $partnerShares = DB::table('partner_shares')->get();
+        $partner1Pct = 57.5;
+        $partner2Pct = 42.5;
+        foreach ($partnerShares as $ps) {
+            if ($ps->partner_id == 1) $partner1Pct = (float)$ps->share_pct;
+            if ($ps->partner_id == 2) $partner2Pct = (float)$ps->share_pct;
+        }
+
+        $partner1Capital = round($netEquity * ($partner1Pct / 100), 2);
+        $partner2Capital = round($netEquity * ($partner2Pct / 100), 2);
+        $totalPartnerCapital = $netEquity;
+        $retainedEarnings = max(0.0, $netEquity - ($partner1Capital + $partner2Capital));
+        $totalEquity = $netEquity;
+
+        $calculatedAmounts = [
+            '1001' => $bankAssets,
+            '1002' => $cashInHand,
+            '1003' => $receivables,
+            '1004' => $cashInHand,
+            '1010' => $receivables,
+            '1120' => $contractorRabills,
+            '1130' => $wipInventory,
+            '1200' => $fixedAssets,
+            '2001' => $supplierPayables,
+            '2101' => $supplierPayables,
+            '2002' => $contractorPayables,
+            '2110' => $statutoryDues,
+            '2003' => $agentPayables,
+            '2130' => $customerAdvances,
+            '2201' => $bankLoans,
+            '3001' => $partner1Capital,
+            '3002' => $partner2Capital,
+            '5001' => $totalPartnerCapital,
+            '3010' => $retainedEarnings,
         ];
 
-        $fixedAssetsList = [
-            ['code' => '1200', 'name' => $coaMap['1200'] ?? 'NON-CURRENT / FIXED ASSETS', 'amount' => $fixedAssets],
-        ];
+        // FETCH EVERYTHING DYNAMICALLY FROM DB TABLE CHART_OF_ACCOUNTS (NO SEEDING, NO HARDCODED ARRAYS)
+        $allCoa = ChartOfAccount::where('is_active', true)->orderBy('account_code')->get();
+
+        $currentAssetsList = [];
+        $fixedAssetsList = [];
+        $currentLiabilitiesList = [];
+        $longTermLiabilitiesList = [];
+        $equityList = [];
+
+        foreach ($allCoa as $acc) {
+            $code = (string)$acc->account_code;
+            $name = (string)$acc->account_name; // Directly from chart_of_accounts DB table
+            $type = strtoupper((string)$acc->account_type);
+
+            $jeCount = JournalEntry::where('account_id', $code)->count();
+
+            if ($jeCount > 0) {
+                if ($type === 'LIABILITY' || $type === 'EQUITY' || str_starts_with($code, '2') || str_starts_with($code, '3') || $code === '5001') {
+                    $net = (float)JournalEntry::where('account_id', $code)->selectRaw('SUM(credit_amount - debit_amount) as net')->value('net');
+                } else {
+                    $net = (float)JournalEntry::where('account_id', $code)->selectRaw('SUM(debit_amount - credit_amount) as net')->value('net');
+                }
+                $amt = $net;
+            } elseif (isset($calculatedAmounts[$code])) {
+                $amt = (float)$calculatedAmounts[$code];
+            } else {
+                $amt = 0.0;
+            }
+
+            $item = ['code' => $code, 'name' => $name, 'amount' => $amt];
+
+            if ($type === 'EQUITY' || str_starts_with($code, '3')) {
+                $equityList[] = $item;
+            } elseif ($type === 'ASSET' || str_starts_with($code, '1')) {
+                if ($code >= '1200') {
+                    $fixedAssetsList[] = $item;
+                } else {
+                    $currentAssetsList[] = $item;
+                }
+            } elseif ($type === 'LIABILITY' || str_starts_with($code, '2') || $code === '5001') {
+                if ($code >= '2200') {
+                    $longTermLiabilitiesList[] = $item;
+                } else {
+                    $currentLiabilitiesList[] = $item;
+                }
+            }
+        }
+
+        // Add 3010 Retained Earnings / Accumulated Profit from P&L if not present in DB
+        $existingCodes = array_column($equityList, 'code');
+        if (!in_array('3010', $existingCodes)) {
+            $sumCurrentEquity = 0.0;
+            foreach ($equityList as $eqItem) {
+                $sumCurrentEquity += (float)$eqItem['amount'];
+            }
+            $retainedEarnings = max(0.0, $netEquity - $sumCurrentEquity);
+            $equityList[] = [
+                'code'   => '3010',
+                'name'   => 'Retained Earnings / Accumulated Profit from P&L',
+                'amount' => $retainedEarnings,
+            ];
+        }
+
+        usort($equityList, fn($a, $b) => strcmp($a['code'], $b['code']));
 
         $balanceSheetData = [
-            'as_on_date' => $request->get('date_as_on', ''),
-            'current_assets' => $currentAssetsList,
-            'total_current_assets' => $totalCurrentAssets,
-            'fixed_assets' => $fixedAssetsList,
-            'total_fixed_assets' => $fixedAssets,
-            'total_assets' => $totalAssets,
-            'current_liabilities' => [
-                ['code' => '2101', 'name' => $coaMap['2101'] ?? 'Sundry Creditors & Supplier Bills', 'amount' => $supplierPayables],
-                ['code' => '2002', 'name' => $coaMap['2002'] ?? 'Contractor RA Work Bills Payable', 'amount' => $contractorPayables],
-                ['code' => '2110', 'name' => $coaMap['2110'] ?? 'GST & Statutory Tax Payables', 'amount' => $statutoryDues],
-                ['code' => '2003', 'name' => $coaMap['2003'] ?? 'Agent Commission Payables / Agent Payable Liability', 'amount' => $agentPayables],
-                ['code' => '2130', 'name' => $coaMap['2130'] ?? 'Advances Received from Customers (Unbilled)', 'amount' => $customerAdvances],
-            ],
-            'total_current_liabilities' => $totalCurrentLiabilities,
-            'long_term_liabilities' => [
-                ['code' => '2201', 'name' => $coaMap['2201'] ?? 'Project Construction Loan', 'amount' => $bankLoans],
-            ],
+            'as_on_date'                  => $request->get('date_as_on', ''),
+            'current_assets'              => $currentAssetsList,
+            'total_current_assets'        => $totalCurrentAssets,
+            'fixed_assets'                => $fixedAssetsList,
+            'total_fixed_assets'          => $fixedAssets,
+            'total_assets'                => $totalAssets,
+            'current_liabilities'         => $currentLiabilitiesList,
+            'total_current_liabilities'   => $totalCurrentLiabilities,
+            'long_term_liabilities'       => $longTermLiabilitiesList,
             'total_long_term_liabilities' => $totalLongTermLiabilities,
-            'total_liabilities' => $totalLiabilities,
-            'equity' => [
-                ['code' => '5001', 'name' => $coaMap['5001'] ?? 'Partner Payable Liability / Capital', 'amount' => $partner1Capital + $partner2Capital],
-                ['code' => '3010', 'name' => $coaMap['3010'] ?? 'Retained Earnings / Accumulated Profit from P&L', 'amount' => $retainedEarnings],
-            ],
-            'total_equity' => $totalEquity,
-            'total_liabilities_equity' => $totalLiabilities + $totalEquity,
-            'net_worth' => $totalEquity,
-            'working_capital' => $totalCurrentAssets - $totalCurrentLiabilities,
-            'quick_ratio' => round(($cashInHand + $bankAssets + $receivables) / max($totalCurrentLiabilities, 1), 2),
-            'is_balanced' => true,
+            'total_liabilities'           => $totalLiabilities,
+            'equity'                      => $equityList,
+            'total_equity'                => $totalEquity,
+            'total_liabilities_equity'    => $totalLiabilities + $totalEquity,
+            'net_worth'                   => $totalEquity,
+            'working_capital'             => $totalCurrentAssets - $totalCurrentLiabilities,
+            'quick_ratio'                 => round(($cashInHand + $bankAssets + $receivables) / max($totalCurrentLiabilities, 1), 2),
+            'is_balanced'                 => true,
         ];
+
+        // Format for balanceSheetEntries
+        $curAssetEntries = [];
+        foreach ($currentAssetsList as $ca) { $curAssetEntries[$ca['name']] = $ca['amount']; }
+        $fixAssetEntries = [];
+        foreach ($fixedAssetsList as $fa) { $fixAssetEntries[$fa['name']] = $fa['amount']; }
+        $curLiabEntries = [];
+        foreach ($currentLiabilitiesList as $cl) { $curLiabEntries[$cl['name']] = $cl['amount']; }
+        $longLiabEntries = [];
+        foreach ($longTermLiabilitiesList as $ll) { $longLiabEntries[$ll['name']] = $ll['amount']; }
+        $eqEntries = [];
+        foreach ($equityList as $eq) { $eqEntries[$eq['name']] = $eq['amount']; }
 
         $balanceSheetEntries = [
             'assets' => [
-                'Current Assets' => [
-                    ($coaMap['1001'] ?? 'Bank Balances (Karnataka Bank / HDFC Escrow - for selected bank )') => $bankAssets,
-                    ($coaMap['1002'] ?? 'Site Petty Cash Box Balances') => $cashInHand,
-                    ($coaMap['1010'] ?? 'Customer Receivables') => $receivables,
-                    ($coaMap['1120'] ?? 'Advance Payments to Contractors & Suppliers') => $contractorRabills,
-                    ($coaMap['1130'] ?? 'Construction Work in Progress (WIP)') => $wipInventory,
-                ],
-                'Fixed Assets & Equipment' => [
-                    ($coaMap['1200'] ?? 'NON-CURRENT / FIXED ASSETS') => $fixedAssets,
-                ],
-                'total' => $totalAssets,
+                'Current Assets'           => $curAssetEntries,
+                'Fixed Assets & Equipment' => $fixAssetEntries,
+                'total'                    => $totalAssets,
             ],
             'liabilities_and_equity' => [
-                'Current Liabilities' => [
-                    ($coaMap['2101'] ?? 'Sundry Creditors & Supplier Bills') => $supplierPayables,
-                    ($coaMap['2110'] ?? 'GST & Statutory Tax Payables') => $statutoryDues,
-                    ($coaMap['2003'] ?? 'Agent Commission Payables / Agent Payable Liability') => $agentPayables,
-                ],
-                'Loans & Borrowings' => [
-                    ($coaMap['2201'] ?? 'Project Construction Loan') => $bankLoans,
-                ],
-                'Partner Capital & Equity' => [
-                    ($coaMap['5001'] ?? 'Partner Payable Liability / Capital') => $partner1Capital + $partner2Capital,
-                    'Retained Earnings / Accumulated Profit from P&L' => $retainedEarnings,
-                ],
-                'total' => $totalLiabilities + $totalEquity,
+                'Current Liabilities'      => $curLiabEntries,
+                'Loans & Borrowings'       => $longLiabEntries,
+                'Partner Capital & Equity' => $eqEntries,
+                'total'                    => $totalLiabilities + $totalEquity,
             ],
-            'net_worth' => $totalEquity,
+            'net_worth'       => $totalEquity,
             'working_capital' => $totalCurrentAssets - $totalCurrentLiabilities,
-            'quick_ratio' => round(($cashInHand + $bankAssets + $receivables) / max($totalCurrentLiabilities, 1), 2),
-            'is_balanced' => true,
+            'quick_ratio'     => round(($cashInHand + $bankAssets + $receivables) / max($totalCurrentLiabilities, 1), 2),
+            'is_balanced'     => true,
         ];
 
         return view('reports.balance-sheet', array_merge($lookups, compact('activeTab', 'balanceSheetData', 'balanceSheetEntries')));
