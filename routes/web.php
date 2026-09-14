@@ -272,6 +272,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['put', 'post'], '/sales/{id}/update', [\App\Http\Controllers\SalesController::class, 'update'])->name('sales.update.post');
     Route::post('/sales/{id}/receipt', [\App\Http\Controllers\SalesController::class, 'addReceipt'])->name('sales.add-receipt');
     Route::post('/sales/{id}/status', [\App\Http\Controllers\SalesController::class, 'changeStatus'])->name('sales.change-status');
+    Route::post('/sales/{id}/customer-refund', [\App\Http\Controllers\SalesController::class, 'processCustomerRefund'])->name('sales.customer-refund');
     Route::post('/sales/{sale}/receipts', [SalesController::class, 'addReceipt'])->name('sales.receipts.store');
 
     // Sales Register & Bookings
