@@ -826,41 +826,22 @@
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showCreateModal = false"></div>
 
-        {{-- Modal Dialog Container (Increased to max-w-5xl xl:max-w-6xl for optimal spacious layout) --}}
-        <div class="relative bg-white w-full max-w-5xl xl:max-w-6xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[92vh]"
+        {{-- Modal Dialog Container (Exact Unit Setup Modal Style - Zero White Border) --}}
+        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
-            {{-- Modal Header Bar --}}
-            <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
-                <div class="absolute -top-10 -right-10 w-48 h-48 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+            {{-- Dark Header (Seamless with container) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                                TABASCO HINDUSTAN · SITE EXPENSE MANAGEMENT
-                            </p>
-                            <template x-if="selectedExpense">
-                                <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs"
-                                      :class="{
-                                          'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': selectedExpense?.status === 'Approved',
-                                          'bg-amber-500/20 text-amber-300 border border-amber-500/30': selectedExpense?.status === 'Draft' || selectedExpense?.status === 'Pending',
-                                          'bg-rose-500/20 text-rose-300 border border-rose-500/30': selectedExpense?.status === 'Rejected'
-                                      }"
-                                      x-text="selectedExpense?.status || 'Draft'">
-                                </span>
-                            </template>
-                            <template x-if="!selectedExpense">
-                                <span class="px-2.5 py-0.5 text-[9px] font-bold rounded-lg bg-white/10 text-slate-300 uppercase tracking-wider">COA 4000s Direct</span>
-                            </template>
-                        </div>
-                        <h2 class="text-base sm:text-xl font-extrabold text-white uppercase tracking-wider" 
-                            x-text="selectedExpense ? ('Edit Site Expense — ' + (selectedExpense.voucher_number || '')) : 'Add New Site Expense'"></h2>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Site Expense Management</p>
+                        <h2 class="text-lg font-extrabold text-white" x-text="selectedExpense ? ('Edit Site Expense — ' + (selectedExpense.voucher_number || '')) : 'Add New Site Expense'"></h2>
                     </div>
-                    <button type="button" @click="showCreateModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
@@ -1187,37 +1168,22 @@
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showViewModal = false"></div>
 
-        {{-- Modal Dialog Container --}}
-        <div class="relative bg-white w-full max-w-5xl xl:max-w-6xl rounded-3xl shadow-2xl overflow-hidden z-10 my-auto flex flex-col max-h-[92vh]"
+        {{-- Modal Dialog Container (Exact Unit Setup Modal Style - Zero White Border) --}}
+        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
-            {{-- Modal Header Bar --}}
-            <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+            {{-- Dark Header (Seamless with container) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                                TABASCO HINDUSTAN · SITE EXPENSE MANAGEMENT
-                            </p>
-                            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shadow-2xs"
-                                  :class="{
-                                      'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30': selectedExpense?.status === 'Approved',
-                                      'bg-amber-500/20 text-amber-300 border border-amber-500/30': selectedExpense?.status === 'Pending',
-                                      'bg-slate-500/20 text-slate-300 border border-slate-500/30': selectedExpense?.status === 'Draft',
-                                      'bg-rose-500/20 text-rose-300 border border-rose-500/30': selectedExpense?.status === 'Rejected'
-                                  }"
-                                  x-text="selectedExpense?.status === 'Pending' ? 'Pending Approval' : (selectedExpense?.status || 'Pending')">
-                            </span>
-                        </div>
-                        <h2 class="text-base sm:text-lg font-extrabold text-white uppercase tracking-wider" 
-                            x-text="'View Voucher — ' + (selectedExpense?.voucher_number || '')"></h2>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Site Expense Management</p>
+                        <h2 class="text-lg font-extrabold text-white" x-text="'View Voucher — ' + (selectedExpense?.voucher_number || '')"></h2>
                     </div>
-                    <button type="button" @click="showViewModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="showViewModal = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
