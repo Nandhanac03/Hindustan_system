@@ -57,25 +57,6 @@ class DocumentController extends Controller
         $query = Document::where('system_id', $systemId)
             ->with(['documentable', 'uploader', 'referenceProject']);
 
-        // Archive / Status Filtering
-        if ($selectedStatus === 'archived') {
-            $query->where('is_archived', true);
-        } elseif ($selectedStatus === 'expiring_soon') {
-            $query->where('is_archived', false)
-                  ->whereNotNull('expiry_date')
-                  ->where('expiry_date', '>=', now())
-                  ->where('expiry_date', '<=', now()->addDays(30));
-        } elseif ($selectedStatus === 'expired') {
-            $query->where('is_archived', false)
-                  ->whereNotNull('expiry_date')
-                  ->where('expiry_date', '<', now());
-        } elseif ($selectedStatus === 'all') {
-            // Include both active and archived
-        } else {
-            // Default active only
-            $query->where('is_archived', false);
-        }
-
         if ($selectedCategory) {
             $query->where('category', $selectedCategory);
         }
@@ -109,8 +90,8 @@ class DocumentController extends Controller
             $query->whereDate('created_at', '<=', $dateTo);
         }
 
-        // Retrieve filtered list
-        $documents = $query->orderBy('created_at', 'desc')->paginate(12)->withQueryString();
+        // Retrieve document list for instant zero-reload reactive filtering
+        $documents = $query->orderBy('created_at', 'desc')->get();
 
         // 1. Stats Counters for top cards
         $categoryCounts = [];
@@ -121,27 +102,25 @@ class DocumentController extends Controller
                 ->count();
         }
 
-        // 2. Documents Expiring Soon (expiring in next 60 days, sorted by closest first)
+        // 2. Documents Expiring Soon & Already Expired (sorted by earliest/expired first)
         $expiringSoon = Document::where('system_id', $systemId)
             ->where('is_archived', false)
             ->whereNotNull('expiry_date')
-            ->where('expiry_date', '>=', now())
+            ->where('expiry_date', '<=', now()->addDays(60))
             ->with(['documentable', 'referenceProject'])
-            ->orderBy('expiry_date')
-            ->take(6)
+            ->orderBy('expiry_date', 'asc')
+            ->take(8)
             ->get();
 
         // 3. Total active and expired counts for status badges
-        $totalActiveCount = Document::where('system_id', $systemId)->where('is_archived', false)->count();
-        $totalArchivedCount = Document::where('system_id', $systemId)->where('is_archived', true)->count();
-        $totalExpiringCount = Document::where('system_id', $systemId)
-            ->where('is_archived', false)
+        $totalActiveCount = (clone $query)->where('is_archived', false)->count();
+        $totalArchivedCount = (clone $query)->where('is_archived', true)->count();
+        $totalExpiringCount = (clone $query)->where('is_archived', false)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '>=', now())
             ->where('expiry_date', '<=', now()->addDays(30))
             ->count();
-        $totalExpiredCount = Document::where('system_id', $systemId)
-            ->where('is_archived', false)
+        $totalExpiredCount = (clone $query)->where('is_archived', false)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '<', now())
             ->count();

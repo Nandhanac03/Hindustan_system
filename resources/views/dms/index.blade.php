@@ -37,8 +37,30 @@
         </div>
     @endif
 
-    {{-- Repository Categorization Grid (8 Repositories including Contractor) --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+    {{-- Dynamic Repository Categorization Grid (Auto-fits 1-8 categories full screen, wraps to line 2 after 8) --}}
+    @php
+        $catCount = max(count($categoriesInfo), 1);
+        $gridColsLg = min($catCount, 8);
+        $gridColsSm = min($catCount, 4);
+    @endphp
+    <style>
+        @media (min-width: 1024px) {
+            .dms-category-grid {
+                grid-template-columns: repeat({{ $gridColsLg }}, minmax(0, 1fr)) !important;
+            }
+        }
+        @media (min-width: 640px) and (max-width: 1023px) {
+            .dms-category-grid {
+                grid-template-columns: repeat({{ $gridColsSm }}, minmax(0, 1fr)) !important;
+            }
+        }
+        @media (max-width: 639px) {
+            .dms-category-grid {
+                grid-template-columns: repeat({{ min($catCount, 2) }}, minmax(0, 1fr)) !important;
+            }
+        }
+    </style>
+    <div class="grid dms-category-grid gap-3">
         @foreach($categoriesInfo as $catKey => $info)
             @php
                 $isSelected = ($selectedCategory === $catKey);
@@ -161,110 +183,182 @@
         {{-- Left: Repository Filter & Table --}}
         <div class="lg:col-span-2 space-y-4">
             
-            {{-- Status Filter Tabs (Active, Expiring Soon, Expired, Archived, All) --}}
-            <div class="flex flex-wrap items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200">
-                @php
-                    $curStatus = request('status', 'active');
-                @endphp
-                <a href="{{ route('dms.index', array_merge(request()->except(['status', 'page']), ['status' => 'active'])) }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 {{ $curStatus === 'active' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50' }}">
-                    <span>Active Records</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $curStatus === 'active' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700' }}">{{ $totalActiveCount ?? 0 }}</span>
-                </a>
-
-                <a href="{{ route('dms.index', array_merge(request()->except(['status', 'page']), ['status' => 'expiring_soon'])) }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 {{ $curStatus === 'expiring_soon' ? 'bg-white text-amber-800 shadow-sm border border-amber-200' : 'text-slate-600 hover:text-amber-800 hover:bg-white/50' }}">
-                    <span>Expiring Soon (30d)</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $curStatus === 'expiring_soon' ? 'bg-amber-100 text-amber-900' : 'bg-amber-100/60 text-amber-800' }}">{{ $totalExpiringCount ?? 0 }}</span>
-                </a>
-
-                <a href="{{ route('dms.index', array_merge(request()->except(['status', 'page']), ['status' => 'expired'])) }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 {{ $curStatus === 'expired' ? 'bg-white text-rose-800 shadow-sm border border-rose-200' : 'text-slate-600 hover:text-rose-800 hover:bg-white/50' }}">
-                    <span>Expired</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $curStatus === 'expired' ? 'bg-rose-100 text-rose-900' : 'bg-rose-100/60 text-rose-800' }}">{{ $totalExpiredCount ?? 0 }}</span>
-                </a>
-
-                <a href="{{ route('dms.index', array_merge(request()->except(['status', 'page']), ['status' => 'archived'])) }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 {{ $curStatus === 'archived' ? 'bg-white text-slate-900 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50' }}">
-                    <span>📦 Archived Documents</span>
-                    <span class="px-1.5 py-0.2 rounded-full text-[10px] {{ $curStatus === 'archived' ? 'bg-slate-200 text-slate-800' : 'bg-slate-200/60 text-slate-600' }}">{{ $totalArchivedCount ?? 0 }}</span>
-                </a>
-
-                <a href="{{ route('dms.index', array_merge(request()->except(['status', 'page']), ['status' => 'all'])) }}"
-                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {{ $curStatus === 'all' ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50' }}">
-                    All Records
-                </a>
-            </div>
-            
-            {{-- Advanced Filters Bar (Single Horizontal Line) --}}
-            <form method="GET" action="{{ route('dms.index') }}" class="bg-white rounded-2xl border border-slate-200/80 p-3 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-end gap-2.5">
+            {{-- Ultra-Clean Modern Search & Filter Panel (Single Line) --}}
+            <form method="GET" action="{{ route('dms.index') }}" class="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-all">
                 @if(request('category'))
                     <input type="hidden" name="category" value="{{ request('category') }}">
                 @endif
-                <input type="hidden" name="status" value="{{ request('status', 'active') }}">
+                <input type="hidden" name="status" :value="activeStatusTab">
                 
-                {{-- Search keyword --}}
-                <div class="flex-1 min-w-[180px] space-y-1">
-                    <label class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Search Title / Document #</label>
-                    <div class="relative">
-                        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search name, doc #..." 
-                               class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white font-semibold text-slate-700 placeholder-slate-400">
-                        <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                </div>
-
-                {{-- Category filter if not selected --}}
-                @if(!$selectedCategory)
-                    <div class="w-full lg:w-40 space-y-1">
-                        <label class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Category</label>
-                        <select name="category" class="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white font-semibold text-slate-700 cursor-pointer">
-                            <option value="">All Categories</option>
-                            @foreach($categoriesInfo as $k => $info)
-                                <option value="{{ $k }}" @selected(request('category') === $k)>{{ $info['label'] }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
-
-                {{-- Document Type --}}
-                <div class="w-full lg:w-44 space-y-1">
-                    <label class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Document Type</label>
-                    <select name="document_type" class="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white font-semibold text-slate-700 cursor-pointer">
-                        <option value="">All Document Types</option>
-                        @if($selectedCategory && isset($categoriesInfo[$selectedCategory]))
-                            @foreach($categoriesInfo[$selectedCategory]['types'] as $type)
-                                <option value="{{ $type }}" @selected(request('document_type') === $type)>{{ $type }}</option>
-                            @endforeach
-                        @else
-                            @foreach($categoriesInfo as $k => $info)
-                                <optgroup label="{{ $info['label'] }}">
-                                    @foreach($info['types'] as $type)
-                                        <option value="{{ $type }}" @selected(request('document_type') === $type)>{{ $type }}</option>
-                                    @endforeach
-                                </optgroup>
-                            @endforeach
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
+                    {{-- Search Input --}}
+                    <div class="relative group flex-1 min-w-[180px]">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                        <input type="text" name="search" value="{{ request('search') }}" 
+                               placeholder="Search Title / Document #..." 
+                               class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                        
+                        {{-- Clear Search Button if active --}}
+                        @if(request('search'))
+                            <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
+                                <a href="{{ route('dms.index', array_merge(request()->except('search'), $selectedCategory ? ['category' => $selectedCategory] : [])) }}"
+                                   class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </a>
+                            </div>
                         @endif
-                    </select>
+                    </div>
+
+                    {{-- Category filter if not selected --}}
+                    @if(!$selectedCategory)
+                        <div class="relative flex-1 min-w-[160px]">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                            </div>
+                            <select name="category" onchange="this.form.submit()" 
+                                    class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                                <option value="">All Categories</option>
+                                @foreach($categoriesInfo as $k => $info)
+                                    <option value="{{ $k }}" @selected(request('category') === $k)>{{ $info['label'] }}</option>
+                                @endforeach
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Document Type --}}
+                    <div class="relative flex-1 min-w-[160px]">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        </div>
+                        <select name="document_type" onchange="this.form.submit()" 
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                            <option value="">All Document Types</option>
+                            @if($selectedCategory && isset($categoriesInfo[$selectedCategory]))
+                                @foreach($categoriesInfo[$selectedCategory]['types'] as $type)
+                                    <option value="{{ $type }}" @selected(request('document_type') === $type)>{{ $type }}</option>
+                                @endforeach
+                            @else
+                                @foreach($categoriesInfo as $k => $info)
+                                    <optgroup label="{{ $info['label'] }}">
+                                        @foreach($info['types'] as $type)
+                                            <option value="{{ $type }}" @selected(request('document_type') === $type)>{{ $type }}</option>
+                                        @endforeach
+                                    </optgroup>
+                                @endforeach
+                            @endif
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
                 </div>
 
-                {{-- Upload Date Range --}}
-                <div class="w-full lg:w-36 space-y-1">
-                    <label class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Date From</label>
-                    <input type="date" name="date_from" value="{{ request('date_from') }}" class="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white font-semibold text-slate-700 cursor-pointer">
-                </div>
-                <div class="w-full lg:w-36 space-y-1">
-                    <label class="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Date To</label>
-                    <input type="date" name="date_to" value="{{ request('date_to') }}" class="w-full px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] outline-none transition bg-white font-semibold text-slate-700 cursor-pointer">
-                </div>
+                {{-- Reset Filters Button --}}
+                <a href="{{ route('dms.index', $selectedCategory ? ['category' => $selectedCategory] : []) }}" 
+                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 h-[42px] text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 cursor-pointer shrink-0 whitespace-nowrap">
+                    <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    <span>RESET FILTERS</span>
+                </a>
+            </form>
 
-                {{-- Submit Button --}}
-                <div class="shrink-0">
-                    <button type="submit" class="w-full lg:w-auto px-5 py-2 bg-[#a38c29] hover:bg-[#8e7a23] text-white rounded-lg text-xs font-bold uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                        <span>Apply</span>
+            {{-- Premium Segmented Navigation Tabs (Below Search & Filter Box) --}}
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                <div class="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-sm inline-flex items-center gap-1.5 max-w-full overflow-x-auto">
+                    {{-- Tab 1: Active Records --}}
+                    <button type="button" @click="setStatusTab('active')" 
+                            class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
+                            :class="activeStatusTab === 'active' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
+                             :class="activeStatusTab === 'active' ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-500 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span>Active Records</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
+                              :class="activeStatusTab === 'active' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
+                            {{ $totalActiveCount ?? 0 }}
+                        </span>
+                    </button>
+
+                    {{-- Tab 2: Expiring Soon (30d) --}}
+                    <button type="button" @click="setStatusTab('expiring_soon')" 
+                            class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
+                            :class="activeStatusTab === 'expiring_soon' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
+                             :class="activeStatusTab === 'expiring_soon' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <span>Expiring Soon (30d)</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
+                              :class="activeStatusTab === 'expiring_soon' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-800 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
+                            {{ $totalExpiringCount ?? 0 }}
+                        </span>
+                    </button>
+
+                    {{-- Tab 3: Expired --}}
+                    <button type="button" @click="setStatusTab('expired')" 
+                            class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
+                            :class="activeStatusTab === 'expired' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
+                             :class="activeStatusTab === 'expired' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <span>Expired</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
+                              :class="activeStatusTab === 'expired' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-800 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
+                            {{ $totalExpiredCount ?? 0 }}
+                        </span>
+                    </button>
+
+                    {{-- Tab 4: Archived Documents --}}
+                    <button type="button" @click="setStatusTab('archived')" 
+                            class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
+                            :class="activeStatusTab === 'archived' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
+                             :class="activeStatusTab === 'archived' ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-500 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                        </div>
+                        <span>Archived</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
+                              :class="activeStatusTab === 'archived' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
+                            {{ $totalArchivedCount ?? 0 }}
+                        </span>
+                    </button>
+
+                    {{-- Tab 5: All Records --}}
+                    <button type="button" @click="setStatusTab('all')" 
+                            class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
+                            :class="activeStatusTab === 'all' 
+                                ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
+                        <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
+                             :class="activeStatusTab === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-500 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                        </div>
+                        <span>All Records</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
+                              :class="activeStatusTab === 'all' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
+                            {{ count($documents) }}
+                        </span>
                     </button>
                 </div>
-            </form>
+            </div>
 
             {{-- Table List Explorer Card --}}
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
@@ -275,7 +369,7 @@
                         <h2 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
                             Document Explorer {{ $selectedCategory ? '— ' . ($categoriesInfo[$selectedCategory]['label'] ?? '') : '' }}
                         </h2>
-                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Showing {{ $documents->total() }} recorded documents</p>
+                        <p class="text-[10px] text-slate-400 font-semibold mt-0.5">Showing <span x-text="getTabCount()">{{ $totalActiveCount }}</span> recorded documents</p>
                     </div>
                     <div class="flex items-center gap-2">
                         <button type="button" 
@@ -318,17 +412,22 @@
                                         $iconBg = 'bg-indigo-50 text-indigo-600 border-indigo-150';
                                     }
 
+                                    // Boolean flags for reactive tabs
+                                    $isArchived = (bool)$doc->is_archived;
+                                    $isExpired = !$isArchived && $doc->expiry_date && $doc->expiry_date->isPast();
+                                    $isExpiringSoon = !$isArchived && $doc->expiry_date && !$doc->expiry_date->isPast() && $doc->expiry_date->diffInDays(now()) <= 30;
+
                                     // Status & Validity Badge
                                     $statusLabel = 'Active';
                                     $statusBadge = 'bg-emerald-50 text-emerald-800 border-emerald-200';
-                                    if ($doc->is_archived) {
+                                    if ($isArchived) {
                                         $statusLabel = '📦 Archived';
                                         $statusBadge = 'bg-slate-100 text-slate-600 border-slate-200';
                                     } elseif ($doc->expiry_date) {
-                                        if ($doc->expiry_date->isPast()) {
+                                        if ($isExpired) {
                                             $statusLabel = '🔴 Expired (' . $doc->expiry_date->diffForHumans() . ')';
                                             $statusBadge = 'bg-rose-50 text-rose-800 border-rose-200';
-                                        } elseif ($doc->expiry_date->diffInDays(now()) <= 30) {
+                                        } elseif ($isExpiringSoon) {
                                             $daysLeft = round(now()->diffInDays($doc->expiry_date, false));
                                             $statusLabel = '⚠️ ' . $daysLeft . ' Days Left';
                                             $statusBadge = 'bg-amber-50 text-amber-900 border-amber-200';
@@ -343,7 +442,8 @@
                                         $refName = $doc->referenceProject->name;
                                     }
                                 @endphp
-                                <tr class="hover:bg-slate-50/50 transition-colors {{ $doc->is_archived ? 'opacity-70 bg-slate-50/30' : '' }}">
+                                <tr x-show="isDocVisible({{ $isArchived ? 'true' : 'false' }}, {{ $isExpiringSoon ? 'true' : 'false' }}, {{ $isExpired ? 'true' : 'false' }})"
+                                    class="hover:bg-slate-50/50 transition-colors {{ $isArchived ? 'opacity-70 bg-slate-50/30' : '' }}">
                                     <td class="px-5 py-3.5">
                                         <div class="flex items-center gap-3">
                                             <div class="w-9 h-9 rounded-lg border flex items-center justify-center font-bold text-[10px] {{ $iconBg }} shrink-0 shadow-2xs">
@@ -362,7 +462,7 @@
                                     </td>
                                     <td class="px-5 py-3.5">
                                         <span class="badge border bg-slate-50 text-slate-600 border-slate-200 text-[9px] font-bold uppercase px-2 py-0.5 rounded-md whitespace-nowrap">
-                                            {{ $categoriesInfo[$doc->category]['label'] ?? $doc->category }}
+                                             {{ $categoriesInfo[$doc->category]['label'] ?? $doc->category }}
                                         </span>
                                     </td>
                                     <td class="px-5 py-3.5">
@@ -411,7 +511,7 @@
                                             </a>
                                             
                                             {{-- Archive / Unarchive Toggle Button (Teal / Emerald Theme) --}}
-                                            @if(!$doc->is_archived)
+                                            @if(!$isArchived)
                                                 <button type="button" 
                                                         @click='confirmArchive({{ $doc->id }}, {{ json_encode($doc->title) }}, "archive")'
                                                         class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-teal-50 hover:bg-teal-600 border border-teal-200 hover:border-teal-600 text-teal-600 hover:text-white transition-all duration-200 shadow-2xs cursor-pointer" 
@@ -438,22 +538,24 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="7" class="px-6 py-16 text-center bg-slate-50/20">
-                                        <div class="w-12 h-12 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center mx-auto mb-3 text-slate-400 shadow-2xs">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                        </div>
-                                        <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1">No Documents Found</h3>
-                                        <p class="text-[10px] text-slate-400 font-bold uppercase max-w-xs mx-auto">No repository records match your filter criteria.</p>
-                                    </td>
-                                </tr>
                             @endforelse
+
+                            {{-- Empty State Row if no documents match reactive filter --}}
+                            <tr x-show="!hasVisibleDocs()" class="border-b border-slate-150">
+                                <td colspan="7" class="px-6 py-16 text-center bg-slate-50/20">
+                                    <div class="w-12 h-12 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-center mx-auto mb-3 text-slate-400 shadow-2xs">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                    <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider mb-1">No Documents Found</h3>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase max-w-xs mx-auto">No records found for the selected status tab or filter criteria.</p>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
 
-                {{-- Pagination footer --}}
-                @if($documents->hasPages())
+                {{-- Pagination footer if paginator object exists --}}
+                @if(method_exists($documents, 'hasPages') && $documents->hasPages())
                     <div class="px-5 py-4 border-t border-slate-100 bg-slate-50/30">
                         {{ $documents->links() }}
                     </div>
@@ -469,16 +571,24 @@
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                     <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Documents Expiring Soon</h3>
-                    <a href="{{ route('dms.index', ['status' => 'expiring_soon']) }}" class="text-[9px] font-extrabold text-[#a38c29] uppercase tracking-wide hover:underline">View All</a>
+                    <a href="{{ route('dms.index', ['status' => 'expiring_soon']) }}" 
+                       @click.prevent="setStatusTab('expiring_soon')" 
+                       class="text-[9px] font-extrabold text-[#a38c29] uppercase tracking-wide hover:underline cursor-pointer">View All</a>
                 </div>
                 <div class="p-4.5 space-y-3">
                     @forelse($expiringSoon as $expDoc)
                         @php
-                            $daysLeft = max(round(now()->diffInDays($expDoc->expiry_date, false)), 0);
-                            $alertColor = 'text-amber-600 bg-amber-50 border-amber-100';
-                            if ($daysLeft <= 15) {
+                            $isExpired = $expDoc->expiry_date && $expDoc->expiry_date->isPast();
+                            $daysLeft = $expDoc->expiry_date ? round(now()->diffInDays($expDoc->expiry_date, false)) : 0;
+                            
+                            if ($isExpired) {
+                                $alertColor = 'text-rose-600 bg-rose-50 border-rose-200';
+                            } elseif ($daysLeft <= 15) {
                                 $alertColor = 'text-rose-600 bg-rose-50 border-rose-100';
+                            } else {
+                                $alertColor = 'text-amber-600 bg-amber-50 border-amber-100';
                             }
+
                             $expRefName = 'System / Company';
                             if ($expDoc->referenceProject) {
                                 $expRefName = $expDoc->referenceProject->name;
@@ -491,12 +601,17 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                             </div>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-xs font-bold text-slate-800 truncate">{{ $expDoc->title }}</h4>
+                                <h4 class="text-xs font-bold text-slate-800 truncate" title="{{ $expDoc->title }}">{{ $expDoc->title }}</h4>
                                 <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wider mt-0.5 truncate">{{ $expRefName }}</p>
                             </div>
                             <div class="text-right shrink-0">
-                                <span class="text-[9px] font-extrabold uppercase tracking-wide block {{ $daysLeft <= 15 ? 'text-rose-600' : 'text-amber-600' }}">{{ $daysLeft }} Days Left</span>
-                                <span class="text-[9px] font-mono text-slate-500 font-bold block mt-0.5">{{ $expDoc->expiry_date->format('d-M-Y') }}</span>
+                                @if($isExpired)
+                                    <span class="text-[9px] font-black uppercase tracking-wide block text-rose-600">Expired</span>
+                                    <span class="text-[9px] font-mono text-rose-500 font-bold block mt-0.5">{{ $expDoc->expiry_date->format('d-M-Y') }}</span>
+                                @else
+                                    <span class="text-[9px] font-extrabold uppercase tracking-wide block {{ $daysLeft <= 15 ? 'text-rose-600' : 'text-amber-600' }}">{{ $daysLeft }} Days Left</span>
+                                    <span class="text-[9px] font-mono text-slate-500 font-bold block mt-0.5">{{ $expDoc->expiry_date->format('d-M-Y') }}</span>
+                                @endif
                             </div>
                         </div>
                     @empty
@@ -1205,33 +1320,36 @@
 
     <template x-teleport="body">
         <div x-show="deleteModal.open" 
-             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs" 
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 modal-backdrop" 
              x-transition.opacity 
              style="display: none;">
-            <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-center transform transition-all animate-fade-in-up" 
-                 @click.outside="deleteModal.open = false">
-                <div class="w-14 h-14 rounded-full bg-rose-50 flex items-center justify-center mx-auto mb-4 text-rose-600 shadow-inner">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" 
+                 @click.away="deleteModal.open = false">
+                {{-- Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-rose-500/10">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Safety Check</span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Delete Document</h2>
+                        </div>
+                        <button type="button" @click="deleteModal.open = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs cursor-pointer">✕</button>
+                    </div>
                 </div>
-                <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-2">DELETE DOCUMENT</h3>
-                <p class="text-xs text-slate-600 mb-6 leading-relaxed">
-                    You are about to delete <span class="font-bold text-rose-600" x-text="deleteModal.docTitle"></span>. This action cannot be undone.
-                </p>
-                <div class="flex items-center justify-center gap-3">
-                    <button type="button" @click="deleteModal.open = false" 
-                            class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer">
-                        CANCEL
-                    </button>
-                    <form :action="deleteModal.deleteUrl" method="POST" class="inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" 
-                                class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-rose-600/20 flex items-center gap-2 cursor-pointer">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                            <span>YES, DELETE NOW</span>
-                        </button>
-                    </form>
+                <div class="p-6 bg-slate-50/50 text-xs font-sans space-y-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                        <p class="text-sm text-slate-700">
+                            Are you sure you want to delete document <span class="font-bold text-slate-900" x-text="deleteModal.docTitle"></span>?
+                        </p>
+                        <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wide">This action cannot be undone and will permanently remove the record and file.</p>
+                    </div>
                 </div>
+                <form :action="deleteModal.deleteUrl" method="POST" class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50 m-0">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" @click="deleteModal.open = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer">Confirm Delete</button>
+                </form>
             </div>
         </div>
     </template>
@@ -1311,6 +1429,36 @@
         const defaultProjId = '{{ $selectedProject ?? ($projects->first()?->id ?? '') }}';
 
         return {
+            activeStatusTab: '{{ request('status', 'active') }}',
+            setStatusTab(tab) {
+                this.activeStatusTab = tab;
+                const url = new URL(window.location);
+                url.searchParams.set('status', tab);
+                window.history.replaceState({}, '', url);
+            },
+            isDocVisible(isArchived, isExpiringSoon, isExpired) {
+                if (this.activeStatusTab === 'active') return !isArchived;
+                if (this.activeStatusTab === 'expiring_soon') return !isArchived && isExpiringSoon;
+                if (this.activeStatusTab === 'expired') return !isArchived && isExpired;
+                if (this.activeStatusTab === 'archived') return isArchived;
+                if (this.activeStatusTab === 'all') return true;
+                return true;
+            },
+            hasVisibleDocs() {
+                if (this.activeStatusTab === 'active') return {{ $totalActiveCount ?? 0 }} > 0;
+                if (this.activeStatusTab === 'expiring_soon') return {{ $totalExpiringCount ?? 0 }} > 0;
+                if (this.activeStatusTab === 'expired') return {{ $totalExpiredCount ?? 0 }} > 0;
+                if (this.activeStatusTab === 'archived') return {{ $totalArchivedCount ?? 0 }} > 0;
+                return {{ count($documents) }} > 0;
+            },
+            getTabCount() {
+                if (this.activeStatusTab === 'active') return '{{ $totalActiveCount ?? 0 }}';
+                if (this.activeStatusTab === 'expiring_soon') return '{{ $totalExpiringCount ?? 0 }}';
+                if (this.activeStatusTab === 'expired') return '{{ $totalExpiredCount ?? 0 }}';
+                if (this.activeStatusTab === 'archived') return '{{ $totalArchivedCount ?? 0 }}';
+                return '{{ count($documents) }}';
+            },
+
             showUploadModal: false,
             selectedCategory: '{{ $selectedCategory ?? '' }}',
             uploadCategory: '{{ $selectedCategory ?: 'project' }}',

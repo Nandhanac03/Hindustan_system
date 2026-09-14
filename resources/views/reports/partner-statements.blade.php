@@ -9,7 +9,7 @@
         {{-- Header & Reports Export Bar --}}
         <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 border-b border-slate-100 pb-5">
             <div>
-                <h1 class="text-2xl font-black text-slate-900 tracking-tight">Partner Statement & Equity Ledger</h1>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Partner Statement & Equity Ledger</h1>
                 <p class="text-xs text-slate-500 font-medium mt-1">Track partner profit share, payouts and current balance owed.</p>
             </div>
             
@@ -17,8 +17,8 @@
                 
                 {{-- 1. Partner Statement Export --}}
                 <button @click="exportExcel('partner_statement')" 
-                        class="px-3.5 py-2.5 bg-[#009661] hover:bg-[#008254] text-white text-[11px] font-extrabold rounded-2xl transition-all duration-300 shadow hover:shadow-md hover:-translate-y-0.5 flex items-center gap-2 uppercase tracking-wider cursor-pointer whitespace-nowrap shrink-0">
-                    <svg class="w-4 h-4 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        class="group px-3.5 py-2.5 bg-white hover:bg-emerald-600 text-slate-700 hover:text-white border border-slate-250 hover:border-emerald-600 text-xs font-bold rounded-xl transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
+                    <svg class="w-4 h-4 text-emerald-600 group-hover:text-white transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="12" y1="18" x2="12" y2="12"></line>
@@ -29,8 +29,8 @@
 
                 {{-- 2. Profit Sharing Summary Export --}}
                 <button @click="exportExcel('profit_sharing_summary')" 
-                        class="px-3.5 py-2.5 bg-[#009661] hover:bg-[#008254] text-white text-[11px] font-extrabold rounded-2xl transition-all duration-300 shadow hover:shadow-md hover:-translate-y-0.5 flex items-center gap-2 uppercase tracking-wider cursor-pointer whitespace-nowrap shrink-0">
-                    <svg class="w-4 h-4 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        class="group px-3.5 py-2.5 bg-white hover:bg-emerald-600 text-slate-700 hover:text-white border border-slate-250 hover:border-emerald-600 text-xs font-bold rounded-xl transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
+                    <svg class="w-4 h-4 text-emerald-600 group-hover:text-white transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="12" y1="18" x2="12" y2="12"></line>
@@ -41,8 +41,8 @@
 
                 {{-- 3. Distribution History Log Export --}}
                 <button @click="exportExcel('distribution_history_log')" 
-                        class="px-3.5 py-2.5 bg-[#009661] hover:bg-[#008254] text-white text-[11px] font-extrabold rounded-2xl transition-all duration-300 shadow hover:shadow-md hover:-translate-y-0.5 flex items-center gap-2 uppercase tracking-wider cursor-pointer whitespace-nowrap shrink-0">
-                    <svg class="w-4 h-4 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        class="group px-3.5 py-2.5 bg-white hover:bg-emerald-600 text-slate-700 hover:text-white border border-slate-250 hover:border-emerald-600 text-xs font-bold rounded-xl transition-all duration-200 shadow-2xs hover:shadow-xs flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0">
+                    <svg class="w-4 h-4 text-emerald-600 group-hover:text-white transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="12" y1="18" x2="12" y2="12"></line>
@@ -53,9 +53,9 @@
 
                 {{-- 4. Record Partner Payout Button --}}
                 <button @click="openPayoutModal()" 
-                        class="px-4 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white font-bold rounded-2xl transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    <span class="text-xs font-black tracking-wide">Record Partner Payout</span>
+                        class="px-4 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap shrink-0">
+                    <svg class="w-4 h-4 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span>Record Partner Payout</span>
                 </button>
 
             </div>
@@ -419,20 +419,15 @@
              class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
              style="display: none;">
             <div @click.away="showPayoutModal = false" 
-                 class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col transform transition-all">
+                 class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[95vh] flex flex-col transform transition-all">
                 
                 {{-- Dark Header --}}
-                <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
-                    <div class="relative z-10 flex items-center justify-between">
-                        <div>
-                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">PARTNER PAYOUT SETUP</p>
-                            <h2 class="text-lg font-extrabold text-white">Record Partner Payout</h2>
-                        </div>
-                        <button type="button" @click="showPayoutModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+                <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30 flex-shrink-0">
+                    <div>
+                        <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">PARTNER PAYOUT SETUP</span>
+                        <h2 class="font-black text-base uppercase tracking-wider text-white">Record Partner Payout</h2>
                     </div>
+                    <button type="button" @click="showPayoutModal = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
                 </div>
 
                 {{-- Modal Body Form --}}
@@ -440,50 +435,51 @@
                     @csrf
                     <div class="p-6 space-y-4 overflow-y-auto max-h-[calc(95vh-130px)]">
                         
-                        {{-- 1. Partner Selection --}}
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">SELECT PARTNER <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                                </div>
-                                <select name="partner_id" x-model="modalData.partner_id" required class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                    <option value="">-- Choose Partner --</option>
-                                    @foreach($partners as $partner)
-                                        <option value="{{ $partner->id }}">{{ $partner->name }} ({{ $partner->role ?? 'Partner' }})</option>
-                                    @endforeach
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- 2. Project Selection --}}
-                        <div class="space-y-1.5">
-                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">SELECT PROJECT <span class="text-rose-500">*</span></label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                </div>
-                                <select name="project_id" x-model="modalData.project_id" required class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                                    <option value="">-- Choose Project --</option>
-                                    @foreach($projects as $project)
-                                        <option value="{{ $project->id }}">{{ $project->name }}</option>
-                                    @endforeach
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- 3. Payment Mode & Pay From Account --}}
+                        {{-- 1. Partner & Project Selection (2 Columns) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">PAYMENT MODE <span class="text-rose-500">*</span></label>
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">SELECT PARTNER <span class="text-rose-500">*</span></label>
                                 <div class="relative">
-                                    <select name="payment_mode" x-model="modalData.payment_mode" required class="w-full pl-3 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                    </div>
+                                    <select name="partner_id" x-model="modalData.partner_id" required class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
+                                        <option value="">-- Choose Partner --</option>
+                                        @foreach($partners as $partner)
+                                            <option value="{{ $partner->id }}">{{ $partner->name }} ({{ $partner->role ?? 'Partner' }})</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">SELECT PROJECT <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    </div>
+                                    <select name="project_id" x-model="modalData.project_id" required class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
+                                        <option value="">-- Choose Project --</option>
+                                        @foreach($projects as $project)
+                                            <option value="{{ $project->id }}">{{ $project->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 2. Payment Mode & Pay From Account (2 Columns) --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="space-y-1.5">
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAYMENT MODE <span class="text-rose-500">*</span></label>
+                                <div class="relative">
+                                    <select name="payment_mode" x-model="modalData.payment_mode" required class="w-full pl-3.5 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
                                         <option value="">-- Choose Payment Mode --</option>
                                         @if(isset($paymentModes) && count($paymentModes) > 0)
                                             @foreach($paymentModes as $pm)
@@ -503,13 +499,13 @@
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">PAY FROM ACCOUNT <span class="text-rose-500">*</span></label>
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAY FROM ACCOUNT <span class="text-rose-500">*</span></label>
                                 <div class="relative">
-                                    <select name="company_bank_account_id" x-model="modalData.company_bank_account_id" required class="w-full pl-3 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                                    <select name="company_bank_account_id" x-model="modalData.company_bank_account_id" required class="w-full pl-3.5 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
                                         <option value="">-- Choose Account --</option>
                                         @if(isset($companyBankAccounts) && count($companyBankAccounts) > 0)
                                             @foreach($companyBankAccounts as $cBank)
-                                                <option value="{{ $cBank->id }}">{{ $cBank->bank_name }} Account ({{ $cBank->account_number ? 'BANK-'.substr($cBank->account_number, 0, 8).'...' : $cBank->account_name }}) — Avail: Rs. {{ number_format((float)($cBank->current_balance ?? $cBank->opening_balance ?? 0), 2) }}</option>
+                                                <option value="{{ $cBank->id }}">{{ $cBank->bank_name }} ({{ $cBank->account_number ? substr($cBank->account_number, 0, 10).'...' : $cBank->account_name }}) — Bal: Rs. {{ number_format((float)($cBank->current_balance ?? $cBank->opening_balance ?? 0), 2) }}</option>
                                             @endforeach
                                         @else
                                             @foreach($bankAccounts as $acc)
@@ -524,73 +520,91 @@
                             </div>
                         </div>
 
-                        {{-- 4. Payout Amount & Payout Date --}}
+                        {{-- 3. Payout Amount & Payout Date (2 Columns) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">PAYOUT AMOUNT (RS.) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="allocated_amount" x-model="modalData.allocated_amount" step="0.01" min="1" required placeholder="50,000" class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs" />
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAYOUT AMOUNT (RS.) <span class="text-rose-500">*</span></label>
+                                <input type="number" name="allocated_amount" x-model="modalData.allocated_amount" step="0.01" min="1" required placeholder="e.g. 50,000" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-xs" />
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">PAYOUT DATE <span class="text-rose-500">*</span></label>
-                                <input type="date" name="date" x-model="modalData.date" required class="w-full px-3 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs cursor-pointer" />
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAYOUT DATE <span class="text-rose-500">*</span></label>
+                                <input type="date" name="date" x-model="modalData.date" required class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-xs cursor-pointer" />
                             </div>
                         </div>
 
-                        {{-- 5. Reference / Narration --}}
+                        {{-- 4. Reference / Narration (Single Line) --}}
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">REFERENCE / NARRATION <span class="text-rose-500">*</span></label>
-                            <textarea name="remarks" x-model="modalData.remarks" rows="2" required placeholder="Partner Profit Payout - Q2 Distribution" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-2xs"></textarea>
+                            <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">REFERENCE / NARRATION <span class="text-rose-500">*</span></label>
+                            <input type="text" name="remarks" x-model="modalData.remarks" required placeholder="Partner Profit Payout - Q2 Distribution" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-xs" />
                         </div>
 
                         {{-- Live Error Banner --}}
                         <template x-if="modalErrorMessage">
-                            <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-700 text-xs font-bold shadow-2xs">
-                                <svg class="w-5 h-5 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-3 text-rose-700 text-xs font-bold shadow-xs">
+                                <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                                 <span x-text="modalErrorMessage"></span>
                             </div>
                         </template>
 
-                        {{-- 6. Live Dynamic Balance Summary Box --}}
-                        <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs">
-                            <template x-if="modalSelectedBankAccount">
-                                <div class="space-y-1.5 pb-2 border-b border-slate-200/80">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span class="font-bold text-slate-600">Selected Bank Account Balance (<span x-text="modalSelectedBankAccount?.bank_name"></span>)</span>
-                                        <span class="font-mono font-extrabold text-blue-600 text-sm shrink-0" x-text="formatCurrency(modalSelectedBankBalance)">Rs. 0</span>
+                        {{-- 5. Symmetrical 2-Card Financial Summary Grid --}}
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                            {{-- Card 1: Bank Balance Summary --}}
+                            <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                                <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Source Bank Account</span>
+                                    <span class="text-[11px] font-bold text-slate-800 truncate max-w-[150px]" x-text="modalSelectedBankAccount ? modalSelectedBankAccount.bank_name : 'Not Selected'"></span>
+                                </div>
+                                <div class="space-y-1.5 text-xs">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-slate-600 font-semibold text-[11px]">Current Bank Balance:</span>
+                                        <span class="font-mono font-bold text-blue-600 text-xs" x-text="formatCurrency(modalSelectedBankBalance)">Rs. 0</span>
                                     </div>
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span class="font-bold text-slate-600">Bank Balance After Payout</span>
-                                        <span class="font-mono font-bold text-sm shrink-0" :class="modalBankBalanceAfterPayout < 0 ? 'text-rose-600 font-extrabold' : 'text-slate-800'" x-text="formatCurrency(modalBankBalanceAfterPayout)">Rs. 0</span>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-slate-600 font-semibold text-[11px]">Payout Deduction:</span>
+                                        <span class="font-mono font-bold text-rose-500 text-xs" x-text="'- ' + formatCurrency(modalPayoutAmount)">- Rs. 0</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
+                                        <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Bank Balance After:</span>
+                                        <span class="font-mono font-black text-xs" :class="modalBankBalanceAfterPayout < 0 ? 'text-rose-600 font-black' : 'text-slate-900'" x-text="formatCurrency(modalBankBalanceAfterPayout)">Rs. 0</span>
                                     </div>
                                 </div>
-                            </template>
+                            </div>
 
-                            <div class="flex items-center justify-between gap-3 pt-1">
-                                <span class="font-bold text-slate-600">Available Partner Balance</span>
-                                <span class="font-mono font-extrabold text-emerald-600 text-sm shrink-0" x-text="formatCurrency(modalSelectedPartnerBalance)">Rs. 0</span>
-                            </div>
-                            <div class="flex items-center justify-between gap-3">
-                                <span class="font-bold text-slate-600">Payout Amount</span>
-                                <span class="font-mono font-extrabold text-rose-500 text-sm shrink-0" x-text="formatCurrency(modalPayoutAmount)">Rs. 0</span>
-                            </div>
-                            <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-3">
-                                <span class="font-extrabold text-slate-900 uppercase tracking-wider pr-2">Partner Balance After Payout</span>
-                                <span class="font-mono font-black text-slate-900 text-base shrink-0" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
+                            {{-- Card 2: Partner Balance Summary --}}
+                            <div class="bg-slate-50 border border-slate-200/90 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+                                <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-500">Partner Equity Account</span>
+                                    <span class="text-[11px] font-bold text-slate-800 truncate max-w-[150px]" x-text="selectedPartnerName"></span>
+                                </div>
+                                <div class="space-y-1.5 text-xs">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-slate-600 font-semibold text-[11px]">Available Partner Balance:</span>
+                                        <span class="font-mono font-bold text-emerald-600 text-xs" x-text="formatCurrency(modalSelectedPartnerBalance)">Rs. 0</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="text-slate-600 font-semibold text-[11px]">Payout Released:</span>
+                                        <span class="font-mono font-bold text-rose-500 text-xs" x-text="'- ' + formatCurrency(modalPayoutAmount)">- Rs. 0</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80">
+                                        <span class="font-black text-slate-900 uppercase text-[10px] tracking-wider">Partner Balance After:</span>
+                                        <span class="font-mono font-black text-slate-900 text-xs" x-text="formatCurrency(modalBalanceAfterPayout)">Rs. 0</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                     </div>
 
                     {{-- Actions Footer --}}
-                    <div class="px-6 py-4 border-t border-slate-200/80 flex items-center justify-end gap-3 bg-white flex-shrink-0">
-                        <button type="button" @click="showPayoutModal = false" class="px-5 py-2.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-extrabold rounded-xl text-xs uppercase tracking-wider transition-all cursor-pointer">
+                    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50/60 flex-shrink-0">
+                        <button type="button" @click="showPayoutModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">
                             CANCEL
                         </button>
                         <button type="submit"
-                                :disabled="Boolean(modalErrorMessage)"
-                                :class="modalErrorMessage ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400' : 'bg-[#a38c29] hover:bg-[#8e7a23] cursor-pointer'"
-                                class="px-6 py-2.5 text-white font-extrabold rounded-xl text-xs uppercase tracking-wider shadow-md transition-all">
+                                :disabled="Boolean(modalErrorMessage) || !modalData.company_bank_account_id"
+                                :class="Boolean(modalErrorMessage) || !modalData.company_bank_account_id ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400' : 'bg-[#a38c29] hover:bg-[#8e7a23] cursor-pointer shadow-md'"
+                                class="px-6 py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-xl transition">
                             CONFIRM & POST PAYOUT
                         </button>
                     </div>
@@ -643,6 +657,12 @@ function partnerStatementApp() {
             this.modalData.date = new Date().toISOString().split('T')[0];
             this.modalData.remarks = '';
             this.showPayoutModal = true;
+        },
+
+        get selectedPartnerName() {
+            if (!this.modalData.partner_id) return 'Not Selected';
+            const p = this.partners.find(m => String(m.id) === String(this.modalData.partner_id));
+            return p ? p.name : 'Partner';
         },
 
         get modalSelectedPartnerBalance() {

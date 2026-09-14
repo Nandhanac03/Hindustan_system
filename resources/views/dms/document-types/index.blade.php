@@ -136,13 +136,9 @@
                                         <button @click="openEditModal({{ $type->toJson() }})" class="p-2 rounded-xl transition-colors inline-flex items-center justify-center bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100" title="Edit">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                         </button>
-                                        <form action="{{ route('dms.document-types.destroy', $type->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this Document Type?')" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 rounded-xl transition-colors inline-flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100" title="Delete">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                            </button>
-                                        </form>
+                                        <button type="button" @click="openDeleteModal({{ $type->toJson() }})" class="p-2 rounded-xl transition-colors inline-flex items-center justify-center bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-100 cursor-pointer" title="Delete">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -163,9 +159,16 @@
         <!-- Add Document Type Modal -->
         <div x-show="modals.add.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
             <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeAddModal()">
-                <div class="px-6 py-4 bg-slate-900 flex items-center justify-between">
-                    <h3 class="text-xs font-black uppercase tracking-wider text-white">Add Document Type</h3>
-                    <button @click="closeAddModal()" class="text-white/60 hover:text-white transition">✕</button>
+                {{-- Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/20">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">New Document Type</span>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white">Add Document Type</h3>
+                        </div>
+                        <button type="button" @click="closeAddModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                    </div>
                 </div>
                 <form action="{{ route('dms.document-types.store') }}" method="POST" class="p-6 space-y-4">
                     @csrf
@@ -183,8 +186,8 @@
                         <input type="text" name="name" required placeholder="e.g. Environmental NOC" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all text-xs font-semibold text-slate-800">
                     </div>
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
-                        <button type="button" @click="closeAddModal()" class="px-4 py-2 border border-slate-200 text-slate-650 text-xs font-bold rounded-xl uppercase tracking-wider hover:bg-slate-50 transition">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20">Save Type</button>
+                        <button type="button" @click="closeAddModal()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 cursor-pointer">Save Type</button>
                     </div>
                 </form>
             </div>
@@ -193,9 +196,16 @@
         <!-- Edit Document Type Modal -->
         <div x-show="modals.edit.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
             <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeEditModal()">
-                <div class="px-6 py-4 bg-slate-900 flex items-center justify-between">
-                    <h3 class="text-xs font-black uppercase tracking-wider text-white">Edit Document Type</h3>
-                    <button @click="closeEditModal()" class="text-white/60 hover:text-white transition">✕</button>
+                {{-- Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-[#a38c29]/20">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">Edit Document Type</span>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white truncate max-w-[280px]" x-text="forms.edit.name || 'Edit Document Type'"></h3>
+                        </div>
+                        <button type="button" @click="closeEditModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                    </div>
                 </div>
                 <form :action="editUrl" method="POST" class="p-6 space-y-4">
                     @csrf
@@ -214,9 +224,40 @@
                         <input type="text" name="name" x-model="forms.edit.name" required placeholder="e.g. Environmental NOC" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] rounded-xl outline-none transition-all text-xs font-semibold text-slate-800">
                     </div>
                     <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
-                        <button type="button" @click="closeEditModal()" class="px-4 py-2 border border-slate-200 text-slate-650 text-xs font-bold rounded-xl uppercase tracking-wider hover:bg-slate-50 transition">Cancel</button>
-                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-xl uppercase tracking-wider transition shadow-md shadow-[#a38c29]/20">Update Type</button>
+                        <button type="button" @click="closeEditModal()" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">Cancel</button>
+                        <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 cursor-pointer">Update Changes</button>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Delete Document Type Confirmation Modal -->
+        <div x-show="modals.delete.open" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" style="display: none;" x-transition.opacity>
+            <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="closeDeleteModal()">
+                {{-- Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-rose-500/10">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">Safety Check</span>
+                            <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">Delete Document Type</h2>
+                        </div>
+                        <button type="button" @click="closeDeleteModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs cursor-pointer">✕</button>
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-50/50 text-xs font-sans space-y-4">
+                    <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                        <p class="text-sm text-slate-700">
+                            Are you sure you want to delete document type <span class="font-bold text-slate-900" x-text="deleteTarget?.name"></span>?
+                        </p>
+                        <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wide">This action cannot be undone and will remove the record.</p>
+                    </div>
+                </div>
+                <form :action="deleteUrl" method="POST" class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50 m-0">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" @click="closeDeleteModal()" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-650 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer">Confirm Delete</button>
                 </form>
             </div>
         </div>
@@ -228,11 +269,14 @@
             return {
                 modals: {
                     add: { open: false },
-                    edit: { open: false }
+                    edit: { open: false },
+                    delete: { open: false }
                 },
                 forms: {
                     edit: { id: '', name: '', dms_category_id: '' }
                 },
+                deleteTarget: null,
+                deleteUrl: '',
                 editUrl: '',
                 openAddModal() {
                     this.modals.add.open = true;
@@ -251,6 +295,15 @@
                 },
                 closeEditModal() {
                     this.modals.edit.open = false;
+                },
+                openDeleteModal(type) {
+                    this.deleteTarget = type;
+                    this.deleteUrl = `{{ url('dms/document-types') }}/${type.id}`;
+                    this.modals.delete.open = true;
+                },
+                closeDeleteModal() {
+                    this.modals.delete.open = false;
+                    this.deleteTarget = null;
                 }
             }
         }
