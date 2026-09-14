@@ -141,7 +141,7 @@
             worksheet.mergeCells('A1:H1');
             const titleCell = worksheet.getCell('A1');
             titleCell.value = bannerTitle;
-            titleCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
             titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
             titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
             worksheet.getRow(1).height = 36;
@@ -167,7 +167,7 @@
             for (let col = 1; col <= 8; col++) {
                 const cell = headerRow.getCell(col);
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
-                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                 cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 cell.border = {
                     top: { style: 'thin', color: { argb: 'FF8A7522' } },
@@ -291,7 +291,7 @@
             worksheet.mergeCells('A1:H1');
             const titleCell = worksheet.getCell('A1');
             titleCell.value = bannerTitle;
-            titleCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
             titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
             titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
             worksheet.getRow(1).height = 36;
@@ -317,7 +317,7 @@
             for (let col = 1; col <= 8; col++) {
                 const cell = headerRow.getCell(col);
                 cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFA38C29' } };
-                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
                 cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 cell.border = {
                     top: { style: 'thin', color: { argb: 'FF8A7522' } },

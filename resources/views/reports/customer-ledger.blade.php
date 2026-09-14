@@ -715,12 +715,12 @@
                     @endforeach
                 </tbody>
                 <tfoot>
-                    <tr height="28" style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #a38c29;">
-                        <td colspan="5" style="text-align: right; font-weight: bold;">TOTAL SUMMARY:</td>
-                        <td style="text-align: right; font-weight: bold;">₹{{ number_format($totalDebits, 2) }}</td>
-                        <td style="text-align: right; font-weight: bold; color: #047857;">₹{{ number_format($totalCredits, 2) }}</td>
-                        <td style="text-align: right; font-weight: bold; color: #be123c;">₹{{ number_format($closingBalance, 2) }}</td>
-                        <td></td>
+                    <tr height="36" style="background-color: #f8fafc; font-weight: bold; font-size: 13pt; height: 36pt; border-top: 2px solid #a38c29;">
+                        <td colspan="5" style="text-align: right; font-weight: bold; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY:</td>
+                        <td style="text-align: right; font-weight: bold; font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif;">₹{{ number_format($totalDebits, 2) }}</td>
+                        <td style="text-align: right; font-weight: bold; font-size: 13pt; color: #047857; font-family: 'Calibri', 'Aptos', sans-serif;">₹{{ number_format($totalCredits, 2) }}</td>
+                        <td style="text-align: right; font-weight: bold; font-size: 13pt; color: #be123c; font-family: 'Calibri', 'Aptos', sans-serif;">₹{{ number_format($closingBalance, 2) }}</td>
+                        <td style="font-size: 13pt; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
                     </tr>
                 </tfoot>
             @endif
