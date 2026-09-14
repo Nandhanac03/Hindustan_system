@@ -1105,16 +1105,19 @@
                     <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50/70 via-white to-amber-50/40 border border-[#a38c29]/30 p-5 shadow-md text-slate-900">
                         <div class="absolute -top-14 -right-14 w-48 h-48 bg-[#a38c29]/10 rounded-full blur-2xl pointer-events-none"></div>
 
-                        <div class="flex items-center gap-2 pb-3 border-b border-[#a38c29]/15">
-                            <span class="px-2 py-0.5 rounded-full bg-[#a38c29]/10 text-[#a38c29] text-[9px] font-extrabold uppercase tracking-widest border border-[#a38c29]/30">Step 3</span>
-                            <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Final Verification & Cancellation Summary</h4>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#a38c29]/15">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full bg-[#a38c29]/10 text-[#a38c29] text-[9px] font-extrabold uppercase tracking-widest border border-[#a38c29]/30">Step 3</span>
+                                <h4 class="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Final Verification & Cancellation Summary</h4>
+                            </div>
+                            <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sale ID</span>
+                                <span class="text-xs font-black text-slate-800 font-mono" x-text="newReturnSale ? newReturnSale.sale_number : ''"></span>
+                            </div>
                         </div>
 
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 pt-4">
-                            <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Sale ID</span>
-                                <span class="text-xs font-extrabold text-slate-800 mt-1 block" x-text="newReturnSale ? newReturnSale.sale_number : ''"></span>
-                            </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+                            {{-- Row 1: 3 boxes (Customer, Sale Amount, Total Paid) --}}
                             <div class="p-3 rounded-xl bg-white border border-slate-200/80 shadow-2xs">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Customer</span>
                                 <span class="text-xs font-extrabold text-slate-800 mt-1 block truncate" x-text="newReturnSale && newReturnSale.customer ? newReturnSale.customer.name : ''"></span>
@@ -1127,16 +1130,16 @@
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Paid</span>
                                 <span class="text-xs font-extrabold font-mono text-emerald-600 mt-1 block" x-text="newReturnSale ? fmtIndian(getPaidTillDate(newReturnSale)) : ''"></span>
                             </div>
+
+                            {{-- Row 2: 3 boxes (Cancellation Fee, Additional Refund, Approved Refund) --}}
                             <div class="p-3 rounded-xl bg-rose-50/60 border border-rose-200/60 shadow-2xs">
                                 <span class="text-[9px] font-bold text-rose-600 uppercase tracking-widest block">Cancellation Fee</span>
                                 <span class="text-xs font-extrabold font-mono text-rose-700 mt-1 block" x-text="'- ' + fmtIndian(Number(returnForm.cancellation_fee) || 0)"></span>
                             </div>
-                            <template x-if="Number(returnForm.additional_refund_amount) > 0">
-                                <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/60 shadow-2xs">
-                                    <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest block">Additional Refund</span>
-                                    <span class="text-xs font-extrabold font-mono text-emerald-700 mt-1 block" x-text="'+ ' + fmtIndian(Number(returnForm.additional_refund_amount) || 0)"></span>
-                                </div>
-                            </template>
+                            <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-200/60 shadow-2xs">
+                                <span class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest block">Additional Refund</span>
+                                <span class="text-xs font-extrabold font-mono text-emerald-700 mt-1 block" x-text="Number(returnForm.additional_refund_amount) > 0 ? ('+ ' + fmtIndian(Number(returnForm.additional_refund_amount) || 0)) : '+ ₹0.00'"></span>
+                            </div>
                             <div class="p-3 rounded-xl bg-[#a38c29]/15 border border-[#a38c29]/40 shadow-2xs">
                                 <span class="text-[9px] font-extrabold text-[#a38c29] uppercase tracking-widest block">Approved Refund</span>
                                 <span class="text-xs font-black font-mono text-slate-900 mt-1 block" x-text="fmtIndian(calculateApprovedRefund(newReturnSale))"></span>
