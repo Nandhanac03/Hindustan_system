@@ -125,45 +125,55 @@
             </div>
         </div>
 
-        {{-- Ultra-Clean Modern Light Search & Filter Panel --}}
-        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
-            <form method="GET" action="{{ route('contractors.index') }}" class="flex flex-col sm:flex-row items-center justify-between gap-3">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
-                    {{-- Ledger Code Search Input --}}
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/>
-                            </svg>
-                        </div>
-                        <input type="text" name="search_code" value="{{ request('search_code', '') }}" placeholder="Ledger Code (e.g. SUP-ACC-0001)..." autocomplete="off"
-                               class="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
-                    </div>
-
-                    {{-- Contractor / Firm Name Search Input --}}
+        {{-- Ultra-Clean Modern Light Search & Filter Panel (Live Instant Filter - No Page Refresh) --}}
+        <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
+            <form @submit.prevent="applyFilter()" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full m-0">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 w-full">
+                    {{-- 1. Live Instant Search Input --}}
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                             <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
-                        <input type="text" name="search_name" value="{{ request('search_name', '') }}" placeholder="Contractor / Firm Name..." autocomplete="off"
-                               class="w-full pl-10 pr-4 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                        <input type="text" x-model="filterSearch" @input="applyFilter()" placeholder="Search Ledger Code / Phone / PAN..." autocomplete="off"
+                               class="w-full pl-10 pr-9 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                        <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center" x-show="filterSearch && filterSearch.length > 0" style="display: none;">
+                            <button type="button" @click="filterSearch = ''; applyFilter()" class="p-1 rounded-md bg-slate-200/70 hover:bg-rose-500 hover:text-white text-slate-600 transition cursor-pointer" title="Clear Search">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- 2. Contractor / Firm Name Dropdown (Instant Live Filter) --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                        </div>
+                        <select x-model="filterContractorId" @change="applyFilter()"
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                            <option value="">All Contractors / Firms</option>
+                            @foreach(($allContractorsList ?? []) as $c)
+                                <option value="{{ $c->id }}">
+                                    {{ $c->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Action Buttons: Filter & Reset --}}
-                <div class="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
-                    <button type="submit"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#a38c29]/20 transition-all uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                        <span>Filter</span>
+                {{-- Action Buttons: Reset Filters (Instant - No Page Reload) --}}
+                <div class="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto">
+                    <button type="button" @click="resetFilters()"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 whitespace-nowrap cursor-pointer">
+                        <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>Reset Filters</span>
                     </button>
-                    <a href="{{ route('contractors.index') }}"
-                       class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2.5 text-xs font-extrabold uppercase tracking-wider transition-all">
-                        <svg class="h-3.5 w-3.5 text-slate-600 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                        <span>Reset</span>
-                    </a>
                 </div>
             </form>
         </div>
@@ -193,8 +203,10 @@
                     </thead>
                     <tbody id="contractors-master-tbody" class="divide-y divide-slate-100 font-medium text-slate-700">
                         @forelse($suppliers as $index => $sup)
-                            <tr class="transition hover:bg-[#faf7eb]">
-                                <td class="px-5 py-4 font-bold text-slate-400">
+                            <tr class="contractor-table-row transition hover:bg-[#faf7eb]"
+                                data-id="{{ $sup->id }}"
+                                data-search="{{ strtolower($sup->name . ' ' . ($sup->linked_account->code ?? ('SUP-ACC-' . str_pad($sup->id, 4, '0', STR_PAD_LEFT))) . ' ' . ($sup->phone ?? '') . ' ' . ($sup->pan ?? '') . ' ' . ($sup->gstin ?? '') . ' ' . ($sup->email ?? '') . ' ' . ($sup->address ?? '')) }}">
+                                <td class="contractor-sl-no px-5 py-4 font-bold text-slate-400">
                                     {{ $index + 1 }}
                                 </td>
                                 <td class="px-5 py-4 whitespace-nowrap">
@@ -283,10 +295,27 @@
                         @empty
                             <tr>
                                 <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">
-                                    No registered contractors found matching the filter criteria.
+                                    No registered contractors found.
                                 </td>
                             </tr>
                         @endforelse
+
+                        {{-- Dynamic No Results Found Row for Live Filtering --}}
+                        <tr id="no-contractors-row" style="display: none;">
+                            <td colspan="8" class="px-6 py-14 text-center">
+                                <div class="flex flex-col items-center justify-center space-y-2">
+                                    <div class="w-12 h-12 rounded-full bg-amber-50 text-[#a38c29] flex items-center justify-center border border-amber-200">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    </div>
+                                    <p class="text-sm font-extrabold text-slate-700 uppercase tracking-wide">No contractors found matching your filter</p>
+                                    <p class="text-xs text-slate-400 font-medium">Try clearing the search box or selecting "All Contractors / Firms".</p>
+                                    <button type="button" @click="resetFilters()" class="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-100 hover:bg-[#a38c29] hover:text-white text-slate-700 text-xs font-bold transition cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                        <span>Reset Filters</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -564,6 +593,8 @@
     <script>
         function contractorDirectoryApp() {
             return {
+                filterSearch: '{{ request("search", "") }}',
+                filterContractorId: '{{ request("contractor_id", "") }}',
                 openAddModal: false,
                 openEditModal: false,
                 openViewModal: false,
@@ -586,6 +617,57 @@
                 },
                 viewContractor: {},
                 contractorToDelete: {},
+
+                init() {
+                    this.$nextTick(() => {
+                        this.applyFilter();
+                    });
+                },
+
+                applyFilter() {
+                    const search = (this.filterSearch || '').trim().toLowerCase();
+                    const contractorId = (this.filterContractorId || '').toString().trim();
+                    const rows = document.querySelectorAll('.contractor-table-row');
+                    let visibleCount = 0;
+
+                    rows.forEach(row => {
+                        const rowId = (row.dataset.id || '').toString();
+                        const rowSearch = (row.dataset.search || '').toLowerCase();
+
+                        const matchesId = !contractorId || rowId === contractorId;
+                        const matchesSearch = !search || rowSearch.includes(search);
+
+                        if (matchesId && matchesSearch) {
+                            row.style.display = '';
+                            visibleCount++;
+                            const slCell = row.querySelector('.contractor-sl-no');
+                            if (slCell) slCell.textContent = visibleCount;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+
+                    const noRowsEl = document.getElementById('no-contractors-row');
+                    if (noRowsEl) {
+                        noRowsEl.style.display = (visibleCount === 0 && rows.length > 0) ? '' : 'none';
+                    }
+
+                    // Update browser address bar quietly without reloading
+                    try {
+                        const url = new URL(window.location.href);
+                        if (contractorId) url.searchParams.set('contractor_id', contractorId);
+                        else url.searchParams.delete('contractor_id');
+                        if (search) url.searchParams.set('search', search);
+                        else url.searchParams.delete('search');
+                        window.history.replaceState({}, '', url.toString());
+                    } catch (e) {}
+                },
+
+                resetFilters() {
+                    this.filterSearch = '';
+                    this.filterContractorId = '';
+                    this.applyFilter();
+                },
 
                 openAddModalFunc() {
                     this.name = '';

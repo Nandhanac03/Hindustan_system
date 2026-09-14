@@ -25,48 +25,7 @@ class SupplierController extends Controller
             ->withCount('raBills')
             ->withSum('raBills as total_billed', 'net_approved_amount');
 
-        if ($request->filled('search_code')) {
-            $code = trim((string)$request->search_code);
-            $query->whereHas('linkedAccount', function ($aq) use ($code) {
-                $aq->where('code', 'like', "%{$code}%");
-            });
-        }
-
-        if ($request->filled('search_name')) {
-            $name = trim((string)$request->search_name);
-            $query->where('name', 'like', "%{$name}%");
-        }
-
-        if ($request->filled('search')) {
-            $s = trim((string)$request->search);
-            $query->where(function ($q) use ($s) {
-                $q->where('name', 'like', "%{$s}%")
-                    ->orWhere('gstin', 'like', "%{$s}%")
-                    ->orWhereHas('linkedAccount', function ($aq) use ($s) {
-                        $aq->where('code', 'like', "%{$s}%");
-                    });
-            });
-        }
-
-        if ($request->filled('gst_status')) {
-            if ($request->gst_status === 'with_gst') {
-                $query->whereNotNull('gstin')->where('gstin', '!=', '');
-            } elseif ($request->gst_status === 'without_gst') {
-                $query->where(function ($q) {
-                    $q->whereNull('gstin')->orWhere('gstin', '');
-                });
-            }
-        }
-
-        if ($request->sort_by === 'name_desc') {
-            $query->orderByDesc('name');
-        } elseif ($request->sort_by === 'newest') {
-            $query->latest();
-        } else {
-            $query->orderBy('name');
-        }
-
-        $suppliers = $query->get();
+        $suppliers = $query->orderBy('name')->get();
 
         // Ensure any RA bills matched by contractor name or ID are linked and reflected accurately
         foreach ($suppliers as $sup) {
@@ -96,7 +55,12 @@ class SupplierController extends Controller
         $totalBillsAmount = RaBill::where('system_id', $systemId)->sum('net_approved_amount');
         $activeWithBills = RaBill::where('system_id', $systemId)->distinct('contractor_id')->count('contractor_id');
 
-        return view('suppliers.index', compact('suppliers', 'totalContractors', 'gstinCount', 'totalBillsAmount', 'activeWithBills'));
+        $allContractorsList = Payee::where('system_id', $systemId)
+            ->whereIn('type', ['Contractor', 'Supplier'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'type']);
+
+        return view('suppliers.index', compact('suppliers', 'totalContractors', 'gstinCount', 'totalBillsAmount', 'activeWithBills', 'allContractorsList'));
     }
 
     public function store(Request $request)
