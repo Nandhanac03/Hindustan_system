@@ -327,7 +327,7 @@ function reportsApp() {
                         const parsedNum = parseFloat(cleanVal);
                         if (rawVal && !isNaN(parsedNum)) {
                             excelCell.value = parsedNum;
-                            excelCell.numFormat = '₹#,##0.00';
+                            excelCell.numFormat = '₹#,##0.00_ ';
                         } else {
                             excelCell.value = rawVal;
                         }
@@ -339,7 +339,7 @@ function reportsApp() {
                         } else {
                             excelCell.value = '';
                         }
-                        excelCell.numFormat = '#,##0.00';
+                        excelCell.numFormat = '#,##0.00_ ';
                     } else {
                         // Check if text is phone number (e.g. 10-12 digits without decimal)
                         if (rawVal && /^\+?\d{10,12}$/.test(rawVal.trim())) {
@@ -360,28 +360,55 @@ function reportsApp() {
                         color: { argb: textColorHex }
                     };
 
-                    if (bgColorHex) {
-                        excelCell.fill = {
-                            type: 'pattern',
-                            pattern: 'solid',
-                            fgColor: { argb: bgColorHex }
-                        };
+                    let indentVal = 0;
+                    if (horizAlign === 'left') {
+                        if (!rawVal.startsWith('HINDUSTAN REAL ESTATE') && !rawVal.startsWith('Comprehensive Accounts') && !rawVal.startsWith('ACCOUNT SUMMARY') && !rawVal.startsWith('LEDGER TRANSACTION')) {
+                            indentVal = 1;
+                        }
                     }
 
                     excelCell.alignment = {
                         horizontal: horizAlign,
                         vertical: vertAlign,
-                        wrapText: isSales || cell.style.whiteSpace === 'normal'
+                        wrapText: isSales || cell.style.whiteSpace === 'normal',
+                        indent: indentVal
                     };
 
-                    // Add thin gray borders
-                    if (cell.getAttribute("data-no-border") !== "true" && tr.getAttribute("data-no-border") !== "true") {
-                        excelCell.border = {
-                            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
-                            right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
-                        };
+                    // Fill and border application (for single and merged cells)
+                    const borderDef = (cell.getAttribute("data-no-border") !== "true" && tr.getAttribute("data-no-border") !== "true") ? {
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    } : null;
+
+                    if (colspan > 1 || rowspan > 1) {
+                        for (let r = rIdx + 1; r <= rIdx + rowspan; r++) {
+                            for (let c = colIdx; c <= colIdx + colspan - 1; c++) {
+                                const targetCell = worksheet.getCell(r, c);
+                                if (bgColorHex) {
+                                    targetCell.fill = {
+                                        type: 'pattern',
+                                        pattern: 'solid',
+                                        fgColor: { argb: bgColorHex }
+                                    };
+                                }
+                                if (borderDef) {
+                                    targetCell.border = borderDef;
+                                }
+                            }
+                        }
+                    } else {
+                        if (bgColorHex) {
+                            excelCell.fill = {
+                                type: 'pattern',
+                                pattern: 'solid',
+                                fgColor: { argb: bgColorHex }
+                            };
+                        }
+                        if (borderDef) {
+                            excelCell.border = borderDef;
+                        }
                     }
 
                     colIdx += colspan;
