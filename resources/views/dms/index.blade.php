@@ -569,11 +569,8 @@
             
             {{-- Card 1: Expirations --}}
             <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
                     <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Documents Expiring Soon</h3>
-                    <a href="{{ route('dms.index', ['status' => 'expiring_soon']) }}" 
-                       @click.prevent="setStatusTab('expiring_soon')" 
-                       class="text-[9px] font-extrabold text-[#a38c29] uppercase tracking-wide hover:underline cursor-pointer">View All</a>
                 </div>
                 <div class="p-4.5 space-y-3">
                     @forelse($expiringSoon as $expDoc)
