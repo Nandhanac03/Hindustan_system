@@ -362,7 +362,7 @@
 
     <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (MATCHING CONTRACTOR RELEASE MODAL) ── -->
     <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="disburseModalOpen = false">
+        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="disburseModalOpen = false">
             {{-- Dark Header --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
