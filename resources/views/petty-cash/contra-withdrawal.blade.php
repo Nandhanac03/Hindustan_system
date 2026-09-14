@@ -24,8 +24,8 @@
             </h1>
         </div>
         <div class="flex items-center gap-3">
-            <a href="{{ route('petty-cash.balance-register') }}" class="flex items-center gap-2 px-4 py-2.5 bg-[#FAF0D7]/60 hover:bg-[#FAF0D7] text-[#8a7522] border border-[#EAE3CD] rounded-xl text-xs font-bold transition-all shadow-2xs">
-                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <a href="{{ route('petty-cash.balance-register') }}" class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-[#a38c29]/25 hover:shadow-lg">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 <span>Petty Cash Balance Register</span>
             </a>
         </div>
@@ -38,20 +38,21 @@
         <div class="xl:col-span-2">
             <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden">
                 
-                <!-- Card Header (Pure Gold Theme) -->
-                <div class="px-6 py-5 bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white border-b border-[#EAE3CD] text-slate-900 flex items-center justify-between">
-                    <div>
+                <!-- Card Header (Rich Gold Theme) -->
+                <div class="relative overflow-hidden bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] px-6 py-5 border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
+                    <div class="absolute -top-10 -right-10 w-36 h-36 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="relative z-10">
                         <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-0.5 rounded-md bg-[#FAF0D7] text-[#a38c29] border border-[#a38c29]/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Cash Transfer</span>
-                            <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider hidden sm:inline">Treasury Outflow &rarr; Petty Cash Box</span>
+                            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shadow-2xs">Cash Transfer</span>
+                            <span class="text-[10px] text-amber-100 font-bold uppercase tracking-wider hidden sm:inline">Treasury Outflow &rarr; Petty Cash Box</span>
                         </div>
-                        <h2 class="text-base font-black text-slate-900 uppercase tracking-wider mt-1.5 flex items-center gap-2.5">
-                            <svg class="w-5 h-5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                            Contra Withdrawal Entry
+                        <h2 class="text-base font-black text-white uppercase tracking-wider mt-1.5 flex items-center gap-2.5 drop-shadow-xs">
+                            <svg class="w-5 h-5 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <span>Contra Withdrawal Entry</span>
                         </h2>
                     </div>
-                    <div class="hidden sm:flex items-center gap-2">
-                        <span class="w-9 h-9 rounded-xl bg-white/80 text-[#a38c29] border border-[#EAE3CD] flex items-center justify-center shadow-2xs">
+                    <div class="hidden sm:flex items-center gap-2 relative z-10">
+                        <span class="w-10 h-10 rounded-xl bg-white/15 text-white border border-white/25 flex items-center justify-center shadow-inner">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         </span>
                     </div>
@@ -234,14 +235,14 @@
         <!-- Right Column: Sidebar Panels -->
         <div class="xl:col-span-1 flex flex-col gap-6">
             
-            <!-- Withdrawal Details (Pure Gold Theme) -->
+            <!-- Withdrawal Details (Rich Gold Theme) -->
             <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col">
-                <div class="px-5 py-4 bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white border-b border-[#EAE3CD] flex items-center justify-between">
+                <div class="px-5 py-4 bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-                        <h2 class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest">WITHDRAWAL DETAILS</h2>
+                        <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                        <h2 class="text-[11px] font-black text-white uppercase tracking-widest">WITHDRAWAL DETAILS</h2>
                     </div>
-                    <span class="text-[9px] font-bold text-[#8a7522] bg-[#FAF0D7] border border-[#EAE3CD] px-2 py-0.5 rounded-full uppercase tracking-wider">Live Analysis</span>
+                    <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Live Analysis</span>
                 </div>
                 <div class="p-5">
                     <table class="w-full text-xs">
@@ -276,14 +277,14 @@
                 </div>
             </div>
 
-            <!-- Contra History (Recent) (Pure Gold Theme) -->
+            <!-- Contra History (Recent) (Rich Gold Theme) -->
             <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col">
-                <div class="px-5 py-4 bg-gradient-to-r from-[#FAF0D7] via-[#F6F3E9] to-white border-b border-[#EAE3CD] flex items-center justify-between">
+                <div class="px-5 py-4 bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
                     <div class="flex items-center gap-2">
-                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <h2 class="text-[10px] font-black text-[#a38c29] uppercase tracking-widest">CONTRA HISTORY (RECENT)</h2>
+                        <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <h2 class="text-[11px] font-black text-white uppercase tracking-widest">CONTRA HISTORY (RECENT)</h2>
                     </div>
-                    <span class="text-[9px] font-bold text-[#8a7522] bg-[#FAF0D7] border border-[#EAE3CD] px-2 py-0.5 rounded-full uppercase tracking-wider">Recent 5</span>
+                    <span class="text-[9px] font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Recent 5</span>
                 </div>
                 <div class="p-0 overflow-x-auto">
                     <table class="w-full text-left whitespace-nowrap">
