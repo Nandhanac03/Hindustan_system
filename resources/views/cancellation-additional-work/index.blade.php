@@ -257,10 +257,10 @@
             worksheet.mergeCells(`A${footerRowIdx}:H${footerRowIdx}`);
             const footCell = worksheet.getCell(`A${footerRowIdx}`);
             footCell.value = `Total Cancelled Bookings: ${dataList.length}   |   Total Cancellation Fees: ₹${totalFee.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            footCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            footCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
             footCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
             footCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getRow(footerRowIdx).height = 34;
+            worksheet.getRow(footerRowIdx).height = 36;
 
             ['A','B','C','D','E','F','G','H'].forEach(c => {
                 worksheet.getCell(`${c}${footerRowIdx}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
@@ -407,10 +407,10 @@
             worksheet.mergeCells(`A${footerRowIdx}:H${footerRowIdx}`);
             const footCell = worksheet.getCell(`A${footerRowIdx}`);
             footCell.value = `Total Work Orders: ${dataList.length}   |   Total Additional Work Amount: ₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            footCell.font = { name: 'Calibri', size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+            footCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
             footCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
             footCell.alignment = { horizontal: 'center', vertical: 'middle' };
-            worksheet.getRow(footerRowIdx).height = 34;
+            worksheet.getRow(footerRowIdx).height = 36;
 
             ['A','B','C','D','E','F','G','H'].forEach(c => {
                 worksheet.getCell(`${c}${footerRowIdx}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
