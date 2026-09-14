@@ -2591,11 +2591,11 @@ class VoucherController extends Controller
             ? \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
             : null;
 
-        $siteExpense = (!$raBillPayment && class_exists(\App\Models\SiteExpense::class))
-            ? \App\Models\SiteExpense::where('voucher_id', $voucher->id)->first()
+        $siteExpensePayment = (!$raBillPayment && class_exists(\App\Models\SiteExpensePayment::class))
+            ? \App\Models\SiteExpensePayment::with(['siteExpense.vendor', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
             : null;
 
-        $commissionEntry = (!$raBillPayment && !$siteExpense && class_exists(\App\Models\CommissionEntry::class))
+        $commissionEntry = (!$raBillPayment && !$siteExpensePayment && class_exists(\App\Models\CommissionEntry::class))
             ? \App\Models\CommissionEntry::with('agent')->where('voucher_id', $voucher->id)->first()
             : null;
 
@@ -2607,9 +2607,11 @@ class VoucherController extends Controller
             $payeeName = $raBillPayment->raBill?->contractor_name ?: ($raBillPayment->raBill?->contractor?->name ?? null);
             $paymentMode = $raBillPayment->payment_mode ? ucwords(str_replace('_', ' ', $raBillPayment->payment_mode)) : null;
             $billReference = $raBillPayment->raBill ? '#' . $raBillPayment->raBill->ra_bill_number : null;
-        } elseif ($siteExpense) {
-            $payeeName = $siteExpense->payee_name ?? $siteExpense->expense_category;
-            $paymentMode = $siteExpense->payment_mode ? ucwords(str_replace('_', ' ', $siteExpense->payment_mode)) : null;
+        } elseif ($siteExpensePayment) {
+            $expense = $siteExpensePayment->siteExpense;
+            $payeeName = $expense?->payee_display_name ?: ($expense?->casual_payee_name ?: ($expense?->expense_category_name ?? null));
+            $paymentMode = $siteExpensePayment->payment_mode ? ucwords(str_replace('_', ' ', $siteExpensePayment->payment_mode)) : null;
+            $billReference = $expense ? '#' . $expense->voucher_number : null;
         } elseif ($commissionEntry) {
             $payeeName = $commissionEntry->agent?->name ?? 'Agent Commission';
             $paymentMode = 'Bank Transfer';
@@ -2628,16 +2630,31 @@ class VoucherController extends Controller
             $payeeName = $debitLine?->account?->name ?? 'Beneficiary / Payee';
         }
 
-        if (!$paymentMode) {
-            $paymentMode = $voucher->reference_no ? 'Bank Transfer / Cheque' : 'Direct Payment';
-        }
+        $bankName = $raBillPayment?->companyBankAccount?->bank_name
+            ?: ($siteExpensePayment?->companyBankAccount?->bank_name
+                ?: ($siteExpensePayment?->loan?->lender_name ?? null));
+
+        $bankAccountNo = $raBillPayment?->companyBankAccount?->account_number
+            ?: ($siteExpensePayment?->companyBankAccount?->account_number
+                ?: ($siteExpensePayment?->loan?->account_number ?? null));
+
+        $projectName = $raBillPayment?->raBill?->project?->name
+            ?: ($siteExpensePayment?->siteExpense?->project?->name ?? null);
+
+        $categoryName = $siteExpensePayment?->siteExpense?->expense_category_name
+            ?: ($raBillPayment ? 'Contractor RA Bill Progress Settlement' : null);
 
         return view('vouchers.payment-voucher-print', compact(
             'voucher',
             'raBillPayment',
+            'siteExpensePayment',
             'payeeName',
             'paymentMode',
-            'billReference'
+            'billReference',
+            'bankName',
+            'bankAccountNo',
+            'projectName',
+            'categoryName'
         ));
     }
 }

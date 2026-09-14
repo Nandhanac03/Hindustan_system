@@ -4,498 +4,717 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Voucher — {{ $voucher->voucher_number }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
-            color: #1a1a1a;
-            background: #f4f6f8;
-            padding: 24px;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 11pt;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 24px 16px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* ── Screen Page Preview ── */
+        .page-container {
+            max-width: 860px;
+            margin: 0 auto;
         }
 
         .page {
-            width: 210mm;
-            min-height: 148mm;
-            margin: 0 auto;
-            padding: 16mm 18mm;
             background: #ffffff;
-            border: 2px solid #2d3a1e;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+            padding: 36px 40px;
             position: relative;
+            overflow: hidden;
         }
 
-        /* Header */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 3px double #2d3a1e;
-            padding-bottom: 12px;
-            margin-bottom: 14px;
-        }
-        .company-name {
-            font-size: 20pt;
-            font-weight: bold;
-            color: #1a3a1a;
-            letter-spacing: 1px;
-        }
-        .company-sub {
-            font-size: 9pt;
-            color: #555;
-            margin-top: 2px;
-        }
-        .voucher-title-box {
-            text-align: right;
-        }
-        .voucher-title {
-            font-size: 16pt;
-            font-weight: bold;
-            color: #1a3a1a;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .voucher-number {
-            font-size: 11pt;
-            font-weight: bold;
-            color: #333;
-            margin-top: 4px;
-            font-family: 'Courier New', Courier, monospace;
-            background: #f0f0e8;
-            padding: 3px 10px;
-            border: 1px solid #ccc;
-            display: inline-block;
-        }
-
-        /* Meta row */
-        .meta-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            gap: 16px;
-            background: #fafaf5;
-            border: 1px solid #e2e2d0;
-            padding: 10px 14px;
-            border-radius: 4px;
-        }
-        .meta-cell {
-            flex: 1;
-        }
-        .meta-label {
-            font-size: 7.5pt;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #666;
-            font-weight: bold;
-        }
-        .meta-value {
-            font-size: 10.5pt;
-            font-weight: bold;
-            color: #111;
-            margin-top: 2px;
-            padding-bottom: 2px;
-        }
-
-        /* Amount highlight */
-        .amount-box {
-            background: #f5f3e8;
-            border: 2px solid #2d3a1e;
-            padding: 12px 20px;
-            margin: 12px 0;
-            text-align: center;
-        }
-        .amount-label {
-            font-size: 8.5pt;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #555;
-            font-weight: 600;
-        }
-        .amount-value {
-            font-size: 22pt;
-            font-weight: bold;
-            color: #1a3a1a;
-            font-family: 'Courier New', Courier, monospace;
-            margin: 4px 0;
-        }
-        .amount-words {
-            font-size: 10pt;
-            font-style: italic;
-            color: #3d3d3d;
-            border-top: 1px dashed #aaa;
-            padding-top: 6px;
-            margin-top: 6px;
-            font-weight: 500;
-        }
-
-        /* Details table */
-        .details-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 14px 0;
-            font-size: 10pt;
-        }
-        .details-table th {
-            background: #2d3a1e;
-            color: #fff;
-            text-transform: uppercase;
-            font-size: 8pt;
-            letter-spacing: 0.8px;
-            padding: 8px 10px;
-            text-align: left;
-        }
-        .details-table td {
-            padding: 10px 10px;
-            border-bottom: 1px solid #e0e0d0;
-            vertical-align: top;
-        }
-        .details-table tr:nth-child(even) td { background: #fcfcf8; }
-        .details-table .text-right { text-align: right; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
-        .details-table .total-row td {
-            background: #f0f0e8;
-            font-weight: bold;
-            border-top: 2px solid #2d3a1e;
-            border-bottom: 2px solid #2d3a1e;
-            font-size: 11pt;
-            padding: 10px;
-        }
-
-        /* Narration */
-        .narration-box {
-            border: 1px solid #d0d0c0;
-            padding: 8px 12px;
-            margin: 8px 0;
-            background: #fafaf5;
-            font-size: 10pt;
-        }
-        .narration-label {
-            font-size: 8pt;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #666;
-            font-weight: bold;
-            margin-bottom: 3px;
-        }
-
-        /* Status badge */
-        .status-badge {
-            display: inline-block;
-            padding: 3px 12px;
-            border-radius: 20px;
-            font-size: 9pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-        .status-posted { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
-
-        /* Signature section */
-        .signature-section {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 32px;
-            padding-top: 14px;
-            border-top: 2px solid #2d3a1e;
-            gap: 20px;
-        }
-        .signature-box {
-            flex: 1;
-            text-align: center;
-        }
-        .signature-line {
-            border-bottom: 1px solid #333;
-            height: 42px;
-            margin-bottom: 6px;
-        }
-        .signature-label {
-            font-size: 8pt;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #444;
-            font-weight: bold;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 16px;
-            padding-top: 8px;
-            border-top: 1px solid #ccc;
-            font-size: 8pt;
-            color: #888;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        /* Watermark */
-        .watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-30deg);
-            font-size: 60pt;
-            font-weight: bold;
-            color: rgba(45, 58, 30, 0.04);
-            text-transform: uppercase;
-            pointer-events: none;
-            letter-spacing: 4px;
-            white-space: nowrap;
-        }
-
-        /* Print Toolbar (hidden on print) */
+        /* ── Floating Action Toolbar (Hidden on Print) ── */
         .print-toolbar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
-            max-width: 210mm;
-            margin: 0 auto 20px auto;
-            padding: 12px 18px;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding: 14px 22px;
             background: #0f172a;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        }
-        .print-toolbar h2 {
-            color: #fff;
-            font-size: 12.5pt;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: bold;
-            margin: 0;
-            white-space: nowrap;
+            border-radius: 14px;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2);
+            color: #ffffff;
         }
 
-        .btn-print {
-            display: inline-flex;
+        .toolbar-info {
+            display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 9px 20px;
-            background: #16a34a;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 10.5pt;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
-            transition: background 0.15s;
+            gap: 10px;
         }
-        .btn-print:hover { background: #15803d; }
+
+        .toolbar-title {
+            font-size: 11pt;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+        }
+
+        .toolbar-pill {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 9pt;
+            font-weight: 700;
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .btn-back {
             display: inline-flex;
             align-items: center;
             gap: 6px;
             padding: 9px 16px;
             background: #334155;
-            color: #fff;
+            color: #ffffff;
             border: none;
             border-radius: 8px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 10pt;
-            font-weight: 600;
-            cursor: pointer;
+            font-size: 9.5pt;
+            font-weight: 700;
             text-decoration: none;
-            text-transform: uppercase;
-            white-space: nowrap;
-            transition: background 0.15s;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         .btn-back:hover { background: #475569; }
 
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            background: #059669;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 10pt;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);
+        }
+        .btn-print:hover { background: #047857; }
+
+        /* ── Document Header ── */
+        .doc-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 22px;
+        }
+
+        .brand-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a38c29;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+            border: 1px solid #a38c29;
+        }
+
+        .company-name {
+            font-size: 15pt;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .company-sub {
+            font-size: 8.5pt;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+
+        .company-tax {
+            font-size: 8pt;
+            color: #a38c29;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .voucher-title-group {
+            text-align: right;
+        }
+
+        .voucher-tag {
+            font-size: 7.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #a38c29;
+        }
+
+        .voucher-title {
+            font-size: 16pt;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.4px;
+            margin: 2px 0 6px 0;
+        }
+
+        .voucher-meta-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .voucher-num-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5pt;
+            font-weight: 800;
+            background: #f8fafc;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            padding: 3px 10px;
+            border-radius: 6px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 6px;
+            font-size: 8.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        /* ── Metadata Grid ── */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .meta-label {
+            font-size: 7pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .meta-value {
+            font-size: 9.5pt;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .meta-value.mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9pt;
+        }
+
+        /* ── Highlight Outflow Banner ── */
+        .outflow-banner {
+            background: linear-gradient(135deg, #fffdf5 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-left: 5px solid #a38c29;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .outflow-label {
+            font-size: 7.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #a38c29;
+            margin-bottom: 4px;
+        }
+
+        .outflow-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 20pt;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .outflow-words {
+            font-size: 8.5pt;
+            font-style: italic;
+            color: #475569;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        .outflow-badge {
+            text-align: right;
+            border-left: 1px solid #e2e8f0;
+            padding-left: 20px;
+        }
+
+        .verified-stamp {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 8.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ── Purpose Narration ── */
+        .purpose-box {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-bottom: 20px;
+        }
+
+        .purpose-label {
+            font-size: 7pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .purpose-text {
+            font-size: 9.5pt;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        /* ── Particulars Table ── */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 28px;
+        }
+
+        .details-table th {
+            background: #a38c29;
+            color: #ffffff;
+            font-size: 7.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .details-table td {
+            padding: 14px 14px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 9.5pt;
+            vertical-align: middle;
+        }
+
+        .details-table tr:nth-child(even) td {
+            background: #f8fafc;
+        }
+
+        .ref-pill {
+            display: inline-block;
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8pt;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .details-table .text-right {
+            text-align: right;
+        }
+
+        .amount-col {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11pt;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .total-row td {
+            background: #f1f5f9 !important;
+            border-top: 2px solid #cbd5e1;
+            border-bottom: 2px solid #cbd5e1;
+            font-weight: 800;
+            padding: 12px 14px;
+        }
+
+        .total-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13pt;
+            font-weight: 800;
+            color: #059669;
+        }
+
+        /* ── Executive Signature Section ── */
+        .sig-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 36px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .sig-box {
+            text-align: center;
+        }
+
+        .sig-line {
+            border-bottom: 1.5px dashed #94a3b8;
+            height: 48px;
+            margin-bottom: 8px;
+        }
+
+        .sig-title {
+            font-size: 7.5pt;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #475569;
+        }
+
+        .sig-subtitle {
+            font-size: 7.5pt;
+            color: #94a3b8;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        /* ── Footer ── */
+        .doc-footer {
+            margin-top: 24px;
+            padding-top: 12px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 7.5pt;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* ── Subtle Watermark ── */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-25deg);
+            font-size: 75pt;
+            font-weight: 900;
+            color: rgba(163, 140, 41, 0.035);
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            pointer-events: none;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        /* ── Print Styles ── */
         @media print {
-            .print-toolbar { display: none !important; }
-            body { padding: 0; background: #fff; }
-            .page { border: 2px solid #2d3a1e; box-shadow: none; padding: 10mm 12mm; }
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+            .print-toolbar {
+                display: none !important;
+            }
+            .page {
+                box-shadow: none;
+                border: 1px solid #cbd5e1;
+                border-radius: 0;
+                padding: 24px 28px;
+                max-width: 100%;
+            }
+            .watermark {
+                color: rgba(0, 0, 0, 0.025);
+            }
         }
     </style>
 </head>
 <body>
 
-    {{-- Print Toolbar --}}
-    <div class="print-toolbar">
-        <div>
-            <h2>📄 Payment Voucher — {{ $voucher->voucher_number }}</h2>
-            @if(session('success'))
-                <div style="color:#86efac; font-family:'Segoe UI', sans-serif; font-size:9pt; font-weight:600; margin-top:2px;">
-                    ✅ {{ session('success') }}
+    <div class="page-container">
+        {{-- Floating Action Toolbar --}}
+        <div class="print-toolbar">
+            <div class="toolbar-info">
+                <span class="toolbar-title">📄 Official Payment Disbursement Voucher</span>
+                <span class="toolbar-pill">{{ $voucher->voucher_number }}</span>
+            </div>
+            <div class="toolbar-actions">
+                <a href="{{ url()->previous() ?: route('site-expenses.payment-release') }}" onclick="if(window.history.length > 1) { history.back(); return false; }" class="btn-back">
+                    ← Back to Desk
+                </a>
+                <button onclick="window.print()" class="btn-print">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>Print Voucher</span>
+                </button>
+            </div>
+        </div>
+
+        {{-- Printable Page --}}
+        <div class="page">
+            <div class="watermark">DISBURSED</div>
+
+            {{-- Document Header --}}
+            <div class="doc-header">
+                <div class="brand-group">
+                    @if(file_exists(public_path('img/logo1.png')))
+                        <img src="{{ asset('img/logo1.png') }}" alt="Hindustan System Logo" style="height: 52px; width: auto; max-width: 130px; object-fit: contain; margin-right: 6px;">
+                    @elseif(file_exists(public_path('img/logo.jpg')))
+                        <img src="{{ asset('img/logo.jpg') }}" alt="Hindustan System Logo" style="height: 52px; width: auto; max-width: 130px; object-fit: contain; margin-right: 6px;">
+                    @else
+                        <div class="brand-logo">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                    @endif
+                    <div>
+                        <div class="company-name">Hindustan System</div>
+                        <div class="company-sub">Real Estate &amp; Construction ERP</div>
+                        <div class="company-tax">GST Registered Entity</div>
+                    </div>
+                </div>
+
+                <div class="voucher-title-group">
+                    <div class="voucher-tag">Official Accounting Document</div>
+                    <div class="voucher-title">PAYMENT VOUCHER</div>
+                    <div class="voucher-meta-pill">
+                        <span class="voucher-num-badge">{{ $voucher->voucher_number }}</span>
+                        <span class="status-badge">
+                            <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                            <span>DISBURSED</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Metadata Grid --}}
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <span class="meta-label">Voucher Date</span>
+                    <span class="meta-value">{{ $voucher->date ? $voucher->date->format('d/m/Y') : now()->format('d/m/Y') }}</span>
+                </div>
+
+                <div class="meta-item" style="grid-column: span 1.5;">
+                    <span class="meta-label">Beneficiary / Payee</span>
+                    <span class="meta-value" style="color: #0f172a;">{{ $payeeName ?? 'Authorized Payee' }}</span>
+                </div>
+
+                <div class="meta-item">
+                    <span class="meta-label">Payment Mode</span>
+                    <span class="meta-value" style="color: #0369a1;">{{ $paymentMode ?? 'Bank Transfer' }}</span>
+                </div>
+
+                <div class="meta-item">
+                    <span class="meta-label">Source Bank Account</span>
+                    <span class="meta-value" style="font-size: 8.5pt;">{{ $bankName ?? 'Corporate Bank Account' }}</span>
+                    @if(!empty($bankAccountNo))
+                        <span style="font-size: 7.5pt; color: #64748b; font-family: monospace;">A/C: {{ $bankAccountNo }}</span>
+                    @endif
+                </div>
+
+                <div class="meta-item">
+                    <span class="meta-label">Ref No. / UTR</span>
+                    <span class="meta-value mono">{{ $voucher->reference_no ?: '—' }}</span>
+                </div>
+            </div>
+
+            {{-- Total Amount Box --}}
+            @php
+                $totalAmount = $voucher->lines->sum('debit') ?: ($voucher->lines->sum('credit') ?: (float)($raBillPayment->paid_amount ?? ($siteExpensePayment->paid_amount ?? 0)));
+                
+                if (!function_exists('amountInWords')) {
+                    function amountInWords(float $amount): string {
+                        $ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
+                                 'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen',
+                                 'Seventeen','Eighteen','Nineteen'];
+                        $tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
+                        $n = (int) floor($amount);
+                        $paise = (int) round(($amount - $n) * 100);
+                        $convert = function(int $n) use ($ones, $tens, &$convert): string {
+                            if ($n < 20)  return $ones[$n];
+                            if ($n < 100) return $tens[intdiv($n, 10)] . ($n % 10 ? ' ' . $ones[$n % 10] : '');
+                            if ($n < 1000) return $ones[intdiv($n, 100)] . ' Hundred' . ($n % 100 ? ' ' . $convert($n % 100) : '');
+                            if ($n < 100000) return $convert(intdiv($n, 1000)) . ' Thousand' . ($n % 1000 ? ' ' . $convert($n % 1000) : '');
+                            if ($n < 10000000) return $convert(intdiv($n, 100000)) . ' Lakh' . ($n % 100000 ? ' ' . $convert($n % 100000) : '');
+                            return $convert(intdiv($n, 10000000)) . ' Crore' . ($n % 10000000 ? ' ' . $convert($n % 10000000) : '');
+                        };
+                        $words = $n > 0 ? $convert($n) : 'Zero';
+                        if ($paise > 0) $words .= ' and ' . $convert($paise) . ' Paise';
+                        return $words . ' Only';
+                    }
+                }
+            @endphp
+            <div class="outflow-banner">
+                <div>
+                    <div class="outflow-label">Total Outflow Disbursed</div>
+                    <div class="outflow-amount">₹ {{ number_format($totalAmount, 2) }}</div>
+                    <div class="outflow-words">INR {{ amountInWords((float)$totalAmount) }}</div>
+                </div>
+                <div class="outflow-badge">
+                    <div class="verified-stamp">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        <span>Treasury Verified</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Narration / Purpose --}}
+            @if($voucher->narration)
+                <div class="purpose-box">
+                    <div class="purpose-label">Disbursement Narration &amp; Purpose</div>
+                    <div class="purpose-text">{{ $voucher->narration }}</div>
                 </div>
             @endif
-        </div>
 
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <a href="{{ route('expenses.ra-bills.payment-release') }}" onclick="if(window.history.length > 1) { history.back(); return false; }" class="btn-back">
-                ← Back to Payment Release Desk
-            </a>
-            <button onclick="window.print()" class="btn-print">
-                🖨 Print Voucher
-            </button>
-        </div>
-    </div>
-
-    <div class="page">
-        <div class="watermark">PAYMENT</div>
-
-        {{-- Header --}}
-        <div class="header">
-            <div>
-                <div class="company-name">Hindustan System</div>
-                <div class="company-sub">Real Estate &amp; Construction ERP</div>
-                <div class="company-sub" style="margin-top:2px; color:#2d3a1e; font-weight:bold;">GST Registered Entity</div>
-            </div>
-            <div class="voucher-title-box">
-                <div class="voucher-title">Payment Voucher</div>
-                <div class="voucher-number">{{ $voucher->voucher_number }}</div>
-                <div style="margin-top:6px;">
-                    <span class="status-badge status-posted">{{ $voucher->status }}</span>
-                </div>
-            </div>
-        </div>
-
-        {{-- Meta Row --}}
-        <div class="meta-row">
-            <div class="meta-cell">
-                <div class="meta-label">Voucher Date</div>
-                <div class="meta-value">{{ $voucher->date?->format('d / m / Y') }}</div>
-            </div>
-            <div class="meta-cell" style="flex: 1.3;">
-                <div class="meta-label">Paid To (Beneficiary / Payee)</div>
-                <div class="meta-value" style="color: #1a3a1a;">{{ $payeeName ?? 'Contractor / Payee' }}</div>
-            </div>
-            <div class="meta-cell">
-                <div class="meta-label">Payment Mode</div>
-                <div class="meta-value">{{ $paymentMode ?? 'Bank Transfer' }}</div>
-            </div>
-            <div class="meta-cell">
-                <div class="meta-label">Reference No. (UTR / Cheque)</div>
-                <div class="meta-value" style="font-family: 'Courier New', monospace;">{{ $voucher->reference_no ?: '—' }}</div>
-            </div>
-            <div class="meta-cell">
-                <div class="meta-label">Prepared By</div>
-                <div class="meta-value">{{ $voucher->creator?->name ?? 'System' }}</div>
-            </div>
-        </div>
-
-        {{-- Total Amount Box --}}
-        @php
-            $totalAmount = $voucher->lines->sum('debit') ?: ($voucher->lines->sum('credit') ?: (float)($raBillPayment->paid_amount ?? 0));
-            
-            if (!function_exists('amountInWords')) {
-                function amountInWords(float $amount): string {
-                    $ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine',
-                             'Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen',
-                             'Seventeen','Eighteen','Nineteen'];
-                    $tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
-                    $n = (int) floor($amount);
-                    $paise = (int) round(($amount - $n) * 100);
-                    $convert = function(int $n) use ($ones, $tens, &$convert): string {
-                        if ($n < 20)  return $ones[$n];
-                        if ($n < 100) return $tens[intdiv($n, 10)] . ($n % 10 ? ' ' . $ones[$n % 10] : '');
-                        if ($n < 1000) return $ones[intdiv($n, 100)] . ' Hundred' . ($n % 100 ? ' ' . $convert($n % 100) : '');
-                        if ($n < 100000) return $convert(intdiv($n, 1000)) . ' Thousand' . ($n % 1000 ? ' ' . $convert($n % 1000) : '');
-                        if ($n < 10000000) return $convert(intdiv($n, 100000)) . ' Lakh' . ($n % 100000 ? ' ' . $convert($n % 100000) : '');
-                        return $convert(intdiv($n, 10000000)) . ' Crore' . ($n % 10000000 ? ' ' . $convert($n % 10000000) : '');
-                    };
-                    $words = $n > 0 ? $convert($n) : 'Zero';
-                    if ($paise > 0) $words .= ' and ' . $convert($paise) . ' Paise';
-                    return $words . ' Only';
-                }
-            }
-        @endphp
-        <div class="amount-box">
-            <div class="amount-label">Total Payment Amount</div>
-            <div class="amount-value">₹ {{ number_format($totalAmount, 2) }}</div>
-            <div class="amount-words">{{ amountInWords((float)$totalAmount) }}</div>
-        </div>
-
-        {{-- Narration --}}
-        @if($voucher->narration)
-            <div class="narration-box">
-                <div class="narration-label">Payment Purpose / Description</div>
-                <div style="color: #222; font-weight: 500;">{{ $voucher->narration }}</div>
-            </div>
-        @endif
-
-        {{-- Payee Friendly Single Entry View (Exclusively) --}}
-        <div id="customer-view-section">
+            {{-- Particulars Table --}}
             <table class="details-table">
                 <thead>
                     <tr>
-                        <th style="width: 5%; text-align: center;">#</th>
-                        <th style="width: 32%;">Particulars / Beneficiary</th>
-                        <th style="width: 43%;">Payment Description &amp; Details</th>
-                        <th style="width: 20%; text-align: right;">Amount Paid (₹)</th>
+                        <th style="width: 6%; text-align: center;">#</th>
+                        <th style="width: 38%;">Beneficiary / Payee Particulars</th>
+                        <th style="width: 36%;">Payment Details &amp; Accounting Head</th>
+                        <th style="width: 20%; text-align: right;">Amount (₹)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="text-align: center; font-weight: bold; color: #555;">1</td>
+                        <td style="text-align: center; font-weight: 700; color: #64748b;">1</td>
                         <td>
-                            <div style="font-size: 11pt; font-weight: bold; color: #1a3a1a;">
-                                {{ $payeeName ?? 'Contractor / Payee' }}
+                            <div style="font-weight: 800; color: #0f172a; font-size: 10pt;">
+                                {{ $payeeName ?? 'Authorized Payee' }}
                             </div>
-                            <div style="font-size: 8.5pt; color: #555; margin-top: 3px;">
-                                @if(!empty($billReference))
-                                    <span style="background: #eef2ea; color: #2d3a1e; font-weight: 700; padding: 2px 6px; border-radius: 4px; display: inline-block;">
-                                        Bill {{ $billReference }}
-                                    </span>
-                                @endif
-                                <span style="display: inline-block; margin-left: 4px;">
-                                    Mode: <strong>{{ $paymentMode ?? 'Bank Transfer' }}</strong>
-                                </span>
-                            </div>
-                        </td>
-                        <td>
-                            <div style="font-size: 10pt; color: #222; font-weight: 500; line-height: 1.4;">
-                                {{ $voucher->narration ?: 'Staggered RA Bill Disbursement' }}
-                            </div>
-                            @if($voucher->reference_no)
-                                <div style="font-size: 8.5pt; color: #555; margin-top: 3px;">
-                                    Transaction Ref / Cheque / UTR: <strong style="font-family: 'Courier New', monospace; color: #111;">{{ $voucher->reference_no }}</strong>
+                            @if(!empty($projectName))
+                                <div style="font-size: 8pt; color: #64748b; margin-top: 2px;">
+                                    Project: <strong>{{ $projectName }}</strong>
+                                </div>
+                            @endif
+                            @if(!empty($billReference))
+                                <div class="ref-pill">
+                                    Ref: {{ $billReference }}
                                 </div>
                             @endif
                         </td>
-                        <td class="text-right" style="font-size: 12pt; font-weight: bold; color: #1a3a1a; vertical-align: middle;">
+                        <td>
+                            <div style="font-weight: 600; color: #334155;">
+                                {{ $categoryName ?: ($voucher->narration ?: 'Corporate Payment Outflow') }}
+                            </div>
+                            <div style="font-size: 8pt; color: #64748b; margin-top: 3px;">
+                                Mode: <strong style="color: #0f172a;">{{ $paymentMode ?? 'Direct Bank Transfer' }}</strong>
+                                @if($voucher->reference_no)
+                                    | Ref: <strong style="font-family: monospace; color: #0f172a;">{{ $voucher->reference_no }}</strong>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="text-right amount-col">
                             ₹ {{ number_format($totalAmount, 2) }}
                         </td>
                     </tr>
                     <tr class="total-row">
-                        <td colspan="3" style="text-align: right; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; padding-right: 15px;">
-                            Total Amount Paid
+                        <td colspan="3" style="text-align: right; text-transform: uppercase; letter-spacing: 0.8px; font-size: 8.5pt; color: #475569;">
+                            Total Net Disbursement Outflow
                         </td>
-                        <td class="text-right" style="font-size: 12.5pt; color: #1a3a1a;">
+                        <td class="text-right total-amount">
                             ₹ {{ number_format($totalAmount, 2) }}
                         </td>
                     </tr>
                 </tbody>
             </table>
-        </div>
 
-        {{-- Signature Section --}}
-        <div class="signature-section">
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-label">Prepared By</div>
-                <div style="font-size:9pt; color:#555; margin-top:2px;">{{ $voucher->creator?->name ?? '—' }}</div>
+            {{-- Signature & Authorization Block --}}
+            <div class="sig-section">
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Prepared By</div>
+                    <div class="sig-subtitle">{{ $voucher->creator?->name ?? 'Accounts Officer' }}</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Checked &amp; Verified By</div>
+                    <div class="sig-subtitle">Internal Audit</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Approved By</div>
+                    <div class="sig-subtitle">Finance Director</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-title">Receiver's Signature</div>
+                    <div class="sig-subtitle">{{ $payeeName ?? 'Payee' }}</div>
+                </div>
             </div>
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-label">Checked By</div>
-            </div>
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-label">Approved By</div>
-            </div>
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-label">Received By (Payee)</div>
-            </div>
-        </div>
 
-        {{-- Footer --}}
-        <div class="footer">
-            <span>Voucher No: <strong>{{ $voucher->voucher_number }}</strong> | Generated: {{ now()->format('d M Y, h:i A') }}</span>
-            <span style="font-style:italic;">This is an official system-generated Payment Voucher — Hindustan ERP</span>
-            <span>Page 1 of 1</span>
+            {{-- Footer --}}
+            <div class="doc-footer">
+                <div>Voucher No: <strong style="color: #0f172a; font-family: monospace;">{{ $voucher->voucher_number }}</strong> | Generated: {{ now()->format('d M Y, h:i A') }}</div>
+                <div>Official System-Generated Disbursement Voucher • Hindustan System</div>
+                <div>Page 1 of 1</div>
+            </div>
         </div>
     </div>
 

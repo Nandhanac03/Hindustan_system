@@ -3,7 +3,7 @@
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="contractorDirectoryApp()">
 
         <!-- Breadcrumb & Top Action Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 -mt-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
                 <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
                 <span class="text-slate-300">›</span>
