@@ -408,10 +408,6 @@
                         <input type="number" step="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : 0" required
                                class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
                                oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
-                        <div class="mt-1 flex items-center justify-between text-[10px]">
-                            <span class="font-bold text-slate-500" x-text="selectedExpense ? 'Max Payable: ₹' + numberFormat(selectedExpense.balance_amount) : ''"></span>
-                            <span class="font-mono font-extrabold text-[#a38c29]" x-show="disbursePaidAmount > 0" x-text="'Amount: ₹' + numberFormat(disbursePaidAmount)"></span>
-                        </div>
                     </div>
                 </div>
 
@@ -472,41 +468,80 @@
                     </div>
                 </div>
 
-                <!-- ── LIVE BANK BALANCE ANALYSIS STRIP (WHEN SOURCE IS BANK) ── -->
+                <!-- ── LIVE BANK BALANCE & EXPENSE OUTFLOW ANALYSIS STRIP (WHEN SOURCE IS BANK) ── -->
                 <div x-show="sourceType === 'bank'" class="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-2.5">
-                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full" :class="isBankSufficient() ? 'bg-emerald-500 shadow-xs' : 'bg-rose-500 animate-ping'"></span>
-                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Bank Balance & Expense Outflow Analysis</span>
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span :class="isBankSufficient() ? 'bg-emerald-400' : 'bg-rose-400 animate-ping'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                                <span :class="isBankSufficient() ? 'bg-emerald-500' : 'bg-rose-500'" class="relative inline-flex rounded-full h-2.5 w-2.5"></span>
+                            </span>
+                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Expense Outflow Analysis</span>
                         </div>
                         <div>
-                            <span x-show="isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
-                                <span>✓ Sufficient Bank Balance</span>
+                            <span x-show="isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
+                                <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>Sufficient Bank Balance</span>
                             </span>
-                            <span x-show="!isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
-                                <span>⚠️ Insufficient Funds (Shortfall: ₹<span x-text="numberFormat(getShortfall())"></span>)</span>
+                            <span x-show="!isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
+                                <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span>Insufficient Funds (Shortfall: ₹<span x-text="numberFormat(getShortfall())"></span>)</span>
                             </span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                         <!-- 1. Bank Account Balance & Post-Payment Balance -->
-                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                            <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">Current Bank Balance</span>
-                            <div class="font-mono font-black text-slate-900 text-sm mt-1" x-text="'₹' + numberFormat(getBankBalance())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                        <div class="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">CURRENT BANK BALANCE</span>
+                                <div class="w-5 h-5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                </div>
+                            </div>
+                            <div class="font-mono font-black text-slate-900 text-sm mt-0.5" x-text="'₹' + numberFormat(getBankBalance())"></div>
+                            <div class="text-[9.5px] font-bold text-slate-500 mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
                                 <span>Post-Payment:</span>
                                 <strong :class="getPostBankBalance() >= 0 ? 'text-emerald-700 font-mono font-black' : 'text-rose-600 font-mono font-black'" x-text="'₹' + numberFormat(getPostBankBalance())"></strong>
+                            </div>
+                            <div class="text-[9px] text-slate-400 truncate mt-1">
+                                Bank: <span class="font-bold text-slate-700" x-text="getSelectedBankName()"></span>
                             </div>
                         </div>
 
                         <!-- 2. This Site Expense Remaining Balance -->
-                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                            <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">Remaining Voucher Balance</span>
-                            <div class="font-mono font-black text-sm mt-1" :class="getExpenseRemaining() == 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="'₹' + numberFormat(getExpenseRemaining())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                        <div class="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">REMAINING VOUCHER BALANCE</span>
+                                <div class="w-5 h-5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </div>
+                            </div>
+                            <div class="font-mono font-black text-sm mt-0.5" :class="getExpenseRemaining() == 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="'₹' + numberFormat(getExpenseRemaining())"></div>
+                            <div class="text-[9.5px] font-bold text-slate-500 mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
                                 <span>Current Due:</span>
                                 <span class="font-mono font-bold text-slate-800" x-text="'₹' + numberFormat(selectedExpense ? selectedExpense.balance_amount : 0)"></span>
+                            </div>
+                            <div class="text-[9px] text-slate-400 truncate mt-1">
+                                Voucher: <span class="font-mono font-bold text-slate-700" x-text="selectedExpense ? selectedExpense.voucher_number : '-'"></span>
+                            </div>
+                        </div>
+
+                        <!-- 3. Payee / Vendor Total Dues -->
+                        <div class="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="block text-[9px] font-black text-[#a38c29] uppercase tracking-wider">PAYEE TOTAL DUES</span>
+                                <div class="w-5 h-5 rounded-md bg-[#FAF0D7] text-[#a38c29] flex items-center justify-center">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                                </div>
+                            </div>
+                            <div class="font-mono font-black text-[#8a7522] text-sm mt-0.5" x-text="'₹' + numberFormat(getPayeeTotalDues())"></div>
+                            <div class="text-[9.5px] font-bold text-slate-500 mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                                <span>Post-Payment:</span>
+                                <span class="font-mono font-black text-slate-800" x-text="'₹' + numberFormat(getPayeePostDues())"></span>
+                            </div>
+                            <div class="text-[9px] text-slate-400 truncate mt-1">
+                                Payee: <strong class="text-slate-800" x-text="selectedExpense ? (selectedExpense.payee_display_name || selectedExpense.casual_payee_name || 'Payee') : 'Payee'"></strong>
                             </div>
                         </div>
                     </div>
@@ -570,6 +605,7 @@ function siteExpensePaymentRelease() {
         selectedBankId: '{{ $companyBankAccounts->first()?->id ?? "" }}',
         disbursePaidAmount: '',
         companyBankAccounts: @json($companyBankAccounts ?? []),
+        payeeBalances: @json($payeeBalances ?? []),
 
         openDisburseModal(expense) {
             this.selectedExpense = expense;
@@ -586,6 +622,12 @@ function siteExpensePaymentRelease() {
                     window.updateAmountInWordsForInput(inputEl);
                 }
             });
+        },
+
+        getSelectedBankName() {
+            if (!this.selectedBankId) return '-';
+            const b = this.companyBankAccounts.find(x => x.id == this.selectedBankId);
+            return b ? (b.bank_name || 'Bank Account') : '-';
         },
 
         getBankBalance() {
@@ -615,6 +657,27 @@ function siteExpensePaymentRelease() {
             const expenseBal = parseFloat(this.selectedExpense?.balance_amount) || 0;
             const paid = parseFloat(this.disbursePaidAmount) || 0;
             return Math.max(0, expenseBal - paid);
+        },
+
+        getPayeeTotalDues() {
+            if (!this.selectedExpense) return 0;
+            const vId = this.selectedExpense.vendor_id;
+            const pId = this.selectedExpense.payee_id;
+            const cName = this.selectedExpense.casual_payee_name;
+
+            if (this.payeeBalances) {
+                const key = vId ? ('v_' + vId) : (pId ? ('p_' + pId) : ('c_' + cName));
+                if (this.payeeBalances[key] !== undefined) {
+                    return parseFloat(this.payeeBalances[key]) || 0;
+                }
+            }
+            return parseFloat(this.selectedExpense.balance_amount) || 0;
+        },
+
+        getPayeePostDues() {
+            const currentTotal = this.getPayeeTotalDues();
+            const paid = parseFloat(this.disbursePaidAmount) || 0;
+            return Math.max(0, currentTotal - paid);
         },
 
         numberFormat(val) {

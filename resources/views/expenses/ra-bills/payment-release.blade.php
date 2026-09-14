@@ -319,10 +319,6 @@
                         <input type="number" step="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedBill ? selectedBill.balance_amount : 0" required
                                class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
                                oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
-                        <div class="mt-1 flex items-center justify-between text-[10px]">
-                            <span class="font-bold text-slate-500" x-text="selectedBill ? 'Max Payable: ₹' + numberFormat(selectedBill.balance_amount) : ''"></span>
-                            <span class="font-mono font-extrabold text-[#a38c29]" x-show="disbursePaidAmount > 0" x-text="'Amount: ₹' + numberFormat(disbursePaidAmount)"></span>
-                        </div>
                     </div>
                 </div>
 
