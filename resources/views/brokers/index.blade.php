@@ -89,7 +89,7 @@
     <div x-show="openRegister" 
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
          style="display: none;" x-transition.opacity>
-         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100 transform transition-all" @click.away="openRegister = false">
+         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all" @click.away="openRegister = false">
               {{-- Header --}}
               <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                   <div>
@@ -223,7 +223,7 @@
                                  <div x-show="openView" 
                                       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
                                       style="display: none;" x-transition.opacity>
-                                      <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100" @click.away="openView = false">
+                                      <div class="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden" @click.away="openView = false">
                                           {{-- Header --}}
                                           <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                                               <div>
@@ -292,7 +292,7 @@
                                  <div x-show="openEdit" 
                                       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
                                       style="display: none;" x-transition.opacity>
-                                      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100" @click.away="openEdit = false">
+                                      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" @click.away="openEdit = false">
                                           {{-- Header --}}
                                           <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-[#a38c29]/30">
                                               <div>
@@ -342,33 +342,33 @@
                                  <div x-show="openDelete" 
                                       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs text-left"
                                       style="display: none;" x-transition.opacity>
-                                      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-100" @click.away="openDelete = false">
+                                      <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="openDelete = false">
                                           {{-- Header --}}
-                                          <div class="bg-[#4c0519] p-5 text-white flex items-center justify-between relative overflow-hidden border-b border-rose-500/30">
-                                              <div>
-                                                  <span class="inline-block px-2.5 py-0.5 bg-rose-500/30 text-rose-200 text-[9px] font-black uppercase tracking-wider rounded border border-rose-500/40 mb-1">SAFETY CHECK</span>
-                                                  <h3 class="font-black text-base uppercase tracking-wider text-white truncate max-w-[280px]">DELETE BROKER</h3>
+                                          <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-b border-rose-500/10">
+                                              <div class="absolute -top-12 -right-12 w-32 h-32 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
+                                              <div class="relative z-10 flex items-center justify-between gap-4">
+                                                  <div>
+                                                      <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">SAFETY CHECK</span>
+                                                      <h2 class="text-sm font-extrabold text-white uppercase tracking-wider mt-1">DELETE BROKER</h2>
+                                                  </div>
+                                                  <button type="button" @click="openDelete = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0 text-xs cursor-pointer">✕</button>
                                               </div>
-                                              <button type="button" @click="openDelete = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
                                           </div>
                                           
-                                          <form method="POST" action="{{ route('brokers.destroy', $broker->id) }}" class="p-6 space-y-4 text-xs font-sans bg-white">
+                                          <form method="POST" action="{{ route('brokers.destroy', $broker->id) }}">
                                               @csrf
                                               @method('DELETE')
-                                              <div class="p-4 bg-rose-50 rounded-xl border border-rose-200 text-rose-900 space-y-1.5">
-                                                  <p class="text-xs font-bold">Are you sure you want to delete <span class="font-black text-slate-900">{{ $broker->name }}</span>?</p>
-                                                  <p class="text-[10px] text-rose-700 font-medium">This action cannot be undone and will permanently remove this broker profile.</p>
+                                              <div class="p-6 bg-slate-50/50 text-xs font-sans space-y-4">
+                                                  <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-2">
+                                                      <p class="text-sm text-slate-700">
+                                                          Are you sure you want to delete broker <span class="font-bold text-slate-900">{{ $broker->name }}</span>?
+                                                      </p>
+                                                      <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wide">THIS ACTION CANNOT BE UNDONE AND WILL REMOVE THE RECORD.</p>
+                                                  </div>
                                               </div>
-
-                                              <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-                                                  <button type="button" @click="openDelete = false" 
-                                                          class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">
-                                                      CANCEL
-                                                  </button>
-                                                  <button type="submit" 
-                                                          class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
-                                                      DELETE BROKER
-                                                  </button>
+                                              <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+                                                  <button type="button" @click="openDelete = false" class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer">CANCEL</button>
+                                                  <button type="submit" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer">CONFIRM DELETE</button>
                                               </div>
                                           </form>
                                       </div>
