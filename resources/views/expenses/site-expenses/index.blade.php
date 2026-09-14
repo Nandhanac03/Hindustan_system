@@ -826,14 +826,14 @@
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showCreateModal = false"></div>
 
-        {{-- Modal Dialog Container (Exact Unit Setup Modal Style - Zero White Border) --}}
-        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
+        {{-- Modal Dialog Container (Exact Match to Units Setup Modal - No Outer Border) --}}
+        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
-            {{-- Dark Header (Seamless with container) --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            {{-- Dark Header (Exact Units Setup Modal Style) --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -851,7 +851,7 @@
                   :action="selectedExpense ? ('{{ url('/site-expenses') }}/' + selectedExpense.id) : '{{ route('site-expenses.store') }}'" 
                   method="POST" 
                   enctype="multipart/form-data" 
-                  class="p-4 sm:p-6 space-y-4 text-xs bg-slate-50/70 overflow-y-auto flex-1">
+                  class="p-4 sm:p-6 space-y-4 text-xs bg-white overflow-y-auto flex-1">
                 @csrf
                 <template x-if="selectedExpense">
                     <input type="hidden" name="_method" value="PUT">
@@ -1136,16 +1136,16 @@
                 </div>
 
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                    <button type="button" @click="showCreateModal = false" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs uppercase tracking-wider transition border-0 cursor-pointer">
+                    <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">
                         Cancel
                     </button>
                     <template x-if="!selectedExpense || selectedExpense.status === 'Draft'">
-                        <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-[#a38c29] border border-amber-300/90 font-extrabold text-xs uppercase tracking-wider transition cursor-pointer flex items-center gap-2 shadow-2xs">
-                            <i data-lucide="file-text" class="w-4 h-4 text-[#a38c29]"></i>
+                        <button type="submit" form="site-expense-form" name="submit_action" value="draft" class="px-4 py-2 text-xs font-bold text-[#a38c29] hover:text-[#8a7522] border border-[#a38c29]/40 hover:bg-[#a38c29]/10 rounded-lg transition uppercase tracking-wide cursor-pointer flex items-center gap-1.5">
+                            <i data-lucide="file-text" class="w-3.5 h-3.5 text-[#a38c29]"></i>
                             <span>Save as Draft</span>
                         </button>
                     </template>
-                    <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#a38c29] via-[#b89f33] to-[#8a741f] hover:from-[#8a741f] hover:to-[#736017] text-white font-black text-xs uppercase tracking-widest shadow-md shadow-[#a38c29]/25 hover:shadow-lg transition-all cursor-pointer border-0">
+                    <button type="submit" form="site-expense-form" name="submit_action" value="submit" class="px-5 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide cursor-pointer border-0">
                         <span x-text="selectedExpense ? 'Update Site Expense' : 'Add Site Expense'">Add Site Expense</span>
                     </button>
                 </div>
@@ -1168,14 +1168,14 @@
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showViewModal = false"></div>
 
-        {{-- Modal Dialog Container (Exact Unit Setup Modal Style - Zero White Border) --}}
-        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
+        {{-- Modal Dialog Container (Exact Match to Units Setup Modal - No Outer Border) --}}
+        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
-            {{-- Dark Header (Seamless with container) --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            {{-- Dark Header (Exact Units Setup Modal Style) --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -1362,25 +1362,25 @@
                 <div class="flex items-center gap-2.5">
                     <button type="button" 
                             @click="showViewModal = false; openConfirmModal('reject', selectedExpense?.id, selectedExpense?.voucher_number)" 
-                            class="px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 font-extrabold text-xs transition cursor-pointer flex items-center gap-1.5 border border-amber-200">
-                        <i data-lucide="x-circle" class="w-4 h-4 text-amber-600"></i>
+                            class="px-3.5 py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs uppercase tracking-wide transition cursor-pointer flex items-center gap-1.5 border border-rose-200">
+                        <i data-lucide="x-circle" class="w-4 h-4 text-rose-600"></i>
                         <span>Reject</span>
                     </button>
 
                     <template x-if="selectedExpense?.status !== 'Approved'">
                         <button type="button" 
                                 @click="showViewModal = false; openConfirmModal('approve', selectedExpense?.id, selectedExpense?.voucher_number)" 
-                                class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm border-0">
+                                class="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wide transition cursor-pointer flex items-center gap-1.5 shadow-sm border-0">
                             <i data-lucide="check-circle" class="w-4 h-4 text-white"></i>
                             <span>Approve</span>
                         </button>
                     </template>
 
-                    <button type="button" @click="showViewModal = false; openEditModal(selectedExpense);" class="px-5 py-2.5 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] text-white font-black text-xs transition cursor-pointer flex items-center gap-2 shadow-sm shadow-[#a38c29]/20 border-0">
-                        <i data-lucide="pencil" class="w-4 h-4 text-white"></i>
+                    <button type="button" @click="showViewModal = false; openEditModal(selectedExpense);" class="px-4 py-2 rounded-lg bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide cursor-pointer flex items-center gap-1.5 border-0">
+                        <i data-lucide="pencil" class="w-3.5 h-3.5 text-white"></i>
                         <span>Edit Expense</span>
                     </button>
-                    <button type="button" @click="showViewModal = false" class="px-6 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-extrabold text-xs transition cursor-pointer border-0">
+                    <button type="button" @click="showViewModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">
                         Close
                     </button>
                 </div>
@@ -1398,20 +1398,17 @@
 
         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" @click.away="showConfirmModal = false">
 
-            {{-- Unified Executive Header --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 border-b border-amber-500/20">
+            {{-- Dark Header (Exact Units Setup Modal Style) --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                            <span x-text="confirmType === 'approve' ? 'Action Confirmation' : 'Security Verification'"></span>
-                        </p>
-                        <h2 class="text-sm sm:text-base font-extrabold text-white uppercase tracking-wider"
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1" x-text="confirmType === 'approve' ? 'Action Confirmation' : 'Security Verification'"></p>
+                        <h2 class="text-base font-extrabold text-white"
                             x-text="confirmType === 'reject' ? 'Reject Voucher' : (confirmType === 'delete' ? 'Delete Site Expense' : 'Approve Voucher')"></h2>
                     </div>
-                    <button type="button" @click="showConfirmModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer border-0">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="showConfirmModal = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
@@ -1446,25 +1443,25 @@
             {{-- Footer --}}
             <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
                 <button type="button" @click="showConfirmModal = false"
-                        class="px-4 py-2 border border-slate-200 hover:bg-slate-100 text-slate-600 text-xs font-bold rounded-xl transition uppercase tracking-wider cursor-pointer bg-white">
+                        class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer bg-white">
                     Cancel
                 </button>
 
                 <button x-show="confirmType === 'reject'" type="button"
                         @click="document.getElementById('reject-form-' + confirmExpenseId).submit()"
-                        class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer border-0">
+                        class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wide shadow-md cursor-pointer border-0">
                     Reject Voucher
                 </button>
 
                 <button x-show="confirmType === 'delete'" type="button"
                         @click="document.getElementById('delete-form-' + confirmExpenseId).submit()"
-                        class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer border-0">
+                        class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wide shadow-md cursor-pointer border-0">
                     Confirm Delete
                 </button>
 
                 <button x-show="confirmType === 'approve'" type="button"
                         @click="document.getElementById('approve-form-' + confirmExpenseId).submit()"
-                        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition uppercase tracking-wider shadow-md cursor-pointer border-0">
+                        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wide shadow-md cursor-pointer border-0">
                     Approve Voucher
                 </button>
             </div>
