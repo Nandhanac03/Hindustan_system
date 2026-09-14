@@ -934,8 +934,7 @@
                     this.form.outstanding = sale.remaining_balance;
                     this.form.project_name = sale.project ? sale.project.name : '';
                     this.form.total_amount = sale.total_amount;
-                    const dueAmt = (sale.next_due_amount !== undefined && sale.next_due_amount !== null && sale.next_due_amount > 0) ? sale.next_due_amount : sale.remaining_balance;
-                    this.form.amount = Math.max(0, Math.floor(parseFloat(dueAmt) || 0));
+                    this.form.amount = '';
                 } else {
                     this.form.customer_name = '';
                     this.form.unit_number = '';
@@ -948,7 +947,6 @@
 
             openCollectModal(item) {
                 this.errors = {};
-                let initialAmount = '';
                 if (item && item.id) {
                     this.form.booking_id = item.id;
                     this.form.customer_name = item.customer_name;
@@ -959,8 +957,6 @@
                     if (sale) {
                         this.form.project_name = sale.project ? sale.project.name : '';
                         this.form.total_amount = sale.total_amount;
-                        const dueAmt = (sale.next_due_amount !== undefined && sale.next_due_amount !== null && sale.next_due_amount > 0) ? sale.next_due_amount : sale.remaining_balance;
-                        initialAmount = Math.max(0, Math.floor(parseFloat(dueAmt) || 0));
                     } else {
                         this.form.project_name = '';
                         this.form.total_amount = 0;
@@ -974,7 +970,7 @@
                     this.form.total_amount = 0;
                 }
 
-                this.form.amount = initialAmount;
+                this.form.amount = '';
                 this.form.payment_mode = 'Cash';
                 this.form.receipt_date = new Date().toISOString().split('T')[0];
                 this.form.reference_no = '';

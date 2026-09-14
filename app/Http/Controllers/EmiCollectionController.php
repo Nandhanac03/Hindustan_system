@@ -77,7 +77,9 @@ class EmiCollectionController extends Controller
                     break;
                 }
             }
-            $sale->next_due_amount = $nextDueAmount > 0 ? $nextDueAmount : (float)$sale->remaining_balance;
+            $due = $nextDueAmount > 0 ? $nextDueAmount : (float)$sale->remaining_balance;
+            $sale->setAttribute('next_due_amount', $due);
+            $sale->next_due_amount = $due;
         }
 
         $allSalesFormatted = $activeSales->map(function ($sale) {
@@ -137,6 +139,7 @@ class EmiCollectionController extends Controller
                 'total_amount'           => (float) $sale->total_amount,
                 'total_paid'             => $totalPaid,
                 'remaining_balance'      => (float) $sale->remaining_balance,
+                'next_due_amount'        => (float) ($sale->next_due_amount ?? $sale->remaining_balance),
                 'payment_plan'           => $sale->payment_plan ?: 'emi',
                 'emi_installment_count'  => $sale->emi_installment_count ?? 12,
                 'emi_frequency'          => $sale->emi_frequency ?? 'monthly',
