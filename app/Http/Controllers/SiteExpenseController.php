@@ -643,6 +643,13 @@ class SiteExpenseController extends Controller
         $totalBalance  = (float) (clone $allApproved)->sum('balance_amount');
         $readyCount    = (clone $allApproved)->where('balance_amount', '>', 0)->count();
 
+        // Payee/Vendor pending balance lookup for real-time intelligence strip
+        $payeeBalances = (clone $allApproved)->get()->groupBy(function($item) {
+            if ($item->vendor_id) return 'v_' . $item->vendor_id;
+            if ($item->payee_id) return 'p_' . $item->payee_id;
+            return 'c_' . ($item->casual_payee_name ?? 'other');
+        })->map(fn($group) => (float) $group->sum('balance_amount'));
+
         $projects = Project::where('is_active', true)->orderBy('name')->get();
         $companyBankAccounts = CompanyBankAccount::where('status', 'active')
             ->orderByDesc('is_default')
@@ -668,7 +675,8 @@ class SiteExpenseController extends Controller
             'totalApproved',
             'totalPaid',
             'totalBalance',
-            'readyCount'
+            'readyCount',
+            'payeeBalances'
         ));
     }
 
