@@ -217,7 +217,7 @@
                             <td class="px-5 py-3.5 text-center" @click.stop>
                                 <div class="flex items-center justify-center gap-1.5">
                                     <button type="button"
-                                            @click="openCollectModal({ id: sale.id, outstanding: sale.remaining_balance, customer_name: sale.customer_name, door_no: sale.unit_text })"
+                                            @click="openCollectModal({ id: sale.id, outstanding: sale.remaining_balance, customer_name: sale.customer_name, door_no: sale.unit_text, next_due_amount: sale.next_due_amount, total_amount: sale.total_amount, project_name: sale.project_name })"
                                             class="px-3 py-1.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] active:scale-95 text-white text-[10px] font-extrabold rounded-lg transition shadow-2xs hover:shadow uppercase tracking-wider cursor-pointer">
                                         Collect
                                     </button>
@@ -804,15 +804,14 @@ function emiApp() {
         },
 
         onModalSaleSelect() {
-            const sale = this.activeSales.find(s => s.id == this.form.booking_id);
+            const sale = (this.allSales && this.allSales.find(s => s.id == this.form.booking_id)) || (this.activeSales && this.activeSales.find(s => s.id == this.form.booking_id));
             if (sale) {
-                this.form.customer_name = sale.customer ? sale.customer.name : '-';
-                this.form.unit_number = sale.unit ? sale.unit.door_no : 'No Unit';
-                this.form.outstanding = sale.remaining_balance;
-                this.form.project_name = sale.project ? sale.project.name : '';
-                this.form.total_amount = sale.total_amount;
-                const dueAmt = (sale.next_due_amount !== undefined && sale.next_due_amount !== null && sale.next_due_amount > 0) ? sale.next_due_amount : (sale.next_installment ?? sale.remaining_balance);
-                this.form.amount = Math.max(0, Math.floor(parseFloat(dueAmt) || 0));
+                this.form.customer_name = sale.customer ? sale.customer.name : (sale.customer_name || '-');
+                this.form.unit_number = sale.unit ? (sale.unit.door_no || sale.unit_text) : (sale.unit_text || 'No Unit');
+                this.form.outstanding = sale.remaining_balance ?? 0;
+                this.form.project_name = sale.project ? sale.project.name : (sale.project_name || '');
+                this.form.total_amount = sale.total_amount ?? 0;
+                this.form.amount = '';
             } else {
                 this.form.customer_name = '';
                 this.form.unit_number = '';
@@ -825,22 +824,21 @@ function emiApp() {
 
         openCollectModal(item) {
             this.errors = {};
-            let initialAmount = '';
             if (item && item.id) {
                 this.form.booking_id = item.id;
-                this.form.customer_name = item.customer_name;
-                this.form.unit_number = item.door_no;
-                this.form.outstanding = item.outstanding;
+                this.form.customer_name = item.customer_name || '';
+                this.form.unit_number = item.door_no || '';
+                this.form.outstanding = item.outstanding ?? 0;
+                this.form.project_name = item.project_name || '';
+                this.form.total_amount = item.total_amount ?? 0;
                 
-                const sale = this.activeSales.find(s => s.id == item.id);
+                const sale = (this.allSales && this.allSales.find(s => s.id == item.id)) || (this.activeSales && this.activeSales.find(s => s.id == item.id));
                 if (sale) {
-                    this.form.project_name = sale.project ? sale.project.name : '';
-                    this.form.total_amount = sale.total_amount;
-                    const dueAmt = (sale.next_due_amount !== undefined && sale.next_due_amount !== null && sale.next_due_amount > 0) ? sale.next_due_amount : (sale.next_installment ?? sale.remaining_balance);
-                    initialAmount = Math.max(0, Math.floor(parseFloat(dueAmt) || 0));
-                } else {
-                    this.form.project_name = '';
-                    this.form.total_amount = 0;
+                    if (!this.form.project_name) this.form.project_name = sale.project ? sale.project.name : (sale.project_name || '');
+                    if (!this.form.total_amount) this.form.total_amount = sale.total_amount ?? 0;
+                    if (!this.form.customer_name) this.form.customer_name = sale.customer ? sale.customer.name : (sale.customer_name || '');
+                    if (!this.form.unit_number) this.form.unit_number = sale.unit ? (sale.unit.door_no || sale.unit_text) : (sale.unit_text || '');
+                    if (!this.form.outstanding) this.form.outstanding = sale.remaining_balance ?? item.outstanding ?? 0;
                 }
             } else {
                 this.form.booking_id = '';
@@ -851,7 +849,7 @@ function emiApp() {
                 this.form.total_amount = 0;
             }
 
-            this.form.amount = initialAmount;
+            this.form.amount = '';
             this.form.payment_mode = 'Cash';
             this.form.receipt_date = new Date().toISOString().split('T')[0];
             this.form.reference_no = '';
