@@ -43,19 +43,17 @@ class SiteExpenseController extends Controller
     ];
 
     /**
-     * Get Expense Categories from ChartOfAccount table master
+     * Get Expense Categories - Restricted specifically to Site Expense COAs (4001, 4010, 4020, 4030, 4040)
      */
     protected function getExpenseCategories(): array
     {
+        $siteExpenseCodes = array_keys($this->defaultCategories);
         $categories = [];
 
         try {
             if (Schema::hasTable('chart_of_accounts')) {
                 $dbAccounts = ChartOfAccount::where('is_active', true)
-                    ->where(function ($q) {
-                        $q->where('account_type', 'EXPENSE')
-                          ->orWhere('account_code', 'like', '4%');
-                    })
+                    ->whereIn('account_code', $siteExpenseCodes)
                     ->orderBy('account_code')
                     ->get();
 
@@ -64,12 +62,17 @@ class SiteExpenseController extends Controller
                 }
             }
         } catch (\Exception $e) {
-            // Fallback to defaults if table query fails
+            // Fallback to defaults if query fails
         }
 
-        if (empty($categories)) {
-            $categories = $this->defaultCategories;
+        // Use default definitions for any missing codes without writing to the database
+        foreach ($this->defaultCategories as $code => $name) {
+            if (!isset($categories[$code])) {
+                $categories[$code] = $name;
+            }
         }
+
+        ksort($categories);
 
         return $categories;
     }

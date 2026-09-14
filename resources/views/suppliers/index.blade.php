@@ -325,20 +325,17 @@
         <!-- 1. ADD NEW CONTRACTOR POPUP MODAL -->
         <!-- ========================================== -->
         <div x-show="openAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openAddModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col">
-                {{-- Dark Header --}}
-                <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div @click.away="openAddModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border border-[#EAE3CD]">
+                {{-- Rich Gold Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] px-6 py-5 flex-shrink-0 border-b border-[#7c691c] text-white">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                                TABASCO HINDUSTAN · CONTRACTOR MASTER
-                            </p>
-                            <h2 class="text-base font-extrabold text-white uppercase tracking-wider">Add New Contractor</h2>
+                            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shadow-2xs">Contractor Master</span>
+                            <h2 class="text-base font-black text-white uppercase tracking-wider mt-1 drop-shadow-xs">Add New Contractor</h2>
                         </div>
-                        <button type="button" @click="openAddModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" @click="openAddModal = false" class="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-inner">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
@@ -402,20 +399,17 @@
         <!-- 2. EDIT CONTRACTOR POPUP MODAL -->
         <!-- ========================================== -->
         <div x-show="openEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openEditModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col">
-                {{-- Dark Header --}}
-                <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div @click.away="openEditModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border border-[#EAE3CD]">
+                {{-- Rich Gold Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] px-6 py-5 flex-shrink-0 border-b border-[#7c691c] text-white">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                                TABASCO HINDUSTAN · CONTRACTOR MASTER
-                            </p>
-                            <h2 class="text-base font-extrabold text-white uppercase tracking-wider">Edit Contractor Details</h2>
+                            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shadow-2xs">Contractor Master</span>
+                            <h2 class="text-base font-black text-white uppercase tracking-wider mt-1 drop-shadow-xs">Edit Contractor Details</h2>
                         </div>
-                        <button type="button" @click="openEditModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" @click="openEditModal = false" class="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-inner">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
@@ -478,20 +472,17 @@
         <!-- 3. VIEW CONTRACTOR PROFILE MODAL -->
         <!-- ========================================== -->
         <div x-show="openViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openViewModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col">
-                {{-- Dark Header --}}
-                <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div @click.away="openViewModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border border-[#EAE3CD]">
+                {{-- Rich Gold Header --}}
+                <div class="relative overflow-hidden bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] px-6 py-5 flex-shrink-0 border-b border-[#7c691c] text-white">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                                TABASCO HINDUSTAN · CONTRACTOR MASTER
-                            </p>
-                            <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="viewContractor.name || 'Contractor Details'"></h2>
+                            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shadow-2xs">Contractor Master</span>
+                            <h2 class="text-base font-black text-white uppercase tracking-wider mt-1 drop-shadow-xs" x-text="viewContractor.name || 'Contractor Details'"></h2>
                         </div>
-                        <button type="button" @click="openViewModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" @click="openViewModal = false" class="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-inner">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>

@@ -826,14 +826,14 @@
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showCreateModal = false"></div>
 
-        {{-- Modal Dialog Container (Exact Match to Units Setup Modal - No Outer Border) --}}
-        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
+        {{-- Modal Dialog Container (No bg-white on container to prevent white fringe) --}}
+        <div class="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
-            {{-- Dark Header (Exact Units Setup Modal Style) --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            {{-- Header (Flush Dark Header - zero white border) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -1168,14 +1168,14 @@
         {{-- Backdrop blur overlay --}}
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-md transition-opacity" @click="showViewModal = false"></div>
 
-        {{-- Modal Dialog Container (Exact Match to Units Setup Modal - No Outer Border) --}}
-        <div class="relative w-full max-w-5xl xl:max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
+        {{-- Modal Dialog Container (No bg-white on container to prevent white fringe) --}}
+        <div class="relative w-full max-w-5xl xl:max-w-6xl rounded-2xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 scale-95 translate-y-4"
              x-transition:enter-end="opacity-100 scale-100 translate-y-0">
             
-            {{-- Dark Header (Exact Units Setup Modal Style) --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            {{-- Header (Flush Dark Header - zero white border) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -1189,7 +1189,7 @@
             </div>
 
             {{-- Modal Body --}}
-            <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 text-xs sm:text-sm bg-slate-50/70 overflow-y-auto flex-1">
+            <div class="p-4 sm:p-6 space-y-4 sm:space-y-5 text-xs sm:text-sm bg-white overflow-y-auto flex-1">
                 
                 {{-- Top Details & Financial Grid --}}
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -1396,10 +1396,10 @@
          class="fixed inset-0 z-[60] flex items-center justify-center p-4"
          style="background: rgba(2,6,23,0.65); backdrop-filter: blur(4px);">
 
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" @click.away="showConfirmModal = false">
+        <div class="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden" @click.away="showConfirmModal = false">
 
-            {{-- Dark Header (Exact Units Setup Modal Style) --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            {{-- Header (Flush Dark Header - zero white border) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between gap-4">
                     <div>
@@ -1413,35 +1413,44 @@
                 </div>
             </div>
 
-            {{-- Body --}}
-            <div class="p-6 bg-slate-50/50 text-xs font-sans space-y-4">
-                <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-3">
-
-                    {{-- Voucher Reference --}}
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Voucher No.</span>
-                        <span class="font-mono font-black text-xs text-slate-900 bg-slate-100 px-2.5 py-1 rounded-lg" x-text="confirmVoucherNumber"></span>
-                    </div>
-
-                    {{-- Message per type --}}
-                    <template x-if="confirmType === 'reject'">
-                        <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-amber-700">reject and send back</strong> this site expense voucher? It will revert to draft status for correction.</p>
-                    </template>
-                    <template x-if="confirmType === 'delete'">
-                        <div>
-                            <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-rose-700">permanently delete</strong> this site expense record?</p>
-                            <p class="text-[10px] font-bold text-rose-600 uppercase tracking-wide mt-1">This action cannot be undone and will remove the record.</p>
+            {{-- Simple, Clean, User-Friendly Body --}}
+            <div class="p-6 bg-white text-center">
+                <template x-if="confirmType === 'approve'">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center border border-emerald-200 shadow-2xs">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         </div>
-                    </template>
-                    <template x-if="confirmType === 'approve'">
-                        <p class="text-sm text-slate-700">Are you sure you want to <strong class="text-emerald-700">approve</strong> this site expense voucher? The liability will be confirmed and forwarded to the <strong>Site Expense Payment Release</strong> desk for disbursement.</p>
-                    </template>
+                        <p class="text-sm text-slate-700 font-medium">
+                            Are you sure you want to approve voucher <strong class="font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded" x-text="confirmVoucherNumber"></strong>?
+                        </p>
+                    </div>
+                </template>
 
-                </div>
+                <template x-if="confirmType === 'reject'">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 mx-auto flex items-center justify-center border border-amber-200 shadow-2xs">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                        <p class="text-sm text-slate-700 font-medium">
+                            Are you sure you want to reject voucher <strong class="font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded" x-text="confirmVoucherNumber"></strong>?
+                        </p>
+                    </div>
+                </template>
+
+                <template x-if="confirmType === 'delete'">
+                    <div class="space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 mx-auto flex items-center justify-center border border-rose-200 shadow-2xs">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </div>
+                        <p class="text-sm text-slate-700 font-medium">
+                            Are you sure you want to delete voucher <strong class="font-mono text-slate-900 bg-slate-100 px-2 py-0.5 rounded" x-text="confirmVoucherNumber"></strong>?
+                        </p>
+                    </div>
+                </template>
             </div>
 
             {{-- Footer --}}
-            <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-2 bg-slate-50">
+            <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-2.5 bg-white">
                 <button type="button" @click="showConfirmModal = false"
                         class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer bg-white">
                     Cancel
@@ -1456,7 +1465,7 @@
                 <button x-show="confirmType === 'delete'" type="button"
                         @click="document.getElementById('delete-form-' + confirmExpenseId).submit()"
                         class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition uppercase tracking-wide shadow-md cursor-pointer border-0">
-                    Confirm Delete
+                    Delete Voucher
                 </button>
 
                 <button x-show="confirmType === 'approve'" type="button"

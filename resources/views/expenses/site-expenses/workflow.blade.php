@@ -860,24 +860,19 @@
          x-transition:leave-end="opacity-0 scale-95"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
         
-        <div @click.away="showCreateModal = false" class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-4xl w-full my-8 overflow-hidden text-slate-800 flex flex-col max-h-[90vh]">
-            {{-- Modal Header --}}
-            <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-6 py-4 text-white flex items-center justify-between border-b border-[#a38c29]/30 shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 border border-[#a38c29]/50 flex items-center justify-center text-[#a38c29]">
-                        <i data-lucide="plus-circle" class="w-5 h-5"></i>
-                    </div>
+        <div @click.away="showCreateModal = false" class="rounded-2xl shadow-2xl max-w-4xl w-full my-8 overflow-hidden text-slate-800 flex flex-col max-h-[90vh]">
+            {{-- Dark Header (Exact Unit Setup Modal Style) --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <h3 class="text-base font-extrabold tracking-tight flex items-center gap-2">
-                            Record New Site Expense Voucher
-                            <span class="px-2 py-0.5 text-[10px] bg-[#a38c29] text-white font-bold rounded-full uppercase">ERP Form</span>
-                        </h3>
-                        <p class="text-xs text-slate-400">Direct operational payment (Land, JCB Rental, Diesel, Municipal Fees)</p>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Site Expense Management</p>
+                        <h2 class="text-lg font-extrabold text-white">Record New Site Expense Voucher</h2>
                     </div>
+                    <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
                 </div>
-                <button type="button" @click="showCreateModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
             </div>
 
             {{-- Modal Form Content --}}
@@ -891,7 +886,7 @@
                       igst: 0,
                       get net() { return (parseFloat(this.gross)||0) + (parseFloat(this.cgst)||0) + (parseFloat(this.sgst)||0) + (parseFloat(this.igst)||0); } 
                   }" 
-                  class="p-6 space-y-5 text-xs overflow-y-auto flex-1">
+                  class="p-6 space-y-5 text-xs overflow-y-auto flex-1 bg-white">
                 @csrf
 
                 {{-- Section A: Header & Association --}}
