@@ -98,11 +98,11 @@
             if(!this.targetReceipt) return;
             
             if(this.statusName === 'realized') {
-                this.formAction = `/cheque-realization/${this.targetReceipt.id}/realize`;
+                this.formAction = `{{ url('cheque-realization') }}/${this.targetReceipt.id}/realize`;
             } else if(this.statusName === 'bounced') {
-                this.formAction = `/cheque-realization/${this.targetReceipt.id}/bounced`;
+                this.formAction = `{{ url('cheque-realization') }}/${this.targetReceipt.id}/bounced`;
             } else {
-                this.formAction = `/cheque-realization/${this.targetReceipt.id}/advance-status`;
+                this.formAction = `{{ url('cheque-realization') }}/${this.targetReceipt.id}/advance-status`;
             }
         },
         

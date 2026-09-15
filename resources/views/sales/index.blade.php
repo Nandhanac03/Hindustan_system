@@ -2428,7 +2428,7 @@ function salesApp() {
             if (Object.keys(this.customerRefundFormErrors).length > 0) return;
 
             this.isSubmittingRefund = true;
-            fetch(`/sales/${this.refundModalSale.id}/customer-refund`, {
+            fetch(`{{ url('sales') }}/${this.refundModalSale.id}/customer-refund`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2437,13 +2437,13 @@ function salesApp() {
                 },
                 body: JSON.stringify(this.customerRefundForm)
             })
-            .then(res => res.json().then(data => ({ status: res.status, body: data })))
-            .then(res => {
+            .then(async res => {
+                let data = await res.json().catch(() => ({}));
                 this.isSubmittingRefund = false;
-                if (res.status !== 200 || !res.body.success) {
-                    this.showToast(res.body.error || res.body.message || 'Failed to process customer refund.', 'error');
+                if (!res.ok || !data.success) {
+                    this.showToast(data.error || data.message || 'Failed to process customer refund.', 'error');
                 } else {
-                    this.showToast(res.body.message || 'Customer refund processed successfully.');
+                    this.showToast(data.message || 'Customer refund processed successfully.');
                     this.openCustomerRefundModal = false;
                     this.refundModalSale = null;
                     this.fetchSales();
