@@ -1851,6 +1851,8 @@ class ReportController extends Controller
                     'account_id'     => $partnerCode,
                     'debit_amount'   => $amount,
                     'credit_amount'  => 0.00,
+                    'entity_type'    => 'PARTNER',
+                    'entity_id'      => $partner->id,
                     'line_narration' => 'Partner Capital Liability Cleared (' . $partner->name . ')',
                 ]);
 
@@ -1860,6 +1862,8 @@ class ReportController extends Controller
                     'account_id'     => '1001',
                     'debit_amount'   => 0.00,
                     'credit_amount'  => $amount,
+                    'entity_type'    => 'BANK',
+                    'entity_id'      => $companyBankId,
                     'line_narration' => 'Bank Account (Bank Asset Decreases)',
                 ]);
             } catch (\Exception $e) {}
