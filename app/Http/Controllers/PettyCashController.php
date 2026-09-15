@@ -390,10 +390,11 @@ class PettyCashController extends Controller
         $projects = Project::where('is_active', true)->get();
         
         $selectedProject = $request->input('project_id', $projects->first()->id ?? null);
-        $fromDate = $request->input('from_date', date('Y-m-01'));
-        $toDate = $request->input('to_date', date('Y-m-d'));
+        $fromDate = $request->input('from_date');
+        $toDate = $request->input('to_date');
         $category = $request->input('category', 'All');
         $paymentMode = $request->input('payment_mode', 'All');
+        $search = $request->input('search');
 
         $project = Project::find($selectedProject);
         $siteName = $project ? $project->name : 'Green City Site';
@@ -417,20 +418,23 @@ class PettyCashController extends Controller
             $query->whereDate('transaction_date', '<=', $toDate);
         }
         
-        // Assuming narration holds the category for now since category isn't a dedicated column, 
-        // or we filter by category if added. Let's just pass the filter for UI logic.
-        // In a real scenario, you'd filter by an expense_category_id.
-        if ($category !== 'All') {
+        if ($category && $category !== 'All') {
             $query->where('narration', 'like', $category . '%');
         }
         
-        if ($paymentMode !== 'All') {
+        if ($paymentMode && $paymentMode !== 'All') {
             $query->where('payment_mode', $paymentMode);
         }
 
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('voucher_number', 'like', "%{$search}%")
+                  ->orWhere('narration', 'like', "%{$search}%")
+                  ->orWhere('reference_no', 'like', "%{$search}%");
+            });
+        }
+
         $expenses = $query->orderBy('transaction_date', 'desc')->paginate(10);
-        
-        // Example summary
         $totalAmount = $expenses->sum('cash_out');
         
         $paymentModes = \App\Models\PaymentMode::active()->get();
@@ -451,6 +455,47 @@ class PettyCashController extends Controller
             ->map(function($group) {
                 return $group->sum('cash_out');
             });
+
+        if ($request->wantsJson() || $request->ajax()) {
+            $formattedExpenses = collect($expenses->items())->map(function($expense) use ($category, $selectedProject, $siteName) {
+                $catName = ($category && $category !== 'All') ? $category : (explode('-', $expense->narration)[0] ?? 'General');
+                $parts = explode('-', $expense->narration);
+                $particularsText = count($parts) > 1 ? trim(implode('-', array_slice($parts, 1))) : $expense->narration;
+
+                return [
+                    'id' => $expense->id,
+                    'voucher_number' => $expense->voucher_number,
+                    'transaction_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('Y-m-d'),
+                    'formatted_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('d-M-Y'),
+                    'project_id' => $expense->pettyCashBox?->project_id ?? $selectedProject,
+                    'project_name' => $expense->pettyCashBox?->project?->name ?? $siteName,
+                    'category' => trim($catName),
+                    'particulars' => trim($particularsText),
+                    'narration' => $expense->narration,
+                    'payment_mode' => $expense->payment_mode ?? 'Cash',
+                    'bill_no' => $expense->reference_no ?? '',
+                    'bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '',
+                    'formatted_bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('d-M-Y') : '',
+                    'amount' => (float)$expense->cash_out,
+                    'formatted_amount' => '₹ ' . number_format($expense->cash_out, 2),
+                    'attachment_url' => $expense->attachment_path ? asset($expense->attachment_path) : '',
+                    'attachment_name' => $expense->attachment_path ? basename($expense->attachment_path) : '',
+                    'created_by' => $expense->creator?->name ?? 'System Admin',
+                ];
+            });
+
+            return response()->json([
+                'expenses' => $formattedExpenses,
+                'totalAmount' => number_format($totalAmount, 2),
+                'pagination' => [
+                    'current_page' => $expenses->currentPage(),
+                    'last_page' => $expenses->lastPage(),
+                    'from' => $expenses->firstItem() ?? 0,
+                    'to' => $expenses->lastItem() ?? 0,
+                    'total' => $expenses->total(),
+                ]
+            ]);
+        }
 
         return view('petty-cash.daily-site-expenses', compact(
             'expenses', 
