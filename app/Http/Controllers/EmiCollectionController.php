@@ -328,22 +328,24 @@ class EmiCollectionController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'sale_id'       => ['nullable', 'exists:sales,id'],
-            'booking_id'    => ['nullable', 'exists:sales,id'], // fallback
-            'amount'        => ['required_unless:collection_type,reschedule', 'nullable', 'numeric', 'min:0.01'],
-            'payment_mode'  => ['required_unless:collection_type,reschedule', 'nullable', 'string', 'max:100'],
-            'receipt_date'  => ['nullable', 'date'],
-            'reference_no'  => ['nullable', 'string', 'max:100'],
-            'bank_id'       => ['nullable', 'exists:banks,id'],
-            'bank_name'     => ['nullable', 'string', 'max:100'],
-            'remarks'       => ['nullable', 'string', 'max:500'],
-            'partner_id'    => ['nullable', 'exists:payees,id'],
-            'collection_type' => ['nullable', 'in:regular,prepayment,reschedule'],
+            'sale_id'           => ['nullable', 'exists:sales,id'],
+            'booking_id'        => ['nullable', 'exists:sales,id'], // fallback
+            'amount'            => ['required_unless:collection_type,reschedule', 'nullable', 'numeric', 'min:0.01'],
+            'payment_mode'      => ['required_unless:collection_type,reschedule', 'nullable', 'string', 'max:100'],
+            'receipt_date'      => ['nullable', 'date'],
+            'reference_no'      => ['required_unless:collection_type,reschedule', 'string', 'max:100'],
+            'bank_id'           => ['nullable', 'exists:banks,id'],
+            'bank_name'         => ['nullable', 'string', 'max:100'],
+            'remarks'           => ['nullable', 'string', 'max:500'],
+            'partner_id'        => ['nullable', 'exists:payees,id'],
+            'collection_type'   => ['nullable', 'in:regular,prepayment,reschedule'],
             'prepayment_option' => ['nullable', 'in:reduce_tenure,reduce_emi'],
             'reschedule_option' => ['nullable', 'in:extend_tenure,shift_dates'],
             'reschedule_reason' => ['nullable', 'string'],
-            'new_count'     => ['nullable', 'integer', 'min:1'],
-            'shift_months'  => ['nullable', 'integer', 'min:1'],
+            'new_count'         => ['nullable', 'integer', 'min:1'],
+            'shift_months'      => ['nullable', 'integer', 'min:1'],
+        ], [
+            'reference_no.required_unless' => 'The Ref / Cheque / UTR No. field is required.',
         ]);
 
         $saleId = $validated['sale_id'] ?? $validated['booking_id'];

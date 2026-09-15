@@ -33,7 +33,7 @@ class ChequeReceiptEntryController extends Controller
         $activeTab = $request->input('tab', 'all');
 
         // Query for Main Receipts Table
-        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'unit', 'bank'])
+        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'unit', 'bank', 'sale.project'])
             ->latest('receipt_date')
             ->latest('id');
 
@@ -167,12 +167,36 @@ class ChequeReceiptEntryController extends Controller
             };
             $statusName = $rstMaster ? $rstMaster['name'] : strtoupper(str_replace('_', ' ', $rst));
 
+            $project = $r->project ?? $r->sale?->project;
+            $projectLogo = null;
+            if ($project && !empty($project->image_url)) {
+                if (file_exists(public_path('storage/' . $project->image_url))) {
+                    $projectLogo = asset('storage/' . $project->image_url);
+                } elseif (file_exists(public_path($project->image_url))) {
+                    $projectLogo = asset($project->image_url);
+                }
+            }
+            if (!$projectLogo && file_exists(public_path('img/logo.jpg'))) {
+                $projectLogo = asset('img/logo.jpg');
+            } elseif (!$projectLogo && file_exists(public_path('img/logo1.png'))) {
+                $projectLogo = asset('img/logo1.png');
+            }
+
+            $projectName = $project?->name ?: 'Hindustan Real Estate & Infrastructure Developers Pvt. Ltd.';
+            $projectDesc = $project?->description ? trim(strip_tags($project->description)) : 'Real Estate Development, Project Management & Infrastructure Solutions';
+            if (strlen($projectDesc) > 130) {
+                $projectDesc = substr($projectDesc, 0, 127) . '...';
+            }
+
             return [
                 'id'                          => $r->id,
                 'ref'                         => $r->reference_no ?: 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT),
                 'amount'                      => (float)$r->amount,
                 'date'                        => $r->receipt_date?->format('Y-m-d'),
                 'customer_name'               => $r->customer?->name ?? ($r->payer_name ?? ($r->sale?->customer?->name ?? 'General Payer')),
+                'customer_phone'              => $r->customer?->phone ?? ($r->sale?->customer?->phone ?? ($r->customer?->mobile ?? ($r->sale?->customer?->mobile ?? '—'))),
+                'customer_email'              => $r->customer?->email ?? ($r->sale?->customer?->email ?? ''),
+                'customer_address'            => $r->customer?->address ?? ($r->sale?->customer?->address ?? ''),
                 'payer_name'                  => $r->payer_name,
                 'customer_id'                 => $r->customer_id,
                 'payment_mode'                => $r->payment_mode ?: 'Cash',
@@ -183,6 +207,9 @@ class ChequeReceiptEntryController extends Controller
                 'company_bank_account_ifsc'   => $ifsc,
                 'project_id'                  => $r->project_id,
                 'project_name'                => $r->project?->name ?? ($r->sale?->project?->name ?? '—'),
+                'project_company_name'        => $projectName,
+                'project_company_subtitle'    => $projectDesc,
+                'project_logo'                => $projectLogo,
                 'unit_id'                     => $r->unit_id,
                 'unit_name'                   => $r->unit?->door_no ?? ($r->sale?->unit?->door_no ?? '—'),
                 'reference_no'                => $r->reference_no,
@@ -289,7 +316,7 @@ class ChequeReceiptEntryController extends Controller
             'receipt_date'            => ['required', 'date'],
             'amount'                  => ['required', 'numeric', 'min:0.01'],
             'payment_mode'            => ['required', 'string'],
-            'reference_no'            => ['nullable', 'string', 'max:100'],
+            'reference_no'            => ['required', 'string', 'max:100'],
             'customer_id'             => ['nullable', 'exists:customers,id'],
             'payer_name'              => ['nullable', 'string', 'max:255'],
             'project_id'              => ['nullable', 'exists:projects,id'],

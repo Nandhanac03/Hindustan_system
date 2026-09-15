@@ -153,9 +153,14 @@
                 {{-- Reference & Bank --}}
                 <div class="grid grid-cols-2 gap-3">
                     <div class="space-y-1.5">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No.</label>
-                        <input type="text" x-model="form.reference_no" placeholder="Optional"
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No. <span class="text-rose-500">*</span></label>
+                        <input type="text" x-model="form.reference_no" placeholder="Enter Ref / Cheque No."
+                               @input="if(errors.reference_no) delete errors.reference_no;"
+                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-primary/20 rounded-xl text-xs focus:outline-none transition-all"
+                               :class="errors.reference_no ? 'border-rose-500 bg-rose-50/20' : ''">
+                        <template x-if="errors.reference_no">
+                            <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.reference_no) ? errors.reference_no[0] : errors.reference_no"></span>
+                        </template>
                     </div>
                     <div class="space-y-1.5">
                         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
@@ -322,6 +327,10 @@ function receiptsApp() {
             }
             if (!this.form.payment_mode) {
                 this.errors.payment_mode = ['please select payment mode'];
+                hasError = true;
+            }
+            if (!this.form.reference_no || !this.form.reference_no.toString().trim()) {
+                this.errors.reference_no = ['please enter ref / cheque no'];
                 hasError = true;
             }
 

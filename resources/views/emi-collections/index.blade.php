@@ -331,9 +331,9 @@
              class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto" 
              style="display: none;" 
              x-transition.opacity>
-            <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all my-auto" @click.away="closeCollectModal()">
+            <div class="w-full max-w-4xl bg-slate-950 rounded-3xl shadow-2xl overflow-hidden border border-slate-800/80 transform transition-all my-auto" @click.away="closeCollectModal()">
                 {{-- Header --}}
-                <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden">
+                <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden rounded-t-3xl">
                     <div class="flex items-center gap-3 relative z-10">
                         <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-lg font-black shadow-inner border border-[#a38c29]/30">
                             ₹
@@ -349,7 +349,7 @@
                     <button type="button" @click="closeCollectModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer relative z-10">✕</button>
                 </div>
                 
-                <form @submit.prevent="submitCollection()" novalidate class="flex flex-col">
+                <form @submit.prevent="submitCollection()" novalidate class="flex flex-col bg-white rounded-b-3xl">
                     <div class="p-6 md:p-7 space-y-4 max-h-[78vh] overflow-y-auto font-sans text-xs bg-white">
                         {{-- Active Sale / Customer Searchable Select Field --}}
                         <div class="space-y-1.5 relative" @click.outside="modalSaleDropdownOpen = false">
@@ -546,9 +546,14 @@
                                 </template>
                             </div>
                             <div class="space-y-1.5">
-                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Ref / Cheque / UTR No.</label>
-                                <input type="text" x-model="form.reference_no" placeholder="Optional Reference..."
-                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs">
+                                <label class="text-[10px] font-bold text-slate-700 uppercase tracking-wider block">Ref / Cheque / UTR No. <span class="text-rose-500">*</span></label>
+                                <input type="text" x-model="form.reference_no" placeholder="Enter Ref / Cheque / UTR No..."
+                                       @input="if(errors.reference_no) delete errors.reference_no;"
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29] focus:outline-none rounded-xl text-xs font-bold text-slate-900 transition-all shadow-xs"
+                                       :class="errors.reference_no ? 'border-rose-500 bg-rose-50/20 ring-2 ring-rose-500/20' : ''">
+                                <template x-if="errors.reference_no">
+                                    <span class="text-[10px] text-rose-600 font-bold block mt-1" x-text="Array.isArray(errors.reference_no) ? errors.reference_no[0] : errors.reference_no"></span>
+                                </template>
                             </div>
                         </div>
 
@@ -893,6 +898,10 @@ function emiApp() {
                 }
                 if (!this.form.receipt_date) {
                     this.errors.receipt_date = ['please select receipt date'];
+                    hasError = true;
+                }
+                if (!this.form.reference_no || !this.form.reference_no.toString().trim()) {
+                    this.errors.reference_no = ['please enter ref / cheque / utr no'];
                     hasError = true;
                 }
             } else {

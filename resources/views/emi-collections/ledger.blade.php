@@ -456,9 +456,14 @@
                       <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm space-y-4">
                           <div class="grid grid-cols-2 gap-4">
                               <div class="space-y-1.5">
-                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No.</label>
-                                  <input type="text" x-model="form.reference_no" placeholder="Optional"
-                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm">
+                                  <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Ref / Cheque No. <span class="text-rose-500">*</span></label>
+                                  <input type="text" x-model="form.reference_no" placeholder="Enter Ref / Cheque No."
+                                         @input="if(errors.reference_no) delete errors.reference_no;"
+                                         class="w-full px-3 py-2.5 bg-slate-50 border border-slate-250 focus:bg-white focus:ring-4 focus:ring-[#a38c29]/10 focus:border-[#a38c29] rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition-all shadow-sm"
+                                         :class="errors.reference_no ? 'border-rose-500 bg-rose-50/20' : ''">
+                                  <template x-if="errors.reference_no">
+                                      <span class="text-[10px] text-rose-500 font-bold block mt-1" x-text="Array.isArray(errors.reference_no) ? errors.reference_no[0] : errors.reference_no"></span>
+                                  </template>
                               </div>
                               <div class="space-y-1.5">
                                   <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Bank Name</label>
@@ -726,6 +731,10 @@ function ledgerApp() {
             }
             if (!this.form.payment_mode) {
                 this.errors.payment_mode = ['please select payment mode'];
+                hasError = true;
+            }
+            if (!this.form.reference_no || !this.form.reference_no.toString().trim()) {
+                this.errors.reference_no = ['please enter ref / cheque no'];
                 hasError = true;
             }
 

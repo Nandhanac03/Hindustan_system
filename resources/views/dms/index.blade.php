@@ -656,16 +656,16 @@
     {{-- File Upload Modal (Original Aesthetic with Height-Optimized Drop Zone - Zero Scroll) --}}
     <template x-teleport="body">
         <div x-show="showUploadModal" 
-             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md"
+             class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
              x-transition.opacity 
              style="display: none;">
             
             <div @click.outside="showUploadModal = false" 
-                 class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up"
+                 class="bg-slate-950 w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col border border-slate-800/80 animate-fade-in-up"
                  x-transition.scale>
                 
                 {{-- Modal Header (Increased Corner Radius & Generous Padding) --}}
-                <div class="px-8 py-6 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 flex items-center justify-between text-white relative overflow-hidden shrink-0">
+                <div class="px-8 py-6 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-900 flex items-center justify-between text-white relative overflow-hidden shrink-0 border-b border-slate-800/80">
                     <div class="absolute -top-10 -right-10 w-36 h-36 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10">
                         <div class="flex items-center gap-2">
@@ -679,7 +679,7 @@
                 </div>
 
                 {{-- Modal Body Form --}}
-                <form action="{{ route('dms.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col m-0 p-0">
+                <form action="{{ route('dms.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-col m-0 p-0 bg-white rounded-b-3xl">
                     @csrf
                     
                     <div class="p-6 space-y-3.5 text-left font-sans text-xs">
@@ -1249,7 +1249,7 @@
     {{-- Preview Modal (Teleported to Body) --}}
     <template x-teleport="body">
         <div x-show="showPreviewModal" 
-             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs"
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs"
              x-transition.opacity 
              style="display: none;">
             
@@ -1317,7 +1317,7 @@
 
     <template x-teleport="body">
         <div x-show="deleteModal.open" 
-             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 modal-backdrop" 
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" 
              x-transition.opacity 
              style="display: none;">
             <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" 
@@ -1353,7 +1353,7 @@
 
     <template x-teleport="body">
         <div x-show="archiveModal.open" 
-             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs" 
+             class="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs" 
              x-transition.opacity 
              style="display: none;">
             <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-center transform transition-all animate-fade-in-up" 

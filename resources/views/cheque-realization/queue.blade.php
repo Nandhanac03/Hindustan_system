@@ -485,12 +485,12 @@
         {{-- Unified Process Modal (Matched to Collection Receipt Entry Modal) --}}
         <template x-teleport="body">
             <div x-show="processModalOpen" 
-                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto" 
+                 class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs overflow-y-auto" 
                  style="display: none;" 
                  x-transition.opacity>
-                <div class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all my-auto" @click.away="processModalOpen = false">
+                <div class="w-full max-w-4xl bg-slate-950 rounded-3xl shadow-2xl overflow-hidden transform transition-all my-auto border border-slate-800/80" @click.away="processModalOpen = false">
                     {{-- Header --}}
-                    <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden">
+                    <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80">
                         <div class="flex items-center gap-3 relative z-10">
                             <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-lg font-black shadow-inner border border-[#a38c29]/30">
                                 ₹
@@ -507,7 +507,7 @@
                     </div>
 
                     {{-- Modal Body --}}
-                    <div class="bg-white p-6 sm:p-7 space-y-5">
+                    <div class="bg-white rounded-b-3xl p-6 sm:p-7 space-y-5">
                         <form :action="formAction" method="POST" id="processModalForm">
                             @csrf
                             
@@ -604,12 +604,13 @@
                                     {{-- Right Column Inputs --}}
                                     <div class="space-y-4">
                                         {{-- Reference No --}}
-                                        <div>
+                                        <div x-show="!['bounced', 'cancelled'].includes(statusName)">
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
-                                                Bank Reference / UTR No.
+                                                Bank Reference / UTR No. <span class="text-rose-500">*</span>
                                             </label>
                                             <input type="text" name="bank_reference_no" placeholder="e.g. NEFT/INWARD/5187 or CTS Ref" 
-                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs"
+                                                   x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
                                         </div>
 
                                         {{-- Realized By --}}

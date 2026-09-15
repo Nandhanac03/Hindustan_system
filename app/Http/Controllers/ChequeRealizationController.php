@@ -273,7 +273,7 @@ class ChequeRealizationController extends Controller
         $validated = $request->validate([
             'company_bank_account_id' => ['required', 'exists:company_bank_accounts,id'],
             'realization_date' => ['required', 'date'],
-            'bank_reference_no' => ['nullable', 'string', 'max:255'],
+            'bank_reference_no' => ['required', 'string', 'max:255'],
             'remarks' => ['nullable', 'string', 'max:500'],
         ]);
 

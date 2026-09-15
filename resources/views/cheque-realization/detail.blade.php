@@ -171,9 +171,9 @@
                     <textarea name="remarks" rows="2" class="w-2/3 md:w-3/4 px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500" 
                               :placeholder="['pending', 'cancelled', 'bounced'].includes(statusName) ? 'Enter reason...' : 'Enter remarks (Optional)'">{{ $remarksText }}</textarea>
                 </div>
-                <div class="flex items-center">
-                    <label class="w-1/3 md:w-1/4 text-xs font-medium text-slate-600">Reference No.</label>
-                    <input type="text" name="bank_reference_no" value="{{ $bankRef }}" placeholder="e.g. NEFT/INWARD/5187" class="w-2/3 md:w-3/4 px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500">
+                <div class="flex items-center" x-show="!['bounced', 'cancelled'].includes(statusName)">
+                    <label class="w-1/3 md:w-1/4 text-xs font-medium text-slate-600">Bank Reference / UTR No. <span class="text-rose-500">*</span></label>
+                    <input type="text" name="bank_reference_no" value="{{ $bankRef }}" placeholder="e.g. NEFT/INWARD/5187" class="w-2/3 md:w-3/4 px-3 py-2 border border-slate-300 rounded text-xs text-slate-700 focus:ring-blue-500 focus:border-blue-500" x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
                 </div>
                 
                 <div class="flex items-center">
