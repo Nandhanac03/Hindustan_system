@@ -434,15 +434,15 @@ class PettyCashController extends Controller
             });
         }
 
-        $expenses = $query->orderBy('transaction_date', 'desc')->paginate(10);
-        $totalAmount = $expenses->sum('cash_out');
-        
-        $paymentModes = \App\Models\PaymentMode::active()->get();
-
-        // Calculate sidebar stats
+        $totalAmount = (clone $query)->sum('cash_out');
         $availableBalance = $pettyCashBox->current_balance ?? 0;
         
         $startOfMonth = now()->startOfMonth();
+        $thisMonthTotal = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id)
+            ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment'])
+            ->whereDate('transaction_date', '>=', $startOfMonth)
+            ->sum('cash_out');
+
         $categorySummary = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id)
             ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment'])
             ->whereDate('transaction_date', '>=', $startOfMonth)
@@ -456,7 +456,49 @@ class PettyCashController extends Controller
                 return $group->sum('cash_out');
             });
 
+        $paymentModes = \App\Models\PaymentMode::active()->get();
+
         if ($request->wantsJson() || $request->ajax()) {
+            if ($request->boolean('all') || $request->input('per_page') === 'all' || $request->has('export')) {
+                $allExpenses = $query->orderBy('transaction_date', 'desc')->get();
+                $formattedExpenses = $allExpenses->map(function($expense) use ($category, $selectedProject, $siteName) {
+                    $catName = ($category && $category !== 'All') ? $category : (explode('-', $expense->narration)[0] ?? 'General');
+                    $parts = explode('-', $expense->narration);
+                    $particularsText = count($parts) > 1 ? trim(implode('-', array_slice($parts, 1))) : $expense->narration;
+
+                    return [
+                        'id' => $expense->id,
+                        'voucher_number' => $expense->voucher_number,
+                        'transaction_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('Y-m-d'),
+                        'formatted_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('d-M-Y'),
+                        'project_id' => $expense->pettyCashBox?->project_id ?? $selectedProject,
+                        'project_name' => $expense->pettyCashBox?->project?->name ?? $siteName,
+                        'category' => trim($catName),
+                        'particulars' => trim($particularsText),
+                        'narration' => $expense->narration,
+                        'payment_mode' => $expense->payment_mode ?? 'Cash',
+                        'bill_no' => $expense->reference_no ?? '',
+                        'bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '',
+                        'formatted_bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('d-M-Y') : '',
+                        'amount' => (float)$expense->cash_out,
+                        'formatted_amount' => '₹ ' . number_format($expense->cash_out, 2),
+                        'attachment_url' => $expense->attachment_path ? asset($expense->attachment_path) : '',
+                        'attachment_name' => $expense->attachment_path ? basename($expense->attachment_path) : '',
+                        'created_by' => $expense->creator?->name ?? 'System Admin',
+                    ];
+                });
+
+                return response()->json([
+                    'expenses' => $formattedExpenses,
+                    'totalAmount' => number_format($totalAmount, 2),
+                    'totalAmountRaw' => $totalAmount,
+                    'availableBalance' => $availableBalance,
+                    'thisMonthTotal' => $thisMonthTotal,
+                    'totalCount' => $allExpenses->count(),
+                ]);
+            }
+
+            $expenses = $query->orderBy('transaction_date', 'desc')->paginate(10);
             $formattedExpenses = collect($expenses->items())->map(function($expense) use ($category, $selectedProject, $siteName) {
                 $catName = ($category && $category !== 'All') ? $category : (explode('-', $expense->narration)[0] ?? 'General');
                 $parts = explode('-', $expense->narration);
@@ -487,6 +529,9 @@ class PettyCashController extends Controller
             return response()->json([
                 'expenses' => $formattedExpenses,
                 'totalAmount' => number_format($totalAmount, 2),
+                'totalAmountRaw' => $totalAmount,
+                'availableBalance' => $availableBalance,
+                'thisMonthTotal' => $thisMonthTotal,
                 'pagination' => [
                     'current_page' => $expenses->currentPage(),
                     'last_page' => $expenses->lastPage(),
@@ -497,18 +542,21 @@ class PettyCashController extends Controller
             ]);
         }
 
+        $expenses = $query->orderBy('transaction_date', 'desc')->paginate(10);
+
         return view('petty-cash.daily-site-expenses', compact(
             'expenses', 
             'projects', 
             'selectedProject', 
             'fromDate', 
-            'toDate',
-            'category',
-            'paymentMode',
-            'siteName',
-            'totalAmount',
-            'paymentModes',
-            'availableBalance',
+            'toDate', 
+            'category', 
+            'paymentMode', 
+            'siteName', 
+            'totalAmount', 
+            'paymentModes', 
+            'availableBalance', 
+            'thisMonthTotal', 
             'categorySummary'
         ));
     }
