@@ -64,6 +64,16 @@
             return this.filteredReceipts.slice(start, start + this.perPage);
         },
         
+        formErrors: {
+            selectedStatusId: '',
+            realization_date: '',
+            company_bank_account_id: '',
+            bank_reference_no: '',
+            remarks: '',
+        },
+        realizationDateVal: '{{ date('Y-m-d') }}',
+        bankRefNoVal: '',
+        
         resetFilters() {
             this.filters = {
                 customer_id: '',
@@ -80,8 +90,17 @@
                 ...r,
                 instrument_date: r.cheque_date_formatted || r.date_formatted || 'N/A'
             };
-            this.selectedBankId = r.company_bank_account_id || '';
+            this.selectedBankId = r.company_bank_account_id || (this.banks && this.banks.length > 0 ? this.banks[0].id : '');
             this.remarksText = r.remarksText || '';
+            this.bankRefNoVal = r.bank_reference_no || '';
+            this.realizationDateVal = '{{ date('Y-m-d') }}';
+            this.formErrors = {
+                selectedStatusId: '',
+                realization_date: '',
+                company_bank_account_id: '',
+                bank_reference_no: '',
+                remarks: '',
+            };
             
             let statusLower = (r.realization_status || '').replace(/_/g, ' ').toLowerCase();
             let matched = this.chequeStatuses.find(s => s.name.toLowerCase() === statusLower || s.system_name === r.realization_status);
@@ -109,6 +128,44 @@
         get mappedNewStatus() {
             const map = {'pending': 'pending', 'cancelled': 'cancelled', 'cheque in hand': 'cheque_in_hand', 'deposited': 'deposited', 'in clearing': 'in_clearing'};
             return map[this.statusName] || '';
+        },
+
+        validateAndSubmitProcessForm(event) {
+            this.formErrors = {
+                selectedStatusId: '',
+                realization_date: '',
+                company_bank_account_id: '',
+                bank_reference_no: '',
+                remarks: '',
+            };
+
+            let hasError = false;
+
+            if (!this.selectedStatusId) {
+                this.formErrors.selectedStatusId = 'Please select a target status.';
+                hasError = true;
+            }
+
+            if (!['bounced', 'cancelled'].includes(this.statusName)) {
+                if (!this.realizationDateVal) {
+                    this.formErrors.realization_date = 'Please fill out this field.';
+                    hasError = true;
+                }
+                if (!this.selectedBankId) {
+                    this.formErrors.company_bank_account_id = 'Please fill out this field.';
+                    hasError = true;
+                }
+                if (!this.bankRefNoVal || !this.bankRefNoVal.trim()) {
+                    this.formErrors.bank_reference_no = 'Please fill out this field.';
+                    hasError = true;
+                }
+            }
+
+            if (hasError) {
+                return false;
+            }
+
+            event.target.submit();
         }
     }">
 
@@ -508,7 +565,7 @@
 
                     {{-- Modal Body --}}
                     <div class="bg-white rounded-b-3xl p-6 sm:p-7 space-y-5">
-                        <form :action="formAction" method="POST" id="processModalForm">
+                        <form :action="formAction" method="POST" id="processModalForm" novalidate @submit.prevent="validateAndSubmitProcessForm($event)">
                             @csrf
                             
                             {{-- 1. Top Receipt & Cheque Overview Strip --}}
@@ -556,8 +613,9 @@
                                                 Target Status <span class="text-rose-500">*</span>
                                             </label>
                                             <div class="relative">
-                                                <select x-model="selectedStatusId" @change="updateStatusName()" 
-                                                        class="w-full h-10 pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none" required>
+                                                <select x-model="selectedStatusId" @change="formErrors.selectedStatusId = ''; updateStatusName()" 
+                                                        :class="formErrors.selectedStatusId ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
+                                                        class="w-full h-10 pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
                                                 <option value="">-- Select Status --</option>
                                                 <template x-for="s in chequeStatuses" :key="s.id">
                                                     <option :value="s.id" x-text="s.name"></option>
@@ -567,6 +625,10 @@
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </div>
                                             </div>
+                                            <p x-show="formErrors.selectedStatusId" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                                                <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span x-text="formErrors.selectedStatusId"></span>
+                                            </p>
                                             <input type="hidden" name="new_status" :value="mappedNewStatus" x-bind:disabled="!mappedNewStatus">
                                         </div>
 
@@ -575,9 +637,13 @@
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
                                                 Realization / Deposit Date <span class="text-rose-500">*</span>
                                             </label>
-                                            <input type="date" name="realization_date" value="{{ date('Y-m-d') }}" 
-                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs" 
-                                                   x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
+                                            <input type="date" name="realization_date" x-model="realizationDateVal" @input="formErrors.realization_date = ''"
+                                                   :class="formErrors.realization_date ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
+                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                            <p x-show="formErrors.realization_date" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                                                <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span x-text="formErrors.realization_date"></span>
+                                            </p>
                                         </div>
 
                                         {{-- Deposit To Account --}}
@@ -586,10 +652,9 @@
                                                 Deposit To Company Account <span class="text-rose-500">*</span>
                                             </label>
                                             <div class="relative">
-                                                <select name="company_bank_account_id" x-model="selectedBankId" 
-                                                        class="w-full h-10 pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none" 
-                                                        x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
-                                                    <option value="">-- Select Company Account --</option>
+                                                <select name="company_bank_account_id" x-model="selectedBankId" @change="formErrors.company_bank_account_id = ''" 
+                                                        :class="formErrors.company_bank_account_id ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
+                                                        class="w-full h-10 pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
                                                     <template x-for="b in banks" :key="b.id">
                                                          <option :value="b.id" x-text="b.bank_name + (b.account_number ? ' - ' + b.account_number.slice(-4) : '') + ' — Avail: ₹' + Number(b.current_balance !== null && b.current_balance !== undefined ? b.current_balance : (b.opening_balance || 0)).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})"></option>
                                                     </template>
@@ -598,6 +663,10 @@
                                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                                 </div>
                                             </div>
+                                            <p x-show="formErrors.company_bank_account_id" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                                                <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span x-text="formErrors.company_bank_account_id"></span>
+                                            </p>
                                         </div>
                                     </div>
 
@@ -608,9 +677,13 @@
                                             <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
                                                 Bank Reference / UTR No. <span class="text-rose-500">*</span>
                                             </label>
-                                            <input type="text" name="bank_reference_no" placeholder="e.g. NEFT/INWARD/5187 or CTS Ref" 
-                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs"
-                                                   x-bind:required="!['bounced', 'cancelled'].includes(statusName)">
+                                            <input type="text" name="bank_reference_no" x-model="bankRefNoVal" @input="formErrors.bank_reference_no = ''" placeholder="e.g. NEFT/INWARD/5187 or CTS Ref" 
+                                                   :class="formErrors.bank_reference_no ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-[#a38c29]/20'"
+                                                   class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                            <p x-show="formErrors.bank_reference_no" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                                                <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                                <span x-text="formErrors.bank_reference_no"></span>
+                                            </p>
                                         </div>
 
                                         {{-- Realized By --}}
