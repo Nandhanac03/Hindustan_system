@@ -550,6 +550,23 @@ class PettyCashController extends Controller
             ]
         );
 
+        $availBal = (float)($pettyCashBox->current_balance ?? 0);
+        $expenseAmount = (float)$request->amount;
+
+        if ($availBal <= 0) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'No Petty Cash Available! The current petty cash balance is ₹ 0.00. Please perform a bank cash withdrawal (Contra) first.')
+                ->with('show_expense_modal', true);
+        }
+
+        if ($expenseAmount > $availBal) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Insufficient Petty Cash Balance! Entered amount (₹ ' . number_format($expenseAmount, 2) . ') exceeds available balance (₹ ' . number_format($availBal, 2) . ').')
+                ->with('show_expense_modal', true);
+        }
+
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
@@ -589,5 +606,58 @@ class PettyCashController extends Controller
         }
 
         return redirect()->back()->with('success', 'Site expense recorded successfully.');
+    }
+
+    public function updateExpense(Request $request, $id)
+    {
+        $request->validate([
+            'category' => 'required|string',
+            'payment_mode' => 'required|string',
+            'bill_no' => 'nullable|string',
+            'bill_date' => 'nullable|date',
+            'amount' => 'required|numeric|min:0.01',
+            'particulars' => 'required|string',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
+        ]);
+
+        $transaction = PettyCashTransaction::findOrFail($id);
+        $pettyCashBox = PettyCashBox::findOrFail($transaction->petty_cash_box_id);
+
+        $oldAmount = (float)$transaction->cash_out;
+        $newAmount = (float)$request->amount;
+        $currentBalance = (float)$pettyCashBox->current_balance;
+
+        // Effective available balance before this expense deduction
+        $effectiveBalance = $currentBalance + $oldAmount;
+
+        if ($newAmount > $effectiveBalance) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Insufficient Petty Cash Balance! New amount (₹ ' . number_format($newAmount, 2) . ') exceeds available capacity (₹ ' . number_format($effectiveBalance, 2) . ').');
+        }
+
+        $balanceAfter = $effectiveBalance - $newAmount;
+
+        $attachmentPath = $transaction->attachment_path;
+        if ($request->hasFile('attachment')) {
+            $file = $request->file('attachment');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('petty-cash-attachments'), $filename);
+            $attachmentPath = 'petty-cash-attachments/' . $filename;
+        }
+
+        $transaction->update([
+            'reference_no' => $request->bill_no,
+            'bill_date' => $request->bill_date,
+            'narration' => $request->category . ' - ' . $request->particulars,
+            'payment_mode' => $request->payment_mode,
+            'cash_out' => $newAmount,
+            'balance' => $balanceAfter,
+            'attachment_path' => $attachmentPath
+        ]);
+
+        $pettyCashBox->update(['current_balance' => $balanceAfter]);
+
+        return redirect()->back()->with('success', 'Site expense updated successfully.');
     }
 }

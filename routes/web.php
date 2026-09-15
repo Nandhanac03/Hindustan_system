@@ -507,6 +507,8 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     // Petty Cash Module
     Route::get('/petty-cash/daily-site-expenses', [\App\Http\Controllers\PettyCashController::class, 'dailySiteExpenses'])->name('petty-cash.daily-site-expenses');
     Route::post('/petty-cash/daily-site-expenses', [\App\Http\Controllers\PettyCashController::class, 'storeExpense'])->name('petty-cash.store-expense');
+    Route::post('/petty-cash/daily-site-expenses/{id}', [\App\Http\Controllers\PettyCashController::class, 'updateExpense'])->name('petty-cash.update-expense');
+    Route::put('/petty-cash/daily-site-expenses/{id}', [\App\Http\Controllers\PettyCashController::class, 'updateExpense']);
     Route::get('/petty-cash/balance-register', [\App\Http\Controllers\PettyCashController::class, 'balanceRegister'])->name('petty-cash.balance-register');
     Route::get('/petty-cash/contra-withdrawal', [\App\Http\Controllers\PettyCashController::class, 'contraWithdrawal'])->name('petty-cash.contra-withdrawal');
     Route::post('/petty-cash/contra-withdrawal', [\App\Http\Controllers\PettyCashController::class, 'storeContraWithdrawal'])->name('petty-cash.store-contra-withdrawal');

@@ -30,6 +30,27 @@
             </div>
         </div> 
 
+        <!-- Flash & Error Notifications -->
+        @if(session('status') || session('success'))
+            <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    <span>{{ session('status') ?? session('success') }}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-emerald-800 hover:opacity-75 font-black text-sm">✕</button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>{{ session('error') }}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-rose-600 hover:opacity-75 font-black text-sm">✕</button>
+            </div>
+        @endif
+
         <!-- Breadcrumb & Top Action Header (Identical to Contractor Master Format) -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
@@ -363,7 +384,9 @@
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-bold text-gray-700 mb-1.5">Amount (₹) <span class="text-red-500">*</span></label>
-                                    <input type="number" step="0.01" name="amount" required value="{{ old('amount') }}" placeholder="0.00" class="w-full bg-white border @error('amount') border-red-500 @else border-gray-200 @enderror rounded-lg px-3 h-9 text-[12px] font-bold text-gray-800 outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29] transition-all">
+                                    <input type="number" step="0.01" name="amount" required x-model="newExpenseAmount" placeholder="0.00" 
+                                           :class="isInsufficient ? 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50/40 text-red-900' : 'border-gray-200 focus:border-[#a38c29] focus:ring-[#a38c29]'"
+                                           class="w-full bg-white border rounded-lg px-3 h-9 text-[12px] font-bold text-gray-800 outline-none focus:ring-1 transition-all">
                                     @error('amount') <span class="text-red-500 text-[10px] mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
@@ -402,15 +425,61 @@
 
                         <!-- Right Sidebar Column -->
                         <div class="w-full md:w-[320px] bg-slate-50 border-l border-gray-200 p-6 flex flex-col gap-6">
-                            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
-                                <div class="absolute right-0 top-0 w-24 h-24 bg-green-50 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
-                                <h4 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 relative z-10">Available Petty Cash Balance</h4>
-                                <div class="text-2xl font-black text-green-600 relative z-10 mb-1">
-                                    ₹ {{ number_format($availableBalance, 2) }}
+                            <!-- Live Balance & Payout Breakdown Card -->
+                            <div class="bg-white rounded-xl border p-4 shadow-sm relative overflow-hidden transition-all"
+                                 :class="isInsufficient ? 'border-rose-300 ring-2 ring-rose-500/20 bg-rose-50/20' : 'border-gray-200'">
+                                <h4 class="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-3 flex items-center justify-between">
+                                    <span>Petty Cash Live Breakdown</span>
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-extrabold uppercase"
+                                          :class="isInsufficient ? 'bg-rose-600 text-white' : 'bg-[#a38c29] text-white'">
+                                        <span x-text="isInsufficient ? 'EXCEEDED' : 'LIVE CALCULATION'"></span>
+                                    </span>
+                                </h4>
+                                
+                                <div class="space-y-2 text-xs">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-500 font-medium">Available Petty Cash Balance:</span>
+                                        <span class="font-bold font-mono text-slate-900" x-text="formatCurrency(availableBalance)">₹ {{ number_format($availableBalance, 2) }}</span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-slate-500 font-medium">Daily Expense Payout:</span>
+                                        <span class="font-bold font-mono text-amber-700" x-text="formatCurrency(parsedAmount)">₹ 0.00</span>
+                                    </div>
+
+                                    <div class="pt-2 border-t border-slate-200 flex items-center justify-between">
+                                        <span class="font-bold text-slate-700">Balance After Payout:</span>
+                                        <span class="font-mono font-black text-sm"
+                                              :class="isInsufficient ? 'text-rose-600' : 'text-emerald-600'"
+                                              x-text="formatCurrency(balanceAfterPayout)">₹ {{ number_format($availableBalance, 2) }}</span>
+                                    </div>
                                 </div>
-                                <p class="text-[10px] text-gray-400 font-medium relative z-10">
-                                    (As on {{ date('d-M-Y H:i A') }})
-                                </p>
+
+                                <!-- Live Insufficient Warning Alert -->
+                                <template x-if="isInsufficient">
+                                    <div class="mt-3 p-2.5 rounded-lg bg-rose-600 text-white text-[11px] font-bold space-y-1 shadow-sm">
+                                        <div class="flex items-center gap-1.5 uppercase font-black tracking-wide text-rose-100">
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>Insufficient Balance!</span>
+                                        </div>
+                                        <p class="text-[10px] leading-tight text-rose-100 font-normal">
+                                            Payout (<span x-text="formatCurrency(parsedAmount)"></span>) exceeds available petty cash (<span x-text="formatCurrency(availableBalance)"></span>) by <strong x-text="formatCurrency(parsedAmount - availableBalance)"></strong>.
+                                        </p>
+                                    </div>
+                                </template>
+
+                                <!-- Zero Balance Warning Alert -->
+                                <template x-if="availableBalance <= 0">
+                                    <div class="mt-3 p-2.5 rounded-lg bg-amber-600 text-white text-[11px] font-bold space-y-1 shadow-sm">
+                                        <div class="flex items-center gap-1.5 uppercase font-black tracking-wide text-amber-100">
+                                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>No Cash Available!</span>
+                                        </div>
+                                        <p class="text-[10px] leading-tight text-amber-100 font-normal">
+                                            Petty cash balance is ₹ 0.00. Please deposit funds or perform a Bank Cash Withdrawal (Contra) first.
+                                        </p>
+                                    </div>
+                                </template>
                             </div>
 
                             <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm flex-1">
@@ -449,10 +518,16 @@
                             Cancel
                         </button>
                         <div class="flex gap-3">
-                            <button type="submit" name="submit_action" value="save_new" class="px-5 py-2 text-[12px] font-bold text-[#a38c29] bg-white border border-[#a38c29] rounded-lg hover:bg-[#fbfaf5] transition-colors">
+                            <button type="submit" name="submit_action" value="save_new" 
+                                    :disabled="isInsufficient || availableBalance <= 0"
+                                    :class="(isInsufficient || availableBalance <= 0) ? 'opacity-40 cursor-not-allowed bg-gray-100 text-gray-400 border-gray-300' : 'text-[#a38c29] bg-white border-[#a38c29] hover:bg-[#fbfaf5]'"
+                                    class="px-5 py-2 text-[12px] font-bold border rounded-lg transition-colors">
                                 Save & New
                             </button>
-                            <button type="submit" name="submit_action" value="save_post" class="px-5 py-2 text-[12px] font-bold text-white bg-gradient-to-r from-[#a38c29] to-[#8f7a22] border border-[#8f7a22] rounded-lg hover:shadow-lg transition-all">
+                            <button type="submit" name="submit_action" value="save_post" 
+                                    :disabled="isInsufficient || availableBalance <= 0"
+                                    :class="(isInsufficient || availableBalance <= 0) ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-400' : 'bg-gradient-to-r from-[#a38c29] to-[#8f7a22] border-[#8f7a22] hover:shadow-lg'"
+                                    class="px-5 py-2 text-[12px] font-bold text-white border rounded-lg transition-all">
                                 Save & Post
                             </button>
                         </div>
@@ -607,13 +682,61 @@
                             </div>
                             <div>
                                 <label class="block text-[11px] font-bold text-slate-700 mb-1.5">Amount (₹) <span class="text-red-500">*</span></label>
-                                <input type="number" step="0.01" name="amount" required x-model="selectedExp.amount" placeholder="0.00" class="w-full bg-white border border-slate-200 rounded-lg px-3 h-9 text-xs font-bold text-slate-800 outline-none focus:border-[#a38c29]">
+                                <input type="number" step="0.01" name="amount" required x-model="selectedExp.amount" placeholder="0.00" 
+                                       :class="isEditInsufficient ? 'border-red-500 focus:border-red-500 focus:ring-red-500 bg-red-50/40 text-red-900' : 'border-slate-200 focus:border-[#a38c29]'"
+                                       class="w-full bg-white border rounded-lg px-3 h-9 text-xs font-bold text-slate-800 outline-none transition-all">
                             </div>
                         </div>
 
                         <div>
                             <label class="block text-[11px] font-bold text-slate-700 mb-1.5">Particulars <span class="text-red-500">*</span></label>
                             <textarea name="particulars" required rows="2" x-model="selectedExp.particulars" class="w-full bg-white border border-slate-200 rounded-lg p-3 text-xs font-medium text-slate-800 outline-none focus:border-[#a38c29] resize-none"></textarea>
+                        </div>
+
+                        <!-- Live Edit Balance & Payout Breakdown Card -->
+                        <div class="p-3.5 rounded-xl border transition-all"
+                             :class="isEditInsufficient ? 'bg-rose-50/80 border-rose-300' : 'bg-amber-50/40 border-amber-200/80'">
+                            <div class="text-[10px] font-extrabold uppercase tracking-wider flex items-center justify-between mb-2"
+                                 :class="isEditInsufficient ? 'text-rose-800' : 'text-slate-700'">
+                                <span>Update Payout Live Calculation</span>
+                                <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase"
+                                      :class="isEditInsufficient ? 'bg-rose-600 text-white' : 'bg-[#a38c29] text-white'">
+                                    <span x-text="isEditInsufficient ? 'EXCEEDED' : 'LIVE CALCULATION'"></span>
+                                </span>
+                            </div>
+
+                            <div class="space-y-1.5 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Available Petty Cash Balance:</span>
+                                    <span class="font-bold font-mono text-slate-800" x-text="formatCurrency(availableBalance)"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-slate-600">
+                                    <span class="font-medium">+ Original Expense Amount:</span>
+                                    <span class="font-bold font-mono text-slate-700" x-text="formatCurrency(originalEditAmount)"></span>
+                                </div>
+                                <div class="flex items-center justify-between text-amber-800 font-medium">
+                                    <span>= Effective Available Capacity:</span>
+                                    <span class="font-bold font-mono text-amber-900" x-text="formatCurrency(effectiveEditBalance)"></span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-500 font-medium">Updated Expense Payout:</span>
+                                    <span class="font-bold font-mono text-amber-700" x-text="formatCurrency(parsedEditAmount)"></span>
+                                </div>
+                                <div class="pt-1.5 border-t border-slate-200 flex items-center justify-between font-bold">
+                                    <span :class="isEditInsufficient ? 'text-rose-700' : 'text-slate-800'">Balance After Update:</span>
+                                    <span class="font-mono font-black text-sm"
+                                          :class="isEditInsufficient ? 'text-rose-600' : 'text-emerald-600'"
+                                          x-text="formatCurrency(balanceAfterEdit)"></span>
+                                </div>
+                            </div>
+
+                            <!-- Insufficient Balance Warning Banner -->
+                            <template x-if="isEditInsufficient">
+                                <div class="mt-2.5 p-2 rounded-lg bg-rose-600 text-white text-[11px] font-bold flex items-center gap-2 shadow-sm">
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <span>Insufficient Petty Cash Balance! Updated amount (<span x-text="formatCurrency(parsedEditAmount)"></span>) exceeds effective capacity (<span x-text="formatCurrency(effectiveEditBalance)"></span>) by <strong x-text="formatCurrency(parsedEditAmount - effectiveEditBalance)"></strong>.</span>
+                                </div>
+                            </template>
                         </div>
 
                         <div>
@@ -627,7 +750,12 @@
                     <!-- Footer Actions -->
                     <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-between">
                         <button type="button" @click="showEditModal = false" class="px-5 py-2 text-xs font-bold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition">Cancel</button>
-                        <button type="submit" class="px-6 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#a38c29] to-[#8f7a22] rounded-xl hover:shadow-lg transition-all">Update Expense</button>
+                        <button type="submit" 
+                                :disabled="isEditInsufficient"
+                                :class="isEditInsufficient ? 'opacity-40 cursor-not-allowed bg-gray-400 border-gray-400' : 'bg-gradient-to-r from-[#a38c29] to-[#8f7a22] hover:shadow-lg'"
+                                class="px-6 py-2 text-xs font-bold text-white border rounded-xl transition-all">
+                            Update Expense
+                        </button>
                     </div>
                 </form>
             </div>
@@ -645,6 +773,26 @@ function dailySiteExpenses() {
         selectedExp: {},
         updateUrl: '',
         deleteUrl: '',
+        newExpenseAmount: '{{ old('amount', '') }}',
+        availableBalance: {{ (float)($availableBalance ?? 0) }},
+
+        get parsedAmount() {
+            const val = parseFloat(this.newExpenseAmount);
+            return isNaN(val) ? 0 : val;
+        },
+
+        get balanceAfterPayout() {
+            return this.availableBalance - this.parsedAmount;
+        },
+
+        get isInsufficient() {
+            return this.parsedAmount > this.availableBalance && this.parsedAmount > 0;
+        },
+
+        formatCurrency(val) {
+            const num = parseFloat(val) || 0;
+            return '₹ ' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        },
         filters: {
             search: '',
             project_id: '{{ $selectedProject }}',
@@ -728,6 +876,25 @@ function dailySiteExpenses() {
             this.fetchExpenses(1);
         },
 
+        originalEditAmount: 0,
+
+        get parsedEditAmount() {
+            const val = parseFloat(this.selectedExp.amount);
+            return isNaN(val) ? 0 : val;
+        },
+
+        get effectiveEditBalance() {
+            return this.availableBalance + this.originalEditAmount;
+        },
+
+        get balanceAfterEdit() {
+            return this.effectiveEditBalance - this.parsedEditAmount;
+        },
+
+        get isEditInsufficient() {
+            return this.parsedEditAmount > this.effectiveEditBalance && this.parsedEditAmount > 0;
+        },
+
         openViewModal(exp) {
             this.selectedExp = exp;
             this.showViewModal = true;
@@ -735,6 +902,7 @@ function dailySiteExpenses() {
 
         openEditModal(exp) {
             this.selectedExp = Object.assign({}, exp);
+            this.originalEditAmount = parseFloat(exp.amount) || 0;
             this.updateUrl = '{{ url('petty-cash/daily-site-expenses') }}/' + exp.id;
             this.showEditModal = true;
         },
