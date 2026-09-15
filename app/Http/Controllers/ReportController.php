@@ -815,7 +815,7 @@ class ReportController extends Controller
             $selectedCustomers = Customer::whereIn('id', $customerIds)->get();
             $selectedCustomer = $selectedCustomers->first();
             if ($selectedCustomer && $selectedCustomers->isNotEmpty()) {
-                $salesQuery = Sale::with(['project', 'unit', 'receipts', 'customer'])
+                $salesQuery = Sale::with(['project', 'unit', 'receipts', 'customer', 'customerInstallments'])
                     ->whereIn('customer_id', $customerIds)
                     ->where('status', 'active');
                 if ($request->filled('project_id')) {
@@ -823,45 +823,144 @@ class ReportController extends Controller
                 }
                 $sales = $salesQuery->get();
 
+                $customerSummaryList = collect();
+                $customerInstallmentsList = collect();
                 $ledgerQuery = collect();
+                $totalPendingCredits = 0.0;
+                $totalRealizedCredits = 0.0;
+
                 foreach ($sales as $sale) {
                     $cName = $sale->customer?->name ?? 'Customer #' . $sale->customer_id;
+                    $saleDate = Carbon::parse($sale->sale_date);
+
+                    $paidRealizedAmount = 0.0;
+                    $pendingAmount = 0.0;
+                    foreach ($sale->receipts as $r) {
+                        $rst = strtolower($r->realization_status ?? 'realized');
+                        if ($rst === 'realized') {
+                            $paidRealizedAmount += (float)$r->amount;
+                        } elseif (in_array($rst, ['pending', 'cheque_in_hand', 'deposited'], true)) {
+                            $pendingAmount += (float)$r->amount;
+                        }
+                    }
+
+                    $lastReceipt = $sale->receipts->sortByDesc('receipt_date')->first();
+
+                    $customerSummaryList->push([
+                        'customer_id'     => $sale->customer_id,
+                        'customer_name'   => $cName,
+                        'phone'           => $sale->customer?->phone,
+                        'email'           => $sale->customer?->email,
+                        'project'         => $sale->project?->name ?? '-',
+                        'unit'            => $sale->unit?->door_no ?? '-',
+                        'sale_number'     => $sale->sale_number,
+                        'total_amount'    => (float)$sale->total_amount,
+                        'paid_amount'     => $paidRealizedAmount,
+                        'pending_amount'  => $pendingAmount,
+                        'outstanding'     => max(0, (float)$sale->total_amount - $paidRealizedAmount),
+                        'last_payment'    => $lastReceipt ? Carbon::parse($lastReceipt->receipt_date)->format('d M Y') : 'No receipts',
+                    ]);
+
+                    if ($sale->customerInstallments && $sale->customerInstallments->isNotEmpty()) {
+                        foreach ($sale->customerInstallments as $idx => $inst) {
+                            $instAmt = (float)$inst->amount;
+                            $instPaid = (float)$inst->paid_amount;
+                            $instDue = max(0, $instAmt - $instPaid);
+                            $customerInstallmentsList->push([
+                                'sale_number'     => $sale->sale_number,
+                                'customer_name'   => $cName,
+                                'phone'           => $sale->customer?->phone ?? '—',
+                                'project'         => $sale->project?->name ?? '—',
+                                'unit'            => $sale->unit?->door_no ?? '—',
+                                'installment_no'  => $inst->installment_no ?? ($idx + 1),
+                                'label'           => $inst->label ?? ('Installment #' . ($inst->installment_no ?? ($idx + 1))),
+                                'due_date'        => $inst->due_date ? Carbon::parse($inst->due_date)->format('d M Y') : '—',
+                                'amount'          => $instAmt,
+                                'paid_amount'     => $instPaid,
+                                'outstanding'     => $instDue,
+                                'status'          => ucfirst($inst->status ?? 'pending'),
+                            ]);
+                        }
+                    }
+
                     $ledgerQuery->push([
-                        'customer_id'   => $sale->customer_id,
-                        'customer_name' => $cName,
-                        'date'          => Carbon::parse($sale->sale_date)->format('d M Y'),
-                        'description'   => 'Sale Agreement Registration' . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
-                        'debit'         => (float)$sale->total_amount,
-                        'credit'        => 0.0,
-                        'payment_mode'  => '—',
-                        'ref_no'        => $sale->sale_number,
+                        'customer_id'        => $sale->customer_id,
+                        'customer_name'      => $cName,
+                        'date'               => $saleDate->format('d M Y'),
+                        'raw_date'           => $saleDate->timestamp,
+                        'type'               => 'sale',
+                        'description'        => 'Sale Agreement Registration' . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
+                        'debit'              => (float)$sale->total_amount,
+                        'credit'             => 0.0,
+                        'effective_credit'   => 0.0,
+                        'payment_mode'       => '—',
+                        'ref_no'             => $sale->sale_number,
+                        'realization_status' => 'realized',
+                        'realization_label'  => 'Agreement',
+                        'is_pending'         => false,
+                        'is_bounced'         => false,
+                        'is_realized'        => true,
                     ]);
 
                     foreach ($sale->receipts as $receipt) {
+                        $rStatus = strtolower($receipt->realization_status ?? 'realized');
+                        $isPending = in_array($rStatus, ['pending', 'cheque_in_hand', 'deposited'], true);
+                        $isBounced = in_array($rStatus, ['bounced', 'cancelled'], true);
+                        $isRealized = ($rStatus === 'realized');
+
+                        $amt = (float)$receipt->amount;
+                        $effectiveCredit = $isRealized ? $amt : 0.0;
+
+                        if ($isPending) {
+                            $totalPendingCredits += $amt;
+                        } elseif ($isRealized) {
+                            $totalRealizedCredits += $amt;
+                        }
+
+                        $receiptDate = Carbon::parse($receipt->receipt_date);
+
                         $ledgerQuery->push([
-                            'customer_id'   => $sale->customer_id,
-                            'customer_name' => $cName,
-                            'date'          => Carbon::parse($receipt->receipt_date)->format('d M Y'),
-                            'description'   => 'Payment Receipt' . ($receipt->remarks ? " — {$receipt->remarks}" : ""),
-                            'debit'         => 0.0,
-                            'credit'        => (float)$receipt->amount,
-                            'payment_mode'  => $receipt->payment_mode,
-                            'ref_no'        => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                            'customer_id'        => $sale->customer_id,
+                            'customer_name'      => $cName,
+                            'date'               => $receiptDate->format('d M Y'),
+                            'raw_date'           => $receiptDate->timestamp,
+                            'type'               => 'receipt',
+                            'description'        => 'Payment Receipt' . ($receipt->remarks ? " — {$receipt->remarks}" : ""),
+                            'debit'              => 0.0,
+                            'credit'             => $amt,
+                            'effective_credit'   => $effectiveCredit,
+                            'payment_mode'       => $receipt->payment_mode ?? 'Cash',
+                            'ref_no'             => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                            'realization_status' => $rStatus,
+                            'realization_label'  => $receipt->realization_status_label ?? ucfirst(str_replace('_', ' ', $rStatus)),
+                            'is_pending'         => $isPending,
+                            'is_bounced'         => $isBounced,
+                            'is_realized'        => $isRealized,
                         ]);
                     }
                 }
 
-                $ledgerEntries = $ledgerQuery->sortBy(fn($r) => Carbon::parse($r['date']))->values();
+                // Sort chronologically: sales before receipts if on the same timestamp
+                $ledgerEntries = $ledgerQuery->sort(function ($a, $b) {
+                    if ($a['raw_date'] === $b['raw_date']) {
+                        if ($a['type'] === 'sale' && $b['type'] !== 'sale') return -1;
+                        if ($a['type'] !== 'sale' && $b['type'] === 'sale') return 1;
+                        return 0;
+                    }
+                    return $a['raw_date'] <=> $b['raw_date'];
+                })->values();
+
                 $runningBalance = 0;
                 $ledgerEntries = $ledgerEntries->map(function ($entry) use (&$runningBalance) {
-                    $runningBalance += ($entry['debit'] - $entry['credit']);
+                    $runningBalance += ($entry['debit'] - $entry['effective_credit']);
                     $entry['balance'] = $runningBalance;
                     return $entry;
                 });
 
                 $totalDebits = (float)$ledgerEntries->sum('debit');
-                $totalCredits = (float)$ledgerEntries->sum('credit');
+                $totalCredits = $totalRealizedCredits; // Only realized receipts count towards cleared collections
                 $closingBalance = max(0, $totalDebits - $totalCredits);
+                $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
             }
         } else {
             $salesQuery = Sale::with(['customer', 'project', 'unit', 'receipts'])
@@ -873,55 +972,98 @@ class ReportController extends Controller
 
             $customerSummaryList = collect();
             $ledgerQuery = collect();
+            $totalRealizedCredits = 0.0;
+            $totalPendingCredits = 0.0;
 
             foreach ($allSales as $sale) {
                 $cName = $sale->customer?->name ?? 'Customer #' . $sale->customer_id;
                 $totalSale = (float)$sale->total_amount;
-                $paidAmount = (float)$sale->receipts->sum('amount');
-                $outstanding = max(0, $totalSale - $paidAmount);
+                
+                $paidRealizedAmount = 0.0;
+                $pendingAmount = 0.0;
+                foreach ($sale->receipts as $r) {
+                    $rst = strtolower($r->realization_status ?? 'realized');
+                    if ($rst === 'realized') {
+                        $paidRealizedAmount += (float)$r->amount;
+                    } elseif (in_array($rst, ['pending', 'cheque_in_hand', 'deposited'], true)) {
+                        $pendingAmount += (float)$r->amount;
+                    }
+                }
+                
+                $totalRealizedCredits += $paidRealizedAmount;
+                $totalPendingCredits += $pendingAmount;
+
+                $outstanding = max(0, $totalSale - $paidRealizedAmount);
                 $lastReceipt = $sale->receipts->sortByDesc('receipt_date')->first();
 
                 $customerSummaryList->push([
-                    'customer_id'   => $sale->customer_id,
-                    'customer_name' => $cName,
-                    'phone'         => $sale->customer?->phone,
-                    'email'         => $sale->customer?->email,
-                    'project'       => $sale->project?->name ?? '-',
-                    'unit'          => $sale->unit?->door_no ?? '-',
-                    'sale_number'   => $sale->sale_number,
-                    'total_amount'  => $totalSale,
-                    'paid_amount'   => $paidAmount,
-                    'outstanding'   => $outstanding,
-                    'last_payment'  => $lastReceipt ? Carbon::parse($lastReceipt->receipt_date)->format('d M Y') : 'No receipts',
+                    'customer_id'     => $sale->customer_id,
+                    'customer_name'   => $cName,
+                    'phone'           => $sale->customer?->phone,
+                    'email'           => $sale->customer?->email,
+                    'project'         => $sale->project?->name ?? '-',
+                    'unit'            => $sale->unit?->door_no ?? '-',
+                    'sale_number'     => $sale->sale_number,
+                    'total_amount'    => $totalSale,
+                    'paid_amount'     => $paidRealizedAmount,
+                    'pending_amount'  => $pendingAmount,
+                    'outstanding'     => $outstanding,
+                    'last_payment'    => $lastReceipt ? Carbon::parse($lastReceipt->receipt_date)->format('d M Y') : 'No receipts',
                 ]);
 
+                $saleDate = Carbon::parse($sale->sale_date);
                 $ledgerQuery->push([
-                    'customer_name' => $cName,
-                    'date'          => Carbon::parse($sale->sale_date)->format('d M Y'),
-                    'description'   => "Sale Agreement — {$cName}" . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
-                    'debit'         => $totalSale,
-                    'credit'        => 0.0,
-                    'payment_mode'  => 'Agreement',
-                    'ref_no'        => $sale->sale_number,
+                    'customer_name'      => $cName,
+                    'date'               => $saleDate->format('d M Y'),
+                    'raw_date'           => $saleDate->timestamp,
+                    'type'               => 'sale',
+                    'description'        => "Sale Agreement — {$cName}" . ($sale->unit?->door_no ? " (Unit #{$sale->unit->door_no})" : ""),
+                    'debit'              => $totalSale,
+                    'credit'             => 0.0,
+                    'effective_credit'   => 0.0,
+                    'payment_mode'       => 'Agreement',
+                    'ref_no'             => $sale->sale_number,
+                    'realization_status' => 'realized',
+                    'is_pending'         => false,
+                    'is_bounced'         => false,
+                    'is_realized'        => true,
                 ]);
 
                 foreach ($sale->receipts as $receipt) {
+                    $rStatus = strtolower($receipt->realization_status ?? 'realized');
+                    $isPending = in_array($rStatus, ['pending', 'cheque_in_hand', 'deposited'], true);
+                    $isBounced = in_array($rStatus, ['bounced', 'cancelled'], true);
+                    $isRealized = ($rStatus === 'realized');
+
+                    $amt = (float)$receipt->amount;
+                    $effectiveCredit = $isRealized ? $amt : 0.0;
+                    $receiptDate = Carbon::parse($receipt->receipt_date);
+
                     $ledgerQuery->push([
-                        'customer_name' => $cName,
-                        'date'          => Carbon::parse($receipt->receipt_date)->format('d M Y'),
-                        'description'   => "Payment Receipt — {$cName}" . ($receipt->remarks ? " ({$receipt->remarks})" : ""),
-                        'debit'         => 0.0,
-                        'credit'        => (float)$receipt->amount,
-                        'payment_mode'  => $receipt->payment_mode,
-                        'ref_no'        => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                        'customer_name'      => $cName,
+                        'date'               => $receiptDate->format('d M Y'),
+                        'raw_date'           => $receiptDate->timestamp,
+                        'type'               => 'receipt',
+                        'description'        => "Payment Receipt — {$cName}" . ($receipt->remarks ? " ({$receipt->remarks})" : ""),
+                        'debit'              => 0.0,
+                        'credit'             => $amt,
+                        'effective_credit'   => $effectiveCredit,
+                        'payment_mode'       => $receipt->payment_mode ?? 'Cash',
+                        'ref_no'             => $receipt->reference_no ?? 'REC-' . sprintf("%05d", $receipt->id),
+                        'realization_status' => $rStatus,
+                        'realization_label'  => $receipt->realization_status_label ?? ucfirst(str_replace('_', ' ', $rStatus)),
+                        'is_pending'         => $isPending,
+                        'is_bounced'         => $isBounced,
+                        'is_realized'        => $isRealized,
                     ]);
                 }
             }
 
-            $ledgerEntries = $ledgerQuery->sortByDesc(fn($r) => Carbon::parse($r['date']))->values();
+            $ledgerEntries = $ledgerQuery->sortByDesc(fn($r) => $r['raw_date'])->values();
             $totalDebits = (float)$allSales->sum('total_amount');
-            $totalCredits = (float)Receipt::when($request->filled('project_id'), fn($q) => $q->whereHas('sale', fn($sq) => $sq->where('project_id', $request->project_id)))->sum('amount');
+            $totalCredits = $totalRealizedCredits;
             $closingBalance = max(0, $totalDebits - $totalCredits);
+            $projectedBalance = max(0, $closingBalance - $totalPendingCredits);
 
             $perPage = 10;
             $customerPage = LengthAwarePaginator::resolveCurrentPage('customer_page');
@@ -943,7 +1085,11 @@ class ReportController extends Controller
             );
         }
 
-        return view('reports.customer-ledger', array_merge($lookups, compact('activeTab', 'selectedCustomer', 'selectedCustomers', 'ledgerEntries', 'customerSummaryList', 'totalDebits', 'totalCredits', 'closingBalance')));
+        $totalPendingCredits = $totalPendingCredits ?? 0.0;
+        $projectedBalance = $projectedBalance ?? $closingBalance;
+        $customerInstallmentsList = $customerInstallmentsList ?? collect();
+
+        return view('reports.customer-ledger', array_merge($lookups, compact('activeTab', 'selectedCustomer', 'selectedCustomers', 'ledgerEntries', 'customerSummaryList', 'customerInstallmentsList', 'totalDebits', 'totalCredits', 'closingBalance', 'totalPendingCredits', 'projectedBalance')));
     }
 
     public function cashBook(Request $request): View
