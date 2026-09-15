@@ -303,6 +303,12 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['get', 'post', 'delete'], '/chart-of-accounts/{chartOfAccount}', [\App\Http\Controllers\ChartOfAccountController::class, 'destroy'])->name('chart-of-accounts.destroy');
     Route::post('/chart-of-accounts/{chartOfAccount}/toggle-status', [\App\Http\Controllers\ChartOfAccountController::class, 'toggleStatus'])->name('chart-of-accounts.toggle-status');
 
+    // Opening Balance Master Module
+    Route::get('/opening-balances', [\App\Http\Controllers\OpeningBalanceController::class, 'index'])->name('opening-balances.index');
+    Route::post('/opening-balances/save', [\App\Http\Controllers\OpeningBalanceController::class, 'save'])->name('opening-balances.save');
+    Route::post('/opening-balances/lock', [\App\Http\Controllers\OpeningBalanceController::class, 'lock'])->name('opening-balances.lock');
+    Route::post('/opening-balances/unlock', [\App\Http\Controllers\OpeningBalanceController::class, 'unlock'])->name('opening-balances.unlock');
+
     // Voucher Type Master Module
     Route::get('/voucher-types', [\App\Http\Controllers\VoucherTypeController::class, 'index'])->name('voucher-types.index');
     Route::post('/voucher-types', [\App\Http\Controllers\VoucherTypeController::class, 'store'])->name('voucher-types.store');
