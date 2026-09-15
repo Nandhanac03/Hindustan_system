@@ -141,12 +141,6 @@
                                    class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-black text-slate-900 outline-none transition-all shadow-2xs" 
                                    placeholder="0.00">
                             
-                            <!-- Amount In Words Box (Gold Theme) -->
-                            <div x-show="amountInWordsText" class="mt-2 p-2.5 bg-[#FAF0D7]/70 border border-[#EAE3CD] rounded-xl text-[11px] font-bold text-[#8a7522] shadow-2xs flex items-center gap-2">
-                                <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <span x-text="amountInWordsText"></span>
-                            </div>
-
                             <!-- Insufficient Bank Balance Live Warning -->
                             <template x-if="isBankInsufficient">
                                 <div class="mt-2 p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-[11px] font-bold shadow-2xs">
