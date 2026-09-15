@@ -7,7 +7,7 @@
     <div class="w-full space-y-6">
         
         {{-- Under Construction Notice --}}
-        <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
+        <!-- <div class="rounded-2xl bg-gradient-to-r from-red-500/15 via-rose-500/10 to-red-500/15 border-2 border-red-500 p-5 md:p-6 shadow-sm relative overflow-hidden backdrop-blur-sm">
             <div class="flex items-start md:items-center gap-4">
                 <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-red-500/30 text-2xl md:text-3xl">
                     🚧
@@ -28,7 +28,7 @@
                     </p>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Header Card (Breadcrumb & Title) -->
         <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
@@ -227,24 +227,20 @@
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
             <!-- Modal panel -->
-            <div x-show="showExpenseModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl w-full border border-gray-200">
+            <div x-show="showExpenseModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-5xl w-full">
                 
                 <form action="{{ route('petty-cash.store-expense') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     
                     <!-- Header -->
-                    <div class="relative overflow-hidden rounded-t-xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-slate-700">
+                    <div class="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-[#a38c29]/20">
                         <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
-                        <div class="relative z-10 flex items-center justify-between">
+                        <div class="relative z-10 flex items-center justify-between gap-4">
                             <div>
-                                <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Petty Cash Expense Entry</p>
+                                <p class="text-[#d9bf3b] text-[10px] font-bold uppercase tracking-widest mb-1">Petty Cash Expense Entry</p>
                                 <h3 class="text-lg font-extrabold text-white">Add New Expense</h3>
                             </div>
-                            <button type="button" @click="showExpenseModal = false" class="text-slate-400 hover:text-white transition-colors">
-                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                            <button type="button" @click="showExpenseModal = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition focus:outline-none shrink-0">✕</button>
                         </div>
                     </div>
 
