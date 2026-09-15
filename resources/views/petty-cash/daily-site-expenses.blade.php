@@ -30,33 +30,84 @@
             </div>
         </div> 
 
-        <!-- Header Card (Breadcrumb & Title) -->
-        <div class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-            <div class="flex items-center text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                <span class="hover:text-gray-600 cursor-pointer">Home</span>
-                <span class="mx-2">></span>
-                <span class="hover:text-gray-600 cursor-pointer">Petty Cash & Site Expense</span>
-                <span class="mx-2">></span>
-                <span class="text-[#a38c29]">Daily Site Expenses</span>
+        <!-- Breadcrumb & Top Action Header (Identical to Contractor Master Format) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
+                <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">Home</a>
+                <span class="text-slate-300">›</span>
+                <span>Petty Cash & Site Expense</span>
+                <span class="text-slate-300">›</span>
+                <span class="text-[#a38c29] font-black">Daily Site Expenses</span>
             </div>
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="text-[#a38c29]">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+
+            <div class="flex items-center gap-2.5 self-start sm:self-auto">
+                <button type="button" @click="exportExcel()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition-all duration-200 uppercase tracking-wider cursor-pointer">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>Excel Report</span>
+                </button>
+                <button type="button" @click="showExpenseModal = true" class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#a38c29] hover:bg-[#8a741f] px-5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-[#a38c29]/20 transition-all duration-200 flex-shrink-0 uppercase tracking-wider cursor-pointer">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    <span> New Expense</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Executive KPI Summary Cards (Identical to Contractor Master Format) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {{-- Card 1: Total Expenses --}}
+            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>Total Site Expenses</span>
+                    <div class="w-6 h-6 rounded-md bg-amber-50 text-[#a38c29] border border-amber-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                     </div>
-                    <h3 class="text-[18px] font-bold text-gray-800 m-0">Daily Site Expenses</h3>
-                    <span class="bg-[#e6f4ea] text-[#1e8e3e] text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wide ml-2">REAL-TIME TRACKING</span>
                 </div>
-                <div class="flex items-center gap-3">
-                    <button type="button" @click="exportExcel()" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-98 text-white text-xs font-bold rounded-xl transition-all shadow-2xs hover:shadow-md uppercase tracking-wider cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                        EXCEL REPORT
-                    </button>
-                    <button type="button" @click="showExpenseModal = true" class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#a38c29] to-[#8f7a22] text-white text-xs font-bold rounded-xl hover:shadow-lg transition-all uppercase tracking-wider shadow-sm border border-[#8f7a22] cursor-pointer">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        NEW EXPENSE
-                    </button>
+                <div class="text-base font-black font-mono text-slate-900" x-text="'₹ ' + formattedTotalAmount">
+                    ₹ {{ number_format($totalAmount, 2) }}
                 </div>
+                <div class="text-[10px] font-medium text-slate-400">Filtered Site Outflow</div>
+            </div>
+
+            {{-- Card 2: Petty Cash Balance --}}
+            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-blue-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>Petty Cash Balance</span>
+                    <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 border border-blue-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                    </div>
+                </div>
+                <div class="text-base font-black font-mono text-slate-900">
+                    ₹ {{ number_format($availableBalance ?? 0, 2) }}
+                </div>
+                <div class="text-[10px] font-medium text-slate-400">Current In-Hand Balance</div>
+            </div>
+
+            {{-- Card 3: Monthly Outflow --}}
+            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>This Month Outflow</span>
+                    <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                </div>
+                <div class="text-base font-black font-mono text-slate-900">
+                    ₹ {{ number_format($thisMonthTotal ?? 0, 2) }}
+                </div>
+                <div class="text-[10px] font-medium text-slate-400">Month-to-Date Total</div>
+            </div>
+
+            {{-- Card 4: Total Voucher Entries --}}
+            <div class="text-left p-3.5 rounded-2xl border border-l-[6px] border-l-purple-500 border-y-slate-200/80 border-r-slate-200/80 bg-white transition-all duration-300 space-y-1 hover:-translate-y-1.5 hover:shadow-md cursor-default group">
+                <div class="flex items-center justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-600">
+                    <span>Voucher Entries</span>
+                    <div class="w-6 h-6 rounded-md bg-purple-50 text-purple-600 border border-purple-200/60 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-purple-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                    </div>
+                </div>
+                <div class="text-base font-black font-mono text-slate-900" x-text="pagination.total">
+                    {{ $expenses->total() }}
+                </div>
+                <div class="text-[10px] font-medium text-slate-400">Recorded Vouchers</div>
             </div>
         </div>
 
