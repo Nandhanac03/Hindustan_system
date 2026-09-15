@@ -11,6 +11,7 @@ use App\Models\JournalVoucher;
 use App\Models\JournalEntry;
 use App\Models\ChartOfAccount;
 use App\Models\VoucherType;
+use App\Models\CompanyBankAccount;
 use Carbon\Carbon;
 
 class PettyCashController extends Controller
