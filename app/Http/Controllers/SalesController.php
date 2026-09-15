@@ -371,7 +371,7 @@ class SalesController extends Controller
                     '5010' => ['name' => 'Apartment Sales Revenue', 'type' => 'REVENUE'],
                     '2021' => ['name' => 'Output CGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     '2022' => ['name' => 'Output SGST Payable (2.5%)', 'type' => 'LIABILITY'],
-                    '4003' => ['name' => 'Brokerage Expense', 'type' => 'EXPENSE'],
+                    // '4003' => ['name' => 'Brokerage Expense', 'type' => 'EXPENSE'],
                     '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
@@ -417,6 +417,8 @@ class SalesController extends Controller
                         'account_id'     => '1010',
                         'debit_amount'   => $totalContractAmount,
                         'credit_amount'  => 0.00,
+                        'entity_type'    => 'CUSTOMER',
+                        'entity_id'      => $validated['customer_id'],
                         'line_narration' => 'Customer Receivable (' . ($customerModel ? $customerModel->name : '') . ')',
                     ]);
                 }
@@ -428,6 +430,8 @@ class SalesController extends Controller
                         'account_id'     => '5010',
                         'debit_amount'   => 0.00,
                         'credit_amount'  => $totalBaseAmount,
+                        'entity_type'    => null,
+                        'entity_id'      => null,
                         'line_narration' => 'Apartment Sales Revenue',
                     ]);
                 }
@@ -442,6 +446,8 @@ class SalesController extends Controller
                         'account_id'     => '2021',
                         'debit_amount'   => 0.00,
                         'credit_amount'  => $cgstAmt,
+                        'entity_type'    => null,
+                        'entity_id'      => null,
                         'line_narration' => 'Output CGST Payable',
                     ]);
 
@@ -450,25 +456,29 @@ class SalesController extends Controller
                         'account_id'     => '2022',
                         'debit_amount'   => 0.00,
                         'credit_amount'  => $sgstAmt,
+                        'entity_type'    => null,
+                        'entity_id'      => null,
                         'line_narration' => 'Output SGST Payable',
                     ]);
                 }
 
                 // 4. Brokerage Expense & Liability (Debit expense & credit agent liability if broker involved)
                 if ($brokerInvolved && isset($brokerageAmount) && $brokerageAmount > 0) {
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '4003',
-                        'debit_amount'   => $brokerageAmount,
-                        'credit_amount'  => 0.00,
-                        'line_narration' => 'Brokerage Expense',
-                    ]);
+                    // JournalEntry::create([
+                    //     'voucher_id'     => $journalVoucher->id,
+                    //     'account_id'     => '4003',
+                    //     'debit_amount'   => $brokerageAmount,
+                    //     'credit_amount'  => 0.00,
+                    //     'line_narration' => 'Brokerage Expense',
+                    // ]);
 
                     JournalEntry::create([
                         'voucher_id'     => $journalVoucher->id,
                         'account_id'     => '2003',
                         'debit_amount'   => 0.00,
                         'credit_amount'  => $brokerageAmount,
+                        'entity_type'    => 'AGENT',
+                        'entity_id'      => $validated['broker_id'],
                         'line_narration' => 'Agent Payable Liability (' . ($brokerModel ? $brokerModel->name : '') . ')',
                     ]);
                 }
@@ -1470,6 +1480,8 @@ class SalesController extends Controller
                     'account_id'     => '1010',
                     'debit_amount'   => $amount,
                     'credit_amount'  => 0.00,
+                    'entity_type'    => 'CUSTOMER',
+                    'entity_id'      => $sale->customer_id,
                     'line_narration' => 'Customer Receivables (Liability Cleared)',
                 ]);
 
@@ -1479,6 +1491,8 @@ class SalesController extends Controller
                     'account_id'     => '1001',
                     'debit_amount'   => 0.00,
                     'credit_amount'  => $amount,
+                    'entity_type'    => 'BANK',
+                    'entity_id'      => $companyBankId,
                     'line_narration' => ($companyBank ? $companyBank->bank_name : 'Karnataka Bank Account') . ' (Bank Asset Decreases)',
                 ]);
 
