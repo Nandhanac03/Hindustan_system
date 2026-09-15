@@ -124,12 +124,12 @@
                                 </td>
                                 <td class="px-5 py-3">
                                     @if($status->is_active)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wider border border-emerald-200/50">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold">
+                                            Active
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-50 text-slate-500 text-[10px] font-black uppercase tracking-wider border border-slate-200">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Inactive
+                                        <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 text-[10px] font-extrabold">
+                                            Inactive
                                         </span>
                                     @endif
                                 </td>

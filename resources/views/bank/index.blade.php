@@ -95,8 +95,8 @@
                             </td>
                             <td class="px-4 py-3.5 border font-mono text-slate-650 uppercase font-bold text-left">{{ $bank->ifsc_code }}</td>
                             <td class="px-4 py-3.5 border text-center">
-                                <span class="badge-pill inline-flex items-center justify-center px-2.5 py-1 rounded-md border font-bold text-[10px] uppercase tracking-wider {{ $bank->status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
-                                      {{ $bank->status }}
+                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full border font-extrabold text-[10px] {{ strtolower($bank->status) === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                                      {{ ucfirst(strtolower($bank->status)) }}
                                 </span>
                             </td>
                             <td class="px-4 py-3.5 border text-right pr-6">

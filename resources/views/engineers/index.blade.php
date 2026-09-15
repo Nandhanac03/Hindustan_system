@@ -192,7 +192,7 @@
                         <td class="px-4 py-3.5 text-center">
                             <form action="{{ route('engineers.toggle-status', $eng->id) }}" method="POST" class="inline">
                                 @csrf
-                                <button type="submit" title="Click to toggle status" class="px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition {{ $eng->is_active ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">
+                                <button type="submit" title="Click to toggle status" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold cursor-pointer transition {{ $eng->is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200' }}">
                                     {{ $eng->is_active ? 'Active' : 'Inactive' }}
                                 </button>
                             </form>

@@ -166,8 +166,8 @@
                                     <form action="{{ route('payment-modes.toggle-status', $pm->id) }}" method="POST" class="inline">
                                         @csrf
                                         <button type="submit" title="Click to toggle status"
-                                                class="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border transition cursor-pointer {{ $pm->status === 'active' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-300 hover:bg-slate-200' }}">
-                                            {{ $pm->status }}
+                                                class="px-2.5 py-1 rounded-full text-[10px] font-extrabold cursor-pointer transition {{ $pm->status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100' : 'bg-slate-100 text-slate-500 border border-slate-200 hover:bg-slate-200' }}">
+                                            {{ ucfirst(strtolower($pm->status)) }}
                                         </button>
                                     </form>
                                 </td>

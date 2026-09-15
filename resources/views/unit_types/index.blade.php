@@ -82,7 +82,7 @@
                         <th class="px-4 py-3.5 border border-[#8a7522]">UNIT TYPE NAME</th>
                         <th class="px-4 py-3.5 border border-[#8a7522]">CATEGORY</th>
                         <th class="px-4 py-3.5 border border-[#8a7522]">LINKED UNITS</th>
-                        <th class="px-4 py-3.5 border border-[#8a7522]">STATUS</th>
+                        <th class="px-4 py-3.5 border border-[#8a7522] text-center">STATUS</th>
                         <th class="px-4 py-3.5 border border-[#8a7522] text-right">ACTIONS</th>
                     </tr>
                 </thead>
@@ -119,11 +119,11 @@
                                     {{ $type->units_count }} {{ $type->units_count === 1 ? 'Unit' : 'Units' }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 border">
+                            <td class="px-4 py-3 border text-center">
                                 @if($type->is_active)
-                                    <span class="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-extrabold text-[10px] uppercase">Active</span>
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-extrabold text-[10px]">Active</span>
                                 @else
-                                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 font-extrabold text-[10px] uppercase">Inactive</span>
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full bg-slate-100 text-slate-500 border border-slate-200 font-extrabold text-[10px]">Inactive</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 border text-right">

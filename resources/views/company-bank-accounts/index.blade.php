@@ -165,8 +165,8 @@
                                 </span>
                             </td>
                             <td class="px-4 py-3.5 border text-center">
-                                <span class="badge-pill inline-flex items-center justify-center px-2.5 py-1 rounded-md border font-bold text-[10px] uppercase tracking-wider {{ $account->status === 'active' ? 'bg-[#a38c29]/15 text-[#8a7522] border-[#a38c29]/30' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
-                                      {{ $account->status }}
+                                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full border font-extrabold text-[10px] {{ strtolower($account->status) === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200' }}">
+                                    {{ ucfirst(strtolower($account->status)) }}
                                 </span>
                             </td>
                             <td class="px-4 py-3.5 border text-right pr-4">

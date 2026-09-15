@@ -133,10 +133,10 @@
                             <td class="px-4 py-3.5 text-slate-500 max-w-xs truncate" x-text="v.description || '—'"></td>
                             <td class="px-4 py-3.5 text-center">
                                 <template x-if="v.is_active">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200">Active</span>
                                 </template>
                                 <template x-if="!v.is_active">
-                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200">Inactive</span>
+                                    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-500 border border-slate-200">Inactive</span>
                                 </template>
                             </td>
                             <td class="px-4 py-3.5 text-right pr-4 whitespace-nowrap">
