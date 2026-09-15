@@ -562,16 +562,14 @@
                         </div>
                     </div>
 
-                    {{-- 5. Date Range Filter --}}
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Date Range</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none z-10">
-                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-[#a38c29] group-focus-within:scale-110 transition-transform"></i>
-                            </div>
-                            <input type="text" name="date_range" value="{{ request('date_range', '01/05/2025 - 20/05/2025') }}" 
-                                   class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white focus:bg-white py-2 pl-8 pr-3 text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] hover:border-[#a38c29]/50 transition-all shadow-2xs outline-none">
-                        </div>
+                    {{-- 5. Reset Filters Button --}}
+                    <div class="flex flex-col justify-end">
+                        <label class="text-[10px] font-bold text-transparent select-none uppercase tracking-wider block mb-1.5 hidden lg:block">&nbsp;</label>
+                        <button type="button" @click="resetExpenseFilters()" 
+                                class="w-full h-[37px] inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-xs font-extrabold text-white transition-all duration-200 shadow-sm shadow-[#a38c29]/25 hover:shadow-md uppercase tracking-wider group cursor-pointer border-0 active:scale-95">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-white transition-transform duration-300 group-hover:-rotate-180"></i>
+                            <span>Reset Filters</span>
+                        </button>
                     </div>
                 </div>
             </form>
