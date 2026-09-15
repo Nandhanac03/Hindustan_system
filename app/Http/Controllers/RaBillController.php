@@ -84,6 +84,7 @@ class RaBillController extends Controller
 
         $contractors = Payee::where('system_id', $systemId)
             ->where('type', 'Contractor')
+            ->where('is_active', true)
             ->with('linkedAccount')
             ->orderBy('name')
             ->get();
@@ -91,6 +92,7 @@ class RaBillController extends Controller
         if ($contractors->isEmpty()) {
             $contractors = Payee::where('system_id', $systemId)
                 ->whereIn('type', ['Contractor', 'Supplier'])
+                ->where('is_active', true)
                 ->with('linkedAccount')
                 ->orderBy('name')
                 ->get();

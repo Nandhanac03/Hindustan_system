@@ -272,7 +272,7 @@
     </div>
 
     <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (COMPACT & SLEEK TYPOGRAPHY) ── -->
-    <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="disburseModalOpen = false">
             {{-- Dark Header (Matched with Add Unit Modal) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
@@ -288,7 +288,7 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="px-6 pt-3.5 pb-6 space-y-3.5">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="px-6 pt-3 pb-6 flex flex-col gap-3.5">
                 @csrf
 
                 <!-- Summary Card -->

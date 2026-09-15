@@ -262,7 +262,7 @@
     </div>
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
-    <div x-show="addModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="addModalOpen = false">
             {{-- Dark Header (Matched with Add Unit Modal) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
@@ -389,7 +389,7 @@
     </div>
 
     <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
-    <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="verifyModalOpen = false">
             {{-- Dark Header (Matched with Add Unit Modal) --}}
             <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
@@ -405,28 +405,28 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="p-6 space-y-4">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="px-6 pt-3 pb-6 flex flex-col gap-3.5">
                 @csrf
 
-                <!-- KPI Summary Card -->
-                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-3 gap-4 items-center text-xs">
-                    <div>
-                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">RA BILL NO.</span>
-                        <span class="text-xs font-mono font-black text-slate-900" x-text="selectedBill ? selectedBill.ra_bill_number : ''"></span>
+                <!-- KPI Summary Bar (Compact Single-Row 4-Column Layout) -->
+                <div class="p-3 bg-slate-50/90 border border-slate-200/90 rounded-xl grid grid-cols-4 gap-3 items-center text-xs">
+                    <div class="border-r border-slate-200/80 pr-2">
+                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">RA BILL NO.</span>
+                        <span class="text-xs font-mono font-black text-slate-900 mt-0.5 block truncate" x-text="selectedBill ? selectedBill.ra_bill_number : ''"></span>
+                    </div>
+
+                    <div class="border-r border-slate-200/80 pr-2">
+                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">GROSS CLAIMED</span>
+                        <span class="text-xs font-mono font-black text-slate-900 mt-0.5 block truncate" x-text="selectedBill ? '₹' + numberFormat(selectedBill.gross_amount) : ''"></span>
+                    </div>
+
+                    <div class="border-r border-slate-200/80 pr-2">
+                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">ADDITIONAL WORK</span>
+                        <span class="text-xs font-mono font-bold text-slate-700 mt-0.5 block truncate" x-text="selectedBill && parseFloat(selectedBill.additional_amount) > 0 ? '₹' + numberFormat(selectedBill.additional_amount) + (parseFloat(selectedBill.gross_amount) > 0 ? ' (' + calcPercentage(selectedBill.additional_amount, selectedBill.gross_amount) + '%)' : '') : '—'"></span>
                     </div>
 
                     <div>
-                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">GROSS CLAIMED</span>
-                        <span class="text-xs font-mono font-black text-slate-900" x-text="selectedBill ? '₹' + numberFormat(selectedBill.gross_amount) : ''"></span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">ADDITIONAL WORK</span>
-                        <span class="text-xs font-mono font-black text-slate-700" x-text="selectedBill && parseFloat(selectedBill.additional_amount) > 0 ? '₹' + numberFormat(selectedBill.additional_amount) + (parseFloat(selectedBill.gross_amount) > 0 ? ' (' + calcPercentage(selectedBill.additional_amount, selectedBill.gross_amount) + '%)' : '') : '—'"></span>
-                    </div>
-
-                    <div>
-                        <span class="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">STATUS</span>
+                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider mb-1">STATUS</span>
                         <span x-show="selectedBill && selectedBill.status === 'cleared'" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
                             <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>Cleared</span>
@@ -436,24 +436,21 @@
                             <span>Verified</span>
                         </span>
                         <span x-show="selectedBill && !selectedBill.verified_date" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
                             <span>Submitted</span>
                         </span>
                     </div>
                 </div>
 
                 <!-- Verification Already Done Banner -->
-                <template x-if="selectedBill && selectedBill.verified_date">
-                    <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-2 text-emerald-800 font-extrabold">
-                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>VERIFICATION ALREADY DONE</span>
-                        </div>
-                        <div class="text-slate-700 font-semibold">
-                            Verified By: <span class="font-bold text-slate-900" x-text="selectedBill.engineer_name || 'Engineer'"></span>
-                        </div>
+                <div x-show="selectedBill && selectedBill.verified_date" :class="selectedBill && selectedBill.verified_date ? 'flex items-center justify-between' : 'hidden'" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs" style="display: none;">
+                    <div class="flex items-center gap-2 text-emerald-800 font-extrabold">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span>VERIFICATION ALREADY DONE</span>
                     </div>
-                </template>
+                    <div class="text-slate-700 font-semibold">
+                        Verified By: <span class="font-bold text-slate-900" x-text="selectedBill ? (selectedBill.engineer_name || 'Engineer') : ''"></span>
+                    </div>
+                </div>
 
                 <!-- Form Fields -->
                 <div class="grid grid-cols-2 gap-4">

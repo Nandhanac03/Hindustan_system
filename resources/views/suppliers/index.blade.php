@@ -68,10 +68,14 @@
                         </svg>
                     </div>
                 </div>
-                <div class="text-base font-black font-mono text-slate-900">
-                    {{ $totalContractors ?? count($suppliers) }}
+                <div class="text-base font-black font-mono text-slate-900 flex items-baseline gap-1.5">
+                    <span>{{ $activeContractorsCount ?? $totalContractors ?? count($suppliers) }}</span>
+                    <span class="text-[10px] text-emerald-700 font-extrabold uppercase tracking-wide">Active</span>
+                    @if(($inactiveContractorsCount ?? 0) > 0)
+                        <span class="text-[10px] text-slate-400 font-semibold">({{ $inactiveContractorsCount }} Inactive)</span>
+                    @endif
                 </div>
-                <div class="text-[10px] font-medium text-slate-400">Registered Master Payees</div>
+                <div class="text-[10px] font-medium text-slate-400">{{ $totalContractors ?? count($suppliers) }} Registered Master Payees</div>
             </div>
 
             {{-- Card 2: Ledger Integration --}}
@@ -128,7 +132,7 @@
         {{-- Ultra-Clean Modern Light Search & Filter Panel (Live Instant Filter - No Page Refresh) --}}
         <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 transition-all">
             <form @submit.prevent="applyFilter()" class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full m-0">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 w-full">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 flex-1 w-full">
                     {{-- 1. Live Instant Search Input --}}
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -160,6 +164,24 @@
                                     {{ $c->name }}
                                 </option>
                             @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- 3. Active / Inactive Status Dropdown (Instant Filter) --}}
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <select x-model="filterStatus" @change="applyFilter()"
+                                class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                            <option value="active">Active Contractors (Default)</option>
+                            <option value="inactive">Deleted / Inactive Contractors</option>
+                            <option value="">All Contractors</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -198,13 +220,15 @@
                             <th class="px-5 py-3.5 whitespace-nowrap">CONTACT DETAILS</th>
                             <th class="px-5 py-3.5 whitespace-nowrap">OFFICE ADDRESS</th>
                             <th class="px-5 py-3.5 whitespace-nowrap text-center">RA BILLS & BILLED</th>
+                            <th class="px-5 py-3.5 whitespace-nowrap text-center">STATUS</th>
                             <th class="px-5 py-3.5 whitespace-nowrap text-right">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody id="contractors-master-tbody" class="divide-y divide-slate-100 font-medium text-slate-700">
                         @forelse($suppliers as $index => $sup)
-                            <tr class="contractor-table-row transition hover:bg-[#faf7eb]"
+                            <tr class="contractor-table-row transition hover:bg-[#faf7eb] {{ !($sup->is_active ?? true) ? 'opacity-70 bg-slate-50/70' : '' }}"
                                 data-id="{{ $sup->id }}"
+                                data-status="{{ ($sup->is_active ?? true) ? 'active' : 'inactive' }}"
                                 data-search="{{ strtolower($sup->name . ' ' . ($sup->linked_account->code ?? ('SUP-ACC-' . str_pad($sup->id, 4, '0', STR_PAD_LEFT))) . ' ' . ($sup->phone ?? '') . ' ' . ($sup->pan ?? '') . ' ' . ($sup->gstin ?? '') . ' ' . ($sup->email ?? '') . ' ' . ($sup->address ?? '')) }}">
                                 <td class="contractor-sl-no px-5 py-4 font-bold text-slate-400">
                                     {{ $index + 1 }}
@@ -273,6 +297,19 @@
                                         <span class="text-[9px] font-mono font-bold text-slate-500">₹{{ number_format($sup->total_billed ?? 0, 2) }}</span>
                                     </div>
                                 </td>
+                                <td class="px-5 py-4 text-center whitespace-nowrap">
+                                    @if($sup->is_active ?? true)
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                            <span>Active</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-300 shadow-2xs">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                            <span>Inactive</span>
+                                        </span>
+                                    @endif
+                                </td>
                                 <td class="px-5 py-4 text-right">
                                     <div class="inline-flex items-center justify-end gap-1.5">
                                         <!-- View Details Modal Button -->
@@ -285,16 +322,26 @@
                                             <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
 
-                                        <!-- Delete Confirmation Modal Button -->
-                                        <button type="button" @click="openDeleteModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Delete Contractor">
-                                            <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        </button>
+                                        @if($sup->is_active ?? true)
+                                            <!-- Delete / Inactivate Button (Changes status to Inactive, does NOT remove row from database) -->
+                                            <button type="button" @click="openDeactivateModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Delete / Mark Inactive (Keeps record in database)">
+                                                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            </button>
+                                        @else
+                                            <!-- Reactivate Button -->
+                                            <form action="{{ route('contractors.toggle-status', $sup->id) }}" method="POST" class="inline">
+                                                @csrf
+                                                <button type="submit" class="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-900 transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Reactivate Contractor (Restore to Active)">
+                                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">
+                                <td colspan="9" class="px-6 py-12 text-center text-slate-400 italic">
                                     No registered contractors found.
                                 </td>
                             </tr>
@@ -302,7 +349,7 @@
 
                         {{-- Dynamic No Results Found Row for Live Filtering --}}
                         <tr id="no-contractors-row" style="display: none;">
-                            <td colspan="8" class="px-6 py-14 text-center">
+                            <td colspan="9" class="px-6 py-14 text-center">
                                 <div class="flex flex-col items-center justify-center space-y-2">
                                     <div class="w-12 h-12 rounded-full bg-amber-50 text-[#a38c29] flex items-center justify-center border border-amber-200">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -324,18 +371,18 @@
         <!-- ========================================== -->
         <!-- 1. ADD NEW CONTRACTOR POPUP MODAL -->
         <!-- ========================================== -->
-        <div x-show="openAddModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openAddModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border border-[#EAE3CD]">
-                {{-- Rich Gold Header --}}
-                <div class="relative overflow-hidden bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] px-6 py-5 flex-shrink-0 border-b border-[#7c691c] text-white">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div x-show="openAddModal" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
+            <div @click.away="openAddModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border-0">
+                {{-- Dark Slate + Gold Header (Matched Theme) --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shadow-2xs">Contractor Master</span>
-                            <h2 class="text-base font-black text-white uppercase tracking-wider mt-1 drop-shadow-xs">Add New Contractor</h2>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor Master</p>
+                            <h2 class="text-lg font-extrabold text-white">Add New Contractor</h2>
                         </div>
-                        <button type="button" @click="openAddModal = false" class="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-inner">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" @click="openAddModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
@@ -398,18 +445,18 @@
         <!-- ========================================== -->
         <!-- 2. EDIT CONTRACTOR POPUP MODAL -->
         <!-- ========================================== -->
-        <div x-show="openEditModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openEditModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border border-[#EAE3CD]">
-                {{-- Rich Gold Header --}}
-                <div class="relative overflow-hidden bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] px-6 py-5 flex-shrink-0 border-b border-[#7c691c] text-white">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div x-show="openEditModal" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
+            <div @click.away="openEditModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border-0">
+                {{-- Dark Slate + Gold Header (Matched Theme) --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shadow-2xs">Contractor Master</span>
-                            <h2 class="text-base font-black text-white uppercase tracking-wider mt-1 drop-shadow-xs">Edit Contractor Details</h2>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor Master</p>
+                            <h2 class="text-lg font-extrabold text-white">Edit Contractor Details</h2>
                         </div>
-                        <button type="button" @click="openEditModal = false" class="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-inner">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" @click="openEditModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
@@ -471,18 +518,18 @@
         <!-- ========================================== -->
         <!-- 3. VIEW CONTRACTOR PROFILE MODAL -->
         <!-- ========================================== -->
-        <div x-show="openViewModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openViewModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border border-[#EAE3CD]">
-                {{-- Rich Gold Header --}}
-                <div class="relative overflow-hidden bg-gradient-to-r from-[#a38c29] via-[#b89e34] to-[#8a7520] px-6 py-5 flex-shrink-0 border-b border-[#7c691c] text-white">
-                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div x-show="openViewModal" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
+            <div @click.away="openViewModal = false" class="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-lg flex flex-col border-0">
+                {{-- Dark Slate + Gold Header (Matched Theme) --}}
+                <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                     <div class="relative z-10 flex items-center justify-between">
                         <div>
-                            <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-white border border-white/30 text-[9px] font-black uppercase tracking-widest whitespace-nowrap shadow-2xs">Contractor Master</span>
-                            <h2 class="text-base font-black text-white uppercase tracking-wider mt-1 drop-shadow-xs" x-text="viewContractor.name || 'Contractor Details'"></h2>
+                            <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor Master</p>
+                            <h2 class="text-lg font-extrabold text-white" x-text="viewContractor.name || 'Contractor Details'"></h2>
                         </div>
-                        <button type="button" @click="openViewModal = false" class="w-8 h-8 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 flex items-center justify-center transition cursor-pointer shadow-inner">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        <button type="button" @click="openViewModal = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
                 </div>
@@ -529,10 +576,10 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- 4. DELETE CONTRACTOR CONFIRMATION MODAL -->
+        <!-- 4. DELETE CONTRACTOR CONFIRMATION MODAL    -->
         <!-- ========================================== -->
-        <div x-show="openDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
-            <div @click.away="openDeleteModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md flex flex-col">
+        <div x-show="openDeactivateModal" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
+            <div @click.away="openDeactivateModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md flex flex-col border-0">
                 {{-- Dark Header --}}
                 <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#2c281b] px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
                     <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
@@ -540,11 +587,11 @@
                         <div>
                             <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
                                 <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
-                                TABASCO HINDUSTAN · CONTRACTOR MASTER
+                                TABASCO HINDUSTAN · CONTRACTOR
                             </p>
                             <h2 class="text-base font-extrabold text-white uppercase tracking-wider">Delete Contractor</h2>
                         </div>
-                        <button type="button" @click="openDeleteModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+                        <button type="button" @click="openDeactivateModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
@@ -552,25 +599,27 @@
 
                 {{-- Modal Body --}}
                 <div class="p-6 text-center bg-white">
-                    <div class="w-14 h-14 rounded-2xl bg-rose-100 text-rose-600 mx-auto flex items-center justify-center mb-4 border border-rose-200">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 mx-auto flex items-center justify-center mb-4 border border-rose-200 shadow-xs">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </div>
-                    <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-1">Delete Contractor?</h3>
-                    <p class="text-xs text-slate-500 font-semibold mb-2">
-                        Are you sure you want to delete <span class="font-extrabold text-slate-900 uppercase" x-text="contractorToDelete.name"></span>?
+                    <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-2">Delete Contractor From List?</h3>
+                    <p class="text-sm text-slate-600 font-semibold mb-3">
+                        Are you sure you want to delete <span class="font-extrabold text-slate-900 uppercase" x-text="contractorToDeactivate.name"></span>?
                     </p>
-                    <p class="text-xs text-slate-400">
-                        This action will deactivate the contractor payee profile.
-                    </p>
+                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center">
+                        <p class="text-xs text-slate-500 font-medium">
+                            This will remove the data from the list. The record will <span class="font-bold text-slate-700">not be deleted</span> from the database.
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Footer --}}
                 <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
-                    <button type="button" @click="openDeleteModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
-                    <form :action="'{{ url('/contractors') }}/' + contractorToDelete.id" method="POST" class="inline">
+                    <button type="button" @click="openDeactivateModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                    <form :action="'{{ url('/contractors') }}/' + contractorToDeactivate.id + '/toggle-status'" method="POST" class="inline">
                         @csrf
-                        @method('DELETE')
                         <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer flex items-center gap-2">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             <span>YES, DELETE</span>
                         </button>
                     </form>
@@ -586,10 +635,11 @@
             return {
                 filterSearch: '{{ request("search", "") }}',
                 filterContractorId: '{{ request("contractor_id", "") }}',
+                filterStatus: '{{ request("status", "active") }}',
                 openAddModal: false,
                 openEditModal: false,
                 openViewModal: false,
-                openDeleteModal: false,
+                openDeactivateModal: false,
                 name: '',
                 phone: '',
                 email: '',
@@ -607,7 +657,7 @@
                     address: ''
                 },
                 viewContractor: {},
-                contractorToDelete: {},
+                contractorToDeactivate: {},
 
                 init() {
                     this.$nextTick(() => {
@@ -618,17 +668,20 @@
                 applyFilter() {
                     const search = (this.filterSearch || '').trim().toLowerCase();
                     const contractorId = (this.filterContractorId || '').toString().trim();
+                    const statusFilter = (this.filterStatus || '').toString().trim().toLowerCase();
                     const rows = document.querySelectorAll('.contractor-table-row');
                     let visibleCount = 0;
 
                     rows.forEach(row => {
                         const rowId = (row.dataset.id || '').toString();
                         const rowSearch = (row.dataset.search || '').toLowerCase();
+                        const rowStatus = (row.dataset.status || '').toLowerCase();
 
                         const matchesId = !contractorId || rowId === contractorId;
                         const matchesSearch = !search || rowSearch.includes(search);
+                        const matchesStatus = !statusFilter || rowStatus === statusFilter;
 
-                        if (matchesId && matchesSearch) {
+                        if (matchesId && matchesSearch && matchesStatus) {
                             row.style.display = '';
                             visibleCount++;
                             const slCell = row.querySelector('.contractor-sl-no');
@@ -657,6 +710,7 @@
                 resetFilters() {
                     this.filterSearch = '';
                     this.filterContractorId = '';
+                    this.filterStatus = 'active';
                     this.applyFilter();
                 },
 
@@ -689,9 +743,9 @@
                     this.openViewModal = true;
                 },
 
-                openDeleteModalFunc(sup) {
-                    this.contractorToDelete = sup;
-                    this.openDeleteModal = true;
+                openDeactivateModalFunc(sup) {
+                    this.contractorToDeactivate = sup;
+                    this.openDeactivateModal = true;
                 },
 
                 submitAdd(e) {

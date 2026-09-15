@@ -51,6 +51,8 @@ class SupplierController extends Controller
         }
 
         $totalContractors = Payee::where('system_id', $systemId)->whereIn('type', ['Contractor', 'Supplier'])->count();
+        $activeContractorsCount = Payee::where('system_id', $systemId)->whereIn('type', ['Contractor', 'Supplier'])->where('is_active', true)->count();
+        $inactiveContractorsCount = Payee::where('system_id', $systemId)->whereIn('type', ['Contractor', 'Supplier'])->where('is_active', false)->count();
         $gstinCount = Payee::where('system_id', $systemId)->whereIn('type', ['Contractor', 'Supplier'])->whereNotNull('gstin')->where('gstin', '!=', '')->count();
         $totalBillsAmount = RaBill::where('system_id', $systemId)->sum('net_approved_amount');
         $activeWithBills = RaBill::where('system_id', $systemId)->distinct('contractor_id')->count('contractor_id');
@@ -58,9 +60,9 @@ class SupplierController extends Controller
         $allContractorsList = Payee::where('system_id', $systemId)
             ->whereIn('type', ['Contractor', 'Supplier'])
             ->orderBy('name')
-            ->get(['id', 'name', 'type']);
+            ->get(['id', 'name', 'type', 'is_active']);
 
-        return view('suppliers.index', compact('suppliers', 'totalContractors', 'gstinCount', 'totalBillsAmount', 'activeWithBills', 'allContractorsList'));
+        return view('suppliers.index', compact('suppliers', 'totalContractors', 'activeContractorsCount', 'inactiveContractorsCount', 'gstinCount', 'totalBillsAmount', 'activeWithBills', 'allContractorsList'));
     }
 
     public function store(Request $request)
@@ -157,6 +159,26 @@ class SupplierController extends Controller
         return redirect()->route('contractors.index')->with('status', '✅ Contractor details updated successfully.');
     }
 
+    public function toggleStatus($id)
+    {
+        $id = (int) $id;
+        $user = Auth::user();
+        $systemId = $user->system_id;
+
+        $payee = Payee::where('system_id', $systemId)
+            ->whereIn('type', ['Contractor', 'Supplier'])
+            ->findOrFail($id);
+
+        $newStatus = !$payee->is_active;
+        $payee->update(['is_active' => $newStatus]);
+
+        $statusMsg = $newStatus
+            ? "✅ Contractor '{$payee->name}' restored to active list."
+            : "⚠️ Contractor '{$payee->name}' removed from active list. Data is safely preserved in the database.";
+
+        return redirect()->route('contractors.index')->with('status', $statusMsg);
+    }
+
     public function destroy(int $id)
     {
         $user = Auth::user();
@@ -166,18 +188,9 @@ class SupplierController extends Controller
             ->whereIn('type', ['Contractor', 'Supplier'])
             ->findOrFail($id);
 
-        DB::transaction(function () use ($payee) {
-            // Delete linked liability account if no transactions exist
-            $account = Account::find($payee->linked_account_id);
-            if ($account) {
-                $hasEntries = DB::table('ledger_entries')->where('account_id', $account->id)->exists();
-                if (!$hasEntries) {
-                    $account->delete();
-                }
-            }
-            $payee->delete();
-        });
+        // Soft deactivation: Do not hard delete from database to protect historical bills and ledger integrity
+        $payee->update(['is_active' => false]);
 
-        return redirect()->route('contractors.index')->with('status', '✅ Contractor removed successfully.');
+        return redirect()->route('contractors.index')->with('status', "⚠️ Contractor '{$payee->name}' removed from active list. Data is safely preserved in the database.");
     }
 }

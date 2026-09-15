@@ -409,6 +409,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::get('/contractors', [\App\Http\Controllers\SupplierController::class, 'index'])->name('contractors.index');
     Route::post('/contractors', [\App\Http\Controllers\SupplierController::class, 'store'])->name('contractors.store');
     Route::match(['put', 'post'], '/contractors/{supplier}', [\App\Http\Controllers\SupplierController::class, 'update'])->name('contractors.update');
+    Route::match(['get', 'post'], '/contractors/{supplier}/toggle-status', [\App\Http\Controllers\SupplierController::class, 'toggleStatus'])->name('contractors.toggle-status');
     Route::match(['get', 'post', 'delete'], '/contractors/{supplier}', [\App\Http\Controllers\SupplierController::class, 'destroy'])->name('contractors.destroy');
 
     // Legacy fallback redirect for /suppliers

@@ -24,6 +24,11 @@ class Payee extends Model
         'pan',
         'address',
         'linked_account_id',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function system(): BelongsTo
