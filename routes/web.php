@@ -320,6 +320,9 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['get', 'post', 'delete'], '/voucher-types/{voucherType}', [\App\Http\Controllers\VoucherTypeController::class, 'destroy'])->name('voucher-types.destroy');
     Route::post('/voucher-types/{voucherType}/toggle-status', [\App\Http\Controllers\VoucherTypeController::class, 'toggleStatus'])->name('voucher-types.toggle-status');
 
+    // Journal Vouchers Management Module
+    Route::resource('journal-vouchers', \App\Http\Controllers\JournalVoucherController::class);
+
     // Engineer Master Module
     Route::get('/engineers', [\App\Http\Controllers\EngineerController::class, 'index'])->name('engineers.index');
     Route::post('/engineers', [\App\Http\Controllers\EngineerController::class, 'store'])->name('engineers.store');
