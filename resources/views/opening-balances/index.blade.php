@@ -43,39 +43,38 @@
         </div>
     @endif
 
-    {{-- Header Section --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <!-- Header Section matching Chart of Accounts Master -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
         <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#a38c29]/15 text-[#a38c29] border border-[#a38c29]/30 uppercase tracking-widest">
-                    FINANCIAL MIGRATION & GO-LIVE CONTROLS
-                </span>
-                <span class="text-xs text-slate-400">•</span>
-                <span class="text-xs text-slate-500 font-semibold">Account 3090 Balancing</span>
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/20 rounded-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <span>Opening Balance </span>
+                        @if($isLocked)
+                            <span class="px-2.5 py-0.5 bg-amber-100 text-[#7a671b] text-[10px] font-black uppercase rounded-lg border border-amber-300 inline-flex items-center gap-1 shadow-xs">
+                                <svg class="w-3 h-3 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                                <span>Locked</span>
+                            </span>
+                        @endif
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium">Manage initial account balances, equity buffer (3090), and financial migration controls</p>
+                </div>
             </div>
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <span>Opening Balance Master</span>
-                @if($isLocked)
-                    <span class="px-3 py-1 bg-amber-100 text-[#7a671b] text-xs font-black uppercase rounded-lg border border-amber-300 inline-flex items-center gap-1.5 shadow-xs">
-                        <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
-                        <span>Locked</span>
-                    </span>
-                @endif
-            </h1>
         </div>
 
         {{-- Action Buttons --}}
         <div class="flex items-center gap-2.5 flex-wrap">
             @if(!$isLocked)
-                <button type="button" @click="openAddAccountModal()" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-extrabold shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition cursor-pointer uppercase tracking-wider">
+                <button type="button" @click="openAddAccountModal()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-md transition cursor-pointer">
                     <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    <span> Add Account Head</span>
+                    <span>Add Account Head</span>
                 </button>
-                <!-- <button type="submit" form="opening-balances-form" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white text-xs font-extrabold shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition cursor-pointer uppercase tracking-wider">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    <span>Save Balances</span>
-                </button> -->
-                <button type="button" @click="openLockModal = true" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-[#7a671b] hover:text-[#5e4f13] text-xs font-extrabold shadow-xs transition cursor-pointer border border-amber-300 uppercase tracking-wider">
+                <button type="button" @click="openLockModal = true" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-[#7a671b] hover:text-[#5e4f13] text-xs font-black shadow-xs transition cursor-pointer border border-amber-300 uppercase tracking-wider">
                     <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
                     <span>Freeze & Lock Balances</span>
                 </button>
@@ -92,83 +91,67 @@
         </div>
     </div>
 
-    {{-- KPI Metric Cards (4 Columns with theme colored left borders) --}}
+    {{-- KPI Metric Cards matching Chart of Accounts style --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {{-- 1. Total Debits --}}
-        <div class="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-blue-600 p-5 shadow-xs transition hover:shadow-md">
-            <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Total Opening Debits</span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">DR SIDE</span>
-            </div>
-            <h4 class="text-2xl font-black text-slate-900 font-mono tracking-tight" x-text="formatCurrency(liveTotalDr)">
+        {{-- 1. Total Debits (Blue) --}}
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-blue-600 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-blue-300">
+            <p class="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-1">Total Opening Debits</p>
+            <h4 class="text-[22px] font-bold text-blue-700 m-0 font-mono" x-text="formatCurrency(liveTotalDr)">
                 {{ $formatInr($totalDebits) }}
             </h4>
-            <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                <span>Assets & Expense starting ledger values</span>
-            </p>
+            <p class="text-[10px] text-gray-500 mt-1">Assets & Expense starting values</p>
         </div>
 
-        {{-- 2. Total Credits --}}
-        <div class="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-amber-500 p-5 shadow-xs transition hover:shadow-md">
-            <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Total Opening Credits</span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">CR SIDE</span>
-            </div>
-            <h4 class="text-2xl font-black text-slate-900 font-mono tracking-tight" x-text="formatCurrency(liveTotalCr)">
+        {{-- 2. Total Credits (Amber) --}}
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-amber-500 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-amber-300">
+            <p class="text-[11px] font-bold text-amber-600 uppercase tracking-wider mb-1">Total Opening Credits</p>
+            <h4 class="text-[22px] font-bold text-amber-700 m-0 font-mono" x-text="formatCurrency(liveTotalCr)">
                 {{ $formatInr($totalCredits) }}
             </h4>
-            <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
-                <span>Liabilities, Capital & Income starting values</span>
-            </p>
+            <p class="text-[10px] text-gray-500 mt-1">Liabilities, Capital & Income values</p>
         </div>
 
-        {{-- 3. Opening Balance Equity (3090) --}}
-        <div class="bg-white rounded-2xl border border-gray-200 border-l-4 p-5 shadow-xs transition hover:shadow-md"
-             :class="liveDifference === 0 ? 'border-l-emerald-500' : 'border-l-[#a38c29]'">
-            <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[11px] font-bold uppercase tracking-wider" :class="liveDifference === 0 ? 'text-emerald-700' : 'text-[#a38c29]'">
+        {{-- 3. Opening Balance Equity 3090 --}}
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1"
+             :class="liveDifference === 0 ? 'border-l-emerald-500 hover:border-emerald-300' : 'border-l-[#a38c29] hover:border-[#a38c29]/50'">
+            <div class="flex items-center justify-between mb-1">
+                <p class="text-[11px] font-bold uppercase tracking-wider m-0" :class="liveDifference === 0 ? 'text-emerald-700' : 'text-[#a38c29]'">
                     3090 · Equity Balance
-                </span>
+                </p>
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-bold"
                       :class="liveDifference === 0 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'"
                       x-text="liveDifference === 0 ? 'BALANCED' : liveDifferenceSide">
                     {{ $varianceSide }}
                 </span>
             </div>
-            <h4 class="text-2xl font-black font-mono tracking-tight"
+            <h4 class="text-[22px] font-bold font-mono m-0"
                 :class="liveDifference === 0 ? 'text-emerald-700' : 'text-slate-900'"
                 x-text="formatCurrency(liveDifference)">
                 {{ $formatInr($variance) }}
             </h4>
-            <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+            <p class="text-[10px] text-gray-500 mt-1">
                 <span x-show="liveDifference === 0" class="text-emerald-600 font-bold flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                    <span>Total Debits equal Total Credits (Zero Variance)</span>
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    <span>Balanced (Zero Variance)</span>
                 </span>
-                <span x-show="liveDifference > 0" class="text-slate-500">
-                    Auto-absorbed into Account 3090
-                </span>
+                <span x-show="liveDifference > 0" class="text-slate-500">Auto-absorbed into Account 3090</span>
             </p>
         </div>
 
         {{-- 4. Accounts Status & Lock --}}
-        <div class="bg-white rounded-2xl border border-gray-200 border-l-4 border-l-[#a38c29] p-5 shadow-xs transition hover:shadow-md">
-            <div class="flex items-center justify-between mb-1.5">
-                <span class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider">Ledger Setup Status</span>
+        <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#a38c29] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#a38c29]/50">
+            <div class="flex items-center justify-between mb-1">
+                <p class="text-[11px] font-bold text-[#a38c29] uppercase tracking-wider m-0">Ledger Setup Status</p>
                 <span class="px-2 py-0.5 rounded-md text-[10px] font-bold {{ $isLocked ? 'bg-amber-100 text-[#7a671b] border border-amber-300' : 'bg-emerald-50 text-emerald-700 border border-emerald-200' }}">
                     {{ $isLocked ? 'LOCKED' : 'OPEN' }}
                 </span>
             </div>
-            <h4 class="text-2xl font-black text-slate-900 tracking-tight">
+            <h4 class="text-[22px] font-bold text-slate-900 m-0">
                 <span x-text="liveConfiguredCount">{{ $configuredCount }}</span>
-                <span class="text-sm font-normal text-slate-400">/ {{ $totalAccountsCount }} heads</span>
+                <span class="text-xs font-normal text-slate-400">/ {{ $totalAccountsCount }} heads</span>
             </h4>
-            <p class="text-[11px] text-slate-500 mt-1">
-                @if($isLocked && $lockDetails)
-                    Locked on {{ \Carbon\Carbon::parse($lockDetails['locked_at'])->format('d M Y, h:i A') }} by {{ $lockDetails['locked_by'] }}
-                @else
-                    Pre-Go-Live migration window active
-                @endif
+            <p class="text-[10px] text-gray-500 mt-1">
+                {{ $isLocked ? 'Balances Locked & Frozen' : 'Pre-Go-Live migration window active' }}
             </p>
         </div>
     </div>
