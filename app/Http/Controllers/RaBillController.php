@@ -700,10 +700,14 @@ class RaBillController extends Controller
             // 5. Clear previous entries for this voucher (avoids duplicates on re-verification)
             JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
 
+            $contractorId = $raBill->contractor_id ?: ($raBill->contractor?->id ?? null);
+
             // 6. Debit: Contractor Work Expenses (Expense increases)
             JournalEntry::create([
                 'voucher_id'     => $journalVoucher->id,
                 'account_id'     => '4002',
+                'entity_type'    => 'CONTRACTOR',
+                'entity_id'      => $contractorId,
                 'debit_amount'   => $netApproved,
                 'credit_amount'  => 0.00,
                 'line_narration' => "Contractor Work Expenses ({$contractorName} - RA #{$raBill->ra_bill_number})",
@@ -713,6 +717,8 @@ class RaBillController extends Controller
             JournalEntry::create([
                 'voucher_id'     => $journalVoucher->id,
                 'account_id'     => '2002',
+                'entity_type'    => 'CONTRACTOR',
+                'entity_id'      => $contractorId,
                 'debit_amount'   => 0.00,
                 'credit_amount'  => $netApproved,
                 'line_narration' => "Contractor Payables Liability ({$contractorName} - RA #{$raBill->ra_bill_number})",
@@ -806,10 +812,15 @@ class RaBillController extends Controller
             // 5. Clear previous entries for this voucher (avoids duplicates)
             JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
 
+            $contractorId = $raBill->contractor_id ?: ($raBill->contractor?->id ?? null);
+            $bankAccountId = $validated['company_bank_account_id'] ?? $bankModel?->id ?? null;
+
             // 6. Debit: Contractor Payables (Liability Clears)
             JournalEntry::create([
                 'voucher_id'     => $journalVoucher->id,
                 'account_id'     => '2002',
+                'entity_type'    => 'CONTRACTOR',
+                'entity_id'      => $contractorId,
                 'debit_amount'   => $paidAmount,
                 'credit_amount'  => 0.00,
                 'line_narration' => "Contractor Payables Cleared ({$contractorName} - RA #{$raBill->ra_bill_number})",
@@ -819,6 +830,8 @@ class RaBillController extends Controller
             JournalEntry::create([
                 'voucher_id'     => $journalVoucher->id,
                 'account_id'     => '1001',
+                'entity_type'    => 'BANK',
+                'entity_id'      => $bankAccountId,
                 'debit_amount'   => 0.00,
                 'credit_amount'  => $paidAmount,
                 'line_narration' => "Payment Disbursed via {$bankName} (Ref: " . ($validated['reference_no'] ?? 'N/A') . ")",
