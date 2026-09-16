@@ -2147,8 +2147,31 @@ class ReportController extends Controller
 
         // Query transactions
         $transactionsQuery = \App\Models\PettyCashTransaction::whereHas('pettyCashBox', function($q) use ($project_id) {
-            $q->where('project_id', $project_id);
+            if ($project_id) {
+                $q->where('project_id', $project_id);
+            }
         });
+
+        if ($request->filled('search')) {
+            $searchTerm = '%' . trim($request->search) . '%';
+            $transactionsQuery->where(function($q) use ($searchTerm) {
+                $q->where('voucher_number', 'like', $searchTerm)
+                  ->orWhere('narration', 'like', $searchTerm)
+                  ->orWhere('reference_no', 'like', $searchTerm)
+                  ->orWhere('transaction_type', 'like', $searchTerm)
+                  ->orWhere('payment_mode', 'like', $searchTerm);
+            });
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'active') {
+                $transactionsQuery->whereIn('status', ['Posted', 'approved', 'Active', 'active']);
+            } elseif ($request->status === 'pending') {
+                $transactionsQuery->whereIn('status', ['pending', 'Draft', 'Pending', 'draft']);
+            } else {
+                $transactionsQuery->where('status', $request->status);
+            }
+        }
 
         // Get past transactions for Opening Balance
         $openingCashIn = (clone $transactionsQuery)->whereDate('transaction_date', '<', $from_date)->sum('cash_in');
@@ -2196,6 +2219,14 @@ class ReportController extends Controller
             ]);
         }
 
+        $selectedProjectObj = $lookups['projects']->firstWhere('id', $project_id);
+        $pettyCashBox = $project_id ? \App\Models\PettyCashBox::with('incharge')->where('project_id', $project_id)->first() : null;
+        $cashBoxIncharge = $pettyCashBox && $pettyCashBox->incharge ? $pettyCashBox->incharge->name : (auth()->check() ? auth()->user()->name : 'Owner');
+        $cashBoxCode = $pettyCashBox ? $pettyCashBox->box_code : ('PC-' . strtoupper(substr(optional($selectedProjectObj)->code ?? 'HEV', 0, 8)) . '-001');
+        $siteName = $selectedProjectObj ? $selectedProjectObj->name : 'All Sites';
+        $lastUpdated = $periodTransactions->last() ? \Carbon\Carbon::parse($periodTransactions->last()->created_at ?? $periodTransactions->last()->transaction_date)->format('d-M-Y h:i A') : date('d-M-Y h:i A');
+        $updatedBy = auth()->check() ? auth()->user()->name : 'Owner';
+
         $reportData = [
             'project_id' => $project_id,
             'from_date' => $from_date,
@@ -2204,7 +2235,12 @@ class ReportController extends Controller
             'total_cash_in' => $totalCashIn,
             'total_cash_out' => $totalCashOut,
             'closing_balance' => $closingBalance,
-            'entries' => $reportEntries
+            'entries' => $reportEntries,
+            'site_name' => $siteName,
+            'cash_box_incharge' => $cashBoxIncharge,
+            'cash_box_code' => $cashBoxCode,
+            'last_updated' => $lastUpdated,
+            'updated_by' => $updatedBy,
         ];
 
         return view('reports.petty-cash-reports', array_merge($lookups, compact('activeTab', 'reportData')));

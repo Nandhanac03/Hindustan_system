@@ -3,452 +3,538 @@
 @section('title', 'Petty Cash Reports - Hindustan Real Estate ERP')
 
 @section('content')
+{{-- ExcelJS Library --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 8mm 8mm 10mm 8mm;
+    }
+    *, *::before, *::after {
+        box-sizing: border-box !important;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 9pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .print\:hidden, header, nav, aside, footer, button, select, input, .custom-scrollbar::-webkit-scrollbar {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+    .print\:grid {
+        display: grid !important;
+    }
+    .print\:flex {
+        display: flex !important;
+    }
+    .print\:table {
+        display: table !important;
+    }
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs {
+        box-shadow: none !important;
+    }
+    .border-slate-200, .border-slate-100 {
+        border-color: #cbd5e1 !important;
+    }
+}
+</style>
+
 @php
-    $currentProject = $projects->firstWhere('id', $reportData['project_id']) ?? ($projects->first() ?? (object)['name' => 'All Sites', 'id' => '']);
-    $entriesCollection = collect($reportData['entries']);
+    $selectedProjectId = request('project_id', $reportData['project_id'] ?? null);
+    $currentProject = $projects->firstWhere('id', $selectedProjectId) ?? ($projects->first() ?? (object)['name' => 'All Sites', 'id' => '']);
+    $entriesCollection = collect($reportData['entries'] ?? []);
     $contraEntries = $entriesCollection->where('type', 'Contra');
     $expenseEntries = $entriesCollection->where('type', 'Expense');
-    $netPeriodChange = $reportData['total_cash_in'] - $reportData['total_cash_out'];
+    $netPeriodChange = ($reportData['total_cash_in'] ?? 0) - ($reportData['total_cash_out'] ?? 0);
+    $siteName = $reportData['site_name'] ?? ($currentProject->name ?? 'All Sites');
+    $cashBoxIncharge = $reportData['cash_box_incharge'] ?? (auth()->check() ? auth()->user()->name : 'Owner');
+    $cashBoxCode = $reportData['cash_box_code'] ?? 'PC-HEV-01-001';
+    $lastUpdated = $reportData['last_updated'] ?? date('d-M-Y h:i A');
+    $updatedBy = $reportData['updated_by'] ?? (auth()->check() ? auth()->user()->name : 'Owner');
 @endphp
 
-<div class="space-y-4">
+<div class="w-full px-6 py-6 bg-[#f8f9fa] min-h-screen font-sans print:px-0 print:py-0 print:min-h-0 print:bg-white">
+    
+    <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Petty Cash &amp; Site Expense Intelligence</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">PETTY CASH STATEMENT &amp; AUDIT REPORT</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Site Name:</span> <span class="font-bold text-slate-900">{{ $siteName }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Period:</span> <span class="font-bold text-slate-800">{{ \Carbon\Carbon::parse($reportData['from_date'] ?? date('Y-m-01'))->format('d-M-Y') }} to {{ \Carbon\Carbon::parse($reportData['to_date'] ?? date('Y-m-d'))->format('d-M-Y') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800">{{ date('d-M-Y h:i A') }}</span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-[#a38c29]">{{ count($reportData['entries'] ?? []) }} Entries</span></div>
+            </div>
+        </div>
+    </div>
 
-    <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white px-5 py-4 rounded-xl shadow-sm border border-slate-200 print:hidden">
-        <div>
-            <h1 class="text-xl font-bold text-slate-800">Petty Cash Reports</h1>
-            <p class="text-xs text-slate-500 mt-1">Home / Petty Cash &amp; Site Expense / Petty Cash Reports</p>
+    <!-- ── EXECUTIVE PRINT KPI CARDS (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:grid grid-cols-4 gap-3 mb-5">
+        <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50">
+            <span class="text-[8.5px] font-black uppercase text-slate-500 block">Opening Balance</span>
+            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹ {{ number_format($reportData['opening_balance'] ?? 0, 2) }}</strong>
+            <span class="text-[8px] text-slate-500 font-bold">As on {{ \Carbon\Carbon::parse($reportData['from_date'])->format('d-M-Y') }}</span>
+        </div>
+        <div class="border border-emerald-300 rounded-xl p-3 bg-emerald-50/30">
+            <span class="text-[8.5px] font-black uppercase text-emerald-600 block">Cash In (Period)</span>
+            <strong class="text-sm font-black text-emerald-700 font-mono block mt-0.5">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</strong>
+            <span class="text-[8px] text-emerald-600 font-bold">Bank Withdrawals &amp; Receipts</span>
+        </div>
+        <div class="border border-rose-300 rounded-xl p-3 bg-rose-50/30">
+            <span class="text-[8.5px] font-black uppercase text-rose-600 block">Cash Out (Period)</span>
+            <strong class="text-sm font-black text-rose-700 font-mono block mt-0.5">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</strong>
+            <span class="text-[8px] text-rose-600 font-bold">Site Expenses</span>
+        </div>
+        <div class="border border-slate-700 rounded-xl p-3 bg-slate-100/60">
+            <span class="text-[8.5px] font-black uppercase text-slate-700 block">Closing Balance</span>
+            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</strong>
+            <span class="text-[8px] text-slate-600 font-bold">Current Cash In Hand</span>
+        </div>
+    </div>
+
+    <!-- ── Breadcrumb & Top Action Header (Web Only) ── -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
+        <div class="text-xs font-bold text-slate-400 tracking-wide uppercase flex items-center gap-2">
+            <a href="{{ route('dashboard') }}" class="hover:text-slate-600 transition">HOME</a>
+            <span class="text-slate-300">›</span>
+            <span>PETTY CASH &amp; SITE EXPENSE</span>
+            <span class="text-slate-300">›</span>
+            <span class="text-[#a38c29] font-black">PETTY CASH REPORTS</span>
         </div>
 
         <div class="flex items-center gap-2.5 self-start sm:self-auto">
-            <!-- Export Excel Button (Cancellation Style) -->
-            <button type="button" onclick="exportToExcel()"
-                    class="px-5 py-2.5 bg-[#059669] hover:bg-[#047857] text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-700/20 hover:shadow-lg transition-all duration-300 flex items-center gap-2.5 cursor-pointer group active:scale-95">
-                <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </div>
-                <span class="tracking-wide">EXPORT EXCEL</span>
+            <!-- Print / Export PDF Button -->
+            <button type="button" onclick="window.print()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 hover:bg-rose-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition-all duration-200 uppercase tracking-wider cursor-pointer active:scale-95">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                <span>EXPORT PDF</span>
             </button>
 
-            <!-- Print Button -->
-            <button type="button" onclick="window.print()"
-                    class="px-4 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-2xl font-black text-xs uppercase tracking-wider shadow-sm hover:shadow transition-all duration-300 flex items-center gap-2 cursor-pointer active:scale-95">
-                <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                <span>Print</span>
+            <!-- Excel Report Button -->
+            <button type="button" onclick="exportPettyCashReportExcel()" class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2.5 text-xs font-extrabold text-white shadow-md transition-all duration-200 uppercase tracking-wider cursor-pointer active:scale-95">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>EXPORT EXCEL</span>
             </button>
         </div>
     </div>
 
-    <!-- ── SUMMARY KPI CARDS (Cancellation & Additional Work Style) ── -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Opening Balance -->
-        <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-xl p-4 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-            <div class="flex justify-between items-start mb-3 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] transition-all group-hover:bg-[#a38c29] group-hover:text-white">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">OPENING BALANCE</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight group-hover:text-[#a38c29] transition-colors">₹{{ number_format((float) $reportData['opening_balance'], 2) }}</h3>
-                <p class="text-[10px] font-bold text-slate-400 mt-1">As on {{ \Carbon\Carbon::parse($reportData['from_date'])->format('d-M-Y') }}</p>
-            </div>
-        </div>
+    <div id="petty-cash-report-content" class="relative">
+        <script id="petty-cash-report-data" type="application/json">@json($reportData['entries'] ?? [])</script>
 
-        <!-- Card 2: Total Cash Out -->
-        <div class="bg-white border-y border-r border-l-4 border-l-amber-500 border-slate-200 rounded-xl p-4 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-            <div class="flex justify-between items-start mb-3 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center text-amber-600 transition-all group-hover:bg-amber-500 group-hover:text-white">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-amber-700">TOTAL CASH OUT</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-amber-700 tracking-tight group-hover:text-amber-800 transition-colors">-₹{{ number_format((float) $reportData['total_cash_out'], 2) }}</h3>
-                <p class="text-[10px] font-bold text-amber-600 mt-1">{{ $expenseEntries->count() }} Site Disbursements</p>
-            </div>
-        </div>
-
-        <!-- Card 3: Total Cash In -->
-        <div class="bg-white border-y border-r border-l-4 border-l-blue-500 border-slate-200 rounded-xl p-4 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-            <div class="flex justify-between items-start mb-3 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 transition-all group-hover:bg-blue-500 group-hover:text-white">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-blue-700">TOTAL CASH IN</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-blue-900 tracking-tight group-hover:text-blue-800 transition-colors">₹{{ number_format((float) $reportData['total_cash_in'], 2) }}</h3>
-                <p class="text-[10px] font-bold text-blue-600 mt-1">{{ $contraEntries->count() }} Replenishments</p>
-            </div>
-        </div>
-
-        <!-- Card 4: Closing Balance -->
-        <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-xl p-4 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-            <div class="flex justify-between items-start mb-3 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 transition-all group-hover:bg-emerald-500 group-hover:text-white">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 11l3 3L22 4m-10 12h8m-8 4h8m-16 0h.01M3 16h.01M3 12h.01M3 8h.01M3 4h.01"/></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700">CLOSING BALANCE</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-emerald-800 tracking-tight group-hover:text-emerald-700 transition-colors">₹{{ number_format((float) $reportData['closing_balance'], 2) }}</h3>
-                <p class="text-[10px] font-bold text-emerald-600 mt-1">Current Cash In Hand</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── NAVIGATION TABS BAR (Exact Cancellation Charges Capsule Tab Design) ── -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 print:hidden">
-        
-        <!-- Tab Capsule Container (Matches Cancellation Charges & Additional Work) -->
-        <div class="bg-white rounded-2xl p-1.5 border border-slate-200/90 shadow-2xs inline-flex flex-wrap items-center gap-1.5" id="reportTabs">
+        <!-- ── 4 Metric KPI Cards Grid (Web Only) ── -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 print:hidden">
             
-            <!-- Tab 1: Balance Register (Active by default) -->
-            <button type="button" onclick="switchTab('balance-register')" id="tab-btn-balance-register" 
-                    class="tab-btn px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-2 bg-[#a38c29] text-white shadow-xs cursor-pointer">
-                <span class="tab-icon-box w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                </span>
-                <span>Balance Register</span>
-                <span class="tab-badge px-2 py-0.5 rounded-md text-[10px] font-black bg-[#8a7522] text-white">{{ count($reportData['entries']) }}</span>
-            </button>
-
-            <!-- Tab 2: Expense Report -->
-            <button type="button" onclick="switchTab('expense-report')" id="tab-btn-expense-report" 
-                    class="tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer">
-                <span class="tab-icon-box w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                </span>
-                <span>Expense Report</span>
-                <span class="tab-badge px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ $expenseEntries->count() }}</span>
-            </button>
-
-            <!-- Tab 3: Contra Report -->
-            <button type="button" onclick="switchTab('contra-report')" id="tab-btn-contra-report" 
-                    class="tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer">
-                <span class="tab-icon-box w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
-                <span>Contra Report</span>
-                <span class="tab-badge px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600">{{ $contraEntries->count() }}</span>
-            </button>
-
-            <!-- Tab 4: Category Summary -->
-            <button type="button" onclick="switchTab('category-summary')" id="tab-btn-category-summary" 
-                    class="tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer">
-                <span class="tab-icon-box w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/></svg>
-                </span>
-                <span>Category Summary</span>
-            </button>
-
-        </div>
-
-        <!-- Clean Quick Search Input Box -->
-        <div class="relative w-full sm:w-72 self-center">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-            </div>
-            <input type="text" id="tableSearchInput" onkeyup="filterTable()" placeholder="Search voucher, particulars, reference..." 
-                   class="w-full pl-9 pr-3.5 py-2.5 bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 outline-none transition-all shadow-2xs">
-        </div>
-    </div>
-
-    <!-- ── DIRECTORY TABLE CARD (Exact Cancellation Charges Directory Header & Table) ── -->
-    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        
-        <!-- Directory Header with Vertical Gold Accent Bar -->
-        <div class="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
-            <div>
-                <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                    <div class="w-1 h-4 bg-[#a38c29] rounded-full"></div>
-                    <span id="currentTabHeading">PETTY CASH TRANSACTION &amp; BALANCE REGISTER</span>
-                </h3>
-                <p class="text-[10px] font-bold text-slate-500 mt-1 pl-3" id="currentTabSubtitle">Directory of all cash inward claims, site expenses, and contra replenish vouchers.</p>
+            <!-- Card 1: Opening Balance -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/50 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Opening Balance</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                        ₹ {{ number_format($reportData['opening_balance'] ?? 0, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">As on {{ \Carbon\Carbon::parse($reportData['from_date'])->format('d-M-Y') }}</p>
+                </div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <span class="text-[11px] bg-slate-100 text-slate-700 px-2.5 py-1 rounded-full font-bold">
-                    <span id="tableRecordCount">{{ count($reportData['entries']) }}</span> Records
-                </span>
-                <div class="text-[10.5px] text-slate-500 font-semibold hidden md:block">
-                    <span>Site: <strong class="text-slate-800 font-bold">{{ $currentProject->name ?? 'All Sites' }}</strong></span>
-                    <span class="text-slate-300 mx-1.5">•</span>
-                    <span>Period: <strong class="text-slate-800 font-bold">{{ \Carbon\Carbon::parse($reportData['from_date'])->format('d-M-Y') }}</strong> to <strong class="text-slate-800 font-bold">{{ \Carbon\Carbon::parse($reportData['to_date'])->format('d-M-Y') }}</strong></span>
+            <!-- Card 2: Cash In (Period) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-emerald-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-emerald-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 border border-emerald-100/60 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Cash In (Period)</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-emerald-600 font-mono tracking-tight block group-hover:text-emerald-700 transition-colors duration-300">
+                        ₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Bank Withdrawals &amp; Receipts</p>
+                </div>
+            </div>
+
+            <!-- Card 3: Cash Out (Period) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Cash Out (Period)</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-rose-600 font-mono tracking-tight block group-hover:text-rose-700 transition-colors duration-300">
+                        ₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Site Expenses</p>
+                </div>
+            </div>
+
+            <!-- Card 4: Closing Balance -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-700 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(51,65,85,0.15)] cursor-pointer">
+                <div class="flex flex-wrap items-start justify-between gap-2 mb-3 relative z-10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 border border-slate-200 transition-all duration-300 group-hover:bg-slate-800 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+                        </div>
+                        <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider">Closing Balance</span>
+                    </div>
+                </div>
+                <div class="relative z-10 mt-1">
+                    <span class="text-2xl font-black text-slate-900 tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">
+                        ₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}
+                    </span>
+                    <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Current Cash In Hand</p>
                 </div>
             </div>
         </div>
 
-        <!-- ── TABLE COMPONENT (Signature Gold Thead) ── -->
-        <div id="ledgerTableContainer">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse" id="pettyCashTable">
-                    <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
-                        <tr class="text-left">
-                            <th class="px-4 py-3 text-left w-[95px]">DATE</th>
-                            <th class="px-4 py-3 text-left w-[120px]">VOUCHER NO</th>
-                            <th class="px-4 py-3 text-left min-w-[220px]">PARTICULARS</th>
-                            <th class="px-4 py-3 text-right w-[110px]">CASH IN (₹)</th>
-                            <th class="px-4 py-3 text-right w-[110px]">CASH OUT (₹)</th>
-                            <th class="px-4 py-3 text-right bg-[#8a7522] text-amber-100 w-[125px] border-x border-[#7a671b]">RUNNING BALANCE (₹)</th>
-                            <th class="px-4 py-3 text-center w-[100px]">STATUS / TYPE</th>
-                            <th class="px-4 py-3 text-left w-[110px]">REFERENCE</th>
-                            <th class="px-4 py-3 text-center w-[80px] print:hidden">ACTION</th>
+        <!-- ── Executive Summaries Section (Rich Gold Theme) ── -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            
+            <!-- Card 1: Petty Cash Summary -->
+            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <h2 class="text-[11px] font-black text-white uppercase tracking-widest">PETTY CASH SUMMARY</h2>
+                        </div>
+                        <span class="text-[9px] badge font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Site Info</span>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full text-xs">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Site</td>
+                                    <td class="py-2.5 text-right font-bold text-slate-900 truncate max-w-[160px]" title="{{ $siteName }}">{{ $siteName }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Cash Box / Incharge</td>
+                                    <td class="py-2.5 text-right font-bold text-slate-900">{{ $cashBoxIncharge }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Cash Box Code</td>
+                                    <td class="py-2.5 text-right font-mono font-bold text-slate-900">{{ $cashBoxCode }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Last Updated</td>
+                                    <td class="py-2.5 text-right font-mono font-semibold text-slate-800 text-[11px]">{{ $lastUpdated }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <div class="p-3.5 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] rounded-xl flex items-center justify-between shadow-2xs">
+                        <div>
+                            <div class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">UPDATED BY</div>
+                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Responsible Officer</div>
+                        </div>
+                        <div class="text-sm font-mono font-black text-[#8a7522]">{{ $updatedBy }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Transaction Flow Summary -->
+            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <h2 class="text-[11px] font-black text-white uppercase tracking-widest">TRANSACTION FLOW</h2>
+                        </div>
+                        <span class="text-[9px] badge font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Period's Flow</span>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full text-xs">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Bank Withdrawal (Contra)</td>
+                                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981]">+ ₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Site Expenses</td>
+                                    <td class="py-2.5 text-right font-mono font-bold text-[#ef4444]">- ₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Recorded Transactions</td>
+                                    <td class="py-2.5 text-right font-mono font-bold text-slate-800">{{ count($reportData['entries'] ?? []) }} Entries</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Audit Status</td>
+                                    <td class="py-2.5 text-right font-bold text-emerald-700">Reconciled</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <div class="p-3.5 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] rounded-xl flex items-center justify-between shadow-2xs">
+                        <div>
+                            <div class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">NET CASH FLOW</div>
+                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Net movement period</div>
+                        </div>
+                        <div class="text-base font-mono font-black {{ $netPeriodChange >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' }}">
+                            {{ $netPeriodChange >= 0 ? '+' : '' }} ₹ {{ number_format($netPeriodChange, 2) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Balance Snapshot -->
+            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
+                <div>
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <h2 class="text-[11px] font-black text-white uppercase tracking-widest">BALANCE SNAPSHOT</h2>
+                        </div>
+                        <span class="text-[9px] badge font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Live Balance</span>
+                    </div>
+                    <div class="p-5">
+                        <table class="w-full text-xs">
+                            <tbody class="divide-y divide-slate-100">
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Opening Balance</td>
+                                    <td class="py-2.5 text-right font-mono font-bold text-slate-900">₹ {{ number_format($reportData['opening_balance'] ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Add: Cash In (Period)</td>
+                                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981]">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Less: Cash Out (Period)</td>
+                                    <td class="py-2.5 text-right font-mono font-bold text-[#ef4444]">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2.5 font-semibold text-slate-600">Register Audit Date</td>
+                                    <td class="py-2.5 text-right font-mono font-semibold text-slate-800 text-[11px]">{{ \Carbon\Carbon::parse($reportData['to_date'])->format('d-M-Y') }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="px-5 pb-5">
+                    <div class="p-3.5 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] rounded-xl flex items-center justify-between shadow-2xs">
+                        <div>
+                            <div class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">CLOSING BALANCE</div>
+                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Current cash in hand</div>
+                        </div>
+                        <div class="text-lg font-mono font-black text-[#8a7522]">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ── Recent Transactions Table Card (Web View) ── -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8 print:hidden relative">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="text-[14px] font-extrabold text-[#a38c29] uppercase tracking-wider">Recent Transactions</h3>
+                <span class="text-[11px] bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold">
+                    <span>{{ count($reportData['entries'] ?? []) }}</span> Entries
+                </span>
+            </div>
+
+            <!-- Ledger Table -->
+            <div id="ledgerTableContainer" class="overflow-x-auto">
+                <table class="w-full text-left whitespace-nowrap" id="pettyCashReportTable">
+                    <thead class="bg-[#a38c29] text-white">
+                        <tr>
+                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Date</th>
+                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Voucher No.</th>
+                            <th class="px-5 py-3.5 text-[11px] font-extrabold uppercase tracking-wide">Type</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash In (₹)</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash Out (₹)</th>
+                            <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Balance (₹)</th>
+                            <th class="px-5 py-3.5 text-left text-[11px] font-extrabold uppercase tracking-wide">Reference</th>
+                            <th class="px-5 py-3.5 text-center text-[11px] font-extrabold uppercase tracking-wide print:hidden">Action</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100 text-[11px] font-semibold" id="tableBody">
-                        @forelse($reportData['entries'] as $entry)
-                        <tr class="transaction-row hover:bg-slate-50 transition-colors border-b border-slate-100" 
-                            data-type="{{ $entry->type }}" 
-                            data-voucher="{{ strtolower($entry->voucher_number) }}" 
-                            data-particulars="{{ strtolower($entry->particulars) }}" 
-                            data-reference="{{ strtolower($entry->reference_no) }}">
-                            
-                            <!-- Date -->
-                            <td class="px-4 py-3 text-left align-middle border-r border-slate-200/50 bg-slate-50/40 font-mono text-slate-700 whitespace-nowrap text-[10.5px]">
-                                {{ $entry->date }}
-                            </td>
+                    <tbody class="divide-y divide-gray-100 bg-white" id="reportTableBody">
+                        @forelse($reportData['entries'] ?? [] as $txn)
+                            @php
+                                $isOpening = ($txn->type === 'Opening' || $txn->particulars === 'Opening Balance');
+                                $typeDisplay = $txn->type === 'Contra' ? 'Contra - ' . $txn->particulars : ($txn->type === 'Expense' ? 'Site Expense - ' . $txn->particulars : $txn->particulars);
+                            @endphp
+                            <tr class="transaction-row hover:bg-gray-50 transition-colors">
+                                
+                                <td class="px-5 py-4 text-[11px] font-bold text-gray-700">{{ $txn->date }}</td>
+                                
+                                <td class="px-5 py-4">
+                                    @if(!$isOpening && $txn->voucher_number !== '-')
+                                        <span class="text-[11px] font-bold text-[#a38c29] uppercase cursor-pointer hover:underline"
+                                              onclick="showDetailModal(this)"
+                                              data-voucher="{{ $txn->voucher_number }}"
+                                              data-date="{{ $txn->date }}"
+                                              data-type="{{ $typeDisplay }}"
+                                              data-cashin="{{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '0.00' }}"
+                                              data-cashout="{{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '0.00' }}"
+                                              data-balance="{{ number_format($txn->balance, 2) }}"
+                                              data-reference="{{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : 'N/A' }}">
+                                            {{ $txn->voucher_number }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400 font-bold text-[11px]">—</span>
+                                    @endif
+                                </td>
 
-                            <!-- Voucher No -->
-                            <td class="px-4 py-3 text-left align-middle whitespace-nowrap">
-                                @if($entry->voucher_number && $entry->voucher_number !== '-')
-                                    <span class="inline-block px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-900 rounded font-mono font-extrabold text-[10.5px] whitespace-nowrap shadow-2xs cursor-pointer transition"
-                                          onclick="showDetailModal(this)"
-                                          data-voucher="{{ $entry->voucher_number }}"
-                                          data-date="{{ $entry->date }}"
-                                          data-particulars="{{ htmlspecialchars($entry->particulars, ENT_QUOTES, 'UTF-8') }}"
-                                          data-cashin="{{ $entry->cash_in }}"
-                                          data-cashout="{{ $entry->cash_out }}"
-                                          data-balance="{{ $entry->balance }}"
-                                          data-type="{{ $entry->type }}"
-                                          data-reference="{{ $entry->reference_no }}">
-                                        {{ $entry->voucher_number }}
-                                    </span>
-                                @else
-                                    <span class="text-slate-400 font-mono">—</span>
-                                @endif
-                            </td>
+                                <td class="px-5 py-4 text-[11px] font-bold text-[#1e2a5e]">
+                                    {{ $typeDisplay }}
+                                </td>
 
-                            <!-- Particulars -->
-                            <td class="px-4 py-3 align-middle text-slate-900 font-bold">
-                                {{ $entry->particulars }}
-                            </td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold {{ $txn->cash_in > 0 ? 'text-[#1e2a5e]' : 'text-gray-400' }}">
+                                    {{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '-' }}
+                                </td>
 
-                            <!-- Cash In -->
-                            <td class="px-4 py-3 text-right font-mono font-extrabold text-emerald-600 align-middle whitespace-nowrap">
-                                {{ $entry->cash_in > 0 ? '+₹' . number_format($entry->cash_in, 2) : '—' }}
-                            </td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold {{ $txn->cash_out > 0 ? 'text-[#1e2a5e]' : 'text-gray-400' }}">
+                                    {{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '-' }}
+                                </td>
 
-                            <!-- Cash Out -->
-                            <td class="px-4 py-3 text-right font-mono font-extrabold text-amber-600 align-middle whitespace-nowrap">
-                                {{ $entry->cash_out > 0 ? '-₹' . number_format($entry->cash_out, 2) : '—' }}
-                            </td>
+                                <td class="px-5 py-4 text-right text-[11px] font-bold text-[#1e2a5e]">
+                                    {{ number_format($txn->balance, 2) }}
+                                </td>
 
-                            <!-- Running Balance -->
-                            <td class="px-4 py-3 text-right font-mono font-black text-[#a38c29] bg-amber-50/30 align-middle whitespace-nowrap border-x border-amber-200/30">
-                                ₹{{ number_format($entry->balance, 2) }}
-                            </td>
+                                <td class="px-5 py-4 text-left text-[11px] font-medium text-gray-500">
+                                    {{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : '—' }}
+                                </td>
 
-                            <!-- Status / Type -->
-                            <td class="px-4 py-3 text-center whitespace-nowrap align-middle">
-                                @if($entry->type === 'Contra')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-emerald-50 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                        <svg class="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                        <span>CONTRA</span>
-                                    </span>
-                                @elseif($entry->type === 'Expense')
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                        <span>EXPENSE</span>
-                                    </span>
-                                @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                        <span>OPENING</span>
-                                    </span>
-                                @endif
-                            </td>
-
-                            <!-- Reference -->
-                            <td class="px-4 py-3 font-mono text-slate-500 text-[10px] align-middle whitespace-nowrap">
-                                {{ $entry->reference_no !== '-' ? $entry->reference_no : '—' }}
-                            </td>
-
-                            <!-- Actions (Only Eye Icon) -->
-                            <td class="px-4 py-3 text-center whitespace-nowrap align-middle print:hidden">
-                                @if($entry->voucher_number && $entry->voucher_number !== '-')
-                                    <button type="button" 
-                                            onclick="showDetailModal(this)"
-                                            data-voucher="{{ $entry->voucher_number }}"
-                                            data-date="{{ $entry->date }}"
-                                            data-particulars="{{ htmlspecialchars($entry->particulars, ENT_QUOTES, 'UTF-8') }}"
-                                            data-cashin="{{ $entry->cash_in }}"
-                                            data-cashout="{{ $entry->cash_out }}"
-                                            data-balance="{{ $entry->balance }}"
-                                            data-type="{{ $entry->type }}"
-                                            data-reference="{{ $entry->reference_no }}"
-                                            class="w-7 h-7 rounded-lg bg-amber-50/80 hover:bg-[#a38c29] text-[#a38c29] hover:text-white border border-[#a38c29]/30 inline-flex items-center justify-center transition-all duration-200 cursor-pointer shadow-2xs group"
-                                            title="View Voucher Details">
-                                        <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                    </button>
-                                @else
-                                    <span class="text-slate-300 text-xs">—</span>
-                                @endif
-                            </td>
-                        </tr>
+                                <td class="px-5 py-4 text-center print:hidden">
+                                    @if(!$isOpening && $txn->voucher_number !== '-')
+                                        <button type="button" 
+                                                onclick="showDetailModal(this)" 
+                                                data-voucher="{{ $txn->voucher_number }}"
+                                                data-date="{{ $txn->date }}"
+                                                data-type="{{ $typeDisplay }}"
+                                                data-cashin="{{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '0.00' }}"
+                                                data-cashout="{{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '0.00' }}"
+                                                data-balance="{{ number_format($txn->balance, 2) }}"
+                                                data-reference="{{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : 'N/A' }}"
+                                                class="text-[#a38c29] hover:text-[#8a7522] transition-colors focus:outline-none cursor-pointer" title="View Transaction Details">
+                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        </button>
+                                    @else
+                                        <span class="text-gray-300 text-xs">—</span>
+                                    @endif
+                                </td>
+                            </tr>
                         @empty
-                        <tr>
-                            <td colspan="9" class="px-5 py-12 text-center text-slate-400 text-xs font-bold uppercase tracking-wider">
-                                No records found for the selected period and site.
-                            </td>
-                        </tr>
+                            <tr>
+                                <td colspan="8" class="px-5 py-8 text-center text-[12px] font-bold text-gray-400 uppercase tracking-wider">No transactions found for this period.</td>
+                            </tr>
                         @endforelse
                     </tbody>
-
-                    @if(count($reportData['entries']) > 0)
-                    <tfoot class="bg-slate-50 text-slate-900 font-bold border-t-2 border-slate-300 text-xs">
-                        <tr>
-                            <td colspan="3" class="px-4 py-3 font-black uppercase text-slate-900 tracking-wider">
-                                Period Total Summary
-                            </td>
-                            <td class="px-4 py-3 text-right font-mono font-black text-emerald-700">
-                                +₹{{ number_format($reportData['total_cash_in'], 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right font-mono font-black text-amber-700">
-                                -₹{{ number_format($reportData['total_cash_out'], 2) }}
-                            </td>
-                            <td class="px-4 py-3 text-right font-mono font-black text-[#a38c29] bg-amber-50/50 border-x border-amber-200/50">
-                                ₹{{ number_format($reportData['closing_balance'], 2) }}
-                            </td>
-                            <td colspan="3" class="px-4 py-3 text-slate-500 text-[10.5px] font-semibold text-center">
-                                Cash in Hand
-                            </td>
-                        </tr>
-                    </tfoot>
-                    @endif
                 </table>
             </div>
 
-            @if(count($reportData['entries']) > 0)
-            <div class="px-5 py-3 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between text-xs text-slate-500 font-semibold print:hidden">
-                <div>
-                    Showing <span class="font-bold text-slate-800" id="visibleCount">{{ count($reportData['entries']) }}</span> of <span class="font-bold text-slate-800">{{ count($reportData['entries']) }}</span> entries
-                </div>
-                <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                    Hindustan ERP Verified Ledger
-                </div>
-            </div>
-            @endif
         </div>
 
-        <!-- ── CATEGORY SUMMARY VIEW (TAB 4) ── -->
-        <div id="categorySummaryContainer" class="hidden p-5 space-y-4">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                
-                <!-- Site Expenses Breakdown -->
-                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs">
-                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                        <div>
-                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Site Expense Disbursements</h3>
-                            <p class="text-[11px] text-slate-500 font-semibold">Categorized expenditure for the period</p>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200">
-                            Total: ₹{{ number_format($reportData['total_cash_out'], 2) }}
-                        </span>
-                    </div>
-
-                    @if($expenseEntries->count() > 0)
-                        @php
-                            $groupedExpenses = $expenseEntries->groupBy('particulars')->map(function($items) {
-                                return [
-                                    'particulars' => $items->first()->particulars,
-                                    'total' => $items->sum('cash_out'),
-                                    'count' => $items->count()
-                                ];
-                            })->sortByDesc('total');
-                        @endphp
-                        <div class="space-y-3.5">
-                            @foreach($groupedExpenses as $item)
+        <!-- ── COMPLETE EXECUTIVE PRINTABLE DATA TABLE (FOR PRINT / PDF) ── -->
+        <div class="hidden print:block mb-8">
+            <div class="border border-slate-300 rounded-xl overflow-hidden">
+                <table class="w-full text-[9.5px] text-left border-collapse">
+                    <thead>
+                        <tr class="bg-[#a38c29] text-white border-b-2 border-[#8a7522] text-[9px] font-black uppercase tracking-wider">
+                            <th class="px-3 py-2 text-center text-white w-10">SL NO</th>
+                            <th class="px-3 py-2 text-white">DATE</th>
+                            <th class="px-3 py-2 text-white">VOUCHER NO.</th>
+                            <th class="px-3 py-2 text-white">TYPE / PARTICULARS</th>
+                            <th class="px-3 py-2 text-right text-white">CASH IN (₹)</th>
+                            <th class="px-3 py-2 text-right text-white">CASH OUT (₹)</th>
+                            <th class="px-3 py-2 text-right text-white">BALANCE (₹)</th>
+                            <th class="px-3 py-2 text-left text-white">REFERENCE</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        @forelse($reportData['entries'] ?? [] as $index => $txn)
                             @php
-                                $percent = $reportData['total_cash_out'] > 0 ? round(($item['total'] / $reportData['total_cash_out']) * 100, 1) : 0;
+                                $typeDisplay = $txn->type === 'Contra' ? 'Contra - ' . $txn->particulars : ($txn->type === 'Expense' ? 'Site Expense - ' . $txn->particulars : $txn->particulars);
                             @endphp
-                            <div>
-                                <div class="flex justify-between items-center text-xs font-bold mb-1">
-                                    <span class="text-slate-800">
-                                        {{ $item['particulars'] }}
-                                        <span class="text-[10px] text-slate-400 font-normal">({{ $item['count'] }} vouchers)</span>
-                                    </span>
-                                    <span class="font-mono text-slate-900 font-extrabold">₹{{ number_format($item['total'], 2) }} ({{ $percent }}%)</span>
-                                </div>
-                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-amber-500 h-2 rounded-full transition-all" style="width: {{ $percent }}%"></div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="py-8 text-center text-slate-400 text-xs">
-                            No expense disbursements recorded for this period.
-                        </div>
-                    @endif
+                            <tr class="border-b border-slate-200 text-slate-800">
+                                <td class="px-3 py-2 text-center font-bold text-slate-500">{{ $index + 1 }}</td>
+                                <td class="px-3 py-2 font-bold text-slate-900">{{ $txn->date }}</td>
+                                <td class="px-3 py-2 font-mono font-bold text-[#a38c29] uppercase">{{ $txn->voucher_number ?? '—' }}</td>
+                                <td class="px-3 py-2 font-bold text-slate-700">{{ $typeDisplay }}</td>
+                                <td class="px-3 py-2 text-right font-mono font-bold {{ $txn->cash_in > 0 ? 'text-emerald-700' : 'text-slate-400' }}">
+                                    {{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '-' }}
+                                </td>
+                                <td class="px-3 py-2 text-right font-mono font-bold {{ $txn->cash_out > 0 ? 'text-rose-700' : 'text-slate-400' }}">
+                                    {{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '-' }}
+                                </td>
+                                <td class="px-3 py-2 text-right font-mono font-black text-slate-900">
+                                    {{ number_format($txn->balance, 2) }}
+                                </td>
+                                <td class="px-3 py-2 text-left font-mono text-slate-600">
+                                    {{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : '—' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-4 py-4 text-center text-slate-500 italic">No transactions found for this period.</td>
+                            </tr>
+                        @endforelse
+                        <tr class="bg-slate-100 font-bold border-t-2 border-slate-400">
+                            <td colspan="4" class="px-4 py-2.5 text-right uppercase tracking-wider text-[10px] text-slate-800">TOTAL SUMMARY:</td>
+                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-emerald-800 font-black">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</td>
+                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-rose-800 font-black">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</td>
+                            <td class="px-3 py-2.5 text-right font-mono text-[10px] text-slate-900 font-black">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── EXECUTIVE SIGN-OFF FOOTER (ONLY VISIBLE IN PRINT/PDF) ── -->
+        <div class="hidden print:block mt-8 pt-6 border-t-2 border-slate-300">
+            <div class="grid grid-cols-3 gap-8 text-center text-[9.5px]">
+                <div>
+                    <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">PREPARED BY</div>
+                    <div class="text-slate-500 font-mono">{{ auth()->user()->name ?? 'Finance Officer' }}</div>
                 </div>
-
-                <!-- Contra / Cash Inflows Breakdown -->
-                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs">
-                    <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                        <div>
-                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Inflows &amp; Contra Withdrawals</h3>
-                            <p class="text-[11px] text-slate-500 font-semibold">Bank cash receipts and cash box replenishments</p>
-                        </div>
-                        <span class="px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            Total: ₹{{ number_format($reportData['total_cash_in'], 2) }}
-                        </span>
-                    </div>
-
-                    @if($contraEntries->count() > 0)
-                        @php
-                            $groupedContra = $contraEntries->groupBy('particulars')->map(function($items) {
-                                return [
-                                    'particulars' => $items->first()->particulars,
-                                    'total' => $items->sum('cash_in'),
-                                    'count' => $items->count()
-                                ];
-                            })->sortByDesc('total');
-                        @endphp
-                        <div class="space-y-3.5">
-                            @foreach($groupedContra as $item)
-                            @php
-                                $percent = $reportData['total_cash_in'] > 0 ? round(($item['total'] / $reportData['total_cash_in']) * 100, 1) : 0;
-                            @endphp
-                            <div>
-                                <div class="flex justify-between items-center text-xs font-bold mb-1">
-                                    <span class="text-slate-800">
-                                        {{ $item['particulars'] }}
-                                        <span class="text-[10px] text-slate-400 font-normal">({{ $item['count'] }} entries)</span>
-                                    </span>
-                                    <span class="font-mono text-slate-900 font-extrabold">₹{{ number_format($item['total'], 2) }} ({{ $percent }}%)</span>
-                                </div>
-                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                    <div class="bg-emerald-600 h-2 rounded-full transition-all" style="width: {{ $percent }}%"></div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="py-8 text-center text-slate-400 text-xs">
-                            No cash inflows recorded for this period.
-                        </div>
-                    @endif
+                <div>
+                    <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">CHECKED &amp; VERIFIED BY</div>
+                    <div class="text-slate-500 italic">Internal Audit &amp; Accounts</div>
                 </div>
-
+                <div>
+                    <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">AUTHORIZED SIGNATORY</div>
+                    <div class="text-slate-500 italic">Director / Management</div>
+                </div>
+            </div>
+            <div class="text-center text-[8px] text-slate-400 mt-6 italic">
+                This is an official system-generated audit report produced by Hindustan ERP. All financial figures are reconciled from active site registers and bank contra withdrawals.
             </div>
         </div>
 
@@ -456,10 +542,12 @@
 
 </div>
 
+
 <!-- ── TRANSACTION DETAILS MODAL ── -->
-<div id="transactionDetailModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs items-center justify-center p-4 print:hidden transition-opacity duration-300" style="display: none;" onclick="if(event.target === this) closeDetailModal()">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border-0 border-none ring-0 outline-none flex flex-col transform transition-all">
-        <!-- Dark & Yellow Color Theme Modal Header -->
+<div id="transactionDetailModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 print:hidden transition-opacity duration-300" style="display: none;" onclick="if(event.target === this) closeDetailModal()">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden border-0 border-none ring-0 outline-none flex flex-col transform transition-all">
+        
+        <!-- Header -->
         <div class="relative overflow-hidden bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-6 py-4 border-0 border-none flex-shrink-0">
             <div class="absolute -top-10 -right-10 w-28 h-28 bg-amber-400/15 rounded-full blur-2xl pointer-events-none"></div>
             <div class="relative z-10 flex items-center justify-between gap-4">
@@ -479,38 +567,34 @@
         <!-- Body -->
         <div class="px-6 py-5 bg-white border-0 border-none">
             <table class="w-full text-xs border-0 border-none">
-                <tbody class="border-0 border-none">
+                <tbody class="divide-y divide-slate-100 border-0 border-none">
                     <tr>
                         <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider w-1/3 border-0 border-none">Voucher No.</td>
-                        <td class="py-2.5 text-right font-mono font-bold text-[#a38c29] border-0 border-none" id="modalVoucherNo"></td>
+                        <td class="py-2.5 text-right font-mono font-bold text-[#a38c29] border-0 border-none" id="modalVoucherNo">—</td>
                     </tr>
                     <tr>
                         <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Date</td>
-                        <td class="py-2.5 text-right font-bold text-slate-800 border-0 border-none" id="modalDate"></td>
+                        <td class="py-2.5 text-right font-bold text-slate-800 border-0 border-none" id="modalDate">—</td>
                     </tr>
                     <tr>
-                        <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Transaction Type</td>
-                        <td class="py-2.5 text-right font-bold border-0 border-none" id="modalType"></td>
-                    </tr>
-                    <tr>
-                        <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Particulars</td>
-                        <td class="py-2.5 text-right font-semibold text-slate-900 border-0 border-none" id="modalParticulars"></td>
+                        <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Type / Narration</td>
+                        <td class="py-2.5 text-right font-bold text-[#1e2a5e] border-0 border-none" id="modalType">—</td>
                     </tr>
                     <tr>
                         <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Cash In</td>
-                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600 border-0 border-none" id="modalCashIn"></td>
+                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600 border-0 border-none" id="modalCashIn">₹ 0.00</td>
                     </tr>
                     <tr>
                         <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Cash Out</td>
-                        <td class="py-2.5 text-right font-mono font-bold text-amber-700 border-0 border-none" id="modalCashOut"></td>
+                        <td class="py-2.5 text-right font-mono font-bold text-rose-600 border-0 border-none" id="modalCashOut">₹ 0.00</td>
                     </tr>
                     <tr>
                         <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Running Balance</td>
-                        <td class="py-2.5 text-right font-mono font-black text-slate-900 border-0 border-none" id="modalBalance"></td>
+                        <td class="py-2.5 text-right font-mono font-black text-slate-900 border-0 border-none" id="modalBalance">₹ 0.00</td>
                     </tr>
                     <tr>
                         <td class="py-2.5 text-[10.5px] font-bold text-slate-500 uppercase tracking-wider border-0 border-none">Reference</td>
-                        <td class="py-2.5 text-right font-mono text-slate-600 border-0 border-none" id="modalReference"></td>
+                        <td class="py-2.5 text-right font-mono text-slate-600 border-0 border-none" id="modalReference">N/A</td>
                     </tr>
                 </tbody>
             </table>
@@ -526,195 +610,22 @@
 </div>
 
 <script>
-    let currentActiveTab = 'balance-register';
-
-    const tabConfigs = {
-        'balance-register': {
-            heading: 'PETTY CASH TRANSACTION & BALANCE REGISTER',
-            subtitle: 'Directory of all cash inward claims, site expenses, and contra replenish vouchers.',
-            filterType: 'all',
-            activeBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-2 bg-[#a38c29] text-white shadow-xs cursor-pointer',
-            activeIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0',
-            activeBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-black bg-[#8a7522] text-white',
-            inactiveBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer',
-            inactiveIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0',
-            inactiveBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600'
-        },
-        'expense-report': {
-            heading: 'SITE EXPENSE DISBURSEMENTS REGISTER',
-            subtitle: 'Directory of all site expense disbursements and vouchers.',
-            filterType: 'Expense',
-            activeBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-2 bg-[#a38c29] text-white shadow-xs cursor-pointer',
-            activeIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0',
-            activeBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-black bg-[#8a7522] text-white',
-            inactiveBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer',
-            inactiveIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0',
-            inactiveBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600'
-        },
-        'contra-report': {
-            heading: 'CONTRA REPLENISHMENTS & INFLOWS REGISTER',
-            subtitle: 'Directory of all contra withdrawals and cash box replenishments.',
-            filterType: 'Contra',
-            activeBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-2 bg-[#a38c29] text-white shadow-xs cursor-pointer',
-            activeIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0',
-            activeBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-black bg-[#8a7522] text-white',
-            inactiveBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer',
-            inactiveIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0',
-            inactiveBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600'
-        },
-        'category-summary': {
-            heading: 'CATEGORY WISE EXPENSE & INFLOW SUMMARY',
-            subtitle: 'Comprehensive categorized expense breakdown and inflow analysis.',
-            filterType: null,
-            activeBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 flex items-center gap-2 bg-[#a38c29] text-white shadow-xs cursor-pointer',
-            activeIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center shrink-0',
-            activeBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-black bg-[#8a7522] text-white',
-            inactiveBtnClass: 'tab-btn px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-200 flex items-center gap-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 cursor-pointer',
-            inactiveIconClass: 'tab-icon-box w-5 h-5 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0',
-            inactiveBadgeClass: 'tab-badge px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-600'
-        }
-    };
-
-    function switchTab(tabId) {
-        currentActiveTab = tabId;
-        const config = tabConfigs[tabId] || tabConfigs['balance-register'];
-
-        // Reset all tabs to inactive styling
-        Object.keys(tabConfigs).forEach(id => {
-            const btn = document.getElementById('tab-btn-' + id);
-            if (!btn) return;
-            btn.className = config.inactiveBtnClass;
-            
-            const iconBox = btn.querySelector('.tab-icon-box');
-            if (iconBox) {
-                iconBox.className = config.inactiveIconClass;
-            }
-
-            const badge = btn.querySelector('.tab-badge');
-            if (badge) {
-                badge.className = config.inactiveBadgeClass;
-            }
-        });
-
-        // Set active tab styling (Gold Background, white text)
-        const activeBtn = document.getElementById('tab-btn-' + tabId);
-        if (activeBtn) {
-            activeBtn.className = config.activeBtnClass;
-            const iconBox = activeBtn.querySelector('.tab-icon-box');
-            if (iconBox) {
-                iconBox.className = config.activeIconClass;
-            }
-            const badge = activeBtn.querySelector('.tab-badge');
-            if (badge) {
-                badge.className = config.activeBadgeClass;
-            }
-        }
-
-        const tableContainer = document.getElementById('ledgerTableContainer');
-        const categoryContainer = document.getElementById('categorySummaryContainer');
-        const heading = document.getElementById('currentTabHeading');
-        const subtitle = document.getElementById('currentTabSubtitle');
-
-        if (heading) {
-            heading.innerText = config.heading;
-        }
-        if (subtitle) {
-            subtitle.innerText = config.subtitle;
-        }
-
-        if (tabId === 'category-summary') {
-            tableContainer.classList.add('hidden');
-            categoryContainer.classList.remove('hidden');
-        } else {
-            tableContainer.classList.remove('hidden');
-            categoryContainer.classList.add('hidden');
-            filterTableByType(config.filterType);
-        }
-    }
-
-    let activeTypeFilter = 'all';
-
-    function filterTableByType(type) {
-        activeTypeFilter = type;
-        filterTable();
-    }
-
-    function filterTable() {
-        const query = (document.getElementById('tableSearchInput')?.value || '').toLowerCase().trim();
-        const rows = document.querySelectorAll('.transaction-row');
-        let count = 0;
-
-        rows.forEach(row => {
-            const rowType = row.getAttribute('data-type');
-            const voucher = row.getAttribute('data-voucher') || '';
-            const particulars = row.getAttribute('data-particulars') || '';
-            const reference = row.getAttribute('data-reference') || '';
-
-            let matchType = (activeTypeFilter === 'all') || (activeTypeFilter === rowType);
-            let matchQuery = !query || voucher.includes(query) || particulars.includes(query) || reference.includes(query);
-
-            if (matchType && matchQuery) {
-                row.style.display = '';
-                count++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        const tableCountSpan = document.getElementById('tableRecordCount');
-        if (tableCountSpan) {
-            tableCountSpan.innerText = count;
-        }
-        const countSpan = document.getElementById('visibleCount');
-        if (countSpan) {
-            countSpan.innerText = count;
-        }
-    }
-
+    // Modal Handling
     function showDetailModal(btn) {
         if (!btn || !btn.dataset) return;
         const d = btn.dataset;
-        openDetailModal(d.voucher, d.date, d.particulars, d.cashin, d.cashout, d.balance, d.type, d.reference);
+        openDetailModal(d.voucher, d.date, d.type, d.cashin, d.cashout, d.balance, d.reference);
     }
 
-    function openDetailModal(voucher, date, particulars, cashIn, cashOut, balance, type, reference) {
+    function openDetailModal(voucher, date, type, cashIn, cashOut, balance, reference) {
         try {
-            const vEl = document.getElementById('modalVoucherNo');
-            if (vEl) vEl.innerText = voucher || '—';
-
-            const dEl = document.getElementById('modalDate');
-            if (dEl) dEl.innerText = date || '—';
-
-            const pEl = document.getElementById('modalParticulars');
-            if (pEl) pEl.innerText = particulars || '—';
-            
-            const typeEl = document.getElementById('modalType');
-            if (typeEl) {
-                typeEl.innerHTML = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider ${type === 'Contra' ? 'bg-emerald-100/90 text-emerald-800' : (type === 'Expense' ? 'bg-amber-100/90 text-amber-800' : 'bg-slate-100 text-slate-700')}">${type || '—'}</span>`;
-            }
-
-            const inEl = document.getElementById('modalCashIn');
-            if (inEl) {
-                const parsedIn = parseFloat(cashIn);
-                inEl.innerText = (!isNaN(parsedIn) && parsedIn > 0) ? ('+₹' + numberFormat(parsedIn)) : '—';
-            }
-
-            const outEl = document.getElementById('modalCashOut');
-            if (outEl) {
-                const parsedOut = parseFloat(cashOut);
-                outEl.innerText = (!isNaN(parsedOut) && parsedOut > 0) ? ('-₹' + numberFormat(parsedOut)) : '—';
-            }
-
-            const balEl = document.getElementById('modalBalance');
-            if (balEl) {
-                const parsedBal = parseFloat(balance);
-                balEl.innerText = '₹' + numberFormat(!isNaN(parsedBal) ? parsedBal : 0);
-            }
-
-            const refEl = document.getElementById('modalReference');
-            if (refEl) {
-                refEl.innerText = (reference && reference !== '-') ? reference : '—';
-            }
+            document.getElementById('modalVoucherNo').innerText = voucher || '—';
+            document.getElementById('modalDate').innerText = date || '—';
+            document.getElementById('modalType').innerText = type || '—';
+            document.getElementById('modalCashIn').innerText = '₹ ' + (cashIn || '0.00');
+            document.getElementById('modalCashOut').innerText = '₹ ' + (cashOut || '0.00');
+            document.getElementById('modalBalance').innerText = '₹ ' + (balance || '0.00');
+            document.getElementById('modalReference').innerText = reference || 'N/A';
 
             const modal = document.getElementById('transactionDetailModal');
             if (modal) {
@@ -722,7 +633,7 @@
                 modal.classList.remove('hidden');
             }
         } catch (err) {
-            console.error('Error in openDetailModal:', err);
+            console.error('Error opening detail modal:', err);
         }
     }
 
@@ -740,68 +651,300 @@
         }
     });
 
-    function numberFormat(val) {
-        return Number(val || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    }
+    // ExcelJS Multi-Tier Export matching executive company standard
+    async function exportPettyCashReportExcel() {
+        if (typeof ExcelJS === 'undefined') {
+            alert('ExcelJS is loading. Please try again in a moment.');
+            return;
+        }
 
-    function exportToExcel() {
-        const table = document.getElementById('pettyCashTable');
-        if (!table) return;
+        try {
+            const workbook = new ExcelJS.Workbook();
+            workbook.creator = 'Hindustan ERP';
+            workbook.lastModifiedBy = 'Hindustan ERP';
+            workbook.created = new Date();
+            workbook.modified = new Date();
 
-        let csv = [];
-        const rows = table.querySelectorAll('tr');
-
-        rows.forEach(row => {
-            if (row.style.display === 'none') return;
-            let rowData = [];
-            const cols = row.querySelectorAll('th, td');
-            cols.forEach((col, idx) => {
-                // Skip Action column
-                if (idx === cols.length - 1 && col.innerText.trim() === 'ACTIONS') return;
-                if (idx === cols.length - 1 && col.querySelector('button')) return;
-
-                let text = col.innerText.trim().replace(/"/g, '""').replace(/\n/g, ' ');
-                rowData.push('"' + text + '"');
+            const worksheet = workbook.addWorksheet('Petty Cash Report', {
+                views: [{ showGridLines: true }]
             });
-            if (rowData.length > 0) {
-                csv.push(rowData.join(','));
-            }
-        });
 
-        const csvContent = '\uFEFF' + csv.join('\r\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        const siteName = "{{ addslashes($currentProject->name ?? 'Site') }}".replace(/[^a-zA-Z0-9]/g, '_');
-        link.setAttribute('href', url);
-        link.setAttribute('download', `Petty_Cash_Report_${siteName}_{{ $reportData['from_date'] }}_to_{{ $reportData['to_date'] }}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            // ── 1. Column Definitions ──
+            const totalCols = 8;
+            worksheet.columns = [
+                { key: 'sl', width: 8 },          // Col 1: SL NO
+                { key: 'date', width: 16 },        // Col 2: Date
+                { key: 'voucher', width: 22 },     // Col 3: Voucher No.
+                { key: 'particulars', width: 38 }, // Col 4: Type / Particulars
+                { key: 'cash_in', width: 20 },     // Col 5: Cash In (₹)
+                { key: 'cash_out', width: 20 },    // Col 6: Cash Out (₹)
+                { key: 'balance', width: 20 },     // Col 7: Balance (₹)
+                { key: 'reference', width: 24 }    // Col 8: Reference
+            ];
+
+            // ── 2. Spacing Row 1 ──
+            worksheet.getRow(1).height = 15;
+
+            // ── 3. Banner 1: Company / Report Title (Row 2) ──
+            const row2 = worksheet.getRow(2);
+            row2.height = 32;
+            worksheet.mergeCells('A2:H2');
+            const titleCell = worksheet.getCell('A2');
+            titleCell.value = 'HINDUSTAN ERP : PETTY CASH REPORT';
+            titleCell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+            titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            for (let c = 1; c <= totalCols; c++) {
+                const cell = row2.getCell(c);
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+            }
+
+            // ── 4. Banner 2: Subtitle / Context (Row 3) ──
+            const row3 = worksheet.getRow(3);
+            row3.height = 24;
+            worksheet.mergeCells('A3:H3');
+            const subCell = worksheet.getCell('A3');
+            subCell.value = 'Site: {{ addslashes($siteName) }} | Period: {{ \Carbon\Carbon::parse($reportData['from_date'] ?? date('Y-m-01'))->format('d-M-Y') }} to {{ \Carbon\Carbon::parse($reportData['to_date'] ?? date('Y-m-d'))->format('d-M-Y') }}';
+            subCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+            subCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            for (let c = 1; c <= totalCols; c++) {
+                const cell = row3.getCell(c);
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+            }
+
+            // ── 5. Banner 3: Transaction Details (Row 4) ──
+            const row4 = worksheet.getRow(4);
+            row4.height = 24;
+            worksheet.mergeCells('A4:H4');
+            const bannerCell = worksheet.getCell('A4');
+            bannerCell.value = 'TRANSACTION DETAILS';
+            bannerCell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+            bannerCell.alignment = { horizontal: 'center', vertical: 'middle' };
+            for (let c = 1; c <= totalCols; c++) {
+                const cell = row4.getCell(c);
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+            }
+
+            // ── 6. Spacing Row 5 ──
+            worksheet.getRow(5).height = 10;
+
+            // ── 7. Table Column Headers (Row 6) ──
+            const headerRow = worksheet.getRow(6);
+            headerRow.values = [
+                'SL NO',
+                'Date',
+                'Voucher No.',
+                'Type / Particulars',
+                'Cash In (₹)',
+                'Cash Out (₹)',
+                'Balance (₹)',
+                'Reference'
+            ];
+            headerRow.height = 30;
+
+            for (let c = 1; c <= totalCols; c++) {
+                const cell = headerRow.getCell(c);
+                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                cell.alignment = {
+                    horizontal: (c === 5 || c === 6 || c === 7 ? 'right' : (c === 4 || c === 8 ? 'left' : 'center')),
+                    vertical: 'middle',
+                    indent: (c === 4 || c === 8 ? 1 : 0)
+                };
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FF34495E' }
+                };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+            }
+
+            // ── 8. Retrieve Data Rows ──
+            let txnsData = [];
+            const dataScript = document.getElementById('petty-cash-report-data');
+            if (dataScript) {
+                try {
+                    txnsData = JSON.parse(dataScript.textContent || '[]');
+                } catch (e) {
+                    console.error('Error parsing embedded data:', e);
+                }
+            }
+
+            // Fallback to table DOM rows if dataScript was empty
+            if (!txnsData || txnsData.length === 0) {
+                const tableRows = document.querySelectorAll('#pettyCashReportTable tbody tr');
+                tableRows.forEach(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    if (tds.length >= 7 && !tr.innerText.includes('No transactions found')) {
+                        const btn = tr.querySelector('button[data-voucher]');
+                        if (btn) {
+                            txnsData.push({
+                                date: btn.getAttribute('data-date'),
+                                voucher_number: btn.getAttribute('data-voucher'),
+                                type_label: btn.getAttribute('data-type'),
+                                cash_in: parseFloat((btn.getAttribute('data-cashin') || '0').replace(/,/g, '')) || 0,
+                                cash_out: parseFloat((btn.getAttribute('data-cashout') || '0').replace(/,/g, '')) || 0,
+                                balance: parseFloat((btn.getAttribute('data-balance') || '0').replace(/,/g, '')) || 0,
+                                reference_no: btn.getAttribute('data-reference') !== 'N/A' ? btn.getAttribute('data-reference') : '-'
+                            });
+                        }
+                    }
+                });
+            }
+
+            let currentRowIdx = 7;
+            let lastBalance = 0;
+
+            txnsData.forEach((txn, index) => {
+                const rowNum = index + 1;
+                const cashInVal = parseFloat(txn.cash_in) || 0;
+                const cashOutVal = parseFloat(txn.cash_out) || 0;
+                const balanceVal = parseFloat(txn.balance) || 0;
+                lastBalance = balanceVal;
+
+                let formattedDate = txn.date || '-';
+                if (formattedDate.includes('-') && formattedDate.length === 10) {
+                    const parts = formattedDate.split('-');
+                    if (parts[0].length === 4) {
+                        formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                }
+
+                let typeDisplay = txn.type_label || txn.particulars || '-';
+                if (!txn.type_label && txn.type) {
+                    typeDisplay = txn.type === 'Contra' ? ('Contra - ' + (txn.particulars || '')) : (txn.type === 'Expense' ? ('Site Expense - ' + (txn.particulars || '')) : (txn.particulars || ''));
+                }
+
+                const dataRow = worksheet.getRow(currentRowIdx);
+                dataRow.values = [
+                    rowNum,
+                    formattedDate,
+                    txn.voucher_number || '-',
+                    typeDisplay,
+                    cashInVal > 0 ? cashInVal : 0,
+                    cashOutVal > 0 ? cashOutVal : 0,
+                    balanceVal,
+                    (txn.reference_no && txn.reference_no !== '-' && txn.reference_no !== 'N/A') ? txn.reference_no : (txn.reference || '-')
+                ];
+                dataRow.height = 25;
+
+                const isEven = (index + 1) % 2 === 0;
+                const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = dataRow.getCell(c);
+                    cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: rowBg }
+                    };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                        right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                    };
+
+                    if (c === 1 || c === 2) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    } else if (c === 3) {
+                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                    } else if (c === 4) {
+                        cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                    } else if (c === 5) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.numFormat = '#,##0.00';
+                        if (cashInVal > 0) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF008000' } };
+                        }
+                    } else if (c === 6) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.numFormat = '#,##0.00';
+                        if (cashOutVal > 0) {
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFDC2626' } };
+                        }
+                    } else if (c === 7) {
+                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                        cell.numFormat = '#,##0.00';
+                        cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E293B' } };
+                    } else if (c === 8) {
+                        cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                    }
+                }
+
+                currentRowIdx++;
+            });
+
+            // ── 9. Bottom Summary / Total Row (Matching Image 2) ──
+            const totalRow = worksheet.getRow(currentRowIdx);
+            totalRow.height = 36;
+            worksheet.mergeCells(`A${currentRowIdx}:F${currentRowIdx}`);
+
+            const totalLabelCell = worksheet.getCell(`A${currentRowIdx}`);
+            totalLabelCell.value = 'TOTAL CLOSING BALANCE';
+            totalLabelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+            totalLabelCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+
+            const totalValCell = worksheet.getCell(`G${currentRowIdx}`);
+            totalValCell.value = lastBalance;
+            totalValCell.numFormat = '#,##0.00';
+            totalValCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+            totalValCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+            for (let c = 1; c <= totalCols; c++) {
+                const cell = totalRow.getCell(c);
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FF2C3E50' }
+                };
+                cell.border = {
+                    top: { style: 'thin', color: { argb: 'FF475569' } },
+                    bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                    left: { style: 'thin', color: { argb: 'FF475569' } },
+                    right: { style: 'thin', color: { argb: 'FF475569' } }
+                };
+            }
+
+            // ── 10. Generate & Download ──
+            const buffer = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = window.URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            anchor.download = `HindustanERP_PettyCash_Report_${todayStr}.xlsx`;
+            document.body.appendChild(anchor);
+            anchor.click();
+            document.body.removeChild(anchor);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Excel Export Error:', err);
+            alert('Failed to generate Excel report: ' + err.message);
+        }
     }
 </script>
-
-<style>
-@media print {
-    body {
-        background: #fff !important;
-        font-size: 11px !important;
-    }
-    aside, nav, header {
-        display: none !important;
-    }
-    table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-    }
-    th, td {
-        border: 1px solid #cbd5e1 !important;
-        padding: 5px 8px !important;
-    }
-    th {
-        background-color: #a38c29 !important;
-        color: #fff !important;
-    }
-}
-</style>
 @endsection

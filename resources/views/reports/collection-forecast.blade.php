@@ -1,17 +1,238 @@
 <x-erp-layout title="Collection Forecast & Overdue Reports" headerTitle="Business Reports Center">
 
+{{-- ExcelJS Library --}}
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<style>
+@media print {
+    @page {
+        size: landscape;
+        margin: 8mm 8mm 10mm 8mm;
+    }
+    html, body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-size: 9pt !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .print\:hidden, header, nav, aside, footer, button, select, input, .custom-scrollbar::-webkit-scrollbar {
+        display: none !important;
+    }
+    .print\:block {
+        display: block !important;
+    }
+    .print\:grid {
+        display: grid !important;
+    }
+    .print\:flex {
+        display: flex !important;
+    }
+    .print\:table {
+        display: table !important;
+    }
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+    thead {
+        display: table-header-group !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
+    .shadow-sm, .shadow-md, .shadow-lg, .shadow-2xl, .shadow-2xs {
+        box-shadow: none !important;
+    }
+    .border-slate-200, .border-slate-100 {
+        border-color: #cbd5e1 !important;
+    }
+}
+</style>
+
 <div class="max-w-[1800px] mx-auto p-6 space-y-6" x-data="collectionForecastApp()" x-init="init()">
 
-    <!-- Header Section -->
-    <div class="flex justify-between items-start">
+    <!-- ── EXECUTIVE PRINT HEADER (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:block mb-5 border-b-2 border-[#a38c29] pb-4">
+        <div class="flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black px-2.5 py-0.5 bg-[#a38c29] text-white rounded uppercase tracking-widest">TABASCO ERP</span>
+                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Receivable & Risk Intelligence</span>
+                </div>
+                <h1 class="text-xl font-black text-slate-900 uppercase tracking-tight mt-1">TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.</h1>
+                <h2 class="text-xs font-bold text-[#a38c29] uppercase tracking-wider mt-0.5">COLLECTION FORECAST & OVERDUE AGEING AUDIT REPORT</h2>
+            </div>
+            <div class="text-right text-[9.5px] text-slate-600 space-y-1">
+                <div><span class="font-bold text-slate-400 uppercase">Run Date:</span> <span class="font-mono font-bold text-slate-800" x-text="new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })"></span></div>
+                <div><span class="font-bold text-slate-400 uppercase">As On Date:</span> <span class="font-mono font-bold text-slate-800" x-text="filters.as_of_date || 'Current Live Date'"></span></div>
+                <div><span class="font-bold text-slate-400 uppercase">Total Records:</span> <span class="font-mono font-bold text-[#a38c29]" x-text="filteredInstallments.length + ' Installments'"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── EXECUTIVE PRINT KPI CARDS (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:grid grid-cols-4 gap-3 mb-5">
+        <div class="border border-slate-300 rounded-xl p-3 bg-slate-50/50">
+            <span class="text-[8.5px] font-black uppercase text-slate-500 block">Total Outstanding</span>
+            <strong class="text-sm font-black text-slate-900 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.total_outstanding)"></strong>
+            <span class="text-[8px] text-slate-500 font-bold" x-text="kpis.total_customers + ' Customer Accounts'"></span>
+        </div>
+        <div class="border border-rose-300 rounded-xl p-3 bg-rose-50/30">
+            <span class="text-[8.5px] font-black uppercase text-rose-600 block">Total Overdue</span>
+            <strong class="text-sm font-black text-rose-700 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.total_overdue)"></strong>
+            <span class="text-[8px] text-rose-600 font-bold" x-text="kpis.overdue_customers + ' Overdue Accounts'"></span>
+        </div>
+        <div class="border border-emerald-300 rounded-xl p-3 bg-emerald-50/30">
+            <span class="text-[8.5px] font-black uppercase text-emerald-600 block">Current (Not Due)</span>
+            <strong class="text-sm font-black text-emerald-700 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.current_not_due)"></strong>
+            <span class="text-[8px] text-emerald-600 font-bold">Within Credit Period</span>
+        </div>
+        <div class="border border-blue-300 rounded-xl p-3 bg-blue-50/30">
+            <span class="text-[8.5px] font-black uppercase text-blue-600 block">Expected Realization</span>
+            <strong class="text-sm font-black text-blue-700 font-mono block mt-0.5" x-text="'₹ ' + formatNumber(kpis.expected_collection)"></strong>
+            <span class="text-[8px] text-blue-600 font-bold">Probability Weighted</span>
+        </div>
+    </div>
+
+    <!-- Header Section (Web Only) -->
+    <div class="flex justify-between items-start print:hidden">
         <div>
             <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Collection Forecast & Overdue Reports</h1>
             <p class="text-sm text-slate-500 mt-1">Ageing analysis of outstanding customer dues with automated reminder generation</p>
         </div>
     </div>
 
-    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL (ZERO-RELOAD REACTIVE) ── -->
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-6">
+    <!-- KPIs (Web Only) -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 print:hidden">
+        <!-- Total Outstanding -->
+        <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.2)] hover:border-r-[#a38c29]/20 hover:border-y-[#a38c29]/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Outstanding</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-[#a38c29]" x-text="'₹ ' + formatNumber(kpis.total_outstanding)"></h3>
+                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-[#a38c29]" x-text="kpis.total_customers + ' Customers'"></span></p>
+            </div>
+        </div>
+
+        <!-- Total Overdue -->
+        <div class="bg-white border-y border-r border-l-4 border-l-rose-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.2)] hover:border-r-rose-500/20 hover:border-y-rose-500/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Overdue</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-rose-600" x-text="'₹ ' + formatNumber(kpis.total_overdue)"></h3>
+                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-rose-500" x-text="kpis.overdue_customers + ' Customers'"></span></p>
+            </div>
+        </div>
+
+        <!-- Current / Not Due -->
+        <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Current / Not Due</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-emerald-600" x-text="'₹ ' + formatNumber(kpis.current_not_due)"></h3>
+                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-emerald-500" x-text="(kpis.total_customers - kpis.overdue_customers) + ' Customers'"></span></p>
+            </div>
+        </div>
+
+        <!-- Expected Collection -->
+        <div class="bg-white border-y border-r border-l-4 border-l-[#3b82f6] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.2)] hover:border-r-[#3b82f6]/20 hover:border-y-[#3b82f6]/20">
+            <div class="flex justify-between items-start mb-4 relative z-10">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Expected Collection</span>
+                </div>
+            </div>
+            <div class="relative z-10">
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-blue-600" x-text="'₹ ' + formatNumber(kpis.expected_collection)"></h3>
+                <span class="text-[10px] font-black uppercase tracking-widest text-[#3b82f6] mt-1 inline-block">Probability Weighted</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts (Web Only) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 print:hidden">
+        <!-- Donut Chart -->
+        <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800" x-text="isOverdueMode ? 'Ageing Summary (Overdue)' : '1-Year Collection Forecast'"></h3>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="isOverdueMode ? 'Breakdown of dues by overdue age buckets' : 'Upcoming collection timeline horizons'"></p>
+                </div>
+                <template x-if="!isOverdueMode">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wider shadow-2xs">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        No Overdue Dues
+                    </span>
+                </template>
+            </div>
+
+            <div class="flex flex-col md:flex-row items-center justify-center gap-6">
+                <div id="donutChart" class="w-48 h-48"></div>
+                <div class="flex-1 w-full">
+                    <table class="w-full text-xs">
+                        <tbody class="divide-y divide-slate-100">
+                            <template x-for="bucket in summaryTableBuckets" :key="bucket.key">
+                                <tr class="py-2">
+                                    <td class="py-2 flex items-center gap-2 text-slate-600">
+                                        <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="'background-color: ' + bucket.color"></span>
+                                        <span class="font-medium truncate" x-text="bucket.label"></span>
+                                    </td>
+                                    <td class="py-2 text-right font-semibold text-slate-800 whitespace-nowrap">
+                                        <span x-text="'₹ ' + formatNumber(bucket.amount)"></span>
+                                        <span class="text-slate-400 font-normal ml-1 text-[11px]" x-text="'(' + bucket.pct + '%)'"></span>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr>
+                                <td class="py-3 font-bold text-slate-800" x-text="isOverdueMode ? 'Total Overdue' : 'Total Outstanding'"></td>
+                                <td class="py-3 text-right font-bold text-slate-800 whitespace-nowrap" x-text="'₹ ' + formatNumber(isOverdueMode ? kpis.total_overdue : kpis.total_outstanding)"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart -->
+        <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800" x-text="isOverdueMode ? 'Ageing Distribution' : 'Monthly Inflow Forecast (Next 12 Months)'"></h3>
+                    <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="isOverdueMode ? 'Overdue exposure grouped by risk buckets' : 'Month-by-month scheduled receivable timeline'"></p>
+                </div>
+                <template x-if="!isOverdueMode">
+                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-wider">
+                        12-Month Schedule
+                    </span>
+                </template>
+            </div>
+            <div id="barChart" class="w-full h-64"></div>
+        </div>
+    </div>
+
+    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL (DIRECTLY ABOVE TABLE) (Web Only) ── -->
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all mb-4 print:hidden">
         <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3.5 w-full">
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 flex-1">
                 
@@ -129,136 +350,8 @@
         </div>
     </div>
 
-    <!-- KPIs -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <!-- Total Outstanding -->
-        <div class="bg-white border-y border-r border-l-4 border-l-[#a38c29] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.2)] hover:border-r-[#a38c29]/20 hover:border-y-[#a38c29]/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Outstanding</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-[#a38c29]" x-text="'₹ ' + formatNumber(kpis.total_outstanding)"></h3>
-                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-[#a38c29]" x-text="kpis.total_customers + ' Customers'"></span></p>
-            </div>
-        </div>
-
-        <!-- Total Overdue -->
-        <div class="bg-white border-y border-r border-l-4 border-l-rose-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.2)] hover:border-r-rose-500/20 hover:border-y-rose-500/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-rose-50 flex items-center justify-center text-rose-500 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Total Overdue</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-rose-600" x-text="'₹ ' + formatNumber(kpis.total_overdue)"></h3>
-                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-rose-500" x-text="kpis.overdue_customers + ' Customers'"></span></p>
-            </div>
-        </div>
-
-        <!-- Current / Not Due -->
-        <div class="bg-white border-y border-r border-l-4 border-l-emerald-500 border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 transition-all duration-300 group-hover:bg-emerald-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Current / Not Due</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-emerald-600" x-text="'₹ ' + formatNumber(kpis.current_not_due)"></h3>
-                <p class="text-[10px] font-bold text-slate-400 mt-1"><span class="text-emerald-500" x-text="(kpis.total_customers - kpis.overdue_customers) + ' Customers'"></span></p>
-            </div>
-        </div>
-
-        <!-- Expected Collection -->
-        <div class="bg-white border-y border-r border-l-4 border-l-[#3b82f6] border-slate-200 rounded-xl p-5 shadow-sm relative flex flex-col justify-between group transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.2)] hover:border-r-[#3b82f6]/20 hover:border-y-[#3b82f6]/20">
-            <div class="flex justify-between items-start mb-4 relative z-10">
-                <div class="flex items-center gap-2">
-                    <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 transition-all duration-300 group-hover:bg-blue-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Expected Collection</span>
-                </div>
-            </div>
-            <div class="relative z-10">
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight transition-colors duration-300 group-hover:text-blue-600" x-text="'₹ ' + formatNumber(kpis.expected_collection)"></h3>
-                <span class="text-[10px] font-black uppercase tracking-widest text-[#3b82f6] mt-1 inline-block">Probability Weighted</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts (Dual-Mode: Overdue Ageing or 1-Year Upcoming Collection Timeline) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Donut Chart -->
-        <div class="lg:col-span-5 bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-800" x-text="isOverdueMode ? 'Ageing Summary (Overdue)' : '1-Year Collection Forecast'"></h3>
-                    <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="isOverdueMode ? 'Breakdown of dues by overdue age buckets' : 'Upcoming collection timeline horizons'"></p>
-                </div>
-                <template x-if="!isOverdueMode">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold uppercase tracking-wider shadow-2xs">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        No Overdue Dues
-                    </span>
-                </template>
-            </div>
-
-            <div class="flex flex-col md:flex-row items-center justify-center gap-6">
-                <div id="donutChart" class="w-48 h-48"></div>
-                <div class="flex-1 w-full">
-                    <table class="w-full text-xs">
-                        <tbody class="divide-y divide-slate-100">
-                            <template x-for="bucket in summaryTableBuckets" :key="bucket.key">
-                                <tr class="py-2">
-                                    <td class="py-2 flex items-center gap-2 text-slate-600">
-                                        <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="'background-color: ' + bucket.color"></span>
-                                        <span class="font-medium truncate" x-text="bucket.label"></span>
-                                    </td>
-                                    <td class="py-2 text-right font-semibold text-slate-800 whitespace-nowrap">
-                                        <span x-text="'₹ ' + formatNumber(bucket.amount)"></span>
-                                        <span class="text-slate-400 font-normal ml-1 text-[11px]" x-text="'(' + bucket.pct + '%)'"></span>
-                                    </td>
-                                </tr>
-                            </template>
-                            <tr>
-                                <td class="py-3 font-bold text-slate-800" x-text="isOverdueMode ? 'Total Overdue' : 'Total Outstanding'"></td>
-                                <td class="py-3 text-right font-bold text-slate-800 whitespace-nowrap" x-text="'₹ ' + formatNumber(isOverdueMode ? kpis.total_overdue : kpis.total_outstanding)"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bar Chart -->
-        <div class="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-            <div class="flex items-center justify-between mb-2">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-800" x-text="isOverdueMode ? 'Ageing Distribution' : 'Monthly Inflow Forecast (Next 12 Months)'"></h3>
-                    <p class="text-[10px] text-slate-400 font-medium mt-0.5" x-text="isOverdueMode ? 'Overdue exposure grouped by risk buckets' : 'Month-by-month scheduled receivable timeline'"></p>
-                </div>
-                <template x-if="!isOverdueMode">
-                    <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-wider">
-                        12-Month Schedule
-                    </span>
-                </template>
-            </div>
-            <div id="barChart" class="w-full h-64"></div>
-        </div>
-    </div>
-
-    <!-- Table -->
-    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <!-- ── WEB DATA TABLE CARD (Web View Only with Pagination) ── -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden print:hidden">
         <div class="px-5 py-4 border-b border-slate-100 flex flex-wrap justify-between items-center gap-3 bg-white">
             <div>
                 <h3 class="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
@@ -267,14 +360,14 @@
                 </h3>
                 <p class="text-[10px] font-bold text-slate-500 mt-1 pl-3">Directory of all overdue installments and forecast status.</p>
             </div>
-            <div class="flex items-center gap-3">
-                <button type="button" @click="exportTableToCSV()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-xl shadow-sm hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition">
-                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    Export Excel
+            <div class="flex items-center gap-2.5">
+                <button type="button" @click="exportExcel()" class="h-[42px] px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <span>EXPORT EXCEL</span>
                 </button>
-                <button type="button" @click="window.print()" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-medium rounded-xl shadow-sm hover:bg-slate-50 flex items-center gap-2 cursor-pointer transition">
-                    <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    Export PDF
+                <button type="button" @click="window.print()" class="h-[42px] px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-extrabold rounded-xl transition-all shadow hover:shadow-md flex items-center gap-2 uppercase tracking-wider cursor-pointer active:scale-[0.98]">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                    <span>EXPORT PDF</span>
                 </button>
             </div>
         </div>
@@ -283,42 +376,40 @@
             <table class="w-full text-xs text-left">
                 <thead>
                     <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
-                        <th class="px-5 py-3.5 text-white font-extrabold">Customer</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Sale No.</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Project</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Unit</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Inst. No.</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Due Date</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Outstanding</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Days Overdue</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Ageing</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Risk</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Reminder Level</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Last Reminder</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">Action</th>
+                        <th class="px-4 py-3 text-white font-extrabold">Customer</th>
+                        <th class="px-4 py-3 text-white font-extrabold">Sale No.</th>
+                        <th class="px-4 py-3 text-white font-extrabold">Unit</th>
+                        <th class="px-3 py-3 text-center text-white font-extrabold">Inst. No.</th>
+                        <th class="px-4 py-3 text-white font-extrabold">Due Date</th>
+                        <th class="px-4 py-3 text-right text-white font-extrabold">Outstanding</th>
+                        <th class="px-3 py-3 text-center text-white font-extrabold">Days Overdue</th>
+                        <th class="px-3 py-3 text-center text-white font-extrabold">Ageing</th>
+                        <th class="px-3 py-3 text-center text-white font-extrabold">Risk</th>
+                        <th class="px-3 py-3 text-center text-white font-extrabold">Reminder Level</th>
+                        <th class="px-3 py-3 text-center text-white font-extrabold">Last Reminder</th>
+                        <th class="px-4 py-3 text-center text-white font-extrabold">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
                     <template x-for="inst in paginatedInstallments" :key="inst.id">
                         <tr class="hover:bg-slate-50 transition-colors group">
-                            <td class="px-5 py-3 text-xs font-bold text-slate-500" x-text="inst.customer_name"></td>
-                            <td class="px-5 py-3 text-xs font-black text-slate-800 uppercase tracking-wide" x-text="inst.sale_number"></td>
-                            <td class="px-5 py-3 text-xs font-bold text-slate-500" x-text="inst.project_name"></td>
-                            <td class="px-5 py-3 text-xs font-bold text-slate-500 leading-tight max-w-[200px] truncate" :title="inst.unit_name" x-text="inst.unit_name"></td>
-                            <td class="px-5 py-3 text-center text-xs font-black text-slate-400" x-text="inst.installment_no"></td>
-                            <td class="px-5 py-3 text-xs font-bold text-slate-500" x-text="inst.due_date_formatted"></td>
-                            <td class="px-5 py-3 text-right text-xs font-black text-slate-800 tracking-tight" x-text="'₹ ' + formatNumber(inst.calculated_outstanding)"></td>
-                            <td class="px-5 py-3 text-center text-xs font-black text-slate-500" x-text="inst.days_overdue > 0 ? inst.days_overdue : '-'"></td>
-                            <td class="px-5 py-3 text-center text-xs font-black" :class="getAgeingColor(inst.ageing_bucket)" x-text="inst.ageing_bucket === '120+' ? '> 120 Days' : (inst.ageing_bucket + (inst.ageing_bucket !== 'Current' ? ' Days' : ''))"></td>
-                            <td class="px-5 py-3 text-center text-xs font-black" :class="getRiskColor(inst.risk_level)" x-text="inst.risk_level"></td>
-                            <td class="px-5 py-3 text-center text-xs font-black text-slate-600" x-text="inst.reminder_level"></td>
-                            <td class="px-5 py-3 text-center text-xs font-bold text-slate-400" x-text="inst.last_reminder_date"></td>
-                            <td class="px-5 py-3 text-center">
+                            <td class="px-4 py-2.5 text-xs font-bold text-slate-700" x-text="inst.customer_name"></td>
+                            <td class="px-4 py-2.5 text-xs font-black text-slate-800 uppercase tracking-wide" x-text="inst.sale_number"></td>
+                            <td class="px-4 py-2.5 text-xs font-bold text-slate-600 leading-tight truncate max-w-[140px]" :title="inst.unit_name" x-text="inst.unit_name"></td>
+                            <td class="px-3 py-2.5 text-center text-xs font-black text-slate-400" x-text="inst.installment_no"></td>
+                            <td class="px-4 py-2.5 text-xs font-bold text-slate-600" x-text="inst.due_date_formatted"></td>
+                            <td class="px-4 py-2.5 text-right text-xs font-black text-slate-900 tracking-tight" x-text="'₹ ' + formatNumber(inst.calculated_outstanding)"></td>
+                            <td class="px-3 py-2.5 text-center text-xs font-black text-slate-500" x-text="inst.days_overdue > 0 ? inst.days_overdue : '-'"></td>
+                            <td class="px-3 py-2.5 text-center text-xs font-black" :class="getAgeingColor(inst.ageing_bucket)" x-text="inst.ageing_bucket === '120+' ? '> 120 Days' : (inst.ageing_bucket + (inst.ageing_bucket !== 'Current' ? ' Days' : ''))"></td>
+                            <td class="px-3 py-2.5 text-center text-xs font-black"><span class="inline-block" :class="getRiskColor(inst.risk_level)" x-text="inst.risk_level"></span></td>
+                            <td class="px-3 py-2.5 text-center text-xs font-black text-slate-600" x-text="inst.reminder_level"></td>
+                            <td class="px-3 py-2.5 text-center text-xs font-bold text-slate-400" x-text="inst.last_reminder_date"></td>
+                            <td class="px-4 py-2.5 text-center">
                                 <div class="inline-flex items-center justify-end gap-1.5">
-                                    <button type="button" @click.prevent="openModal(inst.modal_payload)" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="View Details">
+                                    <button type="button" @click.prevent="openModal(inst.modal_payload)" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Details">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                     </button>
-                                    <a :href="'tel:' + (inst.modal_payload ? inst.modal_payload.customer.mobile : '')" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Call">
+                                    <a :href="'tel:' + (inst.modal_payload ? inst.modal_payload.customer.mobile : '')" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a7522] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Call">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
                                     </a>
                                 </div>
@@ -326,7 +417,7 @@
                         </tr>
                     </template>
                     <tr x-show="filteredInstallments.length === 0">
-                        <td colspan="13" class="px-5 py-8 text-center text-slate-500 italic">No installments found for the given criteria.</td>
+                        <td colspan="12" class="px-5 py-8 text-center text-slate-500 italic">No installments found for the given criteria.</td>
                     </tr>
                 </tbody>
             </table>
@@ -360,173 +451,290 @@
         </div>
     </div>
 
-    <!-- OVERDUE INSTALLMENT DETAILS MODAL -->
-    <div x-show="isModalOpen" 
-         class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto overflow-x-hidden bg-slate-900/60 backdrop-blur-sm"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         style="display: none;">
-        
-        <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl my-8 overflow-hidden" @click.outside="closeModal()">
-            <!-- Modal Header -->
-            <div class="flex items-center justify-between p-6 border-b border-slate-100">
-                <div>
-                    <h3 class="text-lg font-bold text-slate-800 tracking-tight">Overdue Installment Details</h3>
-                    <p class="text-xs font-medium text-slate-500 mt-1">Detailed view of overdue installment and customer information</p>
-                </div>
-                <button type="button" @click="closeModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-
-            <!-- Modal Body -->
-            <div class="p-6 overflow-y-auto max-h-[calc(100vh-200px)] custom-scrollbar space-y-6" x-show="modalData">
-                <template x-if="modalData">
-                    <div>
-                        <!-- Section 1: Customer & Booking Details -->
-                        <div class="border border-slate-200 rounded-xl p-5 bg-white relative">
-                            <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-4 absolute -top-2.5 left-4 bg-white px-2">Customer & Booking Details</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
-                                <div class="grid grid-cols-[120px_auto] gap-2 items-start text-xs">
-                                    <span class="font-bold text-slate-500">Customer Name</span>
-                                    <span class="font-black text-slate-800 flex gap-2">: <span x-text="modalData.customer.name"></span></span>
-                                    
-                                    <span class="font-bold text-slate-500">Mobile Number</span>
-                                    <span class="font-black text-slate-800 flex gap-2 text-blue-600">: <span x-text="modalData.customer.mobile"></span></span>
-                                    
-                                    <span class="font-bold text-slate-500">Email ID</span>
-                                    <span class="font-black text-slate-800 flex gap-2 text-blue-600">: <span x-text="modalData.customer.email"></span></span>
-                                    
-                                    <span class="font-bold text-slate-500">Address</span>
-                                    <span class="font-medium text-slate-600 flex gap-2 leading-tight">: <span x-text="modalData.customer.address"></span></span>
-                                </div>
-                                <div class="grid grid-cols-[120px_auto] gap-2 items-start text-xs">
-                                    <span class="font-bold text-slate-500">Sale No.</span>
-                                    <span class="font-black text-slate-800 flex gap-2">: <span x-text="modalData.booking.sale_no"></span></span>
-                                    
-                                    <span class="font-bold text-slate-500">Project</span>
-                                    <span class="font-bold text-slate-600 flex gap-2">: <span x-text="modalData.booking.project"></span></span>
-                                    
-                                    <span class="font-bold text-slate-500">Unit</span>
-                                    <span class="font-bold text-slate-600 flex gap-2">: <span x-text="modalData.booking.unit"></span></span>
-                                    
-                                    <span class="font-bold text-slate-500">Booking Date</span>
-                                    <span class="font-bold text-slate-600 flex gap-2">: <span x-text="modalData.booking.booking_date"></span></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Section 2: Outstanding Summary -->
-                        <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-3 mt-6">Outstanding Summary</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                            <div class="bg-indigo-50/50 border border-indigo-100 rounded-xl p-3 text-center">
-                                <div class="text-sm font-black text-indigo-900">₹ <span x-text="modalData.summary.total_outstanding"></span></div>
-                                <div class="text-[9px] font-bold text-indigo-600 uppercase tracking-wider mt-1">Total Outstanding</div>
-                            </div>
-                            <div class="bg-amber-50/50 border border-amber-100 rounded-xl p-3 text-center">
-                                <div class="text-sm font-black text-amber-900">₹ <span x-text="modalData.summary.total_overdue"></span></div>
-                                <div class="text-[9px] font-bold text-amber-700 uppercase tracking-wider mt-1">Total Overdue</div>
-                            </div>
-                            <div class="bg-rose-50/50 border border-rose-100 rounded-xl p-3 text-center">
-                                <div class="text-sm font-black text-rose-600"><span x-text="modalData.summary.days_overdue"></span> Days</div>
-                                <div class="text-[9px] font-bold text-rose-500 uppercase tracking-wider mt-1">Days Overdue</div>
-                            </div>
-                            <div class="bg-emerald-50/50 border border-emerald-100 rounded-xl p-3 text-center">
-                                <div class="text-sm font-black text-emerald-700"><span x-text="modalData.summary.ageing_bucket"></span></div>
-                                <div class="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mt-1">Ageing Bucket</div>
-                            </div>
-                            <div class="bg-purple-50/50 border border-purple-100 rounded-xl p-3 text-center">
-                                <div class="text-sm font-black text-purple-700" x-text="modalData.summary.risk_level"></div>
-                                <div class="text-[9px] font-bold text-purple-600 uppercase tracking-wider mt-1">Risk Level</div>
-                            </div>
-                        </div>
-
-                        <!-- Section 3: Installment Schedule Breakdown -->
-                        <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-3 mt-6">Installment Schedule Breakdown</h4>
-                        <div class="border border-slate-200 rounded-xl overflow-hidden">
-                            <table class="w-full text-xs text-left">
-                                <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200">
-                                    <tr>
-                                        <th class="px-4 py-2.5">No.</th>
-                                        <th class="px-4 py-2.5">Inst. Date</th>
-                                        <th class="px-4 py-2.5">Due Date</th>
-                                        <th class="px-4 py-2.5 text-right">Amount</th>
-                                        <th class="px-4 py-2.5 text-right">Paid</th>
-                                        <th class="px-4 py-2.5 text-right">Outstanding</th>
-                                        <th class="px-4 py-2.5 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    <template x-for="inst in modalData.installments" :key="inst.no">
-                                        <tr :class="inst.is_current ? 'bg-amber-50/60 font-bold' : 'hover:bg-slate-50'" class="transition-colors">
-                                            <td class="px-4 py-2 text-xs font-black text-slate-600" x-text="'#' + inst.no"></td>
-                                            <td class="px-4 py-2 text-xs text-slate-600" x-text="inst.inst_date"></td>
-                                            <td class="px-4 py-2 text-xs text-slate-600" x-text="inst.due_date"></td>
-                                            <td class="px-4 py-2 text-right text-xs font-black text-slate-800" x-text="'₹ ' + inst.amount"></td>
-                                            <td class="px-4 py-2 text-right text-xs font-bold text-emerald-600" x-text="'₹ ' + inst.paid"></td>
-                                            <td class="px-4 py-2 text-right text-xs font-black text-rose-600" x-text="'₹ ' + inst.outstanding"></td>
-                                            <td class="px-4 py-2 text-center">
-                                                <span :class="inst.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : (inst.status === 'partial' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')" class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider" x-text="inst.status"></span>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Section 4: Communication History -->
-                        <h4 class="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-3 mt-6">Communication History</h4>
-                        <div class="border border-slate-200 rounded-xl overflow-hidden">
-                            <table class="w-full text-xs text-left">
-                                <thead class="bg-slate-50 text-[10px] font-black uppercase text-slate-500 border-b border-slate-200">
-                                    <tr>
-                                        <th class="px-4 py-2.5">Reminder No.</th>
-                                        <th class="px-4 py-2.5">Date</th>
-                                        <th class="px-4 py-2.5">Type</th>
-                                        <th class="px-4 py-2.5">Channel</th>
-                                        <th class="px-4 py-2.5 text-center">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <template x-if="modalData.reminders.length === 0">
-                                        <tr>
-                                            <td colspan="5" class="px-4 py-6 text-center text-xs font-bold text-slate-400 italic">No reminders sent yet.</td>
-                                        </tr>
-                                    </template>
-                                    <template x-for="rem in modalData.reminders" :key="rem.no">
-                                        <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                                            <td class="px-4 py-2 text-xs font-black text-slate-600" x-text="rem.no"></td>
-                                            <td class="px-4 py-2 text-xs font-bold text-slate-600" x-text="rem.date"></td>
-                                            <td class="px-4 py-2 text-xs font-bold text-slate-600" x-text="rem.type"></td>
-                                            <td class="px-4 py-2 text-xs font-bold text-slate-500" x-text="rem.channel"></td>
-                                            <td class="px-4 py-2 text-center">
-                                                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold uppercase tracking-widest" x-text="rem.status"></span>
-                                            </td>
-                                        </tr>
-                                    </template>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-3">
-                <button type="button" @click="closeModal()" class="px-5 py-2 border border-slate-300 bg-white text-slate-600 text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:bg-slate-50 transition-colors cursor-pointer">
-                    Close
-                </button>
-                <a :href="'tel:' + (modalData ? modalData.customer.mobile : '')" class="px-5 py-2 border border-[#3b82f6] bg-white text-[#3b82f6] text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:bg-blue-50 transition-colors flex items-center gap-2 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
-                    Call Customer
-                </a>
-            </div>
+    <!-- ── COMPLETE EXECUTIVE PRINTABLE DATA TABLE (FULL RECORDSET FOR PRINT/PDF) ── -->
+    <div class="hidden print:block mb-8">
+        <div class="border border-slate-300 rounded-xl overflow-hidden">
+            <table class="w-full text-[9.5px] text-left border-collapse">
+                <thead>
+                    <tr class="bg-[#a38c29] text-white border-b-2 border-[#8a7522] text-[9px] font-black uppercase tracking-wider">
+                        <th class="px-3 py-2 text-center text-white w-10">SL NO</th>
+                        <th class="px-3 py-2 text-white">CUSTOMER NAME</th>
+                        <th class="px-3 py-2 text-center text-white">PHONE NUMBER</th>
+                        <th class="px-3 py-2 text-white">UNIT NO</th>
+                        <th class="px-3 py-2 text-center text-white">DUE DATE</th>
+                        <th class="px-3 py-2 text-right text-white">OUTSTANDING (₹)</th>
+                        <th class="px-3 py-2 text-center text-white">DAYS OVERDUE</th>
+                        <th class="px-3 py-2 text-center text-white">AGEING BUCKET</th>
+                        <th class="px-3 py-2 text-center text-white">RISK LEVEL</th>
+                        <th class="px-3 py-2 text-center text-white">LAST REMINDER</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200">
+                    <template x-for="(inst, idx) in filteredInstallments" :key="inst.id">
+                        <tr class="border-b border-slate-200 text-slate-800">
+                            <td class="px-3 py-2 text-center font-bold text-slate-500" x-text="idx + 1"></td>
+                            <td class="px-3 py-2 font-bold text-slate-900" x-text="inst.customer_name"></td>
+                            <td class="px-3 py-2 text-center font-mono text-slate-600" x-text="inst.modal_payload?.customer?.mobile || '-'"></td>
+                            <td class="px-3 py-2 font-bold text-slate-700" x-text="inst.unit_name"></td>
+                            <td class="px-3 py-2 text-center font-mono text-slate-700" x-text="inst.due_date_formatted"></td>
+                            <td class="px-3 py-2 text-right font-mono font-bold text-slate-900" x-text="'₹ ' + formatNumber(inst.calculated_outstanding)"></td>
+                            <td class="px-3 py-2 text-center font-bold" :class="inst.days_overdue > 0 ? 'text-rose-600' : 'text-slate-400'" x-text="inst.days_overdue > 0 ? (inst.days_overdue + 'd') : '-'"></td>
+                            <td class="px-3 py-2 text-center font-bold" x-text="inst.ageing_bucket === '120+' ? '>120 Days' : (inst.ageing_bucket ? inst.ageing_bucket + (inst.ageing_bucket !== 'Current' ? ' Days' : '') : '-')"></td>
+                            <td class="px-3 py-2 text-center font-bold"><span class="inline-block" :class="getRiskColor(inst.risk_level)" x-text="inst.risk_level"></span></td>
+                            <td class="px-3 py-2 text-center text-slate-500" x-text="inst.last_reminder_date || '-'"></td>
+                        </tr>
+                    </template>
+                    <tr class="bg-slate-100 font-bold border-t-2 border-slate-400">
+                        <td colspan="5" class="px-4 py-2.5 text-right uppercase tracking-wider text-[10px] text-slate-800">TOTAL SUMMARY:</td>
+                        <td class="px-3 py-2.5 text-right font-mono text-[10px] text-slate-900 font-black" x-text="'₹ ' + formatNumber(kpis.total_outstanding)"></td>
+                        <td colspan="4"></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
+
+    <!-- ── EXECUTIVE SIGN-OFF FOOTER (ONLY VISIBLE IN PRINT/PDF) ── -->
+    <div class="hidden print:block mt-8 pt-6 border-t-2 border-slate-300">
+        <div class="grid grid-cols-3 gap-8 text-center text-[9.5px]">
+            <div>
+                <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">PREPARED BY</div>
+                <div class="text-slate-500 font-mono">{{ auth()->user()->name ?? 'Finance Executive' }}</div>
+            </div>
+            <div>
+                <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">CHECKED & VERIFIED BY</div>
+                <div class="text-slate-500 italic">Internal Audit & Accounts</div>
+            </div>
+            <div>
+                <div class="border-b border-slate-400 pb-1 mb-1.5 font-bold text-slate-800">AUTHORIZED SIGNATORY</div>
+                <div class="text-slate-500 italic">Director / Management</div>
+            </div>
+        </div>
+        <div class="text-center text-[8px] text-slate-400 mt-6 italic">
+            This is an official system-generated audit report produced by Hindustan ERP. All financial figures are reconciled from active property bookings.
+        </div>
+    </div>
+
+    <!-- OVERDUE INSTALLMENT DETAILS MODAL -->
+    <template x-teleport="body">
+        <div x-show="isModalOpen" 
+             class="fixed inset-0 top-0 left-0 w-screen h-screen z-[99999] flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-95"
+             style="display: none;">
+            
+            <div class="w-full max-w-4xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border-0 transform transition-all my-auto" @click.outside="closeModal()">
+                <!-- Modal Header -->
+                <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-6 py-5 border-0">
+                    <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between gap-4">
+                        <div>
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">REPORTS & OVERDUE</span>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white">OVERDUE INSTALLMENT DETAILS</h3>
+                        </div>
+                        <button type="button" @click="closeModal()" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                    </div>
+                </div>
+
+                <!-- Modal Body -->
+                <div class="p-5 md:p-6 space-y-3.5 bg-white font-sans text-xs" x-show="modalData">
+                    <template x-if="modalData">
+                        <div class="space-y-3.5">
+                            <!-- Section 1: Customer & Booking Details (Compact Card) -->
+                            <div class="p-3.5 bg-gradient-to-r from-amber-50/70 via-white to-amber-50/70 rounded-2xl border border-amber-200/80 shadow-2xs">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+                                    <!-- Customer Info -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Customer</span>
+                                            <span class="font-black text-slate-900 truncate" x-text="modalData.customer.name"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Phone</span>
+                                            <a :href="'tel:' + modalData.customer.mobile" class="font-bold text-[#a38c29] hover:underline flex items-center gap-1 font-mono text-xs">
+                                                <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                                                <span x-text="modalData.customer.mobile"></span>
+                                            </a>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Email</span>
+                                            <span class="font-semibold text-slate-700 truncate text-[11px]" x-text="modalData.customer.email"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2" x-show="modalData.customer.address && modalData.customer.address !== '-'">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Address</span>
+                                            <span class="font-medium text-slate-600 truncate text-[11px]" x-text="modalData.customer.address"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Booking Info -->
+                                    <div class="space-y-1.5">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Sale No.</span>
+                                            <span class="px-2 py-0.5 bg-slate-100 text-slate-800 font-mono font-black text-[10px] rounded border border-slate-200" x-text="modalData.booking.sale_no"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Project</span>
+                                            <span class="font-bold text-slate-800 truncate" x-text="modalData.booking.project"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Unit</span>
+                                            <span class="px-2 py-0.5 bg-amber-50 text-amber-900 font-bold text-[10px] rounded border border-amber-200" x-text="modalData.booking.unit"></span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-extrabold uppercase text-slate-400 w-24 shrink-0">Booking Date</span>
+                                            <span class="font-bold text-slate-700 font-mono text-[11px]" x-text="modalData.booking.booking_date"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 2: Outstanding Summary Cards (5 Pill Cards in 1 Row) -->
+                            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                                <div class="bg-indigo-50/60 border border-indigo-150 rounded-xl p-2.5 text-center">
+                                    <div class="text-[9px] font-extrabold text-indigo-700 uppercase tracking-wider">Total Outstanding</div>
+                                    <div class="text-xs sm:text-sm font-black text-indigo-950 font-mono mt-0.5">₹ <span x-text="modalData.summary.total_outstanding"></span></div>
+                                </div>
+                                <div class="bg-amber-50/60 border border-amber-150 rounded-xl p-2.5 text-center">
+                                    <div class="text-[9px] font-extrabold text-amber-700 uppercase tracking-wider">Total Overdue</div>
+                                    <div class="text-xs sm:text-sm font-black text-amber-950 font-mono mt-0.5">₹ <span x-text="modalData.summary.total_overdue"></span></div>
+                                </div>
+                                <div class="bg-rose-50/60 border border-rose-150 rounded-xl p-2.5 text-center">
+                                    <div class="text-[9px] font-extrabold text-rose-600 uppercase tracking-wider">Days Overdue</div>
+                                    <div class="text-xs sm:text-sm font-black text-rose-700 font-mono mt-0.5"><span x-text="modalData.summary.days_overdue"></span> Days</div>
+                                </div>
+                                <div class="bg-emerald-50/60 border border-emerald-150 rounded-xl p-2.5 text-center">
+                                    <div class="text-[9px] font-extrabold text-emerald-700 uppercase tracking-wider">Ageing Bucket</div>
+                                    <div class="text-xs font-black text-emerald-800 mt-1 uppercase" x-text="modalData.summary.ageing_bucket"></div>
+                                </div>
+                                <div class="bg-purple-50/60 border border-purple-150 rounded-xl p-2.5 text-center col-span-2 sm:col-span-1">
+                                    <div class="text-[9px] font-extrabold text-purple-700 uppercase tracking-wider">Risk Level</div>
+                                    <div class="text-xs font-black text-purple-800 mt-1 uppercase" x-text="modalData.summary.risk_level"></div>
+                                </div>
+                            </div>
+
+                            <!-- Section 3: Installment Schedule Breakdown & Reminders Log -->
+                            <div class="space-y-2 pt-0.5">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" @click="modalActiveTab = 'schedule'" 
+                                                :class="modalActiveTab === 'schedule' ? 'bg-[#a38c29] text-white shadow-2xs font-black' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold'"
+                                                class="px-3 py-1 rounded-lg text-[10px] uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5">
+                                            <span>Schedule Breakdown</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold" :class="modalActiveTab === 'schedule' ? 'bg-black/20 text-white' : 'bg-slate-200 text-slate-700'" x-text="modalData.installments ? modalData.installments.length : 0"></span>
+                                        </button>
+                                        <button type="button" @click="modalActiveTab = 'reminders'" 
+                                                :class="modalActiveTab === 'reminders' ? 'bg-[#a38c29] text-white shadow-2xs font-black' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 font-bold'"
+                                                class="px-3 py-1 rounded-lg text-[10px] uppercase tracking-wider transition cursor-pointer flex items-center gap-1.5">
+                                            <span>Reminders Log</span>
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold" :class="modalActiveTab === 'reminders' ? 'bg-black/20 text-white' : 'bg-slate-200 text-slate-700'" x-text="modalData.reminders ? modalData.reminders.length : 0"></span>
+                                        </button>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-slate-400 hidden sm:inline" x-show="modalActiveTab === 'schedule' && modalData.installments && modalData.installments.length > 4">
+                                        Scroll inside table for full schedule
+                                    </span>
+                                </div>
+
+                                <!-- Schedule Table View -->
+                                <div x-show="modalActiveTab === 'schedule'" class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                                    <div class="max-h-40 overflow-y-auto custom-scrollbar">
+                                        <table class="w-full text-xs text-left border-collapse">
+                                            <thead class="bg-[#a38c29] text-white text-[9.5px] font-extrabold uppercase tracking-wider sticky top-0 z-10 border-b border-[#8a7522]">
+                                                <tr>
+                                                    <th class="px-3 py-2 text-white">No.</th>
+                                                    <th class="px-3 py-2 text-white">Inst. Date</th>
+                                                    <th class="px-3 py-2 text-white">Due Date</th>
+                                                    <th class="px-3 py-2 text-right text-white">Amount</th>
+                                                    <th class="px-3 py-2 text-right text-white">Paid</th>
+                                                    <th class="px-3 py-2 text-right text-white">Outstanding</th>
+                                                    <th class="px-3 py-2 text-center text-white">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100 bg-white">
+                                                <template x-for="inst in modalData.installments" :key="inst.no">
+                                                    <tr :class="inst.is_current ? 'bg-amber-50/80 font-bold border-l-2 border-l-[#a38c29]' : 'hover:bg-slate-50/80'" class="transition-colors">
+                                                        <td class="px-3 py-1.5 text-[11px] font-black text-slate-600" x-text="inst.no"></td>
+                                                        <td class="px-3 py-1.5 text-[11px] text-slate-600" x-text="inst.inst_date"></td>
+                                                        <td class="px-3 py-1.5 text-[11px] text-slate-600" x-text="inst.due_date"></td>
+                                                        <td class="px-3 py-1.5 text-right text-[11px] font-black text-slate-900 font-mono" x-text="'₹' + inst.amount"></td>
+                                                        <td class="px-3 py-1.5 text-right text-[11px] font-bold text-emerald-600 font-mono" x-text="'₹' + inst.paid"></td>
+                                                        <td class="px-3 py-1.5 text-right text-[11px] font-black text-rose-600 font-mono" x-text="'₹' + inst.outstanding"></td>
+                                                        <td class="px-3 py-1.5 text-center">
+                                                            <span :class="inst.status === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : (inst.status === 'partial' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-rose-50 text-rose-700 border-rose-200')" 
+                                                                  class="px-2 py-0.5 rounded text-[8.5px] font-bold uppercase tracking-wider border inline-block" 
+                                                                  x-text="inst.status"></span>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Reminders Table View -->
+                                <div x-show="modalActiveTab === 'reminders'" class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs" style="display: none;">
+                                    <div class="max-h-40 overflow-y-auto custom-scrollbar">
+                                        <table class="w-full text-xs text-left border-collapse">
+                                            <thead class="bg-[#a38c29] text-white text-[9.5px] font-extrabold uppercase tracking-wider sticky top-0 z-10 border-b border-[#8a7522]">
+                                                <tr>
+                                                    <th class="px-3 py-2 text-white">Reminder No.</th>
+                                                    <th class="px-3 py-2 text-white">Date</th>
+                                                    <th class="px-3 py-2 text-white">Type</th>
+                                                    <th class="px-3 py-2 text-white">Channel</th>
+                                                    <th class="px-3 py-2 text-center text-white">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100 bg-white">
+                                                <template x-if="!modalData.reminders || modalData.reminders.length === 0">
+                                                    <tr>
+                                                        <td colspan="5" class="px-3 py-6 text-center text-xs font-bold text-slate-400 italic">No reminders sent yet for this installment.</td>
+                                                    </tr>
+                                                </template>
+                                                <template x-for="rem in modalData.reminders" :key="rem.no">
+                                                    <tr class="hover:bg-slate-50 transition-colors">
+                                                        <td class="px-3 py-1.5 text-[11px] font-mono font-bold text-slate-700" x-text="rem.no"></td>
+                                                        <td class="px-3 py-1.5 text-[11px] text-slate-600" x-text="rem.date"></td>
+                                                        <td class="px-3 py-1.5 text-[11px] font-bold text-slate-800" x-text="rem.type"></td>
+                                                        <td class="px-3 py-1.5 text-[11px] text-slate-500" x-text="rem.channel"></td>
+                                                        <td class="px-3 py-1.5 text-center">
+                                                            <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[8.5px] font-bold uppercase tracking-widest inline-block" x-text="rem.status"></span>
+                                                        </td>
+                                                    </tr>
+                                                </template>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="p-4 bg-slate-50 border-0 rounded-b-2xl flex items-center justify-between">
+                    <div class="text-[11px] text-slate-500 font-semibold truncate hidden sm:block">
+                        <template x-if="modalData">
+                            <span>Sale #<strong class="text-slate-800" x-text="modalData.booking.sale_no"></strong> &middot; <span x-text="modalData.customer.name"></span></span>
+                        </template>
+                    </div>
+                    <div class="flex items-center gap-2.5 ml-auto">
+                        <button type="button" @click="closeModal()" 
+                                class="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer">
+                            CANCEL
+                        </button>
+                        <a :href="'tel:' + (modalData ? modalData.customer.mobile : '')" 
+                           class="px-6 py-2 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            <span>CALL CUSTOMER</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 
 <script>
@@ -545,6 +753,7 @@ function collectionForecastApp() {
         perPage: 50,
         isModalOpen: false,
         modalData: null,
+        modalActiveTab: 'schedule',
         donutChartInstance: null,
         barChartInstance: null,
 
@@ -824,6 +1033,7 @@ function collectionForecastApp() {
 
         openModal(data) {
             this.modalData = data;
+            this.modalActiveTab = 'schedule';
             this.isModalOpen = true;
             document.body.style.overflow = 'hidden';
         },
@@ -851,13 +1061,18 @@ function collectionForecastApp() {
         },
 
         getRiskColor(risk) {
-            switch(risk) {
-                case 'Medium': return 'text-amber-500';
-                case 'High': return 'text-orange-500';
-                case 'Critical': return 'text-rose-500 font-semibold';
-                case 'Severe': return 'text-red-600 font-bold';
-                case 'None': return 'text-slate-500';
-                default: return 'text-emerald-500';
+            const r = (risk || '').toLowerCase().trim();
+            switch(r) {
+                case 'high':
+                case 'critical':
+                case 'severe':
+                    return 'bg-rose-100 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-md font-black';
+                case 'medium':
+                    return 'bg-amber-100 text-amber-800 border border-amber-200 px-2.5 py-0.5 rounded-md font-black';
+                case 'low':
+                    return 'bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-md font-black';
+                default:
+                    return 'bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-0.5 rounded-md font-bold';
             }
         },
 
@@ -1044,31 +1259,282 @@ function collectionForecastApp() {
             });
         },
 
-        exportTableToCSV() {
-            const headers = ["Customer", "Sale No", "Project", "Unit", "Inst No", "Due Date", "Outstanding", "Days Overdue", "Ageing", "Risk", "Reminder Level", "Last Reminder"];
-            const rows = this.filteredInstallments.map(i => [
-                `"${(i.customer_name || '').replace(/"/g, '""')}"`,
-                `"${(i.sale_number || '').replace(/"/g, '""')}"`,
-                `"${(i.project_name || '').replace(/"/g, '""')}"`,
-                `"${(i.unit_name || '').replace(/"/g, '""')}"`,
-                i.installment_no,
-                i.due_date_formatted,
-                i.calculated_outstanding,
-                i.days_overdue,
-                i.ageing_bucket,
-                i.risk_level,
-                `"${(i.reminder_level || '').replace(/"/g, '""')}"`,
-                i.last_reminder_date
-            ]);
+        async exportExcel() {
+            if (typeof ExcelJS === 'undefined') {
+                alert('Excel generation library is still loading. Please try again in a few moments.');
+                return;
+            }
 
-            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `collection_forecast_${this.filters.as_of_date || 'report'}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            try {
+                const workbook = new ExcelJS.Workbook();
+                workbook.creator = 'Hindustan ERP';
+                workbook.lastModifiedBy = 'Hindustan ERP';
+                workbook.created = new Date();
+                workbook.modified = new Date();
+
+                const worksheet = workbook.addWorksheet('Report Ledger', {
+                    views: [{ showGridLines: true }],
+                    pageSetup: {
+                        paperSize: 9, // A4
+                        orientation: 'landscape',
+                        fitToPage: true,
+                        fitToWidth: 1,
+                        fitToHeight: 0
+                    }
+                });
+
+                // Column Setup (11 Clean Spacious Columns with wider Project Name)
+                const columnsConfig = [
+                    { header: 'SL NO', key: 'sl', width: 8 },
+                    { header: 'Customer Name', key: 'customer', width: 26 },
+                    { header: 'Phone Number', key: 'phone', width: 18 },
+                    { header: 'Project Name', key: 'project', width: 48 },
+                    { header: 'Unit No', key: 'unit', width: 20 },
+                    { header: 'Due Date', key: 'due_date', width: 16 },
+                    { header: 'Outstanding (₹)', key: 'outstanding', width: 22 },
+                    { header: 'Days Overdue', key: 'days_overdue', width: 15 },
+                    { header: 'Ageing Bucket', key: 'ageing', width: 18 },
+                    { header: 'Risk Level', key: 'risk', width: 15 },
+                    { header: 'Last Reminder', key: 'reminder', width: 16 }
+                ];
+
+                worksheet.columns = columnsConfig.map(col => ({ width: col.width }));
+
+                const totalCols = 11;
+
+                // ── 1. Empty Spacer Row 1 ──
+                const row1 = worksheet.getRow(1);
+                row1.height = 20;
+
+                // ── 2. Main Title Banner (Row 2) ──
+                const row2 = worksheet.getRow(2);
+                row2.values = ['HINDUSTAN ERP : COLLECTION FORECAST & OVERDUE REPORT'];
+                worksheet.mergeCells('A2:K2');
+                row2.height = 30;
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = row2.getCell(c);
+                    cell.font = { name: 'Calibri', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2C3E50' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
+                }
+
+                // ── 3. Subheader Banner (Row 3) ──
+                const row3 = worksheet.getRow(3);
+                row3.values = ['Collection Forecast & Overdue Ageing Audit'];
+                worksheet.mergeCells('A3:K3');
+                row3.height = 25;
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = row3.getCell(c);
+                    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF007398' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
+                }
+
+                // ── 4. Section Banner (Row 4) ──
+                const row4 = worksheet.getRow(4);
+                row4.values = ['TRANSACTION DETAILS'];
+                worksheet.mergeCells('A4:K4');
+                row4.height = 25;
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = row4.getCell(c);
+                    cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF006039' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
+                }
+
+                // ── 5. Empty Spacer Row 5 ──
+                const row5 = worksheet.getRow(5);
+                row5.height = 15;
+
+                // ── 6. Table Column Headers (Row 6) ──
+                const headerRow = worksheet.getRow(6);
+                headerRow.values = columnsConfig.map(col => col.header);
+                headerRow.height = 30;
+
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = headerRow.getCell(c);
+                    cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
+                    cell.alignment = { 
+                        horizontal: (c === 7 ? 'right' : (c === 2 || c === 4 || c === 5 ? 'left' : 'center')), 
+                        vertical: 'middle',
+                        indent: (c === 2 || c === 4 || c === 5 ? 1 : 0)
+                    };
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF34495E' }
+                    };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
+                }
+
+                // ── 7. Data Rows (Row 7 onwards) ──
+                let totalOutstanding = 0;
+                let currentRowIdx = 7;
+
+                this.filteredInstallments.forEach((inst, index) => {
+                    const rowNum = index + 1;
+                    const phone = (inst.modal_payload && inst.modal_payload.customer && inst.modal_payload.customer.mobile) 
+                                  ? inst.modal_payload.customer.mobile 
+                                  : (inst.customer_phone || '-');
+                    const outstandingVal = parseFloat(inst.calculated_outstanding) || 0;
+                    totalOutstanding += outstandingVal;
+                    const daysVal = parseInt(inst.days_overdue) || 0;
+                    const ageingLabel = inst.ageing_bucket === '120+' ? '> 120 Days' : (inst.ageing_bucket ? inst.ageing_bucket + (inst.ageing_bucket !== 'Current' ? ' Days' : '') : '-');
+
+                    const dataRow = worksheet.getRow(currentRowIdx);
+                    dataRow.values = [
+                        rowNum,
+                        inst.customer_name || '-',
+                        phone,
+                        inst.project_name || '-',
+                        inst.unit_name || '-',
+                        inst.due_date_formatted || '-',
+                        outstandingVal,
+                        daysVal > 0 ? daysVal : 0,
+                        ageingLabel,
+                        inst.risk_level || 'Normal',
+                        inst.last_reminder_date || '-'
+                    ];
+                    dataRow.height = 25;
+
+                    // Light blue for zebra striping (#F0F8FF / #FFFFFF)
+                    const isEven = (index + 1) % 2 === 0;
+                    const rowBg = isEven ? 'FFFFFFFF' : 'FFF0F8FF';
+
+                    for (let c = 1; c <= totalCols; c++) {
+                        const cell = dataRow.getCell(c);
+                        cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF000000' } };
+                        cell.fill = {
+                            type: 'pattern',
+                            pattern: 'solid',
+                            fgColor: { argb: rowBg }
+                        };
+                        cell.border = {
+                            top: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            bottom: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            left: { style: 'thin', color: { argb: 'FFCBD5E1' } },
+                            right: { style: 'thin', color: { argb: 'FFCBD5E1' } }
+                        };
+
+                        if (c === 1 || c === 6 || c === 8 || c === 9 || c === 10 || c === 11) {
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                        } else if (c === 2) {
+                            cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF000000' } };
+                        } else if (c === 3) {
+                            cell.alignment = { horizontal: 'center', vertical: 'middle' };
+                            cell.numFormat = '@';
+                        } else if (c === 4 || c === 5) {
+                            cell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+                        } else if (c === 7) {
+                            cell.alignment = { horizontal: 'right', vertical: 'middle' };
+                            cell.numFormat = '#,##0.00';
+                            cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF008000' } };
+                        }
+
+                        // Risk Level Background Colored Cell (High / Medium / Low)
+                        if (c === 10) {
+                            const risk = (inst.risk_level || '').toLowerCase().trim();
+                            if (risk === 'high' || risk === 'critical' || risk === 'severe') {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF991B1B' } };
+                                cell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFFFCDD2' } // Soft Light Red
+                                };
+                            } else if (risk === 'medium') {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF92400E' } };
+                                cell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFFFE082' } // Soft Light Amber/Yellow
+                                };
+                            } else if (risk === 'low') {
+                                cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF065F46' } };
+                                cell.fill = {
+                                    type: 'pattern',
+                                    pattern: 'solid',
+                                    fgColor: { argb: 'FFC8E6C9' } // Soft Light Green
+                                };
+                            } else {
+                                cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF64748B' } };
+                            }
+                        }
+                    }
+
+                    currentRowIdx++;
+                });
+
+                // ── 8. Bottom Summary / Total Row (Row 7 + N) ──
+                const totalRow = worksheet.getRow(currentRowIdx);
+                totalRow.height = 36;
+                worksheet.mergeCells(`A${currentRowIdx}:F${currentRowIdx}`);
+
+                const totalLabelCell = worksheet.getCell(`A${currentRowIdx}`);
+                totalLabelCell.value = 'TOTAL OUTSTANDING AMOUNT';
+                totalLabelCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalLabelCell.alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
+
+                const totalValCell = worksheet.getCell(`G${currentRowIdx}`);
+                totalValCell.value = totalOutstanding;
+                totalValCell.numFormat = '#,##0.00';
+                totalValCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
+                totalValCell.alignment = { horizontal: 'right', vertical: 'middle' };
+
+                for (let c = 1; c <= totalCols; c++) {
+                    const cell = totalRow.getCell(c);
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: 'FF2C3E50' }
+                    };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF475569' } },
+                        bottom: { style: 'thin', color: { argb: 'FF475569' } },
+                        left: { style: 'thin', color: { argb: 'FF475569' } },
+                        right: { style: 'thin', color: { argb: 'FF475569' } }
+                    };
+                }
+
+                // ── 9. Generate & Trigger Download ──
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                const dateSlug = (this.filters.as_of_date || new Date().toISOString().split('T')[0]).replace(/-/g, '');
+                anchor.download = `HindustanERP_Collection_Forecast_${dateSlug}.xlsx`;
+                document.body.appendChild(anchor);
+                anchor.click();
+                document.body.removeChild(anchor);
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Excel Export Error:', err);
+                alert('Failed to generate Excel report: ' + err.message);
+            }
         }
     };
 }
