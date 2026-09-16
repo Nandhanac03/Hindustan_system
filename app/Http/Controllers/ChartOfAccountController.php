@@ -45,13 +45,16 @@ class ChartOfAccountController extends Controller
         $revenueCount    = $all->where('account_type', 'REVENUE')->count();
         $expenseCount    = $all->where('account_type', 'EXPENSE')->count();
 
+        $isLocked = \App\Models\AccountingSetting::isOpeningBalanceLocked();
+
         return view('chart-of-accounts.index', compact(
             'accounts',
             'totalAccounts',
             'assetCount',
             'liabilityCount',
             'revenueCount',
-            'expenseCount'
+            'expenseCount',
+            'isLocked'
         ));
     }
 
@@ -61,10 +64,16 @@ class ChartOfAccountController extends Controller
             'account_code' => 'required|string|max:20|unique:chart_of_accounts,account_code',
             'account_name' => 'required|string|max:100',
             'account_type' => 'required|in:ASSET,LIABILITY,REVENUE,EXPENSE',
+            'opening_balance' => 'nullable|numeric|min:0',
+            'opening_balance_type' => 'nullable|in:DR,CR',
             'is_active'    => 'nullable|boolean',
         ]);
 
         $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : true;
+
+        if (\App\Models\AccountingSetting::isOpeningBalanceLocked()) {
+            unset($validated['opening_balance'], $validated['opening_balance_type']);
+        }
 
         ChartOfAccount::create($validated);
 
@@ -78,10 +87,16 @@ class ChartOfAccountController extends Controller
             'account_code' => 'required|string|max:20|unique:chart_of_accounts,account_code,' . $chartOfAccount->id,
             'account_name' => 'required|string|max:100',
             'account_type' => 'required|in:ASSET,LIABILITY,REVENUE,EXPENSE',
+            'opening_balance' => 'nullable|numeric|min:0',
+            'opening_balance_type' => 'nullable|in:DR,CR',
             'is_active'    => 'nullable|boolean',
         ]);
 
         $validated['is_active'] = $request->has('is_active') ? $request->boolean('is_active') : $chartOfAccount->is_active;
+
+        if (\App\Models\AccountingSetting::isOpeningBalanceLocked()) {
+            unset($validated['opening_balance'], $validated['opening_balance_type']);
+        }
 
         $chartOfAccount->update($validated);
 

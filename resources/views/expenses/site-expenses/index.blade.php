@@ -10,6 +10,7 @@
     filterPaymentSource: '{{ request('payment_source', '') }}',
     filterPaymentMode: '{{ request('payment_mode', '') }}',
     filterStatusTab: '{{ request('status', 'all') }}',
+    categoryNames: {{ json_encode($expenseCategories) }},
     counts: {
         all: {{ $tabCounts['all'] ?? count($siteExpenses) }},
         draft: {{ $tabCounts['draft'] ?? 0 }},
@@ -29,6 +30,9 @@
         const search = (this.filterSearch || '').trim().toLowerCase();
         const projId = (this.filterProjectId || '').toString().trim();
         const catCode = (this.filterCategoryCode || '').toString().trim();
+        const expectedCatName = (catCode && this.categoryNames && this.categoryNames[catCode]) 
+            ? this.categoryNames[catCode].toLowerCase().trim() 
+            : '';
         const sourceId = (this.filterPaymentSource || '').toString().trim();
         const mode = (this.filterPaymentMode || '').trim().toLowerCase();
         const statusTab = (this.filterStatusTab || 'all').toLowerCase();
@@ -40,6 +44,7 @@
             const rowStatus = (row.dataset.status || '').toLowerCase();
             const rowProj = (row.dataset.projectId || '').toString();
             const rowCat = (row.dataset.categoryCode || '').toString();
+            const rowCatName = (row.dataset.categoryName || '').toLowerCase().trim();
             const rowSource = (row.dataset.paymentSource || '').toString();
             const rowMode = (row.dataset.paymentMode || '').toLowerCase();
             const rowSearch = (row.dataset.search || '').toLowerCase();
@@ -51,7 +56,7 @@
             else if (statusTab === 'rejected') matchesStatus = (rowStatus === 'rejected');
 
             const matchesProj = !projId || rowProj === projId || ({{ $projects->count() }} === 1 && !rowProj);
-            const matchesCat = !catCode || rowCat === catCode;
+            const matchesCat = !catCode || (rowCat === catCode && (!expectedCatName || rowCatName === expectedCatName || rowCatName.includes(expectedCatName) || expectedCatName.includes(rowCatName)));
             const matchesSource = !sourceId || rowSource === sourceId;
             const matchesMode = !mode || rowMode === mode;
             const matchesSearch = !search || rowSearch.includes(search);
@@ -224,6 +229,7 @@
         num %= 100;
         if (crore) str += inWords(crore) + ' Crore ';
         if (lakh) str += inWords(lakh) + ' Lakh ';
+        
         if (thousand) str += inWords(thousand) + ' Thousand ';
         if (hundred) str += inWords(hundred) + ' Hundred ';
         if (num) {
@@ -587,7 +593,7 @@
                             <th class="py-3.5 px-4 text-right text-white">Amount (₹)</th>
                             <th class="py-3.5 px-4 text-white">Payment Source</th>
                             <th class="py-3.5 px-4 text-white">Payment Mode</th>
-                            <th class="py-3.5 px-4 text-white">Status</th>
+                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Status</th>
                             <th class="py-3.5 px-4 text-center text-white uppercase">Actions</th>
                         </tr>
                     </thead>
@@ -597,6 +603,7 @@
                                 data-status="{{ strtolower($expense->status) }}"
                                 data-project-id="{{ $expense->project_id }}"
                                 data-category-code="{{ $expense->expense_category_code }}"
+                                data-category-name="{{ strtolower($expense->expense_category_name) }}"
                                 data-payment-source="{{ $expense->company_bank_account_id }}"
                                 data-payment-mode="{{ strtolower($expense->payment_mode ?? 'bank transfer') }}"
                                 data-search="{{ strtolower($expense->voucher_number . ' ' . $expense->payee_display_name . ' ' . ($expense->project?->name ?? '') . ' ' . $expense->expense_category_name . ' ' . ($expense->transaction_reference_no ?? '') . ' ' . ($expense->payment_source_display_name ?? '')) }}">
@@ -624,25 +631,25 @@
                                 <td class="py-3 px-4 text-slate-600">
                                     {{ $expense->payment_mode ?? 'Bank Transfer' }}
                                 </td>
-                                <td class="py-3 px-4">
+                                <td class="py-3 px-4 whitespace-nowrap">
                                     @if($expense->status === 'Approved')
-                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-md border border-emerald-200 inline-block">
+                                        <span class="px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-md border border-emerald-200 inline-block whitespace-nowrap">
                                             Approved
                                         </span>
                                     @elseif($expense->status === 'Pending')
-                                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 font-bold text-[11px] rounded-md border border-amber-200 inline-block">
+                                        <span class="px-2.5 py-0.5 bg-amber-100 text-amber-800 font-bold text-[11px] rounded-md border border-amber-200 inline-block whitespace-nowrap">
                                             Pending Approval
                                         </span>
                                     @elseif($expense->status === 'Draft')
-                                        <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-[11px] rounded-md border border-slate-200 inline-block">
+                                        <span class="px-2.5 py-0.5 bg-slate-100 text-slate-700 font-bold text-[11px] rounded-md border border-slate-200 inline-block whitespace-nowrap">
                                             Draft
                                         </span>
                                     @elseif($expense->status === 'Posted')
-                                        <span class="px-2.5 py-0.5 bg-amber-50 text-[#8a741f] font-bold text-[11px] rounded-md border border-amber-200 inline-block">
+                                        <span class="px-2.5 py-0.5 bg-amber-50 text-[#8a741f] font-bold text-[11px] rounded-md border border-amber-200 inline-block whitespace-nowrap">
                                             Posted
                                         </span>
                                     @else
-                                        <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 font-bold text-[11px] rounded-md border border-rose-200 inline-block">
+                                        <span class="px-2.5 py-0.5 bg-rose-100 text-rose-800 font-bold text-[11px] rounded-md border border-rose-200 inline-block whitespace-nowrap">
                                             Rejected
                                         </span>
                                     @endif
