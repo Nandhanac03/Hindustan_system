@@ -2,6 +2,19 @@
     <x-slot:title>Journal Vouchers Master - HindustanERP</x-slot:title>
     <x-slot:headerTitle>Journal Vouchers Master</x-slot:headerTitle>
 
+    <style>
+        /* Hide automatically injected amount-in-words labels inside table cells */
+        td .amount-in-words-label,
+        #journal-entries-table .amount-in-words-label {
+            display: none !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: 0 !important;
+            overflow: hidden !important;
+        }
+    </style>
+
     <div x-data="journalVouchersList()" class="space-y-6 p-6">
 
         <!-- Header Section matching Chart of Accounts Master -->
@@ -230,27 +243,19 @@
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="formModalOpen = false"></div>
 
             <div class="relative min-h-screen flex items-center justify-center p-4">
-                <div class="relative bg-white text-slate-900 rounded-3xl border border-slate-200 shadow-2xl w-full max-w-4xl p-6 sm:p-8 overflow-hidden space-y-6">
+                <div class="relative bg-white text-slate-900 rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden">
                     
-                    <!-- Modal Header -->
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2.5 bg-[#a38c29] text-white rounded-xl shadow-xs">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 01-2-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            </div>
-                            <div>
-                                <h3 class="text-base font-bold text-slate-900 uppercase tracking-tight" x-text="isEditMode ? 'Edit Journal Voucher' : 'Add Journal Voucher'"></h3>
-                                <p class="text-xs text-slate-500 font-medium">Record double-entry ledger adjustments and non-cash postings</p>
-                            </div>
+                    <!-- Dark Themed Modal Header -->
+                    <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden">
+                        <div>
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1">JOURNAL VOUCHERS</span>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white" x-text="isEditMode ? 'EDIT JOURNAL VOUCHER' : 'ADD JOURNAL VOUCHER'"></h3>
                         </div>
-
-                        <button type="button" @click="formModalOpen = false" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                        </button>
+                        <button type="button" @click="formModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
                     </div>
 
                     <!-- Form -->
-                    <form :action="isEditMode ? '/journal-vouchers/' + editVoucherId : '{{ route('journal-vouchers.store') }}'" method="POST" class="space-y-6">
+                    <form :action="isEditMode ? '/journal-vouchers/' + editVoucherId : '{{ route('journal-vouchers.store') }}'" method="POST" class="p-6 sm:p-8 space-y-6">
                         @csrf
                         <template x-if="isEditMode">
                             <input type="hidden" name="_method" value="PUT">
@@ -259,21 +264,21 @@
                         <!-- Row 1: Voucher No, Date, Type, Reference -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Voucher No</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Voucher No</label>
                                 <input type="text" name="voucher_no" x-model="form.voucher_no" readonly
-                                       class="w-full bg-slate-100 border border-slate-200 text-slate-800 rounded-xl px-3 py-2 text-xs font-mono font-bold cursor-not-allowed">
+                                       class="w-full bg-slate-100 border border-slate-200 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-mono font-bold cursor-not-allowed">
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Date *</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Date <span class="text-rose-500 font-bold">*</span></label>
                                 <input type="date" name="voucher_date" required x-model="form.voucher_date"
-                                       class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl px-3 py-2 text-xs font-semibold focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                                       class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Voucher Type</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Voucher Type</label>
                                 <select name="voucher_type_id" x-model="form.voucher_type_id"
-                                        class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl px-3 py-2 text-xs font-semibold focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                                        class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
                                     <option value="">Journal Voucher</option>
                                     @foreach($voucherTypes as $vt)
                                         <option value="{{ $vt->id }}">{{ $vt->name }}</option>
@@ -282,40 +287,40 @@
                             </div>
 
                             <div>
-                                <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Reference No</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Reference No</label>
                                 <input type="text" name="reference_no" placeholder="Ref/Doc No..." x-model="form.reference_no"
-                                       class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl px-3 py-2 text-xs font-medium focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                                       class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                             </div>
                         </div>
 
                         <!-- Entry Lines Table -->
-                        <div class="space-y-2">
+                        <div class="space-y-2.5">
                             <div class="flex items-center justify-between">
-                                <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Journal Entries</span>
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">Journal Entries</span>
                                 <button type="button" @click="addEntryRow()"
-                                        class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-lg flex items-center gap-1 transition-all">
+                                        class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
                                     <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                                     <span>Add Row</span>
                                 </button>
                             </div>
 
                             <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                                <table class="w-full text-left border-collapse">
+                                <table id="journal-entries-table" class="w-full text-left border-collapse">
                                     <thead>
                                         <tr class="bg-slate-100 border-b border-slate-200 text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                                            <th class="px-3 py-2.5 w-5/12">Account Head *</th>
-                                            <th class="px-3 py-2.5 text-right w-2/12">Debit (DR)</th>
-                                            <th class="px-3 py-2.5 text-right w-2/12">Credit (CR)</th>
-                                            <th class="px-3 py-2.5 w-3/12">Line Narration</th>
-                                            <th class="px-2 py-2.5 text-center w-10"></th>
+                                            <th class="px-3.5 py-3 w-4/12">Account Head *</th>
+                                            <th class="px-3.5 py-3 text-right w-2/12">Debit (DR)</th>
+                                            <th class="px-3.5 py-3 text-right w-2/12">Credit (CR)</th>
+                                            <th class="px-3.5 py-3 w-3/12">Line Narration</th>
+                                            <th class="px-2 py-3 text-center w-8"></th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-150 text-xs bg-white">
                                         <template x-for="(line, index) in form.entries" :key="index">
-                                            <tr>
-                                                <td class="p-2">
+                                            <tr class="align-middle hover:bg-slate-50/50 transition-colors">
+                                                <td class="p-2.5">
                                                     <select :name="'entries['+index+'][account_id]'" required x-model="line.account_id"
-                                                            class="w-full px-2.5 py-1.5 bg-white border border-slate-300 text-slate-900 font-bold rounded-lg text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                                                            class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                                                         <option value="">Select Account...</option>
                                                         @foreach($accounts as $acc)
                                                             <option value="{{ $acc->account_code }}">{{ $acc->account_name }} ({{ $acc->account_code }})</option>
@@ -323,26 +328,26 @@
                                                     </select>
                                                 </td>
 
-                                                <td class="p-2">
+                                                <td class="p-2.5">
                                                     <input type="number" step="0.01" min="0" placeholder="0.00" :name="'entries['+index+'][debit_amount]'"
-                                                           x-model.number="line.debit_amount" @input="clearOpposite(line, 'debit')"
-                                                           class="w-full px-2.5 py-1.5 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-lg text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                                                           x-model.number="line.debit_amount" @input="clearOpposite(line, 'debit')" data-no-words
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-xl text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                                                 </td>
 
-                                                <td class="p-2">
+                                                <td class="p-2.5">
                                                     <input type="number" step="0.01" min="0" placeholder="0.00" :name="'entries['+index+'][credit_amount]'"
-                                                           x-model.number="line.credit_amount" @input="clearOpposite(line, 'credit')"
-                                                           class="w-full px-2.5 py-1.5 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-lg text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                                                           x-model.number="line.credit_amount" @input="clearOpposite(line, 'credit')" data-no-words
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-xl text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                                                 </td>
 
-                                                <td class="p-2">
+                                                <td class="p-2.5">
                                                     <input type="text" placeholder="Line detail..." :name="'entries['+index+'][line_narration]'"
                                                            x-model="line.line_narration"
-                                                           class="w-full px-2.5 py-1.5 bg-white border border-slate-300 text-slate-800 rounded-lg text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none">
+                                                           class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-800 font-medium rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                                                 </td>
 
-                                                <td class="p-2 text-center">
-                                                    <button type="button" @click="removeEntryRow(index)" x-show="form.entries.length > 2" class="text-slate-400 hover:text-rose-600">
+                                                <td class="p-2.5 text-center">
+                                                    <button type="button" @click="removeEntryRow(index)" x-show="form.entries.length > 2" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer" title="Remove row">
                                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                                     </button>
                                                 </td>
@@ -352,10 +357,10 @@
 
                                     <tfoot>
                                         <tr class="bg-slate-900 text-white font-bold text-xs">
-                                            <td class="px-3 py-2.5 uppercase">TOTALS</td>
-                                            <td class="px-3 py-2.5 text-right font-mono" x-text="formatCurrency(calcTotalDebit())"></td>
-                                            <td class="px-3 py-2.5 text-right font-mono" x-text="formatCurrency(calcTotalCredit())"></td>
-                                            <td colspan="2" class="px-3 py-2.5 text-center">
+                                            <td class="px-3.5 py-3 uppercase tracking-wider">TOTALS</td>
+                                            <td class="px-3.5 py-3 text-right font-mono" x-text="formatCurrency(calcTotalDebit())"></td>
+                                            <td class="px-3.5 py-3 text-right font-mono" x-text="formatCurrency(calcTotalCredit())"></td>
+                                            <td colspan="2" class="px-3.5 py-3 text-center">
                                                 <template x-if="isBalanced()">
                                                     <span class="text-emerald-400 font-bold uppercase text-[10px] tracking-wider">BALANCED (DR = CR)</span>
                                                 </template>
@@ -371,28 +376,28 @@
 
                         <!-- Overall Narration -->
                         <div>
-                            <label class="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">Header Narration / Remarks</label>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Header Narration / Remarks</label>
                             <textarea name="narration" rows="2" placeholder="Journal Voucher description..." x-model="form.narration"
-                                      class="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-3 text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none resize-none"></textarea>
+                                      class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 font-medium rounded-xl p-3.5 text-xs focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition resize-none"></textarea>
                         </div>
 
                         <!-- Actions -->
-                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
                             <div class="flex items-center gap-3">
-                                <label class="text-xs font-semibold text-slate-600">Status:</label>
-                                <select name="status" x-model="form.status" class="bg-slate-100 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-800">
+                                <label class="text-xs font-bold text-slate-700 uppercase tracking-wider">Status:</label>
+                                <select name="status" x-model="form.status" class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#a38c29] cursor-pointer">
                                     <option value="Posted">Posted</option>
                                     <option value="Draft">Draft</option>
                                 </select>
                             </div>
 
                             <div class="flex items-center gap-3">
-                                <button type="button" @click="formModalOpen = false" class="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200">
+                                <button type="button" @click="formModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer">
                                     Cancel
                                 </button>
                                 <button type="submit" :disabled="!isBalanced()"
-                                        :class="!isBalanced() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#8e7a23]'"
-                                        class="px-6 py-2 bg-[#a38c29] text-white text-xs font-bold rounded-xl transition-all shadow-md">
+                                        :class="!isBalanced() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#8a7522]'"
+                                        class="px-5 py-2.5 bg-[#a38c29] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
                                     <span x-text="isEditMode ? 'Update Journal Voucher' : 'Post Journal Voucher'"></span>
                                 </button>
                             </div>
@@ -407,78 +412,79 @@
             <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" @click="viewModalOpen = false"></div>
 
             <div class="relative min-h-screen flex items-center justify-center p-4">
-                <div class="relative bg-white text-slate-900 rounded-3xl border border-slate-200 shadow-2xl w-full max-w-3xl p-6 sm:p-8 space-y-6">
+                <div class="relative bg-white text-slate-900 rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden">
                     
-                    <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <!-- Dark Themed Modal Header -->
+                    <div class="bg-[#2a2415] p-5 text-white flex items-center justify-between relative overflow-hidden">
                         <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-[#a38c29]" x-text="activeVoucher.voucher_type"></span>
-                            <h3 class="text-lg font-extrabold text-slate-900" x-text="activeVoucher.voucher_no"></h3>
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40 mb-1" x-text="activeVoucher.voucher_type || 'JOURNAL VOUCHER'"></span>
+                            <h3 class="font-black text-base uppercase tracking-wider text-white font-mono" x-text="activeVoucher.voucher_no"></h3>
                         </div>
 
                         <div class="flex items-center gap-3">
-                            <span :class="activeVoucher.status === 'Posted' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-amber-100 text-amber-800 border-amber-200'"
-                                  class="px-3 py-1 rounded-full text-xs font-bold border" x-text="activeVoucher.status"></span>
-                            <button type="button" @click="viewModalOpen = false" class="text-slate-400 hover:text-slate-600">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            <span :class="activeVoucher.status === 'Posted' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40'"
+                                  class="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase border tracking-wider" x-text="activeVoucher.status"></span>
+                            <button type="button" @click="viewModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="p-6 sm:p-8 space-y-6">
+                        <div class="grid grid-cols-3 gap-4 text-xs">
+                            <div>
+                                <span class="block text-slate-400 font-semibold text-[10px] uppercase">Voucher Date</span>
+                                <span class="font-bold text-slate-800" x-text="activeVoucher.voucher_date"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-400 font-semibold text-[10px] uppercase">Reference No</span>
+                                <span class="font-bold text-slate-800" x-text="activeVoucher.reference_no"></span>
+                            </div>
+                            <div>
+                                <span class="block text-slate-400 font-semibold text-[10px] uppercase">Total Amount</span>
+                                <span class="font-mono font-bold text-[#a38c29]" x-text="'₹ ' + activeVoucher.total_debit"></span>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-[#a38c29] text-white font-bold uppercase text-[10px]">
+                                    <tr>
+                                        <th class="px-4 py-2.5">Account Head</th>
+                                        <th class="px-4 py-2.5 text-right">Debit (₹)</th>
+                                        <th class="px-4 py-2.5 text-right">Credit (₹)</th>
+                                        <th class="px-4 py-2.5">Line Narration</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-150 font-medium bg-white">
+                                    <template x-for="entry in activeVoucher.entries" :key="entry.account_code">
+                                        <tr>
+                                            <td class="px-4 py-2.5 font-bold text-slate-900" x-text="entry.account_name + ' (' + entry.account_code + ')'"></td>
+                                            <td class="px-4 py-2.5 text-right font-mono" x-text="entry.debit_amount"></td>
+                                            <td class="px-4 py-2.5 text-right font-mono" x-text="entry.credit_amount"></td>
+                                            <td class="px-4 py-2.5 text-slate-500" x-text="entry.line_narration"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                                <tfoot class="bg-slate-900 text-white font-bold">
+                                    <tr>
+                                        <td class="px-4 py-2.5 uppercase">TOTAL</td>
+                                        <td class="px-4 py-2.5 text-right font-mono" x-text="activeVoucher.total_debit"></td>
+                                        <td class="px-4 py-2.5 text-right font-mono" x-text="activeVoucher.total_credit"></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div>
+                            <span class="block text-slate-400 font-semibold text-[10px] uppercase mb-1">Header Narration</span>
+                            <p class="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 font-medium" x-text="activeVoucher.narration"></p>
+                        </div>
+
+                        <div class="flex justify-end pt-2 border-t border-slate-100">
+                            <button type="button" @click="viewModalOpen = false" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
+                                CLOSE
                             </button>
                         </div>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4 text-xs">
-                        <div>
-                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Voucher Date</span>
-                            <span class="font-bold text-slate-800" x-text="activeVoucher.voucher_date"></span>
-                        </div>
-                        <div>
-                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Reference No</span>
-                            <span class="font-bold text-slate-800" x-text="activeVoucher.reference_no"></span>
-                        </div>
-                        <div>
-                            <span class="block text-slate-400 font-semibold text-[10px] uppercase">Total Amount</span>
-                            <span class="font-mono font-bold text-[#a38c29]" x-text="'₹ ' + activeVoucher.total_debit"></span>
-                        </div>
-                    </div>
-
-                    <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-[#a38c29] text-white font-bold uppercase text-[10px]">
-                                <tr>
-                                    <th class="px-4 py-2.5">Account Head</th>
-                                    <th class="px-4 py-2.5 text-right">Debit (₹)</th>
-                                    <th class="px-4 py-2.5 text-right">Credit (₹)</th>
-                                    <th class="px-4 py-2.5">Line Narration</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-150 font-medium bg-white">
-                                <template x-for="entry in activeVoucher.entries" :key="entry.account_code">
-                                    <tr>
-                                        <td class="px-4 py-2.5 font-bold text-slate-900" x-text="entry.account_name + ' (' + entry.account_code + ')'"></td>
-                                        <td class="px-4 py-2.5 text-right font-mono" x-text="entry.debit_amount"></td>
-                                        <td class="px-4 py-2.5 text-right font-mono" x-text="entry.credit_amount"></td>
-                                        <td class="px-4 py-2.5 text-slate-500" x-text="entry.line_narration"></td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                            <tfoot class="bg-slate-900 text-white font-bold">
-                                <tr>
-                                    <td class="px-4 py-2.5 uppercase">TOTAL</td>
-                                    <td class="px-4 py-2.5 text-right font-mono" x-text="activeVoucher.total_debit"></td>
-                                    <td class="px-4 py-2.5 text-right font-mono" x-text="activeVoucher.total_credit"></td>
-                                    <td></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    <div>
-                        <span class="block text-slate-400 font-semibold text-[10px] uppercase mb-1">Header Narration</span>
-                        <p class="text-xs bg-slate-50 border border-slate-200 rounded-xl p-3 text-slate-700 font-medium" x-text="activeVoucher.narration"></p>
-                    </div>
-
-                    <div class="flex justify-end">
-                        <button type="button" @click="viewModalOpen = false" class="px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl">
-                            Close
-                        </button>
                     </div>
                 </div>
             </div>
