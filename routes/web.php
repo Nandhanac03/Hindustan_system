@@ -306,8 +306,12 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     // Opening Balance Master Module
     Route::get('/opening-balances', [\App\Http\Controllers\OpeningBalanceController::class, 'index'])->name('opening-balances.index');
     Route::post('/opening-balances/save', [\App\Http\Controllers\OpeningBalanceController::class, 'save'])->name('opening-balances.save');
+    Route::post('/opening-balances/save-account', [\App\Http\Controllers\OpeningBalanceController::class, 'saveAccount'])->name('opening-balances.save-account');
+    Route::delete('/opening-balances/delete-account/{chartOfAccount}', [\App\Http\Controllers\OpeningBalanceController::class, 'deleteAccount'])->name('opening-balances.delete-account');
     Route::post('/opening-balances/lock', [\App\Http\Controllers\OpeningBalanceController::class, 'lock'])->name('opening-balances.lock');
     Route::post('/opening-balances/unlock', [\App\Http\Controllers\OpeningBalanceController::class, 'unlock'])->name('opening-balances.unlock');
+    Route::get('/opening-balances/download-template', [\App\Http\Controllers\OpeningBalanceController::class, 'downloadTemplate'])->name('opening-balances.download-template');
+    Route::post('/opening-balances/import', [\App\Http\Controllers\OpeningBalanceController::class, 'import'])->name('opening-balances.import');
 
     // Voucher Type Master Module
     Route::get('/voucher-types', [\App\Http\Controllers\VoucherTypeController::class, 'index'])->name('voucher-types.index');
