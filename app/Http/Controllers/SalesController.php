@@ -1442,7 +1442,7 @@ class SalesController extends Controller
                 $allBankNames = CompanyBankAccount::pluck('bank_name')->filter()->unique()->implode(' / ');
                 $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                 $requiredAccounts = [
-                '1001' => ['name' => $bankAccountName, 'type' => 'ASSET'],
+                '1001' => ['name' => 'Bank Balances', 'type' => 'ASSET'],
                 '1010' => ['name' => 'Customer Receivables', 'type' => 'ASSET']
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {

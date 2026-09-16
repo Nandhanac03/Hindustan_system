@@ -749,7 +749,7 @@ class RaBillController extends Controller
             $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
             $requiredAccounts = [
                 '2002' => ['name' => 'Contractor Payables', 'type' => 'LIABILITY'],
-                '1001' => ['name' => $bankAccountName, 'type' => 'ASSET']
+                '1001' => ['name' => 'Bank Balances', 'type' => 'ASSET']
             ];
 
             foreach ($requiredAccounts as $accCode => $accInfo) {
