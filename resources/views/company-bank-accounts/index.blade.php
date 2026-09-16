@@ -192,9 +192,9 @@
 
     {{-- Company Bank Add Modal --}}
     <div x-show="addModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="addModalOpen = false">
+        <div class="w-full max-w-2xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="addModalOpen = false">
             {{-- Modal Header: Add Unit Style --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -207,7 +207,7 @@
                 </div>
             </div>
 
-            <div class="p-6">
+            <div class="p-6 bg-white">
                 <form action="{{ route('company-bank-accounts.store') }}" method="POST" @submit="submitAddBank($event)" novalidate class="space-y-4">
                     @csrf
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -259,15 +259,22 @@
                         {{-- Branch Name --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Branch Name</label>
-                            <input type="text" name="branch_name" x-model="addForm.branch_name" placeholder="e.g. Main Branch, MG Road"
+                            <input type="text" name="branch_name" x-model="addForm.branch_name" placeholder="e.g. MG Road Branch, Bangalore"
                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- UPI ID --}}
                         <div>
                             <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Company UPI ID / VPA</label>
-                            <input type="text" name="upi_id" x-model="addForm.upi_id" placeholder="e.g. hindustan@hdfcbank"
+                            <input type="text" name="upi_id" x-model="addForm.upi_id" placeholder="e.g. company@okhdfcbank"
                                    class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all">
+                        </div>
+
+                        {{-- Opening Balance --}}
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Opening Balance (₹)</label>
+                            <input type="number" step="0.01" min="0" name="opening_balance" x-model="addForm.opening_balance" placeholder="0.00"
+                                   class="w-full px-3.5 py-2.5 border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/30 focus:border-[#a38c29] rounded-xl text-xs font-mono font-bold text-slate-800 focus:outline-none transition-all">
                         </div>
 
                         {{-- Status --}}
@@ -279,11 +286,18 @@
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
+
+                        {{-- Is Default / Primary --}}
+                        <div class="flex items-center gap-2 pt-6">
+                            <input type="checkbox" id="add_is_default" name="is_default" value="1" x-model="addForm.is_default"
+                                   class="w-4 h-4 text-[#a38c29] focus:ring-[#a38c29] border-slate-300 rounded cursor-pointer">
+                            <label for="add_is_default" class="text-xs font-bold text-slate-700 cursor-pointer select-none">Set as Primary / Default Account</label>
+                        </div>
                     </div>
 
                     <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                         <button type="button" @click="addModalOpen = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide cursor-pointer">Add Bank Account</button>
+                        <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold rounded-lg transition shadow-lg shadow-[#a38c29]/30 uppercase tracking-wide cursor-pointer">Save Account</button>
                     </div>
                 </form>
             </div>
@@ -292,9 +306,9 @@
 
     {{-- Company Bank Edit Modal --}}
     <div x-show="editModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="editModalOpen = false">
+        <div class="w-full max-w-2xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="editModalOpen = false">
             {{-- Modal Header: Add Unit Style --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -307,7 +321,7 @@
                 </div>
             </div>
 
-            <div class="p-6">
+            <div class="p-6 bg-white">
                 <form :action="editForm.action" method="POST" @submit="submitEditBank($event)" novalidate class="space-y-4">
                     @csrf
                     @method('PUT')
@@ -393,9 +407,9 @@
 
     {{-- View Details Modal --}}
     <div x-show="viewModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="viewModalOpen = false">
+        <div class="w-full max-w-xl bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="viewModalOpen = false">
             {{-- Modal Header: Add Unit Style --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -413,7 +427,7 @@
                 </div>
             </div>
 
-            <div class="p-6">
+            <div class="p-6 bg-white">
                 {{-- Account Summary Box: Gold Theme --}}
                 <div class="mb-5 p-4 rounded-2xl bg-gradient-to-br from-amber-50/90 via-amber-100/40 to-white border border-amber-200/90 shadow-xs flex items-center justify-between">
                     <div>
@@ -458,9 +472,9 @@
 
     {{-- Company Bank Delete Modal --}}
     <div x-show="deleteModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" style="display: none;" x-transition.opacity>
-        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up" @click.away="deleteModalOpen = false">
+        <div class="w-full max-w-md bg-slate-900 rounded-2xl shadow-2xl overflow-hidden animate-fade-in-up flex flex-col" @click.away="deleteModalOpen = false">
             {{-- Modal Header: Add Unit Style --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/15 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -473,7 +487,7 @@
                 </div>
             </div>
 
-            <div class="p-6">
+            <div class="p-6 bg-white">
                 <p class="text-xs text-slate-600 font-medium leading-relaxed mb-4">
                     Are you sure you want to delete <span class="font-bold text-slate-900" x-text="deleteForm.bank_name"></span> (<span class="font-mono font-bold text-rose-600" x-text="deleteForm.ifsc_code"></span>)? This action cannot be undone.
                 </p>
