@@ -267,6 +267,8 @@ class Receipt extends Model
                     JournalEntry::create([
                         'voucher_id'     => $journalVoucher->id,
                         'account_id'     => '1001',
+                        'entity_type'    => 'BANK',
+                        'entity_id'      => $this->company_bank_account_id,
                         'debit_amount'   => $this->amount,
                         'credit_amount'  => 0.00,
                         'line_narration' => ($this->companyBankAccount ? $this->companyBankAccount->bank_name : 'Karnataka Bank') . ' (Asset Increases)',
@@ -276,6 +278,8 @@ class Receipt extends Model
                     JournalEntry::create([
                         'voucher_id'     => $journalVoucher->id,
                         'account_id'     => '1010',
+                        'entity_type'    => 'CUSTOMER',
+                        'entity_id'      => $this->customer_id,
                         'debit_amount'   => 0.00,
                         'credit_amount'  => $this->amount,
                         'line_narration' => 'Customer Receivables (' . $custName . ' Debt Decreases)',
