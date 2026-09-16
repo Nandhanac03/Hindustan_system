@@ -1812,7 +1812,7 @@ class ReportController extends Controller
                 $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
                 $requiredAccounts = [
                     $partnerCode => ['name' => 'Partner ' . $partner->name . ' Capital Account' . $sharePctText, 'type' => 'EQUITY'],
-                    '1001'       => ['name' => $bankAccountName, 'type' => 'ASSET'],
+                    '1001'       => ['name' => 'Bank Balances', 'type' => 'ASSET'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
                     ChartOfAccount::firstOrCreate(

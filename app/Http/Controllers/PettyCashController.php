@@ -326,7 +326,7 @@ class PettyCashController extends Controller
             $bankAccountName = 'Bank Balances (' . ($allBankNames ?: 'Karnataka Bank / HDFC Escrow') . ')';
             $requiredAccounts = [
                 '1002' => ['name' => 'Petty Cash Box', 'type' => 'ASSET'],
-                '1001' => ['name' => $bankAccountName, 'type' => 'ASSET']
+                '1001' => ['name' => 'Bank Balances', 'type' => 'ASSET']
             ];
             foreach ($requiredAccounts as $accCode => $accInfo) {
                 ChartOfAccount::firstOrCreate(
@@ -369,6 +369,8 @@ class PettyCashController extends Controller
                 'debit_amount'   => $amount,
                 'credit_amount'  => 0.00,
                 'line_narration' => 'Petty Cash Box (Cash Asset Increases)',
+                'entity_type'    => null,
+                'entity_id'      => null,
             ]);
 
             // 2. Bank Account (Credit 1001: Bank Asset Decreases)
@@ -378,6 +380,8 @@ class PettyCashController extends Controller
                 'debit_amount'   => 0.00,
                 'credit_amount'  => $amount,
                 'line_narration' => ($companyBank ? $companyBank->bank_name : 'Karnataka Bank') . ' (Bank Asset Decreases)',
+                'entity_type'    => 'BANK',
+                'entity_id'      => $companyBank ? $companyBank->id : null,
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Contra Withdrawal: ' . $e->getMessage());
