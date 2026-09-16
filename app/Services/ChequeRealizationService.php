@@ -150,6 +150,8 @@ class ChequeRealizationService
                 JournalEntry::create([
                     'voucher_id'     => $journalVoucher->id,
                     'account_id'     => '1001',
+                    'entity_type'    => 'BANK',
+                    'entity_id'      => $bankAccountId,
                     'debit_amount'   => $receipt->amount,
                     'credit_amount'  => 0.00,
                     'line_narration' => ($receipt->companyBankAccount ? $receipt->companyBankAccount->bank_name : 'Karnataka Bank') . ' (Asset Increases)',
@@ -159,6 +161,8 @@ class ChequeRealizationService
                 JournalEntry::create([
                     'voucher_id'     => $journalVoucher->id,
                     'account_id'     => '1010',
+                    'entity_type'    => 'CUSTOMER',
+                    'entity_id'      => $receipt->customer_id,
                     'debit_amount'   => 0.00,
                     'credit_amount'  => $receipt->amount,
                     'line_narration' => 'Customer Receivables (' . $custName . ' Debt Decreases)',
