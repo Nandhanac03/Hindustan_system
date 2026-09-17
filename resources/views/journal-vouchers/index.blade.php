@@ -276,7 +276,7 @@
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Voucher Type</label>
                                 <select name="voucher_type_id" x-model="form.voucher_type_id"
                                         class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
-                                    <option value="">Journal Voucher</option>
+                                    <option value="">All</option>
                                     @foreach($voucherTypes as $vt)
                                         <option value="{{ $vt->id }}">{{ $vt->name }}</option>
                                     @endforeach
