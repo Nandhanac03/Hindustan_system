@@ -62,7 +62,7 @@ class TreasuryController extends Controller
                 ->sum('amount');
         }
 
-        // Fetch recent transactions
+        // Fetch recent transactions (Credits: Realized Receipts, Debits: RA Bill & Site Expense Payments)
         $recentTransactions = [];
         $allRecentTxns = [];
 
@@ -70,7 +70,6 @@ class TreasuryController extends Controller
             ->where('realization_status', 'realized')
             ->orderByDesc('realized_at')
             ->orderByDesc('id')
-            ->limit(50)
             ->get();
 
         foreach ($allReceipts as $receipt) {
@@ -81,8 +80,9 @@ class TreasuryController extends Controller
             $bankRef = $log?->bank_reference_no ?? $receipt->reference_no;
 
             $txn = [
-                'id' => $receipt->id,
+                'id' => 'rcpt_' . $receipt->id,
                 'date' => $realizedAt ? $realizedAt->format('d/m/Y') : '—',
+                'raw_date' => $realizedAt ? $realizedAt->timestamp : 0,
                 'datetime_formatted' => $realizedAt ? $realizedAt->format('d M Y, h:i A') : '—',
                 'voucher_no' => $receipt->receipt_no ?? ('RV/2025-26/' . str_pad((string)$receipt->id, 6, '0', STR_PAD_LEFT)),
                 'customer_name' => $receipt->customer?->name ?? 'Direct Customer',
@@ -106,12 +106,92 @@ class TreasuryController extends Controller
             }
         }
 
-        // Ensure all bank accounts have an array entry
+        // Outward Debits: RA Bill Payments
+        $allRaPayments = \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])
+            ->whereNotNull('company_bank_account_id')
+            ->orderByDesc('payment_date')
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($allRaPayments as $raPay) {
+            $acc = $raPay->companyBankAccount;
+            $payDate = $raPay->payment_date ? Carbon::parse($raPay->payment_date) : null;
+            $contractorName = $raPay->raBill?->contractor?->name ?? 'Contractor';
+
+            $debitTxn = [
+                'id' => 'ra_' . $raPay->id,
+                'date' => $payDate ? $payDate->format('d/m/Y') : '—',
+                'raw_date' => $payDate ? $payDate->timestamp : 0,
+                'datetime_formatted' => $payDate ? $payDate->format('d M Y') : '—',
+                'voucher_no' => 'PAY/' . str_pad((string)$raPay->id, 5, '0', STR_PAD_LEFT),
+                'customer_name' => $contractorName . ' (RA Bill #' . ($raPay->ra_bill_id ?? '') . ')',
+                'customer_phone' => '',
+                'narration' => 'Payment to ' . $contractorName . ' (RA Bill)',
+                'payment_mode' => str_replace('_', ' ', $raPay->payment_mode ?: 'Bank Transfer'),
+                'cheque_no' => $raPay->reference_no ?: '—',
+                'drawee_bank' => '—',
+                'bank_ref_no' => $raPay->reference_no ?: '—',
+                'bank_name' => $acc?->bank_name ?? 'Treasury',
+                'bank_account_id' => $raPay->company_bank_account_id,
+                'type' => 'Debit',
+                'amount' => (float)$raPay->paid_amount,
+                'balance' => (float)($acc?->current_balance ?? 0),
+                'remarks' => $raPay->remarks ?: 'RA Bill Payment'
+            ];
+
+            $allRecentTxns[] = $debitTxn;
+            if ($raPay->company_bank_account_id) {
+                $recentTransactions[$raPay->company_bank_account_id][] = $debitTxn;
+            }
+        }
+
+        // Outward Debits: Site Expense Payments
+        $allSiteExpenses = \App\Models\SiteExpensePayment::with(['companyBankAccount'])
+            ->whereNotNull('company_bank_account_id')
+            ->orderByDesc('payment_date')
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($allSiteExpenses as $sep) {
+            $acc = $sep->companyBankAccount;
+            $payDate = $sep->payment_date ? Carbon::parse($sep->payment_date) : null;
+
+            $sepTxn = [
+                'id' => 'sep_' . $sep->id,
+                'date' => $payDate ? $payDate->format('d/m/Y') : '—',
+                'raw_date' => $payDate ? $payDate->timestamp : 0,
+                'datetime_formatted' => $payDate ? $payDate->format('d M Y') : '—',
+                'voucher_no' => 'EXP/' . str_pad((string)$sep->id, 5, '0', STR_PAD_LEFT),
+                'customer_name' => 'Site Expense (' . ($sep->payment_mode ?? 'Bank') . ')',
+                'customer_phone' => '',
+                'narration' => 'Site Expense Payment',
+                'payment_mode' => str_replace('_', ' ', $sep->payment_mode ?: 'Bank Transfer'),
+                'cheque_no' => $sep->reference_number ?: '—',
+                'drawee_bank' => '—',
+                'bank_ref_no' => $sep->reference_number ?: '—',
+                'bank_name' => $acc?->bank_name ?? 'Treasury',
+                'bank_account_id' => $sep->company_bank_account_id,
+                'type' => 'Debit',
+                'amount' => (float)$sep->amount,
+                'balance' => (float)($acc?->current_balance ?? 0),
+                'remarks' => $sep->remarks ?: 'Site Expense Payment'
+            ];
+
+            $allRecentTxns[] = $sepTxn;
+            if ($sep->company_bank_account_id) {
+                $recentTransactions[$sep->company_bank_account_id][] = $sepTxn;
+            }
+        }
+
+        // Ensure all bank accounts have an array entry and sort by date descending
         foreach ($bankAccounts as $account) {
             if (!isset($recentTransactions[$account->id])) {
                 $recentTransactions[$account->id] = [];
+            } else {
+                usort($recentTransactions[$account->id], fn($a, $b) => ($b['raw_date'] <=> $a['raw_date']));
             }
         }
+        usort($allRecentTxns, fn($a, $b) => ($b['raw_date'] <=> $a['raw_date']));
 
         return view('treasury.dashboard', compact(
             'bankAccounts',
