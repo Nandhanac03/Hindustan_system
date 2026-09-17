@@ -246,15 +246,26 @@
                                     </td>
 
                                     <td class="px-2 py-2 text-left whitespace-nowrap align-middle">
-                                        @if($bill->verified_date)
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                                                <span>PENDING</span>
+                                        @php
+                                            $idxCleared = ((float)$bill->balance_amount <= 0.001 && (float)$bill->paid_amount > 0);
+                                            $idxPartPaid = ((float)$bill->paid_amount > 0 && (float)$bill->balance_amount > 0.001);
+                                        @endphp
+                                        @if($idxCleared)
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-[#ECFDF3] text-[#065F46] border border-[#A7F3D0] inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                                <svg class="w-2 h-2 text-[#087443]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                <span>CLEARED</span>
+                                            </span>
+                                        @elseif($idxPartPaid)
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
+                                                PART PAID
+                                            </span>
+                                        @elseif($bill->verified_date)
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center shadow-2xs uppercase tracking-wider">
+                                                PENDING
                                             </span>
                                         @else
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
-                                                <span>SUBMITTED</span>
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
+                                                SUBMITTED
                                             </span>
                                         @endif
                                     </td>

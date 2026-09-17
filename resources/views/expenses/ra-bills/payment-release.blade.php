@@ -145,7 +145,8 @@
                     <select x-model="filterStatus"
                             class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
                         <option value="">All Statuses</option>
-                        <option value="pending">Pending Release</option>
+                        <option value="pending">Pending </option>
+                        <option value="partially_paid">Partially Paid</option>
                         <option value="cleared">Cleared / Paid</option>
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
@@ -197,8 +198,9 @@
                         @php
                             $isCleared = ((float)$bill->balance_amount <= 0.001);
                             $isVerified = !empty($bill->verified_date);
+                            $isPartiallyPaid = ($isVerified && !$isCleared && (float)$bill->paid_amount > 0);
                             $paymentCount = $bill->payments->count();
-                            $statusVal = $isCleared ? 'cleared' : ($isVerified ? 'pending' : 'unverified');
+                            $statusVal = $isCleared ? 'cleared' : ($isPartiallyPaid ? 'partially_paid' : ($isVerified ? 'pending' : 'unverified'));
                         @endphp
                         <tbody x-data="{ showHistory: false }"
                                x-show="matchesFilter('{{ $bill->contractor_id }}', '{{ $bill->project_id }}', '{{ $statusVal }}')"
@@ -254,10 +256,13 @@
                                             <svg class="w-2.5 h-2.5 text-[#087443]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                                             <span>CLEARED</span>
                                         </span>
+                                    @elseif($isPartiallyPaid)
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
+                                            PARTIALLY PAID
+                                        </span>
                                     @elseif($isVerified)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                                            <span>PENDING RELEASE</span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center shadow-2xs uppercase tracking-wider">
+                                            PENDING RELEASE
                                         </span>
                                     @else
                                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">UNVERIFIED</span>
@@ -327,7 +332,7 @@
                                                                 </td>
                                                                 <td class="px-3 py-2 text-right">
                                                                     @if($pay->voucher_id)
-                                                                        <a href="/vouchers/{{ $pay->voucher_id }}/payment-voucher-print" target="_blank"
+                                                                       <a href="{{ url('/vouchers/' . $pay->voucher_id . '/payment-voucher-print') }}" target="_blank"
                                                                            class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[9px] font-bold inline-flex items-center gap-1 cursor-pointer shadow-2xs"
                                                                            title="Print Voucher for Part {{ $index + 1 }}">
                                                                             <span>🖨 Print Voucher</span>
@@ -382,8 +387,7 @@
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[11px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                        <p class="text-[#a38c29] text-[11px] font-bold uppercase tracking-widest mb-1">
                             Payment Disbursement
                         </p>
                         <h2 class="text-xl font-extrabold text-white tracking-tight">Disburse Staggered Contractor Payment</h2>
@@ -588,11 +592,13 @@ function raBillPaymentRelease() {
             @php
                 $isCleared = ((float)$bill->balance_amount <= 0.001);
                 $isVerified = !empty($bill->verified_date);
+                $isPartiallyPaid = ($isVerified && !$isCleared && (float)$bill->paid_amount > 0);
+                $bStatus = $isCleared ? 'cleared' : ($isPartiallyPaid ? 'partially_paid' : ($isVerified ? 'pending' : 'unverified'));
             @endphp
             {
                 contractor_id: '{{ $bill->contractor_id }}',
                 project_id: '{{ $bill->project_id }}',
-                status: '{{ $isCleared ? "cleared" : ($isVerified ? "pending" : "unverified") }}',
+                status: '{{ $bStatus }}',
             },
             @endforeach
         ],

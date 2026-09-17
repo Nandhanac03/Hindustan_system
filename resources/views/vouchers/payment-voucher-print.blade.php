@@ -699,7 +699,6 @@
                         <h1 class="project-title">{{ $projectName ?: 'Project Disbursement' }}</h1>
                         @if(!empty($projectLocation))
                             <div class="project-meta">
-                                <span class="location-dot"></span>
                                 <span>{{ $projectLocation }}</span>
                             </div>
                         @endif
@@ -767,7 +766,6 @@
             <div class="outflow-banner">
                 <div>
                     <div class="outflow-label">
-                        <span class="outflow-label-badge"></span>
                         <span>Total Outflow Disbursed</span>
                     </div>
                     <div class="outflow-amount">₹ {{ number_format($totalAmount, 2) }}</div>

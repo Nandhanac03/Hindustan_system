@@ -310,9 +310,8 @@
                                         <span>VERIFIED</span>
                                     </span>
                                 @else
-                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                        <span>SUBMITTED</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
+                                        SUBMITTED
                                     </span>
                                 @endif
                             </td>
