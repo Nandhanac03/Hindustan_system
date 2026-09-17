@@ -20,6 +20,10 @@ class Sale extends Model
         'unit_id',
         'customer_id',
         'broker_id',
+        'bank_id',
+        'initial_payment',
+        'payment_mode',
+        'reference_no',
         'agreement_date',
         'registration_date',
         'sale_number',
@@ -79,6 +83,11 @@ class Sale extends Model
     public function broker(): BelongsTo
     {
         return $this->belongsTo(Broker::class);
+    }
+
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(Bank::class, 'bank_id');
     }
 
     public function saleUnits(): HasMany
