@@ -252,7 +252,7 @@
                     </div>
 
                     <!-- Form -->
-                    <form :action="isEditMode ? '/journal-vouchers/' + editVoucherId : '{{ route('journal-vouchers.store') }}'" method="POST" class="p-6 sm:p-8 space-y-6">
+                    <form :action="isEditMode ? '/journal-vouchers/' + editVoucherId : '{{ route('journal-vouchers.store') }}'" method="POST" @submit.prevent="validateAndSubmit($event)" class="p-6 sm:p-8 space-y-6" novalidate>
                         @csrf
                         <template x-if="isEditMode">
                             <input type="hidden" name="_method" value="PUT">
@@ -285,8 +285,21 @@
 
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Reference No</label>
-                                <input type="text" name="reference_no" placeholder="Ref/Doc No..." x-model="form.reference_no"
-                                       class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                                <input type="text" name="reference_no" placeholder="Ref/Doc No..." x-model="form.reference_no" @input="errors.reference_no = ''"
+                                       :class="errors.reference_no ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-200 focus:ring-[#a38c29] bg-slate-50 text-slate-900'"
+                                       class="w-full hover:bg-white focus:bg-white border rounded-xl px-3.5 py-2.5 text-xs font-bold focus:ring-2 focus:outline-none transition">
+                                <template x-if="errors.reference_no">
+                                    <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span x-text="errors.reference_no"></span>
+                                    </p>
+                                </template>
+                                @error('reference_no')
+                                    <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span>{{ $message }}</span>
+                                    </p>
+                                @enderror
                             </div>
                         </div>
 
@@ -316,24 +329,28 @@
                                         <template x-for="(line, index) in form.entries" :key="index">
                                             <tr class="align-middle hover:bg-slate-50/50 transition-colors">
                                                 <td class="p-2.5">
-                                                    <select :name="'entries['+index+'][account_id]'" required x-model="line.account_id"
-                                                            class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
+                                                    <select :name="'entries['+index+'][account_id]'" x-model="line.account_id" @change="if(errors.rows && errors.rows[index]) delete errors.rows[index]"
+                                                            :class="errors.rows && errors.rows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40' : 'border-slate-300 bg-white'"
+                                                            class="w-full px-3 py-2 text-slate-900 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                                                         <option value="">Select Account...</option>
                                                         @foreach($accounts as $acc)
                                                             <option value="{{ $acc->account_code }}">{{ $acc->account_name }} ({{ $acc->account_code }})</option>
                                                         @endforeach
                                                     </select>
+                                                    <template x-if="errors.rows && errors.rows[index]">
+                                                        <p class="text-rose-600 text-[10px] font-bold mt-1" x-text="errors.rows[index]"></p>
+                                                    </template>
                                                 </td>
 
                                                 <td class="p-2.5">
                                                     <input type="number" step="0.01" min="0" placeholder="0.00" :name="'entries['+index+'][debit_amount]'"
-                                                           x-model.number="line.debit_amount" @input="clearOpposite(line, 'debit')" data-no-words
+                                                           x-model.number="line.debit_amount" @input="clearOpposite(line, 'debit'); errors.entries = '';" data-no-words
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-xl text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                                                 </td>
 
                                                 <td class="p-2.5">
                                                     <input type="number" step="0.01" min="0" placeholder="0.00" :name="'entries['+index+'][credit_amount]'"
-                                                           x-model.number="line.credit_amount" @input="clearOpposite(line, 'credit')" data-no-words
+                                                           x-model.number="line.credit_amount" @input="clearOpposite(line, 'credit'); errors.entries = '';" data-no-words
                                                            class="w-full px-3 py-2 bg-white border border-slate-300 text-slate-900 font-mono font-bold rounded-xl text-right text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
                                                 </td>
 
@@ -369,13 +386,33 @@
                                     </tfoot>
                                 </table>
                             </div>
+
+                            <template x-if="errors.entries">
+                                <div class="p-3.5 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold rounded-xl flex items-center gap-2 shadow-2xs">
+                                    <svg class="w-4 h-4 text-rose-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span x-text="errors.entries"></span>
+                                </div>
+                            </template>
                         </div>
 
                         <!-- Overall Narration -->
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Header Narration / Remarks</label>
-                            <textarea name="narration" rows="2" placeholder="Journal Voucher description..." x-model="form.narration"
-                                      class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 font-medium rounded-xl p-3.5 text-xs focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition resize-none"></textarea>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Header Narration / Remarks <span class="text-rose-500 font-bold">*</span></label>
+                            <textarea name="narration" rows="2" placeholder="Journal Voucher description..." x-model="form.narration" @input="errors.narration = ''"
+                                      :class="errors.narration ? 'border-rose-500 focus:ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-200 focus:ring-[#a38c29] bg-slate-50 text-slate-900'"
+                                      class="w-full hover:bg-white focus:bg-white border font-medium rounded-xl p-3.5 text-xs focus:ring-2 focus:outline-none transition resize-none"></textarea>
+                            <template x-if="errors.narration">
+                                <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span x-text="errors.narration"></span>
+                                </p>
+                            </template>
+                            @error('narration')
+                                <p class="text-rose-600 text-[11px] font-bold mt-1 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    <span>{{ $message }}</span>
+                                </p>
+                            @enderror
                         </div>
 
                         <!-- Actions -->
@@ -392,9 +429,8 @@
                                 <button type="button" @click="formModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer">
                                     Cancel
                                 </button>
-                                <button type="submit" :disabled="!isBalanced()"
-                                        :class="!isBalanced() ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#8a7522]'"
-                                        class="px-5 py-2.5 bg-[#a38c29] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
+                                <button type="submit"
+                                        class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md cursor-pointer">
                                     <span x-text="isEditMode ? 'Update Journal Voucher' : 'Post Journal Voucher'"></span>
                                 </button>
                             </div>
@@ -500,6 +536,12 @@
                 currentPage: 1,
                 pageSize: 15,
                 allVouchers: @json($vouchers),
+                errors: {
+                    reference_no: '',
+                    narration: '',
+                    entries: '',
+                    rows: {}
+                },
                 filters: {
                     search: '',
                     voucher_type_id: '',
@@ -528,6 +570,67 @@
                         { account_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' },
                         { account_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' }
                     ]
+                },
+
+                validateAndSubmit(e) {
+                    this.errors = { reference_no: '', narration: '', entries: '', rows: {} };
+                    let hasError = false;
+
+                    // 1. Check Reference No uniqueness if provided
+                    if (this.form.reference_no && this.form.reference_no.trim()) {
+                        const ref = this.form.reference_no.trim().toLowerCase();
+                        const isDup = this.allVouchers.some(v => {
+                            if (this.isEditMode && v.id === this.editVoucherId) return false;
+                            return v.reference_no && v.reference_no !== '-' && v.reference_no.trim().toLowerCase() === ref;
+                        });
+                        if (isDup) {
+                            this.errors.reference_no = 'Reference No already exists for another Journal Voucher.';
+                            hasError = true;
+                        }
+                    }
+
+                    // 2. Check Header Narration / Remarks
+                    if (!this.form.narration || !this.form.narration.trim()) {
+                        this.errors.narration = 'Header narration / remarks is required.';
+                        hasError = true;
+                    }
+
+                    // 3. Check Entries Balance & Amount validity
+                    const totalD = this.calcTotalDebit();
+                    const totalC = this.calcTotalCredit();
+
+                    if (totalD === 0 && totalC === 0) {
+                        this.errors.entries = 'Please enter valid Debit or Credit amounts for the journal entries.';
+                        hasError = true;
+                    } else if (Math.abs(totalD - totalC) >= 0.01) {
+                        this.errors.entries = 'Journal Voucher must be balanced! Total Debit (₹ ' + this.formatCurrency(totalD) + ') does not equal Total Credit (₹ ' + this.formatCurrency(totalC) + ').';
+                        hasError = true;
+                    }
+
+                    // 4. Check Account Head selection for non-zero lines
+                    let validCount = 0;
+                    this.form.entries.forEach((line, idx) => {
+                        const d = parseFloat(line.debit_amount) || 0;
+                        const c = parseFloat(line.credit_amount) || 0;
+                        if (d > 0 || c > 0) {
+                            validCount++;
+                            if (!line.account_id) {
+                                this.errors.rows[idx] = 'Please select an Account Head.';
+                                hasError = true;
+                            }
+                        }
+                    });
+
+                    if (validCount < 2) {
+                        this.errors.entries = 'A valid Journal Voucher must contain at least two non-zero entry lines.';
+                        hasError = true;
+                    }
+
+                    if (hasError) {
+                        return false;
+                    }
+
+                    e.target.submit();
                 },
 
                 // Pure In-Memory Alpine Filtering (NO URL Change & NO Page Reload)
@@ -599,6 +702,7 @@
                 openCreateModal() {
                     this.isEditMode = false;
                     this.editVoucherId = null;
+                    this.errors = { reference_no: '', entries: '', rows: {} };
                     this.form = {
                         voucher_no: this.nextVoucherNo,
                         voucher_date: new Date().toISOString().substring(0, 10),
@@ -673,6 +777,7 @@
                     if (found) {
                         this.isEditMode = true;
                         this.editVoucherId = id;
+                        this.errors = { reference_no: '', entries: '', rows: {} };
                         this.form = {
                             voucher_no: found.voucher_no,
                             voucher_date: found.voucher_date,

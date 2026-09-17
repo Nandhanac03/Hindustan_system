@@ -69,14 +69,17 @@ class JournalVoucherController extends Controller
         $request->validate([
             'voucher_date' => 'required|date',
             'voucher_type_id' => 'nullable|exists:voucher_types,id',
-            'reference_no' => 'nullable|string|max:100',
-            'narration' => 'nullable|string',
+            'reference_no' => 'nullable|string|max:100|unique:journal_vouchers,reference_no',
+            'narration' => 'required|string',
             'status' => 'required|in:Posted,Draft',
             'entries' => 'required|array|min:2',
             'entries.*.account_id' => 'required|exists:chart_of_accounts,account_code',
             'entries.*.debit_amount' => 'nullable|numeric|min:0',
             'entries.*.credit_amount' => 'nullable|numeric|min:0',
             'entries.*.line_narration' => 'nullable|string|max:255',
+        ], [
+            'reference_no.unique' => 'The Reference No has already been taken by another Journal Voucher.',
+            'narration.required' => 'Header narration / remarks is required.',
         ]);
 
         $totalDebit = 0.0;
@@ -177,14 +180,17 @@ class JournalVoucherController extends Controller
         $request->validate([
             'voucher_date' => 'required|date',
             'voucher_type_id' => 'nullable|exists:voucher_types,id',
-            'reference_no' => 'nullable|string|max:100',
-            'narration' => 'nullable|string',
+            'reference_no' => 'nullable|string|max:100|unique:journal_vouchers,reference_no,' . $id,
+            'narration' => 'required|string',
             'status' => 'required|in:Posted,Draft',
             'entries' => 'required|array|min:2',
             'entries.*.account_id' => 'required|exists:chart_of_accounts,account_code',
             'entries.*.debit_amount' => 'nullable|numeric|min:0',
             'entries.*.credit_amount' => 'nullable|numeric|min:0',
             'entries.*.line_narration' => 'nullable|string|max:255',
+        ], [
+            'reference_no.unique' => 'The Reference No has already been taken by another Journal Voucher.',
+            'narration.required' => 'Header narration / remarks is required.',
         ]);
 
         $totalDebit = 0.0;
