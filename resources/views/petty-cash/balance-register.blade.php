@@ -174,10 +174,10 @@
                                     <td class="py-2.5 font-semibold text-slate-600">Recorded Transactions</td>
                                     <td class="py-2.5 text-right font-mono font-bold text-slate-800">{{ $transactions->count() }} Entries</td>
                                 </tr>
-                                <tr>
+                                <!-- <tr>
                                     <td class="py-2.5 font-semibold text-slate-600">Audit Status</td>
                                     <td class="py-2.5 text-right font-bold text-emerald-700">Reconciled</td>
-                                </tr>
+                                </tr> -->
                             </tbody>
                         </table>
                     </div>
