@@ -222,6 +222,7 @@ class PettyCashController extends Controller
             'cash_box_id' => 'required',
             'amount' => 'required|numeric|min:0.01',
             'date' => 'required|date',
+            'reference_no' => 'required',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         ]);
 

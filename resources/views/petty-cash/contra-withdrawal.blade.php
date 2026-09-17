@@ -111,9 +111,14 @@
                                     <option value="{{ $bank->id }}">{{ $bank->name }}</option>
                                 @endforeach
                             </select>
-                            <div class="mt-1.5 flex items-center justify-between text-[11px]" x-show="selectedBank">
-                                <span class="text-slate-500 font-medium">Available Balance:</span>
-                                <span class="font-mono font-bold text-[#a38c29]" x-text="formatCurrency(selectedBankBalance)"></span>
+                            <div class="mt-1.5 space-y-0.5" x-show="selectedBank">
+                                <div class="flex items-center justify-between text-[11px]">
+                                    <span class="text-slate-500 font-medium">Available Balance:</span>
+                                    <span class="font-mono font-bold text-[#a38c29]" x-text="formatCurrency(selectedBankBalance)"></span>
+                                </div>
+                                <div x-show="selectedBankBalanceInWords" 
+                                     class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                     x-text="selectedBankBalanceInWords"></div>
                             </div>
                         </div>
 
@@ -165,9 +170,9 @@
                         <div class="grid grid-cols-2 gap-3.5">
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">
-                                    Reference / Cheque No.
+                                    Reference / Cheque No. <span class="text-rose-500">*</span>
                                 </label>
-                                <input type="text" name="reference_no" placeholder="CKB123456 or Chq #000123" 
+                                <input type="text" name="reference_no" value="{{ old('reference_no') }}" required placeholder="CKB123456 or Chq #000123" 
                                        class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition">
                             </div>
                             <div>
@@ -392,8 +397,8 @@
                 return Boolean(this.selectedBank && this.parsedAmount > 0 && this.parsedAmount > this.selectedBankBalance);
             },
 
-            get amountInWordsText() {
-                let num = Math.floor(this.parsedAmount);
+            numberToWords(val) {
+                let num = Math.floor(parseFloat(val) || 0);
                 if (!num || num <= 0) return '';
                 const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
                 const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
@@ -417,6 +422,14 @@
                 if (hundred > 0) str += toWords(hundred) + ' Hundred ';
                 if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
                 return str.trim() + ' Rupees Only';
+            },
+
+            get selectedBankBalanceInWords() {
+                return this.numberToWords(this.selectedBankBalance);
+            },
+
+            get amountInWordsText() {
+                return this.numberToWords(this.parsedAmount);
             },
 
             formatCurrency(value) {

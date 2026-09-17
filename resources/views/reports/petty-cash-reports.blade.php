@@ -220,149 +220,10 @@
             </div>
         </div>
 
-        <!-- ── Executive Summaries Section (Rich Gold Theme) ── -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            
-            <!-- Card 1: Petty Cash Summary -->
-            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
-                <div>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                            <h2 class="text-[11px] font-black text-white uppercase tracking-widest">PETTY CASH SUMMARY</h2>
-                        </div>
-                        <span class="text-[9px] badge font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Site Info</span>
-                    </div>
-                    <div class="p-5">
-                        <table class="w-full text-xs">
-                            <tbody class="divide-y divide-slate-100">
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Site</td>
-                                    <td class="py-2.5 text-right font-bold text-slate-900 truncate max-w-[160px]" title="{{ $siteName }}">{{ $siteName }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Cash Box / Incharge</td>
-                                    <td class="py-2.5 text-right font-bold text-slate-900">{{ $cashBoxIncharge }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Cash Box Code</td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-slate-900">{{ $cashBoxCode }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Last Updated</td>
-                                    <td class="py-2.5 text-right font-mono font-semibold text-slate-800 text-[11px]">{{ $lastUpdated }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="px-5 pb-5">
-                    <div class="p-3.5 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] rounded-xl flex items-center justify-between shadow-2xs">
-                        <div>
-                            <div class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">UPDATED BY</div>
-                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Responsible Officer</div>
-                        </div>
-                        <div class="text-sm font-mono font-black text-[#8a7522]">{{ $updatedBy }}</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 2: Transaction Flow Summary -->
-            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
-                <div>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
-                            <h2 class="text-[11px] font-black text-white uppercase tracking-widest">TRANSACTION FLOW</h2>
-                        </div>
-                        <span class="text-[9px] badge font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Period's Flow</span>
-                    </div>
-                    <div class="p-5">
-                        <table class="w-full text-xs">
-                            <tbody class="divide-y divide-slate-100">
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Bank Withdrawal (Contra)</td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981]">+ ₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Site Expenses</td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-[#ef4444]">- ₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Recorded Transactions</td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-slate-800">{{ count($reportData['entries'] ?? []) }} Entries</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Audit Status</td>
-                                    <td class="py-2.5 text-right font-bold text-emerald-700">Reconciled</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="px-5 pb-5">
-                    <div class="p-3.5 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] rounded-xl flex items-center justify-between shadow-2xs">
-                        <div>
-                            <div class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">NET CASH FLOW</div>
-                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Net movement period</div>
-                        </div>
-                        <div class="text-base font-mono font-black {{ $netPeriodChange >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]' }}">
-                            {{ $netPeriodChange >= 0 ? '+' : '' }} ₹ {{ number_format($netPeriodChange, 2) }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card 3: Balance Snapshot -->
-            <div class="bg-white rounded-2xl border border-[#EAE3CD] shadow-sm overflow-hidden flex flex-col justify-between">
-                <div>
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-[#a38c29] to-[#8a7520] border-b border-[#7c691c] text-white flex items-center justify-between shadow-xs">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-amber-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <h2 class="text-[11px] font-black text-white uppercase tracking-widest">BALANCE SNAPSHOT</h2>
-                        </div>
-                        <span class="text-[9px] badge font-black text-white bg-white/20 border border-white/30 px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">Live Balance</span>
-                    </div>
-                    <div class="p-5">
-                        <table class="w-full text-xs">
-                            <tbody class="divide-y divide-slate-100">
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Opening Balance</td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-slate-900">₹ {{ number_format($reportData['opening_balance'] ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Add: Cash In (Period)</td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-[#10b981]">₹ {{ number_format($reportData['total_cash_in'] ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Less: Cash Out (Period)</td>
-                                    <td class="py-2.5 text-right font-mono font-bold text-[#ef4444]">₹ {{ number_format($reportData['total_cash_out'] ?? 0, 2) }}</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-2.5 font-semibold text-slate-600">Register Audit Date</td>
-                                    <td class="py-2.5 text-right font-mono font-semibold text-slate-800 text-[11px]">{{ \Carbon\Carbon::parse($reportData['to_date'])->format('d-M-Y') }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="px-5 pb-5">
-                    <div class="p-3.5 bg-gradient-to-r from-[#FAF0D7] to-[#F6F3E9] border border-[#EAE3CD] rounded-xl flex items-center justify-between shadow-2xs">
-                        <div>
-                            <div class="text-[10px] font-black uppercase tracking-wider text-[#8a7522]">CLOSING BALANCE</div>
-                            <div class="text-[10px] text-slate-500 font-semibold mt-0.5">Current cash in hand</div>
-                        </div>
-                        <div class="text-lg font-mono font-black text-[#8a7522]">₹ {{ number_format($reportData['closing_balance'] ?? 0, 2) }}</div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ── Recent Transactions Table Card (Web View) ── -->
+        <!-- ── Petty Cash Transaction Ledger Table Card (Web View) ── -->
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden mb-8 print:hidden relative">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 class="text-[14px] font-extrabold text-[#a38c29] uppercase tracking-wider">Recent Transactions</h3>
+                <h3 class="text-[14px] font-extrabold text-[#a38c29] uppercase tracking-wider">Petty Cash Transaction Ledger</h3>
                 <span class="text-[11px] bg-slate-100 text-slate-700 px-3 py-1 rounded-full font-bold">
                     <span>{{ count($reportData['entries'] ?? []) }}</span> Entries
                 </span>
@@ -380,7 +241,6 @@
                             <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Cash Out (₹)</th>
                             <th class="px-5 py-3.5 text-right text-[11px] font-extrabold uppercase tracking-wide">Balance (₹)</th>
                             <th class="px-5 py-3.5 text-left text-[11px] font-extrabold uppercase tracking-wide">Reference</th>
-                            <th class="px-5 py-3.5 text-center text-[11px] font-extrabold uppercase tracking-wide print:hidden">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100 bg-white" id="reportTableBody">
@@ -430,29 +290,10 @@
                                 <td class="px-5 py-4 text-left text-[11px] font-medium text-gray-500">
                                     {{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : '—' }}
                                 </td>
-
-                                <td class="px-5 py-4 text-center print:hidden">
-                                    @if(!$isOpening && $txn->voucher_number !== '-')
-                                        <button type="button" 
-                                                onclick="showDetailModal(this)" 
-                                                data-voucher="{{ $txn->voucher_number }}"
-                                                data-date="{{ $txn->date }}"
-                                                data-type="{{ $typeDisplay }}"
-                                                data-cashin="{{ $txn->cash_in > 0 ? number_format($txn->cash_in, 2) : '0.00' }}"
-                                                data-cashout="{{ $txn->cash_out > 0 ? number_format($txn->cash_out, 2) : '0.00' }}"
-                                                data-balance="{{ number_format($txn->balance, 2) }}"
-                                                data-reference="{{ ($txn->reference_no && $txn->reference_no !== '-') ? $txn->reference_no : 'N/A' }}"
-                                                class="text-[#a38c29] hover:text-[#8a7522] transition-colors focus:outline-none cursor-pointer" title="View Transaction Details">
-                                            <svg class="w-4 h-4 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </button>
-                                    @else
-                                        <span class="text-gray-300 text-xs">—</span>
-                                    @endif
-                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-5 py-8 text-center text-[12px] font-bold text-gray-400 uppercase tracking-wider">No transactions found for this period.</td>
+                                <td colspan="7" class="px-5 py-8 text-center text-[12px] font-bold text-gray-400 uppercase tracking-wider">No transactions found for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>
