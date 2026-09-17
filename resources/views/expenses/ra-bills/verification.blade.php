@@ -118,15 +118,97 @@
         </div>
     </div>
 
+    <!-- ── ULTRA-CLEAN MODERN LIGHT SEARCH & FILTER PANEL (MATCHING CHEQUE RECEIPT ENTRY) ── -->
+    @php
+        $filterProjects = $raBills->pluck('project')->filter()->unique('id')->sortBy('name');
+        $defaultProjectId = $filterProjects->first()?->id ?? '';
+    @endphp
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-4 shadow-sm transition-all">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 w-full">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+
+                {{-- 1. Contractor Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    </div>
+                    <select x-model="filterContractorId"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Contractors</option>
+                        @php
+                            $filterContractors = collect($contractors);
+                            foreach($raBills as $b) {
+                                if ($b->contractor_id && !$filterContractors->contains('id', $b->contractor_id)) {
+                                    $cName = $b->contractor->name ?? $b->contractor_name;
+                                    if ($cName) {
+                                        $filterContractors->push((object)['id' => $b->contractor_id, 'name' => $cName]);
+                                    }
+                                }
+                            }
+                            $filterContractors = $filterContractors->unique('id')->sortBy('name');
+                        @endphp
+                        @foreach($filterContractors as $c)
+                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+
+                {{-- 2. Project Filter (1st Project Default Selected) --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+                    <select x-model="filterProjectId"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Projects</option>
+                        @foreach($filterProjects as $p)
+                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                        @endforeach
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+
+                {{-- 3. Status Filter --}}
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-7 5h7"/></svg>
+                    </div>
+                    <select x-model="filterStatus"
+                            class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
+                        <option value="">All Statuses</option>
+                        <option value="verified">Verified / Signed Off</option>
+                        <option value="submitted">Pending Verification</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Reset Filters Button --}}
+            <button type="button" @click="resetFilters()"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer">
+                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>RESET FILTERS</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Excel-Matched RA Progress Bills Register Table -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-50/50">
             <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span class="text-xs font-bold text-slate-700 uppercase tracking-wider">RA Progress Bills & Verification Sign-Off Register</span>
-                <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold">{{ $raBills->count() }} Records</span>
+                <span class="text-[11px] bg-slate-200 text-slate-700 px-2.5 py-0.5 rounded-full font-bold"
+                      x-text="getVisibleCount() + ' Records'">{{ $raBills->count() }} Records</span>
             </div>
-
-           
         </div>
 
         <div class="overflow-x-auto">
@@ -147,7 +229,11 @@
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
                     @forelse($raBills as $bill)
-                        <tr class="hover:bg-amber-50/20 transition-colors border-b border-slate-100">
+                        @php
+                            $statusVal = $bill->verified_date ? 'verified' : 'submitted';
+                        @endphp
+                        <tr x-show="matchesFilter('{{ $bill->contractor_id }}', '{{ $bill->project_id }}', '{{ $statusVal }}')"
+                            class="hover:bg-amber-50/20 transition-colors border-b border-slate-100">
                             <td class="px-3 py-3 text-left align-middle border-r border-slate-200/50 bg-slate-50/50">
                                 <span class="inline-block px-2 py-0.5 bg-slate-200/80 text-slate-900 rounded font-mono font-extrabold text-[10.5px] whitespace-nowrap shadow-2xs">{{ $bill->ra_bill_number }}</span>
                             </td>
@@ -256,6 +342,21 @@
                             </td>
                         </tr>
                     @endforelse
+
+                    @if($raBills->isNotEmpty())
+                        <tr x-show="getVisibleCount() === 0" x-cloak>
+                            <td colspan="10" class="px-4 py-12 text-center text-slate-400">
+                                <div class="flex flex-col items-center justify-center gap-2">
+                                    <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                    <div class="font-bold text-xs text-slate-600">No RA bills found matching the selected filters.</div>
+                                    <button type="button" @click="resetFilters()" class="mt-1 text-xs text-[#a38c29] hover:underline font-bold inline-flex items-center gap-1 cursor-pointer">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                                        Reset Filters
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @endif
                 </tbody>
             </table>
         </div>
@@ -509,7 +610,55 @@
 
 <script>
 function raBillVerification() {
+    const defaultProjectId = '{{ $defaultProjectId }}';
     return {
+        filterContractorId: '',
+        filterProjectId: defaultProjectId,
+        filterStatus: '',
+        allBills: [
+            @foreach($raBills as $bill)
+            {
+                contractor_id: '{{ $bill->contractor_id }}',
+                project_id: '{{ $bill->project_id }}',
+                status: '{{ $bill->verified_date ? "verified" : "submitted" }}',
+            },
+            @endforeach
+        ],
+
+        resetFilters() {
+            this.filterContractorId = '';
+            this.filterProjectId = defaultProjectId;
+            this.filterStatus = '';
+        },
+
+        matchesFilter(contractorId, projectId, status) {
+            if (this.filterContractorId && String(contractorId) !== String(this.filterContractorId)) {
+                return false;
+            }
+            if (this.filterProjectId && String(projectId) !== String(this.filterProjectId)) {
+                return false;
+            }
+            if (this.filterStatus && status !== this.filterStatus) {
+                return false;
+            }
+            return true;
+        },
+
+        getVisibleCount() {
+            return this.allBills.filter(b => {
+                if (this.filterContractorId && String(b.contractor_id) !== String(this.filterContractorId)) {
+                    return false;
+                }
+                if (this.filterProjectId && String(b.project_id) !== String(this.filterProjectId)) {
+                    return false;
+                }
+                if (this.filterStatus && b.status !== this.filterStatus) {
+                    return false;
+                }
+                return true;
+            }).length;
+        },
+
         searchQuery: '',
         addModalOpen: {{ $errors->has('ra_bill_number') || $errors->has('contractor_id') || $errors->has('gross_amount') ? 'true' : 'false' }},
         verifyModalOpen: false,

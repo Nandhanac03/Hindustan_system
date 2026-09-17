@@ -2588,11 +2588,11 @@ class VoucherController extends Controller
             ->findOrFail($id);
 
         $raBillPayment = class_exists(\App\Models\RaBillPayment::class)
-            ? \App\Models\RaBillPayment::with(['raBill.contractor', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
+            ? \App\Models\RaBillPayment::with(['raBill.contractor', 'raBill.project', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
             : null;
 
         $siteExpensePayment = (!$raBillPayment && class_exists(\App\Models\SiteExpensePayment::class))
-            ? \App\Models\SiteExpensePayment::with(['siteExpense.vendor', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
+            ? \App\Models\SiteExpensePayment::with(['siteExpense.vendor', 'siteExpense.project', 'companyBankAccount'])->where('voucher_id', $voucher->id)->first()
             : null;
 
         $commissionEntry = (!$raBillPayment && !$siteExpensePayment && class_exists(\App\Models\CommissionEntry::class))
@@ -2638,8 +2638,10 @@ class VoucherController extends Controller
             ?: ($siteExpensePayment?->companyBankAccount?->account_number
                 ?: ($siteExpensePayment?->loan?->account_number ?? null));
 
-        $projectName = $raBillPayment?->raBill?->project?->name
-            ?: ($siteExpensePayment?->siteExpense?->project?->name ?? null);
+        $project = $raBillPayment?->raBill?->project
+            ?: ($siteExpensePayment?->siteExpense?->project ?? null);
+        $projectName = $project?->name;
+        $projectLocation = $project?->location ?: ($project?->city ?? null);
 
         $categoryName = $siteExpensePayment?->siteExpense?->expense_category_name
             ?: ($raBillPayment ? 'Contractor RA Bill Progress Settlement' : null);
@@ -2654,6 +2656,7 @@ class VoucherController extends Controller
             'bankName',
             'bankAccountNo',
             'projectName',
+            'projectLocation',
             'categoryName'
         ));
     }

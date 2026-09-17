@@ -198,204 +198,117 @@
     @endif
 
     {{-- ======================================================== --}}
-    {{-- 1. DMS-STYLE CATEGORY GRID CARDS (Top Category Tabs)     --}}
+    {{-- UNIFIED TOOLBAR: Search + Category Tabs + Status Filters --}}
     {{-- ======================================================== --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {{-- Card 1: ALL HEADS --}}
-        <button type="button" @click="activeTypeFilter = ''; filterRows()"
-                class="bg-white rounded-2xl border border-l-[5px] border-l-[#a38c29] border-y-slate-200/80 border-r-slate-200/80 transition-all duration-300 py-4 px-2.5 flex flex-col items-center justify-center text-center relative overflow-hidden group shadow-xs hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.25)] hover:border-r-[#a38c29]/20 hover:border-y-[#a38c29]/20 h-full min-h-[120px] cursor-pointer"
-                :class="activeTypeFilter === '' ? 'ring-2 ring-[#a38c29] bg-amber-50/15 shadow-md -translate-y-0.5' : ''">
-            <div class="w-9 h-9 rounded-xl bg-[#a38c29]/10 text-[#8a7522] border border-[#a38c29]/20 flex items-center justify-center shrink-0 mb-2.5 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110"
-                 :class="activeTypeFilter === '' ? 'bg-[#a38c29] text-white' : ''">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-            </div>
-            <div class="flex flex-col justify-between">
-                <h4 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-tight px-1 mb-1 min-h-[26px] flex items-center justify-center transition-colors group-hover:text-slate-900">
-                    All Heads
-                </h4>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-hover:text-slate-500">
-                    {{ $totalAccountsCount }} Accounts
-                </p>
-            </div>
-        </button>
-
-        {{-- Card 2: ASSETS (DR) --}}
-        <button type="button" @click="activeTypeFilter = 'ASSET'; filterRows()"
-                class="bg-white rounded-2xl border border-l-[5px] border-l-blue-500 border-y-slate-200/80 border-r-slate-200/80 transition-all duration-300 py-4 px-2.5 flex flex-col items-center justify-center text-center relative overflow-hidden group shadow-xs hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.25)] hover:border-r-blue-500/20 hover:border-y-blue-500/20 h-full min-h-[120px] cursor-pointer"
-                :class="activeTypeFilter === 'ASSET' ? 'ring-2 ring-blue-500 bg-blue-50/20 shadow-md -translate-y-0.5' : ''">
-            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center shrink-0 mb-2.5 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110"
-                 :class="activeTypeFilter === 'ASSET' ? 'bg-blue-600 text-white' : ''">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-            </div>
-            <div class="flex flex-col justify-between">
-                <h4 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-tight px-1 mb-1 min-h-[26px] flex items-center justify-center transition-colors group-hover:text-slate-900">
-                    Assets (Dr)
-                </h4>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-hover:text-slate-500">
-                    {{ $assetCount }} Accounts
-                </p>
-            </div>
-        </button>
-
-        {{-- Card 3: LIABILITIES (CR) --}}
-        <button type="button" @click="activeTypeFilter = 'LIABILITY'; filterRows()"
-                class="bg-white rounded-2xl border border-l-[5px] border-l-amber-500 border-y-slate-200/80 border-r-slate-200/80 transition-all duration-300 py-4 px-2.5 flex flex-col items-center justify-center text-center relative overflow-hidden group shadow-xs hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(217,119,6,0.25)] hover:border-r-amber-500/20 hover:border-y-amber-500/20 h-full min-h-[120px] cursor-pointer"
-                :class="activeTypeFilter === 'LIABILITY' ? 'ring-2 ring-amber-500 bg-amber-50/20 shadow-md -translate-y-0.5' : ''">
-            <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center shrink-0 mb-2.5 transition-all duration-300 group-hover:bg-amber-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110"
-                 :class="activeTypeFilter === 'LIABILITY' ? 'bg-amber-600 text-white' : ''">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/></svg>
-            </div>
-            <div class="flex flex-col justify-between">
-                <h4 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-tight px-1 mb-1 min-h-[26px] flex items-center justify-center transition-colors group-hover:text-slate-900">
-                    Liabilities (Cr)
-                </h4>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-hover:text-slate-500">
-                    {{ $liabilityCount }} Accounts
-                </p>
-            </div>
-        </button>
-
-        {{-- Card 4: REVENUE --}}
-        <button type="button" @click="activeTypeFilter = 'REVENUE'; filterRows()"
-                class="bg-white rounded-2xl border border-l-[5px] border-l-emerald-500 border-y-slate-200/80 border-r-slate-200/80 transition-all duration-300 py-4 px-2.5 flex flex-col items-center justify-center text-center relative overflow-hidden group shadow-xs hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.25)] hover:border-r-emerald-500/20 hover:border-y-emerald-500/20 h-full min-h-[120px] cursor-pointer"
-                :class="activeTypeFilter === 'REVENUE' ? 'ring-2 ring-emerald-500 bg-emerald-50/20 shadow-md -translate-y-0.5' : ''">
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0 mb-2.5 transition-all duration-300 group-hover:bg-emerald-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110"
-                 :class="activeTypeFilter === 'REVENUE' ? 'bg-emerald-600 text-white' : ''">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <div class="flex flex-col justify-between">
-                <h4 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-tight px-1 mb-1 min-h-[26px] flex items-center justify-center transition-colors group-hover:text-slate-900">
-                    Revenue
-                </h4>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-hover:text-slate-500">
-                    {{ $revenueCount }} Accounts
-                </p>
-            </div>
-        </button>
-
-        {{-- Card 5: EXPENSES --}}
-        <button type="button" @click="activeTypeFilter = 'EXPENSE'; filterRows()"
-                class="bg-white rounded-2xl border border-l-[5px] border-l-rose-500 border-y-slate-200/80 border-r-slate-200/80 transition-all duration-300 py-4 px-2.5 flex flex-col items-center justify-center text-center relative overflow-hidden group shadow-xs hover:-translate-y-1 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.25)] hover:border-r-rose-500/20 hover:border-y-rose-500/20 h-full min-h-[120px] cursor-pointer"
-                :class="activeTypeFilter === 'EXPENSE' ? 'ring-2 ring-rose-500 bg-rose-50/20 shadow-md -translate-y-0.5' : ''">
-            <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shrink-0 mb-2.5 transition-all duration-300 group-hover:bg-rose-600 group-hover:text-white group-hover:shadow-md group-hover:scale-110"
-                 :class="activeTypeFilter === 'EXPENSE' ? 'bg-rose-600 text-white' : ''">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
-            </div>
-            <div class="flex flex-col justify-between">
-                <h4 class="text-[10px] font-extrabold text-slate-800 uppercase tracking-tight leading-tight px-1 mb-1 min-h-[26px] flex items-center justify-center transition-colors group-hover:text-slate-900">
-                    Expenses
-                </h4>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-hover:text-slate-500">
-                    {{ $expenseCount }} Accounts
-                </p>
-            </div>
-        </button>
-    </div>
-
-    {{-- ======================================================== --}}
-    {{-- 2. DMS-STYLE ULTRA-CLEAN SEARCH & FILTER BAR (Single Line) --}}
-    {{-- ======================================================== --}}
-    <div class="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-all">
-        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 min-w-0">
+    <div class="bg-white rounded-2xl border border-slate-200/90 p-3.5 shadow-sm space-y-3 transition-all">
+        {{-- Row 1: Search, Category Tabs & Reset --}}
+        <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
             {{-- Search Input --}}
-            <div class="relative group flex-1 min-w-[200px]">
+            <div class="relative group min-w-[220px] max-w-md flex-1">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                     <svg class="w-4 h-4 text-[#a38c29] group-focus-within:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                 </div>
                 <input type="text" x-model="searchQuery" @input="filterRows()" 
-                       placeholder="Search by Account Code (e.g. 1001) or Account Name..." 
-                       class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
+                       placeholder="Search by Code (e.g. 1001) or Account Name..." 
+                       class="w-full pl-10 pr-10 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
                 <button type="button" x-show="searchQuery" @click="searchQuery = ''; filterRows()" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-rose-500 cursor-pointer" style="display: none;">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
 
-            {{-- Category Filter Select --}}
-            <div class="relative w-full sm:w-64 md:w-72 lg:w-80 shrink-0">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                </div>
-                <select x-model="activeTypeFilter" @change="filterRows()" 
-                        class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                    <option value="">All Categories</option>
-                    <option value="ASSET">Assets (Dr)</option>
-                    <option value="LIABILITY">Liabilities (Cr)</option>
-                    <option value="REVENUE">Revenue (Cr)</option>
-                    <option value="EXPENSE">Expenses (Dr)</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                </div>
+            {{-- Category Filter Tabs (Pills) --}}
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 custom-scrollbar flex-wrap sm:flex-nowrap">
+                {{-- All Heads --}}
+                <button type="button" @click="activeTypeFilter = ''; filterRows()"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        :class="activeTypeFilter === '' ? 'bg-[#a38c29] text-white shadow-xs' : 'bg-slate-100 hover:bg-slate-200/80 text-slate-600'">
+                    <span>All Heads</span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black"
+                          :class="activeTypeFilter === '' ? 'bg-white/25 text-white' : 'bg-white text-slate-500'">{{ $totalAccountsCount }}</span>
+                </button>
+
+                {{-- Assets (DR) --}}
+                <button type="button" @click="activeTypeFilter = 'ASSET'; filterRows()"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        :class="activeTypeFilter === 'ASSET' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-blue-700'">
+                    <span>Assets (Dr)</span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black"
+                          :class="activeTypeFilter === 'ASSET' ? 'bg-white/25 text-white' : 'bg-blue-100 text-blue-700'">{{ $assetCount }}</span>
+                </button>
+
+                {{-- Liabilities (CR) --}}
+                <button type="button" @click="activeTypeFilter = 'LIABILITY'; filterRows()"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        :class="activeTypeFilter === 'LIABILITY' ? 'bg-amber-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-amber-50 text-slate-600 hover:text-amber-700'">
+                    <span>Liabilities (Cr)</span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black"
+                          :class="activeTypeFilter === 'LIABILITY' ? 'bg-white/25 text-white' : 'bg-amber-100 text-amber-700'">{{ $liabilityCount }}</span>
+                </button>
+
+                {{-- Revenue --}}
+                <button type="button" @click="activeTypeFilter = 'REVENUE'; filterRows()"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        :class="activeTypeFilter === 'REVENUE' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700'">
+                    <span>Revenue</span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black"
+                          :class="activeTypeFilter === 'REVENUE' ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-700'">{{ $revenueCount }}</span>
+                </button>
+
+                {{-- Expenses --}}
+                <button type="button" @click="activeTypeFilter = 'EXPENSE'; filterRows()"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                        :class="activeTypeFilter === 'EXPENSE' ? 'bg-rose-600 text-white shadow-xs' : 'bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700'">
+                    <span>Expenses</span>
+                    <span class="px-1.5 py-0.5 rounded-md text-[10px] font-black"
+                          :class="activeTypeFilter === 'EXPENSE' ? 'bg-white/25 text-white' : 'bg-rose-100 text-rose-700'">{{ $expenseCount }}</span>
+                </button>
             </div>
+
+            {{-- Reset Filters Button --}}
+            <button type="button" @click="resetAllFilters()" 
+                    class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 text-xs font-bold transition cursor-pointer shrink-0">
+                <svg class="h-3.5 w-3.5 text-slate-500 transition-transform duration-300 hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <span>Reset</span>
+            </button>
         </div>
 
-        {{-- Reset Filters Button --}}
-        <button type="button" @click="resetAllFilters()" 
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-5 py-2.5 h-[42px] text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 uppercase tracking-wider group active:scale-95 cursor-pointer shrink-0 whitespace-nowrap">
-            <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-            </svg>
-            <span>RESET FILTERS</span>
-        </button>
-    </div>
+        {{-- Row 2: Status Sub-Tabs (All Records, Configured, Zero) --}}
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100 text-xs">
+            <div class="inline-flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl">
+                {{-- All Records --}}
+                <button type="button" @click="balanceStatusFilter = 'all'; filterRows()"
+                        class="px-3 py-1 rounded-lg text-[11px] font-extrabold transition cursor-pointer flex items-center gap-1.5"
+                        :class="balanceStatusFilter === 'all' ? 'bg-white text-[#a38c29] shadow-xs' : 'text-slate-500 hover:text-slate-800'">
+                    <span>All Records</span>
+                    <span class="px-1.5 py-0.2 rounded text-[10px]" :class="balanceStatusFilter === 'all' ? 'bg-[#a38c29]/10 text-[#a38c29]' : 'bg-slate-200/60 text-slate-500'">{{ $totalAccountsCount }}</span>
+                </button>
 
-    {{-- ======================================================== --}}
-    {{-- 3. DMS-STYLE PREMIUM SEGMENTED STATUS NAVIGATION TABS     --}}
-    {{-- ======================================================== --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
-        <div class="bg-white p-1.5 rounded-2xl border border-slate-200/90 shadow-sm inline-flex items-center gap-1.5 max-w-full overflow-x-auto">
-            {{-- Tab 1: All Records --}}
-            <button type="button" @click="balanceStatusFilter = 'all'; filterRows()" 
-                    class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
-                    :class="balanceStatusFilter === 'all' 
-                        ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
-                <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
-                     :class="balanceStatusFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-500 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                </div>
-                <span>All Records</span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
-                      :class="balanceStatusFilter === 'all' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
-                    {{ $totalAccountsCount }}
-                </span>
-            </button>
+                {{-- Configured --}}
+                <button type="button" @click="balanceStatusFilter = 'configured'; filterRows()"
+                        class="px-3 py-1 rounded-lg text-[11px] font-extrabold transition cursor-pointer flex items-center gap-1.5"
+                        :class="balanceStatusFilter === 'configured' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Configured</span>
+                    <span class="px-1.5 py-0.2 rounded text-[10px]" :class="balanceStatusFilter === 'configured' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200/60 text-slate-500'" x-text="liveConfiguredCount">{{ $configuredCount }}</span>
+                </button>
 
-            {{-- Tab 2: Configured Balances --}}
-            <button type="button" @click="balanceStatusFilter = 'configured'; filterRows()" 
-                    class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
-                    :class="balanceStatusFilter === 'configured' 
-                        ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
-                <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
-                     :class="balanceStatusFilter === 'configured' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                </div>
-                <span>Configured</span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
-                      :class="balanceStatusFilter === 'configured' ? 'bg-white/25 text-white' : 'bg-emerald-50 text-emerald-700 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
-                    <span x-text="liveConfiguredCount">{{ $configuredCount }}</span>
-                </span>
-            </button>
+                {{-- Zero --}}
+                <button type="button" @click="balanceStatusFilter = 'zero'; filterRows()"
+                        class="px-3 py-1 rounded-lg text-[11px] font-extrabold transition cursor-pointer flex items-center gap-1.5"
+                        :class="balanceStatusFilter === 'zero' ? 'bg-white text-amber-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span>Zero (0.00)</span>
+                    <span class="px-1.5 py-0.2 rounded text-[10px]" :class="balanceStatusFilter === 'zero' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200/60 text-slate-500'" x-text="Object.keys(rowsData).length - liveConfiguredCount">{{ $totalAccountsCount - $configuredCount }}</span>
+                </button>
+            </div>
 
-            {{-- Tab 3: Zero Balances --}}
-            <button type="button" @click="balanceStatusFilter = 'zero'; filterRows()" 
-                    class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 cursor-pointer relative group active:scale-95 whitespace-nowrap"
-                    :class="balanceStatusFilter === 'zero' 
-                        ? 'bg-gradient-to-r from-[#a38c29] to-[#8a7522] text-white shadow-md shadow-[#a38c29]/25' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'">
-                <div class="w-5 h-5 rounded-lg flex items-center justify-center transition-colors"
-                     :class="balanceStatusFilter === 'zero' ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-700 group-hover:bg-[#a38c29]/10 group-hover:text-[#a38c29]'">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </div>
-                <span>Zero (0.00)</span>
-                <span class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider transition-colors"
-                      :class="balanceStatusFilter === 'zero' ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-[#a38c29]/15 group-hover:text-[#a38c29]'">
-                    <span x-text="Object.keys(rowsData).length - liveConfiguredCount">{{ $totalAccountsCount - $configuredCount }}</span>
-                </span>
-            </button>
+            <div class="text-[11px] font-semibold text-slate-400 hidden sm:block">
+                Enter initial amounts in DR or CR columns · Buffer absorbs automatically into Account 3090
+            </div>
         </div>
     </div>
 

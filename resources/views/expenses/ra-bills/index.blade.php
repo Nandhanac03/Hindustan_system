@@ -902,9 +902,9 @@
 
     <!-- ── MODAL 3: STAGGERED DISBURSEMENT RELEASE ── -->
     <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="disburseModalOpen = false">
-            {{-- Dark Header (Matched with Add Unit Modal) --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+        <div class="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all border-0 ring-0 outline-none flex flex-col" @click.away="disburseModalOpen = false">
+            {{-- Dark Header (Zero White Border / Fringe) --}}
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
@@ -917,7 +917,7 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="p-6 space-y-4">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="bg-white p-6 space-y-4 rounded-b-2xl">
                 @csrf
 
                 <!-- Summary Card -->
@@ -944,8 +944,15 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PAID AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedBill ? selectedBill.balance_amount : 0" required
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">PAID AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
+                            <button type="button" 
+                                    @click="disbursePaidAmount = selectedBill ? selectedBill.balance_amount : ''; $nextTick(() => { const el = $el.closest('form').querySelector('input[name=\'paid_amount\']'); if(el && window.updateAmountInWordsForInput) window.updateAmountInWordsForInput(el); })"
+                                    class="text-[10px] font-bold text-[#a38c29] hover:underline cursor-pointer">
+                                Pay Full Balance
+                            </button>
+                        </div>
+                        <input type="number" step="0.01" min="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedBill ? selectedBill.balance_amount : null" placeholder="Enter amount to pay..." required
                                class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-sm font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
                                oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
                     </div>
@@ -981,54 +988,65 @@
                     </div>
                 </div>
 
-                <!-- ── LIVE BANK BALANCE & CONTRACTOR DUES INTELLIGENCE STRIP ── -->
-                <div class="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-2.5">
-                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                <!-- ── LIVE BANK BALANCE & BILL SETTLEMENT INTELLIGENCE STRIP ── -->
+                <div class="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-3">
+                    <div class="flex items-center justify-betwe
+                    en border-b border-slate-200/80 pb-2.5">
                         <div class="flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full" :class="isBankSufficient() ? 'bg-emerald-500 shadow-xs' : 'bg-rose-500 animate-ping'"></span>
-                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Contractor Dues Analysis</span>
+                            <span class="text-xs font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Bill Settlement Analysis</span>
                         </div>
                         <div>
-                            <span x-show="isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
+                            <span x-show="isBankSufficient()" class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
                                 <span>✓ Sufficient Bank Balance</span>
                             </span>
-                            <span x-show="!isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
-                                <span>⚠️ Insufficient Funds (Shortfall: ₹<span x-text="numberFormat(getShortfall())"></span>)</span>
+                            <span x-show="!isBankSufficient()" class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
+                                <span>⚠️ Insufficient Funds (Shortfall: ₹ <span x-text="numberFormat(getShortfall())"></span>)</span>
                             </span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <!-- 1. Bank Account Balance & Post-Payment Balance -->
-                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                            <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">Current Bank Balance</span>
-                            <div class="font-mono font-black text-slate-900 text-sm mt-1" x-text="'₹' + numberFormat(getBankBalance())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                                <span>Post-Payment:</span>
-                                <strong :class="getPostBankBalance() >= 0 ? 'text-emerald-700 font-mono font-black' : 'text-rose-600 font-mono font-black'" x-text="'₹' + numberFormat(getPostBankBalance())"></strong>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- 1. Bank Account Balance -->
+                        <div class="p-4 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
+                            <span class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">BANK ACCOUNT BALANCE</span>
+                            
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-500">Current:</span>
+                                    <span class="font-mono font-black text-slate-900 text-lg md:text-xl" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
+                                </div>
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                    <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
+                                    <span class="font-mono font-black text-lg md:text-xl" :class="getPostBankBalance() >= 0 ? 'text-emerald-700' : 'text-rose-600'" x-text="'₹ ' + numberFormat(getPostBankBalance())"></span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- 2. This RA Bill Remaining Balance -->
-                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                            <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">This Bill Due Remaining</span>
-                            <div class="font-mono font-black text-sm mt-1" :class="getBillRemaining() == 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="'₹' + numberFormat(getBillRemaining())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                                <span>Current Due:</span>
-                                <span class="font-mono font-bold text-slate-800" x-text="'₹' + numberFormat(selectedBill ? selectedBill.balance_amount : 0)"></span>
+                        <!-- 2. RA Bill Balance -->
+                        <div class="p-4 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
+                            <div class="flex items-center justify-between mb-2.5">
+                                <span class="block text-xs font-black text-slate-700 uppercase tracking-wider">RA BILL OUTSTANDING</span>
+                                <span x-show="parseFloat(disbursePaidAmount) > 0 && getBillRemaining() == 0" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    Fully Settled
+                                </span>
+                                <span x-show="parseFloat(disbursePaidAmount) > 0 && getBillRemaining() > 0" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-200">
+                                    Part Due
+                                </span>
+                                <span x-show="!parseFloat(disbursePaidAmount)" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                    Pending Entry
+                                </span>
                             </div>
-                        </div>
-
-                        <!-- 3. Total Contractor Pending Balance -->
-                        <div class="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between">
-                            <span class="block text-[9px] font-black text-[#a38c29] uppercase tracking-wider">Contractor Total Dues</span>
-                            <div class="font-mono font-black text-[#8a7522] text-sm mt-1" x-text="'₹' + numberFormat(getContractorTotalDues())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                                <span>Post-Payment:</span>
-                                <span class="font-mono font-black text-slate-800" x-text="'₹' + numberFormat(getContractorPostDues())"></span>
-                            </div>
-                            <div class="text-[9px] text-slate-500 truncate mt-1">
-                                Payee: <strong class="text-slate-800" x-text="selectedBill ? (selectedBill.contractor_name || 'Contractor') : 'Contractor'"></strong>
+                            
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-500">Current Due:</span>
+                                    <span class="font-mono font-black text-slate-900 text-lg md:text-xl" x-text="'₹ ' + numberFormat(selectedBill ? selectedBill.balance_amount : 0)"></span>
+                                </div>
+                                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                    <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
+                                    <span class="font-mono font-black text-lg md:text-xl" :class="getBillRemaining() == 0 ? 'text-emerald-700' : 'text-amber-700'" x-text="'₹ ' + numberFormat(getBillRemaining())"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1234,7 +1252,7 @@ function raBillManagement() {
 
         openDisburseModal(bill) {
             this.selectedBill = bill;
-            this.disbursePaidAmount = bill.balance_amount || '';
+            this.disbursePaidAmount = '';
             if (!this.selectedBankId && this.companyBankAccounts.length > 0) {
                 this.selectedBankId = this.companyBankAccounts[0].id;
             }
@@ -1242,8 +1260,11 @@ function raBillManagement() {
 
             this.$nextTick(() => {
                 const inputEl = document.querySelector('input[name="paid_amount"]');
-                if (inputEl && window.updateAmountInWordsForInput) {
-                    window.updateAmountInWordsForInput(inputEl);
+                if (inputEl) {
+                    inputEl.focus();
+                    if (window.updateAmountInWordsForInput) {
+                        window.updateAmountInWordsForInput(inputEl);
+                    }
                 }
             });
         },

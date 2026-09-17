@@ -52,77 +52,86 @@
     @endif
 
     <!-- Toolbar & Filter Header -->
-    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-            <!-- Searchable Contractor Select Dropdown -->
-            <div class="relative w-full" x-data="{ open: false, search: '' }" @click.outside="open = false">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Contractor</label>
-                
-                <button type="button" @click="open = !open" 
-                        class="px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none w-full shadow-2xs flex items-center justify-between gap-2 hover:border-[#a38c29] transition">
-                    <span class="truncate" x-text="getSelectedContractorName()"></span>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <template x-if="selectedLedgerContractorId">
-                            <span @click.stop="selectedLedgerContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition" title="Clear selection">✕</span>
-                        </template>
-                        <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </div>
-                </button>
-
-                <!-- Searchable Dropdown Menu -->
-                <div x-show="open" x-transition.opacity.duration.150ms 
-                     class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
-                     style="display: none;">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm transition-all">
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3.5 w-full">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                <!-- Searchable Contractor Select Dropdown -->
+                <div class="relative w-full" x-data="{ open: false, search: '' }" @click.outside="open = false">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Select Contractor</label>
                     
-                    <div class="relative">
-                        <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <input type="text" x-model="search" placeholder="Type contractor name to filter..." 
-                               class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
-                               @keydown.escape="open = false" autofocus>
-                        <template x-if="search">
-                            <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                        </template>
-                    </div>
+                    <button type="button" @click="open = !open" 
+                            class="px-3.5 py-2.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none w-full shadow-2xs flex items-center justify-between gap-2 hover:border-[#a38c29]/60 transition">
+                        <span class="truncate" x-text="getSelectedContractorName()"></span>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <template x-if="selectedLedgerContractorId">
+                                <span @click.stop="selectedLedgerContractorId = ''; search = '';" class="p-0.5 text-slate-400 hover:text-rose-600 rounded-full hover:bg-slate-200 transition" title="Clear selection">✕</span>
+                            </template>
+                            <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </div>
+                    </button>
 
-                    <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
-                        <button type="button" @click="selectedLedgerContractorId = ''; open = false; search = '';" 
-                                class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !selectedLedgerContractorId }">
-                            <span>All Contractors</span>
-                            <span class="text-[10px] text-slate-400 font-normal" x-text="'(' + (contractorsList ? contractorsList.length : 0) + ')'"></span>
-                        </button>
+                    <!-- Searchable Dropdown Menu -->
+                    <div x-show="open" x-transition.opacity.duration.150ms 
+                         class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-2 space-y-2" 
+                         style="display: none;">
                         
-                        <template x-for="cont in getFilteredContractorsList(search)" :key="cont.id">
-                            <button type="button" @click="selectedLedgerContractorId = cont.id; open = false; search = '';" 
+                        <div class="relative">
+                            <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <input type="text" x-model="search" placeholder="Type contractor name to filter..." 
+                                   class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-[#a38c29] focus:bg-white transition"
+                                   @keydown.escape="open = false" autofocus>
+                            <template x-if="search">
+                                <button type="button" @click="search = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                            </template>
+                        </div>
+
+                        <div class="max-h-56 overflow-y-auto space-y-0.5 text-xs font-semibold">
+                            <button type="button" @click="selectedLedgerContractorId = ''; open = false; search = '';" 
                                     class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
-                                    :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': selectedLedgerContractorId == cont.id }">
-                                <span class="truncate" x-text="cont.name"></span>
-                                <span class="text-[9px] text-slate-400 font-mono" x-text="cont.gstin || cont.type || ''"></span>
+                                    :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': !selectedLedgerContractorId }">
+                                <span>All Contractors</span>
+                                <span class="text-[10px] text-slate-400 font-normal" x-text="'(' + (contractorsList ? contractorsList.length : 0) + ')'"></span>
                             </button>
-                        </template>
-                        
-                        <div x-show="getFilteredContractorsList(search).length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
-                            No contractors found.
+                            
+                            <template x-for="cont in getFilteredContractorsList(search)" :key="cont.id">
+                                <button type="button" @click="selectedLedgerContractorId = cont.id; open = false; search = '';" 
+                                        class="w-full px-3 py-2 text-left rounded-xl hover:bg-slate-100 flex items-center justify-between transition"
+                                        :class="{ 'bg-[#a38c29]/10 text-[#8a7522] font-black': selectedLedgerContractorId == cont.id }">
+                                    <span class="truncate" x-text="cont.name"></span>
+                                    <span class="text-[9px] text-slate-400 font-mono" x-text="cont.gstin || cont.type || ''"></span>
+                                </button>
+                            </template>
+                            
+                            <div x-show="getFilteredContractorsList(search).length === 0" class="px-3 py-3 text-center text-slate-400 text-xs italic">
+                                No contractors found.
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Enhanced Search Particulars / Ref # -->
-            <div class="w-full">
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Search Particulars / Ref #</label>
-                <div class="relative w-full">
-                    <input type="text" x-model="ledgerSearchQuery" placeholder="Search bill #, voucher #, project..."
-                           class="w-full px-3.5 py-2.5 pr-7 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none shadow-2xs">
-                    <template x-if="ledgerSearchQuery">
-                        <button type="button" @click="ledgerSearchQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
-                    </template>
+                <!-- Enhanced Search Particulars / Ref # -->
+                <div class="w-full">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Search Particulars / Ref #</label>
+                    <div class="relative w-full">
+                        <input type="text" x-model="ledgerSearchQuery" placeholder="Search bill #, voucher #, project..."
+                               class="w-full px-3.5 py-2.5 pr-7 bg-slate-50 border border-slate-250 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none shadow-2xs hover:border-[#a38c29]/60 transition">
+                        <template x-if="ledgerSearchQuery">
+                            <button type="button" @click="ledgerSearchQuery = ''" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                        </template>
+                    </div>
                 </div>
             </div>
+
+            {{-- Reset Filters Button --}}
+            <button type="button" @click="resetFilters()"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] px-6 py-2.5 text-xs font-extrabold text-white shadow-sm shadow-[#a38c29]/30 hover:shadow-md transition-all duration-200 flex-shrink-0 uppercase tracking-wider group active:scale-95 cursor-pointer h-[42px]">
+                <svg class="h-3.5 w-3.5 text-white transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                <span>RESET FILTERS</span>
+            </button>
         </div>
     </div>
 
@@ -261,6 +270,11 @@ function raBillLedger() {
         selectedLedgerContractorId: '',
         allLedgerEntries: @json($allLedgerEntries ?? []),
         contractorsList: @json($contractors ?? []),
+
+        resetFilters() {
+            this.selectedLedgerContractorId = '';
+            this.ledgerSearchQuery = '';
+        },
 
         getSelectedContractorName() {
             if (!this.selectedLedgerContractorId) return 'All Contractors';
