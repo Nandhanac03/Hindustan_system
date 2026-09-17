@@ -330,9 +330,9 @@
                                             <tr class="align-middle hover:bg-slate-50/50 transition-colors">
                                                 <td class="p-2.5">
                                                     <select :name="'entries['+index+'][account_id]'" x-model="line.account_id" @change="if(errors.rows && errors.rows[index]) delete errors.rows[index]"
-                                                            :class="errors.rows && errors.rows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40' : 'border-slate-300 bg-white'"
-                                                            class="w-full px-3 py-2 text-slate-900 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition">
-                                                        <option value="">Select Account...</option>
+                                                            :class="errors.rows && errors.rows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-white text-slate-900'"
+                                                            class="w-full border border-slate-300 px-3 py-2 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
+                                                        <option value="">Select Chart of Account...</option>
                                                         @foreach($accounts as $acc)
                                                             <option value="{{ $acc->account_code }}">{{ $acc->account_name }} ({{ $acc->account_code }})</option>
                                                         @endforeach
