@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HindustanERP - {{ $title ?? 'Management Portal' }}</title>
     
+    <script>
+        (function() {
+            var saved = localStorage.getItem('erp-font-size');
+            var isCustom = localStorage.getItem('erp-font-size-custom');
+            if (!isCustom) {
+                saved = '112.5%';
+                localStorage.setItem('erp-font-size', '112.5%');
+            }
+            document.documentElement.style.fontSize = saved || '112.5%';
+        })();
+    </script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -75,10 +87,22 @@
           sidebarOpen: false, 
           openSettingsModal: false,
           openHeaderSettings: false,
-          fontSize: localStorage.getItem('erp-font-size') || '100%'
+          fontSize: (function() {
+              var saved = localStorage.getItem('erp-font-size');
+              var isCustom = localStorage.getItem('erp-font-size-custom');
+              if (!isCustom) {
+                  saved = '112.5%';
+                  localStorage.setItem('erp-font-size', '112.5%');
+              }
+              return saved || '112.5%';
+          })()
       }" 
       x-init="
-          $watch('fontSize', val => { document.documentElement.style.fontSize = val; localStorage.setItem('erp-font-size', val); }); 
+          $watch('fontSize', val => { 
+              document.documentElement.style.fontSize = val; 
+              localStorage.setItem('erp-font-size', val); 
+              localStorage.setItem('erp-font-size-custom', '1');
+          }); 
           document.documentElement.style.fontSize = fontSize;
       ">
 

@@ -480,6 +480,8 @@ class BrokerController extends Controller
                         'debit_amount'   => $totalPaid,
                         'credit_amount'  => 0.00,
                         'line_narration' => 'Agent Commission Payables (' . ($broker ? $broker->name : '') . ' Cleared)',
+                        'entity_type'    => 'AGENT',
+                        'entity_id'      => $broker ? $broker->id : null,
                     ]);
 
                     // 2. Credit Bank Account (Karnataka Bank / Selected Bank Asset)
@@ -493,6 +495,8 @@ class BrokerController extends Controller
                         'debit_amount'   => 0.00,
                         'credit_amount'  => $totalPaid,
                         'line_narration' => ($bankAccount->bank_name ?? 'Bank Account') . ' (Bank Asset Decreases)',
+                        'entity_type'    => 'BANK',
+                        'entity_id'      => $bankAccount->id,
                     ]);
                 }
             });

@@ -368,11 +368,11 @@ class SalesController extends Controller
             try {
                 $requiredAccounts = [
                     '1010' => ['name' => 'Customer Receivable', 'type' => 'ASSET'],
-                    '5010' => ['name' => 'Apartment Sales Revenue', 'type' => 'REVENUE'],
+                    // '5010' => ['name' => 'Apartment Sales Revenue', 'type' => 'REVENUE'],
                     '2021' => ['name' => 'Output CGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     '2022' => ['name' => 'Output SGST Payable (2.5%)', 'type' => 'LIABILITY'],
                     // '4003' => ['name' => 'Brokerage Expense', 'type' => 'EXPENSE'],
-                    '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
+                    // '2003' => ['name' => 'Agent Payable Liability', 'type' => 'LIABILITY'],
                 ];
                 foreach ($requiredAccounts as $accCode => $accInfo) {
                     ChartOfAccount::firstOrCreate(
@@ -424,17 +424,17 @@ class SalesController extends Controller
                 }
 
                 // 2. Sales Revenue (Credit base sale amount)
-                if ($totalBaseAmount > 0) {
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '5010',
-                        'debit_amount'   => 0.00,
-                        'credit_amount'  => $totalBaseAmount,
-                        'entity_type'    => null,
-                        'entity_id'      => null,
-                        'line_narration' => 'Apartment Sales Revenue',
-                    ]);
-                }
+                // if ($totalBaseAmount > 0) {
+                //     JournalEntry::create([
+                //         'voucher_id'     => $journalVoucher->id,
+                //         'account_id'     => '5010',
+                //         'debit_amount'   => 0.00,
+                //         'credit_amount'  => $totalBaseAmount,
+                //         'entity_type'    => null,
+                //         'entity_id'      => null,
+                //         'line_narration' => 'Apartment Sales Revenue',
+                //     ]);
+                // }
 
                 // 3. Output CGST & SGST (Credit tax amounts)
                 if ($totalGstAmount > 0) {
@@ -472,15 +472,15 @@ class SalesController extends Controller
                     //     'line_narration' => 'Brokerage Expense',
                     // ]);
 
-                    JournalEntry::create([
-                        'voucher_id'     => $journalVoucher->id,
-                        'account_id'     => '2003',
-                        'debit_amount'   => 0.00,
-                        'credit_amount'  => $brokerageAmount,
-                        'entity_type'    => 'AGENT',
-                        'entity_id'      => $validated['broker_id'],
-                        'line_narration' => 'Agent Payable Liability (' . ($brokerModel ? $brokerModel->name : '') . ')',
-                    ]);
+                    // JournalEntry::create([
+                    //     'voucher_id'     => $journalVoucher->id,
+                    //     'account_id'     => '2003',
+                    //     'debit_amount'   => 0.00,
+                    //     'credit_amount'  => $brokerageAmount,
+                    //     'entity_type'    => 'AGENT',
+                    //     'entity_id'      => $validated['broker_id'],
+                    //     'line_narration' => 'Agent Payable Liability (' . ($brokerModel ? $brokerModel->name : '') . ')',
+                    // ]);
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Journal Voucher Creation Error on Sale #' . $sale->id . ': ' . $e->getMessage());
