@@ -29,7 +29,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold text-slate-900">Journal Vouchers Master</h1>
+                        <h1 class="text-xl font-bold text-slate-900">Journal Vouchers</h1>
                         <p class="text-xs text-slate-500 font-medium">Manage multi-line double-entry ledger vouchers, adjustments & non-cash postings</p>
                     </div>
                 </div>
@@ -329,7 +329,8 @@
                                         <template x-for="(line, index) in form.entries" :key="index">
                                             <tr class="align-middle hover:bg-slate-50/50 transition-colors">
                                                 <td class="p-2.5">
-                                                    <select :name="'entries['+index+'][account_id]'" x-model="line.account_id" @change="if(errors.rows && errors.rows[index]) delete errors.rows[index]"
+                                                    <select :name="'entries['+index+'][account_id]'" x-model="line.account_id"
+                                                            @change="if(String(line.account_id) !== '1001') line.bank_account_id = ''; if(String(line.account_id) !== '1002') line.petty_cash_box_id = ''; if(errors.rows && errors.rows[index]) delete errors.rows[index]; if(errors.bankRows && errors.bankRows[index]) delete errors.bankRows[index]; if(errors.pettyRows && errors.pettyRows[index]) delete errors.pettyRows[index]"
                                                             :class="errors.rows && errors.rows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-300 hover:border-slate-400 bg-slate-50 hover:bg-white text-slate-900'"
                                                             class="w-full border border-slate-300 px-3 py-2 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
                                                         <option value="">Select Chart of Account...</option>
@@ -339,6 +340,48 @@
                                                     </select>
                                                     <template x-if="errors.rows && errors.rows[index]">
                                                         <p class="text-rose-600 text-[10px] font-bold mt-1" x-text="errors.rows[index]"></p>
+                                                    </template>
+
+                                                    <!-- Dynamic Company Bank Account Select Box for 1001 (Bank Balances) -->
+                                                    <template x-if="String(line.account_id) === '1001'">
+                                                        <div class="mt-2">
+                                                            <label class="block text-[9px] font-black uppercase text-[#a38c29] tracking-wider mb-1">Company Bank Account <span class="text-rose-500">*</span></label>
+                                                            <select :name="'entries['+index+'][bank_account_id]'" x-model="line.bank_account_id"
+                                                                    @change="if(errors.bankRows && errors.bankRows[index]) delete errors.bankRows[index]"
+                                                                    :class="errors.bankRows && errors.bankRows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-300 hover:border-slate-400 bg-amber-50/40 hover:bg-white text-slate-900'"
+                                                                    class="w-full border border-slate-300 px-3 py-1.5 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
+                                                                <option value="">Select Company Bank Account...</option>
+                                                                @foreach($companyBankAccounts as $bAcc)
+                                                                    <option value="{{ $bAcc->id }}">
+                                                                        {{ $bAcc->bank_name }} - {{ $bAcc->account_number }} {{ $bAcc->account_name ? '('.$bAcc->account_name.')' : '' }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            <template x-if="errors.bankRows && errors.bankRows[index]">
+                                                                <p class="text-rose-600 text-[10px] font-bold mt-1" x-text="errors.bankRows[index]"></p>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+
+                                                    <!-- Dynamic Petty Cash Box Select Box for 1002 (Petty Cash Box) -->
+                                                    <template x-if="String(line.account_id) === '1002'">
+                                                        <div class="mt-2">
+                                                            <label class="block text-[9px] font-black uppercase text-[#a38c29] tracking-wider mb-1">Petty Cash Box <span class="text-rose-500">*</span></label>
+                                                            <select :name="'entries['+index+'][petty_cash_box_id]'" x-model="line.petty_cash_box_id"
+                                                                    @change="if(errors.pettyRows && errors.pettyRows[index]) delete errors.pettyRows[index]"
+                                                                    :class="errors.pettyRows && errors.pettyRows[index] ? 'border-rose-500 ring-1 ring-rose-500 bg-rose-50/40 text-rose-900' : 'border-slate-300 hover:border-slate-400 bg-amber-50/40 hover:bg-white text-slate-900'"
+                                                                    class="w-full border border-slate-300 px-3 py-1.5 font-bold rounded-xl text-xs focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition cursor-pointer">
+                                                                <option value="">Select Petty Cash Box...</option>
+                                                                @foreach($pettyCashBoxes as $pBox)
+                                                                    <option value="{{ $pBox->id }}">
+                                                                        {{ $pBox->box_name }} ({{ $pBox->box_code }})
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            <template x-if="errors.pettyRows && errors.pettyRows[index]">
+                                                                <p class="text-rose-600 text-[10px] font-bold mt-1" x-text="errors.pettyRows[index]"></p>
+                                                            </template>
+                                                        </div>
                                                     </template>
                                                 </td>
 
@@ -490,7 +533,15 @@
                                 <tbody class="divide-y divide-slate-150 font-medium bg-white">
                                     <template x-for="entry in activeVoucher.entries" :key="entry.account_code">
                                         <tr>
-                                            <td class="px-4 py-2.5 font-bold text-slate-900" x-text="entry.account_name + ' (' + entry.account_code + ')'"></td>
+                                            <td class="px-4 py-2.5">
+                                                <div class="font-bold text-slate-900" x-text="entry.account_name + ' (' + entry.account_code + ')'"></div>
+                                                <template x-if="entry.bank_account_name">
+                                                    <div class="text-[10px] text-[#a38c29] font-bold mt-0.5" x-text="'Bank: ' + entry.bank_account_name"></div>
+                                                </template>
+                                                <template x-if="entry.petty_cash_box_name">
+                                                    <div class="text-[10px] text-[#a38c29] font-bold mt-0.5" x-text="'Petty Cash Box: ' + entry.petty_cash_box_name"></div>
+                                                </template>
+                                            </td>
                                             <td class="px-4 py-2.5 text-right font-mono" x-text="entry.debit_amount"></td>
                                             <td class="px-4 py-2.5 text-right font-mono" x-text="entry.credit_amount"></td>
                                             <td class="px-4 py-2.5 text-slate-500" x-text="entry.line_narration"></td>
@@ -540,7 +591,9 @@
                     reference_no: '',
                     narration: '',
                     entries: '',
-                    rows: {}
+                    rows: {},
+                    bankRows: {},
+                    pettyRows: {}
                 },
                 filters: {
                     search: '',
@@ -567,13 +620,13 @@
                     narration: '',
                     status: 'Posted',
                     entries: [
-                        { account_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' },
-                        { account_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' }
+                        { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' },
+                        { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' }
                     ]
                 },
 
                 validateAndSubmit(e) {
-                    this.errors = { reference_no: '', narration: '', entries: '', rows: {} };
+                    this.errors = { reference_no: '', narration: '', entries: '', rows: {}, bankRows: {}, pettyRows: {} };
                     let hasError = false;
 
                     // 1. Check Reference No uniqueness if provided
@@ -607,7 +660,7 @@
                         hasError = true;
                     }
 
-                    // 4. Check Account Head selection for non-zero lines
+                    // 4. Check Account Head selection & Company Bank Account (1001) / Petty Cash Box (1002) selection
                     let validCount = 0;
                     this.form.entries.forEach((line, idx) => {
                         const d = parseFloat(line.debit_amount) || 0;
@@ -616,6 +669,12 @@
                             validCount++;
                             if (!line.account_id) {
                                 this.errors.rows[idx] = 'Please select an Account Head.';
+                                hasError = true;
+                            } else if (String(line.account_id) === '1001' && !line.bank_account_id) {
+                                this.errors.bankRows[idx] = 'Please select a Company Bank Account.';
+                                hasError = true;
+                            } else if (String(line.account_id) === '1002' && !line.petty_cash_box_id) {
+                                this.errors.pettyRows[idx] = 'Please select a Petty Cash Box.';
                                 hasError = true;
                             }
                         }
@@ -702,7 +761,7 @@
                 openCreateModal() {
                     this.isEditMode = false;
                     this.editVoucherId = null;
-                    this.errors = { reference_no: '', entries: '', rows: {} };
+                    this.errors = { reference_no: '', narration: '', entries: '', rows: {}, bankRows: {}, pettyRows: {} };
                     this.form = {
                         voucher_no: this.nextVoucherNo,
                         voucher_date: new Date().toISOString().substring(0, 10),
@@ -711,14 +770,14 @@
                         narration: '',
                         status: 'Posted',
                         entries: [
-                            { account_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' },
-                            { account_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' }
+                            { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' },
+                            { account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' }
                         ]
                     };
                     this.formModalOpen = true;
                 },
                 addEntryRow() {
-                    this.form.entries.push({ account_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' });
+                    this.form.entries.push({ account_id: '', bank_account_id: '', petty_cash_box_id: '', debit_amount: 0.00, credit_amount: 0.00, line_narration: '' });
                 },
                 removeEntryRow(index) {
                     if (this.form.entries.length > 2) {
@@ -764,6 +823,8 @@
                             entries: found.entries.map(e => ({
                                 account_code: e.account_code,
                                 account_name: e.account_name,
+                                bank_account_name: e.bank_account_name,
+                                petty_cash_box_name: e.petty_cash_box_name,
                                 debit_amount: this.formatCurrency(e.debit_amount),
                                 credit_amount: this.formatCurrency(e.credit_amount),
                                 line_narration: e.line_narration
@@ -777,7 +838,7 @@
                     if (found) {
                         this.isEditMode = true;
                         this.editVoucherId = id;
-                        this.errors = { reference_no: '', entries: '', rows: {} };
+                        this.errors = { reference_no: '', narration: '', entries: '', rows: {}, bankRows: {}, pettyRows: {} };
                         this.form = {
                             voucher_no: found.voucher_no,
                             voucher_date: found.voucher_date,
@@ -786,7 +847,9 @@
                             narration: found.narration === '-' ? '' : found.narration,
                             status: found.status,
                             entries: found.entries.map(e => ({
-                                account_id: e.account_code,
+                                account_id: String(e.account_code),
+                                bank_account_id: e.bank_account_id ? String(e.bank_account_id) : '',
+                                petty_cash_box_id: e.petty_cash_box_id ? String(e.petty_cash_box_id) : '',
                                 debit_amount: e.debit_amount,
                                 credit_amount: e.credit_amount,
                                 line_narration: e.line_narration === '-' ? '' : e.line_narration

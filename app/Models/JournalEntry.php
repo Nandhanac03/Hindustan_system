@@ -66,6 +66,14 @@ class JournalEntry extends Model
     }
 
     /**
+     * Petty cash box entity relation
+     */
+    public function pettyCashBox(): BelongsTo
+    {
+        return $this->belongsTo(PettyCashBox::class, 'entity_id');
+    }
+
+    /**
      * Agent / Broker entity relation
      */
     public function agent(): BelongsTo
@@ -91,13 +99,15 @@ class JournalEntry extends Model
         }
 
         return match (strtoupper($this->entity_type)) {
-            'CUSTOMER'   => Customer::find($this->entity_id),
+            'CUSTOMER'       => Customer::find($this->entity_id),
             'SUPPLIER', 
             'CONTRACTOR',
-            'PARTNER'    => Payee::find($this->entity_id) ?? Vendor::find($this->entity_id),
-            'BANK'       => CompanyBankAccount::find($this->entity_id) ?? Bank::find($this->entity_id),
-            'AGENT'      => Broker::find($this->entity_id),
-            default      => null,
+            'PARTNER'        => Payee::find($this->entity_id) ?? Vendor::find($this->entity_id),
+            'BANK'           => CompanyBankAccount::find($this->entity_id) ?? Bank::find($this->entity_id),
+            'PETTY_CASH',
+            'PETTY_CASH_BOX' => PettyCashBox::find($this->entity_id),
+            'AGENT'          => Broker::find($this->entity_id),
+            default          => null,
         };
     }
 }

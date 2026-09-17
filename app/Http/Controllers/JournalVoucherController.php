@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\ChartOfAccount;
+use App\Models\CompanyBankAccount;
 use App\Models\JournalEntry;
 use App\Models\JournalVoucher;
+use App\Models\PettyCashBox;
+use App\Models\PettyCashTransaction;
 use App\Models\VoucherType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +19,7 @@ class JournalVoucherController extends Controller
      */
     public function index(Request $request)
     {
-        $vouchers = JournalVoucher::with(['voucherType', 'entries.account'])
+        $vouchers = JournalVoucher::with(['voucherType', 'entries.account', 'entries.bankAccount', 'entries.pettyCashBox'])
             ->orderBy('voucher_date', 'desc')
             ->orderBy('id', 'desc')
             ->get()
@@ -40,6 +43,11 @@ class JournalVoucherController extends Controller
                             'debit_amount' => (float) $e->debit_amount,
                             'credit_amount' => (float) $e->credit_amount,
                             'line_narration' => $e->line_narration ?: '-',
+                            'entity_type' => $e->entity_type,
+                            'bank_account_id' => $e->entity_type === 'BANK' ? $e->entity_id : null,
+                            'bank_account_name' => $e->bankAccount ? ($e->bankAccount->bank_name . ' - ' . $e->bankAccount->account_number) : null,
+                            'petty_cash_box_id' => $e->entity_type === 'PETTY_CASH' ? $e->entity_id : null,
+                            'petty_cash_box_name' => $e->pettyCashBox ? ($e->pettyCashBox->box_name . ' (' . $e->pettyCashBox->box_code . ')') : null,
                         ];
                     })->values()
                 ];
@@ -51,12 +59,22 @@ class JournalVoucherController extends Controller
             ->orderBy('account_code', 'asc')
             ->get();
 
+        $companyBankAccounts = CompanyBankAccount::where(function($q) {
+            $q->where('status', 'active')->orWhere('status', 'Active')->orWhereNull('status');
+        })->orderBy('bank_name')->get();
+
+        $pettyCashBoxes = PettyCashBox::where(function($q) {
+            $q->where('status', 'active')->orWhere('status', 'Active')->orWhereNull('status');
+        })->orderBy('box_name')->get();
+
         $nextVoucherNo = $this->generateNextVoucherNo();
 
         return view('journal-vouchers.index', compact(
             'vouchers',
             'voucherTypes',
             'accounts',
+            'companyBankAccounts',
+            'pettyCashBoxes',
             'nextVoucherNo'
         ));
     }
@@ -93,11 +111,32 @@ class JournalVoucherController extends Controller
             if ($debit > 0 || $credit > 0) {
                 $totalDebit += $debit;
                 $totalCredit += $credit;
+
+                $entityType = null;
+                $entityId = null;
+
+                $accId = (string)($entry['account_id'] ?? '');
+                if ($accId === '1001') {
+                    $entityType = 'BANK';
+                    $entityId = !empty($entry['bank_account_id']) ? $entry['bank_account_id'] : null;
+                    if (!$entityId) {
+                        return back()->withInput()->with('error', 'Please select a Company Bank Account for Bank Balances line entry.');
+                    }
+                } elseif ($accId === '1002') {
+                    $entityType = 'PETTY_CASH';
+                    $entityId = !empty($entry['petty_cash_box_id']) ? $entry['petty_cash_box_id'] : null;
+                    if (!$entityId) {
+                        return back()->withInput()->with('error', 'Please select a Petty Cash Box for Petty Cash Box line entry.');
+                    }
+                }
+
                 $validEntries[] = [
                     'account_id' => $entry['account_id'],
                     'debit_amount' => $debit,
                     'credit_amount' => $credit,
                     'line_narration' => $entry['line_narration'] ?? null,
+                    'entity_type' => $entityType,
+                    'entity_id' => $entityId,
                 ];
             }
         }
@@ -133,8 +172,13 @@ class JournalVoucherController extends Controller
                     'debit_amount' => $line['debit_amount'],
                     'credit_amount' => $line['credit_amount'],
                     'line_narration' => $line['line_narration'],
+                    'entity_type' => $line['entity_type'],
+                    'entity_id' => $line['entity_id'],
                 ]);
             }
+
+            // Apply balance updates to selected Company Bank Accounts and Petty Cash Boxes
+            $this->applyBalanceChanges($journalVoucher, $validEntries);
         });
 
         return redirect()->route('journal-vouchers.index')->with('success', 'Journal Voucher created successfully.');
@@ -145,7 +189,7 @@ class JournalVoucherController extends Controller
      */
     public function show($id)
     {
-        $voucher = JournalVoucher::with(['voucherType', 'entries.account'])->findOrFail($id);
+        $voucher = JournalVoucher::with(['voucherType', 'entries.account', 'entries.bankAccount', 'entries.pettyCashBox'])->findOrFail($id);
 
         return response()->json([
             'id' => $voucher->id,
@@ -165,6 +209,11 @@ class JournalVoucherController extends Controller
                     'debit_amount' => number_format($e->debit_amount, 2),
                     'credit_amount' => number_format($e->credit_amount, 2),
                     'line_narration' => $e->line_narration ?: '-',
+                    'entity_type' => $e->entity_type,
+                    'bank_account_id' => $e->entity_type === 'BANK' ? $e->entity_id : null,
+                    'bank_account_name' => $e->bankAccount ? ($e->bankAccount->bank_name . ' - ' . $e->bankAccount->account_number) : null,
+                    'petty_cash_box_id' => $e->entity_type === 'PETTY_CASH' ? $e->entity_id : null,
+                    'petty_cash_box_name' => $e->pettyCashBox ? ($e->pettyCashBox->box_name . ' (' . $e->pettyCashBox->box_code . ')') : null,
                 ];
             }),
         ]);
@@ -204,11 +253,32 @@ class JournalVoucherController extends Controller
             if ($debit > 0 || $credit > 0) {
                 $totalDebit += $debit;
                 $totalCredit += $credit;
+
+                $entityType = null;
+                $entityId = null;
+
+                $accId = (string)($entry['account_id'] ?? '');
+                if ($accId === '1001') {
+                    $entityType = 'BANK';
+                    $entityId = !empty($entry['bank_account_id']) ? $entry['bank_account_id'] : null;
+                    if (!$entityId) {
+                        return back()->withInput()->with('error', 'Please select a Company Bank Account for Bank Balances line entry.');
+                    }
+                } elseif ($accId === '1002') {
+                    $entityType = 'PETTY_CASH';
+                    $entityId = !empty($entry['petty_cash_box_id']) ? $entry['petty_cash_box_id'] : null;
+                    if (!$entityId) {
+                        return back()->withInput()->with('error', 'Please select a Petty Cash Box for Petty Cash Box line entry.');
+                    }
+                }
+
                 $validEntries[] = [
                     'account_id' => $entry['account_id'],
                     'debit_amount' => $debit,
                     'credit_amount' => $credit,
                     'line_narration' => $entry['line_narration'] ?? null,
+                    'entity_type' => $entityType,
+                    'entity_id' => $entityId,
                 ];
             }
         }
@@ -222,6 +292,10 @@ class JournalVoucherController extends Controller
         }
 
         DB::transaction(function () use ($journalVoucher, $request, $validEntries) {
+            // 1. Revert previous balance impact
+            $this->revertBalanceChanges($journalVoucher);
+
+            // 2. Update voucher header
             $journalVoucher->update([
                 'voucher_date' => $request->voucher_date,
                 'voucher_type_id' => $request->voucher_type_id ?: null,
@@ -230,7 +304,7 @@ class JournalVoucherController extends Controller
                 'status' => $request->status,
             ]);
 
-            // Replace line entries
+            // 3. Replace line entries
             JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
 
             foreach ($validEntries as $line) {
@@ -240,8 +314,13 @@ class JournalVoucherController extends Controller
                     'debit_amount' => $line['debit_amount'],
                     'credit_amount' => $line['credit_amount'],
                     'line_narration' => $line['line_narration'],
+                    'entity_type' => $line['entity_type'],
+                    'entity_id' => $line['entity_id'],
                 ]);
             }
+
+            // 4. Apply new balance changes
+            $this->applyBalanceChanges($journalVoucher->fresh(), $validEntries);
         });
 
         return redirect()->route('journal-vouchers.index')->with('success', 'Journal Voucher updated successfully.');
@@ -255,11 +334,97 @@ class JournalVoucherController extends Controller
         $journalVoucher = JournalVoucher::findOrFail($id);
 
         DB::transaction(function () use ($journalVoucher) {
+            $this->revertBalanceChanges($journalVoucher);
             JournalEntry::where('voucher_id', $journalVoucher->id)->delete();
             $journalVoucher->delete();
         });
 
         return redirect()->route('journal-vouchers.index')->with('success', 'Journal Voucher deleted successfully.');
+    }
+
+    /**
+     * Apply current_balance updates to Company Bank Accounts and Petty Cash Boxes based on valid entries.
+     */
+    private function applyBalanceChanges(JournalVoucher $voucher, array $validEntries): void
+    {
+        if ($voucher->status !== 'Posted') {
+            return;
+        }
+
+        foreach ($validEntries as $entry) {
+            $entityType = $entry['entity_type'] ?? null;
+            $entityId = $entry['entity_id'] ?? null;
+            $debit = (float)($entry['debit_amount'] ?? 0);
+            $credit = (float)($entry['credit_amount'] ?? 0);
+            $netChange = $debit - $credit; // Debit increases asset balance, Credit decreases asset balance
+
+            if ($entityType === 'BANK' && $entityId) {
+                $bankAcc = CompanyBankAccount::lockForUpdate()->find($entityId);
+                if ($bankAcc) {
+                    $bankAcc->current_balance = (float)$bankAcc->current_balance + $netChange;
+                    $bankAcc->save();
+                }
+            } elseif ($entityType === 'PETTY_CASH' && $entityId) {
+                $cashBox = PettyCashBox::lockForUpdate()->find($entityId);
+                if ($cashBox) {
+                    $newBalance = (float)$cashBox->current_balance + $netChange;
+                    $cashBox->current_balance = $newBalance;
+                    $cashBox->save();
+
+                    // Record audit trail in PettyCashTransaction table
+                    PettyCashTransaction::create([
+                        'petty_cash_box_id' => $cashBox->id,
+                        'voucher_id' => null, // Left null to avoid FK constraint on vouchers table
+                        'transaction_date' => $voucher->voucher_date,
+                        'voucher_number' => $voucher->voucher_no,
+                        'transaction_type' => 'Journal',
+                        'reference_no' => $voucher->reference_no,
+                        'narration' => $entry['line_narration'] ?: ($voucher->narration ?: 'Journal Voucher entry'),
+                        'cash_in' => $debit > 0 ? $debit : 0,
+                        'cash_out' => $credit > 0 ? $credit : 0,
+                        'balance' => $newBalance,
+                        'created_by' => auth()->id() ?? 1,
+                        'status' => 'Posted',
+                    ]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Revert current_balance updates from previous entries of a Journal Voucher.
+     */
+    private function revertBalanceChanges(JournalVoucher $voucher): void
+    {
+        if ($voucher->status !== 'Posted') {
+            return;
+        }
+
+        foreach ($voucher->entries as $entry) {
+            $entityType = $entry->entity_type;
+            $entityId = $entry->entity_id;
+            $debit = (float)($entry->debit_amount ?? 0);
+            $credit = (float)($entry->credit_amount ?? 0);
+            $netChange = $debit - $credit;
+
+            if ($entityType === 'BANK' && $entityId) {
+                $bankAcc = CompanyBankAccount::lockForUpdate()->find($entityId);
+                if ($bankAcc) {
+                    $bankAcc->current_balance = (float)$bankAcc->current_balance - $netChange;
+                    $bankAcc->save();
+                }
+            } elseif ($entityType === 'PETTY_CASH' && $entityId) {
+                $cashBox = PettyCashBox::lockForUpdate()->find($entityId);
+                if ($cashBox) {
+                    $newBalance = (float)$cashBox->current_balance - $netChange;
+                    $cashBox->current_balance = $newBalance;
+                    $cashBox->save();
+                }
+            }
+        }
+
+        // Remove linked PettyCashTransactions for this voucher by voucher_number
+        PettyCashTransaction::where('voucher_number', $voucher->voucher_no)->delete();
     }
 
     /**
