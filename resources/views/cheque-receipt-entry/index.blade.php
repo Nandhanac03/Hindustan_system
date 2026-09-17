@@ -233,8 +233,9 @@
                         <tr class="text-left">
                             <th class="px-3.5 py-3.5 w-[110px]">RECEIPT #</th>
                             <th class="px-3.5 py-3.5 w-[100px]">DATE</th>
-                            <th class="px-3.5 py-3.5 w-[200px]">CUSTOMER / PAYER</th>
-                            <th class="px-3.5 py-3.5 w-[200px]">COMPANY BANK ACCOUNT</th>
+                            <th class="px-3.5 py-3.5 w-[190px]">CUSTOMER</th>
+                            <th class="px-3.5 py-3.5 w-[170px]">COMPANY BANK ACCOUNT</th>
+                            <th class="px-3.5 py-3.5 w-[150px]">CUSTOMER BANK</th>
                             <th class="px-3.5 py-3.5 text-right w-[120px]">AMOUNT</th>
                             <th class="px-3.5 py-3.5 text-center w-[110px]">MODE</th>
                             <th class="px-3.5 py-3.5 text-center w-[150px]">REALIZATION STATUS</th>
@@ -256,10 +257,21 @@
                                 </td>
 
                                 <td class="px-3.5 py-3.5 text-left">
-                                    <div class="font-extrabold text-slate-800 text-[11px]" x-text="r.company_bank_account_name"></div>
-                                    <template x-if="r.company_bank_account_number">
-                                        <div class="text-[9.5px] font-mono text-slate-500" x-text="'A/C: ' + r.company_bank_account_number"></div>
+                                    <template x-if="r.company_bank_account_name && r.company_bank_account_name !== '—'">
+                                        <div>
+                                            <div class="font-extrabold text-slate-800 text-[11px]" x-text="r.company_bank_account_name"></div>
+                                            <template x-if="r.company_bank_account_number">
+                                                <div class="text-[9.5px] font-mono text-slate-500" x-text="'A/C: ' + r.company_bank_account_number"></div>
+                                            </template>
+                                        </div>
                                     </template>
+                                    <template x-if="!r.company_bank_account_name || r.company_bank_account_name === '—'">
+                                        <span class="text-slate-400 italic text-[11px]">—Not Assigned—</span>
+                                    </template>
+                                </td>
+
+                                <td class="px-3.5 py-3.5 text-left">
+                                    <span class="font-bold text-slate-700 text-[11px]" x-text="r.customer_bank || r.drawee_bank || '—'"></span>
                                 </td>
 
                                 <td class="px-3.5 py-3.5 text-right font-mono font-black text-slate-950 text-sm" 
@@ -688,20 +700,20 @@
                                     </div>
                                     <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-sm">
                                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Company Bank A/C</span>
-                                        <span class="text-xs font-bold text-slate-900 mt-0.5 block truncate" x-text="selectedReceipt?.company_bank_account_name || '—'"></span>
+                                        <span class="text-xs font-bold text-slate-900 mt-0.5 block truncate" x-text="selectedReceipt?.company_bank_account_name || '—Not Assigned—'"></span>
                                         <span class="text-[9px] font-mono text-slate-500 block truncate" x-show="selectedReceipt?.company_bank_account_number" x-text="'A/C: ' + selectedReceipt?.company_bank_account_number"></span>
                                     </div>
                                 </div>
 
-                                {{-- Card 3: Drawee Bank & Remarks Details --}}
-                                <div class="grid grid-cols-1" :class="selectedReceipt?.drawee_bank ? 'sm:grid-cols-12 gap-2.5' : ''">
-                                    <template x-if="selectedReceipt?.drawee_bank">
+                                {{-- Card 3: Customer Bank & Remarks Details --}}
+                                <div class="grid grid-cols-1" :class="(selectedReceipt?.customer_bank || selectedReceipt?.drawee_bank) ? 'sm:grid-cols-12 gap-2.5' : ''">
+                                    <template x-if="selectedReceipt?.customer_bank || selectedReceipt?.drawee_bank">
                                         <div class="sm:col-span-4 p-3 rounded-xl border border-slate-200/80 bg-white shadow-sm">
-                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Drawee Bank</span>
-                                            <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate" x-text="selectedReceipt?.drawee_bank"></span>
+                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Customer Bank</span>
+                                            <span class="text-xs font-bold text-slate-800 mt-0.5 block truncate" x-text="selectedReceipt?.customer_bank || selectedReceipt?.drawee_bank"></span>
                                         </div>
                                     </template>
-                                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-sm" :class="selectedReceipt?.drawee_bank ? 'sm:col-span-8' : 'w-full'">
+                                    <div class="p-3 rounded-xl border border-slate-200/80 bg-white shadow-sm" :class="(selectedReceipt?.customer_bank || selectedReceipt?.drawee_bank) ? 'sm:col-span-8' : 'w-full'">
                                         <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Remarks Details</span>
                                         <span class="text-xs font-medium text-slate-700 mt-0.5 block italic truncate" x-text="selectedReceipt?.remarks || 'No remarks provided'"></span>
                                     </div>
@@ -839,7 +851,7 @@
                         const acc = (r.company_bank_account_number || '').toLowerCase();
                         const remarks = (r.remarks || '').toLowerCase();
                         const chequeNo = (r.reference_no || '').toLowerCase();
-                        const drawee = (r.drawee_bank || '').toLowerCase();
+                        const drawee = (r.customer_bank || r.drawee_bank || '').toLowerCase();
                         const amount = (r.amount || '').toString();
                         return ref.includes(q) || cust.includes(q) || payer.includes(q) || proj.includes(q) || unit.includes(q) || bank.includes(q) || acc.includes(q) || remarks.includes(q) || chequeNo.includes(q) || drawee.includes(q) || amount.includes(q);
                     });
@@ -1045,10 +1057,10 @@
                 const unitName = escapeHtml(receipt.unit_name && receipt.unit_name !== '—' ? receipt.unit_name : 'General Unit');
                 const payMode = escapeHtml(receipt.payment_mode || 'Cash');
                 const statusName = escapeHtml(receipt.status_display_name || receipt.realization_status || 'Realized');
-                const bankName = escapeHtml(receipt.company_bank_account_name || 'Main Operational Account');
+                const bankName = escapeHtml(receipt.company_bank_account_name || '—Not Assigned—');
                 const bankAccNo = receipt.company_bank_account_number ? escapeHtml(receipt.company_bank_account_number) : '';
                 const instRefNo = escapeHtml(receipt.reference_no || 'N/A');
-                const draweeBank = receipt.drawee_bank ? escapeHtml(receipt.drawee_bank) : '';
+                const draweeBank = (receipt.customer_bank || receipt.drawee_bank) ? escapeHtml(receipt.customer_bank || receipt.drawee_bank) : '';
                 const realizedAt = receipt.realized_at ? escapeHtml(receipt.realized_at) : '';
                 const remarksText = escapeHtml(receipt.remarks || 'Initial payment at sale creation / property installment.');
 
@@ -1570,7 +1582,7 @@
                         </div>
                         ${draweeBank ? `
                         <div class="field-row">
-                            <span class="f-lbl">Drawee Bank</span>
+                            <span class="f-lbl">Customer Bank</span>
                             <span class="f-val">${draweeBank}</span>
                         </div>` : ''}
                         ${realizedAt ? `

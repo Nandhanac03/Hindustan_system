@@ -151,10 +151,11 @@ class ChequeReceiptEntryController extends Controller
         $receipts = $query->get();
 
         $allReceiptsFormatted = $receipts->map(function ($r) use ($chequeStatusesMap) {
-            $bankName = $r->companyBankAccount?->bank_name ?: ($r->bank?->bank_name ?: 'General Account');
+            $bankName = $r->companyBankAccount?->bank_name;
             $accNo    = $r->companyBankAccount?->account_number;
             $upiId    = $r->companyBankAccount?->upi_id;
-            $ifsc     = $r->companyBankAccount?->ifsc_code ?: $r->bank?->ifsc_code;
+            $ifsc     = $r->companyBankAccount?->ifsc_code;
+            $custBank = $r->drawee_bank ?: ($r->bank?->bank_name ?: null);
 
             $rst = strtolower($r->realization_status ?? 'pending');
             $rstMaster = $chequeStatusesMap[$rst] ?? null;
@@ -205,6 +206,7 @@ class ChequeReceiptEntryController extends Controller
                 'company_bank_account_number' => $accNo,
                 'company_bank_account_upi_id' => $upiId,
                 'company_bank_account_ifsc'   => $ifsc,
+                'customer_bank'               => $custBank,
                 'project_id'                  => $r->project_id,
                 'project_name'                => $r->project?->name ?? ($r->sale?->project?->name ?? '—'),
                 'project_company_name'        => $projectName,
@@ -222,9 +224,9 @@ class ChequeReceiptEntryController extends Controller
                 'can_realize'                 => !$r->isTerminal(),
                 'can_reinitialize'            => $r->realization_status === 'bounced',
                 'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
-                'source_bank'                 => $r->drawee_bank ?: ($r->bank?->bank_name ?: 'Customer Bank / Payer Instrument'),
-                'destination_bank'            => $bankName . ($accNo ? " (A/C: {$accNo})" : ''),
-                'drawee_bank'                 => $r->drawee_bank,
+                'source_bank'                 => $custBank ?: 'Customer Bank / Payer Instrument',
+                'destination_bank'            => $bankName ? ($bankName . ($accNo ? " (A/C: {$accNo})" : '')) : '—Not Assigned—',
+                'drawee_bank'                 => $custBank,
                 'realized_at'                 => $r->realized_at?->format('d M Y, h:i A'),
             ];
         });
