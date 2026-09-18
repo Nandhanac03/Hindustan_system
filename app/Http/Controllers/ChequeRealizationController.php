@@ -66,8 +66,9 @@ class ChequeRealizationController extends Controller
 
         $allReceipts = $query->get();
         $allReceiptsFormatted = $allReceipts->map(function($r) use ($chequeStatusesMap) {
-            $bankName = $r->companyBankAccount?->bank_name ?: ($r->bank?->bank_name ?: 'General Account');
+            $bankName = $r->companyBankAccount?->bank_name;
             $accNo    = $r->companyBankAccount?->account_number;
+            $custBank = $r->drawee_bank ?: ($r->bank?->bank_name ?: null);
             $rst      = strtolower($r->realization_status ?? 'pending');
             $rstMaster = $chequeStatusesMap[$rst] ?? null;
             $badgeClasses = $rstMaster ? $rstMaster['badge_classes'] : match($rst) {
@@ -101,7 +102,8 @@ class ChequeRealizationController extends Controller
                 'company_bank_account_id'     => $r->company_bank_account_id,
                 'company_bank_account_name'   => $bankName,
                 'company_bank_account_number' => $accNo,
-                'drawee_bank'                 => $r->drawee_bank ?? '—',
+                'customer_bank'               => $custBank,
+                'drawee_bank'                 => $custBank ?: '—',
                 'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
                 'cheque_date_formatted'       => $r->cheque_date?->format('d M Y') ?? '—',
                 'amount'                      => (float)$r->amount,
@@ -182,8 +184,9 @@ class ChequeRealizationController extends Controller
 
         $allReceipts = $query->get();
         $allReceiptsFormatted = $allReceipts->map(function($r) use ($chequeStatusesMap) {
-            $bankName = $r->companyBankAccount?->bank_name ?: ($r->bank?->bank_name ?: 'General Account');
+            $bankName = $r->companyBankAccount?->bank_name;
             $accNo    = $r->companyBankAccount?->account_number;
+            $custBank = $r->drawee_bank ?: ($r->bank?->bank_name ?: null);
             $rst      = strtolower($r->realization_status ?? 'pending');
             $rstMaster = $chequeStatusesMap[$rst] ?? null;
             $badgeClasses = $rstMaster ? $rstMaster['badge_classes'] : match($rst) {
@@ -217,7 +220,8 @@ class ChequeRealizationController extends Controller
                 'company_bank_account_id'     => $r->company_bank_account_id,
                 'company_bank_account_name'   => $bankName,
                 'company_bank_account_number' => $accNo,
-                'drawee_bank'                 => $r->drawee_bank ?? '—',
+                'customer_bank'               => $custBank,
+                'drawee_bank'                 => $custBank ?: '—',
                 'cheque_date'                 => $r->cheque_date?->format('Y-m-d'),
                 'cheque_date_formatted'       => $r->cheque_date?->format('d M Y') ?? '—',
                 'amount'                      => (float)$r->amount,

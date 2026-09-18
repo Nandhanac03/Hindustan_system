@@ -438,8 +438,7 @@
                             <th class="px-4 py-3.5 text-white">DATE</th>
                             <th class="px-4 py-3.5 text-white">CUSTOMER</th>
                             <th class="px-4 py-3.5 text-white">COMPANY BANK ACCOUNT</th>
-                            <th class="px-4 py-3.5 text-white">DRAWEE BANK</th>
-                            <th class="px-4 py-3.5 text-white">CHEQUE DATE</th>
+                            <th class="px-4 py-3.5 text-white">CUSTOMER BANK</th>
                             <th class="px-4 py-3.5 text-right text-white">AMOUNT</th>
                             <th class="px-4 py-3.5 text-center text-white">MODE</th>
                             <th class="px-4 py-3.5 text-center text-white">STATUS</th>
@@ -465,8 +464,7 @@
                                         <span class="text-slate-400 italic">—Not Assigned—</span>
                                     </template>
                                 </td>
-                                <td class="px-4 py-3.5 font-semibold text-slate-700" x-text="receipt.drawee_bank"></td>
-                                <td class="px-4 py-3.5 text-slate-500 font-medium" x-text="receipt.cheque_date_formatted"></td>
+                                <td class="px-4 py-3.5 font-semibold text-slate-700" x-text="receipt.customer_bank || receipt.drawee_bank || '—'"></td>
                                 <td class="px-4 py-3.5 font-mono font-black text-slate-950 text-right text-sm" x-text="'₹' + Number(receipt.amount).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></td>
                                 <td class="px-4 py-3.5 text-center">
                                     <span class="px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider inline-block"
@@ -499,7 +497,7 @@
                             </tr>
                         </template>
                         <tr x-show="filteredReceipts.length === 0">
-                            <td colspan="{{ request()->routeIs('cheque-realization.realized') ? 9 : 10 }}" class="px-6 py-16 text-center">
+                            <td colspan="{{ request()->routeIs('cheque-realization.realized') ? 8 : 9 }}" class="px-6 py-16 text-center">
                                 <div class="flex flex-col items-center gap-3">
                                     <div class="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center border border-emerald-200">
                                         <svg class="w-8 h-8 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
