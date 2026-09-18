@@ -429,8 +429,14 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bill / Invoice No.</label>
-                                    <input type="text" name="bill_no" placeholder="e.g. INV-2026/09" class="w-full bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 h-10 text-xs font-semibold text-slate-800 outline-none transition shadow-2xs">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bill / Invoice No. <span class="text-rose-500">*</span></label>
+                                    <input type="text" name="bill_no" x-model="newExpense.bill_no" @input="expenseErrors.bill_no = ''" required placeholder="e.g. INV-2026/09" 
+                                           :class="expenseErrors.bill_no ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                           class="w-full bg-white border rounded-xl px-3.5 h-10 text-xs font-semibold text-slate-800 outline-none transition shadow-2xs">
+                                    <p x-show="expenseErrors.bill_no" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span x-text="expenseErrors.bill_no"></span>
+                                    </p>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bill Date</label>
@@ -811,8 +817,14 @@
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bill / Invoice No.</label>
-                                    <input type="text" name="bill_no" x-model="selectedExp.bill_no" placeholder="e.g. INV-2026/09" class="w-full bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 h-10 text-xs font-semibold text-slate-800 outline-none transition shadow-2xs">
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bill / Invoice No. <span class="text-rose-500">*</span></label>
+                                    <input type="text" name="bill_no" x-model="selectedExp.bill_no" @input="editErrors.bill_no = ''" required placeholder="e.g. INV-2026/09" 
+                                           :class="editErrors.bill_no ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                           class="w-full bg-white border rounded-xl px-3.5 h-10 text-xs font-semibold text-slate-800 outline-none transition shadow-2xs">
+                                    <p x-show="editErrors.bill_no" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        <span x-text="editErrors.bill_no"></span>
+                                    </p>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Bill Date</label>
@@ -960,6 +972,7 @@ function dailySiteExpenses() {
             project_id: '{{ old('project_id', $projects->first()->id ?? '') }}',
             category: '{{ old('category', 'Refreshments') }}',
             payment_mode: '{{ old('payment_mode', (isset($paymentModes) && count($paymentModes) > 0) ? $paymentModes->first()->name : 'Cash') }}',
+            bill_no: '{{ old('bill_no', '') }}',
             particulars: `{{ old('particulars', '') }}`,
         },
         submitAction: 'save_post',
@@ -973,6 +986,7 @@ function dailySiteExpenses() {
             category: '',
             amount: '',
             payment_mode: '',
+            bill_no: '',
             particulars: '',
         },
         editErrors: {
@@ -980,6 +994,7 @@ function dailySiteExpenses() {
             category: '',
             payment_mode: '',
             amount: '',
+            bill_no: '',
             particulars: '',
         },
 
@@ -1053,6 +1068,7 @@ function dailySiteExpenses() {
                 category: '',
                 amount: '',
                 payment_mode: '',
+                bill_no: '',
                 particulars: '',
             };
             this.showExpenseModal = true;
@@ -1066,6 +1082,7 @@ function dailySiteExpenses() {
                 category: '',
                 amount: '',
                 payment_mode: '',
+                bill_no: '',
                 particulars: '',
             };
             let hasError = false;
@@ -1092,6 +1109,10 @@ function dailySiteExpenses() {
             }
             if (!this.newExpense.payment_mode) {
                 this.expenseErrors.payment_mode = 'Please select a payment mode.';
+                hasError = true;
+            }
+            if (!this.newExpense.bill_no || !this.newExpense.bill_no.trim()) {
+                this.expenseErrors.bill_no = 'Bill / Invoice No. is required.';
                 hasError = true;
             }
             if (!this.newExpense.particulars || !this.newExpense.particulars.trim()) {
@@ -1179,6 +1200,7 @@ function dailySiteExpenses() {
                 category: '',
                 payment_mode: '',
                 amount: '',
+                bill_no: '',
                 particulars: '',
             };
             this.showEditModal = true;
@@ -1190,6 +1212,7 @@ function dailySiteExpenses() {
                 category: '',
                 payment_mode: '',
                 amount: '',
+                bill_no: '',
                 particulars: '',
             };
             let hasError = false;
@@ -1212,6 +1235,10 @@ function dailySiteExpenses() {
                 hasError = true;
             } else if (this.isEditInsufficient) {
                 this.editErrors.amount = 'Amount exceeds effective available petty cash.';
+                hasError = true;
+            }
+            if (!this.selectedExp.bill_no || !this.selectedExp.bill_no.trim()) {
+                this.editErrors.bill_no = 'Bill / Invoice No. is required.';
                 hasError = true;
             }
             if (!this.selectedExp.particulars || !this.selectedExp.particulars.trim()) {
