@@ -205,14 +205,6 @@
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     Tax Liability
                 </button>
-                <button type="button" @click="tab = 'hsn'" 
-                    :class="tab === 'hsn' 
-                        ? 'bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white shadow-sm font-black' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'"
-                    class="px-4 py-2 rounded-xl transition-all duration-200 flex items-center gap-2 cursor-pointer">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 12h10m-8 5h8M3 5h.01M3 12h.01M3 19h.01"/></svg>
-                    HSN Summary
-                </button>
             </div>
             <div class="text-xs font-semibold text-slate-400 hidden sm:block">
                 Showing statutory breakdown by tax category
@@ -228,8 +220,6 @@
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Taxable Value (₹)</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">CGST (₹)</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">SGST (₹)</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">IGST (₹)</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Cess (₹)</th>
                         <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Tax (₹)</th>
                     </tr>
                 </thead>
@@ -239,8 +229,6 @@
                         <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹{{ number_format($gstStats['intra_taxable'] ?? 0, 2) }}</td>
                         <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($gstStats['total_cgst'] ?? 0, 2) }}</td>
                         <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($gstStats['total_sgst'] ?? 0, 2) }}</td>
-                        <td class="px-5 py-3.5 text-right font-mono text-slate-400">0.00</td>
-                        <td class="px-5 py-3.5 text-right font-mono text-slate-400">0.00</td>
                         <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹{{ number_format(($gstStats['total_cgst'] ?? 0) + ($gstStats['total_sgst'] ?? 0), 2) }}</td>
                     </tr>
                     @if(($gstStats['inter_taxable'] ?? 0) > 0 || ($gstStats['total_igst'] ?? 0) > 0)
@@ -248,8 +236,6 @@
                         <td class="px-5 py-3.5 font-bold text-slate-900">Inter-State (IGST)</td>
                         <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹{{ number_format($gstStats['inter_taxable'] ?? 0, 2) }}</td>
                         <td class="px-5 py-3.5 text-right font-mono text-slate-400">0.00</td>
-                        <td class="px-5 py-3.5 text-right font-mono text-slate-400">0.00</td>
-                        <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($gstStats['total_igst'] ?? 0, 2) }}</td>
                         <td class="px-5 py-3.5 text-right font-mono text-slate-400">0.00</td>
                         <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">₹{{ number_format($gstStats['total_igst'] ?? 0, 2) }}</td>
                     </tr>
@@ -261,8 +247,6 @@
                         <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($gstStats['total_taxable_sales'] ?? $gstStats['total_taxable'], 2) }}</td>
                         <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($gstStats['total_cgst'] ?? 0, 2) }}</td>
                         <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($gstStats['total_sgst'] ?? 0, 2) }}</td>
-                        <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($gstStats['total_igst'] ?? 0, 2) }}</td>
-                        <td class="px-5 py-3.5 text-right font-mono">0.00</td>
                         <td class="px-5 py-3.5 text-right font-mono text-[#a38c29] text-sm">₹{{ number_format($gstStats['output_tax'] ?? 0, 2) }}</td>
                     </tr>
                 </tfoot>
@@ -270,7 +254,7 @@
         </div>
 
         {{-- Tab 2, 3, 4: Detailed Transactions Log --}}
-        <div x-show="tab !== 'summary' && tab !== 'hsn'" class="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
+        <div x-show="tab !== 'summary'" class="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
             <table id="reportsTable" class="w-full text-xs text-left">
                 <thead>
                     <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
@@ -312,83 +296,6 @@
                     {{ $gstReportEntries->appends(request()->query())->links() }}
                 </div>
             @endif
-        </div>
-
-        {{-- Tab 5: HSN Summary (Redesigned Executive Layout) --}}
-        <div x-show="tab === 'hsn'" class="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs">
-            <table class="w-full text-xs text-left">
-                <thead>
-                    <tr class="bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border-b-2 border-[#8a7522] text-[10px] font-black uppercase tracking-widest shadow-xs">
-                        <th class="px-5 py-3.5 text-white font-extrabold">HSN / SAC Code</th>
-                        <th class="px-5 py-3.5 text-white font-extrabold">Service / Goods Description</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Taxable Value (₹)</th>
-                        <th class="px-5 py-3.5 text-center text-white font-extrabold">GST Rate</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">CGST (₹)</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">SGST (₹)</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">IGST (₹)</th>
-                        <th class="px-5 py-3.5 text-right text-white font-extrabold">Total Tax (₹)</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 font-medium text-slate-700 bg-white">
-                    @php 
-                        $hsnTaxableSum = 0;
-                        $hsnCgstSum = 0;
-                        $hsnSgstSum = 0;
-                        $hsnIgstSum = 0;
-                        $hsnTotalTaxSum = 0;
-                    @endphp
-                    @forelse($hsnSummary as $hsnRow)
-                        @php 
-                            $hsnTaxableSum += $hsnRow->taxable_value ?? 0;
-                            $hsnCgstSum += $hsnRow->cgst ?? 0;
-                            $hsnSgstSum += $hsnRow->sgst ?? 0;
-                            $hsnIgstSum += $hsnRow->igst ?? 0;
-                            $hsnTotalTaxSum += $hsnRow->total_tax ?? 0;
-                        @endphp
-                        <tr class="hover:bg-slate-50/80 transition-colors">
-                            <td class="px-5 py-3.5">
-                                <span class="inline-flex items-center px-3 py-1 rounded-lg bg-amber-50/90 text-[#a38c29] border border-amber-200/80 font-mono font-black text-xs shadow-2xs">
-                                    {{ $hsnRow->hsn_sac }}
-                                </span>
-                            </td>
-                            <td class="px-5 py-3.5 font-bold text-slate-900">
-                                {{ $hsnRow->description }}
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono font-bold text-slate-900">
-                                ₹{{ number_format($hsnRow->taxable_value, 2) }}
-                            </td>
-                            <td class="px-5 py-3.5 text-center font-mono">
-                                <span class="inline-block px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-black text-[11px]">
-                                    {{ number_format($hsnRow->gst_rate, 1) }}%
-                                </span>
-                            </td>
-                            <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($hsnRow->cgst, 2) }}</td>
-                            <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($hsnRow->sgst, 2) }}</td>
-                            <td class="px-5 py-3.5 text-right font-mono text-slate-500">₹{{ number_format($hsnRow->igst ?? 0, 2) }}</td>
-                            <td class="px-5 py-3.5 text-right font-mono font-extrabold text-[#a38c29] text-xs">
-                                ₹{{ number_format($hsnRow->total_tax, 2) }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="px-6 py-12 text-center text-slate-400 italic">No HSN / SAC summary records found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-                @if(count($hsnSummary) > 0)
-                <tfoot>
-                    <tr class="bg-amber-50/80 border-t-2 border-[#a38c29] font-black text-slate-900 text-xs">
-                        <td colspan="2" class="px-5 py-3.5 uppercase">Combined HSN / SAC Summary Total</td>
-                        <td class="px-5 py-3.5 text-right font-mono font-bold">₹{{ number_format($hsnTaxableSum, 2) }}</td>
-                        <td class="px-5 py-3.5 text-center font-mono">—</td>
-                        <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($hsnCgstSum, 2) }}</td>
-                        <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($hsnSgstSum, 2) }}</td>
-                        <td class="px-5 py-3.5 text-right font-mono">₹{{ number_format($hsnIgstSum, 2) }}</td>
-                        <td class="px-5 py-3.5 text-right font-mono text-[#a38c29] text-sm">₹{{ number_format($hsnTotalTaxSum, 2) }}</td>
-                    </tr>
-                </tfoot>
-                @endif
-            </table>
         </div>
 
         {{-- Notice Disclaimer Footer --}}
