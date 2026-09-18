@@ -3,6 +3,12 @@
 @section('title', 'RA Bill Verification & Sign-off')
 
 @section('content')
+<style>
+    .ra-modal .amount-in-words-label,
+    [data-no-words="true"] .amount-in-words-label {
+        display: none !important;
+    }
+</style>
 <div x-data="raBillVerification()" class="space-y-6">
 
     <!-- ── TOP BREADCRUMB & HEADER BAR ── -->
@@ -212,19 +218,20 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full min-w-[1240px] text-left border-collapse">
                 <thead class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[9.5px] font-black uppercase tracking-wider sticky top-0 z-10 shadow-2xs">
                     <tr class="text-left">
                         <th class="px-3 py-3 text-left w-[85px]">RA BILL NO</th>
-                        <th class="px-3 py-3 text-left w-[180px]">CONTRACTOR / PROJECT</th>
-                        <th class="px-3 py-3 text-left w-[120px]">SUBMIT / VERIFIED</th>
+                        <th class="px-3 py-3 text-left w-[170px]">CONTRACTOR / PROJECT</th>
+                        <th class="px-3 py-3 text-left w-[115px]">SUBMIT / VERIFIED</th>
                         <th class="px-3 py-3 text-right w-[110px]">RA BILL AMOUNT</th>
-                        <th class="px-3 py-3 text-right w-[110px]">ADDITIONAL WORK</th>
                         <th class="px-3 py-3 text-right w-[100px]">CORRECTION</th>
-                        <th class="px-3 py-3 text-right bg-[#8a7522]/40 w-[110px]">AFTER CORRECTION</th>
-                        <th class="px-3 py-3 text-center w-[110px]">DUE DATE</th>
-                        <th class="px-3 py-3 text-center w-[90px]">STATUS</th>
-                        <th class="px-3 py-3 text-right w-[110px]">ACTIONS</th>
+                        <th class="px-3 py-3 text-right w-[110px]">AFTER CORRECTION</th>
+                        <th class="px-3 py-3 text-right w-[110px]">ADDITIONAL %</th>
+                        <th class="px-3 py-3 text-right bg-[#8a7522]/40 w-[115px]">NET RA PAYABLE</th>
+                        <th class="px-3 py-3 text-center w-[95px]">DUE DATE</th>
+                        <th class="px-3 py-3 text-center w-[85px]">STATUS</th>
+                        <th class="px-3 py-3 text-right w-[105px]">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100 text-[11px] font-semibold">
@@ -241,13 +248,6 @@
                             <td class="px-3 py-3 align-middle">
                                 <div class="font-black text-slate-900 text-[11.5px] leading-tight">{{ $bill->contractor_name ?: ($bill->contractor->name ?? 'General Contractor') }}</div>
                                 <div class="text-[10px] text-slate-500 font-semibold mt-0.5 leading-tight">{{ $bill->project->name ?? 'Site Project' }}</div>
-                                <!-- @if($bill->unit_name || $bill->unit)
-                                    <div class="mt-0.5">
-                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.2 bg-amber-100/90 text-amber-950 border border-amber-300/70 rounded text-[9px] font-black uppercase tracking-wider whitespace-nowrap shadow-2xs">
-                                            <span>Unit: {{ $bill->unit_name ?: ($bill->unit->door_no ?? '') }}</span>
-                                        </span>
-                                    </div>
-                                @endif -->
                             </td>
 
                             <td class="px-3 py-3 text-left font-mono align-middle">
@@ -270,27 +270,31 @@
                                 ₹{{ number_format((float) $bill->gross_amount, 2) }}
                             </td>
 
+                            <td class="px-3 py-3 text-right font-mono text-amber-700 font-bold align-middle">
+                                {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
+                            </td>
+
+                            <td class="px-3 py-3 text-right font-mono font-bold text-slate-800 bg-slate-50/50 align-middle">
+                                ₹{{ number_format(max(0, (float)$bill->gross_amount - (float)$bill->correction_amount), 2) }}
+                            </td>
+
                             <td class="px-3 py-3 text-right font-mono align-middle">
-                                @if((float)$bill->additional_amount > 0)
+                                @php
+                                    $afterCorr = max(0, (float)$bill->gross_amount - (float)$bill->correction_amount);
+                                    $addAmt = (float)$bill->additional_amount;
+                                    $pct = (float)($bill->additional_percentage > 0 ? $bill->additional_percentage : ($afterCorr > 0 ? round(($addAmt / $afterCorr) * 100, 2) : 0));
+                                    $formattedPct = ($pct == (int)$pct) ? (int)$pct : $pct;
+                                @endphp
+                                @if($addAmt > 0)
                                     <div class="font-bold text-slate-900 text-[11px]">
-                                        ₹{{ number_format((float)$bill->additional_amount, 2) }}
+                                        +₹{{ number_format($addAmt, 2) }}
                                     </div>
-                                    @if((float)$bill->gross_amount > 0)
-                                        @php
-                                            $pct = round(((float)$bill->additional_amount / (float)$bill->gross_amount) * 100, 1);
-                                            $formattedPct = ($pct == (int)$pct) ? (int)$pct : $pct;
-                                        @endphp
-                                        <div class="text-[9.5px] font-black text-amber-700 mt-0.5 whitespace-nowrap">
-                                            ({{ $formattedPct }}%)
-                                        </div>
-                                    @endif
+                                    <div class="text-[9.5px] font-black text-amber-700 mt-0.5 whitespace-nowrap">
+                                        ({{ $formattedPct }}%)
+                                    </div>
                                 @else
                                     <span class="text-slate-400 font-bold">—</span>
                                 @endif
-                            </td>
-
-                            <td class="px-3 py-3 text-right font-mono text-amber-700 font-bold align-middle">
-                                {{ (float)$bill->correction_amount > 0 ? '-₹' . number_format((float)$bill->correction_amount, 2) : '₹0.00' }}
                             </td>
 
                             <td class="px-3 py-3 text-right font-mono font-black text-blue-900 bg-blue-50/30 align-middle">
@@ -363,39 +367,46 @@
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="addModalOpen = false">
-            {{-- Dark Header (Matched with Add Unit Modal) --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="addModalOpen = false">
+            {{-- Dark Header with Gold Glow --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-4 flex-shrink-0 border-b border-[#a38c29]/30">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills</p>
-                        <h2 class="text-lg font-extrabold text-white">Log New Contractor RA Progress Bill</h2>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#a38c29] text-white tracking-widest uppercase">Contractor RA Bills</span>
+                            <span class="text-[10px] font-bold text-slate-400">· New Progress Claim</span>
+                        </div>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Log New Contractor RA Progress Bill</h2>
                     </div>
-                    <button type="button" @click="addModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <button type="button" @click="addModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <form action="{{ route('expenses.ra-bills.store') }}" method="POST" class="p-6 space-y-4">
+            <form action="{{ route('expenses.ra-bills.store') }}" method="POST" data-no-words="true" class="ra-modal p-5 sm:p-6 space-y-4 overflow-y-auto">
                 @csrf
 
                 <!-- Row 1: Bill No & Submit Date -->
-                <div class="grid grid-cols-2 gap-4 items-start">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">RA BILL NO <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">
+                            RA Bill No <span class="text-rose-500 font-bold">*</span>
+                        </label>
                         <input type="text" name="ra_bill_number" value="{{ old('ra_bill_number') }}" placeholder="e.g. 1 or RA-001" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
                         @error('ra_bill_number')
                             <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">CONTRACTOR SUBMIT DATE <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">
+                            Contractor Submit Date <span class="text-rose-500 font-bold">*</span>
+                        </label>
                         <input type="date" name="submit_date" value="{{ old('submit_date', date('Y-m-d')) }}" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
                         @error('submit_date')
                             <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
@@ -403,11 +414,13 @@
                 </div>
 
                 <!-- Row 2: Contractor & Project -->
-                <div class="grid grid-cols-2 gap-4 items-start">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('contractor_id') ? 'text-rose-600' : '' }}">CONTRACTOR NAME <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('contractor_id') ? 'text-rose-600' : '' }}">
+                            Contractor Name <span class="text-rose-500 font-bold">*</span>
+                        </label>
                         <select name="contractor_id" x-model="selectedContractorId" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
                             <option value="">Select Contractor</option>
                             @foreach($contractors as $contractor)
                                 <option value="{{ $contractor->id }}" {{ (old('contractor_id') == $contractor->id || (empty(old('contractor_id')) && count($contractors) === 1)) ? 'selected' : '' }}>
@@ -421,9 +434,11 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('project_id') ? 'text-rose-600' : '' }}">SITE PROJECT <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('project_id') ? 'text-rose-600' : '' }}">
+                            Site Project <span class="text-rose-500 font-bold">*</span>
+                        </label>
                         <select name="project_id" x-model="selectedProjectId" @change="filterUnits()" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all shadow-2xs cursor-pointer {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
                             <option value="">Select Project</option>
                             @foreach($projects as $proj)
                                 <option value="{{ $proj->id }}" {{ (old('project_id') == $proj->id || (empty(old('project_id')) && count($projects) === 1)) ? 'selected' : '' }}>
@@ -438,132 +453,142 @@
                 </div>
 
                 <!-- Row 3: Gross Amount & Due Date -->
-                <div class="grid grid-cols-2 gap-4 items-start">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('gross_amount') ? 'text-rose-600' : '' }}">RA BILL GROSS AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="gross_amount" x-model="newGrossInput" @input="calcAdditionalFromPercent()" value="{{ old('gross_amount') }}" placeholder="5000000" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono font-bold focus:outline-none transition-all {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('gross_amount') ? 'text-rose-600' : '' }}">
+                            RA Bill Gross Amount (₹) <span class="text-rose-500 font-bold">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                            <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
+                                   data-no-words="true"
+                                   class="w-full pl-7 pr-3 py-2.5 rounded-xl text-xs font-mono font-bold focus:outline-none transition-all shadow-2xs {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29]' }}">
+                        </div>
                         @error('gross_amount')
                             <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">RA BILL DUE DATE</label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            RA Bill Due Date
+                        </label>
                         <input type="date" name="due_date" value="{{ old('due_date') }}"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
-                    </div>
-                </div>
-
-                <!-- Row 4: Additional Work (% and Amount) -->
-                <div class="grid grid-cols-2 gap-4 items-start">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">ADDITIONAL WORK (%)</label>
-                        <input type="number" step="0.01" x-model="newAdditionalPercent" @input="calcAdditionalFromPercent()" placeholder="e.g. 12 or 20"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
-                        <p class="mt-1 text-[10px] font-bold text-slate-400">e.g. Type 12 for 12%</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('additional_amount') ? 'text-rose-600' : '' }}">ADDITIONAL WORK (₹)</label>
-                        <input type="number" step="0.01" name="additional_amount" x-model="newAdditionalAmount" @input="calcPercentFromAdditional()" value="{{ old('additional_amount') }}" placeholder="0.00"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all {{ $errors->has('additional_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900' : '' }}">
-                        @error('additional_amount')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
-                        @enderror
+                               class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">REMARKS / NOTES</label>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Remarks / Notes
+                    </label>
                     <textarea name="remarks" rows="2" placeholder="Notes regarding progress work done..."
-                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">{{ old('remarks') }}</textarea>
+                              class="w-full p-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">{{ old('remarks') }}</textarea>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button type="button" @click="addModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md border border-[#a38c29]/40 cursor-pointer">SAVE RA BILL</button>
+                <div class="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                    <button type="button" @click="addModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/30 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span>Save RA Bill</span>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
-
-    <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
+        <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
     <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="verifyModalOpen = false">
-            {{-- Dark Header (Matched with Add Unit Modal) --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="verifyModalOpen = false">
+            {{-- Dark Header with Gold Glow --}}
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800 px-6 py-4 flex-shrink-0 border-b border-[#a38c29]/30">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Engineer Verification</p>
-                        <h2 class="text-lg font-extrabold text-white">Site Engineer Verification & Correction Sign-Off</h2>
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#a38c29] text-white tracking-widest uppercase">Contractor RA Bills</span>
+                            <span class="text-[10px] font-bold text-slate-400">· Final Verification</span>
+                        </div>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Site Engineer Verification & Correction Sign-Off</h2>
                     </div>
-                    <button type="button" @click="verifyModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <button type="button" @click="verifyModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="px-6 pt-3 pb-6 flex flex-col gap-3.5">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" data-no-words="true" class="ra-modal p-5 sm:p-6 space-y-4 overflow-y-auto">
                 @csrf
 
-                <!-- KPI Summary Bar (Compact Single-Row 4-Column Layout) -->
-                <div class="p-3 bg-slate-50/90 border border-slate-200/90 rounded-xl grid grid-cols-4 gap-3 items-center text-xs">
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">RA BILL NO.</span>
-                        <span class="text-xs font-mono font-black text-slate-900 mt-0.5 block truncate" x-text="selectedBill ? selectedBill.ra_bill_number : ''"></span>
+                <!-- KPI Summary Bar (Polished 4-Col Card) -->
+                <div class="p-3 bg-slate-50/80 border border-slate-200/90 rounded-xl grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs items-center shadow-2xs">
+                    <div class="sm:border-r border-slate-200 sm:pr-3">
+                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">RA BILL NO.</span>
+                        <div class="mt-0.5">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-mono font-extrabold bg-slate-200/70 text-slate-800 border border-slate-300/60" x-text="selectedBill ? selectedBill.ra_bill_number : '—'"></span>
+                        </div>
                     </div>
 
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">GROSS CLAIMED</span>
-                        <span class="text-xs font-mono font-black text-slate-900 mt-0.5 block truncate" x-text="selectedBill ? '₹' + numberFormat(selectedBill.gross_amount) : ''"></span>
+                    <div class="border-l sm:border-l-0 sm:border-r border-slate-200 pl-3 sm:pl-0 sm:pr-3">
+                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">GROSS CLAIMED</span>
+                        <span class="text-xs font-mono font-extrabold text-slate-900 truncate block mt-0.5" x-text="selectedBill ? '₹ ' + numberFormat(selectedBill.gross_amount) : '₹ 0.00'"></span>
                     </div>
 
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">ADDITIONAL WORK</span>
-                        <span class="text-xs font-mono font-bold text-slate-700 mt-0.5 block truncate" x-text="selectedBill && parseFloat(selectedBill.additional_amount) > 0 ? '₹' + numberFormat(selectedBill.additional_amount) + (parseFloat(selectedBill.gross_amount) > 0 ? ' (' + calcPercentage(selectedBill.additional_amount, selectedBill.gross_amount) + '%)' : '') : '—'"></span>
+                    <div class="border-t sm:border-t-0 sm:border-r border-slate-200 pt-2 sm:pt-0 sm:pr-3">
+                        <span class="block text-[9px] font-bold text-[#7a671b] uppercase tracking-wider">AFTER CORRECTION</span>
+                        <span class="text-xs font-mono font-extrabold text-[#a38c29] truncate block mt-0.5" x-text="'₹ ' + numberFormat(calculatedAfterCorrection)"></span>
                     </div>
 
-                    <div>
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider mb-1">STATUS</span>
-                        <span x-show="selectedBill && selectedBill.status === 'cleared'" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>Cleared</span>
-                        </span>
-                        <span x-show="selectedBill && selectedBill.status !== 'cleared' && selectedBill.verified_date" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
-                            <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            <span>Verified</span>
-                        </span>
-                        <span x-show="selectedBill && !selectedBill.verified_date" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
-                            <span>Submitted</span>
-                        </span>
+                    <div class="border-t sm:border-t-0 border-l sm:border-l-0 border-slate-200 pt-2 sm:pt-0 pl-3 sm:pl-0">
+                        <span class="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">STATUS</span>
+                        <template x-if="selectedBill && selectedBill.status === 'cleared'">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1 shadow-2xs">
+                                <svg class="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>Cleared</span>
+                            </span>
+                        </template>
+                        <template x-if="selectedBill && selectedBill.status !== 'cleared' && selectedBill.verified_date">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-800 border border-amber-300 inline-flex items-center gap-1 shadow-2xs">
+                                <svg class="w-2.5 h-2.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>Verified</span>
+                            </span>
+                        </template>
+                        <template x-if="selectedBill && !selectedBill.verified_date">
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1 shadow-2xs">
+                                <span>Submitted</span>
+                            </span>
+                        </template>
                     </div>
                 </div>
 
-                <!-- Verification Already Done Banner -->
-                <div x-show="selectedBill && selectedBill.verified_date" :class="selectedBill && selectedBill.verified_date ? 'flex items-center justify-between' : 'hidden'" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs" style="display: none;">
-                    <div class="flex items-center gap-2 text-emerald-800 font-extrabold">
-                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                        <span>VERIFICATION ALREADY DONE</span>
+                <!-- Verification Already Done Banner (If verified) -->
+                <div x-show="selectedBill && selectedBill.verified_date" class="py-2 px-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs flex items-center justify-between shadow-2xs" style="display: none;">
+                    <div class="flex items-center gap-2 text-emerald-800 font-extrabold text-[11px]">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>VERIFICATION COMPLETED</span>
                     </div>
-                    <div class="text-slate-700 font-semibold">
+                    <div class="text-slate-700 text-[11px] font-medium">
                         Verified By: <span class="font-bold text-slate-900" x-text="selectedBill ? (selectedBill.engineer_name || 'Engineer') : ''"></span>
                     </div>
                 </div>
 
-                <!-- Form Fields -->
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Row 1: Verified Date & Site Engineer -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">VERIFIED DATE <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Verified Date <span class="text-rose-500 font-bold">*</span>
+                        </label>
                         <input type="date" name="verified_date" x-model="verifyDateInput" required
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                               class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">SITE ENGINEER (FROM MASTER) <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Site Engineer (From Master) <span class="text-rose-500 font-bold">*</span>
+                        </label>
                         <select name="engineer_id" x-model="selectedEngineerId" required
-                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                                class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs cursor-pointer">
                             <option value="">Select Verifying Engineer</option>
                             @foreach($engineers as $eng)
                                 <option value="{{ $eng->id }}" :selected="selectedEngineerId == {{ $eng->id }}">
@@ -574,30 +599,103 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Row 2: Correction of Bill & Amount After Correction -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
                     <div>
-                        <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1.5">CORRECTION OF BILL (DEDUCTION ₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcNet()" required
-                               class="w-full px-3.5 py-2.5 bg-amber-50/60 border border-amber-200 rounded-xl text-sm font-mono font-black text-amber-950 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
-                        <p class="mt-1 text-[10px] font-bold text-slate-500" x-text="selectedBill ? 'Max Correction: ₹' + numberFormat((parseFloat(selectedBill.gross_amount) || 0) + (parseFloat(selectedBill.additional_amount) || 0)) : ''"></p>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Correction of Bill (Deduction ₹) <span class="text-rose-500 font-bold">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                            <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcVerification()" required
+                                   data-no-words="true"
+                                   class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"
+                                   placeholder="0.00">
+                        </div>
+                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center" x-text="selectedBill ? 'Max Deduction: ₹ ' + numberFormat(selectedBill.gross_amount) : ''"></p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-blue-900 uppercase tracking-wider mb-1.5">NET RA PAYABLE AFTER CORRECTION</label>
-                        <div class="w-full px-3.5 py-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-sm font-mono font-black text-blue-950 flex items-center min-h-[42px]"
-                             x-text="'₹ ' + numberFormat(calculatedNet)"></div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Amount After Correction (₹)
+                        </label>
+                        <div class="w-full h-[38px] pl-7 pr-3 bg-slate-100/90 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-800 flex items-center shadow-2xs relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                            <span x-text="numberFormat(calculatedAfterCorrection)"></span>
+                        </div>
+                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center">Gross Claimed − Correction Deduction</p>
                     </div>
                 </div>
 
+                <!-- Row 3: Additional Work (% and ₹ with respect to After-Correction Amount) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Additional Work (%)
+                        </label>
+                        <div class="relative">
+                            <input type="number" step="0.01" name="additional_percentage" x-model="verifyAdditionalPercent" @input="calcAdditionalFromPercent()" placeholder="0.00"
+                                   data-no-words="true"
+                                   class="w-full h-[38px] pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                            <span class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">%</span>
+                        </div>
+                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center truncate" x-text="verifyAdditionalPercent ? verifyAdditionalPercent + '% of ₹ ' + numberFormat(calculatedAfterCorrection) : 'Applied on After-Correction base'"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Additional Work (₹)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs font-extrabold">₹</span>
+                            <input type="number" step="0.01" name="additional_amount" x-model="verifyAdditionalAmount" @input="calcPercentFromAdditional()" placeholder="0.00"
+                                   data-no-words="true"
+                                   class="w-full h-[38px] pl-7 pr-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                        </div>
+                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center">Added to After-Correction base</p>
+                    </div>
+                </div>
+
+                <!-- Row 4: Net RA Payable & Due Date -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
+                    <div>
+                        <label class="block text-[11px] font-extrabold text-blue-900 uppercase tracking-wider mb-1.5">
+                            Net RA Payable (Final Claim)
+                        </label>
+                        <div class="w-full h-[38px] pl-7 pr-3 bg-gradient-to-r from-blue-50/90 to-indigo-50/60 border-2 border-blue-400/50 rounded-xl text-sm font-mono font-black text-blue-950 flex items-center justify-between shadow-2xs relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-blue-500 text-xs font-extrabold">₹</span>
+                            <span x-text="numberFormat(calculatedNet)"></span>
+                            <span class="px-2 py-0.5 rounded text-[8.5px] font-black bg-blue-600 text-white uppercase tracking-wider">Approved</span>
+                        </div>
+                        <p class="mt-1 text-[10px] font-semibold text-blue-700/80 h-4 flex items-center truncate" x-text="'After Corr. (₹ ' + numberFormat(calculatedAfterCorrection) + ') + Add. (₹ ' + numberFormat(parseFloat(verifyAdditionalAmount) || 0) + ')'"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            RA Bill Due Date
+                        </label>
+                        <input type="date" name="due_date" x-model="verifyDueDateInput"
+                               class="w-full h-[38px] px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs">
+                        <p class="mt-1 text-[10px] font-medium text-slate-400 h-4 flex items-center">Payment due date for finance release</p>
+                    </div>
+                </div>
+
+                <!-- Row 5: Remarks -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">VERIFICATION REMARKS</label>
-                    <textarea name="remarks" rows="2" x-model="verifyRemarksInput" placeholder="Details of corrections/retentions applied..."
-                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Verification Remarks
+                    </label>
+                    <textarea name="remarks" rows="2" x-model="verifyRemarksInput" placeholder="Details of measurements checked, corrections or retentions applied..."
+                              class="w-full p-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] focus:outline-none transition shadow-2xs"></textarea>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button type="button" @click="verifyModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md border border-[#a38c29]/40 cursor-pointer">
+                <!-- Footer Actions -->
+                <div class="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100">
+                    <button type="button" @click="verifyModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold uppercase rounded-xl transition cursor-pointer">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611c] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/30 border border-[#a38c29]/40 cursor-pointer flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span x-text="selectedBill && selectedBill.verified_date ? 'UPDATE VERIFICATION SIGN-OFF' : 'CONFIRM SIGN-OFF'"></span>
                     </button>
                 </div>
@@ -663,6 +761,9 @@ function raBillVerification() {
         verifyModalOpen: false,
         selectedBill: null,
         correctionInput: 0,
+        calculatedAfterCorrection: 0,
+        verifyAdditionalPercent: '',
+        verifyAdditionalAmount: '0.00',
         calculatedNet: 0,
         allContractors: @json($contractors),
         allProjects: @json($projects),
@@ -675,9 +776,7 @@ function raBillVerification() {
         selectedEngineerId: '',
         verifyDateInput: '{{ date("Y-m-d") }}',
         verifyRemarksInput: '',
-        newGrossInput: '{{ old('gross_amount', '') }}',
-        newAdditionalPercent: '',
-        newAdditionalAmount: '{{ old('additional_amount', '') }}',
+        verifyDueDateInput: '',
 
         init() {
             if (!this.selectedContractorId && this.allContractors && this.allContractors.length === 1) {
@@ -702,9 +801,27 @@ function raBillVerification() {
 
         openVerifyModal(bill) {
             this.selectedBill = bill;
-            this.correctionInput = bill.correction_amount || 0;
-            this.calculatedNet = Math.max(0, (parseFloat(bill.gross_amount) || 0) + (parseFloat(bill.additional_amount) || 0) - this.correctionInput);
+            const gross = parseFloat(bill.gross_amount) || 0;
+            const corr = parseFloat(bill.correction_amount) || 0;
+            this.correctionInput = corr;
+            this.calculatedAfterCorrection = Math.max(0, gross - corr);
+
+            const addAmt = parseFloat(bill.additional_amount) || 0;
+            const addPct = parseFloat(bill.additional_percentage) || 0;
+            this.verifyAdditionalAmount = addAmt > 0 ? addAmt.toFixed(2) : '0.00';
+
+            if (addPct > 0) {
+                this.verifyAdditionalPercent = (addPct == parseInt(addPct)) ? parseInt(addPct) : addPct;
+            } else if (addAmt > 0 && this.calculatedAfterCorrection > 0) {
+                const computedPct = (addAmt / this.calculatedAfterCorrection) * 100;
+                this.verifyAdditionalPercent = (computedPct == parseInt(computedPct)) ? parseInt(computedPct) : computedPct.toFixed(2);
+            } else {
+                this.verifyAdditionalPercent = '';
+            }
+
+            this.calculatedNet = Math.max(0, this.calculatedAfterCorrection + (parseFloat(this.verifyAdditionalAmount) || 0));
             this.verifyRemarksInput = bill.remarks || '';
+            this.verifyDueDateInput = bill.due_date ? String(bill.due_date).substring(0, 10) : '';
 
             if (bill.verified_date) {
                 this.verifyDateInput = String(bill.verified_date).substring(0, 10);
@@ -718,34 +835,56 @@ function raBillVerification() {
             this.verifyModalOpen = true;
         },
 
-        recalcNet() {
+        recalcVerification() {
             if (!this.selectedBill) return;
             const gross = parseFloat(this.selectedBill.gross_amount) || 0;
-            const additional = parseFloat(this.selectedBill.additional_amount) || 0;
             let corr = parseFloat(this.correctionInput) || 0;
-            if (corr > (gross + additional)) {
-                corr = gross + additional;
-                this.correctionInput = gross + additional;
+            if (corr < 0) {
+                corr = 0;
+                this.correctionInput = 0;
             }
-            this.calculatedNet = Math.max(0, gross + additional - corr);
+            if (corr > gross) {
+                corr = gross;
+                this.correctionInput = gross;
+            }
+            this.calculatedAfterCorrection = Math.max(0, gross - corr);
+
+            // Recalculate additional amount with respect to new after-correction base
+            const pct = parseFloat(this.verifyAdditionalPercent);
+            if (!isNaN(pct) && pct > 0 && this.calculatedAfterCorrection > 0) {
+                this.verifyAdditionalAmount = ((this.calculatedAfterCorrection * pct) / 100).toFixed(2);
+            } else if (parseFloat(this.verifyAdditionalAmount) > 0 && this.calculatedAfterCorrection > 0) {
+                const computedPct = (parseFloat(this.verifyAdditionalAmount) / this.calculatedAfterCorrection) * 100;
+                this.verifyAdditionalPercent = (computedPct == parseInt(computedPct)) ? parseInt(computedPct) : computedPct.toFixed(2);
+            }
+
+            const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
+            this.calculatedNet = Math.max(0, this.calculatedAfterCorrection + addAmt);
         },
 
         calcAdditionalFromPercent() {
-            const gross = parseFloat(this.newGrossInput) || 0;
-            const pct = parseFloat(this.newAdditionalPercent) || 0;
-            if (gross > 0 && pct > 0) {
-                this.newAdditionalAmount = (gross * pct / 100).toFixed(2);
+            const base = parseFloat(this.calculatedAfterCorrection) || 0;
+            const pct = parseFloat(this.verifyAdditionalPercent);
+            if (!isNaN(pct) && pct >= 0 && base > 0) {
+                this.verifyAdditionalAmount = ((base * pct) / 100).toFixed(2);
+            } else if (isNaN(pct) || pct === 0) {
+                this.verifyAdditionalAmount = '0.00';
             }
+            const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
+            this.calculatedNet = Math.max(0, base + addAmt);
         },
 
         calcPercentFromAdditional() {
-            const gross = parseFloat(this.newGrossInput) || 0;
-            const amt = parseFloat(this.newAdditionalAmount) || 0;
-            if (gross > 0 && amt > 0) {
-                this.newAdditionalPercent = ((amt / gross) * 100).toFixed(2);
+            const base = parseFloat(this.calculatedAfterCorrection) || 0;
+            const amt = parseFloat(this.verifyAdditionalAmount);
+            if (!isNaN(amt) && amt > 0 && base > 0) {
+                const computedPct = (amt / base) * 100;
+                this.verifyAdditionalPercent = (computedPct == parseInt(computedPct)) ? parseInt(computedPct) : computedPct.toFixed(2);
             } else {
-                this.newAdditionalPercent = '';
+                this.verifyAdditionalPercent = '';
             }
+            const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
+            this.calculatedNet = Math.max(0, base + addAmt);
         },
 
         calcPercentage(additional, gross) {
@@ -796,18 +935,19 @@ function raBillVerification() {
             worksheet.pageSetup.printTitles = theme === 'classic' ? '1:3' : '5:7';
 
             worksheet.columns = [
-                { width: 10 }, // SL NO
+                { width: 8 },  // SL NO
                 { width: 16 }, // RA BILL NO
-                { width: 44 }, // CONTRACTOR NAME
-                { width: 50 }, // SITE PROJECT
+                { width: 40 }, // CONTRACTOR NAME
+                { width: 40 }, // SITE PROJECT
                 { width: 16 }, // SUBMIT DATE
-                { width: 24 }, // RA BILL AMOUNT (₹)
+                { width: 22 }, // RA BILL AMOUNT (₹)
+                { width: 24 }, // CORRECTION / DEDUCTION (₹)
+                { width: 24 }, // AFTER CORRECTION (₹)
                 { width: 22 }, // ADDITIONAL WORK (₹)
-                { width: 26 }, // CORRECTION / DEDUCTION (₹)
-                { width: 28 }, // AFTER CORRECTION (NET PAYABLE ₹)
+                { width: 26 }, // NET RA PAYABLE (₹)
                 { width: 16 }, // DUE DATE
                 { width: 16 }, // VERIFIED DATE
-                { width: 36 }, // VERIFYING ENGINEER
+                { width: 32 }, // VERIFYING ENGINEER
                 { width: 18 }  // STATUS
             ];
 
@@ -1013,16 +1153,16 @@ function raBillVerification() {
                 </td>
             </tr>
             <tr height="14" style="height: 14pt;">
-                <td colspan="13" style="border: none;"></td>
+                <td colspan="14" style="border: none;"></td>
             </tr>
             <tr height="46" style="height: 46pt;">
-                <th colspan="13" bgcolor="#2a2415" style="background-color: #2a2415; color: #f3e5ab; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #a38c29; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                <th colspan="14" bgcolor="#2a2415" style="background-color: #2a2415; color: #f3e5ab; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #a38c29; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
                     HINDUSTAN ERP: CONTRACTOR RA PROGRESS BILLS & VERIFICATION REGISTER
                 </th>
             </tr>
             <tr height="30" style="height: 30pt;">
                 <th colspan="5" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">1. CONTRACTOR & RA BILL IDENTIFICATION</th>
-                <th colspan="4" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. INWARD FINANCIAL CLAIMS & ENGINEER DEDUCTIONS</th>
+                <th colspan="5" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. INWARD FINANCIAL CLAIMS & ENGINEER DEDUCTIONS</th>
                 <th colspan="4" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">3. SITE ENGINEER VERIFICATION & AUDIT SIGN-OFF</th>
             </tr>
             <tr height="40" style="height: 40pt;">
@@ -1032,9 +1172,10 @@ function raBillVerification() {
                 <th width="200" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 150pt;">SITE PROJECT</th>
                 <th width="125" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">SUBMIT DATE</th>
                 <th width="155" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">RA BILL AMOUNT (₹)</th>
-                <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
                 <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">CORRECTION / DEDUCTION (₹)</th>
-                <th width="175" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">AFTER CORRECTION (NET PAYABLE ₹)</th>
+                <th width="155" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">AFTER CORRECTION (₹)</th>
+                <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
+                <th width="175" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">NET RA PAYABLE (₹)</th>
                 <th width="125" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">DUE DATE</th>
                 <th width="125" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">VERIFIED DATE</th>
                 <th width="190" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 145pt;">VERIFYING ENGINEER</th>
@@ -1049,9 +1190,10 @@ function raBillVerification() {
                 @php
                     $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
                     $grossAmt = (float)$bill->gross_amount;
+                    $corrAmt = (float)$bill->correction_amount;
+                    $afterCorrAmt = max(0, $grossAmt - $corrAmt);
                     $addAmt = (float)$bill->additional_amount;
                     $goldAdditionalSum += $addAmt;
-                    $corrAmt = (float)$bill->correction_amount;
                     $netAmt = (float)$bill->net_approved_amount;
                     $subDate = $bill->submit_date ? $bill->submit_date->format('Y-m-d') : '';
                     $dueDate = $bill->due_date ? $bill->due_date->format('Y-m-d') : '';
@@ -1067,8 +1209,9 @@ function raBillVerification() {
                     <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($bill->project->name ?? 'Site Project') }}</td>
                     <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $subDate }}</td>
                     <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $grossAmt }}</td>
-                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $addAmt > 0 ? $addAmt : '0.00' }}</td>
                     <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $corrStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $corrAmt > 0 ? ('-' . $corrAmt) : '0.00' }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $afterCorrAmt }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $addAmt > 0 ? $addAmt : '0.00' }}</td>
                     <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #eff6ff; color: #1e3a8a; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $netAmt }}</td>
                     <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $dueDate }}</td>
                     <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $verDate }}</td>
@@ -1079,8 +1222,9 @@ function raBillVerification() {
             <tr height="32" style="height: 32pt; font-weight: bold; color: #ffffff;">
                 <td colspan="5" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL REGISTER SUMMARY</td>
                 <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalGross }}</td>
-                <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$goldAdditionalSum }}</td>
                 <td data-format="currency" bgcolor="#1e293b" style="background-color: #fee2e2; color: #991b1b; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)-$totalCorrections }}</td>
+                <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalGross - $totalCorrections) }}</td>
+                <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$goldAdditionalSum }}</td>
                 <td data-format="currency" bgcolor="#1e293b" style="background-color: #1e293b; color: #38bdf8; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalNetApproved }}</td>
                 <td colspan="4" bgcolor="#1e293b" style="background-color: #1e293b; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
             </tr>
@@ -1097,6 +1241,7 @@ function raBillVerification() {
             <col width="125" style="width: 95pt;" />
             <col width="155" style="width: 115pt;" />
             <col width="145" style="width: 110pt;" />
+            <col width="155" style="width: 115pt;" />
             <col width="145" style="width: 110pt;" />
             <col width="175" style="width: 135pt;" />
             <col width="125" style="width: 95pt;" />
@@ -1106,13 +1251,13 @@ function raBillVerification() {
         </colgroup>
         <thead>
             <tr height="45" style="height: 45pt;">
-                <th colspan="13" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
+                <th colspan="14" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
                     HINDUSTAN ERP: CONTRACTOR RA PROGRESS BILLS & VERIFICATION REGISTER
                 </th>
             </tr>
             <tr height="30" style="height: 30pt;">
                 <th colspan="5" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">1. CONTRACTOR & BILL INFORMATION</th>
-                <th colspan="4" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. FINANCIAL CLAIMS & ENGINEER DEDUCTIONS</th>
+                <th colspan="5" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">2. FINANCIAL CLAIMS & ENGINEER DEDUCTIONS</th>
                 <th colspan="4" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 10pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 6px 0; font-family: 'Calibri', 'Aptos', sans-serif;">3. ENGINEER VERIFICATION & AUDIT SIGN-OFF</th>
             </tr>
             <tr height="40" style="height: 40pt;">
@@ -1122,9 +1267,10 @@ function raBillVerification() {
                 <th width="200" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 150pt;">SITE PROJECT</th>
                 <th width="125" bgcolor="#334155" style="background-color: #334155; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">SUBMIT DATE</th>
                 <th width="155" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">RA BILL AMOUNT (₹)</th>
-                <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
                 <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">CORRECTION / DEDUCTION (₹)</th>
-                <th width="175" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">AFTER CORRECTION (NET PAYABLE ₹)</th>
+                <th width="155" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">AFTER CORRECTION (₹)</th>
+                <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
+                <th width="175" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">NET RA PAYABLE (₹)</th>
                 <th width="125" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">DUE DATE</th>
                 <th width="125" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">VERIFIED DATE</th>
                 <th width="190" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 145pt;">VERIFYING ENGINEER</th>
@@ -1139,9 +1285,10 @@ function raBillVerification() {
                 @php
                     $rowBg = $loop->iteration % 2 === 0 ? 'background-color: #f8fafc;' : 'background-color: #ffffff;';
                     $grossAmt = (float)$bill->gross_amount;
+                    $corrAmt = (float)$bill->correction_amount;
+                    $afterCorrAmt = max(0, $grossAmt - $corrAmt);
                     $addAmt = (float)$bill->additional_amount;
                     $totalAdditionalSum += $addAmt;
-                    $corrAmt = (float)$bill->correction_amount;
                     $netAmt = (float)$bill->net_approved_amount;
                     $subDate = $bill->submit_date ? $bill->submit_date->format('Y-m-d') : '';
                     $dueDate = $bill->due_date ? $bill->due_date->format('Y-m-d') : '';
@@ -1157,8 +1304,9 @@ function raBillVerification() {
                     <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($bill->project->name ?? 'Site Project') }}</td>
                     <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $subDate }}</td>
                     <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $grossAmt }}</td>
-                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $addAmt > 0 ? $addAmt : '0.00' }}</td>
                     <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $corrStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $corrAmt > 0 ? ('-' . $corrAmt) : '0.00' }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $afterCorrAmt }}</td>
+                    <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $addAmt > 0 ? $addAmt : '0.00' }}</td>
                     <td data-format="currency" style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #eff6ff; color: #1e3a8a; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ $netAmt }}</td>
                     <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $dueDate }}</td>
                     <td data-format="date" style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $verDate }}</td>
@@ -1169,8 +1317,9 @@ function raBillVerification() {
             <tr height="30" style="height: 30pt; font-weight: bold; color: #ffffff;">
                 <td colspan="5" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
                 <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalGross }}</td>
-                <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalAdditionalSum }}</td>
                 <td data-format="currency" bgcolor="#17365D" style="background-color: #fee2e2; color: #991b1b; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)-$totalCorrections }}</td>
+                <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)($totalGross - $totalCorrections) }}</td>
+                <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalAdditionalSum }}</td>
                 <td data-format="currency" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 10pt; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0\.00';">{{ (float)$totalNetApproved }}</td>
                 <td colspan="4" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
             </tr>

@@ -23,6 +23,7 @@ class RaBill extends Model
         'submit_date',
         'gross_amount',
         'additional_amount',
+        'additional_percentage',
         'verified_date',
         'engineer_name',
         'correction_amount',
@@ -36,14 +37,16 @@ class RaBill extends Model
     ];
 
     protected $casts = [
-        'submit_date'         => 'date',
-        'verified_date'       => 'date',
-        'due_date'            => 'date',
-        'gross_amount'        => 'decimal:2',
-        'correction_amount'   => 'decimal:2',
-        'net_approved_amount' => 'decimal:2',
-        'paid_amount'         => 'decimal:2',
-        'balance_amount'      => 'decimal:2',
+        'submit_date'           => 'date',
+        'verified_date'         => 'date',
+        'due_date'              => 'date',
+        'gross_amount'          => 'decimal:2',
+        'additional_amount'     => 'decimal:2',
+        'additional_percentage' => 'decimal:2',
+        'correction_amount'     => 'decimal:2',
+        'net_approved_amount'   => 'decimal:2',
+        'paid_amount'           => 'decimal:2',
+        'balance_amount'        => 'decimal:2',
     ];
 
     public function contractor(): BelongsTo

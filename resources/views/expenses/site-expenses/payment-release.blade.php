@@ -235,8 +235,8 @@
                                             <span>CLEARED</span>
                                         </span>
                                     @elseif($paid > 0)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs uppercase tracking-wider">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
                                             <span>PARTIALLY PAID</span>
                                         </span>
                                     @else

@@ -256,8 +256,9 @@
                                                 <span>CLEARED</span>
                                             </span>
                                         @elseif($idxPartPaid)
-                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
-                                                PART PAID
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
+                                                <span>PARTIALLY PAID</span>
                                             </span>
                                         @elseif($bill->verified_date)
                                             <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center shadow-2xs uppercase tracking-wider">
@@ -379,9 +380,9 @@
                                                     <span>CLEARED</span>
                                                 </span>
                                             @else
-                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider whitespace-nowrap">
-                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
-                                                    <span>PENDING</span>
+                                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider whitespace-nowrap">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
+                                                    <span>PARTIALLY PAID</span>
                                                 </span>
                                             @endif
                                         </td>
@@ -675,49 +676,49 @@
 
     <!-- ── MODAL 1: LOG NEW CONTRACTOR RA BILL ── -->
     <div x-show="addModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="addModalOpen = false">
+        <div class="bg-white rounded-xl max-w-lg sm:max-w-xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="addModalOpen = false">
             {{-- Dark Header (Matched with Add Unit Modal) --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-5 py-3 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills</p>
-                        <h2 class="text-lg font-extrabold text-white">Log New Contractor RA Progress Bill</h2>
+                        <p class="text-[#a38c29] text-[9px] font-semibold uppercase tracking-widest mb-0.5">Contractor RA Bills</p>
+                        <h2 class="text-base font-bold text-white">Log New Contractor RA Progress Bill</h2>
                     </div>
-                    <button type="button" @click="addModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="addModalOpen = false" class="p-1 text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <form action="{{ route('expenses.ra-bills.store') }}" method="POST" class="p-6 space-y-4">
+            <form action="{{ route('expenses.ra-bills.store') }}" method="POST" class="p-4 sm:p-5 space-y-2.5 overflow-y-auto">
                 @csrf
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">RA BILL NO <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('ra_bill_number') ? 'text-rose-600' : '' }}">RA BILL NO <span class="text-rose-500 font-bold">*</span></label>
                         <input type="text" name="ra_bill_number" value="{{ old('ra_bill_number') }}" placeholder="e.g. 1 or RA-001" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                               class="w-full px-3 py-1.5 rounded-lg text-xs font-bold focus:outline-none transition-all {{ $errors->has('ra_bill_number') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                         @error('ra_bill_number')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            <p class="mt-0.5 text-[9.5px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">CONTRACTOR SUBMIT DATE <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('submit_date') ? 'text-rose-600' : '' }}">CONTRACTOR SUBMIT DATE <span class="text-rose-500 font-bold">*</span></label>
                         <input type="date" name="submit_date" value="{{ old('submit_date', date('Y-m-d')) }}" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                               class="w-full px-3 py-1.5 rounded-lg text-xs font-bold focus:outline-none transition-all {{ $errors->has('submit_date') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                         @error('submit_date')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            <p class="mt-0.5 text-[9.5px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('contractor_id') ? 'text-rose-600' : '' }}">CONTRACTOR NAME <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('contractor_id') ? 'text-rose-600' : '' }}">CONTRACTOR NAME <span class="text-rose-500 font-bold">*</span></label>
                         <select name="contractor_id" x-model="selectedContractorId" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                                class="w-full px-3 py-1.5 rounded-lg text-xs font-bold focus:outline-none transition-all {{ $errors->has('contractor_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                             <option value="">Select Contractor</option>
                             @foreach($contractors as $contractor)
                                 <option value="{{ $contractor->id }}" {{ (old('contractor_id') == $contractor->id || (empty(old('contractor_id')) && count($contractors) === 1)) ? 'selected' : '' }}>
@@ -726,14 +727,14 @@
                             @endforeach
                         </select>
                         @error('contractor_id')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            <p class="mt-0.5 text-[9.5px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('project_id') ? 'text-rose-600' : '' }}">SITE PROJECT <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('project_id') ? 'text-rose-600' : '' }}">SITE PROJECT <span class="text-rose-500 font-bold">*</span></label>
                         <select name="project_id" x-model="selectedProjectId" @change="filterUnits()" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                                class="w-full px-3 py-1.5 rounded-lg text-xs font-bold focus:outline-none transition-all {{ $errors->has('project_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                             <option value="">Select Project</option>
                             @foreach($projects as $proj)
                                 <option value="{{ $proj->id }}" {{ (old('project_id') == $proj->id || (empty(old('project_id')) && count($projects) === 1)) ? 'selected' : '' }}>
@@ -742,53 +743,53 @@
                             @endforeach
                         </select>
                         @error('project_id')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            <p class="mt-0.5 text-[9.5px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('unit_id') ? 'text-rose-600' : '' }}">UNIT <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('unit_id') ? 'text-rose-600' : '' }}">UNIT <span class="text-rose-500 font-bold">*</span></label>
                         <select name="unit_id" x-model="selectedUnitId" required
-                                class="w-full px-3.5 py-2.5 rounded-xl text-xs font-bold focus:outline-none transition-all {{ $errors->has('unit_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                                class="w-full px-3 py-1.5 rounded-lg text-xs font-bold focus:outline-none transition-all {{ $errors->has('unit_id') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                             <option value="">Select Unit</option>
                             <template x-for="u in availableUnits" :key="u.id">
                                 <option :value="u.id" x-text="u.door_no" :selected="selectedUnitId == u.id"></option>
                             </template>
                         </select>
                         @error('unit_id')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            <p class="mt-0.5 text-[9.5px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 {{ $errors->has('gross_amount') ? 'text-rose-600' : '' }}">RA BILL GROSS AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1 {{ $errors->has('gross_amount') ? 'text-rose-600' : '' }}">RA BILL GROSS AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
                         <input type="number" step="0.01" name="gross_amount" value="{{ old('gross_amount') }}" placeholder="5000000" required
-                               class="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono font-bold focus:outline-none transition-all {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
+                               class="w-full px-3 py-1.5 rounded-lg text-xs font-mono font-bold focus:outline-none transition-all {{ $errors->has('gross_amount') ? 'bg-rose-50 border-2 border-rose-500 text-rose-900 focus:ring-2 focus:ring-rose-500 ring-2 ring-rose-200' : 'bg-slate-50 border border-slate-200 text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29]' }}">
                         @error('gross_amount')
-                            <p class="mt-1 text-[10px] font-bold text-rose-600">{{ $message }}</p>
+                            <p class="mt-0.5 text-[9.5px] font-bold text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div class="col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">RA BILL DUE DATE</label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">RA BILL DUE DATE</label>
                         <input type="date" name="due_date" value="{{ old('due_date') }}"
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">REMARKS / NOTES</label>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">REMARKS / NOTES</label>
                     <textarea name="remarks" rows="2" placeholder="Notes regarding progress work done..."
-                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">{{ old('remarks') }}</textarea>
+                              class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">{{ old('remarks') }}</textarea>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button type="button" @click="addModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md border border-[#a38c29]/40 cursor-pointer">SAVE RA BILL</button>
+                <div class="pt-2.5 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" @click="addModalOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold uppercase rounded-lg transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow-sm border border-[#a38c29]/40 cursor-pointer">SAVE RA BILL</button>
                 </div>
             </form>
         </div>
@@ -796,80 +797,80 @@
 
     <!-- ── MODAL 2: SITE ENGINEER VERIFICATION & CORRECTIONS ── -->
     <div x-show="verifyModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="verifyModalOpen = false">
+        <div class="bg-white rounded-xl max-w-lg sm:max-w-xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="verifyModalOpen = false">
             {{-- Dark Header (Matched with Add Unit Modal) --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-5 py-3 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Engineer Verification</p>
-                        <h2 class="text-lg font-extrabold text-white">Site Engineer Verification & Correction Sign-Off</h2>
+                        <p class="text-[#a38c29] text-[9px] font-semibold uppercase tracking-widest mb-0.5">Contractor RA Bills</p>
+                        <h2 class="text-base font-bold text-white">Site Engineer Verification & Correction Sign-Off</h2>
                     </div>
-                    <button type="button" @click="verifyModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    <button type="button" @click="verifyModalOpen = false" class="p-1 text-slate-400 hover:text-white transition cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="px-6 pt-3 pb-6 flex flex-col gap-3.5">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/verify' : '#'" method="POST" class="p-4 sm:p-5 space-y-2.5 overflow-y-auto">
                 @csrf
 
-                <!-- KPI Summary Bar (Compact Single-Row 4-Column Layout) -->
-                <div class="p-3 bg-slate-50/90 border border-slate-200/90 rounded-xl grid grid-cols-4 gap-3 items-center text-xs">
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">RA BILL NO.</span>
-                        <span class="text-xs font-mono font-black text-slate-900 mt-0.5 block truncate" x-text="selectedBill ? selectedBill.ra_bill_number : ''"></span>
+                <!-- KPI Summary Bar (Compact Single-Row 4-Col Strip) -->
+                <div class="p-2 bg-slate-50 border border-slate-200 rounded-lg grid grid-cols-4 gap-2 text-xs items-center">
+                    <div class="border-r border-slate-200 pr-2">
+                        <span class="block text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">RA BILL NO.</span>
+                        <span class="text-[11px] font-mono font-bold text-slate-900 truncate block mt-0.5" x-text="selectedBill ? selectedBill.ra_bill_number : '—'"></span>
                     </div>
 
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">GROSS CLAIMED</span>
-                        <span class="text-xs font-mono font-black text-slate-900 mt-0.5 block truncate" x-text="selectedBill ? '₹' + numberFormat(selectedBill.gross_amount) : ''"></span>
+                    <div class="border-r border-slate-200 pr-2">
+                        <span class="block text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">GROSS CLAIMED</span>
+                        <span class="text-[11px] font-mono font-bold text-slate-900 truncate block mt-0.5" x-text="selectedBill ? '₹' + numberFormat(selectedBill.gross_amount) : '₹0.00'"></span>
                     </div>
 
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">ADDITIONAL WORK</span>
-                        <span class="text-xs font-mono font-bold text-slate-700 mt-0.5 block truncate" x-text="selectedBill && parseFloat(selectedBill.additional_amount) > 0 ? '₹' + numberFormat(selectedBill.additional_amount) + (parseFloat(selectedBill.gross_amount) > 0 ? ' (' + calcPercentage(selectedBill.additional_amount, selectedBill.gross_amount) + '%)' : '') : '—'"></span>
+                    <div class="border-r border-slate-200 pr-2">
+                        <span class="block text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">AFTER CORRECTION</span>
+                        <span class="text-[11px] font-mono font-bold text-slate-800 truncate block mt-0.5" x-text="'₹' + numberFormat(calculatedAfterCorrection)"></span>
                     </div>
 
                     <div>
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider mb-1">STATUS</span>
-                        <span x-show="selectedBill && selectedBill.status === 'cleared'" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
-                            <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span class="block text-[8.5px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">STATUS</span>
+                        <span x-show="selectedBill && selectedBill.status === 'cleared'" class="px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
+                            <svg class="w-2.5 h-2.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>Cleared</span>
                         </span>
-                        <span x-show="selectedBill && selectedBill.status !== 'cleared' && selectedBill.verified_date" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
-                            <svg class="w-3 h-3 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                        <span x-show="selectedBill && selectedBill.status !== 'cleared' && selectedBill.verified_date" class="px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold bg-amber-50 text-amber-800 border border-amber-200 inline-flex items-center gap-1">
+                            <svg class="w-2.5 h-2.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                             <span>Verified</span>
                         </span>
-                        <span x-show="selectedBill && !selectedBill.verified_date" class="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
+                        <span x-show="selectedBill && !selectedBill.verified_date" class="px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
                             <span>Submitted</span>
                         </span>
                     </div>
                 </div>
 
-                <!-- Verification Already Done Banner -->
-                <div x-show="selectedBill && selectedBill.verified_date" :class="selectedBill && selectedBill.verified_date ? 'flex items-center justify-between' : 'hidden'" class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs" style="display: none;">
-                    <div class="flex items-center gap-2 text-emerald-800 font-extrabold">
-                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                <!-- Verification Already Done Banner (If verified) -->
+                <div x-show="selectedBill && selectedBill.verified_date" :class="selectedBill && selectedBill.verified_date ? 'flex items-center justify-between' : 'hidden'" class="py-1.5 px-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs" style="display: none;">
+                    <div class="flex items-center gap-1.5 text-emerald-800 font-extrabold text-[10px]">
+                        <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                         <span>VERIFICATION ALREADY DONE</span>
                     </div>
-                    <div class="text-slate-700 font-semibold">
+                    <div class="text-slate-700 text-[10px] font-semibold">
                         Verified By: <span class="font-bold text-slate-900" x-text="selectedBill ? (selectedBill.engineer_name || 'Engineer') : ''"></span>
                     </div>
                 </div>
 
-                <!-- Form Fields -->
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Row 1: Verified Date & Site Engineer -->
+                <div class="grid grid-cols-2 gap-3 items-start">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">VERIFIED DATE <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">VERIFIED DATE <span class="text-rose-500 font-bold">*</span></label>
                         <input type="date" name="verified_date" x-model="verifyDateInput" required
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">SITE ENGINEER (FROM MASTER) <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">SITE ENGINEER (FROM MASTER) <span class="text-rose-500 font-bold">*</span></label>
                         <select name="engineer_id" x-model="selectedEngineerId" required
-                                class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                                class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
                             <option value="">Select Verifying Engineer</option>
                             @foreach($engineers as $eng)
                                 <option value="{{ $eng->id }}" :selected="selectedEngineerId == {{ $eng->id }}">
@@ -880,30 +881,71 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Row 2: Correction of Bill & Amount After Correction -->
+                <div class="grid grid-cols-2 gap-3 items-start">
                     <div>
-                        <label class="block text-xs font-bold text-amber-900 uppercase tracking-wider mb-1.5">CORRECTION OF BILL (DEDUCTION ₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcNet()" required
-                               class="w-full px-3.5 py-2.5 bg-amber-50/60 border border-amber-200 rounded-xl text-sm font-mono font-black text-amber-950 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
-                        <p class="mt-1 text-[10px] font-bold text-slate-500" x-text="selectedBill ? 'Max Correction: ₹' + numberFormat((parseFloat(selectedBill.gross_amount) || 0) + (parseFloat(selectedBill.additional_amount) || 0)) : ''"></p>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">CORRECTION OF BILL (DEDUCTION ₹) <span class="text-rose-500 font-bold">*</span></label>
+                        <input type="number" step="0.01" name="correction_amount" x-model="correctionInput" @input="recalcVerification()" required
+                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"
+                               placeholder="0.00">
+                        <p class="mt-0.5 text-[9.5px] font-semibold text-slate-400" x-text="selectedBill ? 'Max Deduction: ₹' + numberFormat(selectedBill.gross_amount) : ''"></p>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-blue-900 uppercase tracking-wider mb-1.5">NET RA PAYABLE AFTER CORRECTION</label>
-                        <div class="w-full px-3.5 py-2.5 bg-blue-50/70 border border-blue-200 rounded-xl text-sm font-mono font-black text-blue-950 flex items-center min-h-[42px]"
-                             x-text="'₹ ' + numberFormat(calculatedNet)"></div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">AMOUNT AFTER CORRECTION (₹)</label>
+                        <div class="w-full px-3 py-1.5 bg-slate-100/90 border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-900 flex items-center min-h-[34px]"
+                             x-text="'₹ ' + numberFormat(calculatedAfterCorrection)"></div>
+                        <p class="mt-0.5 text-[9.5px] font-semibold text-slate-400">Gross Claimed − Correction Deduction</p>
                     </div>
                 </div>
 
+                <!-- Row 3: Additional Work (% and ₹ with respect to After-Correction Amount) -->
+                <div class="grid grid-cols-2 gap-3 items-start">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">ADDITIONAL WORK (%)</label>
+                        <input type="number" step="0.01" name="additional_percentage" x-model="verifyAdditionalPercent" @input="calcAdditionalFromPercent()" placeholder="e.g. 10 or 15"
+                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                        <p class="mt-0.5 text-[9.5px] font-semibold text-slate-400" x-text="verifyAdditionalPercent ? verifyAdditionalPercent + '% of ₹' + numberFormat(calculatedAfterCorrection) : 'Applied on After-Correction base'"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">ADDITIONAL WORK (₹)</label>
+                        <input type="number" step="0.01" name="additional_amount" x-model="verifyAdditionalAmount" @input="calcPercentFromAdditional()" placeholder="0.00"
+                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] focus:outline-none transition-all">
+                        <p class="mt-0.5 text-[9.5px] font-semibold text-slate-400">Added to After-Correction base</p>
+                    </div>
+                </div>
+
+                <!-- Row 4: Net RA Payable & Due Date -->
+                <div class="grid grid-cols-2 gap-3 items-start">
+                    <div>
+                        <label class="block text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-1">NET RA PAYABLE (FINAL CLAIM)</label>
+                        <div class="w-full px-3 py-1.5 bg-blue-50/80 border border-blue-200 rounded-lg text-xs font-mono font-bold text-blue-950 flex items-center justify-between min-h-[34px]">
+                            <span x-text="'₹ ' + numberFormat(calculatedNet)"></span>
+                            <span class="text-[8.5px] font-bold text-blue-700 uppercase tracking-wider">Approved</span>
+                        </div>
+                        <p class="mt-0.5 text-[9.5px] font-semibold text-blue-600/80" x-text="'After Corr. (₹' + numberFormat(calculatedAfterCorrection) + ') + Add. (₹' + numberFormat(parseFloat(verifyAdditionalAmount) || 0) + ')'"></p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">RA BILL DUE DATE</label>
+                        <input type="date" name="due_date" x-model="verifyDueDateInput"
+                               class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all">
+                        <p class="mt-0.5 text-[9.5px] font-semibold text-slate-400">Payment due date for finance release</p>
+                    </div>
+                </div>
+
+                <!-- Row 5: Remarks -->
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">VERIFICATION REMARKS</label>
-                    <textarea name="remarks" rows="2" x-model="verifyRemarksInput" placeholder="Details of corrections/retentions applied..."
-                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">VERIFICATION REMARKS</label>
+                    <textarea name="remarks" rows="2" x-model="verifyRemarksInput" placeholder="Details of measurements checked, corrections or retentions applied..."
+                              class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
                 </div>
 
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button type="button" @click="verifyModalOpen = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-black uppercase tracking-wider rounded-xl transition shadow-md border border-[#a38c29]/40 cursor-pointer">
+                <!-- Footer Actions -->
+                <div class="pt-2.5 flex items-center justify-end gap-2 border-t border-slate-100">
+                    <button type="button" @click="verifyModalOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold uppercase rounded-lg transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-4 py-2 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-bold uppercase tracking-wider rounded-lg transition shadow-sm border border-[#a38c29]/40 cursor-pointer">
                         <span x-text="selectedBill && selectedBill.verified_date ? 'UPDATE VERIFICATION SIGN-OFF' : 'CONFIRM SIGN-OFF'"></span>
                     </button>
                 </div>
@@ -1162,6 +1204,10 @@ function raBillManagement() {
         disburseModalOpen: false,
         selectedBill: null,
         correctionInput: 0,
+        calculatedAfterCorrection: 0,
+        verifyAdditionalPercent: '',
+        verifyAdditionalAmount: '0.00',
+        verifyDueDateInput: '',
         calculatedNet: 0,
         allContractors: @json($contractors),
         allProjects: @json($projects),
@@ -1245,9 +1291,26 @@ function raBillManagement() {
 
         openVerifyModal(bill) {
             this.selectedBill = bill;
-            this.correctionInput = bill.correction_amount || 0;
-            this.calculatedNet = Math.max(0, (parseFloat(bill.gross_amount) || 0) + (parseFloat(bill.additional_amount) || 0) - this.correctionInput);
+            this.correctionInput = parseFloat(bill.correction_amount) || 0;
+            const gross = parseFloat(bill.gross_amount) || 0;
+            this.calculatedAfterCorrection = Math.max(0, gross - this.correctionInput);
+
+            const addAmt = parseFloat(bill.additional_amount) || 0;
+            const addPct = parseFloat(bill.additional_percentage) || 0;
+            this.verifyAdditionalAmount = addAmt > 0 ? addAmt.toFixed(2) : '0.00';
+
+            if (addPct > 0) {
+                this.verifyAdditionalPercent = (addPct == parseInt(addPct)) ? parseInt(addPct) : addPct;
+            } else if (addAmt > 0 && this.calculatedAfterCorrection > 0) {
+                const computedPct = (addAmt / this.calculatedAfterCorrection) * 100;
+                this.verifyAdditionalPercent = (computedPct == parseInt(computedPct)) ? parseInt(computedPct) : computedPct.toFixed(2);
+            } else {
+                this.verifyAdditionalPercent = '';
+            }
+
+            this.calculatedNet = Math.max(0, this.calculatedAfterCorrection + (parseFloat(this.verifyAdditionalAmount) || 0));
             this.verifyRemarksInput = bill.remarks || '';
+            this.verifyDueDateInput = bill.due_date ? String(bill.due_date).substring(0, 10) : '';
 
             if (bill.verified_date) {
                 this.verifyDateInput = String(bill.verified_date).substring(0, 10);
@@ -1326,16 +1389,56 @@ function raBillManagement() {
             return Math.max(0, currentTotal - paid);
         },
 
-        recalcNet() {
+        recalcVerification() {
             if (!this.selectedBill) return;
             const gross = parseFloat(this.selectedBill.gross_amount) || 0;
-            const additional = parseFloat(this.selectedBill.additional_amount) || 0;
             let corr = parseFloat(this.correctionInput) || 0;
-            if (corr > (gross + additional)) {
-                corr = gross + additional;
-                this.correctionInput = gross + additional;
+            if (corr < 0) {
+                corr = 0;
+                this.correctionInput = 0;
             }
-            this.calculatedNet = Math.max(0, gross + additional - corr);
+            if (corr > gross) {
+                corr = gross;
+                this.correctionInput = gross;
+            }
+            this.calculatedAfterCorrection = Math.max(0, gross - corr);
+
+            // Recalculate additional amount with respect to new after-correction base
+            const pct = parseFloat(this.verifyAdditionalPercent);
+            if (!isNaN(pct) && pct > 0 && this.calculatedAfterCorrection > 0) {
+                this.verifyAdditionalAmount = ((this.calculatedAfterCorrection * pct) / 100).toFixed(2);
+            } else if (parseFloat(this.verifyAdditionalAmount) > 0 && this.calculatedAfterCorrection > 0) {
+                const computedPct = (parseFloat(this.verifyAdditionalAmount) / this.calculatedAfterCorrection) * 100;
+                this.verifyAdditionalPercent = (computedPct == parseInt(computedPct)) ? parseInt(computedPct) : computedPct.toFixed(2);
+            }
+
+            const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
+            this.calculatedNet = Math.max(0, this.calculatedAfterCorrection + addAmt);
+        },
+
+        calcAdditionalFromPercent() {
+            const base = parseFloat(this.calculatedAfterCorrection) || 0;
+            const pct = parseFloat(this.verifyAdditionalPercent);
+            if (!isNaN(pct) && pct >= 0 && base > 0) {
+                this.verifyAdditionalAmount = ((base * pct) / 100).toFixed(2);
+            } else if (isNaN(pct) || pct === 0) {
+                this.verifyAdditionalAmount = '0.00';
+            }
+            const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
+            this.calculatedNet = Math.max(0, base + addAmt);
+        },
+
+        calcPercentFromAdditional() {
+            const base = parseFloat(this.calculatedAfterCorrection) || 0;
+            const amt = parseFloat(this.verifyAdditionalAmount);
+            if (!isNaN(amt) && amt > 0 && base > 0) {
+                const computedPct = (amt / base) * 100;
+                this.verifyAdditionalPercent = (computedPct == parseInt(computedPct)) ? parseInt(computedPct) : computedPct.toFixed(2);
+            } else if (isNaN(amt) || amt === 0) {
+                this.verifyAdditionalPercent = '';
+            }
+            const addAmt = parseFloat(this.verifyAdditionalAmount) || 0;
+            this.calculatedNet = Math.max(0, base + addAmt);
         },
 
         numberFormat(val) {

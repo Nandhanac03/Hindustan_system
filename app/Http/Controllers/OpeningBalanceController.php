@@ -74,10 +74,16 @@ class OpeningBalanceController extends Controller
         $financialYearDates = '01/Apr/2025 - 31/Mar/2026';
         $openingBalanceDate = '2025-04-01';
         $defaultDescription = 'Opening balances as per audited financial statements.';
+        $accounts = $operationalAccounts;
+
+        // Fetch company bank accounts for the sub-account breakdown under 1001
+        $companyBankAccounts = \App\Models\CompanyBankAccount::orderBy('bank_name')->get();
 
         return view('opening-balances.index', compact(
             'accounts',
+            'companyBankAccounts',
             'equityAccount',
+            
             'totalDebits',
             'totalCredits',
             'variance',
@@ -113,7 +119,35 @@ class OpeningBalanceController extends Controller
             return redirect()->route('opening-balances.index')->with('error', 'Invalid balance data submitted.');
         }
 
-        DB::transaction(function () use ($balances) {
+        $bankBalances = $request->input('bank_balances', []);
+
+        DB::transaction(function () use ($balances, $bankBalances) {
+            // 1. Update individual Company Bank Accounts if submitted
+            if (is_array($bankBalances) && !empty($bankBalances)) {
+                $totalBankOpening = 0.00;
+                foreach ($bankBalances as $bankId => $bankData) {
+                    $bankAcc = \App\Models\CompanyBankAccount::find($bankId);
+                    if ($bankAcc) {
+                        $bankAmt = max(0.00, (float)($bankData['amount'] ?? 0));
+                        $diff = $bankAmt - (float)$bankAcc->opening_balance;
+                        $newCurrent = max(0.00, (float)$bankAcc->current_balance + $diff);
+
+                        $bankAcc->update([
+                            'opening_balance' => $bankAmt,
+                            'current_balance' => $newCurrent,
+                        ]);
+
+                        $totalBankOpening += $bankAmt;
+                    }
+                }
+
+                // If account 1001 is present, keep it in sync with the sum of bank accounts
+                $acc1001 = ChartOfAccount::where('account_code', '1001')->first();
+                if ($acc1001 && isset($balances[$acc1001->id])) {
+                    $balances[$acc1001->id]['amount'] = $totalBankOpening;
+                }
+            }
+
             foreach ($balances as $id => $data) {
                 $account = ChartOfAccount::find($id);
                 if (!$account || $account->account_code === '3090') {
@@ -187,12 +221,16 @@ class OpeningBalanceController extends Controller
             ? (int)$validated['project_id']
             : null;
 
+        $isLocked = AccountingSetting::isOpeningBalanceLocked();
+        $openingBalance = $isLocked ? ($account ? (float)$account->opening_balance : 0.00) : max(0, (float)($validated['opening_balance'] ?? 0));
+        $openingBalanceType = $isLocked ? ($account ? $account->opening_balance_type : $type) : $type;
+
         $data = [
             'account_code' => $validated['account_code'],
             'account_name' => $validated['account_name'],
             'account_type' => $validated['account_type'],
-            'opening_balance' => max(0, (float)($validated['opening_balance'] ?? 0)),
-            'opening_balance_type' => $type,
+            'opening_balance' => $openingBalance,
+            'opening_balance_type' => $openingBalanceType,
             'project_id' => $projectId,
             'remarks' => $validated['remarks'] ?? null,
             'is_active' => true,

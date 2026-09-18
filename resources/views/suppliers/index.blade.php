@@ -9,7 +9,7 @@
                 <span class="text-slate-300">›</span>
                 <span>Masters</span>
                 <span class="text-slate-300">›</span>
-                <span class="text-[#a38c29] font-black">Contractor Master</span>
+                <span class="text-[#a38c29] font-black">Contractor </span>
             </div>
 
             <div class="flex items-center gap-2.5 self-start sm:self-auto">
@@ -179,9 +179,9 @@
                         </div>
                         <select x-model="filterStatus" @change="applyFilter()"
                                 class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
-                            <option value="active">Active Contractors (Default)</option>
-                            <option value="inactive">Deleted / Inactive Contractors</option>
-                            <option value="">All Contractors</option>
+                            <option value="">All Contractors (Default)</option>
+                            <option value="active">Active Contractors</option>
+                            <option value="inactive">Inactive Contractors</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -210,131 +210,129 @@
                 #contractors-master-tbody tr:hover { background-color: #f5eed6 !important; }
             </style>
             <div class="overflow-x-auto custom-scrollbar">
-                <table id="contractors-master-table" class="w-full text-xs text-left border-collapse min-w-[1100px]">
+                <table id="contractors-master-table" class="w-full text-xs text-left border-collapse table-auto">
                     <thead>
-                        <tr class="bg-[#a38c29] text-white border-b border-[#8a741f] text-[10px] font-black uppercase tracking-wider text-left">
-                            <th class="px-5 py-3.5 whitespace-nowrap">SL NO</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">LEDGER CODE</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">CONTRACTOR / FIRM NAME</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">TAX IDENTIFIERS (GST / PAN)</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">CONTACT DETAILS</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap">OFFICE ADDRESS</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap text-center">RA BILLS & BILLED</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap text-center">STATUS</th>
-                            <th class="px-5 py-3.5 whitespace-nowrap text-right">ACTIONS</th>
+                        <tr class="bg-[#a38c29] text-white border-b border-[#8a741f] text-[9.5px] font-black uppercase tracking-wider text-left">
+                            <th class="px-2 py-3 text-center w-[45px] whitespace-nowrap">SL NO</th>
+                            <th class="px-2.5 py-3 whitespace-nowrap w-[110px]">LEDGER CODE</th>
+                            <th class="px-2.5 py-3 min-w-[160px]">CONTRACTOR / FIRM NAME</th>
+                            <th class="px-2 py-3 whitespace-nowrap w-[140px]">TAX IDENTIFIERS</th>
+                            <th class="px-2 py-3 whitespace-nowrap w-[135px]">CONTACT DETAILS</th>
+                            <th class="px-2.5 py-3 max-w-[150px]">OFFICE ADDRESS</th>
+                            <th class="px-2 py-3 whitespace-nowrap text-center w-[100px]">RA BILLS & BILLED</th>
+                            <th class="px-2 py-3 whitespace-nowrap text-center w-[75px]">STATUS</th>
+                            <th class="px-2.5 py-3 whitespace-nowrap text-right w-[95px]">ACTIONS</th>
                         </tr>
                     </thead>
                     <tbody id="contractors-master-tbody" class="divide-y divide-slate-100 font-medium text-slate-700">
                         @forelse($suppliers as $index => $sup)
-                            <tr class="contractor-table-row transition hover:bg-[#faf7eb] {{ !($sup->is_active ?? true) ? 'opacity-70 bg-slate-50/70' : '' }}"
+                            <tr class="contractor-table-row transition hover:bg-[#faf7eb] {{ !($sup->is_active ?? true) ? 'bg-slate-50/70' : '' }}"
                                 data-id="{{ $sup->id }}"
                                 data-status="{{ ($sup->is_active ?? true) ? 'active' : 'inactive' }}"
                                 data-search="{{ strtolower($sup->name . ' ' . ($sup->linked_account->code ?? ('SUP-ACC-' . str_pad($sup->id, 4, '0', STR_PAD_LEFT))) . ' ' . ($sup->phone ?? '') . ' ' . ($sup->pan ?? '') . ' ' . ($sup->gstin ?? '') . ' ' . ($sup->email ?? '') . ' ' . ($sup->address ?? '')) }}">
-                                <td class="contractor-sl-no px-5 py-4 font-bold text-slate-400">
+                                <td class="contractor-sl-no px-2 py-2.5 text-center font-bold text-slate-400">
                                     {{ $index + 1 }}
                                 </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-mono font-bold bg-amber-50 text-[#7a671b] border border-amber-200/80">
+                                <td class="px-2.5 py-2.5 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-[#7a671b] border border-amber-200/80">
                                         {{ $sup->linked_account->code ?? ('SUP-ACC-' . str_pad($sup->id, 4, '0', STR_PAD_LEFT)) }}
                                     </span>
                                 </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
+                                <td class="px-2.5 py-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded-full bg-[#a38c29] text-white flex items-center justify-center font-black text-[11px] shrink-0 shadow-2xs">
                                             {{ strtoupper(substr($sup->name, 0, 2)) }}
                                         </div>
-                                        <div>
-                                            <strong class="text-slate-900 font-extrabold text-xs block uppercase">{{ $sup->name }}</strong>
-                                            <span class="text-[10px] text-slate-400 font-bold block">CONTRACTOR PAYEE</span>
+                                        <div class="min-w-0">
+                                            <strong class="text-slate-900 font-extrabold text-[11.5px] block uppercase leading-tight truncate" title="{{ $sup->name }}">{{ $sup->name }}</strong>
+                                            <span class="text-[9px] text-slate-400 font-bold block leading-tight">CONTRACTOR PAYEE</span>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <div class="space-y-0.5 text-[11px]">
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-[9px] font-bold text-slate-400 uppercase w-7">GST:</span>
+                                <td class="px-2 py-2.5 whitespace-nowrap">
+                                    <div class="space-y-0.5 text-[10.5px]">
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-[8.5px] font-bold text-slate-400 uppercase w-6">GST:</span>
                                             @if($sup->gstin)
-                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ $sup->gstin }}</span>
+                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-[10px]">{{ $sup->gstin }}</span>
                                             @else
-                                                <span class="text-slate-400 italic">Unregistered</span>
+                                                <span class="text-slate-400 italic text-[10px]">Unregistered</span>
                                             @endif
                                         </div>
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="text-[9px] font-bold text-slate-400 uppercase w-7">PAN:</span>
+                                        <div class="flex items-center gap-1">
+                                            <span class="text-[8.5px] font-bold text-slate-400 uppercase w-6">PAN:</span>
                                             @if($sup->pan)
-                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ $sup->pan }}</span>
+                                                <span class="font-mono font-bold text-slate-800 bg-slate-100 px-1 py-0.2 rounded border border-slate-200 text-[10px]">{{ $sup->pan }}</span>
                                             @else
-                                                <span class="text-slate-400 italic">N/A</span>
+                                                <span class="text-slate-400 italic text-[10px]">N/A</span>
                                             @endif
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-5 py-4 whitespace-nowrap">
-                                    <div class="space-y-1 text-xs">
+                                <td class="px-2 py-2.5 whitespace-nowrap">
+                                    <div class="space-y-0.5 text-[11px]">
                                         @if($sup->phone)
-                                            <div class="flex items-center gap-1.5 font-bold text-slate-800">
-                                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                                            <div class="flex items-center gap-1 font-bold text-slate-800">
+                                                <svg class="w-3 h-3 text-[#a38c29] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
                                                 <span>{{ $sup->phone }}</span>
                                             </div>
                                         @endif
                                         @if($sup->email)
-                                            <div class="flex items-center gap-1.5 text-slate-500 font-semibold">
-                                                <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-                                                <span>{{ $sup->email }}</span>
+                                            <div class="flex items-center gap-1 text-slate-500 font-semibold text-[10px]">
+                                                <svg class="w-3 h-3 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                                                <span class="truncate max-w-[110px]" title="{{ $sup->email }}">{{ $sup->email }}</span>
                                             </div>
                                         @endif
                                         @if(!$sup->phone && !$sup->email)
-                                            <span class="text-slate-400 italic">No contact specified</span>
+                                            <span class="text-slate-400 italic text-[10px]">No contact specified</span>
                                         @endif
                                     </div>
                                 </td>
-                                <td class="px-5 py-4 max-w-xs truncate text-slate-600 font-semibold" title="{{ $sup->address }}">
+                                <td class="px-2.5 py-2.5 max-w-[140px] truncate text-slate-600 font-medium text-[11px]" title="{{ $sup->address }}">
                                     {{ $sup->address ?? '—' }}
                                 </td>
-                                <td class="px-5 py-4 text-center">
-                                    <div class="inline-flex flex-col items-center justify-center p-2 bg-slate-50 border border-slate-200/80 rounded-xl min-w-[90px]">
-                                        <span class="text-[10px] font-black text-slate-900 font-mono">{{ $sup->ra_bills_count ?? 0 }} RA Bills</span>
-                                        <span class="text-[9px] font-mono font-bold text-slate-500">₹{{ number_format($sup->total_billed ?? 0, 2) }}</span>
+                                <td class="px-2 py-2.5 text-center">
+                                    <div class="inline-flex flex-col items-center justify-center px-1.5 py-1 bg-slate-50 border border-slate-200/80 rounded-lg">
+                                        <span class="text-[9.5px] font-black text-slate-900 font-mono leading-tight">{{ $sup->ra_bills_count ?? 0 }} RA Bills</span>
+                                        <span class="text-[8.5px] font-mono font-bold text-slate-500 leading-tight">₹{{ number_format($sup->total_billed ?? 0, 2) }}</span>
                                     </div>
                                 </td>
-                                <td class="px-5 py-4 text-center whitespace-nowrap">
+                                <td class="px-2 py-2.5 text-center whitespace-nowrap">
                                     @if($sup->is_active ?? true)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
                                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                             <span>Active</span>
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-300 shadow-2xs">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-300 shadow-2xs">
                                             <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                                             <span>Inactive</span>
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-5 py-4 text-right">
+                                <td class="px-2.5 py-2.5 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center justify-end gap-1.5">
                                         <!-- View Details Modal Button -->
-                                        <button type="button" @click="openViewModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="View Contractor Details">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                        <button type="button" @click="openViewModalFunc({{ json_encode($sup) }})" class="p-1.5 rounded-lg bg-[#a38c29]/10 hover:bg-[#a38c29]/20 text-[#a38c29] hover:text-[#8a741f] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="View Contractor Details">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                         </button>
 
                                         <!-- Edit Modal Button -->
-                                        <button type="button" @click="openEditModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Edit Contractor">
-                                            <svg class="w-4 h-4 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                        <button type="button" @click="openEditModalFunc({{ json_encode($sup) }})" class="p-1.5 rounded-lg bg-[#09876B]/10 hover:bg-[#09876B]/20 text-[#09876B] hover:text-[#076852] transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Edit Contractor">
+                                            <svg class="w-3.5 h-3.5 text-[#09876B]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                                         </button>
 
                                         @if($sup->is_active ?? true)
-                                            <!-- Delete / Inactivate Button (Changes status to Inactive, does NOT remove row from database) -->
-                                            <button type="button" @click="openDeactivateModalFunc({{ json_encode($sup) }})" class="p-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Delete / Mark Inactive (Keeps record in database)">
-                                                <svg class="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                            <!-- Delete / Inactivate Button -->
+                                            <button type="button" @click="openDeactivateModalFunc({{ json_encode($sup) }})" class="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 hover:text-rose-800 transition inline-flex items-center justify-center shadow-2xs cursor-pointer" title="Delete Contractor">
+                                                <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                                             </button>
                                         @else
-                                            <!-- Reactivate Button -->
-                                            <form action="{{ route('contractors.toggle-status', $sup->id) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit" class="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-900 transition inline-flex items-center justify-center shadow-sm cursor-pointer" title="Reactivate Contractor (Restore to Active)">
-                                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                                </button>
-                                            </form>
+                                            <!-- Activate Button (Opens Confirmation Modal) -->
+                                            <button type="button" @click="openActivateModalFunc({{ json_encode($sup) }})" class="px-2 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 hover:text-emerald-900 border border-emerald-200 transition inline-flex items-center gap-1 shadow-2xs cursor-pointer font-bold text-[10px]" title="Activate Contractor (Restore to Active)">
+                                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                                <span>Activate</span>
+                                            </button>
                                         @endif
                                     </div>
                                 </td>
@@ -559,6 +557,21 @@
                         <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">EMAIL</span>
                         <span class="font-bold text-slate-900" x-text="viewContractor.email || 'N/A'"></span>
                     </div>
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                        <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">STATUS</span>
+                        <template x-if="viewContractor.is_active">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                Active
+                            </span>
+                        </template>
+                        <template x-if="!viewContractor.is_active">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-300">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                Inactive
+                            </span>
+                        </template>
+                    </div>
                     <div class="flex justify-between pb-1">
                         <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">ADDRESS</span>
                         <span class="font-semibold text-slate-800 text-right max-w-[220px]" x-text="viewContractor.address || 'N/A'"></span>
@@ -570,7 +583,15 @@
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                         <span>OPEN LEDGER</span>
                     </a>
-                    <button type="button" @click="openViewModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition cursor-pointer">CLOSE</button>
+                    <div class="flex items-center gap-2">
+                        <template x-if="!viewContractor.is_active">
+                            <button type="button" @click="openActivateModalFunc(viewContractor); openViewModal = false;" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold uppercase rounded-xl transition inline-flex items-center gap-1.5 shadow-sm cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                <span>ACTIVATE</span>
+                            </button>
+                        </template>
+                        <button type="button" @click="openViewModal = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition cursor-pointer">CLOSE</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -606,11 +627,6 @@
                     <p class="text-sm text-slate-600 font-semibold mb-3">
                         Are you sure you want to delete <span class="font-extrabold text-slate-900 uppercase" x-text="contractorToDeactivate.name"></span>?
                     </p>
-                    <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center">
-                        <p class="text-xs text-slate-500 font-medium">
-                            This will remove the data from the list. The record will <span class="font-bold text-slate-700">not be deleted</span> from the database.
-                        </p>
-                    </div>
                 </div>
 
                 {{-- Footer --}}
@@ -627,6 +643,53 @@
             </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- 5. ACTIVATE CONTRACTOR CONFIRMATION MODAL  -->
+        <!-- ========================================== -->
+        <div x-show="openActivateModal" class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" style="display: none;" x-transition.opacity>
+            <div @click.away="openActivateModal = false" class="bg-white rounded-3xl shadow-2xl overflow-hidden w-full max-w-md flex flex-col border-0">
+                {{-- Dark Header with Emerald Accent --}}
+                <div class="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-[#122b1f] px-6 py-5 flex-shrink-0 border-b border-emerald-500/20">
+                    <div class="absolute -top-10 -right-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex items-center justify-between">
+                        <div>
+                            <p class="text-emerald-400 text-[10px] font-bold uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                TABASCO HINDUSTAN · CONTRACTOR
+                            </p>
+                            <h2 class="text-base font-extrabold text-white uppercase tracking-wider">Activate Contractor</h2>
+                        </div>
+                        <button type="button" @click="openActivateModal = false" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Modal Body --}}
+                <div class="p-6 text-center bg-white">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center mb-4 border border-emerald-200 shadow-xs">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+                    <h3 class="text-base font-black text-slate-900 uppercase tracking-wider mb-2">Activate Contractor?</h3>
+                    <p class="text-sm text-slate-600 font-semibold mb-3">
+                        Are you sure you want to activate <span class="font-extrabold text-slate-900 uppercase" x-text="contractorToActivate.name"></span>? This will restore the contractor to active status.
+                    </p>
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3 bg-slate-50">
+                    <button type="button" @click="openActivateModal = false" class="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold rounded-xl uppercase transition cursor-pointer">CANCEL</button>
+                    <form :action="'{{ url('/contractors') }}/' + contractorToActivate.id + '/toggle-status'" method="POST" class="inline">
+                        @csrf
+                        <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold rounded-xl uppercase transition shadow-md cursor-pointer flex items-center gap-2">
+                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            <span>YES, ACTIVATE</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Alpine.js Application Logic -->
@@ -635,11 +698,12 @@
             return {
                 filterSearch: '{{ request("search", "") }}',
                 filterContractorId: '{{ request("contractor_id", "") }}',
-                filterStatus: '{{ request("status", "active") }}',
+                filterStatus: '{{ request("status", "") }}',
                 openAddModal: false,
                 openEditModal: false,
                 openViewModal: false,
                 openDeactivateModal: false,
+                openActivateModal: false,
                 name: '',
                 phone: '',
                 email: '',
@@ -658,6 +722,7 @@
                 },
                 viewContractor: {},
                 contractorToDeactivate: {},
+                contractorToActivate: {},
 
                 init() {
                     this.$nextTick(() => {
@@ -703,6 +768,8 @@
                         else url.searchParams.delete('contractor_id');
                         if (search) url.searchParams.set('search', search);
                         else url.searchParams.delete('search');
+                        if (statusFilter) url.searchParams.set('status', statusFilter);
+                        else url.searchParams.delete('status');
                         window.history.replaceState({}, '', url.toString());
                     } catch (e) {}
                 },
@@ -710,7 +777,7 @@
                 resetFilters() {
                     this.filterSearch = '';
                     this.filterContractorId = '';
-                    this.filterStatus = 'active';
+                    this.filterStatus = '';
                     this.applyFilter();
                 },
 
@@ -746,6 +813,11 @@
                 openDeactivateModalFunc(sup) {
                     this.contractorToDeactivate = sup;
                     this.openDeactivateModal = true;
+                },
+
+                openActivateModalFunc(sup) {
+                    this.contractorToActivate = sup;
+                    this.openActivateModal = true;
                 },
 
                 submitAdd(e) {

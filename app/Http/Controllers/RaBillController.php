@@ -330,10 +330,6 @@ class RaBillController extends Controller
             'unit_id'           => ['nullable', 'exists:hindustan_units,id'],
             'submit_date'       => ['required', 'date'],
             'gross_amount'      => ['required', 'numeric', 'min:0.01'],
-            'additional_amount' => ['nullable', 'numeric', 'min:0'],
-            'verified_date'     => ['nullable', 'date'],
-            'engineer_name'     => ['nullable', 'string', 'max:255'],
-            'correction_amount' => ['nullable', 'numeric', 'min:0'],
             'due_date'          => ['nullable', 'date'],
             'remarks'           => ['nullable', 'string', 'max:500'],
         ], [
@@ -347,15 +343,6 @@ class RaBillController extends Controller
         ]);
 
         $gross = (float) $validated['gross_amount'];
-        $additional = (float) ($validated['additional_amount'] ?? 0.00);
-
-        // If user entered a percentage number (e.g. 12 for 12% or 20 for 20%), convert to rupee amount
-        if ($additional > 0 && $additional <= 100 && $gross >= 1000) {
-            $additional = round(($gross * $additional) / 100, 2);
-        }
-
-        $correction = (float) ($validated['correction_amount'] ?? 0.00);
-        $netApproved = max(0.00, $gross + $additional - $correction);
 
         $contractorName = $validated['contractor_name'] ?? null;
         if (!empty($validated['contractor_id']) && empty($contractorName)) {
@@ -368,56 +355,53 @@ class RaBillController extends Controller
         }
 
         $raBill = RaBill::create([
-            'system_id'           => $systemId,
-            'ra_bill_number'      => $validated['ra_bill_number'],
-            'contractor_id'       => $validated['contractor_id'] ?? null,
-            'contractor_name'     => $contractorName,
-            'project_id'          => $validated['project_id'] ?? null,
-            'unit_id'             => $validated['unit_id'] ?? null,
-            'unit_name'           => $unitName,
-            'submit_date'         => $validated['submit_date'],
-            'gross_amount'        => $gross,
-            'additional_amount'   => $additional,
-            'verified_date'       => $validated['verified_date'] ?? null,
-            'engineer_name'       => $validated['engineer_name'] ?? null,
-            'correction_amount'   => $correction,
-            'net_approved_amount' => $netApproved,
-            'due_date'            => $validated['due_date'] ?? null,
-            'paid_amount'         => 0.00,
-            'balance_amount'      => $netApproved,
-            'status'              => !empty($validated['verified_date']) ? 'pending' : 'submitted',
-            'remarks'             => $validated['remarks'] ?? null,
-            'created_by'          => Auth::id(),
+            'system_id'             => $systemId,
+            'ra_bill_number'        => $validated['ra_bill_number'],
+            'contractor_id'         => $validated['contractor_id'] ?? null,
+            'contractor_name'       => $contractorName,
+            'project_id'            => $validated['project_id'] ?? null,
+            'unit_id'               => $validated['unit_id'] ?? null,
+            'unit_name'             => $unitName,
+            'submit_date'           => $validated['submit_date'],
+            'gross_amount'          => $gross,
+            'additional_amount'     => 0.00,
+            'additional_percentage' => 0.00,
+            'verified_date'         => null,
+            'engineer_name'         => null,
+            'correction_amount'     => 0.00,
+            'net_approved_amount'   => $gross,
+            'due_date'              => $validated['due_date'] ?? null,
+            'paid_amount'           => 0.00,
+            'balance_amount'        => $gross,
+            'status'                => 'submitted',
+            'remarks'               => $validated['remarks'] ?? null,
+            'created_by'            => Auth::id(),
         ]);
-
-        // If verified date provided at creation, record double entry journal voucher immediately
-        if (!empty($raBill->verified_date) && (float) $raBill->net_approved_amount > 0) {
-            $this->recordRaBillJournalVoucher($raBill);
-        }
 
         return redirect()->back()
             ->with('success', "✅ Contractor RA Bill #{$validated['ra_bill_number']} logged successfully!");
     }
 
     /**
-     * Step 2.2 / 3.2: Site Engineer Verification & Corrections / Retentions Applied.
+     * Step 2.2 / 3.2: Site Engineer Verification & Corrections / Additional Work Sign-Off.
      */
     public function verify(Request $request, int $id): RedirectResponse
     {
         $raBill = RaBill::findOrFail($id);
-
-        $maxAllowedCorrection = (float) $raBill->gross_amount + (float) $raBill->additional_amount;
+        $gross = (float) $raBill->gross_amount;
 
         $validated = $request->validate([
-            'verified_date'     => ['required', 'date'],
-            'engineer_id'       => ['nullable', 'exists:engineers,id'],
-            'engineer_name'     => ['nullable', 'string', 'max:255'],
-            'correction_amount' => ['required', 'numeric', 'min:0', 'max:' . $maxAllowedCorrection],
-            'due_date'          => ['nullable', 'date'],
-            'remarks'           => ['nullable', 'string', 'max:500'],
+            'verified_date'          => ['required', 'date'],
+            'engineer_id'            => ['nullable', 'exists:engineers,id'],
+            'engineer_name'          => ['nullable', 'string', 'max:255'],
+            'correction_amount'      => ['required', 'numeric', 'min:0', 'max:' . $gross],
+            'additional_percentage'  => ['nullable', 'numeric', 'min:0'],
+            'additional_amount'      => ['nullable', 'numeric', 'min:0'],
+            'due_date'               => ['nullable', 'date'],
+            'remarks'                => ['nullable', 'string', 'max:500'],
         ], [
-            'correction_amount.max' => 'Correction cannot exceed the Total Bill Amount (Gross + Additional) of ₹'
-                . number_format($maxAllowedCorrection, 2) . '.',
+            'correction_amount.max' => 'Correction cannot exceed the RA Bill Gross Amount of ₹'
+                . number_format($gross, 2) . '.',
         ]);
 
         $engineerName = $validated['engineer_name'] ?? null;
@@ -431,11 +415,30 @@ class RaBillController extends Controller
             $engineerName = 'Site Engineer';
         }
 
-        DB::transaction(function () use ($raBill, $validated, $engineerName) {
-            $gross = (float) $raBill->gross_amount;
-            $additional = (float) $raBill->additional_amount;
+        DB::transaction(function () use ($raBill, $validated, $engineerName, $gross) {
             $correction = (float) $validated['correction_amount'];
-            $netApproved = max(0.00, $gross + $additional - $correction);
+            $afterCorrection = max(0.00, $gross - $correction);
+
+            $additionalPercent = isset($validated['additional_percentage']) && $validated['additional_percentage'] !== ''
+                ? (float) $validated['additional_percentage']
+                : null;
+            $additionalAmount = isset($validated['additional_amount']) && $validated['additional_amount'] !== ''
+                ? (float) $validated['additional_amount']
+                : null;
+
+            // Calculate Additional Work with respect to After-Correction Amount
+            if ($additionalPercent !== null && $additionalPercent > 0 && $afterCorrection > 0 && ($additionalAmount === null || $additionalAmount <= 0)) {
+                $additionalAmount = round(($afterCorrection * $additionalPercent) / 100, 2);
+            } elseif ($additionalAmount !== null && $additionalAmount > 0 && $afterCorrection > 0 && ($additionalPercent === null || $additionalPercent <= 0)) {
+                $additionalPercent = round(($additionalAmount / $afterCorrection) * 100, 2);
+            } elseif ($additionalPercent !== null && $additionalPercent > 0 && $afterCorrection > 0 && $additionalAmount !== null && $additionalAmount > 0) {
+                $additionalAmount = round(($afterCorrection * $additionalPercent) / 100, 2);
+            } else {
+                $additionalAmount = 0.00;
+                $additionalPercent = 0.00;
+            }
+
+            $netApproved = max(0.00, $afterCorrection + $additionalAmount);
             $paid = (float) $raBill->paid_amount;
             $balance = max(0.00, $netApproved - $paid);
 
@@ -447,14 +450,16 @@ class RaBillController extends Controller
             }
 
             $raBill->update([
-                'verified_date'       => $validated['verified_date'],
-                'engineer_name'       => $engineerName,
-                'correction_amount'   => $correction,
-                'net_approved_amount' => $netApproved,
-                'due_date'            => $validated['due_date'] ?? $raBill->due_date,
-                'balance_amount'      => $balance,
-                'status'              => $status,
-                'remarks'             => $validated['remarks'] ?? $raBill->remarks,
+                'verified_date'         => $validated['verified_date'],
+                'engineer_name'         => $engineerName,
+                'correction_amount'     => $correction,
+                'additional_amount'     => $additionalAmount,
+                'additional_percentage' => $additionalPercent,
+                'net_approved_amount'   => $netApproved,
+                'due_date'              => $validated['due_date'] ?? $raBill->due_date,
+                'balance_amount'        => $balance,
+                'status'                => $status,
+                'remarks'               => $validated['remarks'] ?? $raBill->remarks,
             ]);
 
             // Create or update double-entry accounting postings in journal_vouchers & journal_entries

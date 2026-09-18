@@ -257,12 +257,14 @@
                                             <span>CLEARED</span>
                                         </span>
                                     @elseif($isPartiallyPaid)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center shadow-2xs uppercase tracking-wider">
-                                            PARTIALLY PAID
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs uppercase tracking-wider">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
+                                            <span>PARTIALLY PAID</span>
                                         </span>
                                     @elseif($isVerified)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center shadow-2xs uppercase tracking-wider">
-                                            PENDING RELEASE
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1.5 shadow-2xs uppercase tracking-wider">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
+                                            <span>PENDING RELEASE</span>
                                         </span>
                                     @else
                                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wider">UNVERIFIED</span>
