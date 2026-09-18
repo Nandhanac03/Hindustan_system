@@ -586,7 +586,7 @@ class PettyCashController extends Controller
             'voucher_number' => 'required|string',
             'category' => 'required|string',
             'payment_mode' => 'required|string',
-            'bill_no' => 'nullable|string',
+            'bill_no' => 'required|string',
             'bill_date' => 'nullable|date',
             'amount' => 'required|numeric|min:0.01',
             'particulars' => 'required|string',
@@ -666,7 +666,7 @@ class PettyCashController extends Controller
         $request->validate([
             'category' => 'required|string',
             'payment_mode' => 'required|string',
-            'bill_no' => 'nullable|string',
+            'bill_no' => 'required|string',
             'bill_date' => 'nullable|date',
             'amount' => 'required|numeric|min:0.01',
             'particulars' => 'required|string',
