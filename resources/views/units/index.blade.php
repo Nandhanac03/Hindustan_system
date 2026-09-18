@@ -3281,7 +3281,7 @@ function unitsApp() {
             {{-- Title Header Row (Exact A3 print layout friendly combined 1 row title) --}}
             <tr height="45" style="height: 45pt;">
                 <th colspan="23" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
-                    HINDUSTAN ERP: REAL ESTATE SALES BOOKING MASTER (WITH AUDIT DATES & DUAL-TRACK SPLIT)
+                    {{ strtoupper($project->name ?? 'PROJECT') }} - SALE REPORT
                 </th>
             </tr>
             {{-- Super Section Headers Row with correct requested colors --}}
@@ -3579,7 +3579,7 @@ function unitsApp() {
             {{-- Title Header Row (Exact A3 print layout friendly combined 1 row title) --}}
             <tr height="45" style="height: 45pt;">
                 <th colspan="23" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; font-weight: bold; font-size: 14pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 12px 0; font-family: 'Calibri', 'Aptos', sans-serif;">
-                    HINDUSTAN ERP: REAL ESTATE SALES BOOKING MASTER (WITH AUDIT DATES & DUAL-TRACK SPLIT)
+                    {{ strtoupper($project->name ?? 'PROJECT') }} - SALE REPORT
                 </th>
             </tr>
             {{-- Super Section Headers Row with correct requested colors --}}
@@ -3781,63 +3781,63 @@ function unitsApp() {
                 <tr height="25" style="height: 25pt; text-align: center; vertical-align: middle; {{ $rowBg }}">
                     {{-- Section 1 --}}
                     <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $loop->iteration }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: left; padding-left: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($sale->customer?->name ?? '') }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ strtoupper($sale->customer?->name ?? '') }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $bookingDate }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $floorDisplay }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $unitTypeDisplay }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $agreementDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $areaSqft }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $areaSqft }}</td>
                     
                     {{-- Section 2 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $expectedRate > 0 ? $expectedRate : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $actualRate > 0 ? $actualRate : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $baseTotal > 0 ? $baseTotal : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; {{ $varianceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $variance != 0 ? abs($variance) : '0' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $expectedRate > 0 ? $expectedRate : '' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $actualRate > 0 ? $actualRate : '' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $baseTotal > 0 ? $baseTotal : '' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; {{ $varianceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $variance != 0 ? abs($variance) : '0' }}</td>
                     
                     {{-- Section 3 --}}
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif;">{{ $gstPercentage > 0 ? number_format($gstPercentage, 2) . '%' : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $gstAmount > 0 ? $gstAmount : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $parkingCharges > 0 ? $parkingCharges : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $additionalWork > 0 ? $additionalWork : '' }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #f1f5f9; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $grandTotalDeal }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $gstAmount > 0 ? $gstAmount : '' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $parkingCharges > 0 ? $parkingCharges : '' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $additionalWork > 0 ? $additionalWork : '' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; background-color: #f1f5f9; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $grandTotalDeal }}</td>
                     
                     {{-- Section 4 --}}
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; background-color: #dcfce7; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalChequeValue }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalReceivedCheque }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; background-color: #dcfce7; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalChequeValue }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totalReceivedCheque }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: 'dd-mmm-yyyy';">{{ $receiptDate }}</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $balanceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $chequeBalanceDue }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $balanceStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $chequeBalanceDue }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; text-align: center; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\@';">{{ $installmentsCount }}</td>
                     <td style="border: 0.5pt solid #cbd5e1; font-weight: bold; text-align: center; {{ $pctStyle }} font-family: 'Calibri', 'Aptos', sans-serif;">{{ number_format($collectionPct, 2) }}%</td>
-                    <td style="border: 0.5pt solid #cbd5e1; text-align: right; padding-right: 8px; {{ $profitLossStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $profitLoss != 0 ? abs($profitLoss) : '0' }}</td>
+                    <td style="border: 0.5pt solid #cbd5e1; text-align: center; {{ $profitLossStyle }} font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $profitLoss != 0 ? abs($profitLoss) : '0' }}</td>
                 </tr>
             @endforeach
  
               <tr height="36" style="height: 36pt; font-weight: bold; color: #ffffff;">
                 {{-- Section 1 Totals --}}
                 <td colspan="6" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif;">TOTAL SUMMARY</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['area'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['area'] }}</td>
                 {{-- Section 2 Totals --}}
                 <td colspan="2" bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['base_total'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['variance'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['base_total'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['variance'] }}</td>
                 {{-- Section 3 Totals --}}
                 <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['gst_amount'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['parking'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['additional'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['grand_total'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['gst_amount'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['parking'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['additional'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['grand_total'] }}</td>
                 {{-- Section 4 Totals --}}
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_value'] }}</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['total_received_cheque'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_value'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['total_received_cheque'] }}</td>
                 <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
-                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_due'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['cheque_due'] }}</td>
                 <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; border: 0.5pt solid #475569; font-family: 'Calibri', 'Aptos', sans-serif;"></td>
                 @php
                     $overallCollectionPct = $totals['cheque_value'] > 0 ? ($totals['total_received_cheque'] / $totals['cheque_value'] * 100) : 0.00;
                     $profitLossTotalStyle = $totals['profit_loss'] < 0 ? 'color: #fee2e2;' : ($totals['profit_loss'] > 0 ? 'color: #dcfce7;' : 'color: #ffffff;');
                 @endphp
                 <td bgcolor="#17365D" style="background-color: #17365D; color: #ffffff; text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif;">{{ number_format($overallCollectionPct, 2) }}%</td>
-                <td bgcolor="#17365D" style="background-color: #17365D; {{ $profitLossTotalStyle }} text-align: right; padding-right: 8px; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['profit_loss'] }}</td>
+                <td bgcolor="#17365D" style="background-color: #17365D; {{ $profitLossTotalStyle }} text-align: center; border: 0.5pt solid #475569; font-size: 13pt; font-weight: bold; font-family: 'Calibri', 'Aptos', sans-serif; mso-number-format: '\#\,\#\#0';">{{ $totals['profit_loss'] }}</td>
               </tr>
         </tbody>
     </table>
@@ -4153,19 +4153,23 @@ function unitsApp() {
 
             // Detect if customer filter is active
             let customerSuffix = '';
+            let customerFilenamePart = '';
             if (appData && Array.isArray(appData.selectedCustomers) && appData.selectedCustomers.length > 0) {
                 const names = appData.selectedCustomers.map(c => c.name).filter(Boolean);
                 if (names.length > 0) {
-                    customerSuffix = ` — Customer: ${names.join(', ').toUpperCase()}`;
+                    const joinedNames = names.join(', ');
+                    customerSuffix = ` — Customer: ${joinedNames.toUpperCase()}`;
+                    customerFilenamePart = ` - ${joinedNames.replace(/[\\/?*:[\]]/g, '').trim()}`;
                 }
             }
 
-            const filename = customerSuffix ? `TABASCO_Units_Report_Customer_Filtered.xlsx` : `TABASCO_Units_Unit_Master.xlsx`;
+            const projectNameUpper = "{{ addslashes(strtoupper($project->name ?? 'PROJECT')) }}";
+            const filename = customerFilenamePart ? `Unit_Report${customerFilenamePart}.xlsx` : `Unit_Report.xlsx`;
 
             // Create workbook
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'TABASCO Human Capital';
-            workbook.lastModifiedBy = 'TABASCO ERP';
+            workbook.creator = 'Hindustan ERP';
+            workbook.lastModifiedBy = 'Hindustan ERP';
             workbook.created = new Date();
             workbook.modified = new Date();
 
@@ -4173,7 +4177,7 @@ function unitsApp() {
             buildUnitsWorksheet(
                 workbook,
                 'All Units',
-                `TABASCO  HUMAN CAPITAL   |   Units (Unit Master)${customerSuffix}`,
+                `${projectNameUpper} - UNIT REPORT${customerSuffix}`,
                 units,
                 appData
             );
@@ -4191,7 +4195,7 @@ function unitsApp() {
             // Generate a dedicated tab for each Unit Type
             Object.keys(typeMap).forEach(typeName => {
                 const typeUnits = typeMap[typeName];
-                const sheetTitle = `TABASCO  HUMAN CAPITAL   |   Units Master - ${typeName}${customerSuffix}`;
+                const sheetTitle = `${projectNameUpper} - ${typeName.toUpperCase()} REPORT${customerSuffix}`;
                 buildUnitsWorksheet(
                     workbook,
                     typeName,
@@ -4230,11 +4234,29 @@ function unitsApp() {
             return;
         }
 
-        const filename = 'HindustanERP_Sales_Booking_Report.xlsx';
+        let appData = null;
+        try {
+            const rootEl = document.querySelector('[x-data*="unitsApp"]');
+            if (rootEl && window.Alpine) {
+                appData = window.Alpine.$data(rootEl);
+            }
+        } catch (e) {
+            console.warn('Alpine $data retrieval:', e);
+        }
+
+        let customerFilenamePart = '';
+        if (appData && Array.isArray(appData.selectedCustomers) && appData.selectedCustomers.length > 0) {
+            const names = appData.selectedCustomers.map(c => c.name).filter(Boolean);
+            if (names.length > 0) {
+                customerFilenamePart = ` - ${names.join(', ').replace(/[\\/?*:[\]]/g, '').trim()}`;
+            }
+        }
+
+        const filename = customerFilenamePart ? `Sale_Report${customerFilenamePart}.xlsx` : `Sale_Report.xlsx`;
 
         // Create workbook and worksheet
         const workbook = new ExcelJS.Workbook();
-        const sheetName = 'Sales Booking Master';
+        const sheetName = 'Sale Report';
         const worksheet = workbook.addWorksheet(sheetName);
 
         // Configure views and page setups
@@ -4352,9 +4374,9 @@ function unitsApp() {
                 const fontSizeMatch = (cell.style.fontSize || '').match(/[\d\.]+/);
                 const fontSize = fontSizeMatch ? parseFloat(fontSizeMatch[0]) : 10;
 
-                let horizAlign = cell.style.textAlign || (cell.tagName === 'TH' ? 'center' : 'left');
-                if (horizAlign === 'start') horizAlign = 'left';
-                if (horizAlign === 'end') horizAlign = 'right';
+                let horizAlign = cell.style.textAlign || 'center';
+                if (horizAlign === 'start') horizAlign = 'center';
+                if (horizAlign === 'end') horizAlign = 'center';
 
                 let vertAlign = cell.style.verticalAlign || 'middle';
                 const numberFormat = cell.style.msoNumberFormat || '';
@@ -4407,7 +4429,7 @@ function unitsApp() {
                 }
 
                 excelCell.alignment = {
-                    horizontal: horizAlign,
+                    horizontal: horizAlign || 'center',
                     vertical: vertAlign,
                     wrapText: true
                 };

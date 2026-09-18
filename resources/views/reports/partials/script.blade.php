@@ -46,6 +46,33 @@ function reportsApp() {
             let filename = 'HindustanERP_Report_' + this.activeTab + '.xlsx';
             let isSales = false;
 
+            // Detect customer filter for filename
+            let customerFilenamePart = '';
+            const reqCustIds = {!! json_encode(is_array(request('customer_id')) ? request('customer_id') : (request('customer_id') ? [request('customer_id')] : [])) !!};
+            let customerNames = [];
+            if (Array.isArray(reqCustIds) && reqCustIds.length > 0 && this.customerList) {
+                customerNames = this.customerList
+                    .filter(c => reqCustIds.map(String).includes(String(c.id)))
+                    .map(c => c.name)
+                    .filter(Boolean);
+            }
+            if (customerNames.length === 0) {
+                const checkedCustomerInputs = document.querySelectorAll('input[name="customer_id[]"], input[name="customer_id"]');
+                const domCustIds = Array.from(checkedCustomerInputs).map(i => i.value).filter(Boolean);
+                if (domCustIds.length > 0 && this.customerList) {
+                    customerNames = this.customerList
+                        .filter(c => domCustIds.map(String).includes(String(c.id)))
+                        .map(c => c.name)
+                        .filter(Boolean);
+                }
+            }
+            if (customerNames.length > 0) {
+                const joinedNames = customerNames.join(', ').replace(/[\\/?*:[\]]/g, '').trim();
+                if (joinedNames) {
+                    customerFilenamePart = ` - ${joinedNames}`;
+                }
+            }
+
             if (this.activeTab === 'partner_statements' || reportType) {
                 const type = reportType || 'partner_statement';
                 if (type === 'partner_statement') {
@@ -126,7 +153,7 @@ function reportsApp() {
                 const excelTable = document.querySelector("#saleReturnExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Sales_Cancellation_Report.xlsx';
+                    filename = customerFilenamePart ? `Sales_Cancel_Report${customerFilenamePart}.xlsx` : 'Sales_Cancel_Report.xlsx';
                 }
             } else if (this.activeTab === 'exchange_report') {
                 const excelTable = document.querySelector("#exchangeExcelTable");
@@ -161,7 +188,12 @@ function reportsApp() {
 
             // Create workbook and worksheet
             const workbook = new ExcelJS.Workbook();
-            const sheetName = isSales ? 'Sales Booking Master' : 'Report Ledger';
+            workbook.creator = 'Hindustan ERP';
+            workbook.lastModifiedBy = 'Hindustan ERP';
+            workbook.created = new Date();
+            workbook.modified = new Date();
+
+            const sheetName = isSales ? 'Sales Booking Master' : (this.activeTab === 'sales_return' ? 'Sales Cancel Report' : 'Report Ledger');
             const worksheet = workbook.addWorksheet(sheetName);
 
             // Configure views and page setups
