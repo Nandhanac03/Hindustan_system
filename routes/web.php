@@ -296,6 +296,15 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['get', 'post', 'delete'], '/company-bank-accounts/{companyBankAccount}', [\App\Http\Controllers\CompanyBankAccountController::class, 'destroy'])->name('company-bank-accounts.destroy');
     Route::match(['get', 'post', 'delete'], '/company-bank-accounts/{companyBankAccount}/delete', [\App\Http\Controllers\CompanyBankAccountController::class, 'destroy'])->name('company-bank-accounts.destroy.post');
 
+    // Category Master Module
+    Route::get('/categories', [\App\Http\Controllers\CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [\App\Http\Controllers\CategoryController::class, 'store'])->name('categories.store');
+    Route::match(['put', 'post'], '/categories/{category}', [\App\Http\Controllers\CategoryController::class, 'update'])->name('categories.update');
+    Route::match(['put', 'post'], '/categories/{category}/update', [\App\Http\Controllers\CategoryController::class, 'update'])->name('categories.update.post');
+    Route::post('/categories/{category}/toggle-status', [\App\Http\Controllers\CategoryController::class, 'toggleStatus'])->name('categories.toggle-status');
+    Route::match(['get', 'post', 'delete'], '/categories/{category}', [\App\Http\Controllers\CategoryController::class, 'destroy'])->name('categories.destroy');
+    Route::match(['get', 'post', 'delete'], '/categories/{category}/delete', [\App\Http\Controllers\CategoryController::class, 'destroy'])->name('categories.destroy.post');
+
     // Chart of Accounts Master Module
     Route::get('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'index'])->name('chart-of-accounts.index');
     Route::post('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'store'])->name('chart-of-accounts.store');
