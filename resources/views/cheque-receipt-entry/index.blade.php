@@ -251,9 +251,11 @@
 
                                 <td class="px-3.5 py-3.5 text-left">
                                     <div class="font-black text-slate-900 text-[11.5px]" x-text="r.customer_name"></div>
-                                    <div class="text-[9.5px] text-slate-500 font-semibold mt-0.5" 
-                                         x-text="r.project_name + (r.unit_name && r.unit_name !== '—' ? ' (' + r.unit_name + ')' : '')">
-                                    </div>
+                                    <template x-if="r.unit_floor_info">
+                                        <div class="text-[9.5px] text-slate-500 font-semibold mt-0.5" 
+                                             x-text="r.unit_floor_info">
+                                        </div>
+                                    </template>
                                 </td>
 
                                 <td class="px-3.5 py-3.5 text-left">
@@ -847,13 +849,16 @@
                         const payer = (r.payer_name || '').toLowerCase();
                         const proj = (r.project_name || '').toLowerCase();
                         const unit = (r.unit_name || '').toLowerCase();
+                        const unitFloor = (r.unit_floor_info || '').toLowerCase();
+                        const doorNo = (r.door_no || '').toLowerCase();
+                        const floorName = (r.floor_name || '').toLowerCase();
                         const bank = (r.company_bank_account_name || '').toLowerCase();
                         const acc = (r.company_bank_account_number || '').toLowerCase();
                         const remarks = (r.remarks || '').toLowerCase();
                         const chequeNo = (r.reference_no || '').toLowerCase();
                         const drawee = (r.customer_bank || r.drawee_bank || '').toLowerCase();
                         const amount = (r.amount || '').toString();
-                        return ref.includes(q) || cust.includes(q) || payer.includes(q) || proj.includes(q) || unit.includes(q) || bank.includes(q) || acc.includes(q) || remarks.includes(q) || chequeNo.includes(q) || drawee.includes(q) || amount.includes(q);
+                        return ref.includes(q) || cust.includes(q) || payer.includes(q) || proj.includes(q) || unit.includes(q) || unitFloor.includes(q) || doorNo.includes(q) || floorName.includes(q) || bank.includes(q) || acc.includes(q) || remarks.includes(q) || chequeNo.includes(q) || drawee.includes(q) || amount.includes(q);
                     });
                 }
 
@@ -1572,10 +1577,6 @@
                         <span>Payment &amp; Banking Information</span>
                     </div>
                     <div class="box-body">
-                        <div class="field-row">
-                            <span class="f-lbl">Company Bank A/C</span>
-                            <span class="f-val">${bankName}${bankAccNo ? ' (' + bankAccNo + ')' : ''}</span>
-                        </div>
                         <div class="field-row">
                             <span class="f-lbl">Cheque / Ref / UTR</span>
                             <span class="f-val mono">${instRefNo}</span>

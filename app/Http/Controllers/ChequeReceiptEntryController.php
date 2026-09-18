@@ -33,7 +33,7 @@ class ChequeReceiptEntryController extends Controller
         $activeTab = $request->input('tab', 'all');
 
         // Query for Main Receipts Table
-        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'unit', 'bank', 'sale.project'])
+        $query = Receipt::with(['companyBankAccount', 'customer', 'project', 'unit.floor', 'bank', 'sale.project', 'sale.unit.floor', 'sale.saleUnits.unit.floor'])
             ->latest('receipt_date')
             ->latest('id');
 
@@ -189,6 +189,40 @@ class ChequeReceiptEntryController extends Controller
                 $projectDesc = substr($projectDesc, 0, 127) . '...';
             }
 
+            $doorNo = null;
+            $floorName = null;
+            $floorNo = null;
+
+            if ($r->unit) {
+                $doorNo = $r->unit->door_no;
+                $floorName = $r->unit->floor?->name;
+                $floorNo = $r->unit->floor?->floor_number;
+            } elseif ($r->sale) {
+                if ($r->sale->saleUnits && $r->sale->saleUnits->isNotEmpty()) {
+                    $doorNo = $r->sale->saleUnits->map(fn($su) => $su->unit?->door_no)->filter()->implode(', ');
+                    $floorName = $r->sale->saleUnits->map(fn($su) => $su->unit?->floor?->name)->filter()->unique()->implode(', ');
+                    $floorNo = $r->sale->saleUnits->map(fn($su) => $su->unit?->floor?->floor_number)->filter()->unique()->implode(', ');
+                } else {
+                    $doorNo = $r->sale->unit?->door_no;
+                    $floorName = $r->sale->unit?->floor?->name;
+                    $floorNo = $r->sale->unit?->floor?->floor_number;
+                }
+            }
+
+            $unitFloorParts = [];
+            if (!empty($doorNo) && $doorNo !== '—') {
+                $unitFloorParts[] = 'Door No: ' . $doorNo;
+            }
+            if (!empty($floorName) && $floorName !== '—') {
+                $flDisplay = (stripos($floorName, 'floor') !== false || stripos($floorName, 'ground') !== false || stripos($floorName, 'basement') !== false)
+                    ? $floorName
+                    : 'Floor ' . $floorName;
+                $unitFloorParts[] = $flDisplay;
+            } elseif ($floorNo !== null && $floorNo !== '') {
+                $unitFloorParts[] = 'Floor ' . $floorNo;
+            }
+            $unitFloorInfo = !empty($unitFloorParts) ? implode(' · ', $unitFloorParts) : '';
+
             return [
                 'id'                          => $r->id,
                 'ref'                         => $r->reference_no ?: 'REC-' . str_pad((string)$r->id, 5, '0', STR_PAD_LEFT),
@@ -214,6 +248,10 @@ class ChequeReceiptEntryController extends Controller
                 'project_logo'                => $projectLogo,
                 'unit_id'                     => $r->unit_id,
                 'unit_name'                   => $r->unit?->door_no ?? ($r->sale?->unit?->door_no ?? '—'),
+                'door_no'                     => $doorNo,
+                'floor_name'                  => $floorName,
+                'floor_no'                    => $floorNo,
+                'unit_floor_info'             => $unitFloorInfo,
                 'reference_no'                => $r->reference_no,
                 'remarks'                     => $r->remarks,
                 'is_allocated'                => (bool)$r->is_allocated,
