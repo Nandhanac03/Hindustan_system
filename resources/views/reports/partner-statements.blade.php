@@ -783,7 +783,7 @@ function partnerStatementApp() {
                 const p = this.matrixList.find(m => String(m.id) === String(this.filters.partner_id));
                 if (p) return Number(p.share_pct).toFixed(1) + '%';
             }
-            return (this.matrixList[0] ? Number(this.matrixList[0].share_pct).toFixed(1) : '57.5') + '%';
+            return Number(this.totalMatrixAgreedPct || 0).toFixed(1) + '%';
         },
 
         get filteredMatrixList() {

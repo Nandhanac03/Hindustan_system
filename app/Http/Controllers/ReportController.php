@@ -1624,7 +1624,7 @@ class ReportController extends Controller
         $selectedPartnerObj = $partnerId ? $partners->firstWhere('id', $partnerId) : null;
         $agreedProfitShare = $selectedPartnerObj
             ? ($matrixPartners->firstWhere('id', $selectedPartnerObj->id)->share_pct ?? 0.0)
-            : ($matrixPartners->isNotEmpty() ? $matrixPartners->first()->share_pct : 0.0);
+            : $totalMatrixAgreedPct;
 
         $earnedProfitShare = (float)$totalCredit;
         $totalPayoutsReleased = (float)$totalDebit;
