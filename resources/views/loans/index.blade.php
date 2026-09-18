@@ -225,7 +225,7 @@
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">SL NO</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">LOAN ACCOUNT / PROJECT</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">LENDING BANK</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">OUTSTANDING</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">LOAN AMOUNT</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">CURRENT EMI</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">PRINCIPAL</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">INTEREST</th>
@@ -265,8 +265,8 @@
                                     {{ $loan->lender_name }}
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 border text-right font-mono text-rose-700 font-extrabold">
-                                ₹{{ number_format((float)$loan->outstanding_balance, 2) }}
+                            <td class="px-4 py-3.5 border text-right font-mono text-slate-900 font-extrabold">
+                                ₹{{ number_format((float)$loan->principal_amount, 2) }}
                             </td>
                             <td class="px-4 py-3.5 border text-right font-mono text-slate-900 font-bold">
                                 @if($loan->next_emi && $loan->status === 'Active')
@@ -303,25 +303,26 @@
                             </td>
                             <td class="px-4 py-3.5 border text-right pr-4">
                                 <div class="flex items-center justify-end gap-2">
-                                    @if($loan->next_emi && $loan->status === 'Active')
-                                        <button @click="openPayModal({ id: {{ $loan->next_emi->id }}, emi_amount: {{ $loan->next_emi->emi_amount }}, amount_paid: {{ $loan->next_emi->amount_paid }} }, { id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', project: { name: '{{ addslashes($loan->project->name ?? 'N/A') }}' } })"
-                                                class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 cursor-pointer">
-                                            Pay EMI
-                                        </button>
-                                    @endif
+                                    <a href="{{ route('loans.schedule', $loan->id) }}"
+                                       class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 cursor-pointer inline-flex items-center gap-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                        Ledger
+                                    </a>
 
                                     <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                                        <button @click="open = !open" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all inline-flex items-center gap-1 cursor-pointer">
+                                        <button @click="open = !open" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 inline-flex items-center gap-1 cursor-pointer">
                                             More
-                                            <svg class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                         </button>
                                         <div x-show="open" class="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-left font-semibold text-slate-700 text-[10px] uppercase tracking-wide" style="display: none;" x-transition>
-                                            <a href="{{ route('loans.schedule', $loan->id) }}" class="block px-4 py-2.5 hover:bg-slate-50 transition-colors">
-                                                View Ledger
-                                            </a>
+                                            @if($loan->next_emi && $loan->status === 'Active')
+                                                <button @click="openPayModal({ id: {{ $loan->next_emi->id }}, emi_amount: {{ $loan->next_emi->emi_amount }}, amount_paid: {{ $loan->next_emi->amount_paid }} }, { id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', project: { name: '{{ addslashes($loan->project->name ?? 'N/A') }}' } })" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 text-emerald-700 transition-colors cursor-pointer font-bold uppercase tracking-wide">
+                                                    Pay EMI
+                                                </button>
+                                            @endif
                                             @if($loan->status === 'Active')
                                                 <button @click="openPayoffModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', outstanding_balance: {{ $loan->outstanding_balance }} }, 'prepayment')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
-                                                    Principal Payoff
+                                                    Prepayment
                                                 </button>
                                                 <button @click="openPayoffModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', outstanding_balance: {{ $loan->outstanding_balance }} }, 'foreclosure')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
                                                     Foreclosure
@@ -431,116 +432,265 @@
     {{-- Payoff / Foreclosure Modal --}}
     <div x-show="payoffModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="payoffModalOpen = false"></div>
-        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="payoffForm.action_type === 'foreclosure' ? 'Process Full Foreclosure' : 'Principal Payoff Adjustment'"></h3>
-                    <button @click="payoffModalOpen = false" class="text-slate-400 hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+        <div class="relative w-full max-w-4xl bg-slate-950 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border border-slate-800/80 my-auto max-h-[96vh] flex flex-col" @click.away="payoffModalOpen = false">
+            {{-- Header --}}
+            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-6 py-3.5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="w-8 h-8 rounded-lg bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-sm font-black shadow-inner border border-[#a38c29]/30">
+                        ₹
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block px-2 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[8px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40" x-text="payoffForm.action_type === 'foreclosure' ? 'FULL FORECLOSURE' : 'PRINCIPAL PREPAYMENT'"></span>
+                            <span class="text-[9px] text-slate-400 font-semibold" x-text="'Loan A/C: ' + (activePayoffLoan?.loan_account_no || '')"></span>
+                        </div>
+                        <h3 class="font-black text-sm uppercase tracking-wider text-white mt-0.5" x-text="payoffForm.action_type === 'foreclosure' ? 'Process Full Foreclosure' : 'Principal Prepayment & Payoff'"></h3>
+                    </div>
                 </div>
+                <button type="button" @click="payoffModalOpen = false" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-xs transition cursor-pointer relative z-10" title="Close Modal">✕</button>
             </div>
-            <form @submit.prevent="submitPayoffForm">
-                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-                    
-                    {{-- 1. Loan Overview --}}
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">1. Account Overview</h4>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-700">
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Loan A/C No</span>
-                                <span class="font-mono text-slate-900 font-extrabold" x-text="activePayoffLoan ? activePayoffLoan.loan_account_no : '—'"></span>
+
+            {{-- Modal Body --}}
+            <div class="bg-white rounded-b-2xl sm:rounded-b-3xl p-4 sm:p-5 space-y-3 overflow-y-auto" x-data="{
+                payoffBankOpen: false,
+                payoffBankSearch: '',
+                get filteredAccounts() {
+                    const list = companyBankAccounts || [];
+                    if (!this.payoffBankSearch) return list;
+                    const q = this.payoffBankSearch.toLowerCase();
+                    return list.filter(a => 
+                        (a.bank_name && a.bank_name.toLowerCase().includes(q)) ||
+                        (a.account_name && a.account_name.toLowerCase().includes(q)) ||
+                        (a.account_number && a.account_number.toLowerCase().includes(q)) ||
+                        (a.branch_name && a.branch_name.toLowerCase().includes(q))
+                    );
+                },
+                get selectedAccount() {
+                    return (companyBankAccounts || []).find(a => a.id == payoffForm.bank_account_id) || null;
+                },
+                get totalOutflow() {
+                    return Number(payoffForm.amount || 0) + Number(payoffForm.prepayment_charges || 0) + Number(payoffForm.interest_adjustment || 0);
+                }
+            }">
+                <form @submit.prevent="submitPayoffForm">
+                    {{-- 1. Top Loan Overview Strip --}}
+                    <div class="bg-slate-50/90 rounded-xl p-3 border border-slate-200/80 shadow-2xs mb-3">
+                        <div class="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200/70">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                                <span class="text-[9px] font-black uppercase tracking-wider text-slate-600">Active Loan Outstanding Summary</span>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Lending Bank</span>
-                                <span class="text-slate-900 font-bold" x-text="activePayoffLoan ? activePayoffLoan.lender_name : '—'"></span>
+                            <span class="px-2 py-0.5 rounded-full bg-[#a38c29]/10 text-[#a38c29] font-mono text-[10px] font-extrabold border border-[#a38c29]/30 shadow-2xs" x-text="activePayoffLoan ? ('Lender: ' + activePayoffLoan.lender_name) : ''"></span>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div class="space-y-0.5">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project</span>
+                                <span class="text-xs font-bold text-slate-800 block truncate" x-text="activePayoffLoan && activePayoffLoan.project ? activePayoffLoan.project.name : '—'"></span>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Outstanding Principal</span>
-                                <span class="text-rose-700 font-extrabold font-mono" x-text="activePayoffLoan ? '₹' + Number(activePayoffLoan.outstanding_balance).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
+                            <div class="space-y-0.5">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Sanctioned Principal</span>
+                                <span class="text-xs font-mono font-black text-slate-800 block" x-text="activePayoffLoan ? '₹' + Number(activePayoffLoan.principal_amount).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
+                            </div>
+                            <div class="space-y-0.5">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Current Outstanding</span>
+                                <span class="text-sm font-black font-mono text-rose-700 block" x-text="activePayoffLoan ? '₹' + Number(activePayoffLoan.outstanding_balance).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '₹0.00'"></span>
+                            </div>
+                            <div class="space-y-0.5">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Net Payout</span>
+                                <span class="text-sm font-black font-mono text-[#a38c29] block" x-text="'₹' + Number(totalOutflow).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                         </div>
                     </div>
 
-                    {{-- 2. Payoff Splits --}}
+                    {{-- 2. Payoff / Prepayment Details Form --}}
                     <div>
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5">2. Payoff Calculations</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Action Type *</label>
-                                <select x-model="payoffForm.action_type" required @change="if (payoffForm.action_type === 'foreclosure') { payoffForm.amount = activePayoffLoan ? parseFloat(activePayoffLoan.outstanding_balance).toFixed(2) : ''; }" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all cursor-pointer">
-                                    <option value="prepayment">Prepayment (Reduce Principal)</option>
-                                    <option value="foreclosure">Full Foreclosure (Payoff Account)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Principal Amount to Pay (₹) *</label>
-                                <input type="number" step="0.01" min="0.01" x-model="payoffForm.amount" :readonly="payoffForm.action_type === 'foreclosure'" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-850 focus:outline-none transition-all" :class="payoffForm.action_type === 'foreclosure' ? 'bg-slate-100 cursor-not-allowed text-slate-650' : ''">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Prepayment / Foreclosure Charges (₹)</label>
-                                <input type="number" step="0.01" min="0" x-model="payoffForm.prepayment_charges" placeholder="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-850 focus:outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Interest Adjustment / Rebate (₹)</label>
-                                <input type="number" step="0.01" x-model="payoffForm.interest_adjustment" placeholder="0.00 (debit positive, credit negative)" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-855 focus:outline-none transition-all">
-                            </div>
-                            <template x-if="payoffForm.action_type === 'prepayment'">
-                                <div class="col-span-1 sm:col-span-2">
-                                    <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Rescheduling Option *</label>
-                                    <div class="flex items-center gap-4 text-xs font-semibold text-slate-700">
-                                        <label class="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" value="reduce_emi" x-model="payoffForm.reschedule_option" class="text-[#a38c29] focus:ring-[#a38c29]/20">
-                                            Reduce monthly installment (EMI), keep tenure same
-                                        </label>
-                                        <label class="flex items-center gap-2 cursor-pointer">
-                                            <input type="radio" value="reduce_tenure" x-model="payoffForm.reschedule_option" class="text-[#a38c29] focus:ring-[#a38c29]/20">
-                                            Reduce outstanding tenure (months), keep EMI same
-                                        </label>
+                        <div class="flex items-center gap-1.5 mb-2.5">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#a38c29]"></span>
+                            <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-wider" x-text="payoffForm.action_type === 'foreclosure' ? 'Foreclosure Parameters' : 'Prepayment Parameters'">
+                            </h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 text-xs">
+                            {{-- Left Column --}}
+                            <div class="space-y-2.5">
+                                {{-- Principal Payoff Amount --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                        <span x-text="payoffForm.action_type === 'foreclosure' ? 'Foreclosure Amount (₹)' : 'Prepayment Principal Amount (₹)'"></span> <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="number" step="0.01" x-model="payoffForm.amount" :readonly="payoffForm.action_type === 'foreclosure'" required placeholder="0.00" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Payment Date --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                        Payment Date <span class="text-rose-500">*</span>
+                                    </label>
+                                    <input type="date" x-model="payoffForm.prepayment_date" required class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Paid From Company Bank Account (Search & Select) --}}
+                                <div class="relative" @click.outside="payoffBankOpen = false">
+                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                        Paid From (Company Bank Account) <span class="text-rose-500">*</span>
+                                    </label>
+                                    
+                                    <div @click="payoffBankOpen = !payoffBankOpen; if(payoffBankOpen) $nextTick(() => $refs.payoffBankSearch?.focus())"
+                                         class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                        <template x-if="selectedAccount">
+                                            <div class="flex items-center gap-2 truncate">
+                                                <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="selectedAccount.bank_name"></span>
+                                                <span class="font-bold text-slate-800 truncate" x-text="selectedAccount.account_name || selectedAccount.bank_name"></span>
+                                                <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedAccount.account_number || '—') + ')'"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!selectedAccount">
+                                            <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                                        </template>
+                                        <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" :class="payoffBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+
+                                    <!-- Dropdown Search Menu -->
+                                    <div x-show="payoffBankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
+                                        <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0">
+                                            <div class="relative">
+                                                <input type="text" x-ref="payoffBankSearch" x-model="payoffBankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                                <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                            </div>
+                                        </div>
+                                        <div class="overflow-y-auto divide-y divide-slate-100">
+                                            <template x-for="acc in filteredAccounts" :key="acc.id">
+                                                <div @click="payoffForm.bank_account_id = acc.id; payoffBankOpen = false; payoffBankSearch = ''"
+                                                     class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                                     :class="payoffForm.bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                                    <div class="flex flex-col">
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                            <span class="text-slate-500 font-medium" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                        </div>
+                                                        <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                                    </div>
+                                                    <div class="text-right font-mono">
+                                                        <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
+                                                        <div class="font-bold text-slate-800 text-[11px]" x-text="'₹' + Number(acc.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template x-if="filteredAccounts.length === 0">
+                                                <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
-                            </template>
-                            <div class="col-span-1 sm:col-span-2 bg-indigo-50/50 p-3.5 rounded-xl border border-indigo-100 flex items-center justify-between text-xs font-black">
-                                <span class="text-indigo-950 uppercase tracking-wider text-[10px]">Net Payout Amount</span>
-                                <span class="text-indigo-950 text-sm font-mono" x-text="'₹' + Number(Number(payoffForm.amount || 0) + Number(payoffForm.prepayment_charges || 0) + Number(payoffForm.interest_adjustment || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                            </div>
+
+                            {{-- Right Column --}}
+                            <div class="space-y-2.5">
+                                {{-- Prepayment Charges --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">Prepayment / Foreclosure Charges (₹)</label>
+                                    <input type="number" step="0.01" min="0" x-model="payoffForm.prepayment_charges" placeholder="0.00" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Interest Adjustment --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">Interest Adjustment / Rebate (₹)</label>
+                                    <input type="number" step="0.01" x-model="payoffForm.interest_adjustment" placeholder="0.00" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Transaction / UTR No. --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">Transaction / Cheque / UTR No. <span class="text-rose-500">*</span></label>
+                                    <input type="text" x-model="payoffForm.reference_no" required placeholder="e.g. UTR1087349137" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Remarks / Reason --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">Remarks / Reason</label>
+                                    <input type="text" x-model="payoffForm.remarks" placeholder="Optional notes..." class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Rescheduling Option for prepayment --}}
+                        <template x-if="payoffForm.action_type === 'prepayment'">
+                            <div class="mt-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200">
+                                <label class="block text-[9px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">Rescheduling Option *</label>
+                                <div class="flex items-center gap-5 text-xs font-semibold text-slate-700">
+                                    <label class="flex items-center gap-2 cursor-pointer text-[11px]">
+                                        <input type="radio" value="reduce_emi" x-model="payoffForm.reschedule_option" class="text-[#a38c29] focus:ring-[#a38c29]/20">
+                                        Reduce monthly installment (EMI), keep tenure same
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer text-[11px]">
+                                        <input type="radio" value="reduce_tenure" x-model="payoffForm.reschedule_option" class="text-[#a38c29] focus:ring-[#a38c29]/20">
+                                        Reduce outstanding tenure (months), keep EMI same
+                                    </label>
+                                </div>
+                            </div>
+                        </template>
+
+                        {{-- 3. Bank Details & Balance Summary Row (2 Horizontal Boxes in 1 Line) --}}
+                        <div x-show="selectedAccount" class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3" style="display: none;" x-transition>
+                            {{-- Left Box: Bank Details Card --}}
+                            <div class="rounded-xl p-3 bg-slate-50 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
+                                <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px]">
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[8px] uppercase tracking-wider block">Bank</span>
+                                        <span class="font-bold text-slate-800 truncate block" x-text="selectedAccount?.bank_name || '—'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[8px] uppercase tracking-wider block">Account No</span>
+                                        <span class="font-mono font-bold text-slate-800 block" x-text="selectedAccount?.account_number || '—'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[8px] uppercase tracking-wider block">Account Name</span>
+                                        <span class="font-semibold text-slate-700 truncate block" x-text="selectedAccount?.account_name || '—'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[8px] uppercase tracking-wider block">Branch</span>
+                                        <span class="font-semibold text-slate-700 truncate block" x-text="selectedAccount?.branch_name || '—'"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Right Box: Dynamic Bank Balance Summary Card --}}
+                            <div class="bg-slate-50/90 border border-slate-200/90 rounded-xl p-3 space-y-1 shadow-2xs text-[11px] flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="font-bold text-slate-600">
+                                        Selected Bank Account Balance (<span x-text="selectedAccount?.bank_name || 'Bank'"></span>)
+                                    </span>
+                                    <span class="font-mono font-extrabold text-blue-600 text-xs shrink-0" x-text="'₹' + Number(selectedAccount?.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">₹0.00</span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="font-bold text-slate-600">Total Payout Outflow</span>
+                                    <span class="font-mono font-extrabold text-rose-600 text-xs shrink-0" x-text="'- ₹' + Number(totalOutflow).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">- ₹0.00</span>
+                                </div>
+
+                                <div class="pt-1.5 border-t border-slate-200/80 flex items-center justify-between gap-3">
+                                    <span class="font-extrabold text-slate-900 uppercase tracking-wider text-[10px] pr-2">Bank Balance After Payment</span>
+                                    <span class="font-mono font-black text-sm shrink-0" 
+                                          :class="(Number(selectedAccount?.current_balance || 0) - Number(totalOutflow)) < 0 ? 'text-rose-600' : 'text-slate-900'"
+                                          x-text="'₹' + Number(Number(selectedAccount?.current_balance || 0) - Number(totalOutflow)).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">₹0.00</span>
+                                </div>
+                                <template x-if="(Number(selectedAccount?.current_balance || 0) - Number(totalOutflow)) < 0">
+                                    <div class="text-[9px] text-rose-600 font-bold flex items-center gap-1 mt-0.5 bg-rose-100/60 p-1 rounded-md">
+                                        <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <span>Warning: Total payout amount exceeds available bank balance.</span>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </div>
 
-                    {{-- 3. Voucher Settings --}}
-                    <div>
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5">3. Payout & Reference Information</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Bank / Cash Account <span class="text-rose-500">*</span></label>
-                                <select x-model="payoffForm.bank_account_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all cursor-pointer">
-                                    <option value="">Select Account...</option>
-                                    @foreach($assetAccounts as $acc)
-                                        <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->code }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Payment Date *</label>
-                                <input type="date" x-model="payoffForm.prepayment_date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-850 focus:outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Transaction / Cheque / UTR No. <span class="text-rose-500">*</span></label>
-                                <input type="text" x-model="payoffForm.reference_no" required placeholder="e.g. UTR1087349137" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-855 focus:outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-550 uppercase tracking-wider mb-1.5">Remarks / Reason</label>
-                                <input type="text" x-model="payoffForm.remarks" placeholder="Optional notes..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-semibold text-slate-855 focus:outline-none transition-all">
-                            </div>
-                        </div>
+                    {{-- 4. Footer Action Bar --}}
+                    <div class="mt-4 pt-3 flex items-center justify-between border-t border-slate-100">
+                        <button type="button" @click="payoffModalOpen = false" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider transition cursor-pointer">← Back</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-md shadow-rose-600/20 active:scale-95 cursor-pointer" x-text="payoffForm.action_type === 'foreclosure' ? 'Foreclose Loan' : 'Post Prepayment'"></button>
                     </div>
-                </div>
-                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
-                    <button type="button" @click="payoffModalOpen = false" class="px-4 py-2 border border-slate-250 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition cursor-pointer">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-rose-600/20 active:scale-95 cursor-pointer" x-text="payoffForm.action_type === 'foreclosure' ? 'Foreclose Loan' : 'Post Prepayment'"></button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -695,133 +845,257 @@
     {{-- Pay EMI Modal --}}
     <div x-show="payModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="display: none;" x-transition.opacity>
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="payModalOpen = false"></div>
-        <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden animate-fade-in-up">
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-4 border-b border-primary-500/10 rounded-t-2xl">
-                <div class="absolute -top-12 -right-12 w-48 h-48 bg-[#a38c29]/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="relative z-10 flex items-center justify-between">
-                    <h3 class="text-xs font-bold text-white uppercase tracking-widest" x-text="activeInst ? 'Payment Release Voucher: Installment #' + activeInst.installment_no : 'Payment Release Voucher'"></h3>
-                    <button @click="payModalOpen = false" class="text-slate-400 hover:text-white transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
+        <div class="relative w-full max-w-4xl bg-slate-950 rounded-3xl shadow-2xl overflow-hidden animate-fade-in-up border border-slate-800/80 my-auto max-h-[92vh] flex flex-col" @click.away="payModalOpen = false">
+            {{-- Header --}}
+            <div class="bg-gradient-to-r from-slate-950 via-[#2a2415] to-slate-950 px-7 py-5 text-white flex items-center justify-between relative overflow-hidden border-b border-slate-800/80 shrink-0">
+                <div class="flex items-center gap-3 relative z-10">
+                    <div class="w-10 h-10 rounded-xl bg-[#a38c29]/20 text-[#f3e5ab] flex items-center justify-center text-lg font-black shadow-inner border border-[#a38c29]/30">
+                        ₹
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-block px-2.5 py-0.5 bg-[#a38c29]/30 text-[#f3e5ab] text-[9px] font-black uppercase tracking-wider rounded border border-[#a38c29]/40">LOAN REPAYMENT</span>
+                            <span class="text-[10px] text-slate-400 font-semibold" x-text="activeInst ? ('Installment #' + activeInst.installment_no) : ''"></span>
+                        </div>
+                        <h3 class="font-black text-base uppercase tracking-wider text-white mt-0.5" x-text="activeInst ? ('Record Payment: Installment #' + activeInst.installment_no) : 'Record Installment Payment'"></h3>
+                    </div>
                 </div>
+                <button type="button" @click="payModalOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-bold text-sm transition cursor-pointer relative z-10" title="Close Modal">✕</button>
             </div>
-            <form @submit.prevent="submitPayForm">
-                <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-                    
-                    {{-- 1. Payment Details Grid --}}
-                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">1. Loan & EMI Information</h4>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-700">
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Loan A/C No</span>
-                                <span class="font-mono text-slate-900 font-extrabold" x-text="activeLoan ? activeLoan.loan_account_no : '—'"></span>
+
+            {{-- Modal Body --}}
+            <div class="bg-white rounded-b-3xl p-6 sm:p-7 space-y-5 overflow-y-auto" x-data="{
+                payBankOpen: false,
+                payBankSearch: '',
+                get filteredAccounts() {
+                    const list = companyBankAccounts || [];
+                    if (!this.payBankSearch) return list;
+                    const q = this.payBankSearch.toLowerCase();
+                    return list.filter(a => 
+                        (a.bank_name && a.bank_name.toLowerCase().includes(q)) ||
+                        (a.account_name && a.account_name.toLowerCase().includes(q)) ||
+                        (a.account_number && a.account_number.toLowerCase().includes(q)) ||
+                        (a.branch_name && a.branch_name.toLowerCase().includes(q))
+                    );
+                },
+                get selectedAccount() {
+                    return (companyBankAccounts || []).find(a => a.id == payForm.bank_account_id) || null;
+                },
+                get totalOutflow() {
+                    return Number(payForm.amount || 0) + Number(payForm.other_charges || 0);
+                }
+            }">
+                <form @submit.prevent="submitPayForm">
+                    {{-- 1. Top Installment & Loan Overview Strip --}}
+                    <div class="bg-slate-50/90 rounded-2xl p-5 border border-slate-200/80 shadow-2xs mb-5">
+                        <div class="flex items-center justify-between pb-3 mb-3.5 border-b border-slate-200/70">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-600">Installment & Loan Breakdown</span>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Lending Bank</span>
-                                <span class="text-slate-900 font-bold" x-text="activeLoan ? activeLoan.lender_name : '—'"></span>
+                            <span class="px-3 py-1 rounded-full bg-[#a38c29]/10 text-[#a38c29] font-mono text-[11px] font-extrabold border border-[#a38c29]/30 shadow-2xs" x-text="activeInst?.due_date ? ('Due Date: ' + new Date(activeInst.due_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'})) : ''"></span>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div class="space-y-1">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Principal Component</span>
+                                <span class="text-xs font-mono font-black text-slate-800 block" x-text="activeInst ? '₹' + Number(activeInst.principal_component).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Project</span>
-                                <span class="text-slate-900" x-text="activeLoan && activeLoan.project ? activeLoan.project.name : '—'"></span>
+                            <div class="space-y-1">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Interest Component</span>
+                                <span class="text-xs font-mono font-black text-slate-800 block" x-text="activeInst ? '₹' + Number(activeInst.interest_component).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">EMI Installment</span>
-                                <span class="text-slate-950 font-bold" x-text="activeInst ? '#' + activeInst.installment_no : '—'"></span>
+                            <div class="space-y-1">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Scheduled EMI</span>
+                                <span class="text-xs font-mono font-black text-slate-900 block" x-text="activeInst ? '₹' + Number(activeInst.emi_amount).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
                             </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Due Date</span>
-                                <span class="text-rose-700 font-bold font-mono" x-text="activeInst ? new Date(activeInst.due_date).toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'}) : '—'"></span>
-                            </div>
-                            <div>
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">EMI Amount</span>
-                                <span class="text-indigo-850 font-extrabold font-mono" x-text="activeInst ? '₹' + Number(activeInst.emi_amount).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
+                            <div class="space-y-1">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Payment Release</span>
+                                <span class="text-base font-black font-mono text-[#a38c29] block" x-text="'₹' + Number(totalOutflow).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                         </div>
                     </div>
 
-                    {{-- 2. Accounting Split Table --}}
-                    <div>
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5">2. Accounting Split</h4>
-                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                            <table class="w-full text-left text-xs font-semibold">
-                                <thead>
-                                    <tr class="bg-slate-50 border-b border-slate-200 text-[9px] font-black text-slate-500 uppercase tracking-wider">
-                                        <th class="px-4 py-2 border-r">Component Name</th>
-                                        <th class="px-4 py-2 text-right">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100 text-slate-700">
-                                    <tr>
-                                        <td class="px-4 py-2.5 border-r">Principal Payoff</td>
-                                        <td class="px-4 py-2.5 text-right font-mono text-slate-900" x-text="activeInst ? '₹' + Number(activeInst.principal_component).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2.5 border-r">Interest Expense</td>
-                                        <td class="px-4 py-2.5 text-right font-mono text-slate-900" x-text="activeInst ? '₹' + Number(activeInst.interest_component).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="px-4 py-2.5 border-r flex items-center justify-between">
-                                            <span>Other Charges / Bank Penalty</span>
-                                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">(Edit if applicable)</span>
-                                        </td>
-                                        <td class="px-3 py-1.5 text-right font-mono text-slate-900">
-                                            <input type="number" step="0.01" min="0" x-model.number="payForm.other_charges" class="w-32 px-2.5 py-1 text-right bg-slate-50 border border-slate-200 focus:bg-white focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]/20 rounded-lg text-xs font-extrabold outline-none">
-                                        </td>
-                                    </tr>
-                                    <tr class="bg-indigo-50/50 font-black">
-                                        <td class="px-4 py-2.5 border-r text-indigo-950 uppercase tracking-wider text-[10px]">Total Payment Release</td>
-                                        <td class="px-4 py-2.5 text-right font-mono text-indigo-950 text-sm" x-text="activeInst ? '₹' + Number(Number(payForm.amount) + Number(payForm.other_charges || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                    {{-- 2. Payment Details & Actions Form Grid --}}
+                    <div class="pt-1">
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
+                            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                                Payment Details & Bank Selection
+                            </h3>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-xs">
+                            {{-- Left Column --}}
+                            <div class="space-y-4">
+                                {{-- Payment Amount --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">Payment Amount (₹) <span class="text-rose-500">*</span></label>
+                                    <input type="number" step="0.01" x-model="payForm.amount" readonly required class="w-full h-10 px-3.5 bg-slate-100/90 border border-slate-200/80 rounded-xl text-xs font-extrabold text-slate-800 cursor-not-allowed">
+                                    <p class="text-[10px] text-slate-400 mt-1 italic font-medium">Only option for pay the full emi amount there.</p>
+                                </div>
+
+                                {{-- Payment Date --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">Payment Date <span class="text-rose-500">*</span></label>
+                                    <input type="date" x-model="payForm.paid_date" required class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Paid From Company Bank Account (Search & Select) --}}
+                                <div class="relative" @click.outside="payBankOpen = false">
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">
+                                        Paid From (Company Bank Account) <span class="text-rose-500">*</span>
+                                    </label>
+                                    
+                                    <div @click="payBankOpen = !payBankOpen; if(payBankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
+                                         class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                        <template x-if="selectedAccount">
+                                            <div class="flex items-center gap-2 truncate">
+                                                <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[10px]" x-text="selectedAccount.bank_name"></span>
+                                                <span class="font-bold text-slate-800 truncate" x-text="selectedAccount.account_name || selectedAccount.bank_name"></span>
+                                                <span class="text-slate-500 text-[11px] font-mono shrink-0" x-text="'(A/C: ' + (selectedAccount.account_number || '—') + ')'"></span>
+                                            </div>
+                                        </template>
+                                        <template x-if="!selectedAccount">
+                                            <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                                        </template>
+                                        <svg class="w-4 h-4 text-slate-400 transition-transform shrink-0" :class="payBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+
+                                    <!-- Dropdown Search Menu -->
+                                    <div x-show="payBankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden max-h-60 flex flex-col" style="display: none;">
+                                        <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0">
+                                            <div class="relative">
+                                                <input type="text" x-ref="payBankSearch" x-model="payBankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                                <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                            </div>
+                                        </div>
+                                        <div class="overflow-y-auto divide-y divide-slate-100">
+                                            <template x-for="acc in filteredAccounts" :key="acc.id">
+                                                <div @click="payForm.bank_account_id = acc.id; payBankOpen = false; payBankSearch = ''"
+                                                     class="px-3.5 py-2.5 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                                     :class="payForm.bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                                    <div class="flex flex-col">
+                                                        <div class="flex items-center gap-1.5">
+                                                            <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                            <span class="text-slate-500 font-medium" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                        </div>
+                                                        <div class="text-[10px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                                    </div>
+                                                    <div class="text-right font-mono">
+                                                        <div class="text-[9px] text-slate-400 uppercase font-sans">Current Balance</div>
+                                                        <div class="font-bold text-slate-800" x-text="'₹' + Number(acc.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></div>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template x-if="filteredAccounts.length === 0">
+                                                <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Right Column --}}
+                            <div class="space-y-4">
+                                {{-- Payment Mode --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">Payment Mode <span class="text-rose-500">*</span></label>
+                                    <div class="relative">
+                                        <select x-model="payForm.payment_mode" required class="w-full h-10 pl-3.5 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
+                                            <option value="Bank Transfer">Bank Transfer / NEFT / RTGS / IMPS</option>
+                                            <option value="Cheque">Cheque Payout</option>
+                                            <option value="Direct Debit">Direct Bank Debit (ECS / Auto-debit)</option>
+                                            <option value="Cash">Cash Payout</option>
+                                            <option value="Online">Online Gateway Payment</option>
+                                        </select>
+                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Transaction / UTR No. --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">Transaction / Cheque / UTR No. <span class="text-rose-500">*</span></label>
+                                    <input type="text" x-model="payForm.reference_no" required placeholder="e.g. UTR1087349137" class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Other Charges / Bank Penalty --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">Other Charges / Bank Penalty (₹)</label>
+                                    <input type="number" step="0.01" min="0" x-model.number="payForm.other_charges" placeholder="0.00" class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+
+                                {{-- Remarks / Internal Notes --}}
+                                <div>
+                                    <label class="block font-bold text-slate-700 mb-1.5 uppercase tracking-wide text-[10px]">Remarks / Internal Payout Notes</label>
+                                    <input type="text" x-model="payForm.remarks" placeholder="Optional notes..." class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs">
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- 3. Bank Details & Balance Summary Row (2 Horizontal Boxes in 1 Line) --}}
+                        <div x-show="selectedAccount" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5" style="display: none;" x-transition>
+                            {{-- Left Box: Bank Details Card --}}
+                            <div class="rounded-2xl p-4 bg-slate-50 border border-slate-200/80 shadow-2xs flex flex-col justify-center">
+                                <div class="grid grid-cols-2 gap-x-4 gap-y-3 text-[11px]">
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Bank</span>
+                                        <span class="font-bold text-slate-800 truncate block" x-text="selectedAccount?.bank_name || '—'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account No</span>
+                                        <span class="font-mono font-bold text-slate-800 block" x-text="selectedAccount?.account_number || '—'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Account Name</span>
+                                        <span class="font-semibold text-slate-700 truncate block" x-text="selectedAccount?.account_name || '—'"></span>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 font-bold text-[9px] uppercase tracking-wider block">Branch</span>
+                                        <span class="font-semibold text-slate-700 truncate block" x-text="selectedAccount?.branch_name || '—'"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Right Box: Dynamic Bank Balance Summary Card --}}
+                            <div class="bg-slate-50/90 border border-slate-200/90 rounded-2xl p-4 space-y-2 shadow-2xs text-xs flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-3 text-xs">
+                                    <span class="font-bold text-slate-600">
+                                        Selected Bank Account Balance (<span x-text="selectedAccount?.bank_name || 'Bank'"></span>)
+                                    </span>
+                                    <span class="font-mono font-extrabold text-blue-600 text-sm shrink-0" x-text="'₹' + Number(selectedAccount?.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">₹0.00</span>
+                                </div>
+                                
+                                <div class="flex items-center justify-between gap-3 text-xs">
+                                    <span class="font-bold text-slate-600">EMI Payment Amount</span>
+                                    <span class="font-mono font-extrabold text-rose-600 text-sm shrink-0" x-text="'- ₹' + Number(totalOutflow).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">- ₹0.00</span>
+                                </div>
+
+                                <div class="pt-2 border-t border-slate-200/80 flex items-center justify-between gap-3 text-xs">
+                                    <span class="font-extrabold text-slate-900 uppercase tracking-wider pr-2">Bank Balance After Payment</span>
+                                    <span class="font-mono font-black text-base shrink-0" 
+                                          :class="(Number(selectedAccount?.current_balance || 0) - Number(totalOutflow)) < 0 ? 'text-rose-600' : 'text-slate-900'"
+                                          x-text="'₹' + Number(Number(selectedAccount?.current_balance || 0) - Number(totalOutflow)).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2})">₹0.00</span>
+                                </div>
+                                <template x-if="(Number(selectedAccount?.current_balance || 0) - Number(totalOutflow)) < 0">
+                                    <div class="text-[10px] text-rose-600 font-bold flex items-center gap-1 mt-1 bg-rose-100/60 p-1.5 rounded-md">
+                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        <span>Warning: EMI amount exceeds available bank balance.</span>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- 3. Payment Information --}}
-                    <div>
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2.5">3. Payment & Reference Information</h4>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5">Bank / Cash Account <span class="text-rose-500">*</span></label>
-                                <select x-model="payForm.bank_account_id" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs text-slate-800 font-extrabold focus:outline-none transition-all cursor-pointer">
-                                    <option value="">Select Account...</option>
-                                    @foreach($assetAccounts as $acc)
-                                        <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->code }})</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5">Payment Date *</label>
-                                <input type="date" x-model="payForm.paid_date" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-850 focus:outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5">Payment Mode *</label>
-                                <select x-model="payForm.payment_mode" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition-all cursor-pointer">
-                                    <option value="Bank Transfer">Bank Transfer / NEFT / RTGS / IMPS</option>
-                                    <option value="Cheque">Cheque Payout</option>
-                                    <option value="Direct Debit">Direct Bank Debit (ECS)</option>
-                                    <option value="Cash">Cash Payout</option>
-                                    <option value="Online">Online Gateway Payment</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5">Transaction / Cheque / UTR No. <span class="text-rose-500">*</span></label>
-                                <input type="text" x-model="payForm.reference_no" required placeholder="e.g. UTR1087349137" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-extrabold text-slate-855 focus:outline-none transition-all">
-                            </div>
-                            <div class="col-span-1 sm:col-span-2">
-                                <label class="block text-[10px] font-bold text-slate-555 uppercase tracking-wider mb-1.5">Remarks / Internal Payout Notes</label>
-                                <textarea x-model="payForm.remarks" placeholder="Optional notes..." rows="2" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:bg-white focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-semibold text-slate-855 focus:outline-none transition-all resize-none"></textarea>
-                            </div>
-                        </div>
+                    {{-- 4. Footer Action Bar --}}
+                    <div class="mt-6 pt-5 flex items-center justify-between border-t border-slate-100">
+                        <button type="button" @click="payModalOpen = false" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs uppercase tracking-wider transition cursor-pointer">← Back</button>
+                        <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer">Release Payment</button>
                     </div>
-                </div>
-                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
-                    <button type="button" @click="payModalOpen = false" class="px-4 py-2 border border-slate-250 text-slate-600 rounded-xl text-xs font-bold uppercase tracking-wide hover:bg-slate-100 transition cursor-pointer">Cancel</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition shadow-md shadow-emerald-600/20 active:scale-95 cursor-pointer">
-                        Release Payment
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -963,6 +1237,7 @@
 <script>
 function loanApp() {
     return {
+        companyBankAccounts: {!! json_encode($companyBankAccounts ?? []) !!},
         errors: {},
         addModalOpen: false,
         logsModalOpen: false,
@@ -992,7 +1267,7 @@ function loanApp() {
         payForm: {
             amount: '',
             paid_date: '',
-            bank_account_id: '',
+            bank_account_id: ({!! json_encode($companyBankAccounts ?? []) !!}[0]?.id) || '',
             payment_mode: 'Bank Transfer',
             reference_no: '',
             remarks: '',
@@ -1005,7 +1280,7 @@ function loanApp() {
             amount: '',
             prepayment_charges: '',
             interest_adjustment: '',
-            bank_account_id: '',
+            bank_account_id: ({!! json_encode($companyBankAccounts ?? []) !!}[0]?.id) || '',
             prepayment_date: '',
             reschedule_option: 'reduce_emi',
             reference_no: '',
@@ -1017,7 +1292,7 @@ function loanApp() {
             this.payForm = {
                 amount: (parseFloat(installment.emi_amount) - parseFloat(installment.amount_paid)).toFixed(2),
                 paid_date: new Date().toISOString().split('T')[0],
-                bank_account_id: '',
+                bank_account_id: (this.companyBankAccounts && this.companyBankAccounts.length > 0) ? this.companyBankAccounts[0].id : '',
                 payment_mode: 'Bank Transfer',
                 reference_no: '',
                 remarks: '',
@@ -1059,7 +1334,7 @@ function loanApp() {
                 amount: type === 'foreclosure' ? parseFloat(loan.outstanding_balance).toFixed(2) : '',
                 prepayment_charges: '',
                 interest_adjustment: '',
-                bank_account_id: '',
+                bank_account_id: (this.companyBankAccounts && this.companyBankAccounts.length > 0) ? this.companyBankAccounts[0].id : '',
                 prepayment_date: new Date().toISOString().split('T')[0],
                 reschedule_option: 'reduce_emi',
                 reference_no: '',

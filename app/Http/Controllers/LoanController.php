@@ -95,6 +95,7 @@ class LoanController extends Controller
         
         $accounts = Account::orderBy('name')->get();
         $assetAccounts = Account::where('type', 'Asset')->where('is_active', true)->orderBy('name')->get();
+        $companyBankAccounts = \App\Models\CompanyBankAccount::where('status', 'active')->orderByDesc('is_default')->orderBy('bank_name')->get();
         $banks = \App\Models\Bank::where('status', 'active')->orderBy('bank_name')->get();
         $interestLogs = LoanInterestLog::with('loan')->latest()->get();
 
@@ -104,6 +105,7 @@ class LoanController extends Controller
             'accounts',
             'banks',
             'assetAccounts',
+            'companyBankAccounts',
             'overdueCount',
             'overdueAmount',
             'dueThisMonthCount',
@@ -288,7 +290,8 @@ class LoanController extends Controller
 
         $loan->load(['project', 'ledgerAccount', 'interestAccount', 'emiSchedules', 'prepayments']);
         $assetAccounts = \App\Models\Account::where('type', 'Asset')->where('is_active', true)->get();
-        return view('loans.schedule', compact('loan', 'assetAccounts'));
+        $companyBankAccounts = \App\Models\CompanyBankAccount::where('status', 'active')->orderByDesc('is_default')->orderBy('bank_name')->get();
+        return view('loans.schedule', compact('loan', 'assetAccounts', 'companyBankAccounts'));
     }
 
     public function payEmi(Request $request, Loan $loan, EmiSchedule $installment): JsonResponse
@@ -296,7 +299,7 @@ class LoanController extends Controller
         $validated = $request->validate([
             'amount'    => ['required', 'numeric', 'min:0.01'],
             'paid_date' => ['required', 'date'],
-            'bank_account_id' => ['required', 'exists:accounts,id'],
+            'bank_account_id' => ['required'],
             'other_charges'   => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -316,7 +319,9 @@ class LoanController extends Controller
             ], 422);
         }
 
-        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId, $otherCharges) {
+        $updatedBalance = null;
+
+        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId, $otherCharges, &$updatedBalance) {
             $systemId = Auth::user()->system_id ?? 1;
 
             $installment->amount_paid = (float)$installment->emi_amount;
@@ -347,10 +352,29 @@ class LoanController extends Controller
 
             $totalCredit = (float)$installment->emi_amount + $otherCharges;
 
-            // Credit Bank Account
+            // Resolve Company Bank Account & Ledger Account
+            $companyBank = \App\Models\CompanyBankAccount::find($bankAccountId);
+            if ($companyBank) {
+                $companyBank->decrement('current_balance', $totalCredit);
+                $updatedBalance = (float)$companyBank->fresh()->current_balance;
+
+                $payingAccount = \App\Models\Account::where('type', 'Asset')
+                    ->where(function ($q) use ($companyBank) {
+                        $q->where('name', 'LIKE', '%' . $companyBank->bank_name . '%')
+                          ->orWhere('name', 'LIKE', '%' . $companyBank->account_name . '%')
+                          ->orWhere('code', 'LIKE', '%' . $companyBank->account_number . '%');
+                    })
+                    ->first() ?? \App\Models\Account::where('type', 'Asset')->first();
+                $voucherBankAccountId = $payingAccount?->id ?? 1;
+            } else {
+                $payingAccount = \App\Models\Account::find($bankAccountId);
+                $voucherBankAccountId = $payingAccount?->id ?? 1;
+            }
+
+            // Credit Bank Account Line
             $bankLine = \App\Models\VoucherLine::create([
                 'voucher_id' => $voucher->id,
-                'account_id' => $bankAccountId,
+                'account_id' => $voucherBankAccountId,
                 'debit' => 0.00,
                 'credit' => $totalCredit,
                 'line_narration' => 'Paid Loan EMI - Inst #' . $installment->installment_no,
@@ -358,7 +382,7 @@ class LoanController extends Controller
 
             \App\Models\LedgerEntry::create([
                 'system_id' => $systemId,
-                'account_id' => $bankAccountId,
+                'account_id' => $voucherBankAccountId,
                 'voucher_id' => $voucher->id,
                 'voucher_line_id' => $bankLine->id,
                 'date' => $paidDate,
@@ -423,7 +447,7 @@ class LoanController extends Controller
             'amount' => ['required', 'numeric', 'min:0.01'],
             'prepayment_charges' => ['nullable', 'numeric', 'min:0'],
             'interest_adjustment' => ['nullable', 'numeric'],
-            'bank_account_id' => ['required', 'exists:accounts,id'],
+            'bank_account_id' => ['required'],
             'prepayment_date' => ['required', 'date'],
             'reschedule_option' => ['nullable', 'required_if:action_type,prepayment', 'in:reduce_emi,reduce_tenure'],
             'reference_no' => ['nullable', 'string', 'max:100'],
@@ -455,7 +479,9 @@ class LoanController extends Controller
             return response()->json(['error' => 'Prepayment cannot be processed while there are overdue installments. Please clear all overdue payments first.'], 422);
         }
 
-        DB::transaction(function () use ($loan, $amount, $charges, $interestAdjustment, $bankAccountId, $prepaymentDate, $rescheduleOption, $actionType) {
+        $updatedBalance = null;
+
+        DB::transaction(function () use ($loan, $amount, $charges, $interestAdjustment, $bankAccountId, $prepaymentDate, $rescheduleOption, $actionType, &$updatedBalance) {
             $systemId = Auth::user()->system_id ?? 1;
             $prevOutstanding = (float)$loan->outstanding_balance;
             
@@ -487,10 +513,29 @@ class LoanController extends Controller
 
             $totalCredit = $amount + $charges + $interestAdjustment;
 
+            // Resolve Company Bank Account & Ledger Account
+            $companyBank = \App\Models\CompanyBankAccount::find($bankAccountId);
+            if ($companyBank) {
+                $companyBank->decrement('current_balance', $totalCredit);
+                $updatedBalance = (float)$companyBank->fresh()->current_balance;
+
+                $payingAccount = \App\Models\Account::where('type', 'Asset')
+                    ->where(function ($q) use ($companyBank) {
+                        $q->where('name', 'LIKE', '%' . $companyBank->bank_name . '%')
+                          ->orWhere('name', 'LIKE', '%' . $companyBank->account_name . '%')
+                          ->orWhere('code', 'LIKE', '%' . $companyBank->account_number . '%');
+                    })
+                    ->first() ?? \App\Models\Account::where('type', 'Asset')->first();
+                $voucherBankAccountId = $payingAccount?->id ?? 1;
+            } else {
+                $payingAccount = \App\Models\Account::find($bankAccountId);
+                $voucherBankAccountId = $payingAccount?->id ?? 1;
+            }
+
             // Credit Bank Account
             $bankLine = \App\Models\VoucherLine::create([
                 'voucher_id' => $voucher->id,
-                'account_id' => $bankAccountId,
+                'account_id' => $voucherBankAccountId,
                 'debit' => 0.00,
                 'credit' => $totalCredit,
                 'line_narration' => $voucherType . ' Payment Release',
@@ -498,7 +543,7 @@ class LoanController extends Controller
 
             \App\Models\LedgerEntry::create([
                 'system_id' => $systemId,
-                'account_id' => $bankAccountId,
+                'account_id' => $voucherBankAccountId,
                 'voucher_id' => $voucher->id,
                 'voucher_line_id' => $bankLine->id,
                 'date' => $prepaymentDate,
