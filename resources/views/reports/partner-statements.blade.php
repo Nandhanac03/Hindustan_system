@@ -512,23 +512,72 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAY FROM ACCOUNT <span class="text-rose-500">*</span></label>
-                                <div class="relative">
-                                    <select name="company_bank_account_id" x-model="modalData.company_bank_account_id" required class="w-full pl-3.5 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
-                                        <option value="">-- Choose Account --</option>
-                                        @if(isset($companyBankAccounts) && count($companyBankAccounts) > 0)
-                                            @foreach($companyBankAccounts as $cBank)
-                                                <option value="{{ $cBank->id }}">{{ $cBank->bank_name }} ({{ $cBank->account_number ? substr($cBank->account_number, 0, 10).'...' : $cBank->account_name }}) — Bal: Rs. {{ number_format((float)($cBank->current_balance ?? $cBank->opening_balance ?? 0), 2) }}</option>
-                                            @endforeach
-                                        @else
-                                            @foreach($bankAccounts as $acc)
-                                                <option value="{{ $acc->id }}">{{ $acc->name }} {{ isset($acc->code) ? '('.$acc->code.')' : '' }}</option>
-                                            @endforeach
-                                        @endif
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                            <div class="space-y-1.5 relative" @click.outside="modalBankOpen = false">
+                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                    PAY FROM ACCOUNT <span class="text-rose-500">*</span>
+                                </label>
+                                
+                                {{-- Hidden Required Input for Form Submission --}}
+                                <input type="hidden" name="company_bank_account_id" :value="modalData.company_bank_account_id" required>
+
+                                {{-- Dropdown Trigger Button --}}
+                                <div @click="modalBankOpen = !modalBankOpen; if(modalBankOpen) { modalBankSearch = ''; $nextTick(() => $refs.modalBankSearchInput?.focus()); }"
+                                     class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-xs">
+                                    <template x-if="modalSelectedBankAccount">
+                                        <div class="flex items-center gap-2 truncate">
+                                            <span class="px-2 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[10px]" x-text="modalSelectedBankAccount.bank_name"></span>
+                                            <span class="font-bold text-slate-800 truncate" x-text="modalSelectedBankAccount.account_name || modalSelectedBankAccount.bank_name"></span>
+                                            <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (modalSelectedBankAccount.account_number || '—') + ')'"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="!modalSelectedBankAccount">
+                                        <span class="text-slate-400 font-medium">Select Company Bank Account...</span>
+                                    </template>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="modalBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </div>
+
+                                {{-- Dropdown Popover List --}}
+                                <div x-show="modalBankOpen" 
+                                     x-transition
+                                     class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col"
+                                     style="display: none;">
+                                    
+                                    {{-- Search Input inside Popover --}}
+                                    <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
+                                        <div class="relative">
+                                            <input type="text" 
+                                                   x-model="modalBankSearch" 
+                                                   x-ref="modalBankSearchInput"
+                                                   placeholder="Search bank name, account no, branch..." 
+                                                   class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                            <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                        </div>
+                                    </div>
+
+                                    {{-- Results List --}}
+                                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
+                                        <template x-for="acc in filteredModalBankAccounts" :key="acc.id">
+                                            <div @click="modalData.company_bank_account_id = String(acc.id); modalBankOpen = false; modalBankSearch = ''"
+                                                 class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                                 :class="String(modalData.company_bank_account_id) === String(acc.id) ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                                <div class="flex flex-col min-w-0 pr-2">
+                                                    <div class="flex items-center gap-1.5 truncate">
+                                                        <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                        <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                    </div>
+                                                    <div class="text-[9px] text-slate-400 font-mono mt-0.5 truncate" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                                </div>
+                                                <div class="text-right font-mono shrink-0">
+                                                    <div class="text-[8px] text-slate-400 uppercase font-sans font-bold tracking-wider">Current Balance</div>
+                                                    <div class="font-bold text-slate-800 text-[11px]" x-text="formatCurrency(acc.current_balance !== null && acc.current_balance !== undefined ? acc.current_balance : (acc.opening_balance || 0))"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="filteredModalBankAccounts.length === 0">
+                                            <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
@@ -652,10 +701,27 @@ function partnerStatementApp() {
         companyBankAccounts: @json($companyBankAccounts ?? []) || [],
         paymentModes: @json($paymentModes ?? []) || [],
 
+        modalBankOpen: false,
+        modalBankSearch: '',
+
+        get filteredModalBankAccounts() {
+            const accounts = this.companyBankAccounts || [];
+            if (!this.modalBankSearch || !this.modalBankSearch.trim()) {
+                return accounts;
+            }
+            const q = this.modalBankSearch.toLowerCase().trim();
+            return accounts.filter(b => 
+                (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                (b.branch_name && b.branch_name.toLowerCase().includes(q))
+            );
+        },
+
         modalData: {
             partner_id: '',
             project_id: '',
-            payment_mode: '',
+            payment_mode: 'Bank Transfer (NEFT / RTGS / IMPS)',
             company_bank_account_id: '',
             allocated_amount: '',
             date: '{{ date('Y-m-d') }}',
@@ -665,7 +731,11 @@ function partnerStatementApp() {
         openPayoutModal(partnerId = null, projectId = null) {
             this.modalData.partner_id = partnerId ? String(partnerId) : (this.filters.partner_id ? String(this.filters.partner_id) : (this.partners[0] ? String(this.partners[0].id) : ''));
             this.modalData.project_id = projectId ? String(projectId) : (this.filters.project_id ? String(this.filters.project_id) : (this.projects[0] ? String(this.projects[0].id) : ''));
-            this.modalData.payment_mode = (this.paymentModes && this.paymentModes[0]) ? this.paymentModes[0].name : 'Bank Transfer';
+            
+            const bankTransferMode = (this.paymentModes || []).find(pm => pm.name && pm.name.toLowerCase().includes('bank transfer'))
+                                 || (this.paymentModes || []).find(pm => pm.name && pm.name.toLowerCase().includes('transfer'));
+            this.modalData.payment_mode = bankTransferMode ? bankTransferMode.name : ((this.paymentModes && this.paymentModes[0]) ? this.paymentModes[0].name : 'Bank Transfer (NEFT / RTGS / IMPS)');
+
             this.modalData.company_bank_account_id = (this.companyBankAccounts && this.companyBankAccounts[0]) ? String(this.companyBankAccounts[0].id) : ((this.bankAccounts && this.bankAccounts[0]) ? String(this.bankAccounts[0].id) : '');
             this.modalData.allocated_amount = '';
             this.modalData.date = new Date().toISOString().split('T')[0];
