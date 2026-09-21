@@ -243,7 +243,7 @@
                         <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-100/80 flex justify-between items-center">
                             <div>
                                 <span class="text-[10px] font-bold text-[#8a7522] uppercase tracking-wider block">
-                                    Cumulative Interest
+                                    Interest Paid
                                 </span>
                                 <span class="font-mono font-black text-[#8a7522] text-xs">₹{{ number_format($totalInterestPaid, 2) }}</span>
                             </div>
@@ -371,7 +371,7 @@
 
         const options = {
             series: [repaidVal, outstandingVal, interestVal],
-            labels: ['Principal Repaid', 'Principal Outstanding', 'Cumulative Interest'],
+            labels: ['Principal Repaid', 'Principal Outstanding', 'Interest Paid'],
             colors: ['#10b981', '#f43f5e', '#a38c29'],
             chart: {
                 type: 'donut',

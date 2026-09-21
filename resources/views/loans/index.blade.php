@@ -610,11 +610,20 @@
                             <div class="space-y-2.5">
                                 {{-- Principal Payoff Amount --}}
                                 <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payoffErrors.amount ? 'text-rose-600' : 'text-slate-700'">
-                                        <span x-text="payoffForm.action_type === 'foreclosure' ? 'Foreclosure Amount (₹)' : 'Prepayment Principal Amount (₹)'"></span> <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="number" step="any" min="0" x-model="payoffForm.amount" :readonly="payoffForm.action_type === 'foreclosure'"
-                                           @input="delete payoffErrors.amount"
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block font-bold uppercase tracking-wide text-[9px]" :class="payoffErrors.amount ? 'text-rose-600' : 'text-slate-700'">
+                                            <span x-text="payoffForm.action_type === 'foreclosure' ? 'Foreclosure Amount (₹)' : 'Prepayment Principal Amount (₹)'"></span> <span class="text-rose-500">*</span>
+                                        </label>
+                                        <button type="button" 
+                                                x-show="payoffForm.action_type === 'prepayment'"
+                                                @click="payoffForm.amount = activeLoan?.outstanding_balance || 0; delete payoffErrors.amount" 
+                                                class="text-[9px] font-bold text-[#8a7522] hover:text-[#a38c29] bg-[#a38c29]/10 hover:bg-[#a38c29]/20 px-1.5 py-0.5 rounded transition cursor-pointer"
+                                                title="Click to fill full outstanding amount">
+                                            Max: ₹<span x-text="activeLoan ? Number(activeLoan.outstanding_balance).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '0.00'"></span>
+                                        </button>
+                                    </div>
+                                    <input type="number" step="any" min="0.01" :max="activeLoan?.outstanding_balance || 0" x-model="payoffForm.amount" :readonly="payoffForm.action_type === 'foreclosure'"
+                                           @input="delete payoffErrors.amount; const val = parseFloat(payoffForm.amount); const maxVal = parseFloat(activeLoan?.outstanding_balance || 0); if (payoffForm.action_type === 'prepayment' && !isNaN(val) && val > maxVal) { payoffErrors.amount = 'Amount cannot exceed outstanding balance (₹' + Number(maxVal).toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')'; }"
                                            placeholder="0"
                                            :class="payoffErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
                                            class="w-full h-9 px-3 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition shadow-2xs">

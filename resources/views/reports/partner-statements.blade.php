@@ -445,55 +445,63 @@
                 </div>
 
                 {{-- Modal Body Form --}}
-                <form action="{{ route('reports.partner_statements.payout') }}" method="POST" class="flex flex-col overflow-hidden">
+                <form action="{{ route('reports.partner_statements.payout') }}" method="POST" @submit="handlePayoutSubmit($event)" novalidate class="flex flex-col overflow-hidden">
                     @csrf
                     <div class="p-6 space-y-4 overflow-y-auto max-h-[calc(95vh-130px)]">
                         
                         {{-- 1. Partner & Project Selection (2 Columns) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">SELECT PARTNER <span class="text-rose-500">*</span></label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.partner_id ? 'text-rose-600' : 'text-slate-700'">SELECT PARTNER <span class="text-rose-500">*</span></label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" :class="modalErrors.partner_id ? 'text-rose-400' : 'text-slate-400'">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                                     </div>
-                                    <select name="partner_id" x-model="modalData.partner_id" required class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
+                                    <select name="partner_id" x-model="modalData.partner_id" @change="delete modalErrors.partner_id"
+                                            :class="modalErrors.partner_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-[#a38c29]/20 bg-slate-50 text-slate-800'"
+                                            class="w-full pl-10 pr-8 py-2.5 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
                                         <option value="">-- Choose Partner --</option>
                                         @foreach($partners as $partner)
                                             <option value="{{ $partner->id }}">{{ $partner->name }} ({{ $partner->role ?? 'Partner' }})</option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" :class="modalErrors.partner_id ? 'text-rose-400' : 'text-slate-400'">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </div>
                                 </div>
+                                <span x-show="modalErrors.partner_id" x-text="modalErrors.partner_id" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">SELECT PROJECT <span class="text-rose-500">*</span></label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.project_id ? 'text-rose-600' : 'text-slate-700'">SELECT PROJECT <span class="text-rose-500">*</span></label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" :class="modalErrors.project_id ? 'text-rose-400' : 'text-slate-400'">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                     </div>
-                                    <select name="project_id" x-model="modalData.project_id" required class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
+                                    <select name="project_id" x-model="modalData.project_id" @change="delete modalErrors.project_id"
+                                            :class="modalErrors.project_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-[#a38c29]/20 bg-slate-50 text-slate-800'"
+                                            class="w-full pl-10 pr-8 py-2.5 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
                                         <option value="">-- Choose Project --</option>
                                         @foreach($projects as $project)
                                             <option value="{{ $project->id }}">{{ $project->name }}</option>
                                         @endforeach
                                     </select>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" :class="modalErrors.project_id ? 'text-rose-400' : 'text-slate-400'">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </div>
                                 </div>
+                                <span x-show="modalErrors.project_id" x-text="modalErrors.project_id" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                             </div>
                         </div>
 
                         {{-- 2. Payment Mode & Pay From Account (2 Columns) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAYMENT MODE <span class="text-rose-500">*</span></label>
+                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.payment_mode ? 'text-rose-600' : 'text-slate-700'">PAYMENT MODE <span class="text-rose-500">*</span></label>
                                 <div class="relative">
-                                    <select name="payment_mode" x-model="modalData.payment_mode" required class="w-full pl-3.5 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
+                                    <select name="payment_mode" x-model="modalData.payment_mode" @change="delete modalErrors.payment_mode"
+                                            :class="modalErrors.payment_mode ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-[#a38c29]/20 bg-slate-50 text-slate-800'"
+                                            class="w-full pl-3.5 pr-8 py-2.5 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold cursor-pointer focus:outline-none transition-all shadow-xs appearance-none">
                                         <option value="">-- Choose Payment Mode --</option>
                                         @if(isset($paymentModes) && count($paymentModes) > 0)
                                             @foreach($paymentModes as $pm)
@@ -506,23 +514,25 @@
                                             <option value="UPI / Online Payment">UPI / Online Payment</option>
                                         @endif
                                     </select>
-                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none" :class="modalErrors.payment_mode ? 'text-rose-400' : 'text-slate-400'">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </div>
                                 </div>
+                                <span x-show="modalErrors.payment_mode" x-text="modalErrors.payment_mode" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                             </div>
 
                             <div class="space-y-1.5 relative" @click.outside="modalBankOpen = false">
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.company_bank_account_id ? 'text-rose-600' : 'text-slate-700'">
                                     PAY FROM ACCOUNT <span class="text-rose-500">*</span>
                                 </label>
                                 
-                                {{-- Hidden Required Input for Form Submission --}}
-                                <input type="hidden" name="company_bank_account_id" :value="modalData.company_bank_account_id" required>
+                                {{-- Hidden Input for Form Submission --}}
+                                <input type="hidden" name="company_bank_account_id" :value="modalData.company_bank_account_id">
 
                                 {{-- Dropdown Trigger Button --}}
                                 <div @click="modalBankOpen = !modalBankOpen; if(modalBankOpen) { modalBankSearch = ''; $nextTick(() => $refs.modalBankSearchInput?.focus()); }"
-                                     class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-xs">
+                                     :class="modalErrors.company_bank_account_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200 hover:border-[#a38c29]/60 bg-slate-50 hover:bg-white'"
+                                     class="w-full h-10 px-3.5 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-xs">
                                     <template x-if="modalSelectedBankAccount">
                                         <div class="flex items-center gap-2 truncate">
                                             <span class="px-2 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[10px]" x-text="modalSelectedBankAccount.bank_name"></span>
@@ -531,11 +541,19 @@
                                         </div>
                                     </template>
                                     <template x-if="!modalSelectedBankAccount">
-                                        <span class="text-slate-400 font-medium">Select Company Bank Account...</span>
+                                        <span :class="modalErrors.company_bank_account_id ? 'text-rose-400' : 'text-slate-400'" class="font-medium">Select Company Bank Account...</span>
                                     </template>
-                                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="modalBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3.5 h-3.5 transition-transform duration-200 shrink-0" :class="modalBankOpen ? 'rotate-180 text-[#a38c29]' : (modalErrors.company_bank_account_id ? 'text-rose-400' : 'text-slate-400')" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                     </svg>
+                                </div>
+                                <span x-show="modalErrors.company_bank_account_id" x-text="modalErrors.company_bank_account_id" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
+
+                                {{-- Selected Bank Balance in Words Only --}}
+                                <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="modalSelectedBankAccount">
+                                    <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
+                                    <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                          x-text="modalSelectedBankBalanceInWords"></span>
                                 </div>
 
                                 {{-- Dropdown Popover List --}}
@@ -559,7 +577,7 @@
                                     {{-- Results List --}}
                                     <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
                                         <template x-for="acc in filteredModalBankAccounts" :key="acc.id">
-                                            <div @click="modalData.company_bank_account_id = String(acc.id); modalBankOpen = false; modalBankSearch = ''"
+                                            <div @click="modalData.company_bank_account_id = String(acc.id); delete modalErrors.company_bank_account_id; modalBankOpen = false; modalBankSearch = ''"
                                                  class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
                                                  :class="String(modalData.company_bank_account_id) === String(acc.id) ? 'bg-[#a38c29]/10 font-bold' : ''">
                                                 <div class="flex flex-col min-w-0 pr-2">
@@ -586,20 +604,29 @@
                         {{-- 3. Payout Amount & Payout Date (2 Columns) --}}
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAYOUT AMOUNT (RS.) <span class="text-rose-500">*</span></label>
-                                <input type="number" name="allocated_amount" x-model="modalData.allocated_amount" step="0.01" min="1" required placeholder="e.g. 50,000" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-xs" />
+                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.allocated_amount ? 'text-rose-600' : 'text-slate-700'">PAYOUT AMOUNT (RS.) <span class="text-rose-500">*</span></label>
+                                <input type="number" name="allocated_amount" x-model="modalData.allocated_amount" @input="delete modalErrors.allocated_amount" step="0.01" placeholder="e.g. 50,000"
+                                       :class="modalErrors.allocated_amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-[#a38c29]/20 bg-slate-50 text-slate-900'"
+                                       class="w-full px-3.5 py-2.5 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold focus:outline-none transition-all shadow-xs" />
+                                <span x-show="modalErrors.allocated_amount" x-text="modalErrors.allocated_amount" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                             </div>
 
                             <div class="space-y-1.5">
-                                <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">PAYOUT DATE <span class="text-rose-500">*</span></label>
-                                <input type="date" name="date" x-model="modalData.date" required class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-xs cursor-pointer" />
+                                <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.date ? 'text-rose-600' : 'text-slate-700'">PAYOUT DATE <span class="text-rose-500">*</span></label>
+                                <input type="date" name="date" x-model="modalData.date" @change="delete modalErrors.date"
+                                       :class="modalErrors.date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-[#a38c29]/20 bg-slate-50 text-slate-900'"
+                                       class="w-full px-3.5 py-2.5 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold focus:outline-none transition-all shadow-xs cursor-pointer" />
+                                <span x-show="modalErrors.date" x-text="modalErrors.date" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                             </div>
                         </div>
 
                         {{-- 4. Reference / Narration (Single Line) --}}
                         <div class="space-y-1.5">
-                            <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider">REFERENCE / NARRATION <span class="text-rose-500">*</span></label>
-                            <input type="text" name="remarks" x-model="modalData.remarks" required placeholder="Partner Profit Payout - Q2 Distribution" class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition-all shadow-xs" />
+                            <label class="block text-[10px] font-bold uppercase tracking-wider transition-colors" :class="modalErrors.remarks ? 'text-rose-600' : 'text-slate-700'">REFERENCE / NARRATION <span class="text-rose-500">*</span></label>
+                            <input type="text" name="remarks" x-model="modalData.remarks" @input="delete modalErrors.remarks" placeholder="Partner Profit Payout - Q2 Distribution"
+                                   :class="modalErrors.remarks ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20 text-rose-900' : 'border-slate-200 focus:border-[#a38c29] focus:ring-[#a38c29]/20 bg-slate-50 text-slate-800'"
+                                   class="w-full px-3.5 py-2.5 hover:bg-white focus:bg-white border rounded-xl text-xs font-bold focus:outline-none transition-all shadow-xs" />
+                            <span x-show="modalErrors.remarks" x-text="modalErrors.remarks" class="text-[10px] font-bold text-rose-600 mt-1 block"></span>
                         </div>
 
                         {{-- Live Error Banner --}}
@@ -665,9 +692,7 @@
                             CANCEL
                         </button>
                         <button type="submit"
-                                :disabled="Boolean(modalErrorMessage) || !modalData.company_bank_account_id"
-                                :class="Boolean(modalErrorMessage) || !modalData.company_bank_account_id ? 'opacity-50 cursor-not-allowed bg-slate-400 hover:bg-slate-400' : 'bg-[#a38c29] hover:bg-[#8e7a23] cursor-pointer shadow-md'"
-                                class="px-6 py-2.5 text-white text-xs font-black uppercase tracking-wider rounded-xl transition">
+                                class="px-6 py-2.5 bg-[#a38c29] hover:bg-[#8e7a23] text-white text-xs font-black uppercase tracking-wider rounded-xl transition cursor-pointer shadow-md">
                             CONFIRM & POST PAYOUT
                         </button>
                     </div>
@@ -718,6 +743,8 @@ function partnerStatementApp() {
             );
         },
 
+        modalErrors: {},
+
         modalData: {
             partner_id: '',
             project_id: '',
@@ -729,6 +756,7 @@ function partnerStatementApp() {
         },
 
         openPayoutModal(partnerId = null, projectId = null) {
+            this.modalErrors = {};
             this.modalData.partner_id = partnerId ? String(partnerId) : (this.filters.partner_id ? String(this.filters.partner_id) : (this.partners[0] ? String(this.partners[0].id) : ''));
             this.modalData.project_id = projectId ? String(projectId) : (this.filters.project_id ? String(this.filters.project_id) : (this.projects[0] ? String(this.projects[0].id) : ''));
             
@@ -741,6 +769,53 @@ function partnerStatementApp() {
             this.modalData.date = new Date().toISOString().split('T')[0];
             this.modalData.remarks = '';
             this.showPayoutModal = true;
+        },
+
+        handlePayoutSubmit(event) {
+            this.modalErrors = {};
+            let hasError = false;
+
+            if (!this.modalData.partner_id) {
+                this.modalErrors.partner_id = 'Please select a partner';
+                hasError = true;
+            }
+            if (!this.modalData.project_id) {
+                this.modalErrors.project_id = 'Please select a project';
+                hasError = true;
+            }
+            if (!this.modalData.payment_mode) {
+                this.modalErrors.payment_mode = 'Please choose a payment mode';
+                hasError = true;
+            }
+            if (!this.modalData.company_bank_account_id) {
+                this.modalErrors.company_bank_account_id = 'Please select a company bank account';
+                hasError = true;
+            }
+            const amount = parseFloat(this.modalData.allocated_amount);
+            if (!this.modalData.allocated_amount || isNaN(amount) || amount <= 0) {
+                this.modalErrors.allocated_amount = 'Please enter a valid payout amount greater than ₹0.00';
+                hasError = true;
+            } else if (this.isBankInsufficient) {
+                this.modalErrors.allocated_amount = `Payout amount exceeds available bank balance (${this.formatCurrency(this.modalSelectedBankBalance)})`;
+                hasError = true;
+            } else if (this.isPartnerInsufficient) {
+                this.modalErrors.allocated_amount = `Payout amount exceeds available partner balance (${this.formatCurrency(this.modalSelectedPartnerBalance)})`;
+                hasError = true;
+            }
+
+            if (!this.modalData.date) {
+                this.modalErrors.date = 'Payout date is required';
+                hasError = true;
+            }
+            if (!this.modalData.remarks || !this.modalData.remarks.trim()) {
+                this.modalErrors.remarks = 'Reference or narration is required';
+                hasError = true;
+            }
+
+            if (hasError) {
+                event.preventDefault();
+                return false;
+            }
         },
 
         get selectedPartnerName() {
@@ -764,6 +839,15 @@ function partnerStatementApp() {
             const b = this.modalSelectedBankAccount;
             if (!b) return 0;
             return Number(b.current_balance !== null && b.current_balance !== undefined ? b.current_balance : (b.opening_balance || 0));
+        },
+
+        get modalSelectedBankBalanceInWords() {
+            if (!this.modalSelectedBankAccount) return '';
+            const bal = this.modalSelectedBankBalance;
+            if (typeof window.convertNumberToWords === 'function') {
+                return window.convertNumberToWords(bal);
+            }
+            return '';
         },
 
         get modalBankBalanceAfterPayout() {

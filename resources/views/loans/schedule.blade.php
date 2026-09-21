@@ -603,11 +603,19 @@
                             <div class="space-y-2.5">
                                 {{-- Prepayment Amount --}}
                                 <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.amount ? 'text-rose-600' : 'text-slate-700'">
-                                        Prepayment Amount (₹) <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="number" step="any" min="0" x-model="prepayForm.amount"
-                                           @input="delete prepayErrors.amount"
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label class="block font-bold uppercase tracking-wide text-[9px]" :class="prepayErrors.amount ? 'text-rose-600' : 'text-slate-700'">
+                                            Prepayment Amount (₹) <span class="text-rose-500">*</span>
+                                        </label>
+                                        <button type="button" 
+                                                @click="prepayForm.amount = loan?.outstanding_balance || 0; delete prepayErrors.amount" 
+                                                class="text-[9px] font-bold text-[#8a7522] hover:text-[#a38c29] bg-[#a38c29]/10 hover:bg-[#a38c29]/20 px-1.5 py-0.5 rounded transition cursor-pointer"
+                                                title="Click to fill full outstanding amount">
+                                            Max: ₹<span x-text="loan ? Number(loan.outstanding_balance).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '0.00'"></span>
+                                        </button>
+                                    </div>
+                                    <input type="number" step="any" min="0.01" :max="loan?.outstanding_balance || 0" x-model="prepayForm.amount"
+                                           @input="delete prepayErrors.amount; const val = parseFloat(prepayForm.amount); const maxVal = parseFloat(loan?.outstanding_balance || 0); if (!isNaN(val) && val > maxVal) { prepayErrors.amount = 'Amount cannot exceed outstanding balance (₹' + Number(maxVal).toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')'; }"
                                            placeholder="0"
                                            :class="prepayErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
                                            class="w-full h-9 px-3 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition shadow-2xs">
