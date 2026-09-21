@@ -96,8 +96,7 @@
             <table class="w-full text-xs text-left border-collapse">
                 <thead>
                     <tr class="bg-[#a38c29] text-white text-[10.5px] font-black uppercase tracking-wider text-left border-b border-[#8a7522]">
-                        <th class="px-5 py-4 w-44">ALLOCATION DATE</th>
-                        <th class="px-5 py-4 w-48">PARTNER ENTITY</th>
+                        <th class="px-5 py-4 w-52">PARTNER ENTITY</th>
                         <th class="px-5 py-4">ASSOCIATED PROJECT</th>
                         <th class="px-5 py-4">DESCRIPTION MEMO</th>
                         <th class="px-5 py-4 text-right w-44">ALLOCATED OUTFLOW</th>
@@ -107,9 +106,6 @@
                 <tbody class="divide-y divide-slate-200 text-slate-800">
                     @forelse($outflowList as $row)
                         <tr class="hover:bg-slate-50/80 transition-colors font-semibold">
-                            <td class="px-5 py-4 text-slate-700 font-bold whitespace-nowrap">
-                                {{ $row->date }}
-                            </td>
                             <td class="px-5 py-4 font-extrabold text-slate-900 whitespace-nowrap">
                                 <span class="inline-flex items-center gap-2">
                                     <span class="w-2 h-2 rounded-full bg-[#a38c29]"></span>
@@ -141,7 +137,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-5 py-8 text-center text-slate-400 font-medium italic">
+                            <td colspan="5" class="px-5 py-8 text-center text-slate-400 font-medium italic">
                                 No capital outflow allocations found for the selected project.
                             </td>
                         </tr>

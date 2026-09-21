@@ -1909,12 +1909,40 @@ class ReportController extends Controller
             return (float) $group->sum('allocated_amount');
         });
 
-        // Partner Outflow Share
-        $partnerShareData = $allocations->groupBy(function ($item) {
-            return $item->partner?->name ?? 'Partner';
-        })->map(function ($group) {
-            return (float) $group->sum('allocated_amount');
+        // Group allocations by partner ID
+        $groupedByPartner = $allocations->groupBy(function ($item) {
+            return (string)($item->partner_id ?? $item->partner?->id ?? 'unknown');
         });
+
+        $partnerShareData = collect();
+        $outflowList = collect();
+
+        foreach ($allPartners as $p) {
+            $pId = (string)$p->id;
+            $pAllocs = $groupedByPartner->get($pId, collect());
+            $pAmount = (float) $pAllocs->sum('allocated_amount');
+
+            $memos = $pAllocs->pluck('remarks')->filter()->unique()->values();
+            if ($memos->isNotEmpty()) {
+                $description = $memos->implode(' • ');
+            } elseif ($pAllocs->count() > 0) {
+                $description = 'Capital Profit Allocation via receipts mapping';
+            } else {
+                $description = 'Capital Profit Allocation (Registered Partner)';
+            }
+
+            if ($pAmount > 0 || $allocations->isNotEmpty()) {
+                $partnerShareData->put($p->name, $pAmount);
+            }
+
+            $outflowList->push((object)[
+                'partner_id' => $p->id,
+                'partner_name' => $p->name,
+                'project_name' => $selectedProject?->name ?? 'Tabasco Hindustan Infra Developers Pvt. Ltd',
+                'description' => $description,
+                'amount' => $pAmount
+            ]);
+        }
 
         // If dataset is empty for the current filter, fallback to matching demo values for a wowed screen
         if ($allocations->isEmpty()) {
@@ -1927,39 +1955,12 @@ class ReportController extends Controller
                 $amt = ($idx === 0) ? 115000.00 : 85000.00;
                 $partnerShareData->put($p->name, $amt);
                 $outflowList->push((object)[
-                    'date' => '05 Aug 2026',
                     'partner_id' => $p->id,
                     'partner_name' => $p->name,
                     'project_name' => $selectedProject?->name ?? 'Tabasco Hindustan Infra Developers Pvt. Ltd',
                     'description' => 'Capital Profit Allocation via receipts mapping',
                     'amount' => $amt
                 ]);
-            }
-        } else {
-            $outflowList = $allocations->map(function ($a) {
-                return (object)[
-                    'date' => Carbon::parse($a->date)->format('d M Y'),
-                    'partner_id' => $a->partner_id ?? $a->partner?->id,
-                    'partner_name' => $a->partner?->name ?? 'Partner',
-                    'project_name' => $a->project?->name ?? 'Project',
-                    'description' => $a->remarks ?: 'Capital Profit Allocation via receipts mapping',
-                    'amount' => (float) $a->allocated_amount
-                ];
-            });
-
-            // Ensure all active partners in system appear in list
-            $existingPartnerIds = $outflowList->pluck('partner_id')->map(fn($id) => (string)$id)->toArray();
-            foreach ($allPartners as $p) {
-                if (!in_array((string)$p->id, $existingPartnerIds)) {
-                    $outflowList->push((object)[
-                        'date' => Carbon::now()->format('d M Y'),
-                        'partner_id' => $p->id,
-                        'partner_name' => $p->name,
-                        'project_name' => $selectedProject?->name ?? 'Project',
-                        'description' => 'Capital Profit Allocation (Registered Partner)',
-                        'amount' => 0.00
-                    ]);
-                }
             }
         }
 
