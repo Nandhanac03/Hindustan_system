@@ -224,6 +224,49 @@ class TreasuryController extends Controller
             }
         }
 
+        // Outward Debits: Broker Payout Payment Vouchers
+        $allBrokerVouchers = \App\Models\Voucher::where('type', 'Payment')
+            ->whereNotNull('company_bank_account_id')
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($allBrokerVouchers as $bv) {
+            $acc = $bankAccounts->firstWhere('id', $bv->company_bank_account_id);
+            $bvDate = $bv->date ? Carbon::parse($bv->date) : Carbon::parse($bv->created_at);
+
+            $amount = (float)(\App\Models\VoucherLine::where('voucher_id', $bv->id)->where('credit', '>', 0)->value('credit')
+                     ?? \App\Models\VoucherLine::where('voucher_id', $bv->id)->sum('debit'));
+
+            $narrationText = $bv->narration ?: 'Broker Commission Payout';
+
+            $brokerTxn = [
+                'id' => 'broker_payout_' . $bv->id,
+                'date' => $bvDate ? $bvDate->format('d/m/Y') : '—',
+                'raw_date' => $bvDate ? $bvDate->timestamp : 0,
+                'datetime_formatted' => $bvDate ? $bvDate->format('d M Y') : '—',
+                'voucher_no' => $bv->voucher_number,
+                'customer_name' => 'Broker Commission Payout',
+                'customer_phone' => '',
+                'narration' => $narrationText,
+                'payment_mode' => 'BANK TRANSFER',
+                'cheque_no' => $bv->reference_no ?: '—',
+                'drawee_bank' => '—',
+                'bank_ref_no' => $bv->reference_no ?: $bv->voucher_number,
+                'bank_name' => $acc?->bank_name ?? 'Treasury',
+                'bank_account_id' => $bv->company_bank_account_id,
+                'type' => 'Debit',
+                'amount' => $amount,
+                'balance' => (float)($acc?->current_balance ?? 0),
+                'remarks' => $narrationText
+            ];
+
+            $allRecentTxns[] = $brokerTxn;
+            if ($bv->company_bank_account_id) {
+                $recentTransactions[$bv->company_bank_account_id][] = $brokerTxn;
+            }
+        }
+
         // Ensure all bank accounts have an array entry and sort by date descending
         foreach ($bankAccounts as $account) {
             if (!isset($recentTransactions[$account->id])) {

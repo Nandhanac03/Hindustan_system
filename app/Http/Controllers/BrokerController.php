@@ -369,6 +369,7 @@ class BrokerController extends Controller
                     // Post Payment Voucher to ledger
                     $voucher = \App\Models\Voucher::create([
                         'system_id' => $systemId,
+                        'company_bank_account_id' => $bankAccount->id,
                         'voucher_number' => 'PV-BROKER-' . $broker->id . '-' . time(),
                         'type' => 'Payment',
                         'date' => now()->toDateString(),
