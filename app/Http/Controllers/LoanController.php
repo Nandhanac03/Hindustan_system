@@ -37,7 +37,14 @@ class LoanController extends Controller
         if ($request->filled('project_id')) {
             $query->where('project_id', $request->project_id);
         }
-        if ($request->filled('status')) {
+        if ($request->status === 'Overdue') {
+            $today = now()->startOfDay();
+            $query->where('status', 'Active')
+                ->whereHas('emiSchedules', function ($q) use ($today) {
+                    $q->where('status', '!=', 'Paid')
+                        ->where('due_date', '<', $today);
+                });
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->status);
         }
         
@@ -88,7 +95,9 @@ class LoanController extends Controller
 
         // Global stats for KPI metrics cards
         $activeLoansCount = Loan::where('status', 'Active')->count();
+        $totalLoansCount = Loan::count();
         $totalOutstanding = Loan::sum('outstanding_balance');
+        $totalLoansAmount = Loan::sum('principal_amount');
         $allPaidSchedules = EmiSchedule::where('status', 'Paid')->get();
         $totalPaidPrincipal = $allPaidSchedules->sum('principal_component');
         $totalPaidInterest = $allPaidSchedules->sum('interest_component');
@@ -113,6 +122,8 @@ class LoanController extends Controller
             'totalPendingCount',
             'totalPendingAmount',
             'activeLoansCount',
+            'totalLoansCount',
+            'totalLoansAmount',
             'totalOutstanding',
             'totalPaidPrincipal',
             'totalPaidInterest',

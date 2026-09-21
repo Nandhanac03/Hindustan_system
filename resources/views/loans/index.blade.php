@@ -1,27 +1,6 @@
 <x-erp-layout title="EMI & Interest Payment Release" headerTitle="EMI & Interest Payment Release Directory">
 
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="loanApp()">
-    {{-- Pending EMI Alert --}}
-    @if(isset($totalPendingCount) && $totalPendingCount > 0)
-        <div class="p-4 rounded-xl bg-amber-50 border border-amber-250 text-amber-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
-            <div class="flex items-center gap-2.5">
-                <svg class="w-5 h-5 text-amber-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                </svg>
-                <span>
-                    @if(isset($overdueCount) && $overdueCount > 0)
-                        Attention: <strong class="text-amber-900">{{ $overdueCount }}</strong> EMI payments are overdue and <strong class="text-amber-900">{{ $dueThisMonthCount }}</strong> are due this month — Total <strong class="text-amber-900">₹{{ number_format($totalPendingAmount, 2) }}</strong>.
-                    @else
-                        Attention: <strong class="text-amber-900">{{ $totalPendingCount }}</strong> EMI payments are pending this month, totaling <strong class="text-amber-900">₹{{ number_format($totalPendingAmount, 2) }}</strong>.
-                    @endif
-                </span>
-            </div>
-            <span class="px-3 py-1.5 bg-amber-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-wide">
-                See Due EMIs Below
-            </span>
-        </div>
-    @endif
-
     {{-- Top Action Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -59,38 +38,38 @@
     {{-- KPI Metrics Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        {{-- Card 1: Overdue Amount --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-rose-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-rose-200 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(244,63,94,0.15)]">
+        {{-- Card 1: Total Outstanding --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#a38c29] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#a38c29]/40 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(163,140,41,0.15)]">
             <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100/60 transition-all duration-300 group-hover:bg-rose-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#a38c29]/10 flex items-center justify-center text-[#a38c29] border border-[#a38c29]/20 transition-all duration-300 group-hover:bg-[#a38c29] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
-                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Overdue Amount</span>
+                    <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Total Outstanding</span>
                 </div>
-                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-rose-300 group-hover:text-rose-700 group-hover:bg-rose-50/50">Urgent</span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#a38c29]/40 group-hover:text-[#8a7522] group-hover:bg-[#a38c29]/5">Outstanding</span>
             </div>
             
             <div class="relative z-10 mt-2">
-                <span class="text-xl xl:text-2xl font-black text-rose-700 font-mono tracking-tight block group-hover:text-rose-600 transition-colors duration-300">₹{{ number_format((float)($overdueAmount ?? 0), 2) }}</span>
-                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">{{ $overdueCount ?? 0 }} Overdue Installment(s)</p>
+                <span class="text-xl xl:text-2xl font-black text-slate-900 font-mono tracking-tight block group-hover:text-[#a38c29] transition-colors duration-300">₹{{ number_format((float)($totalOutstanding ?? 0), 2) }}</span>
+                <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Across {{ $activeLoansCount ?? 0 }} {{ ($activeLoansCount ?? 0) == 1 ? 'Loan' : 'Loans' }}</p>
             </div>
         </div>
 
         {{-- Card 2: Active Loans --}}
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-slate-500 p-5 flex flex-col justify-between relative overflow-hidden group hover:border-slate-300 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-l-[6px] border-l-[#0D9488] p-5 flex flex-col justify-between relative overflow-hidden group hover:border-[#0D9488]/40 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_10px_40px_-10px_rgba(13,148,136,0.15)]">
             <div class="flex flex-wrap xl:flex-nowrap items-start xl:items-center justify-between gap-2 mb-4 relative z-10">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-200/60 transition-all duration-300 group-hover:bg-slate-500 group-hover:text-white group-hover:shadow-md group-hover:scale-110">
+                    <div class="w-8 h-8 shrink-0 rounded-full bg-[#0D9488]/10 flex items-center justify-center text-[#0D9488] border border-[#0D9488]/20 transition-all duration-300 group-hover:bg-[#0D9488] group-hover:text-white group-hover:shadow-md group-hover:scale-110">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                     </div>
                     <span class="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider leading-tight">Active Loans</span>
                 </div>
-                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-slate-400 group-hover:text-slate-800 group-hover:bg-slate-100">Live</span>
+                <span class="text-[9px] text-slate-500 font-bold bg-white px-2 py-0.5 rounded-md border border-slate-200 uppercase tracking-wider shadow-sm transition-all duration-300 group-hover:border-[#0D9488]/40 group-hover:text-[#0D9488] group-hover:bg-[#0D9488]/5">Live</span>
             </div>
             
             <div class="relative z-10 mt-2">
-                <span class="text-2xl xl:text-3xl font-black text-slate-800 font-sans tracking-tight block group-hover:text-slate-900 transition-colors duration-300">{{ $activeLoansCount ?? 0 }}</span>
+                <span class="text-2xl xl:text-3xl font-black text-slate-800 font-sans tracking-tight block group-hover:text-[#0D9488] transition-colors duration-300">{{ $activeLoansCount ?? 0 }}</span>
                 <p class="text-[9px] text-slate-400 mt-1.5 font-medium">Total active accounts.</p>
             </div>
         </div>
@@ -132,6 +111,27 @@
         </div>
     </div>
 
+    {{-- Pending EMI Alert (Above Filters) --}}
+    @if(isset($totalPendingCount) && $totalPendingCount > 0)
+        <div x-data="{ showPendingAlert: true }" x-show="showPendingAlert" x-transition class="p-4 rounded-xl bg-amber-50 border border-amber-250 text-amber-800 text-xs font-bold uppercase tracking-wide flex items-center justify-between shadow-sm">
+            <div class="flex items-center gap-2.5">
+                <svg class="w-5 h-5 text-amber-600 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span>
+                    @if(isset($overdueCount) && $overdueCount > 0)
+                        Attention: <strong class="text-amber-900">{{ $overdueCount }}</strong> EMI payments are overdue and <strong class="text-amber-900">{{ $dueThisMonthCount }}</strong> are due this month — Total <strong class="text-amber-900">₹{{ number_format($totalPendingAmount, 2) }}</strong>.
+                    @else
+                        Attention: <strong class="text-amber-900">{{ $totalPendingCount }}</strong> EMI payments are pending this month, totaling <strong class="text-amber-900">₹{{ number_format($totalPendingAmount, 2) }}</strong>.
+                    @endif
+                </span>
+            </div>
+            <button type="button" @click="showPendingAlert = false" class="w-7 h-7 rounded-lg bg-amber-100/80 hover:bg-amber-200 text-amber-800 hover:text-amber-950 flex items-center justify-center font-bold text-sm transition cursor-pointer shrink-0" title="Dismiss Alert">
+                ✕
+            </button>
+        </div>
+    @endif
+
     {{-- Filters --}}
     <div class="bg-white rounded-2xl border border-slate-200/90 py-4 px-4 shadow-xs mb-4 mt-4">
         <form method="GET" action="{{ route('loans.index') }}" class="flex flex-wrap items-center gap-2.5 text-xs font-semibold w-full">
@@ -144,19 +144,122 @@
                 <input type="text" name="loan_account_no" value="{{ request('loan_account_no') }}" placeholder="Search Account / Loan No..." class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 transition-all shadow-2xs">
             </div>
 
-            {{-- Lending Bank Dropdown --}}
-            <div class="relative flex-grow min-w-[180px]">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
-                    <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+            {{-- Lending Bank Search & Select Filter --}}
+            <div class="relative flex-grow min-w-[200px]"
+                 x-data="{
+                     open: false,
+                     search: '',
+                     selectedBank: @js(request('lender_name', '')),
+                     bankList: @js($banks->map(fn($b) => ['name' => $b->bank_name, 'ifsc' => $b->ifsc_code ?? ''])->values()),
+                     get filteredBanks() {
+                         if (!this.search.trim()) return this.bankList;
+                         const q = this.search.toLowerCase();
+                         return this.bankList.filter(b => b.name.toLowerCase().includes(q) || (b.ifsc && b.ifsc.toLowerCase().includes(q)));
+                     },
+                     selectBank(name) {
+                         this.selectedBank = name;
+                         this.open = false;
+                         this.search = '';
+                         this.$nextTick(() => {
+                             $el.closest('form').submit();
+                         });
+                     },
+                     clearBank(e) {
+                         e.stopPropagation();
+                         this.selectedBank = '';
+                         this.open = false;
+                         this.search = '';
+                         this.$nextTick(() => {
+                             $el.closest('form').submit();
+                         });
+                     }
+                 }"
+                 @click.outside="open = false">
+                
+                {{-- Hidden input for form submission --}}
+                <input type="hidden" name="lender_name" :value="selectedBank">
+
+                {{-- Trigger Button --}}
+                <div @click="open = !open; if(open) $nextTick(() => $refs.lenderSearchInput?.focus())"
+                     class="w-full pl-9 pr-8 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 rounded-xl text-xs font-semibold text-slate-800 cursor-pointer flex items-center justify-between transition-all shadow-2xs select-none">
+                    
+                    {{-- Left Bank Icon --}}
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#a38c29]">
+                        <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                    </div>
+
+                    {{-- Display Name --}}
+                    <span class="truncate" :class="selectedBank ? 'text-slate-900 font-bold' : 'text-slate-600 font-semibold'" x-text="selectedBank || 'All Lending Banks'"></span>
+
+                    {{-- Right Icons (Clear if selected & Chevron) --}}
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center gap-1">
+                        <template x-if="selectedBank">
+                            <span @click="clearBank($event)" class="text-slate-400 hover:text-rose-600 transition p-0.5 cursor-pointer" title="Clear selection">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </span>
+                        </template>
+                        <svg class="w-3.5 h-3.5 text-[#a38c29]/70 transition-transform pointer-events-none" :class="open ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
                 </div>
-                <select name="lender_name" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all shadow-2xs appearance-none">
-                    <option value="">All Lending Banks</option>
-                    @foreach($banks as $b)
-                        <option value="{{ $b->bank_name }}" {{ request('lender_name') === $b->bank_name ? 'selected' : '' }}>{{ $b->bank_name }}</option>
-                    @endforeach
-                </select>
-                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+
+                {{-- Dropdown Search Menu --}}
+                <div x-show="open" 
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                     x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                     class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-60 flex flex-col min-w-[240px]" 
+                     style="display: none;">
+                    
+                    {{-- Search Input Header --}}
+                    <div class="p-2 border-b border-slate-100 bg-slate-50/90 sticky top-0">
+                        <div class="relative">
+                            <input type="text" 
+                                   x-ref="lenderSearchInput" 
+                                   x-model="search" 
+                                   placeholder="Search bank name or IFSC..." 
+                                   @keydown.escape="open = false"
+                                   class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-250 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                            <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                    </div>
+
+                    {{-- List of Banks --}}
+                    <div class="overflow-y-auto divide-y divide-slate-100 max-h-48 text-xs font-semibold">
+                        {{-- All Lending Banks Option --}}
+                        <div @click="selectBank('')"
+                             class="px-3.5 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between transition-colors"
+                             :class="!selectedBank ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'text-slate-700'">
+                            <span>All Lending Banks</span>
+                            <template x-if="!selectedBank">
+                                <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                            </template>
+                        </div>
+
+                        {{-- Filtered Bank Items --}}
+                        <template x-for="b in filteredBanks" :key="b.name">
+                            <div @click="selectBank(b.name)"
+                                 class="px-3.5 py-2 hover:bg-[#a38c29]/10 cursor-pointer flex items-center justify-between transition-colors"
+                                 :class="selectedBank === b.name ? 'bg-[#a38c29]/15 text-[#8a7522] font-black' : 'text-slate-700'">
+                                <div class="flex items-center gap-2 truncate">
+                                    <span class="truncate" x-text="b.name"></span>
+                                    <template x-if="b.ifsc">
+                                        <span class="text-[9px] font-mono px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 font-normal" x-text="b.ifsc"></span>
+                                    </template>
+                                </div>
+                                <template x-if="selectedBank === b.name">
+                                    <svg class="w-3.5 h-3.5 text-[#a38c29] shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </template>
+                            </div>
+                        </template>
+
+                        {{-- Empty State --}}
+                        <template x-if="filteredBanks.length === 0">
+                            <div class="p-3 text-center text-xs text-slate-400 italic">No matching lending banks found.</div>
+                        </template>
+                    </div>
                 </div>
             </div>
 
@@ -184,6 +287,7 @@
                 <select name="status" onchange="this.form.submit()" class="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-250 hover:border-[#a38c29]/60 focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl outline-none text-xs font-semibold text-slate-800 cursor-pointer transition-all shadow-2xs appearance-none">
                     <option value="">All Statuses</option>
                     <option value="Active" {{ request('status') === 'Active' ? 'selected' : '' }}>Active</option>
+                    <option value="Overdue" {{ request('status') === 'Overdue' ? 'selected' : '' }}>Overdue</option>
                     <option value="Closed" {{ request('status') === 'Closed' ? 'selected' : '' }}>Closed</option>
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#a38c29]/70">
@@ -221,12 +325,13 @@
         </style>
         <div class="overflow-x-auto">
             <table id="loans-table" class="w-full text-xs text-left border-collapse">
-                              <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
+                <thead>
+                    <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-center font-bold uppercase tracking-wider text-[10px]">
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">SL NO</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-left">LOAN ACCOUNT / PROJECT</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">LENDING BANK</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">LOAN AMOUNT</th>
-                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">CURRENT EMI</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">LOAN AMOUNT</th>
+                        <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">CURRENT EMI</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">PRINCIPAL</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-right">INTEREST</th>
                         <th class="px-4 py-3 border sticky top-0 bg-[#a38c29] shadow-sm text-center">NEXT DUE DATE</th>
@@ -254,7 +359,8 @@
                                 }
                             }
                         @endphp
-                        <tr class="transition-colors text-xs">
+                        <tr onclick="window.location='{{ route('loans.schedule', $loan->id) }}'" 
+                            class="transition-colors text-xs cursor-pointer hover:bg-[#ebe5d0] select-none">
                             <td class="px-4 py-3.5 border font-bold text-slate-400 text-center">{{ $loans->firstItem() + $idx }}</td>
                             <td class="px-4 py-3.5 border text-left">
                                 <div class="font-bold text-slate-900 font-mono">{{ $loan->loan_account_no ?? '—' }}</div>
@@ -301,41 +407,29 @@
                                     {{ $paymentStatus }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3.5 border text-right pr-4">
-                                <div class="flex items-center justify-end gap-2">
+                            <td class="px-4 py-3.5 border text-right pr-4" onclick="event.stopPropagation()">
+                                <div class="flex items-center justify-end gap-1.5">
                                     <a href="{{ route('loans.schedule', $loan->id) }}"
-                                       class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 cursor-pointer inline-flex items-center gap-1">
-                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                       class="px-3 py-1.5 bg-[#a38c29] hover:bg-[#8a7522] text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 cursor-pointer inline-flex items-center gap-1"
+                                       title="Repayment Schedule Ledger">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                                         Ledger
                                     </a>
 
-                                    <div class="relative" x-data="{ open: false }" @click.away="open = false">
-                                        <button @click="open = !open" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all shadow-xs active:scale-95 inline-flex items-center gap-1 cursor-pointer">
-                                            More
-                                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    @if($loan->status === 'Active')
+                                        <button @click.stop="openEditInterestModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', interest_rate: {{ $loan->interest_rate }} })" 
+                                                class="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-all inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider shadow-xs active:scale-95 cursor-pointer" 
+                                                title="Edit Interest Rate">
+                                            <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                            Interest
                                         </button>
-                                        <div x-show="open" class="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1 text-left font-semibold text-slate-700 text-[10px] uppercase tracking-wide" style="display: none;" x-transition>
-                                            @if($loan->next_emi && $loan->status === 'Active')
-                                                <button @click="openPayModal({ id: {{ $loan->next_emi->id }}, emi_amount: {{ $loan->next_emi->emi_amount }}, amount_paid: {{ $loan->next_emi->amount_paid }} }, { id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', project: { name: '{{ addslashes($loan->project->name ?? 'N/A') }}' } })" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 text-emerald-700 transition-colors cursor-pointer font-bold uppercase tracking-wide">
-                                                    Pay EMI
-                                                </button>
-                                            @endif
-                                            @if($loan->status === 'Active')
-                                                <button @click="openPayoffModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', outstanding_balance: {{ $loan->outstanding_balance }} }, 'prepayment')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
-                                                    Prepayment
-                                                </button>
-                                                <button @click="openPayoffModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', outstanding_balance: {{ $loan->outstanding_balance }} }, 'foreclosure')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
-                                                    Foreclosure
-                                                </button>
-                                                <button @click="openEditInterestModal({ id: {{ $loan->id }}, loan_account_no: '{{ addslashes($loan->loan_account_no) }}', lender_name: '{{ addslashes($loan->lender_name) }}', interest_rate: {{ $loan->interest_rate }} })" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
-                                                    Adjust Interest
-                                                </button>
-                                            @endif
-                                            <button @click="openInterestLogsModal('{{ $loan->loan_account_no }}')" class="w-full text-left block px-4 py-2.5 hover:bg-slate-50 transition-colors cursor-pointer font-semibold uppercase tracking-wide">
-                                                Interest Edit Log
-                                            </button>
-                                        </div>
-                                    </div>
+                                    @endif
+
+                                    <button @click.stop="openInterestLogsModal('{{ $loan->loan_account_no }}')" 
+                                            class="p-1.5 rounded-lg bg-[rgb(67,56,212)]/10 hover:bg-[rgb(67,56,212)]/20 text-[rgb(67,56,212)] hover:text-[#2d249f] border border-[rgb(67,56,212)]/20 transition-all inline-flex items-center justify-center shadow-xs active:scale-95 cursor-pointer" 
+                                            title="Interest Edit Log">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -469,10 +563,10 @@
                     return (companyBankAccounts || []).find(a => a.id == payoffForm.bank_account_id) || null;
                 },
                 get totalOutflow() {
-                    return Number(payoffForm.amount || 0) + Number(payoffForm.prepayment_charges || 0) + Number(payoffForm.interest_adjustment || 0);
+                    return Number(payoffForm.amount || 0) + Number(payoffForm.prepayment_charges || 0);
                 }
             }">
-                <form @submit.prevent="submitPayoffForm">
+                <form @submit.prevent="submitPayoffForm" novalidate>
                     {{-- 1. Top Loan Overview Strip --}}
                     <div class="bg-slate-50/90 rounded-xl p-3 border border-slate-200/80 shadow-2xs mb-3">
                         <div class="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200/70">
@@ -516,28 +610,38 @@
                             <div class="space-y-2.5">
                                 {{-- Principal Payoff Amount --}}
                                 <div>
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payoffErrors.amount ? 'text-rose-600' : 'text-slate-700'">
                                         <span x-text="payoffForm.action_type === 'foreclosure' ? 'Foreclosure Amount (₹)' : 'Prepayment Principal Amount (₹)'"></span> <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="number" step="0.01" x-model="payoffForm.amount" :readonly="payoffForm.action_type === 'foreclosure'" required placeholder="0.00" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <input type="number" step="any" min="0" x-model="payoffForm.amount" :readonly="payoffForm.action_type === 'foreclosure'"
+                                           @input="delete payoffErrors.amount"
+                                           placeholder="0"
+                                           :class="payoffErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                           class="w-full h-9 px-3 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <span x-show="payoffErrors.amount" x-text="payoffErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
                                 </div>
 
                                 {{-- Payment Date --}}
                                 <div>
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payoffErrors.prepayment_date ? 'text-rose-600' : 'text-slate-700'">
                                         Payment Date <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="date" x-model="payoffForm.prepayment_date" required class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <input type="date" x-model="payoffForm.prepayment_date"
+                                           @input="delete payoffErrors.prepayment_date"
+                                           :class="payoffErrors.prepayment_date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                           class="w-full h-9 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <span x-show="payoffErrors.prepayment_date" x-text="payoffErrors.prepayment_date" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
                                 </div>
 
                                 {{-- Paid From Company Bank Account (Search & Select) --}}
                                 <div class="relative" @click.outside="payoffBankOpen = false">
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payoffErrors.bank_account_id ? 'text-rose-600' : 'text-slate-700'">
                                         Paid From (Company Bank Account) <span class="text-rose-500">*</span>
                                     </label>
                                     
                                     <div @click="payoffBankOpen = !payoffBankOpen; if(payoffBankOpen) $nextTick(() => $refs.payoffBankSearch?.focus())"
-                                         class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                         :class="payoffErrors.bank_account_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-white focus:bg-white'"
+                                         class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
                                         <template x-if="selectedAccount">
                                             <div class="flex items-center gap-2 truncate">
                                                 <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="selectedAccount.bank_name"></span>
@@ -550,6 +654,7 @@
                                         </template>
                                         <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" :class="payoffBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </div>
+                                    <span x-show="payoffErrors.bank_account_id" x-text="payoffErrors.bank_account_id" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
 
                                     <!-- Dropdown Search Menu -->
                                     <div x-show="payoffBankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
@@ -561,7 +666,7 @@
                                         </div>
                                         <div class="overflow-y-auto divide-y divide-slate-100">
                                             <template x-for="acc in filteredAccounts" :key="acc.id">
-                                                <div @click="payoffForm.bank_account_id = acc.id; payoffBankOpen = false; payoffBankSearch = ''"
+                                                <div @click="payoffForm.bank_account_id = acc.id; delete payoffErrors.bank_account_id; payoffBankOpen = false; payoffBankSearch = ''"
                                                      class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
                                                      :class="payoffForm.bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
                                                     <div class="flex flex-col">
@@ -589,20 +694,24 @@
                             <div class="space-y-2.5">
                                 {{-- Prepayment Charges --}}
                                 <div>
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">Prepayment / Foreclosure Charges (₹)</label>
-                                    <input type="number" step="0.01" min="0" x-model="payoffForm.prepayment_charges" placeholder="0.00" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
-                                </div>
-
-                                {{-- Interest Adjustment --}}
-                                <div>
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">Interest Adjustment / Rebate (₹)</label>
-                                    <input type="number" step="0.01" x-model="payoffForm.interest_adjustment" placeholder="0.00" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payoffErrors.prepayment_charges ? 'text-rose-600' : 'text-slate-700'">Prepayment / Foreclosure Charges (₹)</label>
+                                    <input type="number" step="any" min="0" x-model="payoffForm.prepayment_charges"
+                                           @input="delete payoffErrors.prepayment_charges"
+                                           placeholder="0"
+                                           :class="payoffErrors.prepayment_charges ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                           class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <span x-show="payoffErrors.prepayment_charges" x-text="payoffErrors.prepayment_charges" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
                                 </div>
 
                                 {{-- Transaction / UTR No. --}}
                                 <div>
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">Transaction / Cheque / UTR No. <span class="text-rose-500">*</span></label>
-                                    <input type="text" x-model="payoffForm.reference_no" required placeholder="e.g. UTR1087349137" class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payoffErrors.reference_no ? 'text-rose-600' : 'text-slate-700'">Transaction / Cheque / UTR No. <span class="text-rose-500">*</span></label>
+                                    <input type="text" x-model="payoffForm.reference_no"
+                                           @input="delete payoffErrors.reference_no"
+                                           placeholder="e.g. UTR1087349137"
+                                           :class="payoffErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                           class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <span x-show="payoffErrors.reference_no" x-text="payoffErrors.reference_no" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
                                 </div>
 
                                 {{-- Remarks / Reason --}}
@@ -1275,11 +1384,11 @@ function loanApp() {
         },
         payoffModalOpen: false,
         activePayoffLoan: null,
+        payoffErrors: {},
         payoffForm: {
             action_type: 'prepayment',
             amount: '',
             prepayment_charges: '',
-            interest_adjustment: '',
             bank_account_id: ({!! json_encode($companyBankAccounts ?? []) !!}[0]?.id) || '',
             prepayment_date: '',
             reschedule_option: 'reduce_emi',
@@ -1329,11 +1438,11 @@ function loanApp() {
         },
         openPayoffModal(loan, type = 'prepayment') {
             this.activePayoffLoan = loan;
+            this.payoffErrors = {};
             this.payoffForm = {
                 action_type: type,
                 amount: type === 'foreclosure' ? parseFloat(loan.outstanding_balance).toFixed(2) : '',
                 prepayment_charges: '',
-                interest_adjustment: '',
                 bank_account_id: (this.companyBankAccounts && this.companyBankAccounts.length > 0) ? this.companyBankAccounts[0].id : '',
                 prepayment_date: new Date().toISOString().split('T')[0],
                 reschedule_option: 'reduce_emi',
@@ -1344,6 +1453,46 @@ function loanApp() {
         },
         submitPayoffForm() {
             if (!this.activePayoffLoan) return;
+
+            this.payoffErrors = {};
+            let hasError = false;
+
+            const amount = parseFloat(this.payoffForm.amount);
+            const outstanding = parseFloat(this.activePayoffLoan ? this.activePayoffLoan.outstanding_balance : 0);
+
+            if (!this.payoffForm.amount || isNaN(amount) || amount <= 0) {
+                this.payoffErrors.amount = 'Please enter a valid amount greater than ₹0.00';
+                hasError = true;
+            } else if (amount > outstanding + 0.01) {
+                this.payoffErrors.amount = `Amount cannot exceed current outstanding balance (₹${outstanding.toLocaleString('en-IN', {minimumFractionDigits: 2})})`;
+                hasError = true;
+            }
+
+            if (!this.payoffForm.prepayment_date) {
+                this.payoffErrors.prepayment_date = 'Please select payment date';
+                hasError = true;
+            }
+
+            if (!this.payoffForm.bank_account_id) {
+                this.payoffErrors.bank_account_id = 'Please select a company bank account';
+                hasError = true;
+            }
+
+            if (!this.payoffForm.reference_no || !this.payoffForm.reference_no.trim()) {
+                this.payoffErrors.reference_no = 'Transaction / Cheque / UTR number is required';
+                hasError = true;
+            }
+
+            if (this.payoffForm.prepayment_charges !== '' && this.payoffForm.prepayment_charges !== null && parseFloat(this.payoffForm.prepayment_charges) < 0) {
+                this.payoffErrors.prepayment_charges = 'Charges cannot be negative';
+                hasError = true;
+            }
+
+            if (hasError) {
+                this.showToast('Please correct the highlighted form errors.', 'error');
+                return;
+            }
+
             const url = `{{ url('/loans') }}/${this.activePayoffLoan.id}/prepay`;
             fetch(url, {
                 method: 'POST',
@@ -1357,11 +1506,17 @@ function loanApp() {
             .then(async res => {
                 let data = await res.json();
                 if (!res.ok) {
-                    this.showToast(data.error || 'Failed to submit payoff transaction.', 'error');
+                    if (data.errors && typeof data.errors === 'object') {
+                        for (const [k, v] of Object.entries(data.errors)) {
+                            this.payoffErrors[k] = Array.isArray(v) ? v[0] : v;
+                        }
+                    }
+                    let errMsg = data.error || data.message;
+                    this.showToast(errMsg || 'Failed to submit payoff transaction.', 'error');
                 } else {
                     this.showToast(this.payoffForm.action_type === 'foreclosure' ? 'Loan accounts fully foreclosed and closed.' : 'Principal prepayment processed successfully.');
                     this.payoffModalOpen = false;
-                    setTimeout(() => { window.location.reload(); }, 1500);
+                    setTimeout(() => { window.location.reload(); }, 1200);
                 }
             })
             .catch(err => {
