@@ -246,6 +246,7 @@ Route::middleware(['auth', 'system.active'])->group(function () {
         Route::get('/bank-reports', [\App\Http\Controllers\ReportController::class, 'bankReports'])->name('bank_reports');
         Route::get('/partner-statements', [\App\Http\Controllers\ReportController::class, 'partnerStatements'])->name('partner_statements');
         Route::post('/partner-statements/payout', [\App\Http\Controllers\ReportController::class, 'recordPartnerPayout'])->name('partner_statements.payout');
+        Route::get('/partner-outflow-ledger', [\App\Http\Controllers\ReportController::class, 'partnerOutflowLedger'])->name('partner_outflow_ledger');
         Route::get('/project-costing-summary', [\App\Http\Controllers\ReportController::class, 'projectCostingSummary'])->name('project_costing_summary');
         Route::get('/revenue-cost-breakdown', [\App\Http\Controllers\ReportController::class, 'revenueCostBreakdown'])->name('revenue_cost_breakdown');
         Route::get('/project-margin-analysis', [\App\Http\Controllers\ReportController::class, 'projectMarginAnalysis'])->name('project_margin_analysis');
