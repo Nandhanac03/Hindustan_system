@@ -109,85 +109,69 @@
                             <input type="hidden" name="bank_account_id" :value="selectedBank" required>
 
                             {{-- Dropdown Trigger Button --}}
-                            <button type="button" 
-                                    @click="bankDropdownOpen = !bankDropdownOpen; if(bankDropdownOpen) { bankSearch = ''; $nextTick(() => $refs.bankSearchInput?.focus()); }"
-                                    class="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#a38c29]/20 focus:border-[#a38c29] transition cursor-pointer flex items-center justify-between gap-2 text-left"
-                                    :class="selectedBank ? 'border-[#a38c29]/60 text-slate-900 font-bold bg-amber-50/20' : 'text-slate-400'">
-                                <div class="flex items-center gap-2.5 min-w-0 flex-1">
-                                    <div class="w-6 h-6 rounded-lg bg-[#a38c29]/15 text-[#a38c29] flex items-center justify-center shrink-0">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            <div @click="bankDropdownOpen = !bankDropdownOpen; if(bankDropdownOpen) { bankSearch = ''; $nextTick(() => $refs.bankSearchInput?.focus()); }"
+                                 class="w-full h-10 px-3.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 hover:border-[#a38c29]/60 rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                <template x-if="selectedBankObj">
+                                    <div class="flex items-center gap-2 truncate">
+                                        <span class="px-2 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[10px]" x-text="selectedBankObj.bank_name"></span>
+                                        <span class="font-bold text-slate-800 truncate" x-text="selectedBankObj.account_name || selectedBankObj.bank_name"></span>
+                                        <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedBankObj.account_number || '—') + ')'"></span>
                                     </div>
-                                    <template x-if="selectedBank && selectedBankDisplayName">
-                                        <span class="truncate text-slate-900 font-bold" x-text="selectedBankDisplayName"></span>
-                                    </template>
-                                    <template x-if="!selectedBank">
-                                        <span class="text-slate-400 font-medium">— Select Bank Account —</span>
-                                    </template>
-                                </div>
-
-                                <div class="flex items-center gap-1.5 shrink-0">
-                                    <template x-if="selectedBank">
-                                        <span @click.stop="clearBank()" class="p-1 rounded-md hover:bg-rose-100 text-slate-400 hover:text-rose-600 transition cursor-pointer" title="Clear selection">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        </span>
-                                    </template>
-                                    <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="bankDropdownOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                </div>
-                            </button>
+                                </template>
+                                <template x-if="!selectedBankObj">
+                                    <span class="text-slate-400 font-medium">Select Company Bank Account...</span>
+                                </template>
+                                <svg class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200 shrink-0" :class="bankDropdownOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
 
                             {{-- Dropdown Popover List --}}
                             <div x-show="bankDropdownOpen" 
-                                 x-transition:enter="transition ease-out duration-150"
-                                 x-transition:enter-start="opacity-0 translate-y-1 scale-98"
-                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-                                 x-transition:leave="transition ease-in duration-100"
-                                 x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-                                 x-transition:leave-end="opacity-0 translate-y-1 scale-98"
-                                 class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden max-h-72 flex flex-col"
+                                 x-transition
+                                 class="absolute left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col"
                                  style="display: none;">
                                 
                                 {{-- Search Input inside Popover --}}
-                                <div class="p-2.5 bg-slate-50/90 border-b border-slate-100 sticky top-0 z-10">
+                                <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0 z-10">
                                     <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                        </div>
                                         <input type="text" 
                                                x-model="bankSearch" 
                                                x-ref="bankSearchInput"
-                                               placeholder="Type bank name or account number..." 
-                                               class="w-full pl-9 pr-3.5 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#a38c29] focus:border-[#a38c29] placeholder:text-slate-400">
+                                               placeholder="Search bank name, account no, branch..." 
+                                               class="w-full pl-7 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                        <svg class="w-3 h-3 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                     </div>
                                 </div>
 
                                 {{-- Results List --}}
-                                <div class="overflow-y-auto p-1.5 space-y-1 max-h-56">
-                                    <template x-for="bank in filteredBankAccounts" :key="bank.id">
-                                        <div @click="selectBank(bank.id)"
-                                             class="p-2.5 rounded-xl cursor-pointer transition-all flex items-center justify-between gap-3 text-left"
-                                             :class="selectedBank == bank.id ? 'bg-[#a38c29]/15 border border-[#a38c29]/40 text-slate-900 font-bold' : 'hover:bg-slate-50 border border-transparent text-slate-700'">
-                                            <div class="min-w-0 flex-1">
-                                                <div class="text-xs font-extrabold" x-text="bank.name"></div>
-                                                <div class="text-[10px] text-slate-400 font-mono mt-0.5">
-                                                    Balance: <span class="font-bold text-[#a38c29]" x-text="formatCurrency(bank.balance)"></span>
+                                <div class="overflow-y-auto divide-y divide-slate-100 max-h-48">
+                                    <template x-for="acc in filteredBankAccounts" :key="acc.id">
+                                        <div @click="selectBank(acc.id)"
+                                             class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                             :class="selectedBank == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                            <div class="flex flex-col min-w-0 pr-2">
+                                                <div class="flex items-center gap-1.5 truncate">
+                                                    <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                    <span class="text-slate-500 font-medium truncate" x-text="'— ' + (acc.account_name || 'Account')"></span>
                                                 </div>
+                                                <div class="text-[9px] text-slate-400 font-mono mt-0.5 truncate" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
                                             </div>
-                                            <div x-show="selectedBank == bank.id" class="text-[#a38c29]">
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                            <div class="text-right font-mono shrink-0">
+                                                <div class="text-[8px] text-slate-400 uppercase font-sans font-bold tracking-wider">Current Balance</div>
+                                                <div class="font-bold text-slate-800 text-[11px]" x-text="formatCurrency(acc.balance)"></div>
                                             </div>
                                         </div>
                                     </template>
-                                    <div x-show="filteredBankAccounts.length === 0" class="p-4 text-center text-slate-400 text-xs italic">
-                                        No bank account found matching search.
-                                    </div>
+                                    <template x-if="filteredBankAccounts.length === 0">
+                                        <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                    </template>
                                 </div>
                             </div>
 
                             <div class="mt-1.5 space-y-0.5" x-show="selectedBank">
                                 <div class="flex items-center justify-between text-[11px]">
-                                    <span class="text-slate-500 font-medium">Available Balance:</span>
+                                    <span class="text-slate-500 font-medium">Selected Bank Balance:</span>
                                     <span class="font-mono font-bold text-[#a38c29]" x-text="formatCurrency(selectedBankBalance)"></span>
                                 </div>
                                 <div x-show="selectedBankBalanceInWords" 
@@ -428,6 +412,10 @@
                 @foreach($bankAccounts as $bank)
                 {
                     id: '{{ $bank->id }}',
+                    bank_name: @json($bank->bank_name ?? $bank->name),
+                    account_name: @json($bank->account_name ?? 'Account'),
+                    account_number: @json($bank->account_number ?? ''),
+                    branch_name: @json($bank->branch_name ?? ''),
                     name: @json($bank->name ?? 'Bank Account'),
                     balance: {{ (float)($bank->balance ?? 0) }}
                 },
@@ -438,7 +426,13 @@
                     return this.bankAccountsList;
                 }
                 const q = this.bankSearch.toLowerCase().trim();
-                return this.bankAccountsList.filter(b => b.name.toLowerCase().includes(q));
+                return this.bankAccountsList.filter(b => 
+                    (b.bank_name && b.bank_name.toLowerCase().includes(q)) ||
+                    (b.account_name && b.account_name.toLowerCase().includes(q)) ||
+                    (b.account_number && b.account_number.toLowerCase().includes(q)) ||
+                    (b.branch_name && b.branch_name.toLowerCase().includes(q)) ||
+                    (b.name && b.name.toLowerCase().includes(q))
+                );
             },
             get selectedBankObj() {
                 return this.bankAccountsList.find(b => b.id == this.selectedBank) || null;

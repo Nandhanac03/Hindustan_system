@@ -156,13 +156,25 @@ class PettyCashController extends Controller
         $bankAccounts = \App\Models\CompanyBankAccount::where('status', 'Active')->get()->map(function($bank) {
             return (object)[
                 'id' => $bank->id,
+                'bank_name' => $bank->bank_name,
+                'account_name' => $bank->account_name ?? 'Account',
+                'account_number' => $bank->account_number ?? '',
+                'branch_name' => $bank->branch_name ?? '',
                 'name' => $bank->bank_name . ' - A/c No. ' . substr($bank->account_number, -4),
-                'balance' => $bank->current_balance ?? 0
+                'balance' => (float)($bank->current_balance ?? 0)
             ];
         });
         if ($bankAccounts->isEmpty()) {
             // Fallback for UI if DB is empty
-            $bankAccounts = collect([(object)['id' => 1, 'name' => 'Default Company Bank Account', 'balance' => 0]]);
+            $bankAccounts = collect([(object)[
+                'id' => 1, 
+                'bank_name' => 'Default Bank',
+                'account_name' => 'Company Account',
+                'account_number' => '0000',
+                'branch_name' => 'Main',
+                'name' => 'Default Company Bank Account', 
+                'balance' => 0
+            ]]);
         }
         
         // Fetch actual cash boxes/accounts from DB
