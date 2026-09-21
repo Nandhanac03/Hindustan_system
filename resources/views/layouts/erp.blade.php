@@ -1122,6 +1122,10 @@
             const type = (el.type || '').toLowerCase();
             if (type !== 'number' && type !== 'text') return;
 
+            if (el.hasAttribute('data-no-words') || el.dataset.noWords !== undefined) {
+                return;
+            }
+
             let xModel = (el.getAttribute('x-model') || el.getAttribute('x-model.number') || '').toLowerCase();
             const name = (el.getAttribute('name') || '').toLowerCase();
             const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();

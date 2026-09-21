@@ -15,6 +15,7 @@ class Voucher extends Model
 
     protected $fillable = [
         'system_id',
+        'company_bank_account_id',
         'voucher_number',
         'type', // Receipt, Payment, Contra, Journal, Sales, Purchase
         'date',
@@ -33,6 +34,11 @@ class Voucher extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(VoucherLine::class);
+    }
+
+    public function companyBankAccount(): BelongsTo
+    {
+        return $this->belongsTo(CompanyBankAccount::class, 'company_bank_account_id');
     }
 
     public function creator(): BelongsTo

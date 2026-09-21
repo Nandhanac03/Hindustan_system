@@ -273,6 +273,7 @@ class PettyCashController extends Controller
         // Create the Voucher
         $voucher = Voucher::create([
             'system_id' => $request->input('project_id'),
+            'company_bank_account_id' => $request->input('bank_account_id'),
             'voucher_number' => $request->input('voucher_number'),
             'type' => 'Contra',
             'date' => $request->input('date'),

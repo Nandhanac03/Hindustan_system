@@ -183,6 +183,47 @@ class TreasuryController extends Controller
             }
         }
 
+        // Outward Debits: Bank Cash Withdrawal (Contra Vouchers)
+        $allContraVouchers = \App\Models\Voucher::where('type', 'Contra')
+            ->whereNotNull('company_bank_account_id')
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->get();
+
+        foreach ($allContraVouchers as $cv) {
+            $acc = $bankAccounts->firstWhere('id', $cv->company_bank_account_id);
+            $cvDate = $cv->date ? Carbon::parse($cv->date) : Carbon::parse($cv->created_at);
+            
+            $amount = (float)(\App\Models\VoucherLine::where('voucher_id', $cv->id)->where('credit', '>', 0)->value('credit')
+                     ?? \App\Models\VoucherLine::where('voucher_id', $cv->id)->sum('debit'));
+
+            $contraTxn = [
+                'id' => 'contra_' . $cv->id,
+                'date' => $cvDate ? $cvDate->format('d/m/Y') : '—',
+                'raw_date' => $cvDate ? $cvDate->timestamp : 0,
+                'datetime_formatted' => $cvDate ? $cvDate->format('d M Y') : '—',
+                'voucher_no' => $cv->voucher_number,
+                'customer_name' => 'Site Petty Cash Box (Bank Cash Withdrawal)',
+                'customer_phone' => '',
+                'narration' => 'Cash Withdrawal from Bank into Site Petty Cash Box',
+                'payment_mode' => 'CONTRA',
+                'cheque_no' => $cv->reference_no ?: '—',
+                'drawee_bank' => '—',
+                'bank_ref_no' => $cv->reference_no ?: $cv->voucher_number,
+                'bank_name' => $acc?->bank_name ?? 'Treasury',
+                'bank_account_id' => $cv->company_bank_account_id,
+                'type' => 'Debit',
+                'amount' => $amount,
+                'balance' => (float)($acc?->current_balance ?? 0),
+                'remarks' => $cv->narration ?: 'Bank Cash Withdrawal (Contra)'
+            ];
+
+            $allRecentTxns[] = $contraTxn;
+            if ($cv->company_bank_account_id) {
+                $recentTransactions[$cv->company_bank_account_id][] = $contraTxn;
+            }
+        }
+
         // Ensure all bank accounts have an array entry and sort by date descending
         foreach ($bankAccounts as $account) {
             if (!isset($recentTransactions[$account->id])) {
