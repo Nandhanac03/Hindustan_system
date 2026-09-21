@@ -379,18 +379,18 @@
         </div>
     </div>
 
-    <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (COMPACT & SLEEK TYPOGRAPHY) ── -->
-    <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all border-0 ring-0 outline-none flex flex-col" @click.away="disburseModalOpen = false">
+    <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (COMPACT & SLEEK LAPTOP-OPTIMIZED) ── -->
+    <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 !m-0 top-0 left-0 right-0 bottom-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="relative w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden transform transition-all border-0 ring-0 outline-none flex flex-col max-h-[90vh] my-auto" @click.away="disburseModalOpen = false">
             {{-- Dark Header (Zero White Border / Fringe) --}}
-            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+            <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-5 sm:px-6 py-3.5 sm:py-4 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[11px] font-bold uppercase tracking-widest mb-1">
+                        <p class="text-[#a38c29] text-[10px] font-bold uppercase tracking-widest mb-0.5">
                             Payment Disbursement
                         </p>
-                        <h2 class="text-xl font-extrabold text-white tracking-tight">Disburse Staggered Contractor Payment</h2>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Disburse Staggered Contractor Payment</h2>
                     </div>
                     <button type="button" @click="disburseModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -398,35 +398,35 @@
                 </div>
             </div>
 
-            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="bg-white p-6 flex flex-col gap-4 rounded-b-2xl">
+            <form :action="selectedBill ? '{{ url('expenses/ra-bills') }}/' + selectedBill.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="bg-white p-4 sm:p-5 flex flex-col gap-2.5 sm:gap-3 overflow-y-auto flex-1 rounded-b-2xl">
                 @csrf
 
                 <!-- Summary Card -->
-                <div class="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl grid grid-cols-3 gap-3 text-center shadow-2xs">
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">RA BILL NO.</span>
-                        <span class="text-sm font-mono font-black text-slate-900 mt-1 block" x-text="selectedBill ? selectedBill.ra_bill_number : ''"></span>
+                <div class="p-2.5 sm:p-3 bg-slate-50 border border-slate-200/90 rounded-xl grid grid-cols-3 gap-2 text-center shadow-2xs">
+                    <div class="border-r border-slate-200/80 pr-1 sm:pr-2">
+                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">RA BILL NO.</span>
+                        <span class="text-xs sm:text-sm font-mono font-black text-slate-900 mt-0.5 block" x-text="selectedBill ? selectedBill.ra_bill_number : ''"></span>
                     </div>
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">NET APPROVED</span>
-                        <span class="text-sm font-mono font-black text-blue-900 mt-1 block" x-text="selectedBill ? '₹ ' + numberFormat(selectedBill.net_approved_amount) : ''"></span>
+                    <div class="border-r border-slate-200/80 pr-1 sm:pr-2">
+                        <span class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">NET APPROVED</span>
+                        <span class="text-xs sm:text-sm font-mono font-black text-blue-900 mt-0.5 block" x-text="selectedBill ? '₹ ' + numberFormat(selectedBill.net_approved_amount) : ''"></span>
                     </div>
                     <div>
-                        <span class="block text-[11px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BAL.</span>
-                        <span class="text-sm font-mono font-black text-rose-700 mt-1 block" x-text="selectedBill ? '₹ ' + numberFormat(selectedBill.balance_amount) : ''"></span>
+                        <span class="block text-[10px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BAL.</span>
+                        <span class="text-xs sm:text-sm font-mono font-black text-rose-700 mt-0.5 block" x-text="selectedBill ? '₹ ' + numberFormat(selectedBill.balance_amount) : ''"></span>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DISBURSEMENT DATE <span class="text-rose-500 font-bold">*</span></label>
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">DISBURSEMENT DATE <span class="text-rose-500 font-bold">*</span></label>
                         <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" required
-                               class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
+                               class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
                     </div>
 
                     <div>
-                        <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
                             <button type="button" 
                                     @click="disbursePaidAmount = selectedBill ? selectedBill.balance_amount : ''; $nextTick(() => { const el = $el.closest('form').querySelector('input[name=\'paid_amount\']'); if(el && window.updateAmountInWordsForInput) window.updateAmountInWordsForInput(el); })"
                                     class="text-[10px] font-bold text-[#a38c29] hover:underline cursor-pointer">
@@ -434,30 +434,30 @@
                             </button>
                         </div>
                         <input type="number" step="0.01" min="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedBill ? selectedBill.balance_amount : null" placeholder="Enter amount to disburse..." required
-                               class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-sm font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
-                               oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
+                               class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs sm:text-sm font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
+                                oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="company_bank_account_id" x-model="selectedBankId" required class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
+                        <select name="company_bank_account_id" x-model="selectedBankId" required class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
                             @foreach($companyBankAccounts as $bank)
                                 <option value="{{ $bank->id }}">
                                     {{ $bank->bank_name }} — A/C: {{ $bank->account_number }}
                                 </option>
                             @endforeach
                         </select>
-                        <div class="mt-1.5 flex items-center justify-between px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl">
-                            <span class="text-xs font-bold text-blue-900">Available Balance:</span>
-                            <span class="font-mono font-black text-sm sm:text-base text-blue-950" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
+                        <div class="mt-1 flex items-center justify-between px-2.5 py-1 bg-blue-50/80 border border-blue-200/80 rounded-xl">
+                            <span class="text-[11px] font-bold text-blue-900">Available Balance:</span>
+                            <span class="font-mono font-black text-xs sm:text-sm text-blue-950" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">PAYMENT MODE <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="payment_mode" required class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
+                        <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">PAYMENT MODE <span class="text-rose-500 font-bold">*</span></label>
+                        <select name="payment_mode" required class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/20 focus:outline-none transition-all shadow-2xs">
                             @foreach(($paymentModes ?? []) as $pm)
                                 @php
                                     $pmCode = is_object($pm) ? ($pm->code ?? $pm->name) : $pm;
@@ -470,62 +470,62 @@
                 </div>
 
                 <!-- ── LIVE BANK BALANCE & BILL SETTLEMENT INTELLIGENCE STRIP ── -->
-                <div class="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-                            <span class="text-xs font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Bill Settlement Analysis</span>
+                <div class="p-2.5 sm:p-3 bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs space-y-2">
+                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2">
+                        <div class="flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                            <span class="text-[11px] font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Bill Settlement Analysis</span>
                         </div>
                         <div>
-                            <span x-show="isBankSufficient()" class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
+                            <span x-show="isBankSufficient()" class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
                                 <span>✓ Sufficient Bank Balance</span>
                             </span>
-                            <span x-show="!isBankSufficient()" class="px-3 py-1 rounded-full text-[10px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
+                            <span x-show="!isBankSufficient()" class="px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
                                 <span>⚠️ Insufficient Funds (Shortfall: ₹ <span x-text="numberFormat(getShortfall())"></span>)</span>
                             </span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <!-- 1. Bank Account Balance -->
-                        <div class="p-4 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
-                            <span class="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2.5">BANK ACCOUNT BALANCE</span>
+                        <div class="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
+                            <span class="block text-[11px] font-black text-slate-700 uppercase tracking-wider mb-1.5">BANK ACCOUNT BALANCE</span>
                             
-                            <div class="space-y-2">
+                            <div class="space-y-1.5">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-slate-500">Current:</span>
-                                    <span class="font-mono font-black text-slate-900 text-lg md:text-xl" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
+                                    <span class="text-[11px] font-bold text-slate-500">Current:</span>
+                                    <span class="font-mono font-black text-slate-900 text-sm sm:text-base" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
                                 </div>
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                                    <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
-                                    <span class="font-mono font-black text-lg md:text-xl" :class="getPostBankBalance() >= 0 ? 'text-emerald-700' : 'text-rose-600'" x-text="'₹ ' + numberFormat(getPostBankBalance())"></span>
+                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
+                                    <span class="font-mono font-black text-sm sm:text-base" :class="getPostBankBalance() >= 0 ? 'text-emerald-700' : 'text-rose-600'" x-text="'₹ ' + numberFormat(getPostBankBalance())"></span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- 2. RA Bill Balance -->
-                        <div class="p-4 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
-                            <div class="flex items-center justify-between mb-2.5">
-                                <span class="block text-xs font-black text-slate-700 uppercase tracking-wider">RA BILL OUTSTANDING</span>
-                                <span x-show="parseFloat(disbursePaidAmount) > 0 && getBillRemaining() == 0" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <div class="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200 border-l-4 border-l-[#a38c29] shadow-xs flex flex-col justify-between transition-all">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="block text-[11px] font-black text-slate-700 uppercase tracking-wider">RA BILL OUTSTANDING</span>
+                                <span x-show="parseFloat(disbursePaidAmount) > 0 && getBillRemaining() == 0" class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
                                     Fully Settled
                                 </span>
-                                <span x-show="parseFloat(disbursePaidAmount) > 0 && getBillRemaining() > 0" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-200">
+                                <span x-show="parseFloat(disbursePaidAmount) > 0 && getBillRemaining() > 0" class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-amber-100 text-amber-800 border border-amber-200">
                                     Part Due
                                 </span>
-                                <span x-show="!parseFloat(disbursePaidAmount)" class="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
+                                <span x-show="!parseFloat(disbursePaidAmount)" class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-slate-100 text-slate-600 border border-slate-200">
                                     Pending Entry
                                 </span>
                             </div>
                             
-                            <div class="space-y-2">
+                            <div class="space-y-1.5">
                                 <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-slate-500">Current Due:</span>
-                                    <span class="font-mono font-black text-slate-900 text-lg md:text-xl" x-text="'₹ ' + numberFormat(selectedBill ? selectedBill.balance_amount : 0)"></span>
+                                    <span class="text-[11px] font-bold text-slate-500">Current Due:</span>
+                                    <span class="font-mono font-black text-slate-900 text-sm sm:text-base" x-text="'₹ ' + numberFormat(selectedBill ? selectedBill.balance_amount : 0)"></span>
                                 </div>
-                                <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                                    <span class="text-xs font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
-                                    <span class="font-mono font-black text-lg md:text-xl" :class="getBillRemaining() == 0 ? 'text-emerald-700' : 'text-amber-700'" x-text="'₹ ' + numberFormat(getBillRemaining())"></span>
+                                <div class="flex items-center justify-between pt-1.5 border-t border-slate-100">
+                                    <span class="text-[11px] font-bold text-slate-500 whitespace-nowrap">Post-Payment:</span>
+                                    <span class="font-mono font-black text-sm sm:text-base" :class="getBillRemaining() == 0 ? 'text-emerald-700' : 'text-amber-700'" x-text="'₹ ' + numberFormat(getBillRemaining())"></span>
                                 </div>
                             </div>
                         </div>
@@ -533,14 +533,14 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">REFERENCE NO (CHEQUE # / UTR #) <span class="text-rose-500 font-bold">*</span></label>
+                    <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1">REFERENCE NO (CHEQUE # / UTR #) <span class="text-rose-500 font-bold">*</span></label>
                     <input type="text" name="reference_no" placeholder="e.g. UTR123456789 or Chq #000123" required
-                           class="w-full px-3.5 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs">
+                           class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs">
                 </div>
 
-                <div class="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
-                    <button type="button" @click="disburseModalOpen = false" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition cursor-pointer">CANCEL</button>
-                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/25 border border-[#a38c29]/40 cursor-pointer active:scale-98">
+                <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 shrink-0">
+                    <button type="button" @click="disburseModalOpen = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold uppercase rounded-xl transition cursor-pointer">CANCEL</button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-[#a38c29] to-[#8a7522] hover:from-[#8a7522] hover:to-[#73611b] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/25 border border-[#a38c29]/40 cursor-pointer active:scale-98">
                         RELEASE PAYMENT &amp; PRINT VOUCHER
                     </button>
                 </div>
