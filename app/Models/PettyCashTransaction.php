@@ -11,6 +11,7 @@ class PettyCashTransaction extends Model
 
     protected $fillable = [
         'petty_cash_box_id',
+        'category_id',
         'voucher_id',
         'transaction_date',
         'voucher_number',
@@ -29,6 +30,11 @@ class PettyCashTransaction extends Model
     public function pettyCashBox()
     {
         return $this->belongsTo(PettyCashBox::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 
     public function voucher()

@@ -12,6 +12,7 @@ use App\Models\JournalEntry;
 use App\Models\ChartOfAccount;
 use App\Models\VoucherType;
 use App\Models\CompanyBankAccount;
+use App\Models\Category;
 use Carbon\Carbon;
 
 class PettyCashController extends Controller
@@ -413,7 +414,8 @@ class PettyCashController extends Controller
             ]
         );
 
-        $query = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id)
+        $query = PettyCashTransaction::with(['category', 'pettyCashBox.project', 'creator'])
+            ->where('petty_cash_box_id', $pettyCashBox->id)
             ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment']);
             
         if ($fromDate) {
@@ -424,7 +426,17 @@ class PettyCashController extends Controller
         }
         
         if ($category && $category !== 'All') {
-            $query->where('narration', 'like', $category . '%');
+            if (is_numeric($category)) {
+                $query->where('category_id', $category);
+            } else {
+                $query->where(function($q) use ($category) {
+                    $q->where('category_id', $category)
+                      ->orWhereHas('category', function($cq) use ($category) {
+                          $cq->where('category', $category);
+                      })
+                      ->orWhere('narration', 'like', $category . '%');
+                });
+            }
         }
         
         if ($paymentMode && $paymentMode !== 'All') {
@@ -448,12 +460,15 @@ class PettyCashController extends Controller
             ->whereDate('transaction_date', '>=', $startOfMonth)
             ->sum('cash_out');
 
-        $categorySummary = PettyCashTransaction::where('petty_cash_box_id', $pettyCashBox->id)
+        $categorySummary = PettyCashTransaction::with('category')
+            ->where('petty_cash_box_id', $pettyCashBox->id)
             ->whereIn('transaction_type', ['Site Expense', 'Expense', 'Payment'])
             ->whereDate('transaction_date', '>=', $startOfMonth)
             ->get()
             ->groupBy(function($item) {
-                // If category is the prefix of narration
+                if ($item->category) {
+                    return $item->category->category;
+                }
                 $parts = explode('-', $item->narration);
                 return trim($parts[0]) ?: 'Others';
             })
@@ -462,36 +477,50 @@ class PettyCashController extends Controller
             });
 
         $paymentModes = \App\Models\PaymentMode::active()->get();
+        $masterCategories = Category::where('status', 'active')
+            ->where(function($q) use ($selectedProject) {
+                $q->whereNull('project_id')
+                  ->orWhere('project_id', $selectedProject);
+            })
+            ->orderBy('category', 'asc')
+            ->get();
+
+        if ($masterCategories->isEmpty()) {
+            $masterCategories = Category::where('status', 'active')->orderBy('category', 'asc')->get();
+        }
+
+        $formatExpense = function($expense) use ($category, $selectedProject, $siteName) {
+            $catName = $expense->category?->category ?? (($category && $category !== 'All' && !is_numeric($category)) ? $category : (explode('-', $expense->narration)[0] ?? 'General'));
+            $parts = explode('-', $expense->narration);
+            $particularsText = count($parts) > 1 ? trim(implode('-', array_slice($parts, 1))) : $expense->narration;
+
+            return [
+                'id' => $expense->id,
+                'voucher_number' => $expense->voucher_number,
+                'transaction_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('Y-m-d'),
+                'formatted_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('d-M-Y'),
+                'project_id' => $expense->pettyCashBox?->project_id ?? $selectedProject,
+                'project_name' => $expense->pettyCashBox?->project?->name ?? $siteName,
+                'category_id' => $expense->category_id,
+                'category' => trim($catName),
+                'particulars' => trim($particularsText),
+                'narration' => $expense->narration,
+                'payment_mode' => $expense->payment_mode ?? 'Cash',
+                'bill_no' => $expense->reference_no ?? '',
+                'bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '',
+                'formatted_bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('d-M-Y') : '',
+                'amount' => (float)$expense->cash_out,
+                'formatted_amount' => '₹ ' . number_format($expense->cash_out, 2),
+                'attachment_url' => $expense->attachment_path ? asset($expense->attachment_path) : '',
+                'attachment_name' => $expense->attachment_path ? basename($expense->attachment_path) : '',
+                'created_by' => $expense->creator?->name ?? 'System Admin',
+            ];
+        };
 
         if ($request->wantsJson() || $request->ajax()) {
             if ($request->boolean('all') || $request->input('per_page') === 'all' || $request->has('export')) {
                 $allExpenses = $query->orderBy('transaction_date', 'desc')->get();
-                $formattedExpenses = $allExpenses->map(function($expense) use ($category, $selectedProject, $siteName) {
-                    $catName = ($category && $category !== 'All') ? $category : (explode('-', $expense->narration)[0] ?? 'General');
-                    $parts = explode('-', $expense->narration);
-                    $particularsText = count($parts) > 1 ? trim(implode('-', array_slice($parts, 1))) : $expense->narration;
-
-                    return [
-                        'id' => $expense->id,
-                        'voucher_number' => $expense->voucher_number,
-                        'transaction_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('Y-m-d'),
-                        'formatted_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('d-M-Y'),
-                        'project_id' => $expense->pettyCashBox?->project_id ?? $selectedProject,
-                        'project_name' => $expense->pettyCashBox?->project?->name ?? $siteName,
-                        'category' => trim($catName),
-                        'particulars' => trim($particularsText),
-                        'narration' => $expense->narration,
-                        'payment_mode' => $expense->payment_mode ?? 'Cash',
-                        'bill_no' => $expense->reference_no ?? '',
-                        'bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '',
-                        'formatted_bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('d-M-Y') : '',
-                        'amount' => (float)$expense->cash_out,
-                        'formatted_amount' => '₹ ' . number_format($expense->cash_out, 2),
-                        'attachment_url' => $expense->attachment_path ? asset($expense->attachment_path) : '',
-                        'attachment_name' => $expense->attachment_path ? basename($expense->attachment_path) : '',
-                        'created_by' => $expense->creator?->name ?? 'System Admin',
-                    ];
-                });
+                $formattedExpenses = $allExpenses->map($formatExpense);
 
                 return response()->json([
                     'expenses' => $formattedExpenses,
@@ -504,32 +533,7 @@ class PettyCashController extends Controller
             }
 
             $expenses = $query->orderBy('transaction_date', 'desc')->paginate(10);
-            $formattedExpenses = collect($expenses->items())->map(function($expense) use ($category, $selectedProject, $siteName) {
-                $catName = ($category && $category !== 'All') ? $category : (explode('-', $expense->narration)[0] ?? 'General');
-                $parts = explode('-', $expense->narration);
-                $particularsText = count($parts) > 1 ? trim(implode('-', array_slice($parts, 1))) : $expense->narration;
-
-                return [
-                    'id' => $expense->id,
-                    'voucher_number' => $expense->voucher_number,
-                    'transaction_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('Y-m-d'),
-                    'formatted_date' => \Carbon\Carbon::parse($expense->transaction_date)->format('d-M-Y'),
-                    'project_id' => $expense->pettyCashBox?->project_id ?? $selectedProject,
-                    'project_name' => $expense->pettyCashBox?->project?->name ?? $siteName,
-                    'category' => trim($catName),
-                    'particulars' => trim($particularsText),
-                    'narration' => $expense->narration,
-                    'payment_mode' => $expense->payment_mode ?? 'Cash',
-                    'bill_no' => $expense->reference_no ?? '',
-                    'bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('Y-m-d') : '',
-                    'formatted_bill_date' => $expense->bill_date ? \Carbon\Carbon::parse($expense->bill_date)->format('d-M-Y') : '',
-                    'amount' => (float)$expense->cash_out,
-                    'formatted_amount' => '₹ ' . number_format($expense->cash_out, 2),
-                    'attachment_url' => $expense->attachment_path ? asset($expense->attachment_path) : '',
-                    'attachment_name' => $expense->attachment_path ? basename($expense->attachment_path) : '',
-                    'created_by' => $expense->creator?->name ?? 'System Admin',
-                ];
-            });
+            $formattedExpenses = collect($expenses->items())->map($formatExpense);
 
             return response()->json([
                 'expenses' => $formattedExpenses,
@@ -560,6 +564,7 @@ class PettyCashController extends Controller
             'siteName', 
             'totalAmount', 
             'paymentModes', 
+            'masterCategories',
             'availableBalance', 
             'thisMonthTotal', 
             'categorySummary'
@@ -584,7 +589,8 @@ class PettyCashController extends Controller
             'project_id' => 'required|exists:projects,id',
             'transaction_date' => 'required|date',
             'voucher_number' => 'required|string',
-            'category' => 'required|string',
+            'category_id' => 'nullable',
+            'category' => 'nullable',
             'payment_mode' => 'required|string',
             'bill_no' => 'required|string',
             'bill_date' => 'nullable|date',
@@ -592,6 +598,27 @@ class PettyCashController extends Controller
             'particulars' => 'required|string',
             'attachment' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
+
+        $catInput = $request->input('category_id') ?: $request->input('category');
+        $categoryId = null;
+        $categoryName = 'General';
+        if ($catInput) {
+            if (is_numeric($catInput)) {
+                $catObj = Category::find($catInput);
+                if ($catObj) {
+                    $categoryId = $catObj->id;
+                    $categoryName = $catObj->category;
+                }
+            } else {
+                $catObj = Category::where('category', $catInput)->first();
+                if ($catObj) {
+                    $categoryId = $catObj->id;
+                    $categoryName = $catObj->category;
+                } else {
+                    $categoryName = $catInput;
+                }
+            }
+        }
 
         $project = Project::findOrFail($request->project_id);
         $pettyCashBox = PettyCashBox::firstOrCreate(
@@ -633,12 +660,13 @@ class PettyCashController extends Controller
 
         $transaction = PettyCashTransaction::create([
             'petty_cash_box_id' => $pettyCashBox->id,
+            'category_id' => $categoryId,
             'transaction_date' => $request->transaction_date,
             'voucher_number' => $request->voucher_number,
             'transaction_type' => 'Site Expense',
             'reference_no' => $request->bill_no,
             'bill_date' => $request->bill_date,
-            'narration' => $request->category . ' - ' . $request->particulars,
+            'narration' => $categoryName . ' - ' . $request->particulars,
             'payment_mode' => $request->payment_mode,
             'cash_in' => 0,
             'cash_out' => $request->amount,
@@ -664,7 +692,8 @@ class PettyCashController extends Controller
     public function updateExpense(Request $request, $id)
     {
         $request->validate([
-            'category' => 'required|string',
+            'category_id' => 'nullable',
+            'category' => 'nullable',
             'payment_mode' => 'required|string',
             'bill_no' => 'required|string',
             'bill_date' => 'nullable|date',
@@ -675,6 +704,27 @@ class PettyCashController extends Controller
 
         $transaction = PettyCashTransaction::findOrFail($id);
         $pettyCashBox = PettyCashBox::findOrFail($transaction->petty_cash_box_id);
+
+        $catInput = $request->input('category_id') ?: $request->input('category');
+        $categoryId = $transaction->category_id;
+        $categoryName = $transaction->category?->category ?? 'General';
+        if ($catInput) {
+            if (is_numeric($catInput)) {
+                $catObj = Category::find($catInput);
+                if ($catObj) {
+                    $categoryId = $catObj->id;
+                    $categoryName = $catObj->category;
+                }
+            } else {
+                $catObj = Category::where('category', $catInput)->first();
+                if ($catObj) {
+                    $categoryId = $catObj->id;
+                    $categoryName = $catObj->category;
+                } else {
+                    $categoryName = $catInput;
+                }
+            }
+        }
 
         $oldAmount = (float)$transaction->cash_out;
         $newAmount = (float)$request->amount;
@@ -700,9 +750,10 @@ class PettyCashController extends Controller
         }
 
         $transaction->update([
+            'category_id' => $categoryId,
             'reference_no' => $request->bill_no,
             'bill_date' => $request->bill_date,
-            'narration' => $request->category . ' - ' . $request->particulars,
+            'narration' => $categoryName . ' - ' . $request->particulars,
             'payment_mode' => $request->payment_mode,
             'cash_out' => $newAmount,
             'balance' => $balanceAfter,

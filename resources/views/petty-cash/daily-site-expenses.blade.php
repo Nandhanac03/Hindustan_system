@@ -167,12 +167,18 @@
                     <select x-model="filters.category" @change="fetchExpenses(1)"
                             class="w-full pl-10 pr-8 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition-all shadow-2xs appearance-none">
                         <option value="All">All Categories</option>
-                        <option value="Refreshments">Refreshments</option>
-                        <option value="Transport">Transport</option>
-                        <option value="Minor Tools">Minor Tools</option>
-                        <option value="Stationery">Stationery</option>
-                        <option value="Labour Welfare">Labour Welfare</option>
-                        <option value="Electrical Material">Electrical Material</option>
+                        @if(isset($masterCategories) && count($masterCategories) > 0)
+                            @foreach($masterCategories as $cat)
+                                <option value="{{ $cat->category }}">{{ $cat->category }}</option>
+                            @endforeach
+                        @else
+                            <option value="Refreshments">Refreshments</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Minor Tools">Minor Tools</option>
+                            <option value="Stationery">Stationery</option>
+                            <option value="Labour Welfare">Labour Welfare</option>
+                            <option value="Electrical Material">Electrical Material</option>
+                        @endif
                     </select>
                     <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
@@ -375,13 +381,19 @@
                                     <select name="category" x-model="newExpense.category" @change="expenseErrors.category = ''"
                                             :class="expenseErrors.category ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
                                             class="w-full bg-white border rounded-xl px-3.5 h-10 text-xs font-semibold text-slate-800 outline-none transition shadow-2xs cursor-pointer">
-                                        <option value="Refreshments">Refreshments</option>
-                                        <option value="Transport">Transport</option>
-                                        <option value="Minor Tools">Minor Tools</option>
-                                        <option value="Stationery">Stationery</option>
-                                        <option value="Labour Welfare">Labour Welfare</option>
-                                        <option value="Electrical Material">Electrical Material</option>
-                                        <option value="Others">Others</option>
+                                        @if(isset($masterCategories) && count($masterCategories) > 0)
+                                            @foreach($masterCategories as $cat)
+                                                <option value="{{ $cat->category }}">{{ $cat->category }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="Refreshments">Refreshments</option>
+                                            <option value="Transport">Transport</option>
+                                            <option value="Minor Tools">Minor Tools</option>
+                                            <option value="Stationery">Stationery</option>
+                                            <option value="Labour Welfare">Labour Welfare</option>
+                                            <option value="Electrical Material">Electrical Material</option>
+                                            <option value="Others">Others</option>
+                                        @endif
                                     </select>
                                     <p x-show="expenseErrors.category" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
                                         <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -766,13 +778,19 @@
                                     <select name="category" x-model="selectedExp.category" @change="editErrors.category = ''"
                                             :class="editErrors.category ? 'border-rose-400 bg-rose-50/20 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
                                             class="w-full bg-white border rounded-xl px-3.5 h-10 text-xs font-semibold text-slate-800 outline-none transition shadow-2xs cursor-pointer">
-                                        <option value="Refreshments">Refreshments</option>
-                                        <option value="Transport">Transport</option>
-                                        <option value="Minor Tools">Minor Tools</option>
-                                        <option value="Stationery">Stationery</option>
-                                        <option value="Labour Welfare">Labour Welfare</option>
-                                        <option value="Electrical Material">Electrical Material</option>
-                                        <option value="Others">Others</option>
+                                        @if(isset($masterCategories) && count($masterCategories) > 0)
+                                            @foreach($masterCategories as $cat)
+                                                <option value="{{ $cat->category }}">{{ $cat->category }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="Refreshments">Refreshments</option>
+                                            <option value="Transport">Transport</option>
+                                            <option value="Minor Tools">Minor Tools</option>
+                                            <option value="Stationery">Stationery</option>
+                                            <option value="Labour Welfare">Labour Welfare</option>
+                                            <option value="Electrical Material">Electrical Material</option>
+                                            <option value="Others">Others</option>
+                                        @endif
                                     </select>
                                     <p x-show="editErrors.category" x-cloak class="text-rose-600 text-[11px] font-bold mt-1.5 flex items-center gap-1">
                                         <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -970,7 +988,7 @@ function dailySiteExpenses() {
         newExpense: {
             transaction_date: '{{ old('transaction_date', date('Y-m-d')) }}',
             project_id: '{{ old('project_id', $projects->first()->id ?? '') }}',
-            category: '{{ old('category', 'Refreshments') }}',
+            category: '{{ old('category', (isset($masterCategories) && count($masterCategories) > 0) ? $masterCategories->first()->category : 'Refreshments') }}',
             payment_mode: '{{ old('payment_mode', (isset($paymentModes) && count($paymentModes) > 0) ? $paymentModes->first()->name : 'Cash') }}',
             bill_no: '{{ old('bill_no', '') }}',
             particulars: `{{ old('particulars', '') }}`,
@@ -1035,7 +1053,7 @@ function dailySiteExpenses() {
 
         init() {
             this.expensesList = {!! json_encode(collect($expenses->items())->map(function($e) use ($category, $selectedProject, $siteName) {
-                $catName = ($category && $category !== 'All') ? $category : (explode('-', $e->narration)[0] ?? 'General');
+                $catName = $e->category?->category ?? (($category && $category !== 'All' && !is_numeric($category)) ? $category : (explode('-', $e->narration)[0] ?? 'General'));
                 $parts = explode('-', $e->narration);
                 $particularsText = count($parts) > 1 ? trim(implode('-', array_slice($parts, 1))) : $e->narration;
                 return [
@@ -1045,6 +1063,7 @@ function dailySiteExpenses() {
                     'formatted_date' => \Carbon\Carbon::parse($e->transaction_date)->format('d-M-Y'),
                     'project_id' => $e->pettyCashBox?->project_id ?? $selectedProject,
                     'project_name' => $e->pettyCashBox?->project?->name ?? $siteName ?? 'Site',
+                    'category_id' => $e->category_id,
                     'category' => trim($catName),
                     'particulars' => trim($particularsText),
                     'narration' => $e->narration,
