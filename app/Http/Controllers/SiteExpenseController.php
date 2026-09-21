@@ -29,50 +29,42 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
+use App\Models\SiteExpenseCategory;
+
 class SiteExpenseController extends Controller
 {
     /**
-     * Default 4000-series Expense Categories as per specification
-     */
-    protected array $defaultCategories = [
-        '4001' => 'Land Acquisition & Legal Cost',
-        '4010' => 'Site Office & Administrative',
-        '4020' => 'Machinery & Heavy Equipment Rental',
-        '4030' => 'Generator Diesel & Power Expenses',
-        '4040' => 'Municipal, Plan Sanction & RERA Fees',
-    ];
-
-    /**
-     * Get Expense Categories - Restricted specifically to Site Expense COAs (4001, 4010, 4020, 4030, 4040)
+     * Get Expense Categories - Loaded dynamically only from Site Expense Category Master
      */
     protected function getExpenseCategories(): array
     {
-        $siteExpenseCodes = array_keys($this->defaultCategories);
         $categories = [];
 
         try {
-            if (Schema::hasTable('chart_of_accounts')) {
-                $dbAccounts = ChartOfAccount::where('is_active', true)
-                    ->whereIn('account_code', $siteExpenseCodes)
-                    ->orderBy('account_code')
-                    ->get();
+            if (!Schema::hasTable('site_expense_categories')) {
+                Schema::create('site_expense_categories', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->id();
+                    $table->string('category_code', 50)->nullable();
+                    $table->string('category_name', 255);
+                    $table->foreignId('project_id')->nullable()->constrained('projects')->nullOnDelete();
+                    $table->text('description')->nullable();
+                    $table->string('status', 20)->default('active');
+                    $table->timestamps();
+                });
+            }
 
-                foreach ($dbAccounts as $acc) {
-                    $categories[$acc->account_code] = $acc->account_name;
-                }
+            // Fetch dynamic active categories from Site Expense Category master ordered by code
+            $customCats = SiteExpenseCategory::where('status', 'active')
+                ->orderByRaw('CASE WHEN category_code IS NULL OR category_code = "" THEN 1 ELSE 0 END, category_code ASC, id ASC')
+                ->get();
+
+            foreach ($customCats as $cc) {
+                $code = !empty($cc->category_code) ? $cc->category_code : ('SEC-' . $cc->id);
+                $categories[$code] = $cc->category_name;
             }
         } catch (\Exception $e) {
-            // Fallback to defaults if query fails
+            // Silently fallback if table operations fail
         }
-
-        // Use default definitions for any missing codes without writing to the database
-        foreach ($this->defaultCategories as $code => $name) {
-            if (!isset($categories[$code])) {
-                $categories[$code] = $name;
-            }
-        }
-
-        ksort($categories);
 
         return $categories;
     }

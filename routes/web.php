@@ -305,6 +305,15 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::match(['get', 'post', 'delete'], '/categories/{category}', [\App\Http\Controllers\CategoryController::class, 'destroy'])->name('categories.destroy');
     Route::match(['get', 'post', 'delete'], '/categories/{category}/delete', [\App\Http\Controllers\CategoryController::class, 'destroy'])->name('categories.destroy.post');
 
+    // Site Expense Category Master Module
+    Route::get('/site-expense-categories', [\App\Http\Controllers\SiteExpenseCategoryController::class, 'index'])->name('site-expense-categories.index');
+    Route::post('/site-expense-categories', [\App\Http\Controllers\SiteExpenseCategoryController::class, 'store'])->name('site-expense-categories.store');
+    Route::match(['put', 'post'], '/site-expense-categories/{siteExpenseCategory}', [\App\Http\Controllers\SiteExpenseCategoryController::class, 'update'])->name('site-expense-categories.update');
+    Route::match(['put', 'post'], '/site-expense-categories/{siteExpenseCategory}/update', [\App\Http\Controllers\SiteExpenseCategoryController::class, 'update'])->name('site-expense-categories.update.post');
+    Route::post('/site-expense-categories/{siteExpenseCategory}/toggle-status', [\App\Http\Controllers\SiteExpenseCategoryController::class, 'toggleStatus'])->name('site-expense-categories.toggle-status');
+    Route::match(['get', 'post', 'delete'], '/site-expense-categories/{siteExpenseCategory}', [\App\Http\Controllers\SiteExpenseCategoryController::class, 'destroy'])->name('site-expense-categories.destroy');
+    Route::match(['get', 'post', 'delete'], '/site-expense-categories/{siteExpenseCategory}/delete', [\App\Http\Controllers\SiteExpenseCategoryController::class, 'destroy'])->name('site-expense-categories.destroy.post');
+
     // Chart of Accounts Master Module
     Route::get('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'index'])->name('chart-of-accounts.index');
     Route::post('/chart-of-accounts', [\App\Http\Controllers\ChartOfAccountController::class, 'store'])->name('chart-of-accounts.store');

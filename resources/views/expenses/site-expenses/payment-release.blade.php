@@ -235,13 +235,11 @@
                                             <span>CLEARED</span>
                                         </span>
                                     @elseif($paid > 0)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
                                             <span>PARTIALLY PAID</span>
                                         </span>
                                     @else
                                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
                                             <span>PENDING RELEASE</span>
                                         </span>
                                     @endif
@@ -360,200 +358,190 @@
         @endif
     </div>
 
-    <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (MATCHING CONTRACTOR RELEASE MODAL) ── -->
+    <!-- ── MODAL: STAGGERED DISBURSEMENT RELEASE (OPTIMIZED FOR LAPTOP & DESKTOP) ── -->
     <div x-show="disburseModalOpen" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden transform transition-all" @click.away="disburseModalOpen = false">
+        <div class="bg-white rounded-2xl max-w-4xl w-full shadow-2xl overflow-hidden transform transition-all my-auto flex flex-col max-h-[92vh]" @click.away="disburseModalOpen = false">
             {{-- Dark Header --}}
-            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0 border-b border-amber-500/20">
+            <div class="relative overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-3.5 flex-shrink-0 border-b border-amber-500/20">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Payment Disbursement</p>
-                        <h2 class="text-lg font-extrabold text-white">Disburse Staggered Site Expense Payment</h2>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-0.5">Payment Disbursement</p>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white">Disburse Staggered Site Expense Payment</h2>
                     </div>
-                    <button type="button" @click="disburseModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer">
+                    <button type="button" @click="disburseModalOpen = false" class="text-slate-400 hover:text-white transition cursor-pointer p-1 rounded-lg hover:bg-white/10">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>
                 </div>
             </div>
 
-            <form :action="selectedExpense ? '{{ url('site-expenses') }}/' + selectedExpense.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="px-6 pt-3.5 pb-6 space-y-3.5">
+            <form :action="selectedExpense ? '{{ url('site-expenses') }}/' + selectedExpense.id + '/disburse' : '#'" method="POST" target="_blank" @submit="disburseModalOpen = false; setTimeout(() => window.location.reload(), 1200)" class="flex flex-col flex-1 overflow-hidden" data-no-words="true">
                 @csrf
 
-                <!-- Summary Card -->
-                <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl grid grid-cols-3 gap-3 text-center text-xs">
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">VOUCHER NO.</span>
-                        <span class="text-xs font-mono font-extrabold text-slate-900 mt-0.5 block" x-text="selectedExpense ? selectedExpense.voucher_number : ''"></span>
-                    </div>
-                    <div class="border-r border-slate-200/80 pr-2">
-                        <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">NET APPROVED</span>
-                        <span class="text-xs font-mono font-extrabold text-blue-900 mt-0.5 block" x-text="selectedExpense ? '₹' + numberFormat(selectedExpense.net_amount) : ''"></span>
-                    </div>
-                    <div>
-                        <span class="block text-[9.5px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BAL.</span>
-                        <span class="text-xs font-mono font-extrabold text-rose-700 mt-0.5 block" x-text="selectedExpense ? '₹' + numberFormat(selectedExpense.balance_amount) : ''"></span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3.5">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSEMENT DATE <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" required
-                               class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="number" step="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : 0" required
-                               class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs"
-                               oninput="window.updateAmountInWordsForInput && window.updateAmountInWordsForInput(this)">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3.5">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAYMENT SOURCE <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="payment_source_type" x-model="sourceType" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
-                            <option value="bank">Company Bank Account</option>
-                            <option value="loan">Project Bank Loan</option>
-                        </select>
-                    </div>
-
-                    <div x-show="sourceType === 'bank'">
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="company_bank_account_id" x-model="selectedBankId" :required="sourceType === 'bank'" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
-                            @foreach($companyBankAccounts as $bank)
-                                <option value="{{ $bank->id }}">
-                                    {{ $bank->bank_name }} — A/C: {{ $bank->account_number }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <div class="mt-1 flex items-center justify-between text-[10px]">
-                            <span class="text-slate-500 font-bold">Bank Balance:</span>
-                            <span class="font-mono font-bold text-slate-800 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md" x-text="'₹' + numberFormat(getBankBalance())"></span>
+                <div class="p-5 space-y-3 overflow-y-auto flex-1">
+                    <!-- Summary Card -->
+                    <div class="p-3 bg-slate-50 border border-slate-200/90 rounded-xl grid grid-cols-3 gap-3 text-center text-xs">
+                        <div class="border-r border-slate-200/80 pr-2">
+                            <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">VOUCHER NO.</span>
+                            <span class="text-xs font-mono font-extrabold text-slate-900 mt-0.5 block" x-text="selectedExpense ? selectedExpense.voucher_number : ''"></span>
                         </div>
-                    </div>
-
-                    <div x-show="sourceType === 'loan'" style="display: none;">
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">SELECT PROJECT LOAN <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="loan_id" :required="sourceType === 'loan'" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
-                            @foreach($loans as $l)
-                                <option value="{{ $l->id }}">
-                                    {{ $l->lender_name }} — Loan A/C: {{ $l->account_number }} (Outstanding: ₹{{ number_format((float)$l->outstanding_balance, 2) }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3.5">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAYMENT MODE <span class="text-rose-500 font-bold">*</span></label>
-                        <select name="payment_mode" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
-                            @foreach(($paymentModes ?? []) as $pm)
-                                @php
-                                    $pmCode = is_object($pm) ? ($pm->code ?? $pm->name) : $pm;
-                                    $pmName = is_object($pm) ? ($pm->name ?? $pm->code) : $pm;
-                                @endphp
-                                <option value="{{ $pmCode }}">{{ $pmName }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">REFERENCE NO (CHEQUE # / UTR #) <span class="text-rose-500 font-bold">*</span></label>
-                        <input type="text" name="reference_no" placeholder="e.g. UTR123456789 or Chq #000123" required
-                               class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs">
-                    </div>
-                </div>
-
-                <!-- ── LIVE BANK BALANCE & EXPENSE OUTFLOW ANALYSIS STRIP (WHEN SOURCE IS BANK) ── -->
-                <div x-show="sourceType === 'bank'" class="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-2.5">
-                    <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
-                        <div class="flex items-center gap-2">
-                            <span class="relative flex h-2.5 w-2.5">
-                                <span :class="isBankSufficient() ? 'bg-emerald-400' : 'bg-rose-400 animate-ping'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"></span>
-                                <span :class="isBankSufficient() ? 'bg-emerald-500' : 'bg-rose-500'" class="relative inline-flex rounded-full h-2.5 w-2.5"></span>
-                            </span>
-                            <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Expense Outflow Analysis</span>
+                        <div class="border-r border-slate-200/80 pr-2">
+                            <span class="block text-[9.5px] font-bold text-slate-500 uppercase tracking-wider">NET APPROVED</span>
+                            <span class="text-xs font-mono font-extrabold text-blue-900 mt-0.5 block" x-text="selectedExpense ? '₹' + numberFormat(selectedExpense.net_amount) : ''"></span>
                         </div>
                         <div>
-                            <span x-show="isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
-                                <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                                <span>Sufficient Bank Balance</span>
-                            </span>
-                            <span x-show="!isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
-                                <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                                <span>Insufficient Funds (Shortfall: ₹<span x-text="numberFormat(getShortfall())"></span>)</span>
-                            </span>
+                            <span class="block text-[9.5px] font-bold text-rose-700 uppercase tracking-wider">OUTSTANDING BAL.</span>
+                            <span class="text-xs font-mono font-extrabold text-rose-700 mt-0.5 block" x-text="selectedExpense ? '₹' + numberFormat(selectedExpense.balance_amount) : ''"></span>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                        <!-- 1. Bank Account Balance & Post-Payment Balance -->
-                        <div class="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">CURRENT BANK BALANCE</span>
-                                <div class="w-5 h-5 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                </div>
-                            </div>
-                            <div class="font-mono font-black text-slate-900 text-sm mt-0.5" x-text="'₹' + numberFormat(getBankBalance())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                                <span>Post-Payment:</span>
-                                <strong :class="getPostBankBalance() >= 0 ? 'text-emerald-700 font-mono font-black' : 'text-rose-600 font-mono font-black'" x-text="'₹' + numberFormat(getPostBankBalance())"></strong>
-                            </div>
-                            <div class="text-[9px] text-slate-400 truncate mt-1">
-                                Bank: <span class="font-bold text-slate-700" x-text="getSelectedBankName()"></span>
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSEMENT DATE <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="date" name="payment_date" value="{{ date('Y-m-d') }}" required
+                                   class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">AMOUNT (₹) <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="number" step="0.01" name="paid_amount" x-model="disbursePaidAmount" :max="selectedExpense ? selectedExpense.balance_amount : 0" required
+                                   data-no-words="true"
+                                   class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-mono font-black text-slate-900 focus:outline-none transition-all shadow-2xs">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAYMENT SOURCE <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="payment_source_type" x-model="sourceType" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
+                                <option value="bank">Company Bank Account</option>
+                                <option value="loan">Project Bank Loan</option>
+                            </select>
+                        </div>
+
+                        <div x-show="sourceType === 'bank'">
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSE FROM BANK ACCOUNT <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="company_bank_account_id" x-model="selectedBankId" :required="sourceType === 'bank'" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
+                                @foreach($companyBankAccounts as $bank)
+                                    <option value="{{ $bank->id }}">
+                                        {{ $bank->bank_name }} — A/C: {{ $bank->account_number }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="mt-1.5 flex items-center justify-between px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl">
+                                <span class="text-xs font-bold text-blue-900">Available Bank Balance:</span>
+                                <span class="font-mono font-black text-sm sm:text-base text-blue-950" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
                             </div>
                         </div>
 
-                        <!-- 2. This Site Expense Remaining Balance -->
-                        <div class="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="block text-[9px] font-black text-slate-500 uppercase tracking-wider">REMAINING VOUCHER BALANCE</span>
-                                <div class="w-5 h-5 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                </div>
+                        <div x-show="sourceType === 'loan'" style="display: none;">
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">SELECT PROJECT LOAN <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="loan_id" :required="sourceType === 'loan'" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
+                                @foreach($loans as $l)
+                                    <option value="{{ $l->id }}">
+                                        {{ $l->lender_name }} — Loan A/C: {{ $l->account_number }} (Outstanding: ₹{{ number_format((float)$l->outstanding_balance, 2) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">PAYMENT MODE <span class="text-rose-500 font-bold">*</span></label>
+                            <select name="payment_mode" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:ring-2 focus:ring-[#a38c29]/40 focus:border-[#a38c29] focus:outline-none transition-all">
+                                @foreach(($paymentModes ?? []) as $pm)
+                                    @php
+                                        $pmCode = is_object($pm) ? ($pm->code ?? $pm->name) : $pm;
+                                        $pmName = is_object($pm) ? ($pm->name ?? $pm->code) : $pm;
+                                    @endphp
+                                    <option value="{{ $pmCode }}">{{ $pmName }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">REFERENCE NO (CHEQUE # / UTR #) <span class="text-rose-500 font-bold">*</span></label>
+                            <input type="text" name="reference_no" placeholder="e.g. UTR123456789 or Chq #000123" required
+                                   class="w-full px-3 py-2 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-900 focus:outline-none transition-all shadow-2xs">
+                        </div>
+                    </div>
+
+                    <!-- ── LIVE BANK BALANCE & EXPENSE OUTFLOW ANALYSIS STRIP (WHEN SOURCE IS BANK) ── -->
+                    <div x-show="sourceType === 'bank'" class="p-3.5 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-2.5">
+                        <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                                <span class="text-[10px] font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Expense Outflow Analysis</span>
                             </div>
-                            <div class="font-mono font-black text-sm mt-0.5" :class="getExpenseRemaining() == 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="'₹' + numberFormat(getExpenseRemaining())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                                <span>Current Due:</span>
-                                <span class="font-mono font-bold text-slate-800" x-text="'₹' + numberFormat(selectedExpense ? selectedExpense.balance_amount : 0)"></span>
-                            </div>
-                            <div class="text-[9px] text-slate-400 truncate mt-1">
-                                Voucher: <span class="font-mono font-bold text-slate-700" x-text="selectedExpense ? selectedExpense.voucher_number : '-'"></span>
+                            <div>
+                                <span x-show="isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1 shadow-2xs">
+                                    <svg class="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    <span>Sufficient Bank Balance</span>
+                                </span>
+                                <span x-show="!isBankSufficient()" class="px-2.5 py-1 rounded-full text-[9.5px] font-black bg-rose-100 text-rose-800 border border-rose-300 inline-flex items-center gap-1 shadow-2xs">
+                                    <svg class="w-3 h-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                    <span>Insufficient Funds: ₹<span x-text="numberFormat(getShortfall())"></span>)</span>
+                                </span>
                             </div>
                         </div>
 
-                        <!-- 3. Payee / Vendor Total Dues -->
-                        <div class="p-3 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="block text-[9px] font-black text-[#a38c29] uppercase tracking-wider">PAYEE TOTAL DUES</span>
-                                <div class="w-5 h-5 rounded-md bg-[#FAF0D7] text-[#a38c29] flex items-center justify-center">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <!-- 1. Bank Account Balance & Post-Payment Balance -->
+                            <div class="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="block text-[10px] font-black text-slate-500 uppercase tracking-wider">CURRENT BANK BALANCE</span>
+                                    <div class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    </div>
+                                </div>
+                                <div class="font-mono font-black text-slate-900 text-xl sm:text-2xl mt-0.5" x-text="'₹ ' + numberFormat(getBankBalance())"></div>
+                                
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Post-Payment:</span>
+                                        <strong class="font-mono font-black text-base sm:text-lg" :class="getPostBankBalance() >= 0 ? 'text-emerald-700' : 'text-rose-600'" x-text="'₹ ' + numberFormat(getPostBankBalance())"></strong>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-50">
+                                        <span class="text-slate-500 font-semibold">Bank:</span>
+                                        <span class="font-black text-slate-900 text-xs sm:text-sm" x-text="getSelectedBankName()"></span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="font-mono font-black text-[#8a7522] text-sm mt-0.5" x-text="'₹' + numberFormat(getPayeeTotalDues())"></div>
-                            <div class="text-[9.5px] font-bold text-slate-500 mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                                <span>Post-Payment:</span>
-                                <span class="font-mono font-black text-slate-800" x-text="'₹' + numberFormat(getPayeePostDues())"></span>
-                            </div>
-                            <div class="text-[9px] text-slate-400 truncate mt-1">
-                                Payee: <strong class="text-slate-800" x-text="selectedExpense ? (selectedExpense.payee_display_name || selectedExpense.casual_payee_name || 'Payee') : 'Payee'"></strong>
+
+                            <!-- 2. This Site Expense Remaining Balance -->
+                            <div class="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="block text-[10px] font-black text-slate-500 uppercase tracking-wider">REMAINING VOUCHER BALANCE</span>
+                                    <div class="w-6 h-6 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                    </div>
+                                </div>
+                                <div class="font-mono font-black text-xl sm:text-2xl mt-0.5" :class="getExpenseRemaining() == 0 ? 'text-emerald-700' : 'text-rose-700'" x-text="'₹ ' + numberFormat(getExpenseRemaining())"></div>
+                                
+                                <div class="mt-3 pt-2.5 border-t border-slate-100 space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-600">Current Due:</span>
+                                        <span class="font-mono font-black text-base sm:text-lg text-slate-800" x-text="'₹ ' + numberFormat(selectedExpense ? selectedExpense.balance_amount : 0)"></span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs pt-1.5 border-t border-slate-50">
+                                        <span class="text-slate-500 font-semibold">Voucher:</span>
+                                        <span class="font-mono font-black text-slate-900 text-xs sm:text-sm" x-text="selectedExpense ? selectedExpense.voucher_number : '-'"></span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSEMENT REMARKS / AUDIT NOTES</label>
+                        <textarea name="remarks" rows="2" placeholder="e.g. Disbursed against site material delivery inspection..."
+                                  class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-600 uppercase tracking-wider mb-1">DISBURSEMENT REMARKS / AUDIT NOTES</label>
-                    <textarea name="remarks" rows="2" placeholder="e.g. Disbursed against site material delivery inspection..."
-                              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:ring-2 focus:ring-[#a38c29] focus:outline-none transition-all"></textarea>
-                </div>
-
-                <div class="pt-3 flex items-center justify-end gap-3 border-t border-slate-100">
+                <!-- Pinned Footer - Guaranteed Always Visible on All Laptops -->
+                <div class="p-3.5 px-6 flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 flex-shrink-0">
                     <button type="button" @click="disburseModalOpen = false" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-extrabold uppercase rounded-xl transition cursor-pointer">CANCEL</button>
                     <button type="submit" class="px-5 py-2.5 bg-[#a38c29] hover:bg-[#8a7522] text-white text-xs font-extrabold uppercase tracking-wider rounded-xl transition shadow-md shadow-[#a38c29]/20 border border-[#a38c29]/40 cursor-pointer">
                         RELEASE PAYMENT &amp; PRINT VOUCHER

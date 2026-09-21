@@ -106,7 +106,7 @@
     selectedExpense: null,
     projectId: '{{ old('project_id', $projects->first()?->id ?? '') }}',
     voucherDate: '{{ old('voucher_date', date('Y-m-d')) }}',
-    expenseCategoryCode: '{{ old('expense_category_code', '4020') }}',
+    expenseCategoryCode: '{{ old('expense_category_code', '') }}',
     paymentSourceType: 'bank',
     companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
     payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
@@ -148,7 +148,7 @@
         this.selectedExpense = null;
         this.projectId = '{{ $projects->first()?->id ?? '' }}';
         this.voucherDate = '{{ date('Y-m-d') }}';
-        this.expenseCategoryCode = '4020';
+        this.expenseCategoryCode = '';
         this.payeeType = 'registered';
         this.payeeId = '{{ $payees->first()?->id ?? '' }}';
         this.vendorId = '{{ $vendors->first()?->id ?? '' }}';
@@ -893,13 +893,14 @@
                             </select>
                         </div>
 
-                        {{-- Expense Category (COA) (Wide col-6) --}}
+                        {{-- Site Expense Category (Wide col-6) --}}
                         <div class="lg:col-span-6">
-                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Expense Category (COA) <span class="text-rose-500">*</span></label>
+                            <label class="block font-bold text-slate-700 mb-1.5 text-xs">Site Expense Category <span class="text-rose-500">*</span></label>
                             <select name="expense_category_code" x-model="expenseCategoryCode" class="w-full text-xs font-bold rounded-xl border border-slate-200 bg-white py-2.5 px-3.5 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 text-slate-900 transition shadow-2xs" required>
+                                <option value="">-- Select Site Expense Category --</option>
                                 @foreach($expenseCategories as $code => $name)
-                                    <option value="{{ $code }}" {{ old('expense_category_code', '4020') == $code ? 'selected' : '' }}>
-                                        {{ $code }} - {{ $name }}
+                                    <option value="{{ $code }}" {{ old('expense_category_code') == $code ? 'selected' : '' }}>
+                                        {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
                                     </option>
                                 @endforeach
                             </select>

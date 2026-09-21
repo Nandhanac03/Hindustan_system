@@ -257,13 +257,11 @@
                                             <span>CLEARED</span>
                                         </span>
                                     @elseif($isPartiallyPaid)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1.5 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-800 border border-blue-200 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
                                             <span>PARTIALLY PAID</span>
                                         </span>
                                     @elseif($isVerified)
-                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1.5 shadow-2xs uppercase tracking-wider">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600 shrink-0"></span>
+                                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-50 text-amber-900 border border-amber-300 inline-flex items-center gap-1 shadow-2xs uppercase tracking-wider">
                                             <span>PENDING RELEASE</span>
                                         </span>
                                     @else
@@ -451,9 +449,9 @@
                                 </option>
                             @endforeach
                         </select>
-                        <div class="mt-1.5 flex items-center justify-between text-xs">
-                            <span class="text-slate-500 font-medium">Available Balance:</span>
-                            <span class="font-mono font-extrabold text-slate-900 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-lg text-xs" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
+                        <div class="mt-1.5 flex items-center justify-between px-3 py-1.5 bg-blue-50/80 border border-blue-200/80 rounded-xl">
+                            <span class="text-xs font-bold text-blue-900">Available Balance:</span>
+                            <span class="font-mono font-black text-sm sm:text-base text-blue-950" x-text="'₹ ' + numberFormat(getBankBalance())"></span>
                         </div>
                     </div>
 
@@ -475,7 +473,7 @@
                 <div class="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl shadow-2xs space-y-3">
                     <div class="flex items-center justify-between border-b border-slate-200/80 pb-2.5">
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full" :class="isBankSufficient() ? 'bg-emerald-500 shadow-xs' : 'bg-rose-500 animate-ping'"></span>
+                            <svg class="w-4 h-4 text-[#a38c29]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                             <span class="text-xs font-black uppercase tracking-wider text-slate-800">Bank Balance &amp; Bill Settlement Analysis</span>
                         </div>
                         <div>

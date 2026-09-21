@@ -16,7 +16,7 @@
     voucherDate: '{{ old('voucher_date', date('Y-m-d')) }}',
     billInvoiceNo: '{{ old('transaction_reference_no', 'JCB/0525/01148') }}',
     billDate: '{{ date('Y-m-d') }}',
-    expenseCategoryCode: '{{ old('expense_category_code', '4020') }}',
+    expenseCategoryCode: '{{ old('expense_category_code', array_key_first($expenseCategories) ?? '') }}',
     grossAmount: {{ old('gross_amount', 45000) }},
     cgstPct: 9,
     sgstPct: 9,
@@ -315,11 +315,11 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block font-bold text-slate-700 mb-1.5">Expense Category <span class="text-rose-500">*</span></label>
+                        <label class="block font-bold text-slate-700 mb-1.5">Site Expense Category <span class="text-rose-500">*</span></label>
                         <select x-model="expenseCategoryCode" class="w-full text-xs font-semibold rounded-xl border-slate-300 bg-slate-50 py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:bg-white text-slate-800" required>
                             @foreach($expenseCategories as $code => $name)
                                 <option value="{{ $code }}">
-                                    {{ $code }} - {{ $name }}
+                                    {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
                                 </option>
                             @endforeach
                         </select>

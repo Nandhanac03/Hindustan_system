@@ -247,11 +247,11 @@
                     </h4>
 
                     <div>
-                        <label class="block font-semibold text-slate-700 mb-0.5">Expense Category <span class="text-rose-500">*</span></label>
+                        <label class="block font-semibold text-slate-700 mb-0.5">Site Expense Category <span class="text-rose-500">*</span></label>
                         <select name="expense_category_code" class="w-full text-xs rounded-lg border-slate-300 bg-slate-50 py-1.5 px-2.5 focus:ring-[#a38c29]" required>
                             @foreach($expenseCategories as $code => $name)
-                                <option value="{{ $code }}" {{ $code == '4020' ? 'selected' : '' }}>
-                                    {{ $code }} - {{ $name }}
+                                <option value="{{ $code }}">
+                                    {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
                                 </option>
                             @endforeach
                         </select>
@@ -980,11 +980,11 @@
                     </h4>
 
                     <div>
-                        <label class="block font-bold text-slate-700 mb-1">Expense Category <span class="text-rose-500">*</span></label>
+                        <label class="block font-bold text-slate-700 mb-1">Site Expense Category <span class="text-rose-500">*</span></label>
                         <select name="expense_category_code" class="w-full text-xs rounded-xl border-slate-300 bg-slate-50 py-2 px-3 focus:ring-[#a38c29]" required>
                             @foreach($expenseCategories as $code => $name)
-                                <option value="{{ $code }}" {{ $code == '4020' ? 'selected' : '' }}>
-                                    {{ $code }} - {{ $name }}
+                                <option value="{{ $code }}">
+                                    {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
                                 </option>
                             @endforeach
                         </select>
