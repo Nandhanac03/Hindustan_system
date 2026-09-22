@@ -293,16 +293,16 @@
 
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div class="space-y-0.5">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Loan Amount</span>
+                                <span class="text-xs font-mono font-black text-slate-900 block" x-text="'₹' + Number(loan?.principal_amount || {{ (float)$loan->principal_amount }}).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
+                            </div>
+                            <div class="space-y-0.5">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Principal Amount</span>
                                 <span class="text-xs font-mono font-black text-slate-800 block" x-text="'₹' + Number(payForm.principal_amount || activeInst?.principal_component || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                             <div class="space-y-0.5">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Interest Component</span>
                                 <span class="text-xs font-mono font-black text-slate-800 block" x-text="'₹' + Number(payForm.interest_amount || activeInst?.interest_component || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
-                            </div>
-                            <div class="space-y-0.5">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Scheduled EMI</span>
-                                <span class="text-xs font-mono font-black text-slate-900 block" x-text="'₹' + Number(payForm.amount || activeInst?.emi_amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                             <div class="space-y-0.5">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Payable Balance</span>
@@ -642,149 +642,145 @@
                             </h3>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 text-xs">
-                            {{-- Left Column --}}
-                            <div class="space-y-2.5">
-                                {{-- Prepayment Amount --}}
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <label class="block font-bold uppercase tracking-wide text-[9px]" :class="prepayErrors.amount ? 'text-rose-600' : 'text-slate-700'">
-                                            Prepayment Amount (₹) <span class="text-rose-500">*</span>
-                                        </label>
-                                        <button type="button" 
-                                                @click="prepayForm.amount = loan?.outstanding_balance || 0; delete prepayErrors.amount" 
-                                                class="text-[9px] font-bold text-[#8a7522] hover:text-[#a38c29] bg-[#a38c29]/10 hover:bg-[#a38c29]/20 px-1.5 py-0.5 rounded transition cursor-pointer"
-                                                title="Click to fill full outstanding amount">
-                                            Max: ₹<span x-text="loan ? Number(loan.outstanding_balance).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '0.00'"></span>
-                                        </button>
-                                    </div>
-                                    <input type="number" step="any" min="0.01" :max="loan?.outstanding_balance || 0" x-model="prepayForm.amount"
-                                           @input="delete prepayErrors.amount; const val = parseFloat(prepayForm.amount); const maxVal = parseFloat(loan?.outstanding_balance || 0); if (!isNaN(val) && val > maxVal) { prepayErrors.amount = 'Amount cannot exceed outstanding balance (₹' + Number(maxVal).toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')'; }"
-                                           placeholder="0"
-                                           :class="prepayErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
-                                           class="w-full h-9 px-3 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="prepayErrors.amount" x-text="prepayErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
-                                </div>
-
-                                {{-- Date of Prepayment --}}
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.prepayment_date ? 'text-rose-600' : 'text-slate-700'">
-                                        Date of Prepayment <span class="text-rose-500">*</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-xs items-start">
+                            {{-- Row 1 Col 1: Prepayment Amount --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1 min-h-[20px]">
+                                    <label class="block font-bold uppercase tracking-wide text-[9px]" :class="prepayErrors.amount ? 'text-rose-600' : 'text-slate-700'">
+                                        Prepayment Amount (₹) <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="date" x-model="prepayForm.prepayment_date"
-                                           @input="delete prepayErrors.prepayment_date"
-                                           :class="prepayErrors.prepayment_date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
-                                           class="w-full h-9 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="prepayErrors.prepayment_date" x-text="prepayErrors.prepayment_date" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                                    <button type="button" 
+                                            @click="prepayForm.amount = loan?.outstanding_balance || 0; delete prepayErrors.amount" 
+                                            class="text-[9px] font-bold text-[#8a7522] hover:text-[#a38c29] bg-[#a38c29]/10 hover:bg-[#a38c29]/20 px-1.5 py-0.5 rounded transition cursor-pointer"
+                                            title="Click to fill full outstanding amount">
+                                        Max: ₹<span x-text="loan ? Number(loan.outstanding_balance).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '0.00'"></span>
+                                    </button>
                                 </div>
+                                <input type="number" step="any" min="0.01" :max="loan?.outstanding_balance || 0" x-model="prepayForm.amount"
+                                       @input="delete prepayErrors.amount; const val = parseFloat(prepayForm.amount); const maxVal = parseFloat(loan?.outstanding_balance || 0); if (!isNaN(val) && val > maxVal) { prepayErrors.amount = 'Amount cannot exceed outstanding balance (₹' + Number(maxVal).toLocaleString('en-IN', {minimumFractionDigits: 2}) + ')'; }"
+                                       placeholder="0"
+                                       :class="prepayErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                       class="w-full h-9 px-3 rounded-xl text-xs font-extrabold text-slate-800 focus:outline-none transition shadow-2xs">
+                                <span x-show="prepayErrors.amount" x-text="prepayErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            </div>
 
-                                {{-- Paid From Company Bank Account (Search & Select) --}}
-                                <div class="relative" @click.outside="prepayBankOpen = false">
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.bank_account_id ? 'text-rose-600' : 'text-slate-700'">
-                                        Paid From (Company Bank Account) <span class="text-rose-500">*</span>
+                            {{-- Row 1 Col 2: Transaction / Cheque / UTR No. --}}
+                            <div>
+                                <div class="flex items-center justify-between mb-1 min-h-[20px]">
+                                    <label class="block font-bold uppercase tracking-wide text-[9px]" :class="prepayErrors.reference_no ? 'text-rose-600' : 'text-slate-700'">
+                                        Transaction / Cheque / UTR No. <span class="text-rose-500">*</span>
                                     </label>
-                                    
-                                    <div @click="prepayBankOpen = !prepayBankOpen; if(prepayBankOpen) $nextTick(() => $refs.prepayBankSearch?.focus())"
-                                         :class="prepayErrors.bank_account_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-white focus:bg-white'"
-                                         class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
-                                        <template x-if="selectedPrepayAccount">
-                                            <div class="flex items-center gap-2 truncate">
-                                                <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="selectedPrepayAccount.bank_name"></span>
-                                                <span class="font-bold text-slate-800 truncate" x-text="selectedPrepayAccount.account_name || selectedPrepayAccount.bank_name"></span>
-                                                <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedPrepayAccount.account_number || '—') + ')'"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="!selectedPrepayAccount">
-                                            <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
-                                        </template>
-                                        <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" :class="prepayBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                    </div>
-                                    <span x-show="prepayErrors.bank_account_id" x-text="prepayErrors.bank_account_id" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                                </div>
+                                <input type="text" x-model="prepayForm.reference_no"
+                                       @input="delete prepayErrors.reference_no"
+                                       placeholder="e.g. UTR1087349137"
+                                       :class="prepayErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                       class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                <span x-show="prepayErrors.reference_no" x-text="prepayErrors.reference_no" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            </div>
 
-                                    {{-- Selected Bank Balance in Words Only --}}
-                                    <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedPrepayAccount">
-                                        <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
-                                        <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
-                                              x-text="numberToWords(selectedPrepayAccount?.current_balance || 0)"></span>
-                                    </div>
+                            {{-- Row 2 Col 1: Date of Prepayment --}}
+                            <div>
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.prepayment_date ? 'text-rose-600' : 'text-slate-700'">
+                                    Date of Prepayment <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="date" x-model="prepayForm.prepayment_date"
+                                       @input="delete prepayErrors.prepayment_date"
+                                       :class="prepayErrors.prepayment_date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                       class="w-full h-9 px-3 rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                <span x-show="prepayErrors.prepayment_date" x-text="prepayErrors.prepayment_date" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            </div>
 
-                                    <!-- Dropdown Search Menu -->
-                                    <div x-show="prepayBankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
-                                        <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0">
-                                            <div class="relative">
-                                                <input type="text" x-ref="prepayBankSearch" x-model="prepayBankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
-                                                <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                            </div>
-                                        </div>
-                                        <div class="overflow-y-auto divide-y divide-slate-100">
-                                            <template x-for="acc in filteredPrepayAccounts" :key="acc.id">
-                                                <div @click="prepayForm.bank_account_id = acc.id; delete prepayErrors.bank_account_id; prepayBankOpen = false; prepayBankSearch = ''"
-                                                     class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
-                                                     :class="prepayForm.bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
-                                                    <div class="flex flex-col">
-                                                        <div class="flex items-center gap-1.5">
-                                                            <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
-                                                            <span class="text-slate-500 font-medium" x-text="'— ' + (acc.account_name || 'Account')"></span>
-                                                        </div>
-                                                        <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
-                                                    </div>
-                                                    <div class="text-right font-mono">
-                                                        <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
-                                                        <div class="font-bold text-slate-800 text-[11px]" x-text="'₹ ' + Number(acc.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></div>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                            <template x-if="filteredPrepayAccounts.length === 0">
-                                                <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
-                                            </template>
-                                        </div>
+                            {{-- Row 2 Col 2: Rescheduling Mode --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                    Rescheduling Mode <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <select x-model="prepayForm.reschedule_option" class="w-full h-9 pl-3 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
+                                        <option value="reduce_emi">Reduce monthly installment (EMI), keep tenure same</option>
+                                        <option value="reduce_tenure">Reduce remaining tenure (months), keep EMI same</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Right Column --}}
-                            <div class="space-y-2.5">
-                                {{-- Transaction / UTR No. --}}
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.reference_no ? 'text-rose-600' : 'text-slate-700'">
-                                        Transaction / Cheque / UTR No. <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" x-model="prepayForm.reference_no"
-                                           @input="delete prepayErrors.reference_no"
-                                           placeholder="e.g. UTR1087349137"
-                                           :class="prepayErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
-                                           class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="prepayErrors.reference_no" x-text="prepayErrors.reference_no" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            {{-- Row 3 Col 1: Paid From Company Bank Account (Search & Select) --}}
+                            <div class="relative" @click.outside="prepayBankOpen = false">
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.bank_account_id ? 'text-rose-600' : 'text-slate-700'">
+                                    Paid From (Company Bank Account) <span class="text-rose-500">*</span>
+                                </label>
+                                
+                                <div @click="prepayBankOpen = !prepayBankOpen; if(prepayBankOpen) $nextTick(() => $refs.prepayBankSearch?.focus())"
+                                     :class="prepayErrors.bank_account_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-white focus:bg-white'"
+                                     class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                    <template x-if="selectedPrepayAccount">
+                                        <div class="flex items-center gap-2 truncate">
+                                            <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="selectedPrepayAccount.bank_name"></span>
+                                            <span class="font-bold text-slate-800 truncate" x-text="selectedPrepayAccount.account_name || selectedPrepayAccount.bank_name"></span>
+                                            <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedPrepayAccount.account_number || '—') + ')'"></span>
+                                        </div>
+                                    </template>
+                                    <template x-if="!selectedPrepayAccount">
+                                        <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                                    </template>
+                                    <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" :class="prepayBankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                                <span x-show="prepayErrors.bank_account_id" x-text="prepayErrors.bank_account_id" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+
+                                {{-- Selected Bank Balance in Words Only --}}
+                                <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedPrepayAccount">
+                                    <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
+                                    <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                          x-text="numberToWords(selectedPrepayAccount?.current_balance || 0)"></span>
                                 </div>
 
-                                {{-- Reschedule Option --}}
-                                <div>
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
-                                        Rescheduling Mode <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <select x-model="prepayForm.reschedule_option" class="w-full h-9 pl-3 pr-8 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
-                                            <option value="reduce_emi">Reduce monthly installment (EMI), keep tenure same</option>
-                                            <option value="reduce_tenure">Reduce remaining tenure (months), keep EMI same</option>
-                                        </select>
-                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                <!-- Dropdown Search Menu -->
+                                <div x-show="prepayBankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
+                                    <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0">
+                                        <div class="relative">
+                                            <input type="text" x-ref="prepayBankSearch" x-model="prepayBankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                            <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                         </div>
                                     </div>
+                                    <div class="overflow-y-auto divide-y divide-slate-100">
+                                        <template x-for="acc in filteredPrepayAccounts" :key="acc.id">
+                                            <div @click="prepayForm.bank_account_id = acc.id; delete prepayErrors.bank_account_id; prepayBankOpen = false; prepayBankSearch = ''"
+                                                 class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                                 :class="prepayForm.bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                                <div class="flex flex-col">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                        <span class="text-slate-500 font-medium" x-text="'— ' + (acc.account_name || 'Account')"></span>
+                                                    </div>
+                                                    <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                                </div>
+                                                <div class="text-right font-mono">
+                                                    <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
+                                                    <div class="font-bold text-slate-800 text-[11px]" x-text="'₹ ' + Number(acc.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="filteredPrepayAccounts.length === 0">
+                                            <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                        </template>
+                                    </div>
                                 </div>
+                            </div>
 
-                                {{-- Prepayment Charges --}}
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.prepayment_charges ? 'text-rose-600' : 'text-slate-700'">
-                                        Prepayment Penalty / Charges (₹)
-                                    </label>
-                                    <input type="number" step="any" min="0" x-model="prepayForm.prepayment_charges"
-                                           @input="delete prepayErrors.prepayment_charges"
-                                           placeholder="0"
-                                           :class="prepayErrors.prepayment_charges ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
-                                           class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="prepayErrors.prepayment_charges" x-text="prepayErrors.prepayment_charges" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
-                                </div>
+                            {{-- Row 3 Col 2: Prepayment Charges --}}
+                            <div>
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="prepayErrors.prepayment_charges ? 'text-rose-600' : 'text-slate-700'">
+                                    Prepayment Penalty / Charges (₹)
+                                </label>
+                                <input type="number" step="any" min="0" x-model="prepayForm.prepayment_charges"
+                                       @input="delete prepayErrors.prepayment_charges"
+                                       placeholder="0"
+                                       :class="prepayErrors.prepayment_charges ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                       class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                <span x-show="prepayErrors.prepayment_charges" x-text="prepayErrors.prepayment_charges" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
                             </div>
                         </div>
 
@@ -895,6 +891,14 @@ function scheduleApp() {
         },
         get selectedPrepayAccount() {
             return (this.companyBankAccounts || []).find(b => b.id == this.prepayForm.bank_account_id) || null;
+        },
+        get selectedAccount() {
+            return this.selectedPrepayAccount;
+        },
+        get totalOutflow() {
+            const amt = parseFloat(this.prepayForm.amount) || 0;
+            const chg = parseFloat(this.prepayForm.prepayment_charges) || 0;
+            return amt + chg;
         },
         get filteredPayAccounts() {
             if (!this.bankSearch || !this.bankSearch.trim()) return this.companyBankAccounts || [];
