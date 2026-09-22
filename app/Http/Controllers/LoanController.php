@@ -308,39 +308,60 @@ class LoanController extends Controller
     public function payEmi(Request $request, Loan $loan, EmiSchedule $installment): JsonResponse
     {
         $validated = $request->validate([
-            'amount'    => ['required', 'numeric', 'min:0.01'],
-            'paid_date' => ['required', 'date'],
-            'bank_account_id' => ['required'],
-            'other_charges'   => ['nullable', 'numeric', 'min:0'],
+            'amount'           => ['required', 'numeric', 'min:0.01'],
+            'paid_date'        => ['required', 'date'],
+            'bank_account_id'  => ['required'],
+            'other_charges'    => ['nullable', 'numeric', 'min:0'],
+            'principal_amount' => ['nullable', 'numeric', 'min:0'],
+            'interest_rate'    => ['nullable', 'numeric', 'min:0'],
+            'interest_amount'  => ['nullable', 'numeric', 'min:0'],
+            'reference_no'     => ['nullable', 'string', 'max:100'],
+            'payment_mode'     => ['nullable', 'string', 'max:50'],
+            'remarks'          => ['nullable', 'string'],
         ]);
 
-        $amount   = (float)$validated['amount'];
-        $paidDate = $validated['paid_date'];
+        $amount        = (float)$validated['amount'];
+        $paidDate      = $validated['paid_date'];
         $bankAccountId = $validated['bank_account_id'];
-        $otherCharges = (float)($validated['other_charges'] ?? 0);
+        $otherCharges  = (float)($validated['other_charges'] ?? 0);
 
         if ($installment->loan_id !== $loan->id) {
             return response()->json(['error' => 'Invalid installment for this loan.'], 400);
         }
 
-        $emiDue = round((float)$installment->emi_amount - (float)$installment->amount_paid, 2);
-        if (abs($amount - $emiDue) > 0.01) {
-            return response()->json([
-                'error' => 'Exact full EMI installment payment of ₹' . number_format($emiDue, 2) . ' is required. Paying more or less is not allowed.'
-            ], 422);
+        $principalAmount = isset($validated['principal_amount']) && $validated['principal_amount'] !== ''
+            ? (float)$validated['principal_amount']
+            : (float)$installment->principal_component;
+
+        $interestAmount = isset($validated['interest_amount']) && $validated['interest_amount'] !== ''
+            ? (float)$validated['interest_amount']
+            : max(0, round($amount - $principalAmount, 2));
+
+        $newInterestRate = isset($validated['interest_rate']) && $validated['interest_rate'] !== ''
+            ? (float)$validated['interest_rate']
+            : null;
+
+        $expectedTotal = round($principalAmount + $interestAmount, 2);
+        if (abs($amount - $expectedTotal) > 0.05) {
+            $amount = $expectedTotal;
         }
 
         $updatedBalance = null;
 
-        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId, $otherCharges, &$updatedBalance) {
+        DB::transaction(function () use ($loan, $installment, $paidDate, $bankAccountId, $otherCharges, $amount, $principalAmount, $interestAmount, $newInterestRate, &$updatedBalance) {
             $systemId = Auth::user()->system_id ?? 1;
 
-            $installment->amount_paid = (float)$installment->emi_amount;
-            $installment->paid_date   = $paidDate;
-            $installment->status      = 'Paid';
+            $originalScheduledPrincipal = (float)$installment->getOriginal('principal_component');
+
+            $installment->principal_component = $principalAmount;
+            $installment->interest_component  = $interestAmount;
+            $installment->emi_amount          = $amount;
+            $installment->amount_paid         = $amount;
+            $installment->paid_date           = $paidDate;
+            $installment->status              = 'Paid';
 
             if ($installment->getOriginal('status') !== 'Paid') {
-                $loan->decrement('outstanding_balance', $installment->principal_component);
+                $loan->decrement('outstanding_balance', $principalAmount);
             }
             $installment->save();
 
@@ -349,19 +370,84 @@ class LoanController extends Controller
                 $loan->update(['status' => 'Closed']);
             }
 
-            // Create Payment Voucher
-            $voucherNumber = 'PAY-LOAN-' . $loan->id . '-' . time();
-            $voucher = \App\Models\Voucher::create([
-                'system_id' => $systemId,
-                'voucher_number' => $voucherNumber,
-                'type' => 'Payment',
-                'date' => $paidDate,
-                'narration' => 'Bank Loan EMI Payment - Inst #' . $installment->installment_no . ' (' . $loan->lender_name . ')',
-                'status' => 'Posted',
-                'created_by' => Auth::id() ?? 1,
-            ]);
+            // Check if interest rate has changed during payment
+            $oldRate = (float)$loan->interest_rate;
+            $rateChanged = ($newInterestRate !== null && abs($newInterestRate - $oldRate) > 0.001);
 
-            $totalCredit = (float)$installment->emi_amount + $otherCharges;
+            if ($rateChanged) {
+                \App\Models\LoanInterestLog::create([
+                    'loan_id'           => $loan->id,
+                    'old_interest_rate' => $oldRate,
+                    'new_interest_rate' => $newInterestRate,
+                    'interest_period'   => 'annual',
+                    'reason'            => "Interest rate updated from {$oldRate}% to {$newInterestRate}% during Installment #{$installment->installment_no} payment",
+                ]);
+
+                $loan->update(['interest_rate' => $newInterestRate]);
+            }
+
+            // Reschedule future unpaid installments if rate changed OR principal amount differed
+            $principalVariance = abs($principalAmount - $originalScheduledPrincipal) > 0.01;
+
+            if (($rateChanged || $principalVariance) && $loan->status !== 'Closed') {
+                $futureUnpaid = $loan->emiSchedules()
+                    ->where('status', '!=', 'Paid')
+                    ->where('id', '!=', $installment->id)
+                    ->orderBy('installment_no', 'asc')
+                    ->get();
+
+                if ($futureUnpaid->isNotEmpty()) {
+                    $remainingPrincipal = (float)$loan->outstanding_balance;
+                    $k = $futureUnpaid->count();
+                    $effectiveRate = $rateChanged ? $newInterestRate : (float)$loan->interest_rate;
+                    $r = ($effectiveRate / 12) / 100;
+                    $isReducing = $loan->schedule_type === 'reducing_balance';
+
+                    if ($isReducing) {
+                        if ($r > 0) {
+                            $newEmi = $remainingPrincipal * ($r * pow(1 + $r, $k)) / (pow(1 + $r, $k) - 1);
+                        } else {
+                            $newEmi = $remainingPrincipal / $k;
+                        }
+
+                        $tempPrincipal = $remainingPrincipal;
+                        foreach ($futureUnpaid as $idx => $futureInst) {
+                            $futureInterestComp = $tempPrincipal * $r;
+                            $futurePrincipalComp = $newEmi - $futureInterestComp;
+
+                            if ($tempPrincipal <= $futurePrincipalComp || $idx === $k - 1) {
+                                $futurePrincipalComp = $tempPrincipal;
+                                $futureEmi = $futurePrincipalComp + $futureInterestComp;
+                                $tempPrincipal = 0;
+                            } else {
+                                $futureEmi = $newEmi;
+                                $tempPrincipal -= $futurePrincipalComp;
+                            }
+
+                            $futureInst->update([
+                                'emi_amount'          => round($futureEmi, 2),
+                                'principal_component' => round($futurePrincipalComp, 2),
+                                'interest_component'  => round($futureInterestComp, 2),
+                            ]);
+                        }
+                    } else {
+                        // Flat rate
+                        $futurePrincipalComp = $remainingPrincipal / $k;
+                        $futureInterestComp = $remainingPrincipal * $r;
+                        $futureEmi = $futurePrincipalComp + $futureInterestComp;
+
+                        foreach ($futureUnpaid as $futureInst) {
+                            $futureInst->update([
+                                'emi_amount'          => round($futureEmi, 2),
+                                'principal_component' => round($futurePrincipalComp, 2),
+                                'interest_component'  => round($futureInterestComp, 2),
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            $totalCredit = $amount + $otherCharges;
 
             // Resolve Company Bank Account & Ledger Account
             $companyBank = \App\Models\CompanyBankAccount::find($bankAccountId);
@@ -382,67 +468,83 @@ class LoanController extends Controller
                 $voucherBankAccountId = $payingAccount?->id ?? 1;
             }
 
-            // Credit Bank Account Line
+            // Create Payment Voucher
+            $voucherNumber = 'PAY-LOAN-' . $loan->id . '-' . time();
+            $voucherData = [
+                'system_id'      => $systemId,
+                'voucher_number' => $voucherNumber,
+                'type'           => 'Payment',
+                'date'           => $paidDate,
+                'narration'      => 'Bank Loan EMI Payment - Inst #' . $installment->installment_no . ' (Principal: ₹' . number_format($principalAmount, 2) . ', Interest: ₹' . number_format($interestAmount, 2) . ') - ' . $loan->lender_name,
+                'status'         => 'Posted',
+                'created_by'     => Auth::id() ?? 1,
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('vouchers', 'company_bank_account_id')) {
+                $voucherData['company_bank_account_id'] = $companyBank?->id;
+            }
+            $voucher = \App\Models\Voucher::create($voucherData);
+
+            // 1. Credit Bank Account Line (Full Outflow)
             $bankLine = \App\Models\VoucherLine::create([
-                'voucher_id' => $voucher->id,
-                'account_id' => $voucherBankAccountId,
-                'debit' => 0.00,
-                'credit' => $totalCredit,
-                'line_narration' => 'Paid Loan EMI - Inst #' . $installment->installment_no,
+                'voucher_id'     => $voucher->id,
+                'account_id'     => $voucherBankAccountId,
+                'debit'          => 0.00,
+                'credit'         => $totalCredit,
+                'line_narration' => 'Paid Loan EMI - Inst #' . $installment->installment_no . ' (Principal: ₹' . number_format($principalAmount, 2) . ' + Interest: ₹' . number_format($interestAmount, 2) . ')',
             ]);
 
             \App\Models\LedgerEntry::create([
-                'system_id' => $systemId,
-                'account_id' => $voucherBankAccountId,
-                'voucher_id' => $voucher->id,
+                'system_id'       => $systemId,
+                'account_id'      => $voucherBankAccountId,
+                'voucher_id'      => $voucher->id,
                 'voucher_line_id' => $bankLine->id,
-                'date' => $paidDate,
-                'debit' => 0.00,
-                'credit' => $totalCredit,
+                'date'            => $paidDate,
+                'debit'           => 0.00,
+                'credit'          => $totalCredit,
                 'running_balance' => 0.00,
             ]);
 
-            // Debit Loan Principal
-            if ($loan->ledger_account_id) {
+            // 2. Debit Loan Principal Liability Account (Principal Only)
+            if ($loan->ledger_account_id && $principalAmount > 0) {
                 $principalLine = \App\Models\VoucherLine::create([
-                    'voucher_id' => $voucher->id,
-                    'account_id' => $loan->ledger_account_id,
-                    'debit' => (float)$installment->principal_component,
-                    'credit' => 0.00,
-                    'line_narration' => 'Loan Principal Repayment - Inst #' . $installment->installment_no,
+                    'voucher_id'     => $voucher->id,
+                    'account_id'     => $loan->ledger_account_id,
+                    'debit'          => $principalAmount,
+                    'credit'         => 0.00,
+                    'line_narration' => 'Loan Principal Repayment - Inst #' . $installment->installment_no . ' (' . $loan->loan_account_no . ')',
                 ]);
 
                 \App\Models\LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $loan->ledger_account_id,
-                    'voucher_id' => $voucher->id,
+                    'system_id'       => $systemId,
+                    'account_id'      => $loan->ledger_account_id,
+                    'voucher_id'      => $voucher->id,
                     'voucher_line_id' => $principalLine->id,
-                    'date' => $paidDate,
-                    'debit' => (float)$installment->principal_component,
-                    'credit' => 0.00,
+                    'date'            => $paidDate,
+                    'debit'           => $principalAmount,
+                    'credit'          => 0.00,
                     'running_balance' => 0.00,
                 ]);
             }
 
-            // Debit Interest Expense (combine regular interest + other charges if any)
-            $totalDebitInterest = $totalCredit - (float)$installment->principal_component;
+            // 3. Debit Interest Expense Account (Interest + Other Charges Only)
+            $totalDebitInterest = $interestAmount + $otherCharges;
             if ($loan->interest_account_id && $totalDebitInterest > 0) {
                 $interestLine = \App\Models\VoucherLine::create([
-                    'voucher_id' => $voucher->id,
-                    'account_id' => $loan->interest_account_id,
-                    'debit' => $totalDebitInterest,
-                    'credit' => 0.00,
-                    'line_narration' => 'Loan Interest Expense / Other Charges - Inst #' . $installment->installment_no,
+                    'voucher_id'     => $voucher->id,
+                    'account_id'     => $loan->interest_account_id,
+                    'debit'          => $totalDebitInterest,
+                    'credit'         => 0.00,
+                    'line_narration' => 'Loan Interest Expense - Inst #' . $installment->installment_no . ($otherCharges > 0 ? ' (incl. ₹' . number_format($otherCharges, 2) . ' charges)' : '') . ' (' . $loan->loan_account_no . ')',
                 ]);
 
                 \App\Models\LedgerEntry::create([
-                    'system_id' => $systemId,
-                    'account_id' => $loan->interest_account_id,
-                    'voucher_id' => $voucher->id,
+                    'system_id'       => $systemId,
+                    'account_id'      => $loan->interest_account_id,
+                    'voucher_id'      => $voucher->id,
                     'voucher_line_id' => $interestLine->id,
-                    'date' => $paidDate,
-                    'debit' => $totalDebitInterest,
-                    'credit' => 0.00,
+                    'date'            => $paidDate,
+                    'debit'           => $totalDebitInterest,
+                    'credit'          => 0.00,
                     'running_balance' => 0.00,
                 ]);
             }

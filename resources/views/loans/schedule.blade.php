@@ -1,5 +1,13 @@
 <x-erp-layout title="Loan Repayment Schedule" headerTitle="Loan Repayment Schedule Manager">
 
+<style>
+    /* Suppress automatically injected amount-in-words elements in modals */
+    [data-no-words="true"] .amount-in-words-label,
+    .pay-modal-box .amount-in-words-label {
+        display: none !important;
+    }
+</style>
+
 <div class="max-w-[1800px] mx-auto space-y-6" x-data="scheduleApp()">
     {{-- Loan summary card --}}
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6 p-6">
@@ -118,9 +126,9 @@
                     <tr class="bg-[#a38c29] text-white text-center font-bold uppercase tracking-wider text-[10px] border-b border-[#8a7522]">
                         <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">INST NO</th>
                         <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">DUE DATE</th>
-                        <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">EMI AMOUNT</th>
                         <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">PRINCIPAL COMPONENT</th>
                         <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">INTEREST COMPONENT</th>
+                        <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">EMI AMOUNT</th>
                         <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">AMOUNT PAID</th>
                         <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">PAID DATE</th>
                         <th class="px-4 py-3 border border-[#8a7522]/50 font-black text-center">STATUS</th>
@@ -146,9 +154,9 @@
                         @php if (!$firstDueMarked && $isUrgent) { $firstDueMarked = true; } @endphp
                             <td class="px-4 py-3.5 border font-bold text-slate-400">{{ $inst->installment_no }}</td>
                             <td class="px-4 py-3.5 border {{ $isUrgent ? 'text-rose-700 font-extrabold' : 'text-slate-650' }}">{{ $inst->due_date ? \Carbon\Carbon::parse($inst->due_date)->format('d M Y') : '—' }}</td>
-                            <td class="px-4 py-3.5 border font-mono {{ $isUrgent ? 'text-rose-600 font-extrabold text-[13px]' : 'text-slate-900 font-bold' }}">₹{{ number_format($emiAmount, 2) }}</td>
                             <td class="px-4 py-3.5 border font-mono text-slate-600">₹{{ number_format((float)$inst->principal_component, 2) }}</td>
                             <td class="px-4 py-3.5 border font-mono text-slate-600">₹{{ number_format((float)$inst->interest_component, 2) }}</td>
+                            <td class="px-4 py-3.5 border font-mono {{ $isUrgent ? 'text-rose-600 font-extrabold text-[13px]' : 'text-slate-900 font-bold' }}">₹{{ number_format($emiAmount, 2) }}</td>
                             <td class="px-4 py-3.5 border font-mono font-bold">
                                 @if($isPartial)
                                     <div class="flex flex-col items-center gap-0.5">
@@ -272,7 +280,7 @@
                     return Number(payForm.amount || 0) + Number(payForm.other_charges || 0);
                 }
             }">
-                <form @submit.prevent="submitPayForm" novalidate>
+                <form @submit.prevent="submitPayForm" novalidate data-no-words="true">
                     {{-- 1. Top Installment & Loan Overview Strip --}}
                     <div class="bg-slate-50/90 rounded-xl p-3 border border-slate-200/80 shadow-2xs mb-3">
                         <div class="flex items-center justify-between pb-1.5 mb-2 border-b border-slate-200/70">
@@ -285,20 +293,20 @@
 
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                             <div class="space-y-0.5">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Principal Component</span>
-                                <span class="text-xs font-mono font-black text-slate-800 block" x-text="activeInst ? '₹' + Number(activeInst.principal_component).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Principal Amount</span>
+                                <span class="text-xs font-mono font-black text-slate-800 block" x-text="'₹' + Number(payForm.principal_amount || activeInst?.principal_component || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                             <div class="space-y-0.5">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Interest Component</span>
-                                <span class="text-xs font-mono font-black text-slate-800 block" x-text="activeInst ? '₹' + Number(activeInst.interest_component).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
+                                <span class="text-xs font-mono font-black text-slate-800 block" x-text="'₹' + Number(payForm.interest_amount || activeInst?.interest_component || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                             <div class="space-y-0.5">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Scheduled EMI</span>
-                                <span class="text-xs font-mono font-black text-slate-900 block" x-text="activeInst ? '₹' + Number(activeInst.emi_amount).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '—'"></span>
+                                <span class="text-xs font-mono font-black text-slate-900 block" x-text="'₹' + Number(payForm.amount || activeInst?.emi_amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                             <div class="space-y-0.5">
                                 <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Payable Balance</span>
-                                <span class="text-sm font-black font-mono text-[#a38c29] block" x-text="activeInst ? '₹' + Number(activeInst.emi_amount - (activeInst.amount_paid || 0)).toLocaleString('en-IN', {minimumFractionDigits: 2}) : '₹0.00'"></span>
+                                <span class="text-sm font-black font-mono text-[#a38c29] block" x-text="'₹' + Number(payForm.amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></span>
                             </div>
                         </div>
                     </div>
@@ -312,142 +320,178 @@
                             </h3>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2.5 text-xs">
-                            {{-- Left Column --}}
-                            <div class="space-y-2.5">
-                                {{-- Payment Amount --}}
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.amount ? 'text-rose-600' : 'text-slate-700'">
-                                        Payment Amount (₹) <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="number" step="0.01" x-model="payForm.amount" readonly
-                                           :class="payErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200/80 bg-slate-100/90'"
-                                           class="w-full h-9 px-3 border rounded-xl text-xs font-extrabold text-slate-800 cursor-not-allowed">
-                                    <span x-show="payErrors.amount" x-text="payErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
-                                    <p x-show="!payErrors.amount" class="text-[9px] text-slate-400 mt-0.5 italic font-medium">Only option for pay the full emi amount there.</p>
-                                </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-xs items-start">
+                            {{-- ROW 1 --}}
+                            {{-- Principal Amount --}}
+                            <div>
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.principal_amount ? 'text-rose-600' : 'text-slate-700'">
+                                    Principal Amount (₹) <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="number" step="0.01" x-model="payForm.principal_amount" @input="onPrincipalAmountChange()" data-no-words="true"
+                                       :class="payErrors.principal_amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                       class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                <span x-show="payErrors.principal_amount" x-text="payErrors.principal_amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            </div>
 
-                                {{-- Payment Date --}}
+                            {{-- Interest Rate & Interest Amount Grid --}}
+                            <div class="grid grid-cols-2 gap-2.5">
                                 <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.paid_date ? 'text-rose-600' : 'text-slate-700'">
-                                        Payment Date <span class="text-rose-500">*</span>
+                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.interest_rate ? 'text-rose-600' : 'text-slate-700'">
+                                        Interest Rate (% P.A.) <span class="text-rose-500">*</span>
                                     </label>
-                                    <input type="date" x-model="payForm.paid_date"
-                                           @input="delete payErrors.paid_date"
-                                           :class="payErrors.paid_date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                    <input type="number" step="0.01" x-model="payForm.interest_rate" @input="onInterestRateChange()" data-no-words="true"
+                                           :class="payErrors.interest_rate ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
                                            class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="payErrors.paid_date" x-text="payErrors.paid_date" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                                    <span x-show="payErrors.interest_rate" x-text="payErrors.interest_rate" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
                                 </div>
 
-                                {{-- Paid From Company Bank Account (Search & Select) --}}
-                                <div class="relative" @click.outside="bankOpen = false">
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.bank_account_id ? 'text-rose-600' : 'text-slate-700'">
-                                        Paid From (Company Bank Account) <span class="text-rose-500">*</span>
+                                <div>
+                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.interest_amount ? 'text-rose-600' : 'text-slate-700'">
+                                        Interest Amount (₹) <span class="text-rose-500">*</span>
                                     </label>
-                                    
-                                    <div @click="bankOpen = !bankOpen; if(bankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
-                                         :class="payErrors.bank_account_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-white focus:bg-white'"
-                                         class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
-                                        <template x-if="selectedAccount">
-                                            <div class="flex items-center gap-2 truncate">
-                                                <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="selectedAccount.bank_name"></span>
-                                                <span class="font-bold text-slate-800 truncate" x-text="selectedAccount.account_name || selectedAccount.bank_name"></span>
-                                                <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedAccount.account_number || '—') + ')'"></span>
-                                            </div>
-                                        </template>
-                                        <template x-if="!selectedAccount">
-                                            <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
-                                        </template>
-                                        <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" :class="bankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                    </div>
-                                    <span x-show="payErrors.bank_account_id" x-text="payErrors.bank_account_id" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                                    <input type="number" step="0.01" x-model="payForm.interest_amount" @input="onInterestAmountChange()" data-no-words="true"
+                                           :class="payErrors.interest_amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                           class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                    <span x-show="payErrors.interest_amount" x-text="payErrors.interest_amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                                </div>
+                            </div>
 
-                                    {{-- Selected Bank Balance in Words Only --}}
-                                    <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedAccount">
-                                        <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
-                                        <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
-                                              x-text="numberToWords(selectedAccount?.current_balance || 0)"></span>
-                                    </div>
+                            {{-- ROW 2 --}}
+                            {{-- Payment Amount --}}
+                            <div>
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.amount ? 'text-rose-600' : 'text-slate-700'">
+                                    Payment Amount (₹) <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="number" step="0.01" x-model="payForm.amount" readonly data-no-words="true"
+                                       :class="payErrors.amount ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200/80 bg-slate-100/90'"
+                                       class="w-full h-9 px-3 border rounded-xl text-xs font-extrabold text-slate-800 cursor-not-allowed">
+                                <span x-show="payErrors.amount" x-text="payErrors.amount" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
 
-                                    <!-- Dropdown Search Menu -->
-                                    <div x-show="bankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
-                                        <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0">
-                                            <div class="relative">
-                                                <input type="text" x-ref="payBankSearch" x-model="bankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
-                                                <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                            </div>
+                                {{-- Amount in Words (No background, Theme Golden Font) --}}
+                                <div class="mt-1 text-[10.5px] font-semibold text-[#8a7522] italic leading-tight" 
+                                     x-show="payForm.amount > 0" 
+                                     x-text="numberToWords(payForm.amount)"></div>
+                            </div>
+
+                            {{-- Transaction / Cheque / UTR No. --}}
+                            <div>
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.reference_no ? 'text-rose-600' : 'text-slate-700'">
+                                    Transaction / Cheque / UTR No. <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" x-model="payForm.reference_no"
+                                       @input="delete payErrors.reference_no"
+                                       placeholder="e.g. UTR1087349137 or Cheque Ref"
+                                       :class="payErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                       class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
+                                <span x-show="payErrors.reference_no" x-text="payErrors.reference_no" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            </div>
+
+                            {{-- ROW 3 (Payment Date & Payment Mode aligned) --}}
+                            {{-- Payment Date --}}
+                            <div>
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.paid_date ? 'text-rose-600' : 'text-slate-700'">
+                                    Payment Date <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="date" x-model="payForm.paid_date"
+                                       @input="delete payErrors.paid_date"
+                                       :class="payErrors.paid_date ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
+                                       class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 focus:outline-none transition shadow-2xs">
+                                <span x-show="payErrors.paid_date" x-text="payErrors.paid_date" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            </div>
+
+                            {{-- Payment Mode --}}
+                            <div>
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.payment_mode ? 'text-rose-600' : 'text-slate-700'">
+                                    Payment Mode <span class="text-rose-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <select x-model="payForm.payment_mode"
+                                            @change="delete payErrors.payment_mode"
+                                            :class="payErrors.payment_mode ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white'"
+                                            class="w-full h-9 pl-3 pr-8 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
+                                        <option value="Bank Transfer">Bank Transfer / NEFT / RTGS / IMPS</option>
+                                        <option value="Cheque">Cheque Payout</option>
+                                        <option value="Direct Debit">Direct Bank Debit (ECS / Auto-debit)</option>
+                                        <option value="Cash">Cash Payout</option>
+                                        <option value="Online">Online Gateway Payment</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </div>
+                                </div>
+                                <span x-show="payErrors.payment_mode" x-text="payErrors.payment_mode" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+                            </div>
+
+                            {{-- ROW 4 (Paid From & Remarks aligned) --}}
+                            {{-- Paid From Company Bank Account (Search & Select) --}}
+                            <div class="relative" @click.outside="bankOpen = false">
+                                <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.bank_account_id ? 'text-rose-600' : 'text-slate-700'">
+                                    Paid From (Company Bank Account) <span class="text-rose-500">*</span>
+                                </label>
+                                
+                                <div @click="bankOpen = !bankOpen; if(bankOpen) $nextTick(() => $refs.payBankSearch?.focus())"
+                                     :class="payErrors.bank_account_id ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20' : 'border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-white focus:bg-white'"
+                                     class="w-full h-9 px-3 border rounded-xl text-xs font-bold text-slate-800 cursor-pointer flex items-center justify-between transition shadow-2xs">
+                                     <template x-if="selectedAccount">
+                                         <div class="flex items-center gap-2 truncate">
+                                             <span class="px-1.5 py-0.5 bg-[#a38c29]/10 text-[#8a7522] rounded font-bold text-[9px]" x-text="selectedAccount.bank_name"></span>
+                                             <span class="font-bold text-slate-800 truncate" x-text="selectedAccount.account_name || selectedAccount.bank_name"></span>
+                                             <span class="text-slate-500 text-[10px] font-mono shrink-0" x-text="'(A/C: ' + (selectedAccount.account_number || '—') + ')'"></span>
+                                         </div>
+                                     </template>
+                                     <template x-if="!selectedAccount">
+                                         <span class="text-slate-400 font-normal">Select Company Bank Account...</span>
+                                     </template>
+                                     <svg class="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" :class="bankOpen ? 'rotate-180 text-[#a38c29]' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                                <span x-show="payErrors.bank_account_id" x-text="payErrors.bank_account_id" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
+
+                                {{-- Selected Bank Balance in Words Only --}}
+                                <div class="mt-1.5 flex items-baseline justify-between gap-2 text-[11px]" x-show="selectedAccount">
+                                    <span class="text-slate-500 font-medium shrink-0">Selected Bank Balance:</span>
+                                    <span class="text-[10.5px] text-[#8a7522] italic font-semibold text-right leading-tight" 
+                                          x-text="numberToWords(selectedAccount?.current_balance || 0)"></span>
+                                </div>
+
+                                <!-- Dropdown Search Menu -->
+                                <div x-show="bankOpen" x-transition class="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-56 flex flex-col" style="display: none;">
+                                    <div class="p-2 border-b border-slate-100 bg-slate-50 sticky top-0">
+                                        <div class="relative">
+                                            <input type="text" x-ref="payBankSearch" x-model="bankSearch" placeholder="Search bank name, account no, branch..." class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-medium focus:outline-none focus:border-[#a38c29] focus:ring-1 focus:ring-[#a38c29]">
+                                            <svg class="w-3 h-3 text-slate-400 absolute left-2 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                         </div>
-                                        <div class="overflow-y-auto divide-y divide-slate-100">
-                                            <template x-for="acc in filteredAccounts" :key="acc.id">
-                                                <div @click="payForm.bank_account_id = acc.id; delete payErrors.bank_account_id; bankOpen = false; bankSearch = ''"
-                                                     class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
-                                                     :class="payForm.bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
-                                                    <div class="flex flex-col">
-                                                        <div class="flex items-center gap-1.5">
-                                                            <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
-                                                            <span class="text-slate-500 font-medium" x-text="'— ' + (acc.account_name || 'Account')"></span>
-                                                        </div>
-                                                        <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
+                                    </div>
+                                    <div class="overflow-y-auto divide-y divide-slate-100">
+                                        <template x-for="acc in filteredAccounts" :key="acc.id">
+                                            <div @click="payForm.bank_account_id = acc.id; delete payErrors.bank_account_id; bankOpen = false; bankSearch = ''"
+                                                 class="px-3 py-2 hover:bg-[#a38c29]/5 cursor-pointer flex items-center justify-between text-xs transition-colors"
+                                                 :class="payForm.bank_account_id == acc.id ? 'bg-[#a38c29]/10 font-bold' : ''">
+                                                <div class="flex flex-col">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="font-bold text-slate-900" x-text="acc.bank_name"></span>
+                                                        <span class="text-slate-500 font-medium" x-text="'— ' + (acc.account_name || 'Account')"></span>
                                                     </div>
-                                                    <div class="text-right font-mono">
-                                                        <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
-                                                        <div class="font-bold text-slate-800 text-[11px]" x-text="'₹ ' + Number(acc.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></div>
-                                                    </div>
+                                                    <div class="text-[9px] text-slate-400 font-mono mt-0.5" x-text="'A/C: ' + (acc.account_number || '—') + (acc.branch_name ? ' • ' + acc.branch_name : '')"></div>
                                                 </div>
-                                            </template>
-                                            <template x-if="filteredAccounts.length === 0">
-                                                <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
-                                            </template>
-                                        </div>
+                                                <div class="text-right font-mono">
+                                                    <div class="text-[8px] text-slate-400 uppercase font-sans">Current Balance</div>
+                                                    <div class="font-bold text-slate-800 text-[11px]" x-text="'₹ ' + Number(acc.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})"></div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template x-if="filteredAccounts.length === 0">
+                                            <div class="p-3 text-center text-xs text-slate-400 italic">No matching company bank accounts found.</div>
+                                        </template>
                                     </div>
                                 </div>
                             </div>
 
-                            {{-- Right Column --}}
-                            <div class="space-y-2.5">
-                                {{-- Transaction / Cheque / UTR No. --}}
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.reference_no ? 'text-rose-600' : 'text-slate-700'">
-                                        Transaction / Cheque / UTR No. <span class="text-rose-500">*</span>
-                                    </label>
-                                    <input type="text" x-model="payForm.reference_no"
-                                           @input="delete payErrors.reference_no"
-                                           placeholder="e.g. UTR1087349137 or Cheque Ref"
-                                           :class="payErrors.reference_no ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20'"
-                                           class="w-full h-9 px-3 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none transition shadow-2xs">
-                                    <span x-show="payErrors.reference_no" x-text="payErrors.reference_no" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
-                                </div>
-
-                                {{-- Payment Mode --}}
-                                <div>
-                                    <label class="block font-bold mb-1 uppercase tracking-wide text-[9px]" :class="payErrors.payment_mode ? 'text-rose-600' : 'text-slate-700'">
-                                        Payment Mode <span class="text-rose-500">*</span>
-                                    </label>
-                                    <div class="relative">
-                                        <select x-model="payForm.payment_mode"
-                                                @change="delete payErrors.payment_mode"
-                                                :class="payErrors.payment_mode ? 'border-rose-400 ring-2 ring-rose-400/20 bg-rose-50/20 focus:border-rose-500' : 'border-slate-200 bg-slate-50 hover:bg-white focus:bg-white'"
-                                                class="w-full h-9 pl-3 pr-8 rounded-xl text-xs font-bold text-slate-800 cursor-pointer focus:outline-none transition shadow-2xs appearance-none">
-                                            <option value="Bank Transfer">Bank Transfer / NEFT / RTGS / IMPS</option>
-                                            <option value="Cheque">Cheque Payout</option>
-                                            <option value="Direct Debit">Direct Bank Debit (ECS / Auto-debit)</option>
-                                            <option value="Cash">Cash Payout</option>
-                                            <option value="Online">Online Gateway Payment</option>
-                                        </select>
-                                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                        </div>
-                                    </div>
-                                    <span x-show="payErrors.payment_mode" x-text="payErrors.payment_mode" class="text-[10px] font-bold text-rose-600 mt-1 block" style="display: none;"></span>
-                                </div>
-
-                                {{-- Remarks / Internal Notes --}}
-                                <div>
-                                    <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
-                                        Remarks / Internal Notes
-                                    </label>
-                                    <input type="text" x-model="payForm.remarks" placeholder="Optional internal payout notes..." class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs">
-                                </div>
+                            {{-- Remarks / Internal Notes --}}
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wide text-[9px]">
+                                    Remarks / Internal Notes
+                                </label>
+                                <input type="text" x-model="payForm.remarks" placeholder="Optional internal payout notes..." class="w-full h-9 px-3 bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 hover:border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-medium text-slate-800 focus:outline-none transition shadow-2xs">
                             </div>
                         </div>
 
@@ -873,8 +917,11 @@ function scheduleApp() {
             );
         },
         numberToWords(val) {
-            let num = Math.floor(parseFloat(val) || 0);
-            if (!num || num <= 0) return '';
+            let num = parseFloat(val) || 0;
+            if (num <= 0) return '';
+            let integerPart = Math.floor(num);
+            let decimalPart = Math.round((num - integerPart) * 100);
+
             const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
             const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
             function toWords(n) {
@@ -882,23 +929,36 @@ function scheduleApp() {
                 let digit = n % 10;
                 return b[Math.floor(n / 10)] + (digit ? ' ' + a[digit] : '');
             }
+
             let str = '';
-            let crore = Math.floor(num / 10000000);
-            num %= 10000000;
-            let lakh = Math.floor(num / 100000);
-            num %= 100000;
-            let thousand = Math.floor(num / 1000);
-            num %= 1000;
-            let hundred = Math.floor(num / 100);
-            let rest = num % 100;
+            let crore = Math.floor(integerPart / 10000000);
+            integerPart %= 10000000;
+            let lakh = Math.floor(integerPart / 100000);
+            integerPart %= 100000;
+            let thousand = Math.floor(integerPart / 1000);
+            integerPart %= 1000;
+            let hundred = Math.floor(integerPart / 100);
+            let rest = integerPart % 100;
+
             if (crore > 0) str += toWords(crore) + ' Crore ';
             if (lakh > 0) str += toWords(lakh) + ' Lakh ';
             if (thousand > 0) str += toWords(thousand) + ' Thousand ';
             if (hundred > 0) str += toWords(hundred) + ' Hundred ';
             if (rest > 0) str += (str !== '' ? 'and ' : '') + toWords(rest) + ' ';
-            return str.trim() + ' Rupees Only';
+
+            let res = str.trim() ? str.trim() + ' Rupees' : '';
+            if (decimalPart > 0) {
+                let paiseStr = toWords(decimalPart) + ' Paise';
+                res = res ? res + ' and ' + paiseStr : paiseStr;
+            }
+            return res ? res + ' Only' : '';
         },
+        originalInterest: 0,
+        originalRate: 0,
         payForm: {
+            principal_amount: '',
+            interest_rate: '',
+            interest_amount: '',
             amount: '',
             paid_date: new Date().toISOString().split('T')[0],
             bank_account_id: ({!! json_encode($companyBankAccounts ?? []) !!}[0]?.id) || '',
@@ -931,12 +991,79 @@ function scheduleApp() {
         openPayModal(inst) {
             this.activeInst = inst;
             this.payErrors = {};
-            this.payForm.amount = Number(inst.emi_amount - inst.amount_paid).toFixed(2);
+            const principal = Number(inst.principal_component || 0);
+            const interest = Number(inst.interest_component || 0);
+            const defaultRate = Number(this.loan.interest_rate || 0);
+
+            this.originalPrincipal = principal > 0 ? principal : 1;
+            this.originalInterest = interest;
+            this.originalRate = defaultRate > 0 ? defaultRate : 1;
+
+            this.payForm.principal_amount = principal.toFixed(2);
+            this.payForm.interest_rate = defaultRate.toFixed(2);
+            this.payForm.interest_amount = interest.toFixed(2);
+            this.payForm.amount = (principal + interest).toFixed(2);
             this.payForm.paid_date = new Date().toISOString().split('T')[0];
             this.payForm.bank_account_id = (this.companyBankAccounts && this.companyBankAccounts.length > 0) ? this.companyBankAccounts[0].id : '';
             this.payForm.reference_no = '';
             this.payForm.remarks = '';
+            this.payForm.other_charges = 0;
             this.payModalOpen = true;
+        },
+        onPrincipalAmountChange() {
+            delete this.payErrors.principal_amount;
+            delete this.payErrors.amount;
+
+            let principal = parseFloat(this.payForm.principal_amount);
+            if (isNaN(principal) || principal < 0) principal = 0;
+
+            let interest = parseFloat(this.payForm.interest_amount);
+            if (isNaN(interest) || interest < 0) interest = 0;
+
+            // Interest component is NOT affected by change in principal amount
+            this.payForm.amount = (principal + interest).toFixed(2);
+        },
+        onInterestRateChange() {
+            delete this.payErrors.interest_rate;
+            delete this.payErrors.interest_amount;
+            delete this.payErrors.amount;
+
+            let rate = parseFloat(this.payForm.interest_rate);
+            if (isNaN(rate) || rate < 0) rate = 0;
+
+            let newInterest = 0;
+            if (this.originalRate > 0 && this.originalInterest > 0) {
+                newInterest = (rate / this.originalRate) * this.originalInterest;
+            } else if (Number(this.loan.principal_amount) > 0) {
+                newInterest = (Number(this.loan.principal_amount) * rate) / 1200;
+            } else {
+                newInterest = (parseFloat(this.payForm.principal_amount) || 0) * rate / 1200;
+            }
+
+            this.payForm.interest_amount = Number(newInterest).toFixed(2);
+            let principal = parseFloat(this.payForm.principal_amount) || 0;
+            this.payForm.amount = (principal + newInterest).toFixed(2);
+        },
+        onInterestAmountChange() {
+            delete this.payErrors.interest_rate;
+            delete this.payErrors.interest_amount;
+            delete this.payErrors.amount;
+
+            let interest = parseFloat(this.payForm.interest_amount);
+            if (isNaN(interest) || interest < 0) interest = 0;
+
+            let newRate = 0;
+            if (this.originalInterest > 0 && this.originalRate > 0) {
+                newRate = (interest / this.originalInterest) * this.originalRate;
+            } else if (Number(this.loan.principal_amount) > 0) {
+                newRate = (interest * 1200) / Number(this.loan.principal_amount);
+            } else {
+                newRate = (interest * 1200) / (parseFloat(this.payForm.principal_amount) || 1);
+            }
+
+            this.payForm.interest_rate = Number(newRate).toFixed(2);
+            let principal = parseFloat(this.payForm.principal_amount) || 0;
+            this.payForm.amount = (principal + interest).toFixed(2);
         },
         openPrepayModal() {
             this.prepayErrors = {};
@@ -956,8 +1083,20 @@ function scheduleApp() {
             this.payErrors = {};
             let hasError = false;
 
+            if (this.payForm.principal_amount === '' || isNaN(parseFloat(this.payForm.principal_amount)) || parseFloat(this.payForm.principal_amount) <= 0) {
+                this.payErrors.principal_amount = 'Valid principal amount is required';
+                hasError = true;
+            }
             if (!this.payForm.amount || parseFloat(this.payForm.amount) <= 0) {
                 this.payErrors.amount = 'Valid payment amount is required';
+                hasError = true;
+            }
+            if (this.payForm.interest_rate === '' || isNaN(parseFloat(this.payForm.interest_rate)) || parseFloat(this.payForm.interest_rate) < 0) {
+                this.payErrors.interest_rate = 'Valid interest rate is required';
+                hasError = true;
+            }
+            if (this.payForm.interest_amount === '' || isNaN(parseFloat(this.payForm.interest_amount)) || parseFloat(this.payForm.interest_amount) < 0) {
+                this.payErrors.interest_amount = 'Valid interest amount is required';
                 hasError = true;
             }
             if (!this.payForm.paid_date) {
