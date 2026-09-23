@@ -18,8 +18,8 @@
     }
 @endphp
 <div class="flex flex-wrap items-center gap-2">
-    <span class="px-4 py-1.5 bg-slate-800 text-white border border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xs flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+    <span class="px-4 py-1.5 bg-gradient-to-r from-[#a38c29] via-[#b89635] to-[#a38c29] text-white border border-[#8a7522] rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xs flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
         Active Project: {{ $activeProjectName }}
     </span>
     @if($activeCustomerName)

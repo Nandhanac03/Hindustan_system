@@ -38,6 +38,10 @@
     });
 @endphp
 
+@php
+    $defaultProjectName = strtoupper($projects->first()?->name ?? 'TABASCO HINDUSTAN INFRA DEVELOPERS PVT. LTD.');
+@endphp
+
 <x-erp-layout title="Cancellation Charges & Additional Work" headerTitle="Cancellation Charges & Additional Work">
     <div class="max-w-[1800px] mx-auto space-y-6" x-data="{ 
         activeTab: 'cancellation', 
@@ -49,7 +53,7 @@
         async exportExcel(type) {
             const isAdditional = (type === 'additional_work' || this.activeTab === 'additional');
             const workbook = new ExcelJS.Workbook();
-            workbook.creator = 'TABASCO Human Capital';
+            workbook.creator = 'TABASCO ERP';
             workbook.lastModifiedBy = 'TABASCO ERP';
             workbook.created = new Date();
             workbook.modified = new Date();
@@ -72,7 +76,7 @@
                 buildAdditionalWorkWorksheet(
                     workbook,
                     'Additional Work',
-                    'TABASCO  HUMAN CAPITAL   |   Additional Work (Master Directory)',
+                    '{{ $defaultProjectName }} - ADDITIONAL WORK',
                     filteredData
                 );
 
@@ -81,7 +85,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'TABASCO_Additional_Work_Report.xlsx';
+                a.download = 'Additional_Work_Report.xlsx';
                 a.click();
                 window.URL.revokeObjectURL(url);
             } else {
@@ -99,7 +103,7 @@
                 buildCancellationWorksheet(
                     workbook,
                     'Cancellation Charges',
-                    'TABASCO  HUMAN CAPITAL   |   Cancellation Charges (Master Directory)',
+                    '{{ $defaultProjectName }} - CANCELLATION CHARGES',
                     filteredData
                 );
 
@@ -108,7 +112,7 @@
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'TABASCO_Cancellation_Charges_Report.xlsx';
+                a.download = 'Cancellation_Charges_Report.xlsx';
                 a.click();
                 window.URL.revokeObjectURL(url);
             }
@@ -127,13 +131,13 @@
 
             worksheet.columns = [
                 { header: 'SL NO', key: 'sl_no', width: 10 },
-                { header: 'SALE / BOOKING NO.', key: 'sale_no', width: 26 },
+                { header: 'SALE BOOKING NO.', key: 'sale_no', width: 26 },
                 { header: 'CUSTOMER NAME', key: 'customer', width: 28 },
-                { header: 'UNIT / PROPERTY', key: 'unit', width: 30 },
+                { header: 'UNIT PROPERTY', key: 'unit', width: 45 },
                 { header: 'CANCELLATION DATE', key: 'date', width: 22 },
                 { header: 'CANCELLATION FEE (₹)', key: 'fee', width: 24 },
-                { header: 'REASON', key: 'reason', width: 32 },
-                { header: 'STATUS', key: 'status', width: 16 }
+                { header: 'REASON', key: 'reason', width: 34 },
+                { header: 'STATUS', key: 'status', width: 18 }
             ];
 
             // 1. Top Title Banner Row (Row 1) - Dark Emerald #0B3B2E
@@ -155,9 +159,9 @@
             headerRow.height = 30;
             headerRow.values = [
                 'SL NO',
-                'SALE / BOOKING NO.',
+                'SALE BOOKING NO.',
                 'CUSTOMER NAME',
-                'UNIT / PROPERTY',
+                'UNIT PROPERTY',
                 'CANCELLATION DATE',
                 'CANCELLATION FEE (₹)',
                 'REASON',
@@ -206,7 +210,7 @@
                 for (let col = 1; col <= 8; col++) {
                     const cell = row.getCell(col);
                     cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF1E293B' } };
-                    cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                     cell.border = {
                         top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
@@ -220,23 +224,16 @@
                     }
 
                     if (col === 1) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF64748B' } };
                     }
                     if (col === 2) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
                     }
-                    if (col === 5) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    }
                     if (col === 6) {
-                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
                         cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FFA38C29' } };
                         cell.numFormat = '₹#,##0.00';
                     }
                     if (col === 8) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         if (rawStatus === 'cancelled') {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
                             cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFBE123C' } };
@@ -252,11 +249,11 @@
                 currentRowIdx++;
             });
 
-            // 4. Bottom Footer Banner Row (Row N+1) - Dark Emerald #0B3B2E
+            // 4. Bottom Footer Banner Row (Row N+1) - Dark Emerald #0B3B2E (ALL CAPITAL LETTERS)
             const footerRowIdx = currentRowIdx;
             worksheet.mergeCells(`A${footerRowIdx}:H${footerRowIdx}`);
             const footCell = worksheet.getCell(`A${footerRowIdx}`);
-            footCell.value = `Total Cancelled Bookings: ${dataList.length}   |   Total Cancellation Fees: ₹${totalFee.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            footCell.value = `TOTAL CANCELLED BOOKINGS: ${dataList.length}   -   TOTAL CANCELLATION FEES: ₹${totalFee.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             footCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
             footCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
             footCell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -277,13 +274,13 @@
 
             worksheet.columns = [
                 { header: 'SL NO', key: 'sl_no', width: 10 },
-                { header: 'SALE / BOOKING NO.', key: 'sale_no', width: 26 },
+                { header: 'SALE BOOKING NO.', key: 'sale_no', width: 26 },
                 { header: 'CUSTOMER NAME', key: 'customer', width: 28 },
-                { header: 'UNIT NO.', key: 'unit', width: 28 },
-                { header: 'WORK DESCRIPTION', key: 'description', width: 36 },
+                { header: 'UNIT NO.', key: 'unit', width: 45 },
+                { header: 'WORK DESCRIPTION', key: 'description', width: 38 },
                 { header: 'AMOUNT (₹)', key: 'amount', width: 24 },
                 { header: 'WORK DATE', key: 'date', width: 22 },
-                { header: 'STATUS', key: 'status', width: 16 }
+                { header: 'STATUS', key: 'status', width: 18 }
             ];
 
             // 1. Top Title Banner Row (Row 1) - Dark Emerald #0B3B2E
@@ -305,7 +302,7 @@
             headerRow.height = 30;
             headerRow.values = [
                 'SL NO',
-                'SALE / BOOKING NO.',
+                'SALE BOOKING NO.',
                 'CUSTOMER NAME',
                 'UNIT NO.',
                 'WORK DESCRIPTION',
@@ -356,7 +353,7 @@
                 for (let col = 1; col <= 8; col++) {
                     const cell = row.getCell(col);
                     cell.font = { name: 'Calibri', size: 10, color: { argb: 'FF1E293B' } };
-                    cell.alignment = { horizontal: 'left', vertical: 'middle', wrapText: true };
+                    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 
                     cell.border = {
                         top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
@@ -370,23 +367,16 @@
                     }
 
                     if (col === 1) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF64748B' } };
                     }
                     if (col === 2) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF0F172A' } };
                     }
                     if (col === 6) {
-                        cell.alignment = { horizontal: 'right', vertical: 'middle' };
                         cell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF047857' } };
                         cell.numFormat = '₹#,##0.00';
                     }
-                    if (col === 7) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
-                    }
                     if (col === 8) {
-                        cell.alignment = { horizontal: 'center', vertical: 'middle' };
                         if (rawStatus === 'cancelled') {
                             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFEE2E2' } };
                             cell.font = { name: 'Calibri', size: 9.5, bold: true, color: { argb: 'FFBE123C' } };
@@ -402,11 +392,11 @@
                 currentRowIdx++;
             });
 
-            // 4. Bottom Footer Banner Row (Row N+1) - Dark Emerald #0B3B2E
+            // 4. Bottom Footer Banner Row (Row N+1) - Dark Emerald #0B3B2E (ALL CAPITAL LETTERS)
             const footerRowIdx = currentRowIdx;
             worksheet.mergeCells(`A${footerRowIdx}:H${footerRowIdx}`);
             const footCell = worksheet.getCell(`A${footerRowIdx}`);
-            footCell.value = `Total Work Orders: ${dataList.length}   |   Total Additional Work Amount: ₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            footCell.value = `TOTAL WORK ORDERS: ${dataList.length}   -   TOTAL ADDITIONAL WORK AMOUNT: ₹${totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             footCell.font = { name: 'Calibri', size: 13, bold: true, color: { argb: 'FFFFFFFF' } };
             footCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0B3B2E' } };
             footCell.alignment = { horizontal: 'center', vertical: 'middle' };
@@ -577,16 +567,16 @@
                 </div>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
+                <table class="w-full text-center text-sm text-slate-600">
                     <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
                         <tr>
                             <th class="px-5 py-3 w-16 text-center">#</th>
-                            <th class="px-5 py-3">Sale / Booking No.</th>
-                            <th class="px-5 py-3">Customer Name</th>
-                            <th class="px-5 py-3">Unit</th>
-                            <th class="px-5 py-3">Cancellation Date</th>
-                            <th class="px-5 py-3 text-right">Cancellation Fee (₹)</th>
-                            <th class="px-5 py-3">Reason</th>
+                            <th class="px-5 py-3 text-center">Sale Booking No.</th>
+                            <th class="px-5 py-3 text-center">Customer Name</th>
+                            <th class="px-5 py-3 text-center">Unit</th>
+                            <th class="px-5 py-3 text-center">Cancellation Date</th>
+                            <th class="px-5 py-3 text-center">Cancellation Fee (₹)</th>
+                            <th class="px-5 py-3 text-center">Reason</th>
                             <th class="px-5 py-3 text-center w-28">Status</th>
                         </tr>
                     </thead>
@@ -616,17 +606,17 @@
                                     '{{ addslashes($cSearchTerms) }}'.includes(search.trim().toLowerCase())
                                 ) && (status === '' || '{{ strtolower($charge->status ?? '') }}' === status.toLowerCase())">
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">{{ $index + 1 }}</td>
-                                <td class="px-5 py-3 text-xs font-black text-slate-800 uppercase tracking-wide">{{ $charge->sale_number ?? 'N/A' }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $charge->customer->name ?? ($charge->customer_name ?? 'N/A') }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $chargeUnitDisplay }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $charge->updated_at ? $charge->updated_at->format('d/m/Y') : 'N/A' }}</td>
-                                <td class="px-5 py-3 text-right text-xs font-black text-[#a38c29]">
+                                <td class="px-5 py-3 text-center text-xs font-black text-slate-800 uppercase tracking-wide">{{ $charge->sale_number ?? 'N/A' }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $charge->customer->name ?? ($charge->customer_name ?? 'N/A') }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $chargeUnitDisplay }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $charge->updated_at ? $charge->updated_at->format('d/m/Y') : 'N/A' }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-black text-[#a38c29]">
                                     ₹{{ number_format((float)($charge->cancellation_fee ?? 0), 2) }}
                                 </td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $charge->cancellation_reason ?? 'Customer Request' }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $charge->cancellation_reason ?? 'Customer Request' }}</td>
                                 <td class="px-5 py-3 text-center">
                                     @if($charge->status === 'cancelled')
-                                        <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-rose-50 text-rose-700 border border-rose-100">{{ $charge->status }}</span>
+                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-rose-50 text-rose-700 border border-rose-100">{{ $charge->status }}</span>
                                     @elseif($charge->status === 'active')
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-emerald-50 text-emerald-700 border border-emerald-100">{{ $charge->status }}</span>
                                     @else
@@ -674,16 +664,16 @@
                 </div>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm text-slate-600">
+                <table class="w-full text-center text-sm text-slate-600">
                     <thead class="bg-[#a38c29] text-[10px] font-black text-white uppercase tracking-wider border-y border-[#8a7522]">
                         <tr>
                             <th class="px-5 py-3 w-16 text-center">#</th>
-                            <th class="px-5 py-3">Sale / Booking No.</th>
-                            <th class="px-5 py-3">Customer Name</th>
-                            <th class="px-5 py-3">Unit No.</th>
-                            <th class="px-5 py-3">Work Description</th>
-                            <th class="px-5 py-3 text-right">Amount (₹)</th>
-                            <th class="px-5 py-3">Work Date</th>
+                            <th class="px-5 py-3 text-center">Sale Booking No.</th>
+                            <th class="px-5 py-3 text-center">Customer Name</th>
+                            <th class="px-5 py-3 text-center">Unit No.</th>
+                            <th class="px-5 py-3 text-center">Work Description</th>
+                            <th class="px-5 py-3 text-center">Amount (₹)</th>
+                            <th class="px-5 py-3 text-center">Work Date</th>
                             <th class="px-5 py-3 text-center w-28">Status</th>
                         </tr>
                     </thead>
@@ -713,14 +703,14 @@
                                     '{{ addslashes($wSearchTerms) }}'.includes(search.trim().toLowerCase())
                                 ) && (status === '' || '{{ strtolower($work->sale->status ?? '') }}' === status.toLowerCase())">
                                 <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">{{ $index + 1 }}</td>
-                                <td class="px-5 py-3 text-xs font-black text-slate-800 uppercase tracking-wide">{{ $work->sale->sale_number ?? 'N/A' }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $work->sale->customer->name ?? ($work->sale->customer_name ?? 'N/A') }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $workUnitDisplay }}</td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $work->description }}</td>
-                                <td class="px-5 py-3 text-right text-xs font-black text-[#a38c29]">
+                                <td class="px-5 py-3 text-center text-xs font-black text-slate-800 uppercase tracking-wide">{{ $work->sale->sale_number ?? 'N/A' }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $work->sale->customer->name ?? ($work->sale->customer_name ?? 'N/A') }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $workUnitDisplay }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $work->description }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-black text-[#a38c29]">
                                     ₹{{ number_format((float)($work->amount ?? 0), 2) }}
                                 </td>
-                                <td class="px-5 py-3 text-xs font-bold text-slate-500">{{ $work->created_at ? $work->created_at->format('d/m/Y') : 'N/A' }}</td>
+                                <td class="px-5 py-3 text-center text-xs font-bold text-slate-500">{{ $work->created_at ? $work->created_at->format('d/m/Y') : 'N/A' }}</td>
                                 <td class="px-5 py-3 text-center">
                                     @if($work->sale && $work->sale->status === 'cancelled')
                                         <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide inline-block bg-rose-50 text-rose-700 border border-rose-100">{{ $work->sale->status }}</span>

@@ -159,7 +159,7 @@ function reportsApp() {
                 const excelTable = document.querySelector("#exchangeExcelTable");
                 if (excelTable) {
                     table = excelTable;
-                    filename = 'HindustanERP_Unit_Exchange_Report.xlsx';
+                    filename = customerFilenamePart ? `Unit_Exchange_Report${customerFilenamePart}.xlsx` : 'Unit_Exchange_Report.xlsx';
                 }
             } else if (this.activeTab === 'loan_schedules') {
                 const excelTable = document.querySelector("#loanScheduleExcelTable");
@@ -193,7 +193,7 @@ function reportsApp() {
             workbook.created = new Date();
             workbook.modified = new Date();
 
-            const sheetName = isSales ? 'Sales Booking Master' : (this.activeTab === 'sales_return' ? 'Sales Cancel Report' : 'Report Ledger');
+            const sheetName = isSales ? 'Sales Booking Master' : (this.activeTab === 'sales_return' ? 'Sales Cancel Report' : (this.activeTab === 'exchange_report' ? 'Unit Exchange Report' : 'Report Ledger'));
             const worksheet = workbook.addWorksheet(sheetName);
 
             // Configure views and page setups
@@ -1020,41 +1020,115 @@ function reportsApp() {
                 const totalFee   = {{ $salesReturnChartData['total_fee'] ?? 0 }};
                 const totalRefund = {{ $salesReturnChartData['total_refund'] ?? 0 }};
 
-                new ApexCharts(document.querySelector("#salesReturnChart"), {
-                    series: [
-                        { name: 'Cancellation Fees Retained (₹)', data: retFees },
-                        { name: 'Refund Amount Payable (₹)', data: retRefunds }
-                    ],
-                    chart: { type: 'area', height: 210, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
-                    colors: ['#ef4444', '#10b981'],
-                    stroke: { curve: 'smooth', width: 2.5 },
-                    fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0.05 } },
-                    dataLabels: { enabled: false },
-                    xaxis: { categories: retMonths },
-                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)) } },
-                    grid: { borderColor: '#f1f5f9' },
-                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
-                }).render();
+                if (document.querySelector("#salesReturnChart")) {
+                    new ApexCharts(document.querySelector("#salesReturnChart"), {
+                        series: [
+                            { name: 'Cancellation Fees Retained (₹)', data: retFees },
+                            { name: 'Refund Amount Payable (₹)', data: retRefunds }
+                        ],
+                        chart: { 
+                            type: 'area', 
+                            height: 180, 
+                            toolbar: { show: false }, 
+                            fontFamily: 'Inter, sans-serif',
+                            sparkline: { enabled: false }
+                        },
+                        colors: ['#ef4444', '#00b074'],
+                        stroke: { curve: 'smooth', width: [2.5, 2.5] },
+                        fill: { 
+                            type: 'gradient', 
+                            gradient: { 
+                                shadeIntensity: 1, 
+                                opacityFrom: 0.35, 
+                                opacityTo: 0.03, 
+                                stops: [0, 90, 100] 
+                            } 
+                        },
+                        dataLabels: { enabled: false },
+                        xaxis: { 
+                            categories: retMonths,
+                            labels: { show: false },
+                            axisBorder: { show: false },
+                            axisTicks: { show: false }
+                        },
+                        yaxis: { 
+                            show: false 
+                        },
+                        legend: { 
+                            show: false 
+                        },
+                        grid: { 
+                            show: false,
+                            padding: { top: 6, right: 10, bottom: 0, left: 10 }
+                        },
+                        tooltip: { 
+                            y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } 
+                        }
+                    }).render();
+                }
 
                 if (document.querySelector("#salesReturnDonutChart")) {
                     new ApexCharts(document.querySelector("#salesReturnDonutChart"), {
                         series: [totalFee, totalRefund],
                         labels: ['Cancellation Fee Retained', 'Refund Payable'],
-                        chart: { type: 'donut', height: 210, fontFamily: 'Inter, sans-serif' },
-                        colors: ['#ef4444', '#10b981'],
-                        legend: { position: 'bottom', fontSize: '10px', fontWeight: 600 },
-                        dataLabels: { formatter: (val) => val.toFixed(1) + '%' },
-                        tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } },
+                        chart: { 
+                            type: 'donut', 
+                            height: 180, 
+                            fontFamily: 'Inter, sans-serif' 
+                        },
+                        colors: ['#ef4444', '#00b074'],
+                        legend: { 
+                            show: false 
+                        },
+                        dataLabels: { 
+                            enabled: true,
+                            formatter: (val) => val.toFixed(1) + '%',
+                            style: { fontSize: '10px', fontWeight: 'bold', colors: ['#ffffff'] },
+                            dropShadow: { enabled: false }
+                        },
+                        tooltip: { 
+                            y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } 
+                        },
                         plotOptions: {
                             pie: {
                                 donut: {
-                                    size: '65%',
+                                    size: '70%',
                                     labels: {
                                         show: true,
+                                        name: {
+                                            show: true,
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                            color: '#64748b',
+                                            offsetY: -3
+                                        },
+                                        value: {
+                                            show: true,
+                                            fontSize: '17px',
+                                            fontWeight: 800,
+                                            color: '#0f172a',
+                                            offsetY: 3,
+                                            formatter: (val) => {
+                                                const total = (totalFee + totalRefund);
+                                                if (total >= 10000000) return '₹' + (total / 10000000).toFixed(1) + 'Cr';
+                                                if (total >= 100000) return '₹' + (total / 100000).toFixed(1) + 'L';
+                                                if (total >= 1000) return '₹' + (total / 1000).toFixed(1) + 'K';
+                                                return '₹' + total.toLocaleString('en-IN');
+                                            }
+                                        },
                                         total: {
                                             show: true,
                                             label: 'Total Value',
-                                            formatter: (w) => '₹' + (w.globals.seriesTotals.reduce((a, b) => a + b, 0) / 100000).toFixed(1) + 'L'
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                            color: '#64748b',
+                                            formatter: (w) => {
+                                                const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                                if (total >= 10000000) return '₹' + (total / 10000000).toFixed(1) + 'Cr';
+                                                if (total >= 100000) return '₹' + (total / 100000).toFixed(1) + 'L';
+                                                if (total >= 1000) return '₹' + (total / 1000).toFixed(1) + 'K';
+                                                return '₹' + total.toLocaleString('en-IN');
+                                            }
                                         }
                                     }
                                 }
@@ -1070,20 +1144,52 @@ function reportsApp() {
             if (this.activeTab === 'exchange_report') {
                 const exMonths   = {!! json_encode($exchangeChartData['months'] ?? []) !!};
                 const exEquities = {!! json_encode($exchangeChartData['equities'] ?? []) !!};
-                new ApexCharts(document.querySelector("#unitExchangesChart"), {
-                    series: [{
-                        name: 'Transferred Equity Applied (₹)',
-                        data: exEquities
-                    }],
-                    chart: { type: 'area', height: 180, toolbar: { show: false }, fontFamily: 'Inter, sans-serif' },
-                    colors: ['#3b82f6'],
-                    stroke: { curve: 'smooth', width: 2.5 },
-                    fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.05 } },
-                    xaxis: { categories: exMonths },
-                    yaxis: { labels: { formatter: (v) => '₹' + (v >= 100000 ? (v/100000).toFixed(1)+'L' : (v/1000).toFixed(0)+'K') } },
-                    grid: { borderColor: '#f1f5f9' },
-                    tooltip: { y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } }
-                }).render();
+                if (document.querySelector("#unitExchangesChart")) {
+                    new ApexCharts(document.querySelector("#unitExchangesChart"), {
+                        series: [{
+                            name: 'Transferred Equity Applied (₹)',
+                            data: exEquities
+                        }],
+                        chart: { 
+                            type: 'area', 
+                            height: 180, 
+                            toolbar: { show: false }, 
+                            fontFamily: 'Inter, sans-serif',
+                            sparkline: { enabled: false }
+                        },
+                        colors: ['#2563eb'],
+                        stroke: { curve: 'smooth', width: 2.5 },
+                        fill: { 
+                            type: 'gradient', 
+                            gradient: { 
+                                shadeIntensity: 1, 
+                                opacityFrom: 0.35, 
+                                opacityTo: 0.03, 
+                                stops: [0, 90, 100] 
+                            } 
+                        },
+                        dataLabels: { enabled: false },
+                        xaxis: { 
+                            categories: exMonths,
+                            labels: { show: false },
+                            axisBorder: { show: false },
+                            axisTicks: { show: false }
+                        },
+                        yaxis: { 
+                            show: false 
+                        },
+                        legend: { 
+                            show: false 
+                        },
+                        grid: { 
+                            show: false,
+                            padding: { top: 6, right: 10, bottom: 0, left: 10 }
+                        },
+                        tooltip: { 
+                            y: { formatter: (v) => '₹' + parseFloat(v).toLocaleString('en-IN') } 
+                        }
+                    }).render();
+                }
             }
             @endif
 

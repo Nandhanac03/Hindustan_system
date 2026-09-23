@@ -2221,6 +2221,9 @@ class ReportController extends Controller
             'months' => $exMonths,
             'counts' => $exCounts,
             'equities' => $exEquities,
+            'total_equity' => (float)$allExSales->sum('transferred_equity'),
+            'total_contract' => (float)$allExSales->sum('total_amount'),
+            'total_count' => $allExSales->count(),
         ];
 
         return view('reports.exchange', array_merge($lookups, compact('activeTab', 'exchangeEntries', 'exchangeChartData')));
