@@ -7,22 +7,24 @@ function siteExpenseCategoryComponent() {
         openViewModal: false,
         search: '',
         filterStatus: '',
-        addCategory: { category_code: '', category_name: '', description: '', status: 'active' },
-        viewCategory: { id: null, category_code: '', category_name: '', description: '', status: 'active', created_at: '' },
-        editCategory: { id: null, category_code: '', category_name: '', description: '', status: 'active' },
+        addCategory: { category_code: '', category_name: '', chart_of_account_id: '', description: '', status: 'active' },
+        viewCategory: { id: null, category_code: '', category_name: '', chart_of_account_id: '', coa_code: '', coa_name: '', description: '', status: 'active', created_at: '' },
+        editCategory: { id: null, category_code: '', category_name: '', chart_of_account_id: '', description: '', status: 'active' },
         categories: @json($categoriesArray),
         get filteredCategories() {
             return this.categories.filter(c => {
                 const searchLower = this.search.toLowerCase().trim();
                 const matchesSearch = !searchLower || 
                     (c.category_name && c.category_name.toLowerCase().includes(searchLower)) || 
-                    (c.category_code && c.category_code.toLowerCase().includes(searchLower));
+                    (c.category_code && c.category_code.toLowerCase().includes(searchLower)) ||
+                    (c.coa_code && c.coa_code.toLowerCase().includes(searchLower)) ||
+                    (c.coa_name && c.coa_name.toLowerCase().includes(searchLower));
                 const matchesStatus = !this.filterStatus || String(c.status).toLowerCase() === String(this.filterStatus).toLowerCase();
                 return matchesSearch && matchesStatus;
             });
         },
         initAdd() {
-            this.addCategory = { category_code: '', category_name: '', description: '', status: 'active' };
+            this.addCategory = { category_code: '', category_name: '', chart_of_account_id: '', description: '', status: 'active' };
             this.openAddModal = true;
         },
         resetFilters() {
@@ -34,7 +36,10 @@ function siteExpenseCategoryComponent() {
             this.openViewModal = true;
         },
         initEdit(cat) {
-            this.editCategory = { ...cat };
+            this.editCategory = { 
+                ...cat,
+                chart_of_account_id: cat.chart_of_account_id ? String(cat.chart_of_account_id) : ''
+            };
             this.openEditModal = true;
         }
     };
@@ -53,7 +58,7 @@ function siteExpenseCategoryComponent() {
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-slate-900">Site Expense Category Master</h1>
-                    <p class="text-xs text-slate-500 font-medium">Manage Site Expense Categories, Codes, and Master Statuses</p>
+                    <p class="text-xs text-slate-500 font-medium">Manage Site Expense Categories, COA Mappings, and Master Statuses</p>
                 </div>
             </div>
         </div>
@@ -127,7 +132,7 @@ function siteExpenseCategoryComponent() {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                     </div>
-                    <input type="text" x-model="search" placeholder="Search Code or Name..." 
+                    <input type="text" x-model="search" placeholder="Search Category or COA Account..." 
                            class="w-full pl-10 pr-10 py-2.5 bg-slate-50 hover:bg-white focus:bg-white border border-slate-250 hover:border-[#a38c29]/60 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all shadow-2xs">
                     <template x-if="search">
                         <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center">
@@ -174,8 +179,8 @@ function siteExpenseCategoryComponent() {
                 <thead>
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
                         <th class="px-4 py-3.5 w-16">SL.NO</th>
-                        <th class="px-4 py-3.5 w-28">CODE</th>
                         <th class="px-4 py-3.5">CATEGORY NAME</th>
+                        <th class="px-4 py-3.5">COA MAPPING (PARENT)</th>
                         <th class="px-4 py-3.5 text-center">STATUS</th>
                         <th class="px-4 py-3.5 text-right pr-4">ACTIONS</th>
                     </tr>
@@ -184,10 +189,21 @@ function siteExpenseCategoryComponent() {
                     <template x-for="(cat, index) in filteredCategories" :key="cat.id">
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-4 py-3.5 font-bold font-mono text-slate-700" x-text="index + 1"></td>
-                            <td class="px-4 py-3.5 font-mono font-bold text-[#a38c29]">
-                                <span class="px-2 py-0.5 bg-[#a38c29]/10 rounded border border-[#a38c29]/20" x-text="cat.category_code || '—'"></span>
-                            </td>
                             <td class="px-4 py-3.5 font-semibold text-slate-900" x-text="cat.category_name"></td>
+                            <td class="px-4 py-3.5 cursor-pointer" @click="initEdit(cat)" title="Click to edit or change COA Mapping">
+                                <template x-if="cat.coa_code">
+                                    <div class="inline-flex items-center gap-1.5 hover:opacity-80 transition group">
+                                        <span class="px-2 py-0.5 bg-amber-50 group-hover:bg-amber-100 text-amber-800 font-mono font-bold text-[10px] rounded border border-amber-200 transition" x-text="cat.coa_code"></span>
+                                        <span class="text-slate-700 group-hover:text-slate-900 font-medium text-xs truncate max-w-[240px] transition" :title="cat.coa_name" x-text="cat.coa_name"></span>
+                                        <svg class="w-3 h-3 text-slate-400 group-hover:text-amber-600 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                    </div>
+                                </template>
+                                <template x-if="!cat.coa_code">
+                                    <span class="px-2 py-0.5 bg-rose-50 text-rose-700 font-bold text-[10px] rounded border border-rose-200 hover:bg-rose-100 transition inline-flex items-center gap-1">
+                                        + Map COA
+                                    </span>
+                                </template>
+                            </td>
                             <td class="px-4 py-3.5 text-center">
                                 <form :action="'{{ url('/site-expense-categories') }}/' + cat.id + '/toggle-status'" method="POST" class="inline">
                                     @csrf
@@ -239,12 +255,20 @@ function siteExpenseCategoryComponent() {
                     <span class="font-bold font-mono text-[#a38c29]" x-text="'SEC-' + String(viewCategory.id).padStart(3, '0')"></span>
                 </div>
                 <div class="flex justify-between border-b border-slate-100 pb-2.5">
-                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">CATEGORY CODE</span>
-                    <span class="font-bold font-mono text-slate-800" x-text="viewCategory.category_code || '—'"></span>
-                </div>
-                <div class="flex justify-between border-b border-slate-100 pb-2.5">
                     <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">CATEGORY NAME</span>
                     <span class="font-bold text-slate-900" x-text="viewCategory.category_name"></span>
+                </div>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">PARENT COA MAPPING</span>
+                    <template x-if="viewCategory.coa_code">
+                        <div class="text-right">
+                            <span class="font-bold font-mono text-[#a38c29]" x-text="viewCategory.coa_code"></span>
+                            <span class="text-slate-700 font-semibold ml-1.5" x-text="viewCategory.coa_name"></span>
+                        </div>
+                    </template>
+                    <template x-if="!viewCategory.coa_code">
+                        <span class="text-slate-400 italic">Not Mapped</span>
+                    </template>
                 </div>
                 <template x-if="viewCategory.description">
                     <div class="flex justify-between border-b border-slate-100 pb-2.5">
@@ -271,7 +295,7 @@ function siteExpenseCategoryComponent() {
 
     <!-- Add Category Modal -->
     <div x-show="openAddModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col" @click.outside="openAddModal = false">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto" @click.outside="openAddModal = false">
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
@@ -285,19 +309,28 @@ function siteExpenseCategoryComponent() {
                 </div>
             </div>
 
-            <form action="{{ route('site-expense-categories.store') }}" method="POST" class="p-6 space-y-4 text-xs">
+            <form action="{{ route('site-expense-categories.store') }}" method="POST" class="p-6 space-y-4 text-xs overflow-y-auto">
                 @csrf
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Code (Optional)</label>
-                        <input type="text" name="category_code" x-model="addCategory.category_code" placeholder="e.g. 4050" 
-                               class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs font-mono">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>
-                        <input type="text" name="category_name" x-model="addCategory.category_name" required placeholder="e.g. Site Office & Administrative..." 
-                               class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>
+                    <input type="text" name="category_name" x-model="addCategory.category_name" required placeholder="e.g. Site Office & Administrative..." 
+                           class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping)</label>
+                    <div class="relative">
+                        <select name="chart_of_account_id" x-model="addCategory.chart_of_account_id"
+                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                            <option value="">-- Select Parent COA Account --</option>
+                            @foreach($coaAccounts as $coa)
+                                <option value="{{ $coa->id }}">{{ $coa->account_code }} &mdash; {{ $coa->account_name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </div>
                 </div>
 
@@ -309,10 +342,15 @@ function siteExpenseCategoryComponent() {
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Status</label>
-                    <select name="status" x-model="addCategory.status" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
+                    <div class="relative">
+                        <select name="status" x-model="addCategory.status" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
@@ -329,7 +367,7 @@ function siteExpenseCategoryComponent() {
 
     <!-- Edit Category Modal -->
     <div x-show="openEditModal" x-cloak x-transition.opacity style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col" @click.outside="openEditModal = false">
+        <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto" @click.outside="openEditModal = false">
             <div class="relative overflow-hidden rounded-t-2xl bg-gradient-to-br from-slate-900 to-slate-800 px-6 py-5 flex-shrink-0">
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
@@ -343,20 +381,30 @@ function siteExpenseCategoryComponent() {
                 </div>
             </div>
 
-            <form :action="'{{ url('/site-expense-categories') }}/' + editCategory.id" method="POST" class="p-6 space-y-4 text-xs">
+            <form :action="'{{ url('/site-expense-categories') }}/' + editCategory.id" method="POST" class="p-6 space-y-4 text-xs overflow-y-auto">
                 @csrf
                 <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="category_code" :value="editCategory.category_code">
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Code (Optional)</label>
-                        <input type="text" name="category_code" x-model="editCategory.category_code" placeholder="e.g. 4050" 
-                               class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs font-mono">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>
-                        <input type="text" name="category_name" x-model="editCategory.category_name" required
-                               class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>
+                    <input type="text" name="category_name" x-model="editCategory.category_name" required
+                           class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 outline-none transition shadow-2xs">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping)</label>
+                    <div class="relative">
+                        <select name="chart_of_account_id" x-model="editCategory.chart_of_account_id"
+                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                            <option value="">-- Select Parent COA Account --</option>
+                            @foreach($coaAccounts as $coa)
+                                <option value="{{ $coa->id }}">{{ $coa->account_code }} &mdash; {{ $coa->account_name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
                     </div>
                 </div>
 
@@ -368,10 +416,15 @@ function siteExpenseCategoryComponent() {
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Status</label>
-                    <select name="status" x-model="editCategory.status" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs">
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
+                    <div class="relative">
+                        <select name="status" x-model="editCategory.status" class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex items-center justify-between">

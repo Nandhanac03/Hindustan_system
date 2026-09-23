@@ -89,7 +89,7 @@
 
                     <div>
                         <span class="text-slate-500 block font-medium">Expense Category</span>
-                        <span class="font-bold text-blue-900">{{ $siteExpense->expense_category_code }} - {{ $siteExpense->expense_category_name }}</span>
+                        <span class="font-bold text-blue-900">{{ $siteExpense->expense_category_name }}</span>
                     </div>
                 </div>
 
@@ -133,7 +133,7 @@
                     <tbody class="divide-y divide-slate-100">
                         <tr>
                             <td class="p-3 font-bold text-slate-900">
-                                {{ $siteExpense->expense_category_code }} - {{ $siteExpense->expense_category_name }}
+                                {{ $siteExpense->expense_category_name }}
                             </td>
                             <td class="p-3 text-right font-mono font-bold text-slate-900">
                                 ₹ {{ number_format($siteExpense->net_amount, 2) }}

@@ -17,10 +17,19 @@ class SiteExpenseCategory extends Model
     protected $fillable = [
         'category_code',
         'category_name',
+        'chart_of_account_id',
         'project_id',
         'description',
         'status',
     ];
+
+    /**
+     * Relationship: SiteExpenseCategory belongs to a parent Chart of Account (COA).
+     */
+    public function chartOfAccount(): BelongsTo
+    {
+        return $this->belongsTo(ChartOfAccount::class, 'chart_of_account_id');
+    }
 
     /**
      * Relationship: SiteExpenseCategory belongs to a Project (optional).

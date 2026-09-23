@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SiteExpenseCategory;
 use App\Models\Project;
+use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -25,11 +26,54 @@ class SiteExpenseCategoryController extends Controller
                 $table->id();
                 $table->string('category_code', 50)->nullable();
                 $table->string('category_name', 255);
+                $table->foreignId('chart_of_account_id')->nullable()->constrained('chart_of_accounts')->nullOnDelete();
                 $table->foreignId('project_id')->nullable()->constrained('projects')->nullOnDelete();
                 $table->text('description')->nullable();
                 $table->string('status', 20)->default('active');
                 $table->timestamps();
             });
+        } elseif (!Schema::hasColumn('site_expense_categories', 'chart_of_account_id')) {
+            Schema::table('site_expense_categories', function (Blueprint $table) {
+                $table->foreignId('chart_of_account_id')->nullable()->after('category_name')->constrained('chart_of_accounts')->nullOnDelete();
+            });
+        }
+    }
+
+    /**
+     * Auto-map unmapped site expense categories to their respective parent COA accounts.
+     */
+    protected function autoMapCategories(): void
+    {
+        $coaAccounts = ChartOfAccount::where('account_type', 'EXPENSE')
+            ->whereIn('account_code', ['4003', '4004', '4005'])
+            ->get()
+            ->keyBy('account_code');
+
+        $matCoa = $coaAccounts->get('4003'); // Constructor Material Expense
+        $admCoa = $coaAccounts->get('4004'); // Site Office & Administrative
+        $eqpCoa = $coaAccounts->get('4005'); // Machinery & Heavy Equipment Rental
+
+        if (!$matCoa && !$admCoa && !$eqpCoa) {
+            return;
+        }
+
+        $unmapped = SiteExpenseCategory::whereNull('chart_of_account_id')->get();
+        foreach ($unmapped as $cat) {
+            $haystack = strtolower(($cat->category_code ?? '') . ' ' . $cat->category_name);
+
+            if (preg_match('/material|cement|steel|sand|brick|aggregat|iron|paint|wood|timber|tile/i', $haystack)) {
+                if ($matCoa) {
+                    $cat->update(['chart_of_account_id' => $matCoa->id]);
+                }
+            } elseif (preg_match('/machine|machinery|equipment|diesel|fuel|generator|crane|jcb|rental|vehicle|transport|truck|power/i', $haystack)) {
+                if ($eqpCoa) {
+                    $cat->update(['chart_of_account_id' => $eqpCoa->id]);
+                }
+            } else {
+                if ($admCoa) {
+                    $cat->update(['chart_of_account_id' => $admCoa->id]);
+                }
+            }
         }
     }
 
@@ -39,14 +83,22 @@ class SiteExpenseCategoryController extends Controller
     public function index(Request $request): View
     {
         $this->ensureTableExists();
+        $this->autoMapCategories();
 
         $projects = Project::orderBy('name')->get();
+
+        // Fetch COA Expense Accounts for Parent Mapping (only 4003, 4004, 4005 Site Expenses)
+        $coaAccounts = ChartOfAccount::where('account_type', 'EXPENSE')
+            ->where('is_active', true)
+            ->whereIn('account_code', ['4003', '4004', '4005'])
+            ->orderBy('account_code')
+            ->get();
 
         $selectedProjectId = $request->input('project_id', '');
         $selectedStatus = $request->input('status', 'All');
         $search = $request->input('search', '');
 
-        $query = SiteExpenseCategory::with('project');
+        $query = SiteExpenseCategory::with(['project', 'chartOfAccount']);
 
         if ($selectedProjectId !== '' && $selectedProjectId !== null && $selectedProjectId !== 'All') {
             $query->where('project_id', $selectedProjectId);
@@ -60,6 +112,10 @@ class SiteExpenseCategoryController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('category_name', 'like', "%{$search}%")
                   ->orWhere('category_code', 'like', "%{$search}%")
+                  ->orWhereHas('chartOfAccount', function ($coaQuery) use ($search) {
+                      $coaQuery->where('account_name', 'like', "%{$search}%")
+                               ->orWhere('account_code', 'like', "%{$search}%");
+                  })
                   ->orWhereHas('project', function ($pQuery) use ($search) {
                       $pQuery->where('name', 'like', "%{$search}%");
                   });
@@ -70,15 +126,18 @@ class SiteExpenseCategoryController extends Controller
 
         $categoriesArray = $categories->map(function ($c) {
             return [
-                'id'            => $c->id,
-                'category_code' => $c->category_code ?? '',
-                'category_name' => $c->category_name,
-                'category'      => $c->category_name, // compatibility alias
-                'project_id'    => (string)($c->project_id ?? ''),
-                'project_name'  => $c->project->name ?? 'Unassigned (Global)',
-                'description'   => $c->description ?? '',
-                'status'        => $c->status ?? 'active',
-                'created_at'    => $c->created_at ? $c->created_at->format('d-M-Y H:i') : '—',
+                'id'                  => $c->id,
+                'category_code'       => $c->category_code ?? '',
+                'category_name'       => $c->category_name,
+                'category'            => $c->category_name, // compatibility alias
+                'chart_of_account_id' => (string)($c->chart_of_account_id ?? ''),
+                'coa_code'            => $c->chartOfAccount->account_code ?? '',
+                'coa_name'            => $c->chartOfAccount->account_name ?? '',
+                'project_id'          => (string)($c->project_id ?? ''),
+                'project_name'        => $c->project->name ?? 'Unassigned (Global)',
+                'description'         => $c->description ?? '',
+                'status'              => $c->status ?? 'active',
+                'created_at'          => $c->created_at ? $c->created_at->format('d-M-Y H:i') : '—',
             ];
         })->values();
 
@@ -93,6 +152,7 @@ class SiteExpenseCategoryController extends Controller
             'categories',
             'categoriesArray',
             'projects',
+            'coaAccounts',
             'selectedProjectId',
             'selectedStatus',
             'search',
@@ -111,16 +171,25 @@ class SiteExpenseCategoryController extends Controller
     {
         $this->ensureTableExists();
 
+        if ($request->input('chart_of_account_id') === '') {
+            $request->merge(['chart_of_account_id' => null]);
+        }
+
         $validated = $request->validate([
-            'category_code' => 'nullable|string|max:50',
-            'category_name' => 'required|string|max:255',
-            'project_id'    => 'nullable|exists:projects,id',
-            'description'   => 'nullable|string|max:1000',
-            'status'        => 'nullable|string|in:active,inactive',
+            'category_code'       => 'nullable|string|max:50',
+            'category_name'       => 'required|string|max:255',
+            'chart_of_account_id' => 'nullable|exists:chart_of_accounts,id',
+            'project_id'          => 'nullable|exists:projects,id',
+            'description'         => 'nullable|string|max:1000',
+            'status'              => 'nullable|string|in:active,inactive',
         ]);
 
         if (empty($validated['status'])) {
             $validated['status'] = 'active';
+        }
+
+        if (empty($validated['category_code'])) {
+            $validated['category_code'] = null;
         }
 
         $newCategory = SiteExpenseCategory::create($validated);
@@ -134,13 +203,24 @@ class SiteExpenseCategoryController extends Controller
      */
     public function update(Request $request, SiteExpenseCategory $siteExpenseCategory): RedirectResponse
     {
+        $this->ensureTableExists();
+
+        if ($request->input('chart_of_account_id') === '') {
+            $request->merge(['chart_of_account_id' => null]);
+        }
+
         $validated = $request->validate([
-            'category_code' => 'nullable|string|max:50',
-            'category_name' => 'required|string|max:255',
-            'project_id'    => 'nullable|exists:projects,id',
-            'description'   => 'nullable|string|max:1000',
-            'status'        => 'required|string|in:active,inactive',
+            'category_code'       => 'nullable|string|max:50',
+            'category_name'       => 'required|string|max:255',
+            'chart_of_account_id' => 'nullable|exists:chart_of_accounts,id',
+            'project_id'          => 'nullable|exists:projects,id',
+            'description'         => 'nullable|string|max:1000',
+            'status'              => 'required|string|in:active,inactive',
         ]);
+
+        if (empty($validated['category_code'])) {
+            $validated['category_code'] = $siteExpenseCategory->category_code;
+        }
 
         $siteExpenseCategory->update($validated);
 

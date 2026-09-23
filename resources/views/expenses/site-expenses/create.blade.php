@@ -23,6 +23,7 @@
     igstPct: 0,
     paymentSourceType: '{{ old('payment_source_type', 'bank') }}',
     bankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '') }}',
+    bankAccountsData: {{ json_encode($bankAccounts->keyBy('id')) }},
     loanId: '{{ old('loan_id', $loans->first()?->id ?? '') }}',
     paymentMode: 'Bank Transfer',
     transactionRef: 'UTR123456789',
@@ -41,6 +42,13 @@
             return p ? p.name : 'Kerala Earthmovers';
         }
         return this.casualPayeeName || 'Local JCB Owner - Rajesh';
+    },
+
+    get selectedBankAccount() {
+        if (this.bankAccountId && this.bankAccountsData && this.bankAccountsData[this.bankAccountId]) {
+            return this.bankAccountsData[this.bankAccountId];
+        }
+        return null;
     },
 
     get cgstAmount() {
@@ -319,7 +327,7 @@
                         <select x-model="expenseCategoryCode" class="w-full text-xs font-semibold rounded-xl border-slate-300 bg-slate-50 py-2.5 px-3 focus:ring-2 focus:ring-blue-500 focus:bg-white text-slate-800" required>
                             @foreach($expenseCategories as $code => $name)
                                 <option value="{{ $code }}">
-                                    {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
+                                    {{ $name }}
                                 </option>
                             @endforeach
                         </select>
@@ -395,6 +403,14 @@
                                     <option value="2">Karnataka Bank - A/c 1001 (Operational)</option>
                                 @endif
                             </select>
+
+                            {{-- Available Balance pill exactly matching payment-release style --}}
+                            <template x-if="selectedBankAccount">
+                                <div class="mt-1 flex items-center justify-between px-2.5 py-1 bg-blue-50/80 border border-blue-200/80 rounded-xl">
+                                    <span class="text-[11px] font-bold text-blue-900">Available Balance:</span>
+                                    <span class="font-mono font-black text-xs sm:text-sm text-blue-950" x-text="'₹ ' + Number(selectedBankAccount?.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
+                                </div>
+                            </template>
                         </div>
 
                         <div>

@@ -109,6 +109,7 @@
     expenseCategoryCode: '{{ old('expense_category_code', '') }}',
     paymentSourceType: 'bank',
     companyBankAccountId: '{{ old('company_bank_account_id', $bankAccounts->first()?->id ?? '1') }}',
+    bankAccountsData: {{ json_encode($bankAccounts->keyBy('id')) }},
     payeeId: '{{ old('payee_id', $payees->first()?->id ?? '') }}',
     payeesData: {{ json_encode($payees->keyBy('id')) }},
     vendorId: '{{ old('vendor_id', $vendors->first()?->id ?? '') }}',
@@ -250,6 +251,12 @@
     get selectedVendor() {
         if (this.payeeType === 'registered' && this.vendorId && this.vendorsData && this.vendorsData[this.vendorId]) {
             return this.vendorsData[this.vendorId];
+        }
+        return null;
+    },
+    get selectedBankAccount() {
+        if (this.companyBankAccountId && this.bankAccountsData && this.bankAccountsData[this.companyBankAccountId]) {
+            return this.bankAccountsData[this.companyBankAccountId];
         }
         return null;
     },
@@ -585,16 +592,16 @@
                 <table class="w-full text-left text-slate-800 border-collapse">
                     <thead class="bg-[#a38c29] text-white font-black uppercase tracking-widest text-[10px] border-b border-[#a38c29]">
                         <tr>
-                            <th class="py-3.5 px-4 text-white">Voucher No.</th>
-                            <th class="py-3.5 px-4 text-white">Date</th>
+                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Voucher No.</th>
+                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Date</th>
                             <th class="py-3.5 px-4 text-white">Project</th>
                             <th class="py-3.5 px-4 text-white">Expense Category</th>
                             <th class="py-3.5 px-4 text-white">Payee / Vendor</th>
-                            <th class="py-3.5 px-4 text-right text-white">Amount (₹)</th>
+                            <th class="py-3.5 px-4 text-right text-white whitespace-nowrap">Amount (₹)</th>
                             <th class="py-3.5 px-4 text-white">Payment Source</th>
-                            <th class="py-3.5 px-4 text-white">Payment Mode</th>
+                            <th class="py-3.5 px-4 text-white whitespace-nowrap">Payment Mode</th>
                             <th class="py-3.5 px-4 text-white whitespace-nowrap">Status</th>
-                            <th class="py-3.5 px-4 text-center text-white uppercase">Actions</th>
+                            <th class="py-3.5 px-4 text-center text-white uppercase whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 text-xs font-medium">
@@ -607,10 +614,10 @@
                                 data-payment-source="{{ $expense->company_bank_account_id }}"
                                 data-payment-mode="{{ strtolower($expense->payment_mode ?? 'bank transfer') }}"
                                 data-search="{{ strtolower($expense->voucher_number . ' ' . $expense->payee_display_name . ' ' . ($expense->project?->name ?? '') . ' ' . $expense->expense_category_name . ' ' . ($expense->transaction_reference_no ?? '') . ' ' . ($expense->payment_source_display_name ?? '')) }}">
-                                <td class="py-3 px-4 font-mono font-bold text-[#a38c29] text-[11px]">
+                                <td class="py-3 px-4 font-mono font-bold text-[#a38c29] text-[11px] whitespace-nowrap">
                                     {{ $expense->voucher_number }}
                                 </td>
-                                <td class="py-3 px-4 text-slate-600 font-mono text-[11px]">
+                                <td class="py-3 px-4 text-slate-600 font-mono text-[11px] whitespace-nowrap">
                                     {{ \Carbon\Carbon::parse($expense->voucher_date)->format('d/m/Y') }}
                                 </td>
                                 <td class="py-3 px-4 font-bold text-slate-900">
@@ -622,13 +629,13 @@
                                 <td class="py-3 px-4 text-slate-800 font-bold">
                                     {{ $expense->payee_display_name }}
                                 </td>
-                                <td class="py-3 px-4 text-right font-mono font-black text-slate-950">
-                                    ₹ {{ number_format($expense->net_amount, 0) }}
+                                <td class="py-3 px-4 text-right font-mono font-black text-slate-950 whitespace-nowrap">
+                                    ₹&nbsp;{{ number_format($expense->net_amount, 0) }}
                                 </td>
                                 <td class="py-3 px-4 text-slate-600">
                                     {{ $expense->payment_source_display_name }}
                                 </td>
-                                <td class="py-3 px-4 text-slate-600">
+                                <td class="py-3 px-4 text-slate-600 whitespace-nowrap">
                                     {{ $expense->payment_mode ?? 'Bank Transfer' }}
                                 </td>
                                 <td class="py-3 px-4 whitespace-nowrap">
@@ -673,7 +680,7 @@
                                                     raw_payee_type: '{{ $expense->payee_type ?? 'registered' }}',
                                                     casual_payee_name: '{{ addslashes($expense->casual_payee_name ?? '') }}',
                                                     expense_category_code: '{{ $expense->expense_category_code ?? '4020' }}',
-                                                    category_name: '{{ addslashes($expense->expense_category_code . ' - ' . $expense->expense_category_name) }}',
+                                                    category_name: '{{ addslashes($expense->expense_category_name) }}',
                                                     payment_source: '{{ addslashes($expense->payment_source_display_name) }}',
                                                     payment_source_type: '{{ $expense->payment_source_type ?? 'bank' }}',
                                                     company_bank_account_id: '{{ $expense->company_bank_account_id ?? '' }}',
@@ -871,9 +878,9 @@
                             </div>
                             <span>1. Project Association & Expense Category</span>
                         </div>
-                        <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">COA 4000s Series</span>
-                    </div>
-
+                        <!-- <span class="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">COA 4000s Series</span>
+                    </div> -->
+</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-start">
                         {{-- Project Name (Wide col-6) --}}
                         <div class="lg:col-span-6">
@@ -900,7 +907,7 @@
                                 <option value="">-- Select Site Expense Category --</option>
                                 @foreach($expenseCategories as $code => $name)
                                     <option value="{{ $code }}" {{ old('expense_category_code') == $code ? 'selected' : '' }}>
-                                        {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
+                                        {{ $name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -929,6 +936,14 @@
                                     <option value="" disabled>No Company Bank Accounts found in Master</option>
                                 @endif
                             </select>
+
+                            {{-- Available Balance pill exactly matching payment-release style --}}
+                            <template x-if="selectedBankAccount">
+                                <div class="mt-1 flex items-center justify-between px-2.5 py-1 bg-blue-50/80 border border-blue-200/80 rounded-xl">
+                                    <span class="text-[11px] font-bold text-blue-900">Available Balance:</span>
+                                    <span class="font-mono font-black text-xs sm:text-sm text-blue-950" x-text="'₹ ' + Number(selectedBankAccount?.current_balance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})"></span>
+                                </div>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -1136,10 +1151,10 @@
 
             {{-- Executive Pinned Footer --}}
             <div class="px-6 py-4 bg-white border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-                <div class="text-xs text-slate-500 flex items-center gap-2">
+                <!-- <div class="text-xs text-slate-500 flex items-center gap-2">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
                     <span>Voucher will be auto-posted to Double-Entry General Ledger upon approval</span>
-                </div>
+                </div> -->
 
                 <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
                     <button type="button" @click="showCreateModal = false" class="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 rounded-lg transition uppercase tracking-wide cursor-pointer">
@@ -1244,7 +1259,7 @@
                                 </div>
                                 <div class="col-span-2">
                                     <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-0.5">Expense Category</span>
-                                    <span class="font-extrabold text-slate-900 block" x-text="selectedExpense?.category_name || '4003 - Agent Commission Expense'"></span>
+                                    <span class="font-extrabold text-slate-900 block" x-text="selectedExpense?.category_name || '-'"></span>
                                 </div>
                                 <div>
                                     <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-0.5">Payment Source Account</span>

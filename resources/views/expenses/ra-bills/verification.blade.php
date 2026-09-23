@@ -373,10 +373,7 @@
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#a38c29] text-white tracking-widest uppercase">Contractor RA Bills</span>
-                            <span class="text-[10px] font-bold text-slate-400">· New Progress Claim</span>
-                        </div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills · New Progress Claim</p>
                         <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Log New Contractor RA Progress Bill</h2>
                     </div>
                     <button type="button" @click="addModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
@@ -506,10 +503,7 @@
                 <div class="absolute -top-10 -right-10 w-40 h-40 bg-[#a38c29]/20 rounded-full blur-3xl pointer-events-none"></div>
                 <div class="relative z-10 flex items-center justify-between">
                     <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="px-2 py-0.5 rounded text-[9px] font-extrabold bg-[#a38c29] text-white tracking-widest uppercase">Contractor RA Bills</span>
-                            <span class="text-[10px] font-bold text-slate-400">· Final Verification</span>
-                        </div>
+                        <p class="text-[#a38c29] text-[10px] font-semibold uppercase tracking-widest mb-1">Contractor RA Bills · Final Verification</p>
                         <h2 class="text-base sm:text-lg font-extrabold text-white tracking-tight">Site Engineer Verification & Correction Sign-Off</h2>
                     </div>
                     <button type="button" @click="verifyModalOpen = false" class="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer">
@@ -1174,7 +1168,7 @@ function raBillVerification() {
                 <th width="155" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">RA BILL AMOUNT (₹)</th>
                 <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">CORRECTION / DEDUCTION (₹)</th>
                 <th width="155" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">AFTER CORRECTION (₹)</th>
-                <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
+                <th width="145" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL %</th>
                 <th width="175" bgcolor="#8a7522" style="background-color: #8a7522; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #6b5a19; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">NET RA PAYABLE (₹)</th>
                 <th width="125" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">DUE DATE</th>
                 <th width="125" bgcolor="#065f46" style="background-color: #065f46; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #044e39; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">VERIFIED DATE</th>
@@ -1269,7 +1263,7 @@ function raBillVerification() {
                 <th width="155" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">RA BILL AMOUNT (₹)</th>
                 <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">CORRECTION / DEDUCTION (₹)</th>
                 <th width="155" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 115pt;">AFTER CORRECTION (₹)</th>
-                <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL WORK (₹)</th>
+                <th width="145" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 110pt;">ADDITIONAL AMOUNT (₹)</th>
                 <th width="175" bgcolor="#0e7490" style="background-color: #0e7490; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 135pt;">NET RA PAYABLE (₹)</th>
                 <th width="125" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">DUE DATE</th>
                 <th width="125" bgcolor="#047857" style="background-color: #047857; color: #ffffff; font-weight: bold; font-size: 8.5pt; text-align: center; vertical-align: middle; border: 1px solid #475569; padding: 8px 4px; font-family: 'Calibri', 'Aptos', sans-serif; width: 95pt;">VERIFIED DATE</th>

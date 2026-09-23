@@ -9,24 +9,29 @@ function categoryMasterComponent() {
         search: '',
         filterProjectId: '',
         filterStatus: '',
-        addCategory: { category: '', project_id: '', status: 'active' },
-        viewCategory: { id: null, category: '', project_name: '', status: 'active', created_at: '' },
-        editCategory: { id: null, category: '', project_id: '', status: 'active' },
+        defaultProjectId: '{{ $projects->first()?->id ?? '' }}',
+        addCategory: { category: '', chart_of_account_id: '', project_id: '{{ $projects->first()?->id ?? '' }}', status: 'active' },
+        viewCategory: { id: null, category: '', chart_of_account_id: '', coa_code: '', coa_name: '', project_name: '', status: 'active', created_at: '' },
+        editCategory: { id: null, category: '', chart_of_account_id: '', project_id: '', status: 'active' },
         deleteCategory: { id: null, category: '' },
         categories: @json($categoriesArray),
         get filteredCategories() {
+
             return this.categories.filter(c => {
+
                 const searchLower = this.search.toLowerCase().trim();
                 const matchesSearch = !searchLower || 
                     (c.category && c.category.toLowerCase().includes(searchLower)) || 
-                    (c.project_name && c.project_name.toLowerCase().includes(searchLower));
+                    (c.project_name && c.project_name.toLowerCase().includes(searchLower)) ||
+                    (c.coa_code && c.coa_code.toLowerCase().includes(searchLower)) ||
+                    (c.coa_name && c.coa_name.toLowerCase().includes(searchLower));
                 const matchesProject = !this.filterProjectId || String(c.project_id) === String(this.filterProjectId);
                 const matchesStatus = !this.filterStatus || String(c.status).toLowerCase() === String(this.filterStatus).toLowerCase();
                 return matchesSearch && matchesProject && matchesStatus;
             });
         },
         initAdd() {
-            this.addCategory = { category: '', project_id: this.filterProjectId, status: 'active' };
+            this.addCategory = { category: '', chart_of_account_id: '', project_id: this.filterProjectId || this.defaultProjectId, status: 'active' };
             this.openAddModal = true;
         },
         resetFilters() {
@@ -39,7 +44,11 @@ function categoryMasterComponent() {
             this.openViewModal = true;
         },
         initEdit(cat) {
-            this.editCategory = { ...cat };
+            this.editCategory = { 
+                ...cat,
+                chart_of_account_id: cat.chart_of_account_id ? String(cat.chart_of_account_id) : '',
+                project_id: cat.project_id ? String(cat.project_id) : ''
+            };
             this.openEditModal = true;
         },
         initDelete(cat) {
@@ -110,6 +119,7 @@ function categoryMasterComponent() {
             <p class="text-[10px] text-gray-500 mt-1">Master Categories</p>
         </div>
 
+        
         <!-- Active Categories (Green) -->
         <div class="bg-white rounded-lg border border-gray-200 border-l-4 border-l-[#10b981] p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1 hover:border-[#10b981]/30">
             <p class="text-[11px] font-bold text-[#10b981] uppercase tracking-wider mb-1">Active Categories</p>
@@ -203,6 +213,7 @@ function categoryMasterComponent() {
                     <tr class="bg-[#a38c29] text-white border-b border-[#8a7522] text-[10px] font-black uppercase tracking-wider text-left">
                         <th class="px-4 py-3.5 w-16">SL.NO</th>
                         <th class="px-4 py-3.5">CATEGORY NAME</th>
+                        <th class="px-4 py-3.5">PARENT COA ACCOUNT</th>
                         <th class="px-4 py-3.5">PROJECT SCOPE</th>
                         <th class="px-4 py-3.5 text-center">STATUS</th>
                         <th class="px-4 py-3.5 text-right pr-4">ACTIONS</th>
@@ -213,6 +224,17 @@ function categoryMasterComponent() {
                         <tr class="hover:bg-slate-50 transition">
                             <td class="px-4 py-3.5 font-bold font-mono text-slate-700" x-text="index + 1"></td>
                             <td class="px-4 py-3.5 font-semibold text-slate-900" x-text="cat.category"></td>
+                            <td class="px-4 py-3.5 font-medium">
+                                <template x-if="cat.coa_code">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="px-2 py-0.5 bg-[#a38c29]/10 text-[#a38c29] border border-[#a38c29]/30 rounded font-mono font-bold text-[11px]" x-text="cat.coa_code"></span>
+                                        <span class="text-slate-800 font-semibold text-[11px]" x-text="cat.coa_name"></span>
+                                    </div>
+                                </template>
+                                <template x-if="!cat.coa_code">
+                                    <span class="text-slate-400 italic text-[11px]">Not Mapped</span>
+                                </template>
+                            </td>
                             <td class="px-4 py-3.5 font-medium text-slate-800">
                                 <template x-if="cat.project_name && cat.project_name !== 'Unassigned (Global)'">
                                     <span class="px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-md font-bold text-[11px]" x-text="cat.project_name"></span>
@@ -241,7 +263,7 @@ function categoryMasterComponent() {
                         </tr>
                     </template>
                     <tr x-show="filteredCategories.length === 0">
-                        <td colspan="5" class="px-4 py-8 text-center text-slate-400 font-medium">
+                        <td colspan="6" class="px-4 py-8 text-center text-slate-400 font-medium">
                             No Categories found matching your filter criteria.
                         </td>
                     </tr>
@@ -274,6 +296,18 @@ function categoryMasterComponent() {
                 <div class="flex justify-between border-b border-slate-100 pb-2.5">
                     <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">CATEGORY NAME</span>
                     <span class="font-bold text-slate-900" x-text="viewCategory.category"></span>
+                </div>
+                <div class="flex justify-between border-b border-slate-100 pb-2.5">
+                    <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">PARENT COA MAPPING</span>
+                    <template x-if="viewCategory.coa_code">
+                        <div class="text-right">
+                            <span class="font-bold font-mono text-[#a38c29]" x-text="viewCategory.coa_code"></span>
+                            <span class="text-slate-700 font-semibold ml-1.5" x-text="viewCategory.coa_name"></span>
+                        </div>
+                    </template>
+                    <template x-if="!viewCategory.coa_code">
+                        <span class="text-slate-400 italic">Not Mapped</span>
+                    </template>
                 </div>
                 <div class="flex justify-between border-b border-slate-100 pb-2.5">
                     <span class="text-slate-500 font-bold uppercase tracking-wider text-[10px]">PROJECT SCOPE</span>
@@ -314,6 +348,22 @@ function categoryMasterComponent() {
 
             <form action="{{ route('categories.store') }}" method="POST" class="p-6 space-y-4 text-xs">
                 @csrf
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping)</label>
+                    <div class="relative">
+                        <select name="chart_of_account_id" x-model="addCategory.chart_of_account_id"
+                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                            <option value="">-- Select Parent COA Account --</option>
+                            @foreach($coaAccounts as $coa)
+                                <option value="{{ $coa->id }}">{{ $coa->account_code }} &mdash; {{ $coa->account_name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>
@@ -371,6 +421,22 @@ function categoryMasterComponent() {
             <form :action="'{{ url('/categories') }}/' + editCategory.id" method="POST" class="p-6 space-y-4 text-xs">
                 @csrf
                 <input type="hidden" name="_method" value="PUT">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Parent COA Account (COA Mapping)</label>
+                    <div class="relative">
+                        <select name="chart_of_account_id" x-model="editCategory.chart_of_account_id"
+                                class="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-300 focus:border-[#a38c29] focus:ring-2 focus:ring-[#a38c29]/20 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 outline-none transition cursor-pointer shadow-2xs appearance-none pr-8">
+                            <option value="">-- Select Parent COA Account --</option>
+                            @foreach($coaAccounts as $coa)
+                                <option value="{{ $coa->id }}">{{ $coa->account_code }} &mdash; {{ $coa->account_name }}</option>
+                            @endforeach
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                </div>
 
                 <div>
                     <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Category Name <span class="text-rose-500">*</span></label>

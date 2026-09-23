@@ -6,24 +6,64 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Project;
+use App\Models\ChartOfAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
 
 class CategoryController extends Controller
 {
+    /**
+     * Ensure the categories table exists and has the chart_of_account_id column.
+     */
+    protected function ensureTableExists(): void
+    {
+        if (!Schema::hasTable('categories')) {
+            Schema::create('categories', function (Blueprint $table) {
+                $table->id();
+                $table->string('category', 255);
+                $table->foreignId('chart_of_account_id')->nullable()->constrained('chart_of_accounts')->nullOnDelete();
+                $table->foreignId('project_id')->nullable()->constrained('projects')->nullOnDelete();
+                $table->string('status', 20)->default('active');
+                $table->timestamps();
+            });
+        } elseif (!Schema::hasColumn('categories', 'chart_of_account_id')) {
+            Schema::table('categories', function (Blueprint $table) {
+                $table->foreignId('chart_of_account_id')->nullable()->after('category')->constrained('chart_of_accounts')->nullOnDelete();
+            });
+        }
+    }
+
     /**
      * Display a listing of categories.
      */
     public function index(Request $request): View
     {
+        $this->ensureTableExists();
+
         $projects = Project::orderBy('name')->get();
+
+        // Fetch the 3 Parent COA Expense Accounts (4003, 4004, 4005) like Site Expense Categories
+        $coaAccounts = ChartOfAccount::where('account_type', 'EXPENSE')
+            ->where('is_active', true)
+            ->whereIn('account_code', ['4003', '4004', '4005'])
+            ->orderBy('account_code')
+            ->get();
+
+        if ($coaAccounts->isEmpty()) {
+            $coaAccounts = ChartOfAccount::where('account_type', 'EXPENSE')
+                ->where('is_active', true)
+                ->orderBy('account_code')
+                ->get();
+        }
         
         $selectedProjectId = $request->input('project_id', '');
         $selectedStatus = $request->input('status', 'All');
         $search = $request->input('search', '');
 
-        $query = Category::with('project');
+        $query = Category::with(['project', 'chartOfAccount']);
 
         if ($selectedProjectId !== '' && $selectedProjectId !== null && $selectedProjectId !== 'All') {
             $query->where('project_id', $selectedProjectId);
@@ -38,6 +78,10 @@ class CategoryController extends Controller
                 $q->where('category', 'like', "%{$search}%")
                   ->orWhereHas('project', function ($pQuery) use ($search) {
                       $pQuery->where('name', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('chartOfAccount', function ($cQuery) use ($search) {
+                      $cQuery->where('account_code', 'like', "%{$search}%")
+                             ->orWhere('account_name', 'like', "%{$search}%");
                   });
             });
         }
@@ -46,12 +90,15 @@ class CategoryController extends Controller
 
         $categoriesArray = $categories->map(function ($c) {
             return [
-                'id'           => $c->id,
-                'category'     => $c->category,
-                'project_id'   => (string)($c->project_id ?? ''),
-                'project_name' => $c->project->name ?? 'Unassigned (Global)',
-                'status'       => $c->status ?? 'active',
-                'created_at'   => $c->created_at ? $c->created_at->format('d-M-Y H:i') : '—',
+                'id'                  => $c->id,
+                'category'            => $c->category,
+                'chart_of_account_id' => $c->chart_of_account_id ? (string)$c->chart_of_account_id : '',
+                'coa_code'            => $c->chartOfAccount->account_code ?? '',
+                'coa_name'            => $c->chartOfAccount->account_name ?? '',
+                'project_id'          => (string)($c->project_id ?? ''),
+                'project_name'        => $c->project->name ?? 'Unassigned (Global)',
+                'status'              => $c->status ?? 'active',
+                'created_at'          => $c->created_at ? $c->created_at->format('d-M-Y H:i') : '—',
             ];
         })->values();
 
@@ -66,6 +113,7 @@ class CategoryController extends Controller
             'categories',
             'categoriesArray',
             'projects',
+            'coaAccounts',
             'selectedProjectId',
             'selectedStatus',
             'search',
@@ -82,10 +130,13 @@ class CategoryController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $this->ensureTableExists();
+
         $validated = $request->validate([
-            'category'   => 'required|string|max:255',
-            'project_id' => 'nullable|exists:projects,id',
-            'status'     => 'nullable|string|in:active,inactive',
+            'category'            => 'required|string|max:255',
+            'chart_of_account_id' => 'nullable|exists:chart_of_accounts,id',
+            'project_id'          => 'nullable|exists:projects,id',
+            'status'              => 'nullable|string|in:active,inactive',
         ]);
 
         if (empty($validated['status'])) {
@@ -103,10 +154,13 @@ class CategoryController extends Controller
      */
     public function update(Request $request, Category $category): RedirectResponse
     {
+        $this->ensureTableExists();
+
         $validated = $request->validate([
-            'category'   => 'required|string|max:255',
-            'project_id' => 'nullable|exists:projects,id',
-            'status'     => 'required|string|in:active,inactive',
+            'category'            => 'required|string|max:255',
+            'chart_of_account_id' => 'nullable|exists:chart_of_accounts,id',
+            'project_id'          => 'nullable|exists:projects,id',
+            'status'              => 'required|string|in:active,inactive',
         ]);
 
         $category->update($validated);
@@ -137,3 +191,4 @@ class CategoryController extends Controller
         return back()->with('success', 'Category "' . $categoryName . '" deleted successfully.');
     }
 }
+

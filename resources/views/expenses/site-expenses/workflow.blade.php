@@ -251,7 +251,7 @@
                         <select name="expense_category_code" class="w-full text-xs rounded-lg border-slate-300 bg-slate-50 py-1.5 px-2.5 focus:ring-[#a38c29]" required>
                             @foreach($expenseCategories as $code => $name)
                                 <option value="{{ $code }}">
-                                    {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
+                                    {{ $name }}
                                 </option>
                             @endforeach
                         </select>
@@ -381,7 +381,7 @@
 
                         <div class="flex justify-between border-b border-slate-100 pb-1.5">
                             <span class="text-slate-500 font-medium">Category</span>
-                            <span class="font-semibold text-blue-900 text-right">{{ $activeExpense->expense_category_code }} - {{ $activeExpense->expense_category_name }}</span>
+                            <span class="font-semibold text-blue-900 text-right">{{ $activeExpense->expense_category_name }}</span>
                         </div>
 
                         <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 space-y-1">
@@ -984,7 +984,7 @@
                         <select name="expense_category_code" class="w-full text-xs rounded-xl border-slate-300 bg-slate-50 py-2 px-3 focus:ring-[#a38c29]" required>
                             @foreach($expenseCategories as $code => $name)
                                 <option value="{{ $code }}">
-                                    {{ !empty($code) && !str_starts_with((string)$code, 'SEC-') ? $code . ' - ' : '' }}{{ $name }}
+                                    {{ $name }}
                                 </option>
                             @endforeach
                         </select>
