@@ -11,42 +11,9 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <!-- Styles -->
+        <link rel="stylesheet" href="{{ asset('css/app.css') }}">
         <link rel="stylesheet" href="{{ asset('css/tabasco.css') }}">
-
-        <!-- Tailwind CDN & Lucide Icons -->
-        <script src="https://cdn.tailwindcss.com"></script>
-        <script>
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        fontFamily: {
-                            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                        },
-                        colors: {
-                            primary: {
-                                DEFAULT: '#a38c29',
-                                50:  '#fcfaf0',
-                                100: '#f6f1d2',
-                                200: '#eddfa3',
-                                300: '#e1c66c',
-                                400: '#d2a73c',
-                                500: '#bba12f',
-                                600: '#a38c29',
-                                700: '#7d6b20',
-                                800: '#574a16',
-                                900: '#322b0c',
-                                950: '#1b1706',
-                            },
-                            surface: {
-                                DEFAULT: '#FAF9F6',
-                                card:    '#FFFFFF',
-                                border:  '#E5E0D4',
-                            },
-                        }
-                    }
-                }
-            }
-        </script>
         <script src="https://unpkg.com/lucide@latest"></script>
 
         <style>
