@@ -13,7 +13,11 @@ return new class extends Migration
     {
         if (Schema::hasTable('site_expense_categories') && !Schema::hasColumn('site_expense_categories', 'chart_of_account_id')) {
             Schema::table('site_expense_categories', function (Blueprint $table) {
-                $table->foreignId('chart_of_account_id')->nullable()->after('category_name')->constrained('chart_of_accounts')->nullOnDelete();
+                $table->foreignId('chart_of_account_id')
+                      ->nullable()
+                      ->after('category_name')
+                      ->constrained('chart_of_accounts')
+                      ->nullOnDelete();
             });
         }
     }
