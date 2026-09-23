@@ -183,7 +183,7 @@ class TreasuryController extends Controller
             }
         }
 
-        // Outward Debits: Bank Cash Withdrawal (Contra Vouchers)
+        // Outward Debits: Bank Cash Withdrawal & Internal Transfers (Contra Vouchers)
         $allContraVouchers = \App\Models\Voucher::where('type', 'Contra')
             ->whereNotNull('company_bank_account_id')
             ->orderByDesc('date')
@@ -197,15 +197,22 @@ class TreasuryController extends Controller
             $amount = (float)(\App\Models\VoucherLine::where('voucher_id', $cv->id)->where('credit', '>', 0)->value('credit')
                      ?? \App\Models\VoucherLine::where('voucher_id', $cv->id)->sum('debit'));
 
+            $narrationLower = strtolower($cv->narration ?? '');
+            if (str_contains($narrationLower, 'bank transfer') || str_contains($narrationLower, 'inter-bank') || str_contains($narrationLower, 'internal transfer')) {
+                $contraTitle = 'Internal Contra Bank Transfer';
+            } else {
+                $contraTitle = 'Site Petty Cash Box (Bank Cash Withdrawal)';
+            }
+
             $contraTxn = [
                 'id' => 'contra_' . $cv->id,
                 'date' => $cvDate ? $cvDate->format('d/m/Y') : '—',
                 'raw_date' => $cvDate ? $cvDate->timestamp : 0,
                 'datetime_formatted' => $cvDate ? $cvDate->format('d M Y') : '—',
                 'voucher_no' => $cv->voucher_number,
-                'customer_name' => 'Site Petty Cash Box (Bank Cash Withdrawal)',
+                'customer_name' => $contraTitle,
                 'customer_phone' => '',
-                'narration' => 'Cash Withdrawal from Bank into Site Petty Cash Box',
+                'narration' => $cv->narration ?: 'Cash Withdrawal from Bank into Site Petty Cash Box',
                 'payment_mode' => 'CONTRA',
                 'cheque_no' => $cv->reference_no ?: '—',
                 'drawee_bank' => '—',
@@ -224,46 +231,65 @@ class TreasuryController extends Controller
             }
         }
 
-        // Outward Debits: Broker Payout Payment Vouchers
-        $allBrokerVouchers = \App\Models\Voucher::where('type', 'Payment')
+        // Outward Debits: Payment Vouchers (Bank Loan EMIs, Prepayments, Broker Commission, Partner Distributions, etc.)
+        $allPaymentVouchers = \App\Models\Voucher::where('type', 'Payment')
             ->whereNotNull('company_bank_account_id')
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->get();
 
-        foreach ($allBrokerVouchers as $bv) {
-            $acc = $bankAccounts->firstWhere('id', $bv->company_bank_account_id);
-            $bvDate = $bv->date ? Carbon::parse($bv->date) : Carbon::parse($bv->created_at);
+        foreach ($allPaymentVouchers as $pv) {
+            $acc = $bankAccounts->firstWhere('id', $pv->company_bank_account_id);
+            $pvDate = $pv->date ? Carbon::parse($pv->date) : Carbon::parse($pv->created_at);
 
-            $amount = (float)(\App\Models\VoucherLine::where('voucher_id', $bv->id)->where('credit', '>', 0)->value('credit')
-                     ?? \App\Models\VoucherLine::where('voucher_id', $bv->id)->sum('debit'));
+            $amount = (float)(\App\Models\VoucherLine::where('voucher_id', $pv->id)->where('credit', '>', 0)->value('credit')
+                     ?? \App\Models\VoucherLine::where('voucher_id', $pv->id)->sum('debit'));
 
-            $narrationText = $bv->narration ?: 'Broker Commission Payout';
+            $narrationLower = strtolower($pv->narration ?? '');
+            $vNoLower = strtolower($pv->voucher_number ?? '');
 
-            $brokerTxn = [
-                'id' => 'broker_payout_' . $bv->id,
-                'date' => $bvDate ? $bvDate->format('d/m/Y') : '—',
-                'raw_date' => $bvDate ? $bvDate->timestamp : 0,
-                'datetime_formatted' => $bvDate ? $bvDate->format('d M Y') : '—',
-                'voucher_no' => $bv->voucher_number,
-                'customer_name' => 'Broker Commission Payout',
+            // Dynamically classify the payment voucher
+            if (str_starts_with($vNoLower, 'pay-loan-payoff-') || str_contains($narrationLower, 'prepayment') || str_contains($narrationLower, 'foreclosure')) {
+                $customerName = str_contains($narrationLower, 'foreclosure') ? 'Bank Loan Foreclosure' : 'Bank Loan Prepayment';
+                $paymentMode = 'BANK TRANSFER';
+            } elseif (str_starts_with($vNoLower, 'pay-loan-') || str_contains($narrationLower, 'bank loan') || str_contains($narrationLower, 'loan emi')) {
+                $customerName = 'Bank Loan EMI Repayment';
+                $paymentMode = 'BANK TRANSFER';
+            } elseif (str_starts_with($vNoLower, 'pv-broker-') || str_contains($narrationLower, 'broker')) {
+                $customerName = 'Broker Commission Payout';
+                $paymentMode = 'BANK TRANSFER';
+            } elseif (str_starts_with($vNoLower, 'pv-partner-') || str_contains($narrationLower, 'partner') || str_contains($narrationLower, 'allocation')) {
+                $customerName = 'Partner Profit Distribution';
+                $paymentMode = 'BANK TRANSFER';
+            } else {
+                $customerName = $pv->narration ? \Illuminate\Support\Str::limit($pv->narration, 45) : 'Payment Voucher';
+                $paymentMode = 'BANK TRANSFER';
+            }
+
+            $paymentTxn = [
+                'id' => 'payment_v_' . $pv->id,
+                'date' => $pvDate ? $pvDate->format('d/m/Y') : '—',
+                'raw_date' => $pvDate ? $pvDate->timestamp : 0,
+                'datetime_formatted' => $pvDate ? $pvDate->format('d M Y') : '—',
+                'voucher_no' => $pv->voucher_number,
+                'customer_name' => $customerName,
                 'customer_phone' => '',
-                'narration' => $narrationText,
-                'payment_mode' => 'BANK TRANSFER',
-                'cheque_no' => $bv->reference_no ?: '—',
+                'narration' => $pv->narration ?: $customerName,
+                'payment_mode' => $paymentMode,
+                'cheque_no' => $pv->reference_no ?: '—',
                 'drawee_bank' => '—',
-                'bank_ref_no' => $bv->reference_no ?: $bv->voucher_number,
+                'bank_ref_no' => $pv->reference_no ?: $pv->voucher_number,
                 'bank_name' => $acc?->bank_name ?? 'Treasury',
-                'bank_account_id' => $bv->company_bank_account_id,
+                'bank_account_id' => $pv->company_bank_account_id,
                 'type' => 'Debit',
                 'amount' => $amount,
                 'balance' => (float)($acc?->current_balance ?? 0),
-                'remarks' => $narrationText
+                'remarks' => $pv->narration ?: $customerName
             ];
 
-            $allRecentTxns[] = $brokerTxn;
-            if ($bv->company_bank_account_id) {
-                $recentTransactions[$bv->company_bank_account_id][] = $brokerTxn;
+            $allRecentTxns[] = $paymentTxn;
+            if ($pv->company_bank_account_id) {
+                $recentTransactions[$pv->company_bank_account_id][] = $paymentTxn;
             }
         }
 

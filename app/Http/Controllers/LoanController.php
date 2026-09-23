@@ -611,19 +611,6 @@ class LoanController extends Controller
                 'new_outstanding' => $newOutstanding,
             ]);
 
-            // Create Payment Voucher
-            $voucherNumber = 'PAY-LOAN-PAYOFF-' . $loan->id . '-' . time();
-            $voucherType = $actionType === 'foreclosure' ? 'Foreclosure' : 'Prepayment';
-            $voucher = \App\Models\Voucher::create([
-                'system_id' => $systemId,
-                'voucher_number' => $voucherNumber,
-                'type' => 'Payment',
-                'date' => $prepaymentDate,
-                'narration' => 'Bank Loan ' . $voucherType . ' - ' . $loan->lender_name . ' (' . $loan->loan_account_no . ')',
-                'status' => 'Posted',
-                'created_by' => Auth::id() ?? 1,
-            ]);
-
             $totalCredit = $amount + $charges + $interestAdjustment;
 
             // Resolve Company Bank Account & Ledger Account
@@ -644,6 +631,23 @@ class LoanController extends Controller
                 $payingAccount = \App\Models\Account::find($bankAccountId);
                 $voucherBankAccountId = $payingAccount?->id ?? 1;
             }
+
+            // Create Payment Voucher
+            $voucherNumber = 'PAY-LOAN-PAYOFF-' . $loan->id . '-' . time();
+            $voucherType = $actionType === 'foreclosure' ? 'Foreclosure' : 'Prepayment';
+            $voucherData = [
+                'system_id'      => $systemId,
+                'voucher_number' => $voucherNumber,
+                'type'           => 'Payment',
+                'date'           => $prepaymentDate,
+                'narration'      => 'Bank Loan ' . $voucherType . ' - ' . $loan->lender_name . ' (' . $loan->loan_account_no . ')',
+                'status'         => 'Posted',
+                'created_by'     => Auth::id() ?? 1,
+            ];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('vouchers', 'company_bank_account_id')) {
+                $voucherData['company_bank_account_id'] = $companyBank?->id;
+            }
+            $voucher = \App\Models\Voucher::create($voucherData);
 
             // Credit Bank Account
             $bankLine = \App\Models\VoucherLine::create([

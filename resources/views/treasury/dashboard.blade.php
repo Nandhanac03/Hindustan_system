@@ -22,7 +22,15 @@
              const q = (this.customerSearch[bankId] || '').trim().toLowerCase();
 
              if (q) {
-                 list = list.filter(t => t.customer_name && t.customer_name.toLowerCase().includes(q));
+                 list = list.filter(t => 
+                     (t.customer_name && t.customer_name.toLowerCase().includes(q)) ||
+                     (t.narration && t.narration.toLowerCase().includes(q)) ||
+                     (t.voucher_no && t.voucher_no.toLowerCase().includes(q)) ||
+                     (t.remarks && t.remarks.toLowerCase().includes(q)) ||
+                     (t.payment_mode && t.payment_mode.toLowerCase().includes(q)) ||
+                     (t.bank_ref_no && t.bank_ref_no.toLowerCase().includes(q)) ||
+                     (t.cheque_no && t.cheque_no.toLowerCase().includes(q))
+                 );
              }
              return list;
          }
@@ -334,20 +342,20 @@
                                         @endif
                                         <span x-show="customerSearch[{{ $account->id }}]" 
                                               class="px-2 py-0.5 rounded-md bg-amber-50 text-[#8a7522] border border-amber-200 font-bold text-[10px]">
-                                            Filtered by Customer
+                                            Filtered Statement
                                         </span>
                                     </div>
 
-                                    {{-- Customer Search Control (Client-Side / No Reload) --}}
+                                    {{-- Statement Search Control (Client-Side / No Reload) --}}
                                     <div class="flex items-center gap-2">
-                                        {{-- Search by Customer Input --}}
-                                        <div class="relative w-full sm:w-72">
+                                        {{-- Search Input --}}
+                                        <div class="relative w-full sm:w-80">
                                             <svg class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                             </svg>
                                             <input type="text"
                                                    x-model="customerSearch[{{ $account->id }}]"
-                                                   placeholder="Search by customer..."
+                                                   placeholder="Search by loan, customer, narration, voucher..."
                                                    class="w-full pl-8 pr-7 py-1.5 bg-slate-50 border border-slate-200 focus:border-[#a38c29] focus:bg-white focus:ring-2 focus:ring-[#a38c29]/10 rounded-xl text-xs focus:outline-none transition placeholder:text-slate-400 font-medium">
                                             <button type="button" 
                                                     x-show="customerSearch[{{ $account->id }}]" 
@@ -361,7 +369,7 @@
                                                 x-show="customerSearch[{{ $account->id }}]"
                                                 @click="customerSearch[{{ $account->id }}] = ''"
                                                 class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition shadow-2xs"
-                                                title="Reset Customer Filter">
+                                                title="Reset Filter">
                                             ✕ Reset
                                         </button>
                                     </div>
