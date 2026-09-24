@@ -209,24 +209,24 @@
             </div>
 
             <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 font-semibold">
-                <div>
-                    Showing <span x-text="filteredContributions.length > 0 ? ((currentPage - 1) * perPage + 1) : 0"></span> to <span x-text="Math.min(currentPage * perPage, filteredContributions.length)"></span> of <span x-text="filteredContributions.length"></span> contributions
+                <div class="text-[11px] font-black uppercase text-slate-500 tracking-wider">
+                    SHOWING <span x-text="filteredContributions.length > 0 ? ((currentPage - 1) * perPage + 1) : 0"></span> TO <span x-text="Math.min(currentPage * perPage, filteredContributions.length)"></span> OF <span x-text="filteredContributions.length"></span> CONTRIBUTIONS
                 </div>
 
-                {{-- Interactive Pagination Controls --}}
-                <div class="flex items-center gap-1.5" x-show="totalPages > 1">
+                {{-- Interactive Pagination Controls (Always Visible) --}}
+                <div class="flex items-center gap-1.5">
                     <button type="button" 
                             @click="prevPage()" 
                             :disabled="currentPage === 1" 
-                            :class="currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer'"
-                            class="px-3 py-1 bg-white text-slate-600 border border-slate-250 rounded-lg text-xs font-bold uppercase tracking-wider transition">
+                            :class="currentPage === 1 ? 'opacity-60 cursor-not-allowed text-slate-400 bg-white' : 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer text-slate-700 bg-white'"
+                            class="px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wider transition shadow-2xs">
                         PREV
                     </button>
 
                     <template x-for="p in totalPages" :key="p">
                         <button type="button" 
                                 @click="goToPage(p)" 
-                                :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-2xs font-extrabold' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 font-bold'"
+                                :class="currentPage === p ? 'bg-[#a38c29] text-white shadow-2xs font-black' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200 font-bold'"
                                 class="px-3 py-1 rounded-lg text-xs transition cursor-pointer" 
                                 x-text="p">
                         </button>
@@ -235,12 +235,12 @@
                     <button type="button" 
                             @click="nextPage()" 
                             :disabled="currentPage === totalPages" 
-                            :class="currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer'"
-                            class="px-3 py-1 bg-white text-slate-600 border border-slate-250 rounded-lg text-xs font-bold uppercase tracking-wider transition">
+                            :class="currentPage === totalPages ? 'opacity-60 cursor-not-allowed text-slate-400 bg-white' : 'hover:bg-slate-200 hover:text-slate-800 cursor-pointer text-slate-700 bg-white'"
+                            class="px-3 py-1 border border-slate-200 rounded-lg text-xs font-bold uppercase tracking-wider transition shadow-2xs">
                         NEXT
                     </button>
+                </div>
             </div>
-        </div>
         </div>
 
         {{-- ── ADD PARTNER CONTRIBUTION MODAL ── --}}
