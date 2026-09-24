@@ -370,6 +370,12 @@ Route::middleware(['auth', 'system.active'])->group(function () {
     Route::post('/partners/{partner}/payout', [\App\Http\Controllers\PartnerController::class, 'recordPayout'])->name('partners.payout');
     Route::match(['get', 'post', 'delete'], '/partners/{partner}', [\App\Http\Controllers\PartnerController::class, 'destroy'])->name('partners.destroy');
 
+    // Partner Contribution
+    Route::get('/partner-contributions', [\App\Http\Controllers\PartnerContributionController::class, 'index'])->name('partner-contributions.index');
+    Route::post('/partner-contributions', [\App\Http\Controllers\PartnerContributionController::class, 'store'])->name('partner-contributions.store');
+    Route::delete('/partner-contributions/{contribution}', [\App\Http\Controllers\PartnerContributionController::class, 'destroy'])->name('partner-contributions.destroy');
+
+
     // Brokerage & Commission Management
     Route::get('/brokers', [\App\Http\Controllers\BrokerController::class, 'index'])->name('brokers.index');
     Route::get('/brokers/commission-ledger', [\App\Http\Controllers\BrokerController::class, 'commissionLedger'])->name('brokers.commission-ledger');
